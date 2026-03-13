@@ -38,8 +38,8 @@ export default defineConfig({
     port: 3013,
     ...(useHttps && {
       https: {
-        key: fs.readFileSync('./certs/local.vrittiai.com+4-key.pem'),
-        cert: fs.readFileSync('./certs/local.vrittiai.com+4.pem'),
+        key: fs.readFileSync('../../certs/_wildcard.local.vrittiai.com+4-key.pem'),
+        cert: fs.readFileSync('../../certs/_wildcard.local.vrittiai.com+4.pem'),
       },
     }),
     proxy: {
