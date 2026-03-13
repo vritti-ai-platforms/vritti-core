@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=\"$CLAUDE_FILE_PATH\"; if [[ \"$FILE\" == *.ts && \"$FILE\" != *.docs.ts && \"$FILE\" != *.dto.ts ]] && grep -nE '^\\s*/\\*\\*' \"$FILE\" 2>/dev/null | grep -vE '@deprecated' | head -1 | grep -q '.'; then echo '⚠️  WARNING: Use // comments, not /** */ JSDoc style. Only /** @deprecated */ is allowed.' >&2; fi; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

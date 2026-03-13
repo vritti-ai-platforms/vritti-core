@@ -1,0 +1,17 @@
+{
+  "name": "core-server-e2e",
+  "private": true,
+  "scripts": {
+    "e2e": "jest --config jest.config.ts"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.0.1",
+    "@types/jest": "^30.0.0",
+    "@swc/jest": "^0.2.39",
+    "jest": "^30.0.0",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

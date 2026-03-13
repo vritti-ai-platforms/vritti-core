@@ -1,0 +1,38 @@
+{
+  "name": "vritti-core",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nx run-many --target=dev --projects=vritti-core-server,vritti-core-web --parallel --output-style=stream",
+    "dev:server": "nx run vritti-core-server:dev",
+    "dev:web": "nx run vritti-core-web:dev",
+    "dev:ssl": "nx run-many --target=dev:ssl --projects=vritti-core-server,vritti-core-web --parallel --output-style=stream",
+    "dev:ssl:server": "nx run vritti-core-server:dev:ssl",
+    "dev:ssl:web": "nx run vritti-core-web:dev:ssl",
+    "build": "nx run-many --target=build --all",
+    "lint": "nx run-many --target=lint --all",
+    "test": "nx run-many --target=test --all",
+    "test:e2e": "nx run-many --target=e2e --all",
+    "check": "nx run-many --target=check --all",
+    "graph": "nx graph",
+    "release": "nx release",
+    "db:generate": "nx run vritti-core-server:db:generate",
+    "db:push": "nx run vritti-core-server:db:push",
+    "db:migrate": "nx run vritti-core-server:db:migrate",
+    "db:studio": "nx run vritti-core-server:db:studio",
+    "db:reset": "nx run vritti-core-server:db:reset",
+    "db:drop": "nx run vritti-core-server:db:drop",
+    "db:start": "nx run vritti-core-server:db:start",
+    "db:stop": "nx run vritti-core-server:db:stop",
+    "db:generate:w": "nx run vritti-core-server:db:generate:w",
+    "db:push:w": "nx run vritti-core-server:db:push:w",
+    "db:migrate:w": "nx run vritti-core-server:db:migrate:w",
+    "db:studio:w": "nx run vritti-core-server:db:studio:w",
+    "db:reset:w": "nx run vritti-core-server:db:reset:w"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.2",
+    "@nx/js": "^20.8.4",
+    "nx": "^20.0.0"
+  }
+}

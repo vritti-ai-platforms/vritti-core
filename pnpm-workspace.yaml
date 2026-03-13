@@ -1,0 +1,18 @@
+packages:
+  - apps/*
+  - e2e/*
+
+onlyBuiltDependencies:
+  - '@compodoc/compodoc'
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - bcrypt
+  - core-js
+  - esbuild
+  - nx
+  - unrs-resolver
+
+overrides:
+  '@vritti/api-sdk': link:../api-sdk
+  '@vritti/quantum-ui': link:../quantum-ui

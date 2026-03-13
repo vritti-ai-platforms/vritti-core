@@ -1,0 +1,30 @@
+/**
+ * @import - Import Tailwind CSS v4
+ * Core Tailwind utilities and directives
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/**
+ * @import - Import quantum-ui shared styles (color variables and PhoneInput overrides)
+ * This provides consistent theming across the application
+ */
+@import "@vritti/quantum-ui/index.css";
+
+@layer base {
+  * {
+    @apply border-border; /* border-color: var(--color-border); */
+  }
+  body {
+    @apply font-sans antialiased;
+    /* background-color: var(--color-background); color: var(--color-foreground); */
+    @apply bg-background text-foreground;
+  }
+}
+/**
+ * @source - Tell Tailwind which files to scan for utility classes
+ * Scans app source files and quantum-ui components to generate utilities
+ * Note: Color variables come from @import, utilities come from @source scanning
+ */
+@source "../src/**/*.{js,ts,jsx,tsx}";
+@source "../node_modules/@vritti/quantum-ui/dist/**/*.js";

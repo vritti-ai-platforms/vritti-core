@@ -1,0 +1,24 @@
+# Local
+.DS_Store
+*.local
+*.log*
+
+.env
+
+# Dist
+node_modules
+dist/
+
+.yalc/
+yalc.lock
+
+# Profile
+.rspack-profile-*/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# SSL Certificates
+certs/

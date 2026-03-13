@@ -1,0 +1,1073 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns a welcome message indicating the API is running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Health check endpoint",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/csrf/token": {
+      "get": {
+        "description": "Generates and returns a CSRF token that must be included in all state-changing requests (POST, PUT, PATCH, DELETE). The token should be sent in the X-CSRF-Token header.",
+        "operationId": "CsrfController_getToken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CSRF token generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "csrfToken": {
+                      "type": "string",
+                      "description": "The CSRF token to use in subsequent requests",
+                      "example": "abc123xyz789"
+                    }
+                  },
+                  "required": [
+                    "csrfToken"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get CSRF token",
+        "tags": [
+          "CSRF"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Authenticates a nexus user with email and password. Returns an access token and sets a refresh token in an httpOnly cookie.",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Login successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          },
+          "401": {
+            "description": "Invalid credentials or account not active."
+          }
+        },
+        "summary": "User login",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Invalidates the current session and clears the refresh token cookie.",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successfully logged out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Logout current session",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/set-password": {
+      "post": {
+        "description": "Sets a password for a nexus user who was created via webhook. Requires a SET_PASSWORD session token. Invalidates the session on success — user must log in again.",
+        "operationId": "AuthController_setPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password set successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Password mismatch or password already set."
+          },
+          "401": {
+            "description": "Invalid or expired set-password session."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set password for first login",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/status": {
+      "get": {
+        "description": "Checks whether the user has an active session using the httpOnly refresh cookie. Never returns 401 — returns isAuthenticated: false instead.",
+        "operationId": "AuthController_getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Authentication status returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get authentication status",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/refresh-tokens": {
+      "post": {
+        "description": "Generates a new access token and rotates the refresh token using the httpOnly cookie. Sets the new refresh token in the cookie.",
+        "operationId": "AuthController_refreshTokens",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Token refreshed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token."
+          }
+        },
+        "summary": "Refresh access token",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/access-token": {
+      "get": {
+        "description": "Recovers the session by reading the refresh token from the httpOnly cookie and returns a new access token. Does not rotate the refresh token.",
+        "operationId": "AuthController_getAccessToken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Session recovered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token."
+          }
+        },
+        "summary": "Recover session token",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "description": "Sends a 6-digit OTP to the email address if an account exists. Creates a RESET session and sets the refresh cookie. Always returns the same generic message to prevent email enumeration.",
+        "operationId": "ForgotPasswordController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reset email sent (or silently ignored).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgotPasswordResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          }
+        },
+        "summary": "Request password reset",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/resend-reset-otp": {
+      "post": {
+        "description": "Generates a new OTP and resends the reset email. Requires an active RESET session token. Rotates the refresh cookie.",
+        "operationId": "ForgotPasswordController_resendResetOtp",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OTP resent successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired RESET session."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resend password reset OTP",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/verify-reset-otp": {
+      "post": {
+        "description": "Verifies the 6-digit OTP submitted by the user. Requires an active RESET session. Marks the verification as complete, enabling the reset-password endpoint.",
+        "operationId": "ForgotPasswordController_verifyResetOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyResetOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP verified successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, expired, or too many attempts on OTP."
+          },
+          "401": {
+            "description": "Invalid or expired RESET session."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Verify password reset OTP",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "description": "Sets a new password after OTP has been verified. Requires an active RESET session. Invalidates all existing sessions, creates a new NEXUS session, and rotates the refresh cookie.",
+        "operationId": "ForgotPasswordController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "OTP not verified, reset window expired, or weak password."
+          },
+          "401": {
+            "description": "Invalid or expired RESET session."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reset password",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/users/webhook": {
+      "post": {
+        "description": "Receives a user creation event from cloud-server and upserts the user in the nexus database. Idempotent — safe to call multiple times for the same externalId.",
+        "operationId": "UserController_createFromWebhook",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created or updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          }
+        },
+        "summary": "Create or update user from webhook",
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "description": "Returns all users for the given organisation. Protected by webhook secret.",
+        "operationId": "UserController_getUsersByOrg",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "query",
+            "description": "Organisation ID",
+            "schema": {
+              "example": "uuid-here",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          }
+        },
+        "summary": "Get portal users by org",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/webhook/{id}": {
+      "patch": {
+        "description": "Updates a portal user role, status or name. Protected by webhook secret.",
+        "operationId": "UserController_updateFromWebhook",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "summary": "Update portal user",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/organizations/webhook": {
+      "post": {
+        "description": "Receives an organization creation event from cloud-server. Requires X-Webhook-Secret header for authentication.",
+        "operationId": "OrganizationController_createFromWebhook",
+        "parameters": [
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Organization created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          }
+        },
+        "summary": "Create organization from webhook",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Vritti API Nexus",
+    "description": "Internal API for Vritti Nexus Platform",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Health check endpoints"
+    },
+    {
+      "name": "CSRF",
+      "description": "CSRF token management"
+    },
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User management"
+    }
+  ],
+  "servers": [
+    {
+      "url": "https://local.vrittiai.com:3001",
+      "description": "Local Development"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Enter your JWT access token"
+      }
+    },
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "admin@example.com",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AuthUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "role",
+          "status",
+          "hasPassword",
+          "createdAt"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          },
+          "requiresSetPassword": {
+            "type": "boolean"
+          },
+          "isAuthenticated": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AuthUserDto"
+          }
+        }
+      },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Successfully logged out"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "SetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "New password (minimum 8 characters)",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "Confirm password — must match password",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "password",
+          "confirmPassword"
+        ]
+      },
+      "TokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expiresIn": {
+            "type": "number",
+            "example": 900
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresIn"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ForgotPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "VerifyResetOtpDto": {
+        "type": "object",
+        "properties": {
+          "otp": {
+            "type": "string",
+            "example": "123456"
+          }
+        },
+        "required": [
+          "otp"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "newPassword"
+        ]
+      },
+      "ResetPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "accessToken",
+          "expiresIn"
+        ]
+      },
+      "CreateUserWebhookDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Nexus organisation ID",
+            "example": "uuid-here"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "User full name",
+            "example": "Jane Smith"
+          },
+          "role": {
+            "type": "string",
+            "description": "User role",
+            "example": "SUPPORT",
+            "enum": [
+              "SUPER_ADMIN",
+              "ADMIN",
+              "SUPPORT"
+            ]
+          }
+        },
+        "required": [
+          "orgId",
+          "email",
+          "fullName"
+        ]
+      },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "User unique identifier",
+            "example": "a1b2c3d4-..."
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organisation this user belongs to",
+            "example": "uuid-here"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "User full name",
+            "example": "Jane Smith"
+          },
+          "role": {
+            "type": "string",
+            "description": "User role",
+            "example": "SUPPORT",
+            "enum": [
+              "SUPER_ADMIN",
+              "ADMIN",
+              "SUPPORT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "Account status",
+            "example": "ACTIVE",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          },
+          "hasPassword": {
+            "type": "boolean",
+            "description": "Whether user has set a password",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Account creation timestamp",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "email",
+          "fullName",
+          "role",
+          "status",
+          "hasPassword",
+          "createdAt"
+        ]
+      },
+      "UpdateUserWebhookDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Jane Smith"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "SUPER_ADMIN",
+              "ADMIN",
+              "SUPPORT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          }
+        }
+      },
+      "CreateOrganizationWebhookDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Organization name",
+            "example": "Acme Corp"
+          },
+          "subdomain": {
+            "type": "string",
+            "description": "Organization subdomain",
+            "example": "acme-corp"
+          },
+          "size": {
+            "type": "string",
+            "description": "Organization size",
+            "enum": [
+              "0-10",
+              "10-20",
+              "20-50",
+              "50-100",
+              "100-500",
+              "500+"
+            ],
+            "example": "0-10"
+          },
+          "plan": {
+            "type": "string",
+            "description": "Subscription plan",
+            "enum": [
+              "free",
+              "pro",
+              "enterprise"
+            ],
+            "example": "free"
+          },
+          "industryId": {
+            "type": "number",
+            "description": "Industry ID",
+            "example": 1
+          },
+          "mediaId": {
+            "type": "number",
+            "description": "Media asset ID for the organization logo",
+            "example": 42
+          }
+        },
+        "required": [
+          "name",
+          "subdomain",
+          "size"
+        ]
+      },
+      "OrganizationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Organization unique identifier",
+            "example": "a1b2c3d4-..."
+          },
+          "name": {
+            "type": "string",
+            "description": "Organization name",
+            "example": "Acme Corp"
+          },
+          "subdomain": {
+            "type": "string",
+            "description": "Organization subdomain",
+            "example": "acme-corp"
+          },
+          "industryId": {
+            "type": "object",
+            "description": "Industry ID",
+            "example": 1,
+            "nullable": true
+          },
+          "size": {
+            "type": "string",
+            "description": "Organization size",
+            "enum": [
+              "0-10",
+              "10-20",
+              "20-50",
+              "50-100",
+              "100-500",
+              "500+"
+            ],
+            "example": "0-10"
+          },
+          "mediaId": {
+            "type": "object",
+            "description": "Media asset ID",
+            "example": 42,
+            "nullable": true
+          },
+          "plan": {
+            "type": "string",
+            "description": "Subscription plan",
+            "enum": [
+              "free",
+              "pro",
+              "enterprise"
+            ],
+            "example": "free"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Organization creation timestamp",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "subdomain",
+          "size",
+          "plan",
+          "createdAt"
+        ]
+      }
+    }
+  }
+}
