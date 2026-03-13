@@ -27,7 +27,7 @@
     "dev:ssl": { "cache": false }
   },
   "release": {
-    "projects": ["vritti-core-server", "vritti-core-web"],
+    "projects": ["vritti-core-server", "vritti-core-web", "vritti-core-app"],
     "projectsRelationship": "fixed",
     "version": {
       "conventionalCommits": true

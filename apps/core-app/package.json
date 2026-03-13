@@ -1,0 +1,27 @@
+{
+  "name": "vritti-core-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "react-native webpack-start",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "bundle:android": "react-native webpack-bundle --platform android --dev false --entry-file index.js --bundle-output ./build/index.android.bundle",
+    "bundle:ios": "react-native webpack-bundle --platform ios --dev false --entry-file index.js --bundle-output ./build/index.ios.bundle",
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "dependencies": {
+    "expo": "~55.0.6",
+    "expo-status-bar": "~55.0.4",
+    "react": "19.2.0",
+    "react-native": "0.83.2"
+  },
+  "devDependencies": {
+    "@callstack/repack": "^5.0.0",
+    "@module-federation/enhanced": "^0.8.0",
+    "@rspack/core": "*",
+    "typescript": "~5.8.3"
+  },
+  "private": true
+}
