@@ -1,15 +1,17 @@
 import { boolean, integer, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
-import { nexusSchema } from './nexus-schema';
+import { coreSchema } from './core-schema';
 import { users } from './users';
 
-export const verifications = nexusSchema.table('verifications', {
-  id:         uuid('id').primaryKey().defaultRandom(),
-  userId:     uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  otpHash:    text('otp_hash').notNull(),
-  attempts:   integer('attempts').notNull().default(0),
+export const verifications = coreSchema.table('verifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  otpHash: text('otp_hash').notNull(),
+  attempts: integer('attempts').notNull().default(0),
   isVerified: boolean('is_verified').notNull().default(false),
-  expiresAt:  timestamp('expires_at').notNull(),
-  createdAt:  timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
   verifiedAt: timestamp('verified_at'),
 });
 

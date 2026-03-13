@@ -1,9 +1,9 @@
 import { text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { coreSchema } from './core-schema';
 import { sessionTypeEnum } from './enums';
-import { nexusSchema } from './nexus-schema';
 import { users } from './users';
 
-export const sessions = nexusSchema.table('sessions', {
+export const sessions = coreSchema.table('sessions', {
   id:               uuid('id').primaryKey().defaultRandom(),
   userId:           uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   type:             sessionTypeEnum('type').notNull().default('NEXUS'),

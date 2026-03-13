@@ -1,8 +1,8 @@
 import { integer, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { coreSchema } from './core-schema';
 import { orgPlanEnum, orgSizeEnum } from './enums';
-import { nexusSchema } from './nexus-schema';
 
-export const organizations = nexusSchema.table('organizations', {
+export const organizations = coreSchema.table('organizations', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
   subdomain: varchar('subdomain', { length: 100 }).unique().notNull(),

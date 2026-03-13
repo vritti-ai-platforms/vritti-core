@@ -1,9 +1,9 @@
 import { boolean, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { coreSchema } from './core-schema';
 import { userRoleEnum, userStatusEnum } from './enums';
-import { nexusSchema } from './nexus-schema';
 import { organizations } from './organizations';
 
-export const users = nexusSchema.table('users', {
+export const users = coreSchema.table('users', {
   id:             uuid('id').primaryKey().defaultRandom(),
   organizationId: uuid('organization_id')
                     .notNull()
