@@ -12,6 +12,7 @@
     "dev:app": "nx run vritti-core-app:start",
     "app:android": "nx run vritti-core-app:android",
     "app:ios": "nx run vritti-core-app:ios",
+    "app:web": "nx run vritti-core-app:web",
     "bundle:android": "nx run vritti-core-app:bundle:android",
     "bundle:ios": "nx run vritti-core-app:bundle:ios",
     "build": "nx run-many --target=build --all",
