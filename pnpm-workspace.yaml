@@ -2,6 +2,8 @@ packages:
   - apps/*
   - e2e/*
 
+nodeLinker: hoisted
+
 onlyBuiltDependencies:
   - '@compodoc/compodoc'
   - '@nestjs/core'
