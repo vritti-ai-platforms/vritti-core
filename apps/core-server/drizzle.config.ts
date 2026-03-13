@@ -10,7 +10,7 @@ export default defineConfig({
   schema: './src/db/schema/index.ts',
   out: './src/db/migrations',
   dialect: 'postgresql',
-  schemaFilter: ['nexus'],
+  schemaFilter: ['vritti_core'],
   dbCredentials: {
     url: dbUrl,
   },
