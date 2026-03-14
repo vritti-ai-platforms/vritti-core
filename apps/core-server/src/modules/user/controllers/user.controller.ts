@@ -20,10 +20,10 @@ import {
   ApiResendInviteWebhook,
   ApiUpdateUserWebhook,
 } from '../docs/user.docs';
-import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { GetUsersWebhookDto } from '../dto/request/get-users-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
+import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 import { UserService } from '../services/user.service';
 
 @ApiTags('Users')
@@ -45,14 +45,14 @@ export class UserController {
     return this.userService.createFromWebhook(dto);
   }
 
-  // Returns all portal users for an organisation
+  // Returns paginated, filtered, and sorted portal users for an organisation
   @Get('webhook')
   @Public()
   @UseGuards(WebhookSecretGuard)
   @ApiGetUsersWebhook()
-  async getUsersByOrg(@Query() dto: GetUsersWebhookDto): Promise<UserDto[]> {
+  async getUsersByOrg(@Query() dto: GetUsersWebhookDto): Promise<UsersTableResponseDto> {
     this.logger.log(`GET /users/webhook?orgId=${dto.orgId}`);
-    return this.userService.getUsersByOrg(dto.orgId);
+    return this.userService.getUsersByOrg(dto);
   }
 
   // Updates a portal user's details

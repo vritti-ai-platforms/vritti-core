@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type NewUser, type User, users } from '@/db/schema';
 
 @Injectable()
@@ -48,5 +49,32 @@ export class UserRepository extends PrimaryBaseRepository<typeof users> {
     return this.model.findMany({
       where: { organizationId },
     });
+  }
+
+  // Finds paginated users with filtering, sorting, and search for table display
+  async findForTable(params: {
+    where: SQL | undefined;
+    orderBy: SQL;
+    limit: number;
+    offset: number;
+  }): Promise<{ rows: User[]; total: number }> {
+    const [countResult, rows] = await Promise.all([
+      this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(params.where),
+      this.db
+        .select()
+        .from(users)
+        .where(params.where)
+        .orderBy(params.orderBy)
+        .limit(params.limit)
+        .offset(params.offset),
+    ]);
+
+    return {
+      rows: rows as User[],
+      total: Number(countResult[0]?.count ?? 0),
+    };
   }
 }

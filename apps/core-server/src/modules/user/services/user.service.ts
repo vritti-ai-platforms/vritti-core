@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, ConflictException, EmailService, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import { type User, UserRoleValues, UserStatusValues } from '@/db/schema';
+import { type AnyColumn, type SQL, and, asc, desc, eq, ilike, or } from '@vritti/api-sdk/drizzle-orm';
+import { type User, UserRoleValues, UserStatusValues, users } from '@/db/schema';
 import { SessionService } from '../../auth/root/services/session.service';
 import { OrganizationRepository } from '../../organization/repositories/organization.repository';
 import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
+import type { GetUsersWebhookDto } from '../dto/request/get-users-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
+import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 import { UserRepository } from '../repositories/user.repository';
 
 @Injectable()
@@ -82,10 +85,41 @@ export class UserService {
     this.logger.log(`Password set for user: ${id}`);
   }
 
-  // Returns all portal users for an organisation
-  async getUsersByOrg(orgId: string): Promise<UserDto[]> {
-    const users = await this.userRepository.findByOrganizationId(orgId);
-    return users.map(UserDto.from);
+  // Returns paginated, filtered, and sorted portal users for an organisation
+  async getUsersByOrg(dto: GetUsersWebhookDto): Promise<UsersTableResponseDto> {
+    const conditions: SQL[] = [eq(users.organizationId, dto.orgId)];
+
+    if (dto.search) {
+      const pattern = `%${dto.search}%`;
+      conditions.push(or(ilike(users.fullName, pattern), ilike(users.email, pattern))!);
+    }
+
+    if (dto.filterStatus) {
+      conditions.push(eq(users.status, dto.filterStatus as (typeof UserStatusValues)[keyof typeof UserStatusValues]));
+    }
+
+    // Build sort clause — default to createdAt desc
+    const sortColumnMap: Record<string, AnyColumn> = {
+      fullName: users.fullName,
+      email: users.email,
+      status: users.status,
+      role: users.role,
+      createdAt: users.createdAt,
+    };
+    const sortColumn = sortColumnMap[dto.sortField ?? 'createdAt'] ?? users.createdAt;
+    const orderBy = dto.sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
+
+    const { rows, total } = await this.userRepository.findForTable({
+      where: and(...conditions),
+      orderBy,
+      limit: dto.limit ?? 20,
+      offset: dto.offset ?? 0,
+    });
+
+    return {
+      result: rows.map(UserDto.from),
+      count: total,
+    };
   }
 
   // Updates a portal user's details from cloud-server webhook

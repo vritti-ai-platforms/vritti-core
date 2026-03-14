@@ -475,7 +475,7 @@
         ]
       },
       "get": {
-        "description": "Returns all users for the given organisation. Protected by webhook secret.",
+        "description": "Returns paginated, filtered, and sorted users for the given organisation. Protected by webhook secret.",
         "operationId": "UserController_getUsersByOrg",
         "parameters": [
           {
@@ -487,6 +487,78 @@
               "example": "uuid-here",
               "type": "string"
             }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search across fullName and email",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortField",
+            "required": false,
+            "in": "query",
+            "description": "Column to sort by",
+            "schema": {
+              "enum": [
+                "fullName",
+                "email",
+                "status",
+                "role",
+                "createdAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "filterStatus",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user status",
+            "schema": {
+              "enum": [
+                "PENDING",
+                "ACTIVE",
+                "SUSPENDED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Pagination limit (default 20)",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Pagination offset (default 0)",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -495,10 +567,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UserDto"
-                  }
+                  "$ref": "#/components/schemas/UsersTableResponseDto"
                 }
               }
             }
@@ -1045,6 +1114,27 @@
           "status",
           "hasPassword",
           "createdAt"
+        ]
+      },
+      "UsersTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "description": "Paginated user results",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserDto"
+            }
+          },
+          "count": {
+            "type": "number",
+            "description": "Total number of matching users",
+            "example": 42
+          }
+        },
+        "required": [
+          "result",
+          "count"
         ]
       },
       "UpdateUserWebhookDto": {

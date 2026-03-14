@@ -1,9 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
-import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
+import { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 
 export function ApiCreateUserWebhook() {
   return applyDecorators(
@@ -22,10 +22,17 @@ export function ApiGetUsersWebhook() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get portal users by org',
-      description: 'Returns all users for the given organisation. Protected by webhook secret.',
+      description:
+        'Returns paginated, filtered, and sorted users for the given organisation. Protected by webhook secret.',
     }),
     ApiQuery({ name: 'orgId', description: 'Organisation ID', required: true }),
-    ApiResponse({ status: 200, description: 'Users retrieved successfully.', type: [UserDto] }),
+    ApiQuery({ name: 'search', description: 'Search across fullName and email', required: false }),
+    ApiQuery({ name: 'sortField', description: 'Column to sort by', required: false, enum: ['fullName', 'email', 'status', 'role', 'createdAt'] }),
+    ApiQuery({ name: 'sortOrder', description: 'Sort direction', required: false, enum: ['asc', 'desc'] }),
+    ApiQuery({ name: 'filterStatus', description: 'Filter by user status', required: false, enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] }),
+    ApiQuery({ name: 'limit', description: 'Pagination limit (default 20)', required: false, type: Number }),
+    ApiQuery({ name: 'offset', description: 'Pagination offset (default 0)', required: false, type: Number }),
+    ApiResponse({ status: 200, description: 'Users retrieved successfully.', type: UsersTableResponseDto }),
     ApiResponse({ status: 401, description: 'Invalid or missing webhook secret.' }),
   );
 }
