@@ -2,13 +2,18 @@ import { Body, Controller, HttpCode, HttpStatus, Logger, Post, Res } from '@nest
 import { ApiTags } from '@nestjs/swagger';
 import { Public, Reset, UserId } from '@vritti/api-sdk';
 import type { FastifyReply } from 'fastify';
-import { ApiForgotPassword, ApiResendResetOtp, ApiResetPassword, ApiVerifyResetOtp } from '../docs/forgot-password.docs';
+import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
+import {
+  ApiForgotPassword,
+  ApiResendResetOtp,
+  ApiResetPassword,
+  ApiVerifyResetOtp,
+} from '../docs/forgot-password.docs';
 import { ForgotPasswordDto } from '../dto/request/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/request/reset-password.dto';
 import { VerifyResetOtpDto } from '../dto/request/verify-reset-otp.dto';
 import { ForgotPasswordResponseDto } from '../dto/response/forgot-password-response.dto';
 import { ResetPasswordResponseDto } from '../dto/response/reset-password-response.dto';
-import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
 import { PasswordResetService } from '../services/password-reset.service';
 
 @ApiTags('Auth')

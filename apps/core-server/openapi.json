@@ -170,6 +170,45 @@
         ]
       }
     },
+    "/auth/accept-invite": {
+      "post": {
+        "description": "Validates a SET_PASSWORD invitation token, sets the user password, and invalidates all sessions. The user must log in again after setting their password.",
+        "operationId": "AuthController_acceptInvite",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptInviteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password set successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Password mismatch or password already set."
+          },
+          "401": {
+            "description": "Invalid or expired invitation token."
+          }
+        },
+        "summary": "Accept organization invitation",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/auth/status": {
       "get": {
         "description": "Checks whether the user has an active session using the httpOnly refresh cookie. Never returns 401 — returns isAuthenticated: false instead.",
@@ -421,7 +460,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/SuccessResponseDto"
                 }
               }
             }
@@ -505,7 +544,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/SuccessResponseDto"
                 }
               }
             }
@@ -518,6 +557,48 @@
           }
         },
         "summary": "Update portal user",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/webhook/{id}/resend-invite": {
+      "post": {
+        "description": "Resends the invitation email to a PENDING user with a fresh SET_PASSWORD token. Deletes all existing sessions before creating a new one.",
+        "operationId": "UserController_resendInvite",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation resent successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User is not in PENDING status or has already set a password."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "summary": "Resend invitation email",
         "tags": [
           "Users"
         ]
@@ -725,6 +806,33 @@
           "confirmPassword"
         ]
       },
+      "AcceptInviteDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "SET_PASSWORD session token from the invitation email",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "password": {
+            "type": "string",
+            "description": "New password (minimum 8 characters)",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "Confirm password — must match password",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "token",
+          "password",
+          "confirmPassword"
+        ]
+      },
       "TokenResponseDto": {
         "type": "object",
         "properties": {
@@ -855,6 +963,23 @@
           "orgId",
           "email",
           "fullName"
+        ]
+      },
+      "SuccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully"
+          }
+        },
+        "required": [
+          "success",
+          "message"
         ]
       },
       "UserDto": {

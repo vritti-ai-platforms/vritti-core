@@ -64,3 +64,16 @@ export function resetPassword(newPassword: string): Promise<ResetPasswordRespons
     .post<ResetPasswordResponse>('auth/reset-password', { newPassword })
     .then((r: { data: ResetPasswordResponse }) => r.data);
 }
+
+export interface AcceptInviteDto {
+  token: string;
+  password: string;
+  confirmPassword: string;
+}
+
+// Sets password for an invited user using the invitation token
+export function acceptInvite(data: AcceptInviteDto): Promise<SuccessResponse> {
+  return axios
+    .post<SuccessResponse>('auth/accept-invite', data, { public: true })
+    .then((r: { data: SuccessResponse }) => r.data);
+}

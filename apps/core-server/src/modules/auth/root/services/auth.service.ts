@@ -1,13 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, JwtAuthService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
-import { BadRequestException, UnauthorizedException } from '@vritti/api-sdk';
 import { SessionTypeValues, UserStatusValues } from '@/db/schema';
 import { UserService } from '../../../user/services/user.service';
-import { AuthResponseDto } from '../dto/response/auth-response.dto';
+import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
-import { TokenResponseDto } from '../dto/response/token-response.dto';
+import { AuthResponseDto } from '../dto/response/auth-response.dto';
 import { MessageResponseDto } from '../dto/response/message-response.dto';
+import { TokenResponseDto } from '../dto/response/token-response.dto';
 import { SessionService } from './session.service';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly sessionService: SessionService,
+    private readonly jwtService: JwtAuthService,
   ) {}
 
   // Validates credentials and creates a NEXUS session, returning access token in response
@@ -107,6 +109,58 @@ export class AuthService {
     return { message: 'Password set successfully. You can now log in.' };
   }
 
+  // Accepts an invitation token, sets the user's password, and clears all sessions
+  async acceptInvite(dto: AcceptInviteDto): Promise<MessageResponseDto> {
+    let decoded: { userId: string; sessionId: string; sessionType: string };
+
+    // Verify the JWT token and validate the session exists
+    try {
+      decoded = this.jwtService.verify(dto.token, TokenType.ACCESS);
+      await this.sessionService.validateAccessTokenSession(dto.token);
+    } catch {
+      throw new UnauthorizedException({
+        label: 'Invalid Invitation',
+        detail:
+          'This invitation link is invalid or has expired. Please request a new invitation from your administrator.',
+      });
+    }
+
+    if (decoded.sessionType !== 'SET_PASSWORD') {
+      throw new UnauthorizedException({
+        label: 'Invalid Invitation',
+        detail: 'This token is not a valid invitation token. Please use the link from your invitation email.',
+      });
+    }
+
+    if (dto.password !== dto.confirmPassword) {
+      throw new BadRequestException({
+        label: 'Password Mismatch',
+        detail: 'The passwords you entered do not match. Please try again.',
+        errors: [{ field: 'confirmPassword', message: 'Passwords do not match' }],
+      });
+    }
+
+    const user = await this.userService.findByIdOrThrow(decoded.userId);
+
+    if (user.passwordHash) {
+      throw new BadRequestException({
+        label: 'Password Already Set',
+        detail: 'A password has already been set for this account. Use the login page instead.',
+        errors: [{ field: 'password', message: 'Password already set' }],
+      });
+    }
+
+    const passwordHash = await argon2.hash(dto.password);
+    await this.userService.setPassword(user.id, passwordHash);
+
+    // Invalidate all sessions — user must log in with NEXUS session next
+    await this.sessionService.deleteAllUserSessions(decoded.userId);
+
+    this.logger.log(`Password set via invitation for user: ${user.id}`);
+
+    return { message: 'Password set successfully. You can now log in.' };
+  }
+
   // Returns auth status without throwing 401 — used for client-side session checks
   async getStatus(refreshToken: string | undefined): Promise<AuthResponseDto> {
     if (!refreshToken) {
@@ -120,16 +174,18 @@ export class AuthService {
         isAuthenticated: true,
         accessToken,
         expiresIn,
-        user: user ? {
-          id: user.id,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.role,
-          status: user.status,
-          hasPassword: user.passwordHash !== null,
-          createdAt: user.createdAt.toISOString(),
-          lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
-        } : undefined,
+        user: user
+          ? {
+              id: user.id,
+              email: user.email,
+              fullName: user.fullName,
+              role: user.role,
+              status: user.status,
+              hasPassword: user.passwordHash !== null,
+              createdAt: user.createdAt.toISOString(),
+              lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+            }
+          : undefined,
       });
     } catch {
       return new AuthResponseDto({ isAuthenticated: false });

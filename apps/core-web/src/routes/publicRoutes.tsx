@@ -1,6 +1,7 @@
 import type { RouteObject } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { AuthLayout } from '../components/layouts/AuthLayout';
+import { AcceptInvitePage } from '../pages/auth/AcceptInvitePage';
 import { ForgotPasswordPage } from '../pages/auth/forgot-password';
 import { LoginPage } from '../pages/LoginPage';
 
@@ -12,6 +13,7 @@ export const publicRoutes: RouteObject[] = [
     children: [
       { index: true, element: <Navigate to="/login" replace /> },
       { path: 'login', element: <LoginPage /> },
+      { path: 'accept-invite', element: <AcceptInvitePage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
     ],
   },

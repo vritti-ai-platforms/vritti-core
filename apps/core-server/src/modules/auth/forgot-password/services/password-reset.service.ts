@@ -1,15 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException } from '@vritti/api-sdk';
+import { BadRequestException, EmailService } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import type { FastifyReply } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
-import { EmailService } from '@vritti/api-sdk';
 import { UserService } from '../../../user/services/user.service';
-import { getRefreshCookieName, getRefreshCookieOptionsFromConfig, SessionService } from '../../root/services/session.service';
 import { VerificationRepository } from '../../../verification/repositories/verification.repository';
-import { ForgotPasswordResponseDto } from '../dto/response/forgot-password-response.dto';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
+import {
+  getRefreshCookieName,
+  getRefreshCookieOptionsFromConfig,
+  SessionService,
+} from '../../root/services/session.service';
+import { ForgotPasswordResponseDto } from '../dto/response/forgot-password-response.dto';
 import { ResetPasswordResponseDto } from '../dto/response/reset-password-response.dto';
 
 @Injectable()

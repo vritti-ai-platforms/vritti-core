@@ -14,7 +14,11 @@ export class CreateOrganizationWebhookDto {
   @IsNotEmpty()
   subdomain: string;
 
-  @ApiProperty({ description: 'Organization size', enum: ['0-10', '10-20', '20-50', '50-100', '100-500', '500+'], example: '0-10' })
+  @ApiProperty({
+    description: 'Organization size',
+    enum: ['0-10', '10-20', '20-50', '50-100', '100-500', '500+'],
+    example: '0-10',
+  })
   @IsEnum(OrgSizeValues)
   size: OrgSize;
 

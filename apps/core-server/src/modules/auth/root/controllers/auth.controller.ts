@@ -1,8 +1,9 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AccessToken, Public, RefreshTokenCookie, UserId } from '@vritti/api-sdk';
+import { AccessToken, Public, RefreshTokenCookie, SkipCsrf, UserId } from '@vritti/api-sdk';
 import type { FastifyReply } from 'fastify';
 import {
+  ApiAcceptInvite,
   ApiGetAccessToken,
   ApiGetAuthStatus,
   ApiLogin,
@@ -10,6 +11,7 @@ import {
   ApiRefreshTokens,
   ApiSetPassword,
 } from '../docs/auth.docs';
+import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
 import { AuthResponseDto } from '../dto/response/auth-response.dto';
@@ -72,6 +74,17 @@ export class AuthController {
     const result = await this.authService.setPassword(dto, userId);
     reply.clearCookie(getRefreshCookieName(), { path: '/' });
     return result;
+  }
+
+  // Accepts an invitation token and sets the user's password
+  @Post('accept-invite')
+  @Public()
+  @SkipCsrf()
+  @HttpCode(HttpStatus.OK)
+  @ApiAcceptInvite()
+  async acceptInvite(@Body() dto: AcceptInviteDto): Promise<MessageResponseDto> {
+    this.logger.log('POST /api/auth/accept-invite');
+    return this.authService.acceptInvite(dto);
   }
 
   // Returns auth status without throwing 401 — safe for client-side polling

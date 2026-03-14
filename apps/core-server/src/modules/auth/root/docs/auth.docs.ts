@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
 import { AuthResponseDto } from '../dto/response/auth-response.dto';
@@ -44,6 +45,20 @@ export function ApiSetPassword() {
     ApiResponse({ status: 200, description: 'Password set successfully.', type: MessageResponseDto }),
     ApiResponse({ status: 400, description: 'Password mismatch or password already set.' }),
     ApiResponse({ status: 401, description: 'Invalid or expired set-password session.' }),
+  );
+}
+
+export function ApiAcceptInvite() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Accept organization invitation',
+      description:
+        'Validates a SET_PASSWORD invitation token, sets the user password, and invalidates all sessions. The user must log in again after setting their password.',
+    }),
+    ApiBody({ type: AcceptInviteDto }),
+    ApiResponse({ status: 200, description: 'Password set successfully.', type: MessageResponseDto }),
+    ApiResponse({ status: 400, description: 'Password mismatch or password already set.' }),
+    ApiResponse({ status: 401, description: 'Invalid or expired invitation token.' }),
   );
 }
 

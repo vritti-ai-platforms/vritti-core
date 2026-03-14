@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EmailService, NotFoundException } from '@vritti/api-sdk';
+import { BadRequestException, ConflictException, EmailService, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import { type User, UserRoleValues, UserStatusValues } from '@/db/schema';
-import { OrganizationRepository } from '../../organization/repositories/organization.repository';
 import { SessionService } from '../../auth/root/services/session.service';
+import { OrganizationRepository } from '../../organization/repositories/organization.repository';
 import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
@@ -21,11 +21,18 @@ export class UserService {
     private readonly config: ConfigService,
   ) {}
 
-  // Creates or updates portal user from cloud-server webhook; sends invite email to new users
-  async createFromWebhook(dto: CreateUserWebhookDto): Promise<UserDto> {
-    const isNew = !(await this.userRepository.findByEmail(dto.email));
+  // Creates a portal user from cloud-server webhook and sends invite email
+  async createFromWebhook(dto: CreateUserWebhookDto): Promise<SuccessResponseDto> {
+    const existingUser = await this.userRepository.findByEmail(dto.email);
+    if (existingUser) {
+      throw new ConflictException({
+        label: 'User Already Exists',
+        detail: `A user with email ${dto.email} already exists in this organization.`,
+        errors: [{ field: 'email', message: 'Already invited' }],
+      });
+    }
 
-    const user = await this.userRepository.upsertByEmail({
+    const user = await this.userRepository.create({
       email: dto.email,
       fullName: dto.fullName,
       organizationId: dto.orgId,
@@ -33,19 +40,16 @@ export class UserService {
       status: 'PENDING',
     });
 
-    this.logger.log(`Upserted portal user from webhook: ${user.email} (${user.id})`);
+    this.logger.log(`Created portal user from webhook: ${user.email} (${user.id})`);
 
-    // Only send invite email for newly created users, not re-invites
-    if (isNew) {
-      const org = await this.organizationRepository.findById(dto.orgId);
-      if (!org) throw new NotFoundException('Organization not found.');
-      const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
-      const { accessToken } = await this.sessionService.createSession(user.id, 'SET_PASSWORD');
-      const inviteUrl = `https://${org.subdomain}.${baseDomain}/set-password?token=${accessToken}`;
-      await this.emailService.sendInviteEmail({ to: user.email, name: user.fullName, inviteUrl });
-    }
+    const org = await this.organizationRepository.findById(dto.orgId);
+    if (!org) throw new NotFoundException('Organization not found.');
+    const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
+    const { accessToken } = await this.sessionService.createSession(user.id, 'SET_PASSWORD');
+    const inviteUrl = `https://${org.subdomain}.${baseDomain}/accept-invite?token=${accessToken}`;
+    await this.emailService.sendInviteEmail({ to: user.email, name: user.fullName, inviteUrl });
 
-    return UserDto.from(user);
+    return { success: true, message: 'User invited successfully.' };
   }
 
   // Finds a user by email for auth — returns entity (not DTO)
@@ -85,15 +89,51 @@ export class UserService {
   }
 
   // Updates a portal user's details from cloud-server webhook
-  async updateFromWebhook(id: string, dto: UpdateUserWebhookDto): Promise<UserDto> {
+  async updateFromWebhook(id: string, dto: UpdateUserWebhookDto): Promise<SuccessResponseDto> {
     const user = await this.userRepository.findById(id);
     if (!user) throw new NotFoundException('User not found.');
-    const updated = await this.userRepository.update(id, {
+    await this.userRepository.update(id, {
       ...(dto.fullName && { fullName: dto.fullName }),
       ...(dto.role && { role: dto.role as (typeof UserRoleValues)[keyof typeof UserRoleValues] }),
       ...(dto.status && { status: dto.status as (typeof UserStatusValues)[keyof typeof UserStatusValues] }),
       updatedAt: new Date(),
     });
-    return UserDto.from(updated);
+
+    return { success: true, message: 'User updated successfully.' };
+  }
+
+  // Resends invitation email to a pending user with a fresh SET_PASSWORD token
+  async resendInvite(id: string): Promise<SuccessResponseDto> {
+    const user = await this.userRepository.findById(id);
+    if (!user) throw new NotFoundException('User not found.');
+
+    if (user.status !== 'PENDING') {
+      throw new BadRequestException({
+        label: 'Cannot Resend Invite',
+        detail: 'Invitations can only be resent to users with pending status.',
+      });
+    }
+
+    if (user.passwordHash) {
+      throw new BadRequestException({
+        label: 'Cannot Resend Invite',
+        detail: 'This user has already set their password. They can log in directly.',
+      });
+    }
+
+    // Clear any existing sessions before creating a fresh invite token
+    await this.sessionService.deleteAllUserSessions(user.id);
+
+    const org = await this.organizationRepository.findById(user.organizationId);
+    if (!org) throw new NotFoundException('Organization not found.');
+
+    const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
+    const { accessToken } = await this.sessionService.createSession(user.id, 'SET_PASSWORD');
+    const inviteUrl = `https://${org.subdomain}.${baseDomain}/accept-invite?token=${accessToken}`;
+    await this.emailService.sendInviteEmail({ to: user.email, name: user.fullName, inviteUrl });
+
+    this.logger.log(`Resent invitation to user: ${user.email} (${user.id})`);
+
+    return { success: true, message: 'Invitation email resent successfully.' };
   }
 }

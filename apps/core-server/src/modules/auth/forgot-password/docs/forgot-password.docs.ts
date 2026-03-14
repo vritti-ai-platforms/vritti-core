@@ -1,11 +1,11 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
 import { ForgotPasswordDto } from '../dto/request/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/request/reset-password.dto';
 import { VerifyResetOtpDto } from '../dto/request/verify-reset-otp.dto';
 import { ForgotPasswordResponseDto } from '../dto/response/forgot-password-response.dto';
 import { ResetPasswordResponseDto } from '../dto/response/reset-password-response.dto';
-import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
 
 export function ApiForgotPassword() {
   return applyDecorators(
@@ -15,7 +15,11 @@ export function ApiForgotPassword() {
         'Sends a 6-digit OTP to the email address if an account exists. Creates a RESET session and sets the refresh cookie. Always returns the same generic message to prevent email enumeration.',
     }),
     ApiBody({ type: ForgotPasswordDto }),
-    ApiResponse({ status: 201, description: 'Reset email sent (or silently ignored).', type: ForgotPasswordResponseDto }),
+    ApiResponse({
+      status: 201,
+      description: 'Reset email sent (or silently ignored).',
+      type: ForgotPasswordResponseDto,
+    }),
     ApiResponse({ status: 400, description: 'Invalid input data.' }),
   );
 }

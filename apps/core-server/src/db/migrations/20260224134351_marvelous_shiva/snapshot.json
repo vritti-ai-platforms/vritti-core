@@ -2,39 +2,26 @@
   "version": "8",
   "dialect": "postgres",
   "id": "cbc0ff92-b258-4ab9-9261-55eed1150b0f",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "nexus",
       "entityType": "schemas"
     },
     {
-      "values": [
-        "NEXUS",
-        "SET_PASSWORD"
-      ],
+      "values": ["NEXUS", "SET_PASSWORD"],
       "name": "session_type",
       "entityType": "enums",
       "schema": "nexus"
     },
     {
-      "values": [
-        "SUPER_ADMIN",
-        "ADMIN",
-        "SUPPORT"
-      ],
+      "values": ["SUPER_ADMIN", "ADMIN", "SUPPORT"],
       "name": "user_role",
       "entityType": "enums",
       "schema": "nexus"
     },
     {
-      "values": [
-        "PENDING",
-        "ACTIVE",
-        "SUSPENDED"
-      ],
+      "values": ["PENDING", "ACTIVE", "SUSPENDED"],
       "name": "user_status",
       "entityType": "enums",
       "schema": "nexus"
@@ -313,14 +300,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "nexus",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sessions_user_id_users_id_fkey",
@@ -329,9 +312,7 @@
       "table": "sessions"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "nexus",
@@ -339,9 +320,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sessions_pkey",
       "schema": "nexus",
@@ -350,9 +329,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "external_id"
-      ],
+      "columns": ["external_id"],
       "nullsNotDistinct": false,
       "name": "users_external_id_key",
       "schema": "nexus",
@@ -361,9 +338,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "email"
-      ],
+      "columns": ["email"],
       "nullsNotDistinct": false,
       "name": "users_email_key",
       "schema": "nexus",

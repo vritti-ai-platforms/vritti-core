@@ -2,63 +2,38 @@
   "version": "8",
   "dialect": "postgres",
   "id": "aec5e787-43b4-40ab-a9c6-d5801b052f92",
-  "prevIds": [
-    "cbc0ff92-b258-4ab9-9261-55eed1150b0f"
-  ],
+  "prevIds": ["cbc0ff92-b258-4ab9-9261-55eed1150b0f"],
   "ddl": [
     {
       "name": "nexus",
       "entityType": "schemas"
     },
     {
-      "values": [
-        "free",
-        "pro",
-        "enterprise"
-      ],
+      "values": ["free", "pro", "enterprise"],
       "name": "org_plan",
       "entityType": "enums",
       "schema": "nexus"
     },
     {
-      "values": [
-        "0-10",
-        "10-20",
-        "20-50",
-        "50-100",
-        "100-500",
-        "500+"
-      ],
+      "values": ["0-10", "10-20", "20-50", "50-100", "100-500", "500+"],
       "name": "org_size",
       "entityType": "enums",
       "schema": "nexus"
     },
     {
-      "values": [
-        "NEXUS",
-        "SET_PASSWORD",
-        "RESET"
-      ],
+      "values": ["NEXUS", "SET_PASSWORD", "RESET"],
       "name": "session_type",
       "entityType": "enums",
       "schema": "nexus"
     },
     {
-      "values": [
-        "SUPER_ADMIN",
-        "ADMIN",
-        "SUPPORT"
-      ],
+      "values": ["SUPER_ADMIN", "ADMIN", "SUPPORT"],
       "name": "user_role",
       "entityType": "enums",
       "schema": "nexus"
     },
     {
-      "values": [
-        "PENDING",
-        "ACTIVE",
-        "SUSPENDED"
-      ],
+      "values": ["PENDING", "ACTIVE", "SUSPENDED"],
       "name": "user_status",
       "entityType": "enums",
       "schema": "nexus"
@@ -570,14 +545,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "nexus",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sessions_user_id_users_id_fkey",
@@ -587,14 +558,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "schemaTo": "nexus",
       "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "verifications_user_id_users_id_fkey",
@@ -603,9 +570,7 @@
       "table": "verifications"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
       "schema": "nexus",
@@ -613,9 +578,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sessions_pkey",
       "schema": "nexus",
@@ -623,9 +586,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "verifications_pkey",
       "schema": "nexus",
@@ -633,9 +594,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "organizations_pkey",
       "schema": "nexus",
@@ -644,9 +603,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "external_id"
-      ],
+      "columns": ["external_id"],
       "nullsNotDistinct": false,
       "name": "users_external_id_key",
       "schema": "nexus",
@@ -655,9 +612,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "email"
-      ],
+      "columns": ["email"],
       "nullsNotDistinct": false,
       "name": "users_email_key",
       "schema": "nexus",
@@ -666,9 +621,7 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "subdomain"
-      ],
+      "columns": ["subdomain"],
       "nullsNotDistinct": false,
       "name": "organizations_subdomain_key",
       "schema": "nexus",
