@@ -1,13 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException, ConflictException, EmailService, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import { type AnyColumn, type SQL, and, asc, desc, eq, ilike, or } from '@vritti/api-sdk/drizzle-orm';
+import {
+  BadRequestException,
+  ConflictException,
+  EmailService,
+  type FieldMap,
+  type FilterCondition,
+  FilterProcessor,
+  NotFoundException,
+  type SearchState,
+  type SortCondition,
+  SuccessResponseDto,
+} from '@vritti/api-sdk';
+import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { type User, UserRoleValues, UserStatusValues, users } from '@/db/schema';
 import { SessionService } from '../../auth/root/services/session.service';
 import { OrganizationRepository } from '../../organization/repositories/organization.repository';
 import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
-import type { GetUsersWebhookDto } from '../dto/request/get-users-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
 import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 import { UserRepository } from '../repositories/user.repository';
@@ -15,6 +25,14 @@ import { UserRepository } from '../repositories/user.repository';
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
+
+  private static readonly FIELD_MAP: FieldMap = {
+    fullName: { column: users.fullName, type: 'string' },
+    email: { column: users.email, type: 'string' },
+    status: { column: users.status, type: 'string' },
+    role: { column: users.role, type: 'string' },
+    createdAt: { column: users.createdAt, type: 'string' },
+  };
 
   constructor(
     private readonly userRepository: UserRepository,
@@ -85,41 +103,29 @@ export class UserService {
     this.logger.log(`Password set for user: ${id}`);
   }
 
-  // Returns paginated, filtered, and sorted portal users for an organisation
-  async getUsersByOrg(dto: GetUsersWebhookDto): Promise<UsersTableResponseDto> {
-    const conditions: SQL[] = [eq(users.organizationId, dto.orgId)];
-
-    if (dto.search) {
-      const pattern = `%${dto.search}%`;
-      conditions.push(or(ilike(users.fullName, pattern), ilike(users.email, pattern))!);
-    }
-
-    if (dto.filterStatus) {
-      conditions.push(eq(users.status, dto.filterStatus as (typeof UserStatusValues)[keyof typeof UserStatusValues]));
-    }
-
-    // Build sort clause — default to createdAt desc
-    const sortColumnMap: Record<string, AnyColumn> = {
-      fullName: users.fullName,
-      email: users.email,
-      status: users.status,
-      role: users.role,
-      createdAt: users.createdAt,
-    };
-    const sortColumn = sortColumnMap[dto.sortField ?? 'createdAt'] ?? users.createdAt;
-    const orderBy = dto.sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn);
+  // Returns paginated, filtered, and sorted portal users for the data table
+  async getUsersForTable(
+    orgId: string,
+    filters: FilterCondition[],
+    search: SearchState | null,
+    sort: SortCondition[],
+    limit: number,
+    offset: number,
+  ): Promise<UsersTableResponseDto> {
+    const filterWhere = FilterProcessor.buildWhere(filters, UserService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(search, UserService.FIELD_MAP);
+    const where = and(eq(users.organizationId, orgId), filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(sort, UserService.FIELD_MAP);
 
     const { rows, total } = await this.userRepository.findForTable({
-      where: and(...conditions),
-      orderBy,
-      limit: dto.limit ?? 20,
-      offset: dto.offset ?? 0,
+      where,
+      orderBy: orderBy[0] ?? desc(users.createdAt),
+      limit,
+      offset,
     });
 
-    return {
-      result: rows.map(UserDto.from),
-      count: total,
-    };
+    this.logger.log(`Fetched users table for org ${orgId} (${total} results)`);
+    return { result: rows.map(UserDto.from), count: total };
   }
 
   // Updates a portal user's details from cloud-server webhook

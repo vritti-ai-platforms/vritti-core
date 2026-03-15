@@ -475,7 +475,7 @@
         ]
       },
       "get": {
-        "description": "Returns paginated, filtered, and sorted users for the given organisation. Protected by webhook secret.",
+        "description": "Returns paginated, filtered, and sorted users for the given organisation. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by webhook secret.",
         "operationId": "UserController_getUsersByOrg",
         "parameters": [
           {
@@ -489,54 +489,29 @@
             }
           },
           {
+            "name": "filters",
+            "required": false,
+            "in": "query",
+            "description": "JSON-stringified FilterCondition[]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "search",
             "required": false,
             "in": "query",
-            "description": "Search across fullName and email",
+            "description": "JSON-stringified SearchState",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "sortField",
+            "name": "sort",
             "required": false,
             "in": "query",
-            "description": "Column to sort by",
+            "description": "JSON-stringified SortCondition[]",
             "schema": {
-              "enum": [
-                "fullName",
-                "email",
-                "status",
-                "role",
-                "createdAt"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortOrder",
-            "required": false,
-            "in": "query",
-            "description": "Sort direction",
-            "schema": {
-              "enum": [
-                "asc",
-                "desc"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "filterStatus",
-            "required": false,
-            "in": "query",
-            "description": "Filter by user status",
-            "schema": {
-              "enum": [
-                "PENDING",
-                "ACTIVE",
-                "SUSPENDED"
-              ],
               "type": "string"
             }
           },
@@ -544,7 +519,7 @@
             "name": "limit",
             "required": false,
             "in": "query",
-            "description": "Pagination limit (default 20)",
+            "description": "Page size",
             "schema": {
               "default": 20,
               "type": "number"
@@ -554,7 +529,7 @@
             "name": "offset",
             "required": false,
             "in": "query",
-            "description": "Pagination offset (default 0)",
+            "description": "Page offset",
             "schema": {
               "default": 0,
               "type": "number"
@@ -1120,16 +1095,13 @@
         "type": "object",
         "properties": {
           "result": {
-            "description": "Paginated user results",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/UserDto"
             }
           },
           "count": {
-            "type": "number",
-            "description": "Total number of matching users",
-            "example": 42
+            "type": "number"
           }
         },
         "required": [

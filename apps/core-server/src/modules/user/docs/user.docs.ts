@@ -23,15 +23,14 @@ export function ApiGetUsersWebhook() {
     ApiOperation({
       summary: 'Get portal users by org',
       description:
-        'Returns paginated, filtered, and sorted users for the given organisation. Protected by webhook secret.',
+        'Returns paginated, filtered, and sorted users for the given organisation. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by webhook secret.',
     }),
     ApiQuery({ name: 'orgId', description: 'Organisation ID', required: true }),
-    ApiQuery({ name: 'search', description: 'Search across fullName and email', required: false }),
-    ApiQuery({ name: 'sortField', description: 'Column to sort by', required: false, enum: ['fullName', 'email', 'status', 'role', 'createdAt'] }),
-    ApiQuery({ name: 'sortOrder', description: 'Sort direction', required: false, enum: ['asc', 'desc'] }),
-    ApiQuery({ name: 'filterStatus', description: 'Filter by user status', required: false, enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] }),
-    ApiQuery({ name: 'limit', description: 'Pagination limit (default 20)', required: false, type: Number }),
-    ApiQuery({ name: 'offset', description: 'Pagination offset (default 0)', required: false, type: Number }),
+    ApiQuery({ name: 'filters', description: 'JSON-stringified FilterCondition[]', required: false }),
+    ApiQuery({ name: 'search', description: 'JSON-stringified SearchState', required: false }),
+    ApiQuery({ name: 'sort', description: 'JSON-stringified SortCondition[]', required: false }),
+    ApiQuery({ name: 'limit', description: 'Page size', required: false, type: Number }),
+    ApiQuery({ name: 'offset', description: 'Page offset', required: false, type: Number }),
     ApiResponse({ status: 200, description: 'Users retrieved successfully.', type: UsersTableResponseDto }),
     ApiResponse({ status: 401, description: 'Invalid or missing webhook secret.' }),
   );

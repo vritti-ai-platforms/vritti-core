@@ -119,6 +119,10 @@ class EnvironmentVariables {
   @IsString()
   NEXUS_WEBHOOK_SECRET: string;
 
+  // Redis
+  @IsString()
+  REDIS_URL: string;
+
   // Domains
   @IsString()
   BASE_DOMAIN: string;

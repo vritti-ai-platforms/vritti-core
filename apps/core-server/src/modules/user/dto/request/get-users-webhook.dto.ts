@@ -1,43 +1,35 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class GetUsersWebhookDto {
   @ApiProperty({ description: 'Organisation ID to fetch users for', example: 'uuid-here' })
   @IsUUID()
   orgId: string;
 
-  @ApiPropertyOptional({ description: 'Search across fullName and email' })
+  @ApiPropertyOptional({ description: 'JSON-stringified FilterCondition[]' })
+  @IsOptional()
+  @IsString()
+  filters?: string;
+
+  @ApiPropertyOptional({ description: 'JSON-stringified SearchState' })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ description: 'Column to sort by', enum: ['fullName', 'email', 'status', 'role', 'createdAt'] })
+  @ApiPropertyOptional({ description: 'JSON-stringified SortCondition[]' })
   @IsOptional()
   @IsString()
-  @IsIn(['fullName', 'email', 'status', 'role', 'createdAt'])
-  sortField?: string;
+  sort?: string;
 
-  @ApiPropertyOptional({ description: 'Sort direction', enum: ['asc', 'desc'] })
-  @IsOptional()
-  @IsString()
-  @IsIn(['asc', 'desc'])
-  sortOrder?: string;
-
-  @ApiPropertyOptional({ description: 'Filter by user status', enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] })
-  @IsOptional()
-  @IsString()
-  @IsIn(['PENDING', 'ACTIVE', 'SUSPENDED'])
-  filterStatus?: string;
-
-  @ApiPropertyOptional({ description: 'Pagination limit', default: 20 })
+  @ApiPropertyOptional({ default: 20 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
   limit?: number;
 
-  @ApiPropertyOptional({ description: 'Pagination offset', default: 0 })
+  @ApiPropertyOptional({ default: 0 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()

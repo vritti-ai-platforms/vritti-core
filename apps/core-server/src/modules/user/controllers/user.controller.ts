@@ -45,14 +45,17 @@ export class UserController {
     return this.userService.createFromWebhook(dto);
   }
 
-  // Returns paginated, filtered, and sorted portal users for an organisation
+  // Returns paginated, filtered, and sorted portal users for the data table
   @Get('webhook')
   @Public()
   @UseGuards(WebhookSecretGuard)
   @ApiGetUsersWebhook()
   async getUsersByOrg(@Query() dto: GetUsersWebhookDto): Promise<UsersTableResponseDto> {
     this.logger.log(`GET /users/webhook?orgId=${dto.orgId}`);
-    return this.userService.getUsersByOrg(dto);
+    const filters = dto.filters ? JSON.parse(dto.filters) : [];
+    const search = dto.search ? JSON.parse(dto.search) : null;
+    const sort = dto.sort ? JSON.parse(dto.sort) : [];
+    return this.userService.getUsersForTable(dto.orgId, filters, search, sort, dto.limit ?? 20, dto.offset ?? 0);
   }
 
   // Updates a portal user's details
