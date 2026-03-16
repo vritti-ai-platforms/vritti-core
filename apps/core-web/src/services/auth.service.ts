@@ -32,9 +32,7 @@ export interface ResetPasswordResponse {
 
 // Authenticates with email and password
 export function login(data: LoginDto): Promise<LoginResponse> {
-  return axios
-    .post<LoginResponse>('auth/login', data)
-    .then((r: { data: LoginResponse }) => r.data);
+  return axios.post<LoginResponse>('auth/login', data, { public: true }).then((r: { data: LoginResponse }) => r.data);
 }
 
 // Sends password reset OTP and creates a RESET session
@@ -46,16 +44,12 @@ export function forgotPassword(email: string): Promise<ForgotPasswordResponse> {
 
 // Resends OTP using the RESET session Bearer token
 export function resendResetOtp(): Promise<SuccessResponse> {
-  return axios
-    .post<SuccessResponse>('auth/resend-reset-otp', {})
-    .then((r: { data: SuccessResponse }) => r.data);
+  return axios.post<SuccessResponse>('auth/resend-reset-otp', {}).then((r: { data: SuccessResponse }) => r.data);
 }
 
 // Verifies OTP using the RESET session Bearer token
 export function verifyResetOtp(otp: string): Promise<SuccessResponse> {
-  return axios
-    .post<SuccessResponse>('auth/verify-reset-otp', { otp })
-    .then((r: { data: SuccessResponse }) => r.data);
+  return axios.post<SuccessResponse>('auth/verify-reset-otp', { otp }).then((r: { data: SuccessResponse }) => r.data);
 }
 
 // Resets password and creates a new session
