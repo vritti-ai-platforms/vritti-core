@@ -1,6 +1,6 @@
+import { type AcceptInviteDto, acceptInvite, type SuccessResponse } from '@services/auth.service';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { type AcceptInviteDto, type SuccessResponse, acceptInvite } from '@services/auth.service';
 
 type UseAcceptInviteOptions = Omit<UseMutationOptions<SuccessResponse, AxiosError, AcceptInviteDto>, 'mutationFn'>;
 
