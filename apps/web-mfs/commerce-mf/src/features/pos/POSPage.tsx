@@ -27,9 +27,7 @@ export const POSPage = () => {
     setCart((prev) => {
       const existing = prev.find((item) => item.productId === product.id);
       if (existing) {
-        return prev.map((item) =>
-          item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item,
-        );
+        return prev.map((item) => (item.productId === product.id ? { ...item, quantity: item.quantity + 1 } : item));
       }
       return [...prev, { productId: product.id, name: product.name, unitPrice: Number(product.price), quantity: 1 }];
     });
@@ -39,9 +37,7 @@ export const POSPage = () => {
   const updateQuantity = useCallback((productId: string, delta: number) => {
     setCart((prev) =>
       prev
-        .map((item) =>
-          item.productId === productId ? { ...item, quantity: item.quantity + delta } : item,
-        )
+        .map((item) => (item.productId === productId ? { ...item, quantity: item.quantity + delta } : item))
         .filter((item) => item.quantity > 0),
     );
   }, []);
@@ -95,7 +91,9 @@ export const POSPage = () => {
               >
                 <CardContent className="p-4 text-center">
                   <Typography className="font-medium truncate">{product.name}</Typography>
-                  <Typography intent="muted" className="mt-1">${product.price}</Typography>
+                  <Typography intent="muted" className="mt-1">
+                    ${product.price}
+                  </Typography>
                 </CardContent>
               </Card>
             ))}
@@ -107,27 +105,43 @@ export const POSPage = () => {
         <div className="flex items-center gap-2 mb-4">
           <ShoppingCart className="size-5" />
           <Typography variant="h4">Cart</Typography>
-          <Typography intent="muted" className="ml-auto">{cart.length} items</Typography>
+          <Typography intent="muted" className="ml-auto">
+            {cart.length} items
+          </Typography>
         </div>
 
         <div className="flex-1 overflow-auto space-y-3">
           {cart.length === 0 ? (
-            <Typography intent="muted" align="center" className="py-8">No items in cart</Typography>
+            <Typography intent="muted" align="center" className="py-8">
+              No items in cart
+            </Typography>
           ) : (
             cart.map((item) => (
               <div key={item.productId} className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <Typography variant="body2" className="truncate">{item.name}</Typography>
+                  <Typography variant="body2" className="truncate">
+                    {item.name}
+                  </Typography>
                   <Typography intent="muted" variant="caption">
                     ${item.unitPrice.toFixed(2)} each
                   </Typography>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" className="size-7" onClick={() => updateQuantity(item.productId, -1)}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-7"
+                    onClick={() => updateQuantity(item.productId, -1)}
+                  >
                     <Minus className="size-3" />
                   </Button>
                   <span className="w-8 text-center text-sm">{item.quantity}</span>
-                  <Button variant="outline" size="icon" className="size-7" onClick={() => updateQuantity(item.productId, 1)}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-7"
+                    onClick={() => updateQuantity(item.productId, 1)}
+                  >
                     <Plus className="size-3" />
                   </Button>
                 </div>

@@ -33,6 +33,7 @@ export function useOrder(id: string, options?: UseOrderOptions) {
 }
 
 type UseCreateOrderOptions = Omit<
+  UseMutationOptions<Order, Error, CreateOrderInput & { businessUnitId: string }>,
   'mutationFn'
 >;
 
