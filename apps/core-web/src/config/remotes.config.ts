@@ -26,6 +26,7 @@ interface EnvironmentConfig {
 const getEnvVar = (key: string): string | undefined => {
   const envMap: Record<string, string | undefined> = {
     PUBLIC_CLOUD_MF_PORT: import.meta.env.PUBLIC_CLOUD_MF_PORT,
+    PUBLIC_COMMERCE_MF_PORT: import.meta.env.PUBLIC_COMMERCE_MF_PORT,
     PUBLIC_MF_BASE_URL: import.meta.env.PUBLIC_MF_BASE_URL,
   };
   return envMap[key];
@@ -86,6 +87,7 @@ const buildRemoteEntry = (config: {
 //
 // Production example (with PUBLIC_MF_BASE_URL=https://mf.vrittiai.com):
 //   https://mf.vrittiai.com/cloud-microfrontend/mf-manifest.json
+// Commerce MF is loaded dynamically via the permission feature catalog — not registered here
 export const ALL_REMOTES: RemoteConfig[] = [
   {
     name: 'VrittiCloud',

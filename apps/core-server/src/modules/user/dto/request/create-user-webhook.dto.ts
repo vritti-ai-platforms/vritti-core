@@ -1,6 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
-import { UserRoleValues } from '@/db/schema';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateUserWebhookDto {
   @ApiProperty({ description: 'Nexus organisation ID', example: 'uuid-here' })
@@ -16,13 +15,4 @@ export class CreateUserWebhookDto {
   @IsString()
   @IsNotEmpty()
   fullName: string;
-
-  @ApiPropertyOptional({
-    description: 'User role',
-    example: 'SUPPORT',
-    enum: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'],
-  })
-  @IsEnum(UserRoleValues)
-  @IsOptional()
-  role?: string;
 }

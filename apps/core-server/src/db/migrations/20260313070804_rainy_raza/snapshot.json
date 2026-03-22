@@ -5,62 +5,62 @@
   "prevIds": ["aec5e787-43b4-40ab-a9c6-d5801b052f92"],
   "ddl": [
     {
-      "name": "nexus",
+      "name": "vritti_core",
       "entityType": "schemas"
     },
     {
       "values": ["free", "pro", "enterprise"],
       "name": "org_plan",
       "entityType": "enums",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "values": ["0-10", "10-20", "20-50", "50-100", "100-500", "500+"],
       "name": "org_size",
       "entityType": "enums",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "values": ["NEXUS", "SET_PASSWORD", "RESET"],
       "name": "session_type",
       "entityType": "enums",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "values": ["SUPER_ADMIN", "ADMIN", "SUPPORT"],
       "name": "user_role",
       "entityType": "enums",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "values": ["PENDING", "ACTIVE", "SUSPENDED"],
       "name": "user_status",
       "entityType": "enums",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "isRlsEnabled": false,
       "name": "users",
       "entityType": "tables",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "isRlsEnabled": false,
       "name": "sessions",
       "entityType": "tables",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "isRlsEnabled": false,
       "name": "verifications",
       "entityType": "tables",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "isRlsEnabled": false,
       "name": "organizations",
       "entityType": "tables",
-      "schema": "nexus"
+      "schema": "vritti_core"
     },
     {
       "type": "uuid",
@@ -72,7 +72,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -85,7 +85,7 @@
       "identity": null,
       "name": "organization_id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -98,7 +98,7 @@
       "identity": null,
       "name": "email",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -111,7 +111,7 @@
       "identity": null,
       "name": "password_hash",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -124,12 +124,12 @@
       "identity": null,
       "name": "full_name",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
       "type": "user_role",
-      "typeSchema": "nexus",
+      "typeSchema": "vritti_core",
       "notNull": true,
       "dimensions": 0,
       "default": "'SUPPORT'",
@@ -137,12 +137,12 @@
       "identity": null,
       "name": "role",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
       "type": "user_status",
-      "typeSchema": "nexus",
+      "typeSchema": "vritti_core",
       "notNull": true,
       "dimensions": 0,
       "default": "'PENDING'",
@@ -150,7 +150,7 @@
       "identity": null,
       "name": "status",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -163,7 +163,7 @@
       "identity": null,
       "name": "is_active",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -176,7 +176,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -189,7 +189,7 @@
       "identity": null,
       "name": "updated_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -202,7 +202,7 @@
       "identity": null,
       "name": "last_login_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
@@ -215,7 +215,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -228,12 +228,12 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
       "type": "session_type",
-      "typeSchema": "nexus",
+      "typeSchema": "vritti_core",
       "notNull": true,
       "dimensions": 0,
       "default": "'NEXUS'",
@@ -241,7 +241,7 @@
       "identity": null,
       "name": "type",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -254,7 +254,7 @@
       "identity": null,
       "name": "access_token_hash",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -267,7 +267,7 @@
       "identity": null,
       "name": "refresh_token_hash",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -280,7 +280,7 @@
       "identity": null,
       "name": "ip_address",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -293,7 +293,7 @@
       "identity": null,
       "name": "user_agent",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -306,7 +306,7 @@
       "identity": null,
       "name": "expires_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -319,7 +319,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
@@ -332,7 +332,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -345,7 +345,7 @@
       "identity": null,
       "name": "user_id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -358,7 +358,7 @@
       "identity": null,
       "name": "otp_hash",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -371,7 +371,7 @@
       "identity": null,
       "name": "attempts",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -384,7 +384,7 @@
       "identity": null,
       "name": "is_verified",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -397,7 +397,7 @@
       "identity": null,
       "name": "expires_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -410,7 +410,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -423,7 +423,7 @@
       "identity": null,
       "name": "verified_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
@@ -436,7 +436,7 @@
       "identity": null,
       "name": "id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
@@ -449,7 +449,7 @@
       "identity": null,
       "name": "name",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
@@ -462,12 +462,12 @@
       "identity": null,
       "name": "subdomain",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
       "type": "org_size",
-      "typeSchema": "nexus",
+      "typeSchema": "vritti_core",
       "notNull": true,
       "dimensions": 0,
       "default": null,
@@ -475,7 +475,7 @@
       "identity": null,
       "name": "size",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
@@ -488,12 +488,12 @@
       "identity": null,
       "name": "media_id",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
       "type": "org_plan",
-      "typeSchema": "nexus",
+      "typeSchema": "vritti_core",
       "notNull": true,
       "dimensions": 0,
       "default": "'free'",
@@ -501,7 +501,7 @@
       "identity": null,
       "name": "plan",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
@@ -514,7 +514,7 @@
       "identity": null,
       "name": "created_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
@@ -527,53 +527,53 @@
       "identity": null,
       "name": "updated_at",
       "entityType": "columns",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations"
     },
     {
       "nameExplicit": false,
       "columns": ["organization_id"],
-      "schemaTo": "nexus",
+      "schemaTo": "vritti_core",
       "tableTo": "organizations",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "users_organization_id_organizations_id_fkey",
       "entityType": "fks",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users"
     },
     {
       "nameExplicit": false,
       "columns": ["user_id"],
-      "schemaTo": "nexus",
+      "schemaTo": "vritti_core",
       "tableTo": "users",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "sessions_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions"
     },
     {
       "nameExplicit": false,
       "columns": ["user_id"],
-      "schemaTo": "nexus",
+      "schemaTo": "vritti_core",
       "tableTo": "users",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "verifications_user_id_users_id_fkey",
       "entityType": "fks",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications"
     },
     {
       "columns": ["id"],
       "nameExplicit": false,
       "name": "users_pkey",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users",
       "entityType": "pks"
     },
@@ -581,7 +581,7 @@
       "columns": ["id"],
       "nameExplicit": false,
       "name": "sessions_pkey",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "sessions",
       "entityType": "pks"
     },
@@ -589,7 +589,7 @@
       "columns": ["id"],
       "nameExplicit": false,
       "name": "verifications_pkey",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "verifications",
       "entityType": "pks"
     },
@@ -597,7 +597,7 @@
       "columns": ["id"],
       "nameExplicit": false,
       "name": "organizations_pkey",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations",
       "entityType": "pks"
     },
@@ -606,7 +606,7 @@
       "columns": ["email"],
       "nullsNotDistinct": false,
       "name": "users_email_key",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "users",
       "entityType": "uniques"
     },
@@ -615,7 +615,7 @@
       "columns": ["subdomain"],
       "nullsNotDistinct": false,
       "name": "organizations_subdomain_key",
-      "schema": "nexus",
+      "schema": "vritti_core",
       "table": "organizations",
       "entityType": "uniques"
     }

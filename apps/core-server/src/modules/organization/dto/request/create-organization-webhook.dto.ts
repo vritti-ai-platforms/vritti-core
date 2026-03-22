@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { Allow, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import type { OrgPlan, OrgSize } from '@/db/schema';
 import { OrgPlanValues, OrgSizeValues } from '@/db/schema';
 
@@ -32,8 +33,14 @@ export class CreateOrganizationWebhookDto {
   @IsInt()
   industryId?: number;
 
-  @ApiPropertyOptional({ description: 'Media asset ID for the organization logo', example: 42 })
+  @ApiPropertyOptional({ description: 'Public logo URL' })
   @IsOptional()
-  @IsInt()
-  mediaId?: number;
+  @IsString()
+  logoUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Feature catalog from app version snapshot' })
+  @IsOptional()
+  @Allow()
+  @Transform(({ value }) => value, { toClassOnly: true })
+  featureCatalog?: any;
 }

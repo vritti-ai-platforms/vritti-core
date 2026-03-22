@@ -21,8 +21,8 @@ export class OrganizationDto {
   })
   size: OrgSize;
 
-  @ApiPropertyOptional({ description: 'Media asset ID', example: 42, nullable: true })
-  mediaId: number | null;
+  @ApiPropertyOptional({ description: 'Public logo URL', nullable: true })
+  logoUrl: string | null;
 
   @ApiProperty({ description: 'Subscription plan', enum: ['free', 'pro', 'enterprise'], example: 'free' })
   plan: OrgPlan;
@@ -37,7 +37,7 @@ export class OrganizationDto {
     dto.name = org.name;
     dto.subdomain = org.subdomain;
     dto.size = org.size;
-    dto.mediaId = org.mediaId ?? null;
+    dto.logoUrl = org.logoUrl ?? null;
     dto.plan = org.plan;
     dto.createdAt = org.createdAt.toISOString();
     return dto;

@@ -5,11 +5,17 @@ export interface User {
   externalId: string | null;
   email: string;
   fullName: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'SUPPORT';
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   hasPassword: boolean;
   createdAt: string;
   lastLoginAt?: string | null;
+}
+
+export interface AuthOrg {
+  id: string;
+  name: string;
+  subdomain: string;
+  logoUrl: string | null;
 }
 
 export interface AuthStatusResponse {
@@ -17,6 +23,7 @@ export interface AuthStatusResponse {
   user?: User;
   accessToken?: string;
   expiresIn?: number;
+  org?: AuthOrg;
 }
 
 // Fetches the current user's authentication status

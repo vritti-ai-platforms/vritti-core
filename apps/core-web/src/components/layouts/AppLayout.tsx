@@ -1,13 +1,23 @@
+import { SidebarProvider } from '@vritti/quantum-ui/Sidebar';
 import { Outlet } from 'react-router-dom';
+import { usePermissionContext } from '../../providers/PermissionProvider';
+import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 
 export const AppLayout = () => {
+  const { selectedBuId } = usePermissionContext();
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <TopBar />
-      <main className="flex-1 overflow-auto pt-16 px-32 py-2.5">
-        <Outlet />
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen bg-background flex flex-col w-full">
+        <TopBar />
+        <div className="flex flex-1 pt-14">
+          {selectedBuId && <Sidebar />}
+          <main className="flex-1 overflow-auto p-6">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 };

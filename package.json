@@ -3,10 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "nx run-many --target=dev --projects=vritti-core-server,vritti-core-web --parallel --output-style=stream",
+    "dev": "nx run-many --target=dev --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel --output-style=stream",
+    "dev:commerce": "nx run-many --target=dev --projects=commerce-service,commerce-mf --parallel --output-style=stream",
     "dev:server": "nx run vritti-core-server:dev",
     "dev:web": "nx run vritti-core-web:dev",
     "dev:ssl": "nx run-many --target=dev:ssl --projects=vritti-core-server,vritti-core-web --parallel --output-style=stream",
+    "dev:ssl:commerce": "nx run-many --target=dev:ssl --projects=commerce-service,commerce-mf --parallel --output-style=stream",
     "dev:ssl:server": "nx run vritti-core-server:dev:ssl",
     "dev:ssl:web": "nx run vritti-core-web:dev:ssl",
     "dev:app": "nx run vritti-core-app:start",

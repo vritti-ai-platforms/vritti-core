@@ -1,18 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { UserRoleValues, UserStatusValues } from '@/db/schema';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { UserStatusValues } from '@/db/schema';
 
 export class UpdateUserWebhookDto {
+  @ApiPropertyOptional({ example: 'jane@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
   @ApiPropertyOptional({ example: 'Jane Smith' })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   fullName?: string;
-
-  @ApiPropertyOptional({ enum: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] })
-  @IsOptional()
-  @IsEnum(UserRoleValues)
-  role?: string;
 
   @ApiPropertyOptional({ enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] })
   @IsOptional()

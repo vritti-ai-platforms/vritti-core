@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { RouterModule } from '@nestjs/core';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
 
@@ -10,13 +11,17 @@ import {
   AuthConfigModule,
   DatabaseModule,
   type DatabaseModuleOptions,
+  DataTableModule,
   EmailModule,
   LoggerModule,
   RootModule,
 } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
+import { BusinessUnitModule } from './modules/business-unit/business-unit.module';
+import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
 import { OrganizationModule } from './modules/organization/organization.module';
+import { UserPermissionsModule } from './modules/user-permissions/user-permissions.module';
 import { UserModule } from './modules/user/user.module';
 import { VerificationModule } from './modules/verification/verification.module';
 
@@ -86,11 +91,20 @@ import { VerificationModule } from './modules/verification/verification.module';
     RootModule,
     // Email module — globally provided EmailService
     EmailModule,
+    // Data table views — server-stored table state
+    DataTableModule.forRoot({ tableViews: schema.tableViews }),
     // Nexus API modules — routes registered at root (proxy strips /api prefix)
     AuthModule,
     UserModule,
     OrganizationModule,
+    BusinessUnitModule,
+    UserPermissionsModule,
     VerificationModule,
+    // Commerce gateway — forwards requests to commerce-service via NATS
+    CommerceGatewayModule,
+    RouterModule.register([
+      { path: 'commerce-api', module: CommerceGatewayModule },
+    ]),
   ],
 })
 export class AppModule {}

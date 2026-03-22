@@ -1,0 +1,2 @@
+ALTER TABLE "vritti_core"."organizations" RENAME COLUMN "media_id" TO "logo_url";--> statement-breakpoint
+ALTER TABLE "vritti_core"."organizations" ALTER COLUMN "logo_url" SET DATA TYPE varchar(500) USING "logo_url"::varchar(500);

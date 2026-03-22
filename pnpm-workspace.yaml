@@ -1,5 +1,7 @@
 packages:
   - apps/*
+  - apps/microservices/*
+  - apps/web-mfs/*
   - e2e/*
 
 nodeLinker: hoisted

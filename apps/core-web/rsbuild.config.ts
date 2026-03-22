@@ -1,7 +1,10 @@
 import fs from 'node:fs';
+import { resolve } from 'node:path';
 import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import { defineConfig, loadEnv } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
+
+const quantumUI = resolve(__dirname, '../../..', 'quantum-ui');
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -17,6 +20,9 @@ const defaultApiHost = `${protocol}://${host}:3001`;
 const devRemotes: Record<string, string> = {};
 if (isDev && parsed.PUBLIC_CLOUD_MF_PORT) {
   devRemotes.VrittiCloud = `vritti_cloud@${protocol}://${host}:${parsed.PUBLIC_CLOUD_MF_PORT}/mf-manifest.json`;
+}
+if (isDev && parsed.PUBLIC_COMMERCE_MF_PORT) {
+  devRemotes.commerce = `commerce@${protocol}://${host}:${parsed.PUBLIC_COMMERCE_MF_PORT}/mf-manifest.json`;
 }
 
 export default defineConfig({
@@ -45,7 +51,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: process.env.REACT_API_HOST || defaultApiHost,
-        changeOrigin: true,
+        changeOrigin: false,
         secure: false, // Allow self-signed certificates in local development
         pathRewrite: (reqPath) => reqPath.replace(/^\/api/, ''),
       },
@@ -74,10 +80,22 @@ export default defineConfig({
         '@vritti/quantum-ui': {
           singleton: true,
           eager: true,
+          resolve: quantumUI,
         },
         '@vritti/quantum-ui/theme': {
           singleton: true,
           eager: true,
+          resolve: `${quantumUI}/lib/theme`,
+        },
+        '@vritti/quantum-ui/context': {
+          singleton: true,
+          eager: true,
+          resolve: `${quantumUI}/lib/context`,
+        },
+        '@vritti/quantum-ui/hooks': {
+          singleton: true,
+          eager: true,
+          resolve: `${quantumUI}/lib/hooks`,
         },
         axios: {
           singleton: true,

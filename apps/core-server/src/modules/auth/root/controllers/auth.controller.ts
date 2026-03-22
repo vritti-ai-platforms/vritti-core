@@ -1,7 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, Post, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { AccessToken, Public, RefreshTokenCookie, SkipCsrf, UserId } from '@vritti/api-sdk';
-import type { FastifyReply } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import {
   ApiAcceptInvite,
   ApiGetAccessToken,
@@ -25,7 +26,10 @@ import { getRefreshCookieName, getRefreshCookieOptionsFromConfig } from '../serv
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   // Authenticates user credentials and creates a NEXUS session
   @Post('login')
@@ -87,13 +91,20 @@ export class AuthController {
     return this.authService.acceptInvite(dto);
   }
 
-  // Returns auth status without throwing 401 — safe for client-side polling
+  // Returns auth status without throwing 401 — resolves org from Host header subdomain
   @Get('status')
   @Public()
   @ApiGetAuthStatus()
-  async getStatus(@RefreshTokenCookie() refreshToken: string | undefined): Promise<AuthResponseDto> {
-    this.logger.log('GET /api/auth/status');
-    return this.authService.getStatus(refreshToken);
+  async getStatus(
+    @RefreshTokenCookie() refreshToken: string | undefined,
+    @Req() request: FastifyRequest,
+  ): Promise<AuthResponseDto> {
+    const host = request.hostname ?? '';
+    const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
+    const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
+
+    this.logger.log(`GET /api/auth/status — subdomain: ${subdomain ?? 'none'}`);
+    return this.authService.getStatus(refreshToken, subdomain);
   }
 
   // Rotates refresh token and issues a new access token

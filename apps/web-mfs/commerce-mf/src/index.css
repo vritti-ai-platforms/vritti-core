@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@vritti/quantum-ui/index.css";
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased;
+    @apply bg-background text-foreground;
+  }
+}
+
+@source "../src/**/*.{js,ts,jsx,tsx}";
+@source "../node_modules/@vritti/quantum-ui/dist/**/*.js";

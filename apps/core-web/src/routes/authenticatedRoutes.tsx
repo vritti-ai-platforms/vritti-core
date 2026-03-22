@@ -1,7 +1,7 @@
 import type { RouteObject } from 'react-router-dom';
-import { Navigate } from 'react-router-dom';
 import { AppLayout } from '../components/layouts/AppLayout';
-import { RemoteRoutes } from '../utils/RemoteRoutes';
+import { BUSelectionPage } from '../pages/BUSelectionPage';
+import { DynamicFeatureRoutes } from '../utils/DynamicFeatureRoutes';
 
 // Routes available when the user IS authenticated
 export const authenticatedRoutes: RouteObject[] = [
@@ -10,13 +10,13 @@ export const authenticatedRoutes: RouteObject[] = [
     element: <AppLayout />,
     children: [
       {
-        path: 'account/*',
-        element: <RemoteRoutes remoteName="VrittiAuth" moduleName="routes" dataKey="accountRoutes" />,
+        index: true,
+        element: <BUSelectionPage />,
+      },
+      {
+        path: ':buSlug/*',
+        element: <DynamicFeatureRoutes />,
       },
     ],
-  },
-  {
-    path: '*',
-    element: <Navigate to="/account/profile" replace />,
   },
 ];

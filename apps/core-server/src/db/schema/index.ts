@@ -9,5 +9,8 @@ export * from './sessions';
 export * from './verifications';
 export * from './organizations';
 export * from './table-views';
+export * from './business-unit';
+export * from './org-role';
+export * from './user-role-assignment';
 // Export relations last (depends on tables above)
 export * from './relations';

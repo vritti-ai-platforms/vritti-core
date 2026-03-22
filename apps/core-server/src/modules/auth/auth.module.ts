@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { EmailModule, jwtConfigFactory } from '@vritti/api-sdk';
+import { OrganizationModule } from '../organization/organization.module';
 import { UserModule } from '../user/user.module';
 import { VerificationModule } from '../verification/verification.module';
 import { ForgotPasswordController } from './forgot-password/controllers/forgot-password.controller';
@@ -19,6 +20,7 @@ import { SessionService } from './root/services/session.service';
     }),
     EmailModule,
     forwardRef(() => UserModule),
+    OrganizationModule,
     VerificationModule,
   ],
   controllers: [AuthController, ForgotPasswordController],

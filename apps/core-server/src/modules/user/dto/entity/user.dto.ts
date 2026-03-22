@@ -14,9 +14,6 @@ export class UserDto {
   @ApiProperty({ description: 'User full name', example: 'Jane Smith' })
   fullName: string;
 
-  @ApiProperty({ description: 'User role', example: 'SUPPORT', enum: ['SUPER_ADMIN', 'ADMIN', 'SUPPORT'] })
-  role: string;
-
   @ApiProperty({ description: 'Account status', example: 'ACTIVE', enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] })
   status: string;
 
@@ -33,7 +30,6 @@ export class UserDto {
     dto.organizationId = user.organizationId;
     dto.email = user.email;
     dto.fullName = user.fullName;
-    dto.role = user.role;
     dto.status = user.status;
     dto.hasPassword = user.passwordHash !== null;
     dto.createdAt = user.createdAt.toISOString();

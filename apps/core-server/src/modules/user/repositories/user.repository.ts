@@ -9,10 +9,17 @@ export class UserRepository extends PrimaryBaseRepository<typeof users> {
     super(database, users);
   }
 
-  // Finds a user by email address
+  // Finds a user by email address (first match across all orgs)
   async findByEmail(email: string): Promise<User | undefined> {
     return this.model.findFirst({
       where: { email },
+    });
+  }
+
+  // Finds a user by email within a specific organization
+  async findByEmailAndOrg(email: string, organizationId: string): Promise<User | undefined> {
+    return this.model.findFirst({
+      where: { email, organizationId },
     });
   }
 
@@ -25,7 +32,6 @@ export class UserRepository extends PrimaryBaseRepository<typeof users> {
         target: users.email,
         set: {
           fullName: data.fullName,
-          role: data.role,
           organizationId: data.organizationId,
           updatedAt: new Date(),
         },

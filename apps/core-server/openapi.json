@@ -56,6 +56,349 @@
         ]
       }
     },
+    "/table-states": {
+      "post": {
+        "description": "Stores the current filter, sort, and column visibility state in Redis cache. Called on filter Apply and sort column click. State expires after TABLE_STATE_CACHE_TTL seconds.",
+        "operationId": "DataTableStateController_upsertCurrentState",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertDataTableStateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Live state cached."
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save live table state",
+        "tags": [
+          "Table States"
+        ]
+      }
+    },
+    "/table-views": {
+      "get": {
+        "description": "Returns the authenticated user's own named views plus all shared views for the given table slug.",
+        "operationId": "DataTableViewsController_findViews",
+        "parameters": [
+          {
+            "name": "tableSlug",
+            "required": true,
+            "in": "query",
+            "description": "Slug of the table to fetch views for",
+            "schema": {
+              "example": "cloud-providers",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Named views retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DataTableViewDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List named table views",
+        "tags": [
+          "Table Views"
+        ]
+      },
+      "post": {
+        "description": "Saves the current table state as a named view snapshot. The name must be unique per user+table.",
+        "operationId": "DataTableViewsController_createView",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDataTableViewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Named view created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataTableViewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create named table view",
+        "tags": [
+          "Table Views"
+        ]
+      }
+    },
+    "/table-views/{id}": {
+      "patch": {
+        "description": "Updates the state of an existing named view. Only the owner can update.",
+        "operationId": "DataTableViewsController_updateView",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the table view to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDataTableViewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "View updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataTableViewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or not owned by caller."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "View not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update named table view",
+        "tags": [
+          "Table Views"
+        ]
+      },
+      "delete": {
+        "description": "Permanently deletes a named view. Only the owner can delete their own views.",
+        "operationId": "DataTableViewsController_deleteView",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the table view to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "View deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataTableViewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not owned by caller."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "View not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete named table view",
+        "tags": [
+          "Table Views"
+        ]
+      }
+    },
+    "/table-views/{id}/rename": {
+      "patch": {
+        "description": "Updates the display name of an existing view. The new name must be unique per user+table. Only the owner can rename.",
+        "operationId": "DataTableViewsController_renameView",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the table view to rename",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameDataTableViewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "View renamed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataTableViewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not owned by caller."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "View not found."
+          },
+          "409": {
+            "description": "A view with this name already exists."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Rename a named table view",
+        "tags": [
+          "Table Views"
+        ]
+      }
+    },
+    "/table-views/{id}/share": {
+      "patch": {
+        "description": "Makes a view visible to all users (shared) or restricts it to the owner only (private). Only the owner can toggle sharing.",
+        "operationId": "DataTableViewsController_toggleShareView",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID of the table view",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleShareDataTableViewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sharing status updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataTableViewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not owned by caller."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "View not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Toggle view sharing",
+        "tags": [
+          "Table Views"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "description": "Authenticates a nexus user with email and password. Returns an access token and sets a refresh token in an httpOnly cookie.",
@@ -648,6 +991,160 @@
         ]
       }
     },
+    "/users/webhook/{id}/roles": {
+      "post": {
+        "description": "Assigns an organization role to a user within a specific business unit. Validates the role and business unit exist, and checks for duplicate assignments.",
+        "operationId": "UserRoleController_assignRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRoleWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Role assigned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Role or business unit not found."
+          },
+          "409": {
+            "description": "Duplicate role assignment."
+          }
+        },
+        "summary": "Assign role to user",
+        "tags": [
+          "User Roles"
+        ]
+      },
+      "get": {
+        "description": "Returns all role assignments for a user, including role and business unit names via joins.",
+        "operationId": "UserRoleController_listRoles",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role assignments retrieved successfully."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          }
+        },
+        "summary": "List user role assignments",
+        "tags": [
+          "User Roles"
+        ]
+      }
+    },
+    "/users/webhook/{id}/roles/{assignmentId}": {
+      "delete": {
+        "description": "Removes a specific role assignment from a user.",
+        "operationId": "UserRoleController_removeRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assignmentId",
+            "required": true,
+            "in": "path",
+            "description": "Role assignment ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role assignment removed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Role assignment not found."
+          }
+        },
+        "summary": "Remove role assignment",
+        "tags": [
+          "User Roles"
+        ]
+      }
+    },
     "/organizations/webhook": {
       "post": {
         "description": "Receives an organization creation event from cloud-server. Requires X-Webhook-Secret header for authentication.",
@@ -696,6 +1193,1480 @@
           "Organizations"
         ]
       }
+    },
+    "/organizations/webhook/{id}": {
+      "patch": {
+        "operationId": "OrganizationController_updateFromWebhook",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizations"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationController_deleteFromWebhook",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/organizations/webhook/roles": {
+      "post": {
+        "description": "Receives bulk role provisioning from cloud-server. Creates org_roles rows with features stored as a jsonb array. Requires X-Webhook-Secret header.",
+        "operationId": "OrgRolesController_provision",
+        "parameters": [
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProvisionRolesWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Roles provisioned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          }
+        },
+        "summary": "Bulk provision roles",
+        "tags": [
+          "Organization Roles"
+        ]
+      },
+      "get": {
+        "description": "Returns all roles for an organization with their feature counts. Protected by webhook secret.",
+        "operationId": "OrgRolesController_list",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "query",
+            "description": "Organization ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Roles retrieved successfully."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          }
+        },
+        "summary": "List roles for organization",
+        "tags": [
+          "Organization Roles"
+        ]
+      }
+    },
+    "/organizations/webhook/roles/create": {
+      "post": {
+        "description": "Creates a new role with validated features. Features must belong to the organization. Validates name uniqueness within the org.",
+        "operationId": "OrgRolesController_create",
+        "parameters": [
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Role created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid features or validation error."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "409": {
+            "description": "Role name already exists."
+          }
+        },
+        "summary": "Create a single role",
+        "tags": [
+          "Organization Roles"
+        ]
+      }
+    },
+    "/organizations/webhook/roles/{id}": {
+      "patch": {
+        "description": "Updates role metadata (name, description, scope). If features are provided, replaces the features jsonb array.",
+        "operationId": "OrgRolesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Role ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Role not found."
+          }
+        },
+        "summary": "Update a role",
+        "tags": [
+          "Organization Roles"
+        ]
+      },
+      "delete": {
+        "description": "Deletes a role. Cascade delete removes associated user_role_assignments automatically.",
+        "operationId": "OrgRolesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Role ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Role not found."
+          }
+        },
+        "summary": "Delete a role",
+        "tags": [
+          "Organization Roles"
+        ]
+      }
+    },
+    "/business-units/webhook": {
+      "post": {
+        "description": "Creates a new business unit for an organization. Computes depth and materialized path from the parent. Requires X-Webhook-Secret header.",
+        "operationId": "BusinessUnitController_create",
+        "parameters": [
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBusinessUnitWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Business unit created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessUnitDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Parent business unit not found."
+          }
+        },
+        "summary": "Create business unit",
+        "tags": [
+          "Business Units"
+        ]
+      },
+      "get": {
+        "description": "Returns a flat list of all business units for an organization, ordered by depth and sort order. Client builds the tree from parentId.",
+        "operationId": "BusinessUnitController_list",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "query",
+            "description": "Organization ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Business units retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessUnitDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          }
+        },
+        "summary": "List business units",
+        "tags": [
+          "Business Units"
+        ]
+      }
+    },
+    "/business-units/webhook/{id}": {
+      "get": {
+        "description": "Returns a business unit and all its descendants using materialized path prefix matching.",
+        "operationId": "BusinessUnitController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Business unit ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Business unit subtree retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessUnitDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Business unit not found."
+          }
+        },
+        "summary": "Get business unit with subtree",
+        "tags": [
+          "Business Units"
+        ]
+      },
+      "patch": {
+        "description": "Updates a business unit name, code, type, metadata, or active status.",
+        "operationId": "BusinessUnitController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Business unit ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBusinessUnitWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business unit updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Business unit not found."
+          }
+        },
+        "summary": "Update business unit",
+        "tags": [
+          "Business Units"
+        ]
+      },
+      "delete": {
+        "description": "Deletes a business unit. Fails if the unit has child business units — they must be removed or reassigned first.",
+        "operationId": "BusinessUnitController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Business unit ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Business unit deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Business unit has children."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Business unit not found."
+          }
+        },
+        "summary": "Delete business unit",
+        "tags": [
+          "Business Units"
+        ]
+      }
+    },
+    "/business-units/webhook/{id}/role-assignments": {
+      "get": {
+        "operationId": "BusinessUnitController_listRoleAssignments",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Business Units"
+        ]
+      }
+    },
+    "/user-permissions/business-units": {
+      "get": {
+        "operationId": "UserPermissionsController_getBusinessUnits",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "User Permissions"
+        ]
+      }
+    },
+    "/user-permissions/business-units/select": {
+      "get": {
+        "operationId": "UserPermissionsController_getBusinessUnitsSelect",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "User Permissions"
+        ]
+      }
+    },
+    "/user-permissions": {
+      "get": {
+        "operationId": "UserPermissionsController_getPermissions",
+        "parameters": [
+          {
+            "name": "buId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "User Permissions"
+        ]
+      }
+    },
+    "/commerce-api/categories": {
+      "get": {
+        "operationId": "CategoryGatewayController_findAll",
+        "parameters": [
+          {
+            "name": "businessUnitId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Categories"
+        ]
+      },
+      "post": {
+        "operationId": "CategoryGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Categories"
+        ]
+      }
+    },
+    "/commerce-api/categories/{id}": {
+      "get": {
+        "operationId": "CategoryGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Categories"
+        ]
+      },
+      "patch": {
+        "operationId": "CategoryGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Categories"
+        ]
+      },
+      "delete": {
+        "operationId": "CategoryGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Categories"
+        ]
+      }
+    },
+    "/commerce-api/products": {
+      "get": {
+        "operationId": "ProductGatewayController_findAll",
+        "parameters": [
+          {
+            "name": "businessUnitId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Products"
+        ]
+      },
+      "post": {
+        "operationId": "ProductGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Products"
+        ]
+      }
+    },
+    "/commerce-api/products/{id}": {
+      "get": {
+        "operationId": "ProductGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Products"
+        ]
+      },
+      "patch": {
+        "operationId": "ProductGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Products"
+        ]
+      },
+      "delete": {
+        "operationId": "ProductGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Products"
+        ]
+      }
+    },
+    "/commerce-api/stations": {
+      "get": {
+        "operationId": "StationGatewayController_findAll",
+        "parameters": [
+          {
+            "name": "businessUnitId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Stations"
+        ]
+      },
+      "post": {
+        "operationId": "StationGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Stations"
+        ]
+      }
+    },
+    "/commerce-api/stations/{id}": {
+      "get": {
+        "operationId": "StationGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Stations"
+        ]
+      },
+      "patch": {
+        "operationId": "StationGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Stations"
+        ]
+      },
+      "delete": {
+        "operationId": "StationGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Stations"
+        ]
+      }
+    },
+    "/commerce-api/orders": {
+      "get": {
+        "operationId": "OrderGatewayController_findAll",
+        "parameters": [
+          {
+            "name": "businessUnitId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Orders"
+        ]
+      },
+      "post": {
+        "operationId": "OrderGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}": {
+      "get": {
+        "operationId": "OrderGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}/status": {
+      "patch": {
+        "operationId": "OrderGatewayController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}/items": {
+      "post": {
+        "operationId": "OrderGatewayController_addItems",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOrderItemsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}/items/{itemId}": {
+      "patch": {
+        "operationId": "OrderGatewayController_updateItemStatus",
+        "parameters": [
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateItemStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Orders"
+        ]
+      }
+    },
+    "/commerce-api/kot": {
+      "get": {
+        "operationId": "KotGatewayController_findActive",
+        "parameters": [
+          {
+            "name": "businessUnitId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — KOT"
+        ]
+      }
+    },
+    "/commerce-api/kot/items/{itemId}/status": {
+      "patch": {
+        "operationId": "KotGatewayController_updateItemStatus",
+        "parameters": [
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateItemStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — KOT"
+        ]
+      }
+    },
+    "/commerce-api/invoices/generate/{orderId}": {
+      "post": {
+        "operationId": "InvoiceGatewayController_generate",
+        "parameters": [
+          {
+            "name": "orderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Invoices"
+        ]
+      }
+    },
+    "/commerce-api/invoices": {
+      "get": {
+        "operationId": "InvoiceGatewayController_findAll",
+        "parameters": [
+          {
+            "name": "businessUnitId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Invoices"
+        ]
+      }
+    },
+    "/commerce-api/invoices/{id}": {
+      "get": {
+        "operationId": "InvoiceGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Invoices"
+        ]
+      }
+    },
+    "/commerce-api/invoices/{id}/status": {
+      "patch": {
+        "operationId": "InvoiceGatewayController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInvoiceStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce — Invoices"
+        ]
+      }
     }
   },
   "info": {
@@ -738,6 +2709,145 @@
       }
     },
     "schemas": {
+      "UpsertDataTableStateDto": {
+        "type": "object",
+        "properties": {
+          "tableSlug": {
+            "type": "string",
+            "description": "Unique slug identifying the table",
+            "example": "cloud-providers"
+          },
+          "state": {
+            "type": "object",
+            "description": "Full table view state including filters, sort, and column visibility"
+          },
+          "activeViewId": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "tableSlug",
+          "state"
+        ]
+      },
+      "DataTableViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "View unique identifier"
+          },
+          "name": {
+            "type": "object",
+            "description": "Display name of the view",
+            "nullable": true
+          },
+          "tableSlug": {
+            "type": "string",
+            "description": "Slug of the table this view belongs to",
+            "example": "cloud-providers"
+          },
+          "state": {
+            "type": "object",
+            "description": "Stored filter, sort, and column visibility state"
+          },
+          "isShared": {
+            "type": "boolean",
+            "description": "Whether the view is visible to all users",
+            "example": false
+          },
+          "isOwn": {
+            "type": "boolean",
+            "description": "Whether the requesting user owns this view",
+            "example": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "object",
+            "description": "Last updated timestamp",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "tableSlug",
+          "state",
+          "isShared",
+          "isOwn",
+          "createdAt"
+        ]
+      },
+      "CreateDataTableViewDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Display name for the saved view",
+            "example": "AWS Only"
+          },
+          "tableSlug": {
+            "type": "string",
+            "description": "Unique slug identifying the table",
+            "example": "cloud-providers"
+          },
+          "state": {
+            "type": "object",
+            "description": "Full table view state including filters, sort, and column visibility"
+          },
+          "isShared": {
+            "type": "boolean",
+            "description": "Whether this view is visible to all users",
+            "example": false
+          }
+        },
+        "required": [
+          "name",
+          "tableSlug",
+          "state"
+        ]
+      },
+      "UpdateDataTableViewDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "object",
+            "description": "Updated filter, sort, and column visibility state"
+          }
+        },
+        "required": [
+          "state"
+        ]
+      },
+      "RenameDataTableViewDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New display name for the view",
+            "example": "AWS Only"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ToggleShareDataTableViewDto": {
+        "type": "object",
+        "properties": {
+          "isShared": {
+            "type": "boolean",
+            "description": "Whether the view should be visible to all users",
+            "example": true
+          }
+        },
+        "required": [
+          "isShared"
+        ]
+      },
       "LoginDto": {
         "type": "object",
         "properties": {
@@ -771,9 +2881,6 @@
           "fullName": {
             "type": "string"
           },
-          "role": {
-            "type": "string"
-          },
           "status": {
             "type": "string"
           },
@@ -791,10 +2898,31 @@
           "id",
           "email",
           "fullName",
-          "role",
           "status",
           "hasPassword",
           "createdAt"
+        ]
+      },
+      "AuthOrgDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "subdomain": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "subdomain"
         ]
       },
       "AuthResponseDto": {
@@ -814,6 +2942,9 @@
           },
           "user": {
             "$ref": "#/components/schemas/AuthUserDto"
+          },
+          "org": {
+            "$ref": "#/components/schemas/AuthOrgDto"
           }
         }
       },
@@ -991,16 +3122,6 @@
             "type": "string",
             "description": "User full name",
             "example": "Jane Smith"
-          },
-          "role": {
-            "type": "string",
-            "description": "User role",
-            "example": "SUPPORT",
-            "enum": [
-              "SUPER_ADMIN",
-              "ADMIN",
-              "SUPPORT"
-            ]
           }
         },
         "required": [
@@ -1049,16 +3170,6 @@
             "description": "User full name",
             "example": "Jane Smith"
           },
-          "role": {
-            "type": "string",
-            "description": "User role",
-            "example": "SUPPORT",
-            "enum": [
-              "SUPER_ADMIN",
-              "ADMIN",
-              "SUPPORT"
-            ]
-          },
           "status": {
             "type": "string",
             "description": "Account status",
@@ -1085,7 +3196,6 @@
           "organizationId",
           "email",
           "fullName",
-          "role",
           "status",
           "hasPassword",
           "createdAt"
@@ -1112,17 +3222,13 @@
       "UpdateUserWebhookDto": {
         "type": "object",
         "properties": {
+          "email": {
+            "type": "string",
+            "example": "jane@example.com"
+          },
           "fullName": {
             "type": "string",
             "example": "Jane Smith"
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "SUPER_ADMIN",
-              "ADMIN",
-              "SUPPORT"
-            ]
           },
           "status": {
             "type": "string",
@@ -1133,6 +3239,34 @@
             ]
           }
         }
+      },
+      "AssignRoleWebhookDto": {
+        "type": "object",
+        "properties": {
+          "orgRoleId": {
+            "type": "string",
+            "description": "Organization role ID",
+            "example": "uuid-here"
+          },
+          "businessUnitId": {
+            "type": "string",
+            "description": "Business unit ID",
+            "example": "uuid-here"
+          },
+          "assignmentType": {
+            "type": "string",
+            "description": "Assignment type",
+            "enum": [
+              "DIRECT",
+              "INHERITED"
+            ],
+            "example": "DIRECT"
+          }
+        },
+        "required": [
+          "orgRoleId",
+          "businessUnitId"
+        ]
       },
       "CreateOrganizationWebhookDto": {
         "type": "object",
@@ -1175,10 +3309,13 @@
             "description": "Industry ID",
             "example": 1
           },
-          "mediaId": {
-            "type": "number",
-            "description": "Media asset ID for the organization logo",
-            "example": 42
+          "logoUrl": {
+            "type": "string",
+            "description": "Public logo URL"
+          },
+          "featureCatalog": {
+            "type": "object",
+            "description": "Feature catalog from app version snapshot"
           }
         },
         "required": [
@@ -1224,10 +3361,9 @@
             ],
             "example": "0-10"
           },
-          "mediaId": {
+          "logoUrl": {
             "type": "object",
-            "description": "Media asset ID",
-            "example": 42,
+            "description": "Public logo URL",
             "nullable": true
           },
           "plan": {
@@ -1253,6 +3389,655 @@
           "size",
           "plan",
           "createdAt"
+        ]
+      },
+      "UpdateOrganizationWebhookDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Acme Corp"
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "0-10",
+              "10-20",
+              "20-50",
+              "50-100",
+              "100-500",
+              "500+"
+            ]
+          },
+          "logoUrl": {
+            "type": "string",
+            "description": "Public logo URL"
+          },
+          "featureCatalog": {
+            "type": "object",
+            "description": "Feature catalog from app version snapshot"
+          }
+        }
+      },
+      "RoleItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Inventory Manager"
+          },
+          "description": {
+            "type": "string",
+            "example": "Can manage all inventory operations"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "SUBTREE",
+              "SINGLE_BU"
+            ],
+            "example": "GLOBAL"
+          },
+          "sourceRoleId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "isLocked": {
+            "type": "boolean",
+            "example": false
+          },
+          "features": {
+            "type": "object",
+            "example": {
+              "products": [
+                "VIEW",
+                "CREATE"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name",
+          "scope",
+          "isLocked",
+          "features"
+        ]
+      },
+      "ProvisionRolesWebhookDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Organization ID",
+            "example": "uuid-here"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleItemDto"
+            }
+          }
+        },
+        "required": [
+          "orgId",
+          "roles"
+        ]
+      },
+      "CreateRoleWebhookDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Organization ID",
+            "example": "uuid-here"
+          },
+          "name": {
+            "type": "string",
+            "example": "Inventory Manager"
+          },
+          "description": {
+            "type": "string",
+            "example": "Can manage all inventory operations"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "SUBTREE",
+              "SINGLE_BU"
+            ],
+            "example": "GLOBAL"
+          },
+          "sourceRoleId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "isLocked": {
+            "type": "boolean",
+            "example": false
+          },
+          "features": {
+            "type": "object",
+            "example": {
+              "products": [
+                "VIEW",
+                "CREATE"
+              ],
+              "orders": [
+                "VIEW"
+              ]
+            }
+          }
+        },
+        "required": [
+          "orgId",
+          "name",
+          "scope",
+          "features"
+        ]
+      },
+      "UpdateRoleWebhookDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Inventory Manager"
+          },
+          "description": {
+            "type": "string",
+            "example": "Can manage all inventory operations"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "SUBTREE",
+              "SINGLE_BU"
+            ],
+            "example": "GLOBAL"
+          },
+          "features": {
+            "type": "object",
+            "example": {
+              "products": [
+                "VIEW",
+                "CREATE"
+              ]
+            }
+          }
+        }
+      },
+      "CreateBusinessUnitWebhookDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Organization ID",
+            "example": "uuid-here"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "Parent business unit ID",
+            "example": "uuid-here"
+          },
+          "name": {
+            "type": "string",
+            "description": "Business unit name",
+            "example": "US East Region"
+          },
+          "code": {
+            "type": "string",
+            "description": "Business unit code",
+            "example": "US-EAST"
+          },
+          "type": {
+            "type": "string",
+            "description": "Business unit type",
+            "enum": [
+              "ORGANIZATION",
+              "REGION",
+              "FRANCHISEE",
+              "BRANCH",
+              "TEAM",
+              "DEPARTMENT",
+              "CUSTOM"
+            ],
+            "example": "REGION"
+          },
+          "description": {
+            "type": "string",
+            "description": "Business unit description"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Business unit metadata (address, timezone, etc.)",
+            "example": {
+              "city": "New York"
+            }
+          }
+        },
+        "required": [
+          "orgId",
+          "name",
+          "type"
+        ]
+      },
+      "BusinessUnitDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "organizationId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "parentId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "example": "US East Region"
+          },
+          "code": {
+            "type": "object",
+            "example": "US-EAST",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ORGANIZATION",
+              "REGION",
+              "FRANCHISEE",
+              "BRANCH",
+              "TEAM",
+              "DEPARTMENT",
+              "CUSTOM"
+            ]
+          },
+          "depth": {
+            "type": "number",
+            "example": 0
+          },
+          "path": {
+            "type": "object",
+            "example": "/root-id/child-id",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "example": 0
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "name",
+          "type",
+          "depth",
+          "isActive",
+          "sortOrder",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateBusinessUnitWebhookDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "US East Region"
+          },
+          "code": {
+            "type": "string",
+            "example": "US-EAST"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ORGANIZATION",
+              "REGION",
+              "FRANCHISEE",
+              "BRANCH",
+              "TEAM",
+              "DEPARTMENT",
+              "CUSTOM"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "description": "Business unit description"
+          },
+          "metadata": {
+            "type": "object",
+            "example": {
+              "city": "New York"
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "businessUnitId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "businessUnitId",
+          "name"
+        ]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        }
+      },
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {
+          "businessUnitId": {
+            "type": "string"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "stationId": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "isAvailable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "businessUnitId",
+          "name",
+          "price"
+        ]
+      },
+      "UpdateProductDto": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "stationId": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "isAvailable": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        }
+      },
+      "CreateStationDto": {
+        "type": "object",
+        "properties": {
+          "businessUnitId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "businessUnitId",
+          "name"
+        ]
+      },
+      "UpdateStationDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        }
+      },
+      "CreateOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unitPrice": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "stationId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "quantity",
+          "unitPrice"
+        ]
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {
+          "businessUnitId": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "ONLINE",
+              "WALK_IN"
+            ]
+          },
+          "customerPhone": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "UPI",
+              "CARD",
+              "WALLET",
+              "UNPAID"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemDto"
+            }
+          }
+        },
+        "required": [
+          "businessUnitId",
+          "source",
+          "paymentMethod",
+          "items"
+        ]
+      },
+      "UpdateOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "PREPARING",
+              "READY",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "AddOrderItemsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "UpdateItemStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PREPARING",
+              "READY",
+              "SERVED",
+              "CANCELLED"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "UpdateInvoiceStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ISSUED",
+              "PAID",
+              "CANCELLED"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       }
     }

@@ -13,7 +13,7 @@ import {
   SuccessResponseDto,
 } from '@vritti/api-sdk';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
-import { SessionTypeValues, type User, UserRoleValues, UserStatusValues, users } from '@/db/schema';
+import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
 import { SessionService } from '../../auth/root/services/session.service';
 import { OrganizationRepository } from '../../organization/repositories/organization.repository';
 import { UserDto } from '../dto/entity/user.dto';
@@ -30,7 +30,6 @@ export class UserService {
     fullName: { column: users.fullName, type: 'string' },
     email: { column: users.email, type: 'string' },
     status: { column: users.status, type: 'string' },
-    role: { column: users.role, type: 'string' },
     createdAt: { column: users.createdAt, type: 'string' },
   };
 
@@ -44,7 +43,7 @@ export class UserService {
 
   // Creates a portal user from cloud-server webhook and sends invite email
   async createFromWebhook(dto: CreateUserWebhookDto): Promise<SuccessResponseDto> {
-    const existingUser = await this.userRepository.findByEmail(dto.email);
+    const existingUser = await this.userRepository.findByEmailAndOrg(dto.email, dto.orgId);
     if (existingUser) {
       throw new ConflictException({
         label: 'User Already Exists',
@@ -57,7 +56,6 @@ export class UserService {
       email: dto.email,
       fullName: dto.fullName,
       organizationId: dto.orgId,
-      role: (dto.role as (typeof UserRoleValues)[keyof typeof UserRoleValues]) ?? UserRoleValues.SUPPORT,
       status: 'PENDING',
     });
 
@@ -132,9 +130,22 @@ export class UserService {
   async updateFromWebhook(id: string, dto: UpdateUserWebhookDto): Promise<SuccessResponseDto> {
     const user = await this.userRepository.findById(id);
     if (!user) throw new NotFoundException('User not found.');
+
+    // Check for email uniqueness within the same org if email is being changed
+    if (dto.email && dto.email !== user.email) {
+      const existing = await this.userRepository.findByEmailAndOrg(dto.email, user.organizationId);
+      if (existing) {
+        throw new ConflictException({
+          label: 'Email Already In Use',
+          detail: `A user with email ${dto.email} already exists in this organization.`,
+          errors: [{ field: 'email', message: 'Already in use' }],
+        });
+      }
+    }
+
     await this.userRepository.update(id, {
+      ...(dto.email && { email: dto.email }),
       ...(dto.fullName && { fullName: dto.fullName }),
-      ...(dto.role && { role: dto.role as (typeof UserRoleValues)[keyof typeof UserRoleValues] }),
       ...(dto.status && { status: dto.status as (typeof UserStatusValues)[keyof typeof UserStatusValues] }),
       updatedAt: new Date(),
     });

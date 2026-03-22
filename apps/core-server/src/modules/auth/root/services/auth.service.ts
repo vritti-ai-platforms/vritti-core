@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, JwtAuthService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import { SessionTypeValues, UserStatusValues } from '@/db/schema';
+import { OrganizationService } from '../../../organization/services/organization.service';
 import { UserService } from '../../../user/services/user.service';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
@@ -19,6 +20,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly sessionService: SessionService,
     private readonly jwtService: JwtAuthService,
+    private readonly organizationService: OrganizationService,
   ) {}
 
   // Validates credentials and creates a NEXUS session, returning access token in response
@@ -161,10 +163,14 @@ export class AuthService {
     return { message: 'Password set successfully. You can now log in.' };
   }
 
-  // Returns auth status without throwing 401 — used for client-side session checks
-  async getStatus(refreshToken: string | undefined): Promise<AuthResponseDto> {
+  // Returns auth status without throwing 401 — resolves org from subdomain via Host header
+  async getStatus(refreshToken: string | undefined, subdomain?: string): Promise<AuthResponseDto> {
+    // Resolve org regardless of auth state
+    const org = subdomain ? await this.organizationService.getBySubdomain(subdomain) : null;
+    const orgData = org ? { id: org.id, name: org.name, subdomain: org.subdomain, logoUrl: org.logoUrl } : undefined;
+
     if (!refreshToken) {
-      return new AuthResponseDto({ isAuthenticated: false });
+      return new AuthResponseDto({ isAuthenticated: false, org: orgData });
     }
 
     try {
@@ -179,16 +185,16 @@ export class AuthService {
               id: user.id,
               email: user.email,
               fullName: user.fullName,
-              role: user.role,
               status: user.status,
               hasPassword: user.passwordHash !== null,
               createdAt: user.createdAt.toISOString(),
               lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
             }
           : undefined,
+        org: orgData,
       });
     } catch {
-      return new AuthResponseDto({ isAuthenticated: false });
+      return new AuthResponseDto({ isAuthenticated: false, org: orgData });
     }
   }
 
