@@ -1,7 +1,8 @@
 import { Body, Controller, HttpCode, HttpStatus, Logger, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, Reset, UserId } from '@vritti/api-sdk';
+import { Public, RequireSession, UserId } from '@vritti/api-sdk';
 import type { FastifyReply } from 'fastify';
+import { SessionTypeValues } from '@/db/schema';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
 import {
   ApiForgotPassword,
@@ -38,7 +39,7 @@ export class ForgotPasswordController {
   // Resends the reset OTP using the active RESET session
   @Post('resend-reset-otp')
   @HttpCode(HttpStatus.OK)
-  @Reset()
+  @RequireSession(SessionTypeValues.RESET)
   @ApiResendResetOtp()
   async resendResetOtp(@UserId() userId: string): Promise<MessageResponseDto> {
     this.logger.log(`POST /auth/resend-reset-otp - User: ${userId}`);
@@ -48,7 +49,7 @@ export class ForgotPasswordController {
   // Verifies the submitted OTP against the active RESET session
   @Post('verify-reset-otp')
   @HttpCode(HttpStatus.OK)
-  @Reset()
+  @RequireSession(SessionTypeValues.RESET)
   @ApiVerifyResetOtp()
   async verifyResetOtp(@Body() dto: VerifyResetOtpDto, @UserId() userId: string): Promise<MessageResponseDto> {
     this.logger.log(`POST /auth/verify-reset-otp - User: ${userId}`);
@@ -58,7 +59,7 @@ export class ForgotPasswordController {
   // Resets the password, invalidates all sessions, and issues a new NEXUS session
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  @Reset()
+  @RequireSession(SessionTypeValues.RESET)
   @ApiResetPassword()
   async resetPassword(
     @Body() dto: ResetPasswordDto,

@@ -72,6 +72,7 @@ function configureApiSdkSettings() {
     },
     guard: {
       tenantHeaderName: 'x-tenant-id',
+      defaultSessionTypes: ['NEXUS'],
     },
   });
 }
