@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from '../user/user.module';
+import { UserDomainModule } from '@domain/user/user.module';
 import { CategoryGatewayController } from './catalog/controllers/category-gateway.controller';
 import { ProductGatewayController } from './catalog/controllers/product-gateway.controller';
 import { CategoryGatewayService } from './catalog/services/category-gateway.service';
@@ -15,7 +15,7 @@ import { OrderGatewayService } from './orders/services/order-gateway.service';
 import { StationGatewayService } from './orders/services/station-gateway.service';
 
 @Module({
-  imports: [CommerceClientModule, UserModule],
+  imports: [CommerceClientModule, UserDomainModule],
   controllers: [
     // Catalog
     CategoryGatewayController,

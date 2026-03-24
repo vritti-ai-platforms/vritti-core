@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { UserId } from '@vritti/api-sdk';
-import { UserService } from '../../../user/services/user.service';
+import { UserService } from '@domain/user/services/user.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type Observable, firstValueFrom } from 'rxjs';
 import { CreateProductDto } from '../dto/request/create-product.dto';

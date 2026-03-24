@@ -17,13 +17,19 @@ import {
   RootModule,
 } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
-import { AuthModule } from './modules/auth/auth.module';
-import { BusinessUnitModule } from './modules/business-unit/business-unit.module';
+import { AuthApiModule } from './modules/core-api/auth/auth.module';
+import { BusinessUnitApiModule } from './modules/core-api/business-unit/business-unit.module';
+import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
+import { UserApiModule } from './modules/core-api/user/user.module';
+import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
-import { OrganizationModule } from './modules/organization/organization.module';
-import { UserPermissionsModule } from './modules/user-permissions/user-permissions.module';
-import { UserModule } from './modules/user/user.module';
-import { VerificationModule } from './modules/verification/verification.module';
+import { BusinessUnitDomainModule } from './modules/domain/business-unit/business-unit.module';
+import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
+import { SessionDomainModule } from './modules/domain/session/session.module';
+import { UserDomainModule } from './modules/domain/user/user.module';
+import { UserPermissionsDomainModule } from './modules/domain/user-permissions/user-permissions.module';
+import { UserRoleDomainModule } from './modules/domain/user-role/user-role.module';
+import { VerificationDomainModule } from './modules/domain/verification/verification.module';
 
 @Module({
   imports: [
@@ -93,13 +99,20 @@ import { VerificationModule } from './modules/verification/verification.module';
     EmailModule,
     // Data table views — server-stored table state
     DataTableModule.forRoot({ tableViews: schema.tableViews }),
-    // Nexus API modules — routes registered at root (proxy strips /api prefix)
-    AuthModule,
-    UserModule,
-    OrganizationModule,
-    BusinessUnitModule,
-    UserPermissionsModule,
-    VerificationModule,
+    // Domain modules — services + repositories only
+    SessionDomainModule,
+    VerificationDomainModule,
+    BusinessUnitDomainModule,
+    OrganizationDomainModule,
+    UserDomainModule,
+    UserRoleDomainModule,
+    UserPermissionsDomainModule,
+    // API modules — controllers + DTOs + docs
+    AuthApiModule,
+    UserApiModule,
+    OrganizationApiModule,
+    BusinessUnitApiModule,
+    UserPermissionsApiModule,
     // Commerce gateway — forwards requests to commerce-service via NATS
     CommerceGatewayModule,
     RouterModule.register([
