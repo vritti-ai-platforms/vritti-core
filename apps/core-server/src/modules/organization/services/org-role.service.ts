@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConflictException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import type { OrgRole, RoleScope } from '@/db/schema';
+import { BusinessUnitRepository } from '../../business-unit/repositories/business-unit.repository';
 import type { CreateRoleWebhookDto } from '../dto/request/create-role-webhook.dto';
 import type { RoleItemDto } from '../dto/request/provision-roles-webhook.dto';
 import type { UpdateRoleWebhookDto } from '../dto/request/update-role-webhook.dto';
@@ -10,7 +11,10 @@ import { OrgRoleRepository } from '../repositories/org-role.repository';
 export class OrgRoleService {
   private readonly logger = new Logger(OrgRoleService.name);
 
-  constructor(private readonly orgRoleRepository: OrgRoleRepository) {}
+  constructor(
+    private readonly orgRoleRepository: OrgRoleRepository,
+    private readonly businessUnitRepository: BusinessUnitRepository,
+  ) {}
 
   // Provisions multiple roles for an organization
   async provision(orgId: string, roles: RoleItemDto[]): Promise<SuccessResponseDto> {
@@ -24,6 +28,7 @@ export class OrgRoleService {
             scope: role.scope as RoleScope,
             sourceRoleId: role.sourceRoleId,
             isLocked: role.isLocked,
+            appCodes: role.appCodes ?? [],
             features: role.features,
           },
           tx,
@@ -58,6 +63,7 @@ export class OrgRoleService {
       scope: dto.scope as RoleScope,
       sourceRoleId: dto.sourceRoleId,
       isLocked: dto.isLocked ?? false,
+      appCodes: dto.appCodes ?? [],
       features: dto.features,
     });
 
@@ -74,6 +80,7 @@ export class OrgRoleService {
       ...(dto.name && { name: dto.name }),
       ...(dto.description !== undefined && { description: dto.description }),
       ...(dto.scope && { scope: dto.scope as RoleScope }),
+      ...(dto.appCodes !== undefined && { appCodes: dto.appCodes }),
       ...(dto.features !== undefined && { features: dto.features }),
       updatedAt: new Date(),
     });
@@ -91,5 +98,19 @@ export class OrgRoleService {
 
     this.logger.log(`Deleted role "${role.name}" (${roleId})`);
     return { success: true, message: 'Role deleted successfully.' };
+  }
+
+  // Returns roles whose appCodes are a subset of the BU's appCodes
+  async findCompatibleWithBU(buId: string): Promise<OrgRole[]> {
+    const bu = await this.businessUnitRepository.findById(buId);
+    if (!bu) throw new NotFoundException('Business unit not found.');
+
+    const buAppCodes = new Set(bu.appCodes ?? []);
+    const roles = await this.orgRoleRepository.findByOrg(bu.organizationId);
+
+    return roles.filter((role) => {
+      const roleAppCodes = role.appCodes ?? [];
+      return roleAppCodes.length === 0 || roleAppCodes.every((code) => buAppCodes.has(code));
+    });
   }
 }

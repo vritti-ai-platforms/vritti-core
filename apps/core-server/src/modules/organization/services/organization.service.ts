@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import type { FeatureCatalogEntry, OrgSize } from '@/db/schema';
+import type { OrgSize } from '@/db/schema';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationWebhookDto } from '../dto/request/create-organization-webhook.dto';
 import type { UpdateOrganizationWebhookDto } from '../dto/request/update-organization-webhook.dto';
@@ -26,7 +26,6 @@ export class OrganizationService {
       size: dto.size,
       plan: dto.plan,
       logoUrl: dto.logoUrl,
-      featureCatalog: dto.featureCatalog as FeatureCatalogEntry[],
     });
 
     this.logger.log(`Created organization from webhook: ${org.subdomain} (${org.id})`);
@@ -43,7 +42,6 @@ export class OrganizationService {
       ...(dto.name && { name: dto.name }),
       ...(dto.size && { size: dto.size as OrgSize }),
       ...(dto.logoUrl && { logoUrl: dto.logoUrl }),
-      ...(dto.featureCatalog && { featureCatalog: dto.featureCatalog as FeatureCatalogEntry[] }),
       updatedAt: new Date(),
     });
 

@@ -65,6 +65,21 @@ export function ApiUpdateRoleWebhook() {
   );
 }
 
+export function ApiCompatibleRolesWebhook() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List roles compatible with a business unit',
+      description:
+        'Returns roles whose appCodes are a subset of the business unit appCodes. Roles with no appCodes are always included.',
+    }),
+    ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
+    ApiQuery({ name: 'buId', description: 'Business unit ID', required: true }),
+    ApiResponse({ status: 200, description: 'Compatible roles retrieved successfully.' }),
+    ApiResponse({ status: 404, description: 'Business unit not found.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing webhook secret.' }),
+  );
+}
+
 export function ApiDeleteRoleWebhook() {
   return applyDecorators(
     ApiOperation({

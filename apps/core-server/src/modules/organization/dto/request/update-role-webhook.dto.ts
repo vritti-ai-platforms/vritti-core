@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { Allow, IsEnum, IsOptional, IsString } from 'class-validator';
+import { Allow, IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
 import { RoleScopeValues } from '@/db/schema';
 
 export class UpdateRoleWebhookDto {
@@ -18,6 +18,12 @@ export class UpdateRoleWebhookDto {
   @IsOptional()
   @IsEnum(RoleScopeValues)
   scope?: string;
+
+  @ApiPropertyOptional({ description: 'App codes linked to this role', example: ['inventory', 'pos'] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  appCodes?: string[];
 
   @ApiPropertyOptional({ example: { products: ['VIEW', 'CREATE'] } })
   @IsOptional()

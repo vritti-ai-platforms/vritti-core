@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import type { BuMetadata, BuType, BusinessUnit } from '@/db/schema';
+import type { BuMetadata, BuType, BusinessUnit, FeatureCatalogEntry } from '@/db/schema';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
+import type { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { UserRoleAssignmentRepository } from '../../user/repositories/user-role-assignment.repository';
 import { BusinessUnitRepository } from '../repositories/business-unit.repository';
@@ -86,6 +87,21 @@ export class BusinessUnitService {
 
     this.logger.log(`Updated business unit ${id}`);
     return { success: true, message: 'Business unit updated successfully.' };
+  }
+
+  // Sets the assigned apps and feature catalog for a business unit
+  async updateApps(id: string, dto: UpdateBuAppsWebhookDto): Promise<SuccessResponseDto> {
+    const bu = await this.businessUnitRepository.findById(id);
+    if (!bu) throw new NotFoundException('Business unit not found.');
+
+    await this.businessUnitRepository.update(id, {
+      appCodes: dto.appCodes,
+      featureCatalog: dto.featureCatalog as FeatureCatalogEntry[],
+      updatedAt: new Date(),
+    });
+
+    this.logger.log(`Updated apps for business unit ${id}: [${dto.appCodes.join(', ')}]`);
+    return { success: true, message: 'Business unit apps updated successfully.' };
   }
 
   // Lists role assignments for a business unit

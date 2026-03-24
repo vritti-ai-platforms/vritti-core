@@ -1,6 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { Allow, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { OrgSizeValues } from '@/db/schema';
 
 export class UpdateOrganizationWebhookDto {
@@ -19,10 +18,4 @@ export class UpdateOrganizationWebhookDto {
   @IsOptional()
   @IsString()
   logoUrl?: string;
-
-  @ApiPropertyOptional({ description: 'Feature catalog from app version snapshot' })
-  @IsOptional()
-  @Allow()
-  @Transform(({ value }) => value, { toClassOnly: true })
-  featureCatalog?: any;
 }

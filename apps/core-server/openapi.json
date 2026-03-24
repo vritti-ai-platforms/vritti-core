@@ -1333,6 +1333,47 @@
         ]
       }
     },
+    "/organizations/webhook/roles/compatible": {
+      "get": {
+        "description": "Returns roles whose appCodes are a subset of the business unit appCodes. Roles with no appCodes are always included.",
+        "operationId": "OrgRolesController_findCompatible",
+        "parameters": [
+          {
+            "name": "buId",
+            "required": true,
+            "in": "query",
+            "description": "Business unit ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Compatible roles retrieved successfully."
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Business unit not found."
+          }
+        },
+        "summary": "List roles compatible with a business unit",
+        "tags": [
+          "Organization Roles"
+        ]
+      }
+    },
     "/organizations/webhook/roles/create": {
       "post": {
         "description": "Creates a new role with validated features. Features must belong to the organization. Validates name uniqueness within the org.",
@@ -1761,6 +1802,64 @@
             "description": ""
           }
         },
+        "tags": [
+          "Business Units"
+        ]
+      }
+    },
+    "/business-units/webhook/{id}/apps": {
+      "patch": {
+        "description": "Sets the assigned app codes and feature catalog for a business unit. Requires X-Webhook-Secret header.",
+        "operationId": "BusinessUnitController_updateApps",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Business unit ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBuAppsWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Business unit apps updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Business unit not found."
+          }
+        },
+        "summary": "Update business unit apps",
         "tags": [
           "Business Units"
         ]
@@ -3312,10 +3411,6 @@
           "logoUrl": {
             "type": "string",
             "description": "Public logo URL"
-          },
-          "featureCatalog": {
-            "type": "object",
-            "description": "Feature catalog from app version snapshot"
           }
         },
         "required": [
@@ -3412,10 +3507,6 @@
           "logoUrl": {
             "type": "string",
             "description": "Public logo URL"
-          },
-          "featureCatalog": {
-            "type": "object",
-            "description": "Feature catalog from app version snapshot"
           }
         }
       },
@@ -3446,6 +3537,17 @@
           "isLocked": {
             "type": "boolean",
             "example": false
+          },
+          "appCodes": {
+            "description": "App codes linked to this role",
+            "example": [
+              "inventory",
+              "pos"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "features": {
             "type": "object",
@@ -3517,6 +3619,17 @@
             "type": "boolean",
             "example": false
           },
+          "appCodes": {
+            "description": "App codes linked to this role",
+            "example": [
+              "inventory",
+              "pos"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "features": {
             "type": "object",
             "example": {
@@ -3556,6 +3669,17 @@
               "SINGLE_BU"
             ],
             "example": "GLOBAL"
+          },
+          "appCodes": {
+            "description": "App codes linked to this role",
+            "example": [
+              "inventory",
+              "pos"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "features": {
             "type": "object",
@@ -3700,6 +3824,33 @@
           "sortOrder",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "UpdateBuAppsWebhookDto": {
+        "type": "object",
+        "properties": {
+          "appCodes": {
+            "description": "App codes to assign to this business unit",
+            "example": [
+              "inventory",
+              "pos"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "featureCatalog": {
+            "description": "Feature catalog entries for the assigned apps",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "appCodes",
+          "featureCatalog"
         ]
       },
       "UpdateBusinessUnitWebhookDto": {

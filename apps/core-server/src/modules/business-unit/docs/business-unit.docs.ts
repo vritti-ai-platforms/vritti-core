@@ -3,6 +3,7 @@ import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } fro
 import { SuccessResponseDto } from '@vritti/api-sdk';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
+import { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
 import { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 
 export function ApiCreateBusinessUnitWebhook() {
@@ -59,6 +60,21 @@ export function ApiUpdateBusinessUnitWebhook() {
     ApiParam({ name: 'id', description: 'Business unit ID' }),
     ApiBody({ type: UpdateBusinessUnitWebhookDto }),
     ApiResponse({ status: 200, description: 'Business unit updated successfully.', type: SuccessResponseDto }),
+    ApiResponse({ status: 404, description: 'Business unit not found.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing webhook secret.' }),
+  );
+}
+
+export function ApiUpdateBuAppsWebhook() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Update business unit apps',
+      description: 'Sets the assigned app codes and feature catalog for a business unit. Requires X-Webhook-Secret header.',
+    }),
+    ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
+    ApiParam({ name: 'id', description: 'Business unit ID' }),
+    ApiBody({ type: UpdateBuAppsWebhookDto }),
+    ApiResponse({ status: 200, description: 'Business unit apps updated successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Business unit not found.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing webhook secret.' }),
   );

@@ -20,10 +20,12 @@ import {
   ApiDeleteBusinessUnitWebhook,
   ApiGetBusinessUnitWebhook,
   ApiListBusinessUnitsWebhook,
+  ApiUpdateBuAppsWebhook,
   ApiUpdateBusinessUnitWebhook,
 } from '../docs/business-unit.docs';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
+import { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
 import { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { BusinessUnitService } from '../services/business-unit.service';
 
@@ -67,6 +69,14 @@ export class BusinessUnitController {
   async listRoleAssignments(@Param('id') id: string): Promise<any[]> {
     this.logger.log(`GET /api/business-units/webhook/${id}/role-assignments`);
     return this.businessUnitService.findRoleAssignments(id);
+  }
+
+  // Sets the assigned apps and feature catalog for a business unit
+  @Patch(':id/apps')
+  @ApiUpdateBuAppsWebhook()
+  async updateApps(@Param('id') id: string, @Body() dto: UpdateBuAppsWebhookDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /api/business-units/webhook/${id}/apps`);
+    return this.businessUnitService.updateApps(id, dto);
   }
 
   // Updates a business unit

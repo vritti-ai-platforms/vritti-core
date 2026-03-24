@@ -17,6 +17,7 @@ import { type SuccessResponseDto, Public, SkipCsrf } from '@vritti/api-sdk';
 import type { OrgRole } from '@/db/schema';
 import { WebhookSecretGuard } from '../../../common/guards/webhook-secret.guard';
 import {
+  ApiCompatibleRolesWebhook,
   ApiCreateRoleWebhook,
   ApiDeleteRoleWebhook,
   ApiListRolesWebhook,
@@ -53,6 +54,14 @@ export class OrgRolesController {
   async list(@Query('orgId') orgId: string): Promise<OrgRole[]> {
     this.logger.log(`GET /api/organizations/webhook/roles?orgId=${orgId}`);
     return this.orgRoleService.findByOrg(orgId);
+  }
+
+  // Returns roles whose appCodes are compatible with the given business unit
+  @Get('compatible')
+  @ApiCompatibleRolesWebhook()
+  async findCompatible(@Query('buId') buId: string): Promise<OrgRole[]> {
+    this.logger.log(`GET /api/organizations/webhook/roles/compatible?buId=${buId}`);
+    return this.orgRoleService.findCompatibleWithBU(buId);
   }
 
   // Creates a single role with features

@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
 import type { FeatureCatalogEntry } from '@/db/schema';
 import { BusinessUnitRepository } from '../../business-unit/repositories/business-unit.repository';
-import { OrganizationRepository } from '../../organization/repositories/organization.repository';
 import { UserRoleAssignmentRepository } from '../../user/repositories/user-role-assignment.repository';
 
 interface PermissionFeature {
@@ -30,7 +29,6 @@ export class UserPermissionsService {
 
   constructor(
     private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
-    private readonly organizationRepository: OrganizationRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
   ) {}
 
@@ -53,11 +51,11 @@ export class UserPermissionsService {
   }
 
   // Resolves combined features + MF config for a user at a specific BU
-  async getPermissions(userId: string, buId: string, orgId: string): Promise<{ features: PermissionFeature[] }> {
-    const org = await this.organizationRepository.findById(orgId);
-    if (!org) throw new NotFoundException('Organization not found.');
+  async getPermissions(userId: string, buId: string, _orgId: string): Promise<{ features: PermissionFeature[] }> {
+    const bu = await this.businessUnitRepository.findById(buId);
+    if (!bu) throw new NotFoundException('Business unit not found.');
 
-    const catalog = (org.featureCatalog ?? []) as FeatureCatalogEntry[];
+    const catalog = (bu.featureCatalog ?? []) as FeatureCatalogEntry[];
     const catalogMap = new Map(catalog.map((f) => [f.code, f]));
 
     // Get all role assignments for this user at this BU
