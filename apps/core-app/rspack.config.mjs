@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
+import { ExpoModulesPlugin } from '@callstack/repack-plugin-expo-modules';
+import { NativeWindPlugin } from '@callstack/repack-plugin-nativewind';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,11 +18,23 @@ const workspaceRoot = path.resolve(__dirname, '../../');
 const reactNativePackages =
   /node_modules[\\/](react-native|@react-native|@react-native-community)[\\/]/;
 
+const quantumUiNativeSrc = path.resolve(__dirname, 'node_modules/@vritti/quantum-ui-native/src');
+
 export default Repack.defineRspackConfig({
   context: __dirname,
   entry: './index.ts',
   resolve: {
     ...Repack.getResolveOptions(),
+    exportsFields: ['exports'],
+    conditionNames: ['import', 'require', 'default'],
+    alias: {
+      '@': quantumUiNativeSrc,
+    },
+    modules: [
+      path.resolve(__dirname, 'node_modules'),
+      path.resolve(workspaceRoot, 'node_modules'),
+      'node_modules',
+    ],
   },
   resolveLoader: {
     modules: [path.resolve(workspaceRoot, 'node_modules'), 'node_modules'],
@@ -45,17 +59,14 @@ export default Repack.defineRspackConfig({
         type: 'javascript/auto',
         exclude: reactNativePackages,
         use: {
-          loader: 'builtin:swc-loader',
-          options: Repack.getSwcLoaderOptions({
-            syntax: 'typescript',
-            jsx: true,
-            jsxRuntime: 'automatic',
-            externalHelpers: true,
-          }),
+          loader: 'babel-loader',
+          options: {
+            configFile: path.resolve(__dirname, 'babel.config.js'),
+          },
         },
       },
       ...Repack.getAssetTransformRules(),
     ],
   },
-  plugins: [new Repack.RepackPlugin()],
+  plugins: [new Repack.RepackPlugin(), new ExpoModulesPlugin(), new NativeWindPlugin()],
 });
