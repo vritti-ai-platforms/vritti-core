@@ -1,24 +1,17 @@
 import { type SidebarNavGroup, Sidebar as QSidebar } from '@vritti/quantum-ui/Sidebar';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Box, ClipboardList, FileText, Flame, FolderTree, LayoutGrid, Monitor, Package, Receipt, ShoppingCart, Utensils, Zap } from 'lucide-react';
+import { Box } from 'lucide-react';
+import { DynamicIcon, type IconName, iconNames } from 'lucide-react/dynamic';
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePermissionContext } from '../../providers/PermissionProvider';
 
-// Maps feature icon strings from the catalog to lucide components
-const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  'package': Package,
-  'folder-tree': FolderTree,
-  'clipboard-list': ClipboardList,
-  'monitor': Monitor,
-  'flame': Flame,
-  'file-text': FileText,
-  'chef-hat': Utensils,
-  'layout-grid': LayoutGrid,
-  'shopping-cart': ShoppingCart,
-  'receipt': Receipt,
-  'zap': Zap,
-};
+// Returns a lucide component for a given icon name string, falls back to Box
+function resolveIcon(name: string | null): React.ComponentType<{ className?: string }> {
+  if (!name || !iconNames.includes(name as IconName)) return Box;
+  const iconName = name as IconName;
+  return ({ className }: { className?: string }) => <DynamicIcon name={iconName} className={className} />;
+}
 
 // Extracts the bu slug segment from the current URL path
 function extractBuSlug(pathname: string): string | null {
@@ -40,7 +33,7 @@ export const Sidebar = () => {
         label: 'Features',
         items: features.map((f) => ({
           title: f.name,
-          icon: ICON_MAP[f.icon ?? ''] ?? Box,
+          icon: resolveIcon(f.icon),
           path: `/${buSlug}/${f.route.routePrefix.replace(/^\//, '')}`,
         })),
       },
