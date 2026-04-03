@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router-dom';
 import { AppLayout } from '../components/layouts/AppLayout';
+import { ProfilePage } from '../pages/account/profile/ProfilePage';
 import { BUSelectionPage } from '../pages/BUSelectionPage';
 import { DynamicFeatureRoutes } from '../utils/DynamicFeatureRoutes';
 
@@ -12,6 +13,10 @@ export const authenticatedRoutes: RouteObject[] = [
       {
         index: true,
         element: <BUSelectionPage />,
+      },
+      {
+        path: 'account/profile',
+        element: <ProfilePage />,
       },
       {
         path: ':buSlug/*',

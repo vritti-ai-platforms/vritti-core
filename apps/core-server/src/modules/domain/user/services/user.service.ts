@@ -52,11 +52,16 @@ export class UserService {
       });
     }
 
+    const displayName = dto.fullName.trim().split(' ')[0];
+
     const user = await this.userRepository.create({
       email: dto.email,
       fullName: dto.fullName,
+      displayName,
       organizationId: dto.orgId,
       status: 'PENDING',
+      ...(dto.phone && { phone: dto.phone }),
+      ...(dto.phoneCountry && { phoneCountry: dto.phoneCountry }),
     });
 
     this.logger.log(`Created portal user from webhook: ${user.email} (${user.id})`);

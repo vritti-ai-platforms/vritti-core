@@ -1,5 +1,6 @@
 import fastifyCookie from '@fastify/cookie';
 import fastifyCsrfProtection from '@fastify/csrf-protection';
+import fastifyMultipart from '@fastify/multipart';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -145,6 +146,13 @@ async function bootstrap() {
   // Register cookie support
   await app.register(fastifyCookie, {
     secret: configService.getOrThrow<string>('COOKIE_SECRET'),
+  });
+
+  // Register multipart support for file uploads
+  await app.register(fastifyMultipart, {
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10 MB hard limit (media service enforces configured limit)
+    },
   });
 
   // Register raw body plugin for webhook signature validation

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RouterModule } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
 
@@ -17,12 +17,13 @@ import {
   RootModule,
 } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
+import { AccountModule } from './modules/account/account.module';
+import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { BusinessUnitApiModule } from './modules/core-api/business-unit/business-unit.module';
 import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
-import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
 import { BusinessUnitDomainModule } from './modules/domain/business-unit/business-unit.module';
 import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
 import { SessionDomainModule } from './modules/domain/session/session.module';
@@ -84,7 +85,6 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           drizzleRelations: relations,
 
           // Connection pool configuration
-          connectionCacheTTL: 300000, // 5 minutes
           maxConnections: 10,
         };
         return options;
@@ -113,11 +113,12 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     OrganizationApiModule,
     BusinessUnitApiModule,
     UserPermissionsApiModule,
+    // Account module — profile and security management
+    AccountModule,
     // Commerce gateway — forwards requests to commerce-service via NATS
     CommerceGatewayModule,
-    RouterModule.register([
-      { path: 'commerce-api', module: CommerceGatewayModule },
-    ]),
+    RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
+    RouterModule.register([{ path: 'account', module: AccountModule }]),
   ],
 })
 export class AppModule {}

@@ -4,6 +4,7 @@ export * from './core-schema';
 // Export all enums
 export * from './enums';
 // Export all tables
+export * from './media';
 export * from './users';
 export * from './sessions';
 export * from './verifications';

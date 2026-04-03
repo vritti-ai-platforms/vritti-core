@@ -13,6 +13,14 @@ export const relations = defineRelations(schema, (r) => ({
     roleAssignments: r.many.userRoleAssignments(),
   },
 
+  // Media relations
+  media: {
+    uploadedByUser: r.one.users({
+      from: r.media.uploadedBy,
+      to: r.users.id,
+    }),
+  },
+
   // Session relations
   sessions: {
     user: r.one.users({

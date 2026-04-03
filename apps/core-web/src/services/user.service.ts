@@ -5,6 +5,7 @@ export interface User {
   externalId: string | null;
   email: string;
   fullName: string;
+  displayName?: string | null;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   hasPassword: boolean;
   createdAt: string;

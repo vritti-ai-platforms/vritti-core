@@ -1931,6 +1931,40 @@
         ]
       }
     },
+    "/account/profile": {
+      "get": {
+        "description": "Returns the authenticated user profile information. Profile changes must be requested through the admin.",
+        "operationId": "ProfileController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing authentication"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user profile",
+        "tags": [
+          "Account - Profile"
+        ]
+      }
+    },
     "/commerce-api/categories": {
       "get": {
         "operationId": "CategoryGatewayController_findAll",
@@ -3891,6 +3925,76 @@
             "example": true
           }
         }
+      },
+      "ProfileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "User unique identifier",
+            "example": "a1b2c3d4-..."
+          },
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "user@example.com"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "User full name",
+            "example": "Jane Smith"
+          },
+          "displayName": {
+            "type": "object",
+            "description": "User display name",
+            "example": "Jane"
+          },
+          "status": {
+            "type": "string",
+            "description": "Account status",
+            "example": "ACTIVE",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          },
+          "hasPassword": {
+            "type": "boolean",
+            "description": "Whether user has set a password",
+            "example": true
+          },
+          "locale": {
+            "type": "string",
+            "description": "Locale/language preference",
+            "example": "en"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone preference",
+            "example": "UTC"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Account creation timestamp",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "lastLoginAt": {
+            "type": "object",
+            "description": "Last login timestamp",
+            "example": "2024-06-01T08:00:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "status",
+          "hasPassword",
+          "locale",
+          "timezone",
+          "createdAt"
+        ]
       },
       "CreateCategoryDto": {
         "type": "object",

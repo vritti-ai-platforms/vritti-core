@@ -74,3 +74,13 @@ export const AssignmentTypeValues = {
   DIRECT: 'DIRECT' as const,
   INHERITED: 'INHERITED' as const,
 };
+
+// Media enums
+export const mediaStatusEnum = coreSchema.enum('media_status', ['pending', 'ready', 'failed', 'deleted']);
+export type MediaStatus = (typeof mediaStatusEnum.enumValues)[number];
+export const MediaStatusValues = {
+  PENDING: 'pending' as const,
+  READY: 'ready' as const,
+  FAILED: 'failed' as const,
+  DELETED: 'deleted' as const,
+};

@@ -1,12 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { User } from '@/db/schema';
 
-export class UserDto {
+export class ProfileDto {
   @ApiProperty({ description: 'User unique identifier', example: 'a1b2c3d4-...' })
   id: string;
-
-  @ApiProperty({ description: 'Organisation this user belongs to', example: 'uuid-here' })
-  organizationId: string;
 
   @ApiProperty({ description: 'User email address', example: 'user@example.com' })
   email: string;
@@ -14,33 +11,40 @@ export class UserDto {
   @ApiProperty({ description: 'User full name', example: 'Jane Smith' })
   fullName: string;
 
+  @ApiPropertyOptional({ description: 'User display name', example: 'Jane' })
+  displayName: string | null;
+
   @ApiProperty({ description: 'Account status', example: 'ACTIVE', enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] })
   status: string;
 
   @ApiProperty({ description: 'Whether user has set a password', example: true })
   hasPassword: boolean;
 
-  @ApiPropertyOptional({ description: 'Phone number', example: '919876543210' })
-  phone: string | null;
+  @ApiProperty({ description: 'Locale/language preference', example: 'en' })
+  locale: string;
 
-  @ApiPropertyOptional({ description: 'Phone country code', example: 'IN' })
-  phoneCountry: string | null;
+  @ApiProperty({ description: 'Timezone preference', example: 'UTC' })
+  timezone: string;
 
   @ApiProperty({ description: 'Account creation timestamp', example: '2024-01-15T10:30:00Z' })
   createdAt: string;
 
-  // Creates a response DTO from a User entity
-  static from(user: User): UserDto {
-    const dto = new UserDto();
+  @ApiPropertyOptional({ description: 'Last login timestamp', example: '2024-06-01T08:00:00Z' })
+  lastLoginAt: string | null;
+
+  // Creates a ProfileDto from a User entity
+  static from(user: User): ProfileDto {
+    const dto = new ProfileDto();
     dto.id = user.id;
-    dto.organizationId = user.organizationId;
     dto.email = user.email;
     dto.fullName = user.fullName;
+    dto.displayName = user.displayName ?? null;
     dto.status = user.status;
     dto.hasPassword = user.passwordHash !== null;
-    dto.phone = user.phone ?? null;
-    dto.phoneCountry = user.phoneCountry ?? null;
+    dto.locale = user.locale;
+    dto.timezone = user.timezone;
     dto.createdAt = user.createdAt.toISOString();
+    dto.lastLoginAt = user.lastLoginAt?.toISOString() ?? null;
     return dto;
   }
 }
