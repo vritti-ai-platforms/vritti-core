@@ -1965,6 +1965,174 @@
         ]
       }
     },
+    "/account/security/change-password": {
+      "post": {
+        "description": "Verifies the current password and replaces it with a new one. Rejects if the new password is identical to the current one.",
+        "operationId": "SecurityController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Current password incorrect or new password is the same."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change password",
+        "tags": [
+          "Account - Security"
+        ]
+      }
+    },
+    "/account/security/sessions": {
+      "get": {
+        "description": "Returns all active sessions for the authenticated user. The current session is flagged with isCurrent: true.",
+        "operationId": "SecurityController_getSessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Session list returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List active sessions",
+        "tags": [
+          "Account - Security"
+        ]
+      }
+    },
+    "/account/security/sessions/{id}": {
+      "delete": {
+        "description": "Deletes the specified session. Cannot be used to revoke the current session — use logout instead.",
+        "operationId": "SecurityController_revokeSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Session ID to revoke",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session revoked successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot revoke the current session."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Session not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke a session",
+        "tags": [
+          "Account - Security"
+        ]
+      }
+    },
+    "/account/security/sessions/revoke-all": {
+      "post": {
+        "description": "Deletes all sessions for the user except the current one. Pushes a logout event to all affected sessions via SSE.",
+        "operationId": "SecurityController_revokeAllSessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "All other sessions revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke all other sessions",
+        "tags": [
+          "Account - Security"
+        ]
+      }
+    },
     "/commerce-api/categories": {
       "get": {
         "operationId": "CategoryGatewayController_findAll",
@@ -3073,6 +3241,9 @@
           "isAuthenticated": {
             "type": "boolean"
           },
+          "sessionId": {
+            "type": "string"
+          },
           "user": {
             "$ref": "#/components/schemas/AuthUserDto"
           },
@@ -3994,6 +4165,61 @@
           "locale",
           "timezone",
           "createdAt"
+        ]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "description": "Current account password",
+            "example": "OldPass123!"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "New password (min 8 chars, must include letter and number)",
+            "example": "NewPass456!"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "SessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "description": "Session unique identifier"
+          },
+          "device": {
+            "type": "string",
+            "description": "Browser and OS parsed from user agent",
+            "example": "Chrome on macOS"
+          },
+          "ipAddress": {
+            "type": "object",
+            "description": "IP address of the session",
+            "example": "192.168.1.1",
+            "nullable": true
+          },
+          "lastActive": {
+            "type": "string",
+            "description": "Session creation timestamp (ISO string)",
+            "example": "2024-06-01T08:00:00Z"
+          },
+          "isCurrent": {
+            "type": "boolean",
+            "description": "Whether this is the current active session",
+            "example": false
+          }
+        },
+        "required": [
+          "sessionId",
+          "device",
+          "lastActive",
+          "isCurrent"
         ]
       },
       "CreateCategoryDto": {

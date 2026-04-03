@@ -174,12 +174,13 @@ export class AuthService {
     }
 
     try {
-      const { accessToken, expiresIn, userId } = await this.sessionService.generateAccessToken(refreshToken);
+      const { accessToken, expiresIn, userId, sessionId } = await this.sessionService.generateAccessToken(refreshToken);
       const user = await this.userService.findById(userId);
       return new AuthResponseDto({
         isAuthenticated: true,
         accessToken,
         expiresIn,
+        sessionId,
         user: user
           ? {
               id: user.id,

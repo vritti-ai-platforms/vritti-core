@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq, lt } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, lt, ne } from '@vritti/api-sdk/drizzle-orm';
 import { type Session, sessions } from '@/db/schema';
 
 @Injectable()
@@ -52,5 +52,16 @@ export class SessionRepository extends PrimaryBaseRepository<typeof sessions> {
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  // Deletes a single session by its ID
+  async deleteById(id: string): Promise<void> {
+    await this.db.delete(sessions).where(eq(sessions.id, id));
+  }
+
+  // Deletes all sessions for a user except the specified session
+  async deleteAllExcept(userId: string, currentSessionId: string): Promise<number> {
+    const result = await this.deleteMany(and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId))!);
+    return result.count;
   }
 }

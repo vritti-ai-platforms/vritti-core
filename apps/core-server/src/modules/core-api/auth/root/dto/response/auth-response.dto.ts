@@ -22,6 +22,7 @@ export class AuthResponseDto {
   @ApiPropertyOptional() expiresIn?: number;
   @ApiPropertyOptional() requiresSetPassword?: boolean;
   @ApiPropertyOptional() isAuthenticated?: boolean;
+  @ApiPropertyOptional() sessionId?: string;
   @ApiPropertyOptional({ type: AuthUserDto }) user?: AuthUserDto;
   @ApiPropertyOptional({ type: AuthOrgDto }) org?: AuthOrgDto;
 

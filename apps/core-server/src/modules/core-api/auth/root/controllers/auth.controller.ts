@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, type MessageEvent, Post, Req, Res, Sse } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { AccessToken, Public, RefreshTokenCookie, SkipCsrf, UserId } from '@vritti/api-sdk';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { NEVER, type Observable, concat, merge, of } from 'rxjs';
 import {
   ApiAcceptInvite,
   ApiGetAccessToken,
@@ -20,6 +21,7 @@ import { MessageResponseDto } from '../dto/response/message-response.dto';
 import { TokenResponseDto } from '../dto/response/token-response.dto';
 import { getRefreshCookieName, getRefreshCookieOptionsFromConfig } from '@domain/session/services/session.service';
 import { AuthService } from '../services/auth.service';
+import { AuthStatusSseService } from '../services/auth-status-sse.service';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -29,6 +31,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService,
+    private readonly sseService: AuthStatusSseService,
   ) {}
 
   // Authenticates user credentials and creates a NEXUS session
@@ -91,20 +94,31 @@ export class AuthController {
     return this.authService.acceptInvite(dto);
   }
 
-  // Returns auth status without throwing 401 — resolves org from Host header subdomain
-  @Get('status')
+  // Streams auth status and real-time session-revocation events via SSE
+  @Sse('status')
   @Public()
   @ApiGetAuthStatus()
   async getStatus(
     @RefreshTokenCookie() refreshToken: string | undefined,
     @Req() request: FastifyRequest,
-  ): Promise<AuthResponseDto> {
+  ): Promise<Observable<MessageEvent>> {
     const host = request.hostname ?? '';
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
 
-    this.logger.log(`GET /api/auth/status — subdomain: ${subdomain ?? 'none'}`);
-    return this.authService.getStatus(refreshToken, subdomain);
+    this.logger.log(`SSE /api/auth/status — subdomain: ${subdomain ?? 'none'}`);
+
+    const authResponse = await this.authService.getStatus(refreshToken, subdomain);
+    const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
+
+    // Not authenticated — send initial state and hold open to prevent rapid reconnect loop
+    if (!authResponse.isAuthenticated || !authResponse.sessionId || !authResponse.user) {
+      return concat(initial$, NEVER);
+    }
+
+    // Register SSE connection for real-time updates, keyed by sessionId
+    const connection$ = this.sseService.addConnection(authResponse.user.id, authResponse.sessionId);
+    return merge(initial$, connection$.asObservable());
   }
 
   // Rotates refresh token and issues a new access token

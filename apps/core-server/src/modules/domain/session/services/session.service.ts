@@ -101,6 +101,7 @@ export class SessionService {
     expiresIn: number;
     userId: string;
     sessionType: string;
+    sessionId: string;
   }> {
     const session = await this.validateRefreshToken(refreshToken);
     const newAccessToken = this.jwtService.generateAccessToken(
@@ -116,7 +117,7 @@ export class SessionService {
 
     this.logger.log(`Generated access token for user: ${session.userId}`);
 
-    return { accessToken: newAccessToken, expiresIn, userId: session.userId, sessionType: session.type };
+    return { accessToken: newAccessToken, expiresIn, userId: session.userId, sessionType: session.type, sessionId: session.id };
   }
 
   // Validates refresh token and returns the active non-expired session
@@ -150,6 +151,19 @@ export class SessionService {
   // Returns all sessions for a user ordered by most recent
   async getUserSessions(userId: string): Promise<Session[]> {
     return this.sessionRepository.findAllByUserId(userId);
+  }
+
+  // Deletes a single session by its ID
+  async deleteSessionById(sessionId: string): Promise<void> {
+    await this.sessionRepository.deleteById(sessionId);
+    this.logger.log(`Deleted session: ${sessionId}`);
+  }
+
+  // Deletes all sessions for a user except the current one, returning count deleted
+  async deleteAllSessionsExcept(userId: string, currentSessionId: string): Promise<number> {
+    const count = await this.sessionRepository.deleteAllExcept(userId, currentSessionId);
+    this.logger.log(`Deleted ${count} sessions for user: ${userId} (kept session ${currentSessionId})`);
+    return count;
   }
 
   // Validates a session by access token hash and ensures it is not expired
