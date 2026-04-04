@@ -1,4 +1,5 @@
 import type { RouteObject } from 'react-router-dom';
+import { ContentLayout } from '../components/layouts/ContentLayout';
 import { AppLayout } from '../components/layouts/AppLayout';
 import { ProfilePage } from '../pages/account/profile/ProfilePage';
 import { SecurityPage } from '../pages/account/security/SecurityPage';
@@ -16,16 +17,22 @@ export const authenticatedRoutes: RouteObject[] = [
         element: <BUSelectionPage />,
       },
       {
-        path: 'account/profile',
+        path: ':buSlug/*',
+        element: <DynamicFeatureRoutes />,
+      },
+    ],
+  },
+  {
+    path: '/account',
+    element: <ContentLayout />,
+    children: [
+      {
+        path: 'profile',
         element: <ProfilePage />,
       },
       {
-        path: 'account/security',
+        path: 'security',
         element: <SecurityPage />,
-      },
-      {
-        path: ':buSlug/*',
-        element: <DynamicFeatureRoutes />,
       },
     ],
   },
