@@ -61,9 +61,6 @@ export class UserPermissionsService {
     // Get all role assignments for this user at this BU
     const assignments = await this.userRoleAssignmentRepository.findByUserAndBU(userId, buId);
 
-    if (assignments.length > 0) {
-    }
-
     // Merge features from all assigned roles additively
     const mergedFeatures = new Map<string, Set<string>>();
     for (const assignment of assignments) {

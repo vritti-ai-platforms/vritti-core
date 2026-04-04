@@ -90,6 +90,9 @@ export class BusinessUnitService {
     const bu = await this.businessUnitRepository.findById(id);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
+    this.logger.log(`updateApps — appCodes: ${JSON.stringify(dto.appCodes)}`);
+    this.logger.log(`updateApps — featureCatalog: ${JSON.stringify(dto.featureCatalog)}`);
+
     await this.businessUnitRepository.update(id, {
       appCodes: dto.appCodes,
       featureCatalog: dto.featureCatalog as FeatureCatalogEntry[],

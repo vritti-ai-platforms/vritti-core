@@ -1,15 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as schema from '@/db/schema';
-import { relations } from '@/db/schema';
 
 import './db/schema.registry';
 
 import { type DatabaseModuleOptions, DatabaseModule } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
-import { CatalogModule } from './modules/catalog/catalog.module';
-import { InvoicingModule } from './modules/invoicing/invoicing.module';
-import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -33,17 +29,12 @@ import { OrdersModule } from './modules/orders/orders.module';
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
           drizzleSchema: schema,
-          drizzleRelations: relations,
           connectionCacheTTL: 300000,
           maxConnections: 10,
         };
         return options;
       },
     }),
-    // Feature modules
-    CatalogModule,
-    OrdersModule,
-    InvoicingModule,
   ],
 })
 export class AppModule {}

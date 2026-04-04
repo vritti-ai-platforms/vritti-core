@@ -24,13 +24,7 @@ export default defineConfig({
       name: 'commerce',
       filename: 'remoteEntry.js',
       exposes: {
-        './Products': './src/features/products/index.tsx',
         './Categories': './src/features/categories/index.tsx',
-        './Stations': './src/features/stations/index.tsx',
-        './Orders': './src/features/orders/index.tsx',
-        './POS': './src/features/pos/index.tsx',
-        './KOT': './src/features/kot/index.tsx',
-        './Invoices': './src/features/invoices/index.tsx',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },
