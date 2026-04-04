@@ -782,6 +782,153 @@
         ]
       }
     },
+    "/auth/mobile/lookup": {
+      "post": {
+        "description": "Returns all organizations the user belongs to. Used by the mobile app to present an organization picker before login.",
+        "operationId": "MobileAuthController_lookup",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileLookupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Organizations returned (may be empty).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileLookupResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid email format."
+          }
+        },
+        "summary": "Lookup organizations by email",
+        "tags": [
+          "Auth - Mobile"
+        ]
+      }
+    },
+    "/auth/mobile/login": {
+      "post": {
+        "description": "Authenticates a user with email and password. Returns access token and refresh token in the response body. No cookies are used.",
+        "operationId": "MobileAuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Login successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileAuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          },
+          "401": {
+            "description": "Invalid credentials or account not active."
+          }
+        },
+        "summary": "Mobile login",
+        "tags": [
+          "Auth - Mobile"
+        ]
+      }
+    },
+    "/auth/mobile/refresh-tokens": {
+      "post": {
+        "description": "Rotates both access and refresh tokens. Requires the current refresh token in the request body. Returns new tokens in the response body.",
+        "operationId": "MobileAuthController_refreshTokens",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileRefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileTokenResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mobile refresh tokens",
+        "tags": [
+          "Auth - Mobile"
+        ]
+      }
+    },
+    "/auth/mobile/logout": {
+      "post": {
+        "description": "Invalidates the current session. The client should clear stored tokens.",
+        "operationId": "MobileAuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successfully logged out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mobile logout",
+        "tags": [
+          "Auth - Mobile"
+        ]
+      }
+    },
     "/users/webhook": {
       "post": {
         "description": "Receives a user creation event from cloud-server and upserts the user in the nexus database. Idempotent — safe to call multiple times for the same externalId.",
@@ -3163,6 +3310,11 @@
             "description": "User password",
             "example": "SecureP@ss123",
             "minLength": 8
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organization ID to authenticate against (required for mobile)",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
           }
         },
         "required": [
@@ -3406,6 +3558,175 @@
           "success",
           "message",
           "accessToken",
+          "expiresIn"
+        ]
+      },
+      "MobileLookupDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address to look up organizations for",
+            "example": "user@example.com",
+            "format": "email"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "MobileLookupOrganizationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme Corp"
+          },
+          "subdomain": {
+            "type": "string",
+            "example": "acme"
+          },
+          "logoUrl": {
+            "type": "object",
+            "example": "https://cdn.example.com/logo.png"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "subdomain"
+        ]
+      },
+      "MobileLookupResponseDto": {
+        "type": "object",
+        "properties": {
+          "organizations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileLookupOrganizationDto"
+            }
+          }
+        },
+        "required": [
+          "organizations"
+        ]
+      },
+      "MobileLoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email address",
+            "example": "admin@example.com",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organization ID to authenticate against",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "organizationId"
+        ]
+      },
+      "MobileAuthUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "lastLoginAt": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "status",
+          "hasPassword",
+          "createdAt"
+        ]
+      },
+      "MobileAuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          },
+          "isAuthenticated": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MobileAuthUserDto"
+          }
+        }
+      },
+      "MobileRefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token from previous login or refresh response"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "MobileTokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expiresIn": {
+            "type": "number",
+            "example": 900
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
           "expiresIn"
         ]
       },
