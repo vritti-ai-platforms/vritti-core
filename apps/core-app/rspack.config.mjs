@@ -18,13 +18,15 @@ const workspaceRoot = path.resolve(__dirname, '../../');
 const reactNativePackages =
   /node_modules[\\/](react-native|@react-native|@react-native-community)[\\/]/;
 
-const quantumUiNativeSrc = path.resolve(__dirname, 'node_modules/@vritti/quantum-ui-native/src');
+const quantumUiNative = path.resolve(__dirname, '../../..', 'quantum-ui-native');
+const quantumUiNativeSrc = path.join(quantumUiNative, 'src');
 
 export default Repack.defineRspackConfig({
   context: __dirname,
   entry: './index.ts',
   resolve: {
     ...Repack.getResolveOptions(),
+    symlinks: true,
     exportsFields: ['exports'],
     conditionNames: ['import', 'require', 'default'],
     alias: {
@@ -33,6 +35,7 @@ export default Repack.defineRspackConfig({
     modules: [
       path.resolve(__dirname, 'node_modules'),
       path.resolve(workspaceRoot, 'node_modules'),
+      path.resolve(quantumUiNative, 'node_modules'),
       'node_modules',
     ],
   },

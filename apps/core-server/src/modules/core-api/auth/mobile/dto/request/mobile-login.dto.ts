@@ -1,7 +1,7 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, IsUUID, MinLength } from 'class-validator';
 
-export class LoginDto {
+export class MobileLoginDto {
   @ApiProperty({
     description: 'User email address',
     example: 'admin@example.com',
@@ -19,11 +19,10 @@ export class LoginDto {
   @MinLength(8)
   password: string;
 
-  @ApiPropertyOptional({
-    description: 'Organization ID to authenticate against (required for mobile)',
+  @ApiProperty({
+    description: 'Organization ID to authenticate against',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @IsUUID()
-  @IsOptional()
-  organizationId?: string;
+  organizationId: string;
 }

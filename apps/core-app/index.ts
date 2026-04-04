@@ -1,7 +1,9 @@
+import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';
 import { registerRootComponent } from 'expo';
 import App from './App';
+import mobileAxiosConfig from './quantum-ui-native.config';
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
+// Configure mobile axios BEFORE rendering
+configureMobileAxios(mobileAxiosConfig);
+
 registerRootComponent(App);

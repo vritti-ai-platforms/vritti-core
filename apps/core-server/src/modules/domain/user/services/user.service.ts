@@ -81,6 +81,16 @@ export class UserService {
     return this.userRepository.findByEmail(email);
   }
 
+  // Finds a user by email within a specific organization — returns entity (not DTO)
+  async findByEmailAndOrg(email: string, organizationId: string): Promise<User | undefined> {
+    return this.userRepository.findByEmailAndOrg(email, organizationId);
+  }
+
+  // Finds all users with the given email across all orgs, with organization data
+  async findAllByEmailWithOrg(email: string) {
+    return this.userRepository.findAllByEmailWithOrg(email);
+  }
+
   // Finds a user by ID — returns entity (not DTO)
   async findById(id: string): Promise<User | undefined> {
     return this.userRepository.findById(id);

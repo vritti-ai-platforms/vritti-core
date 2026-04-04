@@ -1,7 +1,7 @@
 import { coreSchema } from './core-schema';
 
 export const userStatusEnum = coreSchema.enum('user_status', ['PENDING', 'ACTIVE', 'SUSPENDED']);
-export const sessionTypeEnum = coreSchema.enum('session_type', ['NEXUS', 'SET_PASSWORD', 'RESET']);
+export const sessionTypeEnum = coreSchema.enum('session_type', ['NEXUS', 'SET_PASSWORD', 'RESET', 'MOBILE']);
 
 // TypeScript type exports for use in DTOs and services
 export type UserStatus = (typeof userStatusEnum.enumValues)[number];
@@ -18,6 +18,7 @@ export const SessionTypeValues = {
   NEXUS: 'NEXUS' as const,
   SET_PASSWORD: 'SET_PASSWORD' as const,
   RESET: 'RESET' as const,
+  MOBILE: 'MOBILE' as const,
 };
 
 // Organization enums

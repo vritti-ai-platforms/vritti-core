@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, JwtAuthService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
-import { SessionTypeValues, UserStatusValues } from '@/db/schema';
+import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
 import { OrganizationService } from '@domain/organization/services/organization.service';
 import { SessionService } from '@domain/session/services/session.service';
 import { UserService } from '@domain/user/services/user.service';
+import { MobileLookupResponseDto } from '../../mobile/dto/response/mobile-lookup-response.dto';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
@@ -23,9 +24,29 @@ export class AuthService {
     private readonly organizationService: OrganizationService,
   ) {}
 
-  // Validates credentials and creates a NEXUS session, returning access token in response
-  async login(dto: LoginDto, ipAddress?: string): Promise<AuthResponseDto & { refreshToken?: string }> {
-    const user = await this.userService.findByEmail(dto.email);
+  // Looks up all organizations a user belongs to by email
+  async lookupOrganizationsByEmail(email: string): Promise<MobileLookupResponseDto> {
+    const usersWithOrg = await this.userService.findAllByEmailWithOrg(email);
+
+    return {
+      organizations: usersWithOrg.map((u) => ({
+        id: u.organization.id,
+        name: u.organization.name,
+        subdomain: u.organization.subdomain,
+        logoUrl: u.organization.logoUrl,
+      })),
+    };
+  }
+
+  // Validates credentials and creates a session for the given type
+  async login(
+    dto: LoginDto,
+    ipAddress?: string,
+    sessionType: SessionType = SessionTypeValues.NEXUS,
+  ): Promise<AuthResponseDto & { refreshToken?: string }> {
+    const user = dto.organizationId
+      ? await this.userService.findByEmailAndOrg(dto.email, dto.organizationId)
+      : await this.userService.findByEmail(dto.email);
 
     if (!user) {
       throw new UnauthorizedException({
@@ -59,7 +80,7 @@ export class AuthService {
 
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       user.id,
-      SessionTypeValues.NEXUS,
+      sessionType,
       ipAddress,
     );
 
@@ -205,6 +226,8 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
     return this.sessionService.refreshTokens(refreshToken);
   }
+
+
 
   // Recovers session from httpOnly cookie without rotating the refresh token
   async getAccessToken(refreshToken: string | undefined): Promise<TokenResponseDto> {

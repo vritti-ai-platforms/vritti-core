@@ -16,6 +16,14 @@ export class UserRepository extends PrimaryBaseRepository<typeof users> {
     });
   }
 
+  // Finds all users with the given email across all organizations, including organization data
+  async findAllByEmailWithOrg(email: string): Promise<(User & { organization: { id: string; name: string; subdomain: string; logoUrl: string | null } })[]> {
+    return this.model.findMany({
+      where: { email },
+      with: { organization: true },
+    }) as Promise<(User & { organization: { id: string; name: string; subdomain: string; logoUrl: string | null } })[]>;
+  }
+
   // Finds a user by email within a specific organization
   async findByEmailAndOrg(email: string, organizationId: string): Promise<User | undefined> {
     return this.model.findFirst({
