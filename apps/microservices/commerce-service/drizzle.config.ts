@@ -14,6 +14,10 @@ export default defineConfig({
   dbCredentials: {
     url: dbUrl,
   },
+  migrations: {
+    table: '__drizzle_migrations_commerce',
+    schema: 'drizzle',
+  },
   verbose: true,
   strict: true,
 });

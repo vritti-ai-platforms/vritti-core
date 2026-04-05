@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "nx run-many --target=dev:ssl --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel --output-style=stream",
+    "dev": "nx run-many --target=dev:ssl --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel=5 --output-style=stream",
     "dev:server": "nx run vritti-core-server:dev:ssl",
     "dev:web": "nx run vritti-core-web:dev:ssl",
     "dev:commerce-service": "nx run commerce-service:dev:ssl",

@@ -1,4 +1,5 @@
 import { useLayoutMode } from '@vritti/quantum-ui/context';
+import { QueryErrorBoundary } from '@vritti/quantum-ui/ErrorBoundary';
 import { SidebarProvider } from '@vritti/quantum-ui/Sidebar';
 import { Outlet } from 'react-router-dom';
 import { usePermissionContext } from '../../providers/PermissionProvider';
@@ -19,7 +20,9 @@ export const AppLayout = () => {
             ? 'flex-1 overflow-hidden flex flex-col'
             : 'flex-1 overflow-auto p-6'
           }>
-            <Outlet />
+            <QueryErrorBoundary>
+              <Outlet />
+            </QueryErrorBoundary>
           </main>
         </div>
       </div>
