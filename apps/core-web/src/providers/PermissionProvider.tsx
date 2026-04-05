@@ -1,4 +1,4 @@
-import { parseSlug } from '@vritti/quantum-ui/utils/slug';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { AssignedBU, PermissionFeature } from '@services/permissions.service';

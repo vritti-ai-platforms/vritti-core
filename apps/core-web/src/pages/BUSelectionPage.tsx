@@ -1,7 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent } from '@vritti/quantum-ui/Card';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { buildSlug } from '@vritti/quantum-ui/utils/slug';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Building2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';

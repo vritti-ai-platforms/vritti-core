@@ -4,7 +4,7 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { parseSlug } from '@vritti/quantum-ui/utils/slug';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 import { LayoutGrid, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useCategories } from '@/hooks/useCategories';

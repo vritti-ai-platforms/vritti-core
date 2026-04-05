@@ -1,7 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Separator } from '@vritti/quantum-ui/Separator';
-import { buildSlug } from '@vritti/quantum-ui/utils/slug';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Bell, Building2, Check, ChevronsUpDown, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLogo } from '../../hooks/useLogo';
