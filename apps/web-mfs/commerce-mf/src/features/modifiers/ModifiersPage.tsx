@@ -1,18 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { cn } from '@vritti/quantum-ui';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { Form } from '@vritti/quantum-ui/Form';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Switch } from '@vritti/quantum-ui/Switch';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { parseSlug } from '@vritti/quantum-ui/utils/slug';
-import { cn } from '@vritti/quantum-ui';
 import { Layers, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -89,7 +89,8 @@ export const ModifiersPage = () => {
     async (id: string, name: string) => {
       const confirmed = await confirm({
         title: `Delete "${name}"?`,
-        description: 'This modifier group and all its options will be permanently removed. This action cannot be undone.',
+        description:
+          'This modifier group and all its options will be permanently removed. This action cannot be undone.',
         confirmLabel: 'Delete',
         variant: 'destructive',
       });
@@ -231,9 +232,7 @@ export const ModifiersPage = () => {
           handle={editGroupDialog}
           title="Edit Modifier Group"
           description="Update modifier group settings."
-          content={(close) => (
-            <EditGroupForm group={selectedGroupDetail} onSuccess={close} onCancel={close} />
-          )}
+          content={(close) => <EditGroupForm group={selectedGroupDetail} onSuccess={close} onCancel={close} />}
         />
       )}
 
@@ -243,9 +242,7 @@ export const ModifiersPage = () => {
           handle={addOptionDialog}
           title="Add Option"
           description="Add a new option to this modifier group."
-          content={(close) => (
-            <AddOptionForm groupId={selectedGroupId} onSuccess={close} onCancel={close} />
-          )}
+          content={(close) => <AddOptionForm groupId={selectedGroupId} onSuccess={close} onCancel={close} />}
         />
       )}
 
@@ -256,12 +253,7 @@ export const ModifiersPage = () => {
           title="Edit Option"
           description="Update this modifier option."
           content={(close) => (
-            <EditOptionForm
-              groupId={selectedGroupId}
-              option={editingOption}
-              onSuccess={close}
-              onCancel={close}
-            />
+            <EditOptionForm groupId={selectedGroupId} option={editingOption} onSuccess={close} onCancel={close} />
           )}
         />
       )}
@@ -280,10 +272,7 @@ const GroupListItem = ({ group, isSelected, onClick }: GroupListItemProps) => (
   <Button
     variant="ghost"
     onClick={onClick}
-    className={cn(
-      'w-full justify-start rounded-none px-4 py-3 border-b h-auto',
-      isSelected && 'bg-muted',
-    )}
+    className={cn('w-full justify-start rounded-none px-4 py-3 border-b h-auto', isSelected && 'bg-muted')}
   >
     <div className="flex items-center justify-between w-full">
       <span className="text-sm font-medium truncate">{group.name}</span>
@@ -312,7 +301,15 @@ interface GroupDetailPanelProps {
   onEditOption: (option: ModifierOptionData) => void;
 }
 
-const GroupDetailPanel = ({ group, isLoading, onEdit, onAddOption, onDeleteGroup, onDeleteOption, onEditOption }: GroupDetailPanelProps) => (
+const GroupDetailPanel = ({
+  group,
+  isLoading,
+  onEdit,
+  onAddOption,
+  onDeleteGroup,
+  onDeleteOption,
+  onEditOption,
+}: GroupDetailPanelProps) => (
   <div className="flex flex-col gap-4">
     {/* Header */}
     <div className="flex items-start justify-between border rounded-lg bg-card p-6">
@@ -324,9 +321,7 @@ const GroupDetailPanel = ({ group, isLoading, onEdit, onAddOption, onDeleteGroup
               Required
             </Badge>
           )}
-          <Badge variant="outline">
-            {group.selectionType === 'SINGLE' ? 'Single choice' : 'Multi choice'}
-          </Badge>
+          <Badge variant="outline">{group.selectionType === 'SINGLE' ? 'Single choice' : 'Multi choice'}</Badge>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span>Min selections: {group.minSelections}</span>
@@ -337,7 +332,12 @@ const GroupDetailPanel = ({ group, isLoading, onEdit, onAddOption, onDeleteGroup
         <Button variant="outline" size="sm" startAdornment={<Pencil className="size-3.5" />} onClick={onEdit}>
           Edit Group
         </Button>
-        <Button variant="destructive" size="sm" startAdornment={<Trash2 className="size-3.5" />} onClick={onDeleteGroup}>
+        <Button
+          variant="destructive"
+          size="sm"
+          startAdornment={<Trash2 className="size-3.5" />}
+          onClick={onDeleteGroup}
+        >
           Delete
         </Button>
       </div>
@@ -382,12 +382,7 @@ const GroupDetailPanel = ({ group, isLoading, onEdit, onAddOption, onDeleteGroup
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-7"
-                          onClick={() => onEditOption(option)}
-                        >
+                        <Button variant="ghost" size="icon" className="size-7" onClick={() => onEditOption(option)}>
                           <Pencil className="size-3.5" />
                         </Button>
                         <Button

@@ -5,7 +5,7 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { parseSlug } from '@vritti/quantum-ui/utils/slug';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -47,9 +47,7 @@ export const ItemsPage = () => {
       result = result.filter((item) => item.type === typeFilter);
     }
     if (statusFilter !== 'ALL') {
-      result = result.filter((item) =>
-        statusFilter === 'ACTIVE' ? item.isAvailable : !item.isAvailable,
-      );
+      result = result.filter((item) => (statusFilter === 'ACTIVE' ? item.isAvailable : !item.isAvailable));
     }
     return result;
   }, [items, typeFilter, statusFilter]);
@@ -74,10 +72,7 @@ export const ItemsPage = () => {
     [navigate, location.pathname],
   );
 
-  const columns = useMemo(
-    () => getColumns(handleDelete, handleView),
-    [handleDelete, handleView],
-  );
+  const columns = useMemo(() => getColumns(handleDelete, handleView), [handleDelete, handleView]);
 
   const { table } = useDataTable({
     columns,
@@ -146,9 +141,7 @@ export const ItemsPage = () => {
         handle={addDialog}
         title="Add Item"
         description="Enter the details for the new item."
-        content={(close) => (
-          <AddItemDialog businessUnitId={selectedBuId ?? ''} onSuccess={close} onCancel={close} />
-        )}
+        content={(close) => <AddItemDialog businessUnitId={selectedBuId ?? ''} onSuccess={close} onCancel={close} />}
       />
     </div>
   );
@@ -164,9 +157,7 @@ function getColumns(
       header: '',
       cell: ({ row }) => (
         <Avatar className="size-8">
-          <AvatarFallback className="text-xs">
-            {row.original.name.charAt(0).toUpperCase()}
-          </AvatarFallback>
+          <AvatarFallback className="text-xs">{row.original.name.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
       ),
       enableSorting: false,
@@ -175,9 +166,7 @@ function getColumns(
     {
       accessorKey: 'code',
       header: 'Code',
-      cell: ({ row }) => (
-        <span className="font-mono text-xs text-muted-foreground">{row.original.code}</span>
-      ),
+      cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.code}</span>,
       enableSorting: true,
     },
     {
@@ -214,9 +203,7 @@ function getColumns(
     {
       accessorKey: 'basePrice',
       header: () => <div className="text-right">Base Price</div>,
-      cell: ({ row }) => (
-        <div className="text-right font-mono">{formatPrice(row.original.basePrice)}</div>
-      ),
+      cell: ({ row }) => <div className="text-right font-mono">{formatPrice(row.original.basePrice)}</div>,
       enableSorting: true,
     },
     {
