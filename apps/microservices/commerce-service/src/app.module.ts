@@ -8,6 +8,9 @@ import './db/schema.registry';
 import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ItemsModule } from './modules/items/items.module';
+import { ModifierGroupsModule } from './modules/modifier-groups/modifier-groups.module';
+import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
 
 @Module({
   imports: [
@@ -37,6 +40,9 @@ import { CategoriesModule } from './modules/categories/categories.module';
       },
     }),
     CategoriesModule,
+    ItemsModule,
+    ModifierGroupsModule,
+    TaxGroupsModule,
   ],
 })
 export class AppModule {}

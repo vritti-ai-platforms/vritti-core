@@ -1,5 +1,8 @@
 import { coreSchema } from './core-schema';
 
+export const catalogItemTypeEnum = coreSchema.enum('catalog_item_type', ['PRODUCT', 'SERVICE']);
+export const modifierSelectionTypeEnum = coreSchema.enum('modifier_selection_type', ['SINGLE', 'MULTI']);
+
 export const orderSourceEnum = coreSchema.enum('order_source', ['ONLINE', 'WALK_IN']);
 export const orderStatusEnum = coreSchema.enum('order_status', [
   'PENDING',
@@ -18,6 +21,19 @@ export const orderItemStatusEnum = coreSchema.enum('order_item_status', [
 ]);
 export const paymentMethodEnum = coreSchema.enum('payment_method', ['CASH', 'UPI', 'CARD', 'WALLET', 'UNPAID']);
 export const invoiceStatusEnum = coreSchema.enum('invoice_status', ['DRAFT', 'ISSUED', 'PAID', 'CANCELLED']);
+
+export type CatalogItemType = (typeof catalogItemTypeEnum.enumValues)[number];
+export type ModifierSelectionType = (typeof modifierSelectionTypeEnum.enumValues)[number];
+
+export const CatalogItemTypeValues = {
+  PRODUCT: 'PRODUCT' as const,
+  SERVICE: 'SERVICE' as const,
+};
+
+export const ModifierSelectionTypeValues = {
+  SINGLE: 'SINGLE' as const,
+  MULTI: 'MULTI' as const,
+};
 
 // TypeScript type exports for use in DTOs and services
 export type OrderSource = (typeof orderSourceEnum.enumValues)[number];

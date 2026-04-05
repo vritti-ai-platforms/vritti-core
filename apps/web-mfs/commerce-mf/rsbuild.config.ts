@@ -25,6 +25,8 @@ export default defineConfig({
       filename: 'remoteEntry.js',
       exposes: {
         './Categories': './src/features/categories/index.tsx',
+        './Items': './src/features/items/index.tsx',
+        './Modifiers': './src/features/modifiers/index.tsx',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },
