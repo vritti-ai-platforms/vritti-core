@@ -16,7 +16,6 @@ import { CategoriesModule } from './modules/categories/categories.module';
       envFilePath: '.env',
       validate,
     }),
-    // Database module (primary DB only)
     DatabaseModule.forServer({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
