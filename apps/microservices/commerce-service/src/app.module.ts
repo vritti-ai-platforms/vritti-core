@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as schema from '@/db/schema';
+import { relations } from '@/db/schema/relations';
 
 import './db/schema.registry';
 
-import { type DatabaseModuleOptions, DatabaseModule } from '@vritti/api-sdk';
+import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
+import { CategoriesModule } from './modules/categories/categories.module';
 
 @Module({
   imports: [
@@ -29,12 +31,13 @@ import { validate } from './config/env.validation';
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
           drizzleSchema: schema,
-          connectionCacheTTL: 300000,
+          drizzleRelations: relations,
           maxConnections: 10,
         };
         return options;
       },
     }),
+    CategoriesModule,
   ],
 })
 export class AppModule {}

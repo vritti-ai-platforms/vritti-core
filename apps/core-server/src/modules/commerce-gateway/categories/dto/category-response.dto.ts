@@ -1,0 +1,21 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export class CategoryResponseDto {
+  @ApiProperty({ description: 'Category ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Business unit ID' })
+  businessUnitId: string;
+
+  @ApiProperty({ description: 'Category name' })
+  name: string;
+
+  @ApiProperty({ description: 'Display sort order' })
+  sortOrder: number;
+
+  @ApiProperty({ description: 'Whether the category is active' })
+  isActive: boolean;
+
+  @ApiProperty({ description: 'ISO timestamp of creation' })
+  createdAt: string;
+}
