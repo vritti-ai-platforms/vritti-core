@@ -1,11 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { useLayoutMode } from '@vritti/quantum-ui/context';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useCategories } from '@/hooks/useCategories';
 import type { CategoryData } from '@/schemas/categories';
 import { CategoryDetailPanel, CategoryEmptyState, CategoryTreePanel } from './components';
@@ -15,12 +15,6 @@ import { filterTree, toTreeItems } from './utils';
 export const CategoriesPage = () => {
   const { id: buId } = useSlugParams('buSlug');
   const queryClient = useQueryClient();
-  const { setMode } = useLayoutMode();
-  // Request full-page canvas from AppLayout; restore padded layout when leaving
-  useEffect(() => {
-    setMode('full');
-    return () => setMode('padded');
-  }, [setMode]);
 
   const { data: categories = [], isLoading } = useCategories(buId);
 
@@ -54,21 +48,18 @@ export const CategoriesPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col gap-6">
       <PageHeader
-        title="Category Management"
+        title="Categories"
         description={`${activeCount} active · ${categories.length} total categories`}
-        className="px-6 py-4 border-b shrink-0"
         actions={
-          <Button onClick={openAdd}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={openAdd} startAdornment={<Plus className="size-4" />}>
             Add Category
           </Button>
         }
       />
 
-      {/* Split panel */}
-      <div className="flex flex-1 overflow-hidden min-h-0">
+      <PageContent>
         <CategoryTreePanel
           categories={categories}
           treeData={treeData}
@@ -82,7 +73,7 @@ export const CategoriesPage = () => {
           onCollapseAll={() => setExpandAll(false)}
         />
 
-        <div className="flex-1 overflow-auto p-6 min-w-0">
+        <div className="flex-1 overflow-auto p-6 min-w-0 flex flex-col">
           {selectedCategory ? (
             <CategoryDetailPanel
               category={selectedCategory}
@@ -94,7 +85,7 @@ export const CategoriesPage = () => {
             <CategoryEmptyState />
           )}
         </div>
-      </div>
+      </PageContent>
 
       <Dialog
         handle={formDialog}
@@ -104,7 +95,10 @@ export const CategoriesPage = () => {
           <CategoryForm
             category={formCategory ?? undefined}
             businessUnitId={buId}
-            onSuccess={() => { invalidateCategories(); close(); }}
+            onSuccess={() => {
+              invalidateCategories();
+              close();
+            }}
             onCancel={close}
           />
         )}

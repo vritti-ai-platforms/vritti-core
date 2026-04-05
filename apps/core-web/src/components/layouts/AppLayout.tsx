@@ -1,31 +1,17 @@
-import { useLayoutMode } from '@vritti/quantum-ui/context';
 import { QueryErrorBoundary } from '@vritti/quantum-ui/ErrorBoundary';
-import { SidebarProvider } from '@vritti/quantum-ui/Sidebar';
 import { Outlet } from 'react-router-dom';
-import { usePermissionContext } from '../../providers/PermissionProvider';
-import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 
+// Root layout — TopBar + centered content, no sidebar (account pages, BU selection)
 export const AppLayout = () => {
-  const { selectedBuId } = usePermissionContext();
-  const { mode } = useLayoutMode();
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background flex flex-col w-full">
-        <TopBar />
-        <div className="flex flex-1 pt-14">
-          {selectedBuId && <Sidebar />}
-          <main className={mode === 'full'
-            ? 'flex-1 overflow-hidden flex flex-col'
-            : 'flex-1 overflow-auto p-6'
-          }>
-            <QueryErrorBoundary>
-              <Outlet />
-            </QueryErrorBoundary>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    <div className="min-h-screen bg-background flex flex-col">
+      <TopBar />
+      <main className="flex-1 overflow-auto pt-20 px-0 sm:px-8 lg:px-32 py-2.5 min-w-[280px]">
+        <QueryErrorBoundary>
+          <Outlet />
+        </QueryErrorBoundary>
+      </main>
+    </div>
   );
 };
