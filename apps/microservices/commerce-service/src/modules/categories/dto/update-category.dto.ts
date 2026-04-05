@@ -1,9 +1,13 @@
-import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class UpdateCategoryDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsUUID()
+  parentId?: string | null;
 
   @IsOptional()
   @IsInt()

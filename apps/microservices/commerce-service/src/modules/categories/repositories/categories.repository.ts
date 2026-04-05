@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { type FindForSelectConfig, PrimaryBaseRepository, PrimaryDatabaseService, type SelectQueryResult } from '@vritti/api-sdk';
 import { type Category, categories } from '@/db/schema';
 
 @Injectable()
@@ -14,5 +14,10 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
       where: { organizationId: orgId, businessUnitId: buId },
       orderBy: { sortOrder: 'asc' },
     });
+  }
+
+  // Returns paginated category options for the select component
+  findForSelect(config: FindForSelectConfig): Promise<SelectQueryResult> {
+    return super.findForSelect(config);
   }
 }

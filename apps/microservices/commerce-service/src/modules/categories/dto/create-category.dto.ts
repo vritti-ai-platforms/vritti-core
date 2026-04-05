@@ -12,6 +12,10 @@ export class CreateCategoryDto {
   name: string;
 
   @IsOptional()
+  @IsUUID()
+  parentId?: string | null;
+
+  @IsOptional()
   @IsInt()
   @Min(1)
   sortOrder?: number;

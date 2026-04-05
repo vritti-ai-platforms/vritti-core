@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { UserService } from '@domain/user/services/user.service';
 import { COMMERCE_SERVICE } from '../../commerce-client.module';
 import type { CategoryResponseDto } from '../dto/category-response.dto';
@@ -14,6 +15,17 @@ export class CategoriesGatewayService {
     @Inject(COMMERCE_SERVICE) private readonly client: ClientProxy,
     private readonly userService: UserService,
   ) {}
+
+  // Returns paginated category options for the select component
+  async select(userId: string, query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
+    const user = await this.userService.findByIdOrThrow(userId);
+    return this.client
+      .send<SelectQueryResult>(
+        { cmd: 'categories.select' },
+        { organizationId: user.organizationId, businessUnitId: query.buId, ...query },
+      )
+      .toPromise() as Promise<SelectQueryResult>;
+  }
 
   // Returns all categories for the user's org + given BU
   async list(userId: string, buId: string): Promise<CategoryResponseDto[]> {

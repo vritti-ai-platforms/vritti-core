@@ -1,5 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
+import type { SelectQueryResult } from '@vritti/api-sdk';
 import type { CategoryDto } from './dto/category.dto';
 import type { CreateCategoryDto } from './dto/create-category.dto';
 import type { UpdateCategoryDto } from './dto/update-category.dto';
@@ -10,6 +11,21 @@ export class CategoriesController {
   private readonly logger = new Logger(CategoriesController.name);
 
   constructor(private readonly categoriesService: CategoriesService) {}
+
+  // Returns paginated category options for the select component
+  @MessagePattern({ cmd: 'categories.select' })
+  async select(data: {
+    organizationId: string;
+    businessUnitId: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+    values?: string;
+    excludeIds?: string;
+  }): Promise<SelectQueryResult> {
+    this.logger.log(`categories.select — buId: ${data.businessUnitId}`);
+    return this.categoriesService.findForSelect(data);
+  }
 
   // Lists all categories for a business unit
   @MessagePattern({ cmd: 'categories.list' })
