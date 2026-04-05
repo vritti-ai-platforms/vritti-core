@@ -6,7 +6,7 @@ import { z } from 'zod';
 // Runtime schema — z.coerce.number() accepts the string that TextField's onChange provides
 const _categorySchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
-  parentId: z.string().uuid().optional().nullable(),
+  parentId: z.string().optional().nullable(),
   sortOrder: z.coerce.number().int().min(1, 'Sort order must be at least 1'),
   isActive: z.boolean(),
 });

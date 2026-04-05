@@ -1,3 +1,4 @@
+import { useLayoutMode } from '@vritti/quantum-ui/context';
 import { SidebarProvider } from '@vritti/quantum-ui/Sidebar';
 import { Outlet } from 'react-router-dom';
 import { usePermissionContext } from '../../providers/PermissionProvider';
@@ -6,6 +7,7 @@ import { TopBar } from './TopBar';
 
 export const AppLayout = () => {
   const { selectedBuId } = usePermissionContext();
+  const { mode } = useLayoutMode();
 
   return (
     <SidebarProvider>
@@ -13,7 +15,10 @@ export const AppLayout = () => {
         <TopBar />
         <div className="flex flex-1 pt-14">
           {selectedBuId && <Sidebar />}
-          <main className="flex-1 overflow-auto p-6">
+          <main className={mode === 'full'
+            ? 'flex-1 overflow-hidden flex flex-col'
+            : 'flex-1 overflow-auto p-6'
+          }>
             <Outlet />
           </main>
         </div>

@@ -62,6 +62,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ category, businessUn
         value={watchedParentId ?? undefined}
         params={{
           buId: businessUnitId,
+          status: 'active',
           ...(isEditing && {
             excludeIds: [category.id, category.parentId].filter(Boolean).join(','),
           }),
