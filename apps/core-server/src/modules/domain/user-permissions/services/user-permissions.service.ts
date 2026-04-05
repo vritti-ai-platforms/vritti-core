@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
-import type { FeatureCatalogEntry } from '@/db/schema';
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
+import { ConfigCacheService } from '@domain/config-cache/services/config-cache.service';
 import { UserRoleAssignmentRepository } from '@domain/user-role/repositories/user-role-assignment.repository';
 
 export interface PermissionFeature {
@@ -30,6 +30,7 @@ export class UserPermissionsService {
   constructor(
     private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
+    private readonly configCacheService: ConfigCacheService,
   ) {}
 
   // Returns distinct business units where the user has role assignments
@@ -55,7 +56,7 @@ export class UserPermissionsService {
     const bu = await this.businessUnitRepository.findById(buId);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    const catalog = (bu.featureCatalog ?? []) as FeatureCatalogEntry[];
+    const catalog = await this.configCacheService.getFeatureCatalog(_orgId, buId);
     const catalogMap = new Map(catalog.map((f) => [f.code, f]));
 
     // Get all role assignments for this user at this BU

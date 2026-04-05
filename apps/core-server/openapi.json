@@ -929,6 +929,43 @@
         ]
       }
     },
+    "/config/webhook/invalidate/{orgId}": {
+      "post": {
+        "operationId": "ConfigWebhookController_invalidate",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Config"
+        ]
+      }
+    },
+    "/config/webhook/invalidate-all": {
+      "post": {
+        "operationId": "ConfigWebhookController_invalidateAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Config"
+        ]
+      }
+    },
     "/users/webhook": {
       "post": {
         "description": "Receives a user creation event from cloud-server and upserts the user in the nexus database. Idempotent — safe to call multiple times for the same externalId.",
@@ -1956,7 +1993,7 @@
     },
     "/business-units/webhook/{id}/apps": {
       "patch": {
-        "description": "Sets the assigned app codes and feature catalog for a business unit. Requires X-Webhook-Secret header.",
+        "description": "Sets the assigned app codes for a business unit. Requires X-Webhook-Secret header.",
         "operationId": "BusinessUnitController_updateApps",
         "parameters": [
           {
@@ -3817,18 +3854,10 @@
             "items": {
               "type": "string"
             }
-          },
-          "featureCatalog": {
-            "description": "Feature catalog entries for the assigned apps",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         },
         "required": [
-          "appCodes",
-          "featureCatalog"
+          "appCodes"
         ]
       },
       "UpdateBusinessUnitWebhookDto": {

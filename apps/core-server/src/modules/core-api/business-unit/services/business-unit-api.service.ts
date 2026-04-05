@@ -39,7 +39,7 @@ export class BusinessUnitApiService {
     return this.userRoleService.findByBusinessUnit(buId);
   }
 
-  // Sets apps and feature catalog for a business unit
+  // Sets assigned apps for a business unit
   async updateApps(id: string, dto: UpdateBuAppsWebhookDto): Promise<SuccessResponseDto> {
     return this.businessUnitService.updateApps(id, dto);
   }

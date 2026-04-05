@@ -1,7 +1,7 @@
 import { boolean, index, integer, jsonb, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { buTypeEnum } from './enums';
-import { type FeatureCatalogEntry, organizations } from './organizations';
+import { organizations } from './organizations';
 
 export interface BuMetadata {
   address?: string;
@@ -32,7 +32,6 @@ export const businessUnits = coreSchema.table(
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     appCodes: jsonb('app_codes').$type<string[]>().notNull().default([]),
-    featureCatalog: jsonb('feature_catalog').$type<FeatureCatalogEntry[]>(),
     metadata: jsonb('metadata').$type<BuMetadata>(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

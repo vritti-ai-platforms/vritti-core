@@ -69,7 +69,7 @@ export function ApiUpdateBuAppsWebhook() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update business unit apps',
-      description: 'Sets the assigned app codes and feature catalog for a business unit. Requires X-Webhook-Secret header.',
+      description: 'Sets the assigned app codes for a business unit. Requires X-Webhook-Secret header.',
     }),
     ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
     ApiParam({ name: 'id', description: 'Business unit ID' }),

@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { IsArray, IsString } from 'class-validator';
 
 export class UpdateBuAppsWebhookDto {
@@ -7,9 +6,4 @@ export class UpdateBuAppsWebhookDto {
   @IsArray()
   @IsString({ each: true })
   appCodes: string[];
-
-  @ApiProperty({ description: 'Feature catalog entries for the assigned apps' })
-  @IsArray()
-  @Type(() => Object)
-  featureCatalog: object[];
 }
