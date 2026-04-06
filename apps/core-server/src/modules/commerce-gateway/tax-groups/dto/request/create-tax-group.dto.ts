@@ -1,5 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
+
+export class CreateTaxRateDto {
+  @ApiProperty({ description: 'Tax rate name', example: 'CGST' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiProperty({ description: 'Tax rate percentage', example: 9 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  rate: number;
+
+  @ApiProperty({ description: 'Rate type', enum: ['inclusive', 'exclusive'] })
+  @IsEnum(['inclusive', 'exclusive'])
+  type: string;
+}
 
 export class CreateTaxGroupDto {
   @ApiProperty({ description: 'Business unit ID this tax group belongs to' })
@@ -11,34 +27,12 @@ export class CreateTaxGroupDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ description: 'Combined tax rate', example: 18 })
-  @IsNumber({ maxDecimalPlaces: 2 })
-  rate: number;
-
-  @ApiPropertyOptional({ description: 'HSN/SAC code', example: '99631100' })
+  @ApiPropertyOptional({ description: 'Tax rates for this group', type: [CreateTaxRateDto] })
   @IsOptional()
-  @IsString()
-  hsnSacCode?: string;
-
-  @ApiPropertyOptional({ description: 'CGST rate', example: 9, default: 0 })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  cgstRate?: number;
-
-  @ApiPropertyOptional({ description: 'SGST rate', example: 9, default: 0 })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  sgstRate?: number;
-
-  @ApiPropertyOptional({ description: 'IGST rate', example: 0, default: 0 })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  igstRate?: number;
-
-  @ApiPropertyOptional({ description: 'Cess rate', example: 0, default: 0 })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  cessRate?: number;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateTaxRateDto)
+  taxRates?: CreateTaxRateDto[];
 
   @ApiPropertyOptional({ description: 'Whether this is the default tax group', default: false })
   @IsOptional()

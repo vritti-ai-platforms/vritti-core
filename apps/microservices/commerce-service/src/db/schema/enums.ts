@@ -79,3 +79,11 @@ export const InvoiceStatusValues = {
   PAID: 'PAID' as const,
   CANCELLED: 'CANCELLED' as const,
 };
+
+export const fieldTypeEnum = coreSchema.enum('field_type', ['text', 'number', 'boolean', 'select']);
+export const FieldTypeValues = { TEXT: 'text', NUMBER: 'number', BOOLEAN: 'boolean', SELECT: 'select' } as const;
+export type FieldType = (typeof fieldTypeEnum.enumValues)[number];
+
+export const taxRateTypeEnum = coreSchema.enum('tax_rate_type', ['inclusive', 'exclusive']);
+export const TaxRateTypeValues = { INCLUSIVE: 'inclusive', EXCLUSIVE: 'exclusive' } as const;
+export type TaxRateType = (typeof taxRateTypeEnum.enumValues)[number];

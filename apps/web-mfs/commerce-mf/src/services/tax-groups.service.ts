@@ -1,14 +1,17 @@
 import axios from '@vritti/quantum-ui/axios';
 
+export interface TaxRateData {
+  id: string;
+  name: string;
+  rate: string;
+  type: 'inclusive' | 'exclusive';
+  sortOrder: number;
+}
+
 export interface TaxGroupData {
   id: string;
   name: string;
-  rate: number;
-  hsnSacCode: string | null;
-  cgstRate: number;
-  sgstRate: number;
-  igstRate: number;
-  cessRate: number;
+  taxRates: TaxRateData[];
   isDefault: boolean;
   isActive: boolean;
   sortOrder: number;

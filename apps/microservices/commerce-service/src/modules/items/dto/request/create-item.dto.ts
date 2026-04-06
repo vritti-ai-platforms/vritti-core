@@ -29,29 +29,12 @@ export class CreateItemDto {
   basePrice: number;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  costPrice?: number;
-
-  @IsOptional()
   @IsUUID()
   taxGroupId?: string;
 
   @IsOptional()
-  @IsString()
-  hsnSacCode?: string;
-
-  @IsOptional()
   @IsBoolean()
   isAvailable?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isVisible?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  trackInventory?: boolean;
 
   @IsOptional()
   @IsInt()

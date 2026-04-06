@@ -35,36 +35,15 @@ export class CreateItemDto {
   @Min(0)
   basePrice: number;
 
-  @ApiPropertyOptional({ description: 'Cost price', example: 5.0 })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  costPrice?: number;
-
   @ApiPropertyOptional({ description: 'Tax group ID' })
   @IsOptional()
   @IsUUID()
   taxGroupId?: string;
 
-  @ApiPropertyOptional({ description: 'HSN/SAC code' })
-  @IsOptional()
-  @IsString()
-  hsnSacCode?: string;
-
   @ApiPropertyOptional({ description: 'Whether the item is available', default: true })
   @IsOptional()
   @IsBoolean()
   isAvailable?: boolean;
-
-  @ApiPropertyOptional({ description: 'Whether the item is visible', default: true })
-  @IsOptional()
-  @IsBoolean()
-  isVisible?: boolean;
-
-  @ApiPropertyOptional({ description: 'Whether to track inventory', default: false })
-  @IsOptional()
-  @IsBoolean()
-  trackInventory?: boolean;
 
   @ApiPropertyOptional({ description: 'Display sort order', default: 0 })
   @IsOptional()

@@ -36,10 +36,10 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
   const [showRegenerateNotice, setShowRegenerateNotice] = useState(false);
 
   // Batch variant editing state
-  const [variantEdits, setVariantEdits] = useState<Map<string, { price: string; costPrice: string; isAvailable: boolean }>>(() => {
+  const [variantEdits, setVariantEdits] = useState<Map<string, { price: string; isAvailable: boolean }>>(() => {
     const map = new Map();
     for (const v of item.variants) {
-      map.set(v.id, { price: v.price ?? '', costPrice: v.costPrice ?? '', isAvailable: v.isAvailable });
+      map.set(v.id, { price: v.price ?? '', isAvailable: v.isAvailable });
     }
     return map;
   });
@@ -48,7 +48,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
   useEffect(() => {
     const map = new Map();
     for (const v of item.variants) {
-      map.set(v.id, { price: v.price ?? '', costPrice: v.costPrice ?? '', isAvailable: v.isAvailable });
+      map.set(v.id, { price: v.price ?? '', isAvailable: v.isAvailable });
     }
     setVariantEdits(map);
   }, [item.variants]);
@@ -81,7 +81,6 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
       if (!edit) continue;
       if (
         edit.price !== (variant.price ?? '') ||
-        edit.costPrice !== (variant.costPrice ?? '') ||
         edit.isAvailable !== variant.isAvailable
       ) {
         dirty.add(variant.id);
@@ -166,7 +165,6 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
         variantId,
         data: {
           price: edit.price ? Number(edit.price) : null,
-          costPrice: edit.costPrice ? Number(edit.costPrice) : null,
           isAvailable: edit.isAvailable,
         },
       });
@@ -325,7 +323,6 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
                     <th className="pb-2 pr-4 font-medium text-muted-foreground">SKU</th>
                     <th className="pb-2 pr-4 font-medium text-muted-foreground">Name</th>
                     <th className="pb-2 pr-4 font-medium text-muted-foreground">Price</th>
-                    <th className="pb-2 pr-4 font-medium text-muted-foreground">Cost</th>
                     <th className="pb-2 font-medium text-muted-foreground">Available</th>
                     <th className="pb-2 w-10" />
                   </tr>
@@ -358,7 +355,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
 // Renders a single variant row with controlled inputs
 const VariantRow: React.FC<{
   variant: ItemVariant;
-  edit: { price: string; costPrice: string; isAvailable: boolean };
+  edit: { price: string; isAvailable: boolean };
   isDirty: boolean;
   onEditChange: (variantId: string, field: string, value: string | boolean) => void;
   onDelete: (variant: ItemVariant) => void;
@@ -374,14 +371,6 @@ const VariantRow: React.FC<{
         className="w-24"
         value={edit.price}
         onChange={(e) => onEditChange(variant.id, 'price', e.target.value)}
-      />
-    </td>
-    <td className="py-2 pr-4">
-      <TextField
-        type="number"
-        className="w-24"
-        value={edit.costPrice}
-        onChange={(e) => onEditChange(variant.id, 'costPrice', e.target.value)}
       />
     </td>
     <td className="py-2">

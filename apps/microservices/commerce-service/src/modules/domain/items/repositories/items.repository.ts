@@ -33,12 +33,8 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
         name: items.name,
         description: items.description,
         basePrice: items.basePrice,
-        costPrice: items.costPrice,
         taxGroupId: items.taxGroupId,
-        hsnSacCode: items.hsnSacCode,
         isAvailable: items.isAvailable,
-        isVisible: items.isVisible,
-        trackInventory: items.trackInventory,
         sortOrder: items.sortOrder,
         attributes: items.attributes,
         metadata: items.metadata,
@@ -75,12 +71,8 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
           name: items.name,
           description: items.description,
           basePrice: items.basePrice,
-          costPrice: items.costPrice,
           taxGroupId: items.taxGroupId,
-          hsnSacCode: items.hsnSacCode,
           isAvailable: items.isAvailable,
-          isVisible: items.isVisible,
-          trackInventory: items.trackInventory,
           sortOrder: items.sortOrder,
           attributes: items.attributes,
           metadata: items.metadata,
@@ -179,7 +171,6 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
     sku: string;
     name: string;
     price?: string | null;
-    costPrice?: string | null;
     sortOrder: number;
   }): Promise<ItemVariant> {
     const results = await this.db.insert(itemVariants).values(data).returning();

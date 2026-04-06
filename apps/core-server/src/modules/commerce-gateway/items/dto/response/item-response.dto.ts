@@ -28,23 +28,11 @@ export class ItemResponseDto {
   @ApiProperty({ description: 'Base price' })
   basePrice: string;
 
-  @ApiPropertyOptional({ description: 'Cost price', nullable: true })
-  costPrice: string | null;
-
   @ApiPropertyOptional({ description: 'Tax group ID', nullable: true })
   taxGroupId: string | null;
 
-  @ApiPropertyOptional({ description: 'HSN/SAC code', nullable: true })
-  hsnSacCode: string | null;
-
   @ApiProperty({ description: 'Whether the item is available' })
   isAvailable: boolean;
-
-  @ApiProperty({ description: 'Whether the item is visible' })
-  isVisible: boolean;
-
-  @ApiProperty({ description: 'Whether inventory is tracked' })
-  trackInventory: boolean;
 
   @ApiProperty({ description: 'Display sort order' })
   sortOrder: number;

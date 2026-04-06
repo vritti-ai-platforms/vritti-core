@@ -21,11 +21,7 @@ export interface UpdateItemPayload {
   name?: string;
   description?: string | null;
   basePrice?: number;
-  costPrice?: number | null;
   taxGroupId?: string | null;
-  hsnSacCode?: string | null;
-  isVisible?: boolean;
-  trackInventory?: boolean;
   categoryId?: string | null;
 }
 

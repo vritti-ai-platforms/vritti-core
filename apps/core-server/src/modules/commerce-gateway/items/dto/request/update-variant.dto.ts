@@ -18,12 +18,6 @@ export class UpdateVariantDto {
   @Min(0)
   price?: number | null;
 
-  @ApiPropertyOptional({ description: 'Updated cost price', example: 6.0 })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  costPrice?: number | null;
-
   @ApiPropertyOptional({ description: 'Whether the variant is available' })
   @IsOptional()
   @IsBoolean()

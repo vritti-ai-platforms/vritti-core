@@ -1,5 +1,21 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+
+export class UpdateTaxRateDto {
+  @ApiPropertyOptional({ description: 'Tax rate name', example: 'CGST' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiPropertyOptional({ description: 'Tax rate percentage', example: 9 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  rate: number;
+
+  @ApiPropertyOptional({ description: 'Rate type', enum: ['inclusive', 'exclusive'] })
+  @IsEnum(['inclusive', 'exclusive'])
+  type: string;
+}
 
 export class UpdateTaxGroupDto {
   @ApiPropertyOptional({ description: 'Updated tax group name' })
@@ -7,35 +23,12 @@ export class UpdateTaxGroupDto {
   @IsString()
   name?: string;
 
-  @ApiPropertyOptional({ description: 'Updated combined tax rate' })
+  @ApiPropertyOptional({ description: 'Updated tax rates (replaces all existing rates)', type: [UpdateTaxRateDto] })
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  rate?: number;
-
-  @ApiPropertyOptional({ description: 'Updated HSN/SAC code' })
-  @IsOptional()
-  @IsString()
-  hsnSacCode?: string;
-
-  @ApiPropertyOptional({ description: 'Updated CGST rate' })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  cgstRate?: number;
-
-  @ApiPropertyOptional({ description: 'Updated SGST rate' })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  sgstRate?: number;
-
-  @ApiPropertyOptional({ description: 'Updated IGST rate' })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  igstRate?: number;
-
-  @ApiPropertyOptional({ description: 'Updated cess rate' })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  cessRate?: number;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateTaxRateDto)
+  taxRates?: UpdateTaxRateDto[];
 
   @ApiPropertyOptional({ description: 'Updated default status' })
   @IsOptional()

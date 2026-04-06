@@ -3,5 +3,8 @@ export * from './categories';
 export * from './core-schema';
 export * from './enums';
 export * from './item-variants';
+export * from './item-field-definitions';
+export * from './item-field-values';
 export * from './modifier-groups';
 export * from './tax-groups';
+export * from './tax-rates';

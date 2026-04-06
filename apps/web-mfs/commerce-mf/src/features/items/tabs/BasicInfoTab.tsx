@@ -3,7 +3,6 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
-import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
@@ -28,11 +27,7 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
       name: item.name,
       description: item.description ?? '',
       basePrice: item.basePrice,
-      costPrice: item.costPrice ?? '',
       taxGroupId: item.taxGroupId ?? undefined,
-      hsnSacCode: item.hsnSacCode ?? '',
-      isVisible: item.isVisible,
-      trackInventory: item.trackInventory,
       categoryId: item.categoryId ?? undefined,
     },
   });
@@ -56,11 +51,8 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
   const taxGroupOptions = taxGroups.map((tg) => ({
     value: tg.id,
     label: tg.name,
-    description: `${tg.rate}% GST`,
+    description: tg.taxRates.map((r) => `${r.name} ${r.rate}%`).join(', '),
   }));
-
-  const watchedTaxGroupId = form.watch('taxGroupId');
-  const selectedTaxGroup = taxGroups.find((tg) => tg.id === watchedTaxGroupId);
 
   return (
     <Form
@@ -73,7 +65,6 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
         data: {
           ...data,
           basePrice: data.basePrice ? Number(data.basePrice) : undefined,
-          costPrice: data.costPrice ? Number(data.costPrice) : undefined,
           taxGroupId: data.taxGroupId || null,
         },
       })}
@@ -106,10 +97,7 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
             <CardTitle>Pricing</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <TextField name="basePrice" label="Base Price" type="number" placeholder="0.00" />
-              <TextField name="costPrice" label="Cost Price" type="number" placeholder="0.00" />
-            </div>
+            <TextField name="basePrice" label="Base Price" type="number" placeholder="0.00" />
           </CardContent>
         </Card>
 
@@ -117,32 +105,13 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
           <CardHeader>
             <CardTitle>Tax</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent>
             <Select
               name="taxGroupId"
               label="Tax Group"
               placeholder="Select tax group"
               options={taxGroupOptions}
             />
-            {selectedTaxGroup && (
-              <div className="flex items-center gap-4 text-xs text-muted-foreground rounded-md bg-muted/50 px-3 py-2">
-                {selectedTaxGroup.hsnSacCode && <span>HSN/SAC: {selectedTaxGroup.hsnSacCode}</span>}
-                <span>CGST: {selectedTaxGroup.cgstRate}%</span>
-                <span>SGST: {selectedTaxGroup.sgstRate}%</span>
-                {selectedTaxGroup.igstRate > 0 && <span>IGST: {selectedTaxGroup.igstRate}%</span>}
-                {selectedTaxGroup.cessRate > 0 && <span>Cess: {selectedTaxGroup.cessRate}%</span>}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <Switch name="isVisible" label="Visible on menu" />
-            <Switch name="trackInventory" label="Track inventory" />
           </CardContent>
         </Card>
 

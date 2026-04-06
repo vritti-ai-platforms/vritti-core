@@ -11,51 +11,78 @@ export class TaxGroupsService {
 
   constructor(private readonly taxGroupsRepository: TaxGroupsRepository) {}
 
-  // Returns all tax groups for a business unit
+  // Returns all tax groups for a business unit with their tax rates
   async list(orgId: string, buId: string): Promise<TaxGroupDto[]> {
-    const entities = await this.taxGroupsRepository.findByBu(orgId, buId);
-    return entities.map(TaxGroupDto.from);
+    const groups = await this.taxGroupsRepository.findByBuWithRates(orgId, buId);
+    return groups.map((g) => TaxGroupDto.from(g, g.taxRates));
   }
 
-  // Creates a new tax group and returns the entity DTO
+  // Creates a new tax group with associated tax rates
   async create(data: CreateTaxGroupDto): Promise<TaxGroupDto> {
     const entity = await this.taxGroupsRepository.create({
-      ...data,
-      rate: String(data.rate),
-      cgstRate: data.cgstRate != null ? String(data.cgstRate) : undefined,
-      sgstRate: data.sgstRate != null ? String(data.sgstRate) : undefined,
-      igstRate: data.igstRate != null ? String(data.igstRate) : undefined,
-      cessRate: data.cessRate != null ? String(data.cessRate) : undefined,
+      organizationId: data.organizationId,
+      businessUnitId: data.businessUnitId,
+      name: data.name,
+      isDefault: data.isDefault ?? false,
     });
+
+    const rates = await this.taxGroupsRepository.createTaxRates(
+      entity.id,
+      (data.taxRates ?? []).map((r, i) => ({
+        name: r.name,
+        rate: String(r.rate),
+        type: r.type,
+        sortOrder: i,
+      })),
+    );
+
     this.logger.log(`Created tax group: ${entity.name} (${entity.id})`);
-    return TaxGroupDto.from(entity);
+    return TaxGroupDto.from(entity, rates);
   }
 
-  // Finds a tax group by ID or throws NotFoundException
+  // Finds a tax group by ID with its tax rates or throws NotFoundException
   async findById(id: string): Promise<TaxGroupDto> {
     const entity = await this.taxGroupsRepository.findById(id);
     if (!entity) throw new NotFoundException('Tax group not found.');
-    return TaxGroupDto.from(entity);
+    const rates = await this.taxGroupsRepository.findTaxRatesByGroupId(id);
+    return TaxGroupDto.from(entity, rates);
   }
 
-  // Updates a tax group and returns the updated entity DTO
+  // Updates a tax group and replaces its tax rates
   async update(id: string, data: UpdateTaxGroupDto): Promise<TaxGroupDto> {
     const existing = await this.taxGroupsRepository.findById(id);
     if (!existing) throw new NotFoundException('Tax group not found.');
 
-    const updatePayload: Record<string, unknown> = { ...data };
-    if (data.rate != null) updatePayload.rate = String(data.rate);
-    if (data.cgstRate != null) updatePayload.cgstRate = String(data.cgstRate);
-    if (data.sgstRate != null) updatePayload.sgstRate = String(data.sgstRate);
-    if (data.igstRate != null) updatePayload.igstRate = String(data.igstRate);
-    if (data.cessRate != null) updatePayload.cessRate = String(data.cessRate);
+    const updatePayload: Record<string, unknown> = {};
+    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.isDefault !== undefined) updatePayload.isDefault = data.isDefault;
+    if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
+    if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
 
     const entity = await this.taxGroupsRepository.update(id, updatePayload);
+
+    // Replace tax rates if provided
+    let rates;
+    if (data.taxRates !== undefined) {
+      await this.taxGroupsRepository.deleteTaxRatesByGroupId(id);
+      rates = await this.taxGroupsRepository.createTaxRates(
+        id,
+        data.taxRates.map((r, i) => ({
+          name: r.name,
+          rate: String(r.rate),
+          type: r.type,
+          sortOrder: i,
+        })),
+      );
+    } else {
+      rates = await this.taxGroupsRepository.findTaxRatesByGroupId(id);
+    }
+
     this.logger.log(`Updated tax group: ${entity.name} (${entity.id})`);
-    return TaxGroupDto.from(entity);
+    return TaxGroupDto.from(entity, rates);
   }
 
-  // Deletes a tax group by ID
+  // Deletes a tax group by ID (cascades to tax rates)
   async delete(id: string): Promise<{ success: boolean; message: string }> {
     const existing = await this.taxGroupsRepository.findById(id);
     if (!existing) throw new NotFoundException('Tax group not found.');

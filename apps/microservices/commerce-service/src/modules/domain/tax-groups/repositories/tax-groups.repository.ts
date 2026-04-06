@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { type TaxGroup, taxGroups } from '@/db/schema';
+import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { type TaxGroup, type TaxRate, type TaxRateType, taxGroups, taxRates } from '@/db/schema';
 
 @Injectable()
 export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups> {
@@ -8,11 +9,38 @@ export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups>
     super(database, taxGroups);
   }
 
-  // Returns all tax groups for a specific organization and business unit, ordered by sortOrder
-  async findByBu(orgId: string, buId: string): Promise<TaxGroup[]> {
-    return this.model.findMany({
+  // Returns all tax groups for a BU with their associated tax rates
+  async findByBuWithRates(orgId: string, buId: string): Promise<(TaxGroup & { taxRates: TaxRate[] })[]> {
+    const groups = await this.model.findMany({
       where: { organizationId: orgId, businessUnitId: buId },
       orderBy: { sortOrder: 'asc' },
     });
+
+    const result: (TaxGroup & { taxRates: TaxRate[] })[] = [];
+    for (const group of groups) {
+      const rates = await this.findTaxRatesByGroupId(group.id);
+      result.push({ ...group, taxRates: rates });
+    }
+    return result;
+  }
+
+  // Returns tax rates for a specific tax group
+  async findTaxRatesByGroupId(groupId: string): Promise<TaxRate[]> {
+    return this.db.select().from(taxRates).where(eq(taxRates.taxGroupId, groupId)).orderBy(taxRates.sortOrder);
+  }
+
+  // Creates multiple tax rates for a tax group
+  async createTaxRates(
+    groupId: string,
+    rates: { name: string; rate: string; type: TaxRateType; sortOrder: number }[],
+  ): Promise<TaxRate[]> {
+    if (rates.length === 0) return [];
+    const values = rates.map((r) => ({ ...r, taxGroupId: groupId }));
+    return this.db.insert(taxRates).values(values).returning() as Promise<TaxRate[]>;
+  }
+
+  // Deletes all tax rates for a given tax group
+  async deleteTaxRatesByGroupId(groupId: string): Promise<void> {
+    await this.db.delete(taxRates).where(eq(taxRates.taxGroupId, groupId));
   }
 }

@@ -12,11 +12,7 @@ export const updateItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255).optional(),
   description: z.string().nullable().optional(),
   basePrice: z.string().optional(),
-  costPrice: z.string().nullable().optional(),
   taxGroupId: z.string().nullable().optional(),
-  hsnSacCode: z.string().nullable().optional(),
-  isVisible: z.boolean().optional(),
-  trackInventory: z.boolean().optional(),
   categoryId: z.string().nullable().optional(),
 });
 
@@ -37,10 +33,7 @@ export interface ItemData {
   name: string;
   description: string | null;
   basePrice: string;
-  costPrice: string | null;
   isAvailable: boolean;
-  isVisible: boolean;
-  trackInventory: boolean;
   sortOrder: number;
   createdAt: string;
 }
@@ -63,7 +56,6 @@ export interface ItemVariant {
   sku: string;
   name: string;
   price: string | null;
-  costPrice: string | null;
   isAvailable: boolean;
   sortOrder: number;
   createdAt: string;
@@ -79,12 +71,8 @@ export interface ItemDetail {
   name: string;
   description: string | null;
   basePrice: string;
-  costPrice: string | null;
   taxGroupId: string | null;
-  hsnSacCode: string | null;
   isAvailable: boolean;
-  isVisible: boolean;
-  trackInventory: boolean;
   sortOrder: number;
   options: ItemOption[];
   variants: ItemVariant[];
@@ -104,7 +92,6 @@ export interface UpdateVariantData {
   sku?: string;
   name?: string;
   price?: number | null;
-  costPrice?: number | null;
   isAvailable?: boolean;
   sortOrder?: number;
 }

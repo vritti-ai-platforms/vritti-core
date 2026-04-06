@@ -4,7 +4,7 @@ import { ItemsPage } from './ItemsPage';
 
 const routes: RouteObject[] = [
   { index: true, element: <ItemsPage /> },
-  { path: ':id', element: <ItemFormPage /> },
+  { path: ':itemSlug', element: <ItemFormPage /> },
 ];
 
 export default routes;

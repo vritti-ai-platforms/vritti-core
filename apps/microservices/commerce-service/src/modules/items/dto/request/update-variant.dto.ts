@@ -15,11 +15,6 @@ export class UpdateVariantDto {
   price?: number | null;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  costPrice?: number | null;
-
-  @IsOptional()
   @IsBoolean()
   isAvailable?: boolean;
 

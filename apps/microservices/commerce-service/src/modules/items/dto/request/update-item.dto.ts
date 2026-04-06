@@ -24,29 +24,12 @@ export class UpdateItemDto {
   basePrice?: number;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  costPrice?: number | null;
-
-  @IsOptional()
   @IsUUID()
   taxGroupId?: string | null;
 
   @IsOptional()
-  @IsString()
-  hsnSacCode?: string | null;
-
-  @IsOptional()
   @IsBoolean()
   isAvailable?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isVisible?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  trackInventory?: boolean;
 
   @IsOptional()
   @IsInt()

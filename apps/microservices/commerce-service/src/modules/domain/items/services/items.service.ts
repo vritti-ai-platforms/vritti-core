@@ -67,12 +67,8 @@ export class ItemsService {
       name: data.name,
       description: data.description ?? null,
       basePrice: String(data.basePrice),
-      costPrice: data.costPrice != null ? String(data.costPrice) : null,
       taxGroupId: data.taxGroupId ?? null,
-      hsnSacCode: data.hsnSacCode ?? null,
       isAvailable: data.isAvailable ?? true,
-      isVisible: data.isVisible ?? true,
-      trackInventory: data.trackInventory ?? false,
       sortOrder: data.sortOrder ?? 0,
     });
     const categoryName = await this.itemsRepository.findCategoryName(entity.categoryId);
@@ -118,12 +114,8 @@ export class ItemsService {
     if (data.name !== undefined) updatePayload.name = data.name;
     if (data.description !== undefined) updatePayload.description = data.description;
     if (data.basePrice !== undefined) updatePayload.basePrice = String(data.basePrice);
-    if (data.costPrice !== undefined) updatePayload.costPrice = data.costPrice != null ? String(data.costPrice) : null;
     if (data.taxGroupId !== undefined) updatePayload.taxGroupId = data.taxGroupId;
-    if (data.hsnSacCode !== undefined) updatePayload.hsnSacCode = data.hsnSacCode;
     if (data.isAvailable !== undefined) updatePayload.isAvailable = data.isAvailable;
-    if (data.isVisible !== undefined) updatePayload.isVisible = data.isVisible;
-    if (data.trackInventory !== undefined) updatePayload.trackInventory = data.trackInventory;
     if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
 
     const entity = await this.itemsRepository.update(id, updatePayload);
@@ -253,7 +245,6 @@ export class ItemsService {
     if (data.sku !== undefined) updatePayload.sku = data.sku;
     if (data.name !== undefined) updatePayload.name = data.name;
     if (data.price !== undefined) updatePayload.price = data.price != null ? String(data.price) : null;
-    if (data.costPrice !== undefined) updatePayload.costPrice = data.costPrice != null ? String(data.costPrice) : null;
     if (data.isAvailable !== undefined) updatePayload.isAvailable = data.isAvailable;
     if (data.manageInventory !== undefined) updatePayload.manageInventory = data.manageInventory;
     if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;

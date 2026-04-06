@@ -1,4 +1,5 @@
 import { boolean, decimal, index, integer, jsonb, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+
 import { coreSchema } from './core-schema';
 
 export const itemOptions = coreSchema.table(
@@ -37,7 +38,6 @@ export const itemVariants = coreSchema.table(
     sku: varchar('sku', { length: 100 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     price: decimal('price', { precision: 12, scale: 2 }),
-    costPrice: decimal('cost_price', { precision: 12, scale: 2 }),
     isAvailable: boolean('is_available').notNull().default(true),
     manageInventory: boolean('manage_inventory').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),

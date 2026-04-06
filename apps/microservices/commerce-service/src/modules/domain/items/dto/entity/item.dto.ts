@@ -10,12 +10,8 @@ export class ItemDto {
   name: string;
   description: string | null;
   basePrice: string;
-  costPrice: string | null;
   taxGroupId: string | null;
-  hsnSacCode: string | null;
   isAvailable: boolean;
-  isVisible: boolean;
-  trackInventory: boolean;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -32,12 +28,8 @@ export class ItemDto {
     dto.name = entity.name;
     dto.description = entity.description ?? null;
     dto.basePrice = entity.basePrice;
-    dto.costPrice = entity.costPrice ?? null;
     dto.taxGroupId = entity.taxGroupId ?? null;
-    dto.hsnSacCode = entity.hsnSacCode ?? null;
     dto.isAvailable = entity.isAvailable;
-    dto.isVisible = entity.isVisible;
-    dto.trackInventory = entity.trackInventory;
     dto.sortOrder = entity.sortOrder;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

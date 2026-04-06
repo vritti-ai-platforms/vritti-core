@@ -7,9 +7,10 @@ import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { CategoryFilter } from '@vritti/quantum-ui/selects/category';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus, Trash2 } from 'lucide-react';
 import { useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDeleteItem } from '@/hooks/useDeleteItem';
 import { ITEMS_TABLE_KEY, useItemsTable } from '@/hooks/useItemsTable';
 import type { ItemData } from '@/schemas/items';
@@ -17,7 +18,6 @@ import { AddItemDialog } from './forms/AddItemDialog';
 
 export const ItemsPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
   const { id: buId } = useSlugParams('buSlug');
 
@@ -41,7 +41,7 @@ export const ItemsPage = () => {
 
   const { table } = useDataTable({
     columns: getColumns({
-      onView: (item) => navigate(`${location.pathname}/${item.id}`),
+      onView: (item) => navigate(buildSlug(item.name, item.id)),
       onDelete: handleDelete,
     }),
     slug: 'commerce-items',

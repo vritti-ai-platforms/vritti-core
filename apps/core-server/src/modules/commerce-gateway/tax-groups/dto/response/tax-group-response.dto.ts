@@ -1,29 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class TaxRateResponseDto {
+  @ApiProperty({ description: 'Tax rate ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Tax rate name', example: 'CGST' })
+  name: string;
+
+  @ApiProperty({ description: 'Tax rate percentage', example: 9 })
+  rate: number;
+
+  @ApiProperty({ description: 'Rate type', enum: ['inclusive', 'exclusive'] })
+  type: string;
+
+  @ApiProperty({ description: 'Sort order' })
+  sortOrder: number;
+}
+
 export class TaxGroupResponseDto {
   @ApiProperty({ description: 'Tax group ID' })
   id: string;
 
   @ApiProperty({ description: 'Tax group name' })
   name: string;
-
-  @ApiProperty({ description: 'Combined tax rate', example: 18 })
-  rate: number;
-
-  @ApiPropertyOptional({ description: 'HSN/SAC code', example: '99631100' })
-  hsnSacCode: string | null;
-
-  @ApiProperty({ description: 'CGST rate', example: 9 })
-  cgstRate: number;
-
-  @ApiProperty({ description: 'SGST rate', example: 9 })
-  sgstRate: number;
-
-  @ApiProperty({ description: 'IGST rate', example: 0 })
-  igstRate: number;
-
-  @ApiProperty({ description: 'Cess rate', example: 0 })
-  cessRate: number;
 
   @ApiProperty({ description: 'Whether this is the default tax group' })
   isDefault: boolean;
@@ -33,4 +32,7 @@ export class TaxGroupResponseDto {
 
   @ApiProperty({ description: 'Display sort order' })
   sortOrder: number;
+
+  @ApiProperty({ description: 'Tax rates in this group', type: [TaxRateResponseDto] })
+  taxRates: TaxRateResponseDto[];
 }
