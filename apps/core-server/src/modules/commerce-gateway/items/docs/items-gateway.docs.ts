@@ -4,20 +4,21 @@ import { SuccessResponseDto } from '@vritti/api-sdk';
 import { ItemDetailResponseDto, ItemVariantResponseDto } from '../dto/item-detail-response.dto';
 import { ItemModifierGroupResponseDto } from '../dto/item-modifier-group-response.dto';
 import { ItemResponseDto } from '../dto/item-response.dto';
+import { ItemsTableResponseDto } from '../dto/items-table-response.dto';
 import { SaveItemModifiersDto } from '../dto/save-item-modifiers.dto';
 import { SaveOptionsDto } from '../dto/save-options.dto';
 import { CreateItemDto } from '../dto/create-item.dto';
 import { UpdateItemDto } from '../dto/update-item.dto';
 import { UpdateVariantDto } from '../dto/update-variant.dto';
 
-export function ApiListItems() {
+export function ApiGetItemsTable() {
   return applyDecorators(
     ApiOperation({
-      summary: 'List items for a business unit',
-      description: 'Returns all items for the specified business unit.',
+      summary: 'Get items table for a business unit',
+      description: 'Returns paginated, filtered, and sorted items using server-stored table state.',
     }),
     ApiQuery({ name: 'buId', description: 'Business unit ID', required: true }),
-    ApiResponse({ status: 200, description: 'Items retrieved successfully.', type: ItemResponseDto, isArray: true }),
+    ApiResponse({ status: 200, description: 'Items table retrieved successfully.', type: ItemsTableResponseDto }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type SQL, eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type CatalogItem,
   type ItemOption,
@@ -50,6 +50,56 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof catalogItems> 
       .leftJoin(categories, eq(catalogItems.categoryId, categories.id))
       .where(eq(catalogItems.businessUnitId, buId))
       .orderBy(catalogItems.sortOrder);
+  }
+
+  // Returns paginated items with category name for table display
+  async findForTable(params: {
+    where: SQL | undefined;
+    orderBy: SQL;
+    limit: number;
+    offset: number;
+  }): Promise<{ rows: (CatalogItem & { categoryName: string | null })[]; total: number }> {
+    const [countResult, rows] = await Promise.all([
+      this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(catalogItems)
+        .leftJoin(categories, eq(catalogItems.categoryId, categories.id))
+        .where(params.where),
+      this.db
+        .select({
+          id: catalogItems.id,
+          businessUnitId: catalogItems.businessUnitId,
+          categoryId: catalogItems.categoryId,
+          type: catalogItems.type,
+          code: catalogItems.code,
+          name: catalogItems.name,
+          description: catalogItems.description,
+          basePrice: catalogItems.basePrice,
+          costPrice: catalogItems.costPrice,
+          taxGroupId: catalogItems.taxGroupId,
+          hsnSacCode: catalogItems.hsnSacCode,
+          isAvailable: catalogItems.isAvailable,
+          isVisible: catalogItems.isVisible,
+          trackInventory: catalogItems.trackInventory,
+          sortOrder: catalogItems.sortOrder,
+          attributes: catalogItems.attributes,
+          metadata: catalogItems.metadata,
+          createdAt: catalogItems.createdAt,
+          updatedAt: catalogItems.updatedAt,
+          categoryName: categories.name,
+        })
+        .from(catalogItems)
+        .leftJoin(categories, eq(catalogItems.categoryId, categories.id))
+        .where(params.where)
+        .orderBy(params.orderBy)
+        .limit(params.limit)
+        .offset(params.offset),
+    ]);
+
+    return {
+      rows: rows as (CatalogItem & { categoryName: string | null })[],
+      total: Number(countResult[0]?.count ?? 0),
+    };
   }
 
   // Returns options for an item ordered by sortOrder

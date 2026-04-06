@@ -1,6 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NotFoundException } from '@vritti/api-sdk';
-import type { ItemOptionValue } from '@/db/schema';
+import {
+  type FieldMap,
+  type FilterCondition,
+  FilterProcessor,
+  NotFoundException,
+  type SearchState,
+  type SortCondition,
+} from '@vritti/api-sdk';
+import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { type ItemOptionValue, catalogItems } from '@/db/schema';
 import { ItemDto } from '../dto/item.dto';
 import { ItemDetailDto, ItemOptionDto, ItemVariantDto } from '../dto/item-detail.dto';
 import type { CreateItemDto } from '../dto/create-item.dto';
@@ -13,12 +21,39 @@ import { ItemsRepository } from '../repositories/items.repository';
 export class ItemsService {
   private readonly logger = new Logger(ItemsService.name);
 
+  private static readonly FIELD_MAP: FieldMap = {
+    name: { column: catalogItems.name, type: 'string' },
+    code: { column: catalogItems.code, type: 'string' },
+    type: { column: catalogItems.type, type: 'string' },
+    basePrice: { column: catalogItems.basePrice, type: 'number' },
+    isAvailable: { column: catalogItems.isAvailable, type: 'boolean' },
+    categoryId: { column: catalogItems.categoryId, type: 'string' },
+  };
+
   constructor(private readonly itemsRepository: ItemsRepository) {}
 
-  // Returns all items for a business unit with category names
-  async list(buId: string): Promise<ItemDto[]> {
-    const rows = await this.itemsRepository.findByBuWithCategory(buId);
-    return rows.map((row) => ItemDto.from(row, row.categoryName));
+  // Returns paginated, filtered, and sorted items for the data table
+  async findForTable(params: {
+    businessUnitId: string;
+    filters: FilterCondition[];
+    sort: SortCondition[];
+    search: SearchState | null;
+    pagination: { limit: number; offset: number };
+  }): Promise<{ result: ItemDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(params.filters, ItemsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(params.search, ItemsService.FIELD_MAP);
+    const where = and(eq(catalogItems.businessUnitId, params.businessUnitId), filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(params.sort, ItemsService.FIELD_MAP);
+
+    const { rows, total } = await this.itemsRepository.findForTable({
+      where,
+      orderBy: orderBy[0] ?? desc(catalogItems.createdAt),
+      limit: params.pagination.limit,
+      offset: params.pagination.offset,
+    });
+
+    this.logger.log(`Fetched items table for BU ${params.businessUnitId} (${total} results)`);
+    return { result: rows.map((row) => ItemDto.from(row, row.categoryName)), count: total };
   }
 
   // Creates a new catalog item, auto-generating code if not provided

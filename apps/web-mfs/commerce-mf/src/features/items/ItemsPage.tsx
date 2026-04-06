@@ -1,56 +1,30 @@
-import { Avatar, AvatarFallback } from '@vritti/quantum-ui/Avatar';
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { parseSlug } from '@vritti/quantum-ui/slug';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { CategoryFilter } from '@vritti/quantum-ui/selects/category';
 import { Eye, Package, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDeleteItem } from '@/hooks/useDeleteItem';
-import { useItems } from '@/hooks/useItems';
-import type { ItemData, ItemType } from '@/schemas/items';
+import { ITEMS_TABLE_KEY, useItemsTable } from '@/hooks/useItemsTable';
+import type { ItemData } from '@/schemas/items';
 import { AddItemDialog } from './forms/AddItemDialog';
 
-function extractBuIdFromPath(pathname: string): string | null {
-  const segments = pathname.split('/').filter(Boolean);
-  const buSegment = segments.find((s) => s.startsWith('bu-'));
-  if (!buSegment) return null;
-  const parsed = parseSlug(buSegment.replace(/^bu-/, ''));
-  return parsed?.id ?? null;
-}
-
-function formatPrice(price: string): string {
-  const num = Number.parseFloat(price);
-  return Number.isNaN(num) ? price : num.toFixed(2);
-}
-
 export const ItemsPage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const selectedBuId = extractBuIdFromPath(location.pathname);
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { id: buId } = useSlugParams('buSlug');
 
-  const { data: items = [], isLoading } = useItems(selectedBuId);
+  const { data: response, isLoading } = useItemsTable(buId || null);
   const deleteMutation = useDeleteItem();
   const addDialog = useDialog();
   const confirm = useConfirm();
-
-  const [typeFilter, setTypeFilter] = useState<ItemType | 'ALL'>('ALL');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
-
-  // Filters items by type and status
-  const filteredItems = useMemo(() => {
-    let result = items;
-    if (typeFilter !== 'ALL') {
-      result = result.filter((item) => item.type === typeFilter);
-    }
-    if (statusFilter !== 'ALL') {
-      result = result.filter((item) => (statusFilter === 'ACTIVE' ? item.isAvailable : !item.isAvailable));
-    }
-    return result;
-  }, [items, typeFilter, statusFilter]);
 
   const handleDelete = useCallback(
     async (id: string, name: string) => {
@@ -65,23 +39,18 @@ export const ItemsPage = () => {
     [confirm, deleteMutation],
   );
 
-  const handleView = useCallback(
-    (id: string) => {
-      navigate(`${location.pathname}/${id}`);
-    },
-    [navigate, location.pathname],
-  );
-
-  const columns = useMemo(() => getColumns(handleDelete, handleView), [handleDelete, handleView]);
-
   const { table } = useDataTable({
-    columns,
-    label: 'Item',
-    slug: 'item',
-    serverState: { result: filteredItems, count: filteredItems.length },
+    columns: getColumns({
+      onView: (item) => navigate(`${location.pathname}/${item.id}`),
+      onDelete: handleDelete,
+    }),
+    slug: 'commerce-items',
+    label: 'item',
+    serverState: response,
     enableRowSelection: false,
     enableSorting: true,
     enableMultiSort: false,
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: ITEMS_TABLE_KEY }),
   });
 
   return (
@@ -91,38 +60,31 @@ export const ItemsPage = () => {
       <DataTable
         table={table}
         isLoading={isLoading}
-        enableViews={false}
+        searchConfig={{
+          columns: [
+            { id: 'name', label: 'Name' },
+            { id: 'code', label: 'Code' },
+          ],
+          searchAll: true,
+        }}
+        filters={[
+          <SelectFilter
+            key="type"
+            name="type"
+            label="Type"
+            placeholder="All types"
+            options={[
+              { value: 'PRODUCT', label: 'Product' },
+              { value: 'SERVICE', label: 'Service' },
+            ]}
+          />,
+          <CategoryFilter key="categoryId" params={{ buId: buId ?? '' }} />,
+        ]}
         toolbarActions={{
           actions: (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {(['ALL', 'PRODUCT', 'SERVICE'] as const).map((type) => (
-                  <Button
-                    key={type}
-                    variant={typeFilter === type ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setTypeFilter(type)}
-                  >
-                    {type === 'ALL' ? 'All' : type === 'PRODUCT' ? 'Products' : 'Services'}
-                  </Button>
-                ))}
-              </div>
-              <div className="flex items-center gap-1">
-                {(['ALL', 'ACTIVE', 'INACTIVE'] as const).map((status) => (
-                  <Button
-                    key={status}
-                    variant={statusFilter === status ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setStatusFilter(status)}
-                  >
-                    {status === 'ALL' ? 'All' : status === 'ACTIVE' ? 'Active' : 'Inactive'}
-                  </Button>
-                ))}
-              </div>
-              <Button startAdornment={<Plus className="size-4" />} size="sm" onClick={addDialog.open}>
-                Add Item
-              </Button>
-            </div>
+            <Button startAdornment={<Plus className="size-4" />} size="sm" onClick={addDialog.open}>
+              Add Item
+            </Button>
           ),
         }}
         emptyStateConfig={{
@@ -141,48 +103,40 @@ export const ItemsPage = () => {
         handle={addDialog}
         title="Add Item"
         description="Enter the details for the new item."
-        content={(close) => <AddItemDialog businessUnitId={selectedBuId ?? ''} onSuccess={close} onCancel={close} />}
+        content={(close) => <AddItemDialog businessUnitId={buId ?? ''} onSuccess={close} onCancel={close} />}
       />
     </div>
   );
 };
 
-function getColumns(
-  onDelete: (id: string, name: string) => Promise<void>,
-  onView: (id: string) => void,
-): ColumnDef<ItemData, unknown>[] {
+interface ColumnActions {
+  onView: (item: ItemData) => void;
+  onDelete: (id: string, name: string) => Promise<void>;
+}
+
+function getColumns({ onView, onDelete }: ColumnActions): ColumnDef<ItemData, unknown>[] {
   return [
-    {
-      id: 'image',
-      header: '',
-      cell: ({ row }) => (
-        <Avatar className="size-8">
-          <AvatarFallback className="text-xs">{row.original.name.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-      ),
-      enableSorting: false,
-      size: 48,
-    },
     {
       accessorKey: 'code',
       header: 'Code',
-      cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.code}</span>,
+      cell: ({ row }) => (
+        <Badge variant="outline" className="font-mono text-[10px] font-medium">
+          {row.original.code}
+        </Badge>
+      ),
       enableSorting: true,
     },
     {
       accessorKey: 'name',
       header: 'Name',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{row.original.name}</span>
-          {row.original.type === 'PRODUCT' && (
-            <Badge variant="outline" className="text-xs">
-              {row.original.categoryName ?? 'Uncategorized'}
-            </Badge>
-          )}
-        </div>
-      ),
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       enableSorting: true,
+    },
+    {
+      accessorKey: 'categoryName',
+      header: 'Category',
+      cell: ({ row }) => <span className="text-muted-foreground text-sm">{row.original.categoryName ?? '—'}</span>,
+      enableSorting: false,
     },
     {
       accessorKey: 'type',
@@ -202,8 +156,11 @@ function getColumns(
     },
     {
       accessorKey: 'basePrice',
-      header: () => <div className="text-right">Base Price</div>,
-      cell: ({ row }) => <div className="text-right font-mono">{formatPrice(row.original.basePrice)}</div>,
+      header: 'Base Price',
+      cell: ({ row }) => {
+        const num = Number.parseFloat(row.original.basePrice);
+        return <span className="font-mono">{Number.isNaN(num) ? row.original.basePrice : num.toFixed(2)}</span>;
+      },
       enableSorting: true,
     },
     {
@@ -232,7 +189,7 @@ function getColumns(
               id: 'view',
               icon: Eye,
               label: 'View',
-              onClick: () => onView(row.original.id),
+              onClick: () => onView(row.original),
             },
             {
               id: 'delete',

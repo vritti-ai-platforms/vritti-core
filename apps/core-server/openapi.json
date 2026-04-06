@@ -2605,10 +2605,10 @@
         ]
       }
     },
-    "/commerce-api/items": {
+    "/commerce-api/items/table": {
       "get": {
-        "description": "Returns all items for the specified business unit.",
-        "operationId": "ItemsGatewayController_list",
+        "description": "Returns paginated, filtered, and sorted items using server-stored table state.",
+        "operationId": "ItemsGatewayController_getItemsTable",
         "parameters": [
           {
             "name": "buId",
@@ -2622,14 +2622,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Items retrieved successfully.",
+            "description": "Items table retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ItemResponseDto"
-                  }
+                  "$ref": "#/components/schemas/ItemsTableResponseDto"
                 }
               }
             }
@@ -2643,11 +2640,13 @@
             "bearer": []
           }
         ],
-        "summary": "List items for a business unit",
+        "summary": "Get items table for a business unit",
         "tags": [
           "Commerce - Items"
         ]
-      },
+      }
+    },
+    "/commerce-api/items": {
       "post": {
         "description": "Creates a new catalog item. organizationId is resolved from the authenticated user.",
         "operationId": "ItemsGatewayController_create",
@@ -5409,6 +5408,33 @@
           "sortOrder",
           "createdAt",
           "updatedAt"
+        ]
+      },
+      "ItemsTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
         ]
       },
       "CreateItemDto": {

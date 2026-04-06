@@ -1,11 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { DataTableStateService } from '@vritti/api-sdk';
 import { UserService } from '@domain/user/services/user.service';
 import { COMMERCE_SERVICE } from '../../commerce-client.module';
 import type { CreateItemDto } from '../dto/create-item.dto';
 import type { ItemDetailResponseDto } from '../dto/item-detail-response.dto';
 import type { ItemModifierGroupResponseDto } from '../dto/item-modifier-group-response.dto';
 import type { ItemResponseDto } from '../dto/item-response.dto';
+import type { ItemsTableResponseDto } from '../dto/items-table-response.dto';
 import type { SaveItemModifiersDto } from '../dto/save-item-modifiers.dto';
 import type { SaveOptionsDto } from '../dto/save-options.dto';
 import type { UpdateItemDto } from '../dto/update-item.dto';
@@ -19,14 +21,28 @@ export class ItemsGatewayService {
   constructor(
     @Inject(COMMERCE_SERVICE) private readonly client: ClientProxy,
     private readonly userService: UserService,
+    private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Returns all items for the user's org + given BU
-  async list(userId: string, buId: string): Promise<ItemResponseDto[]> {
-    const user = await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<ItemResponseDto[]>({ cmd: 'items.list' }, { organizationId: user.organizationId, businessUnitId: buId })
-      .toPromise() as Promise<ItemResponseDto[]>;
+  // Returns paginated, filtered, and sorted items for the data table
+  async findForTable(userId: string, buId: string): Promise<ItemsTableResponseDto> {
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-items');
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
+
+    const { result, count } = (await this.client
+      .send<{ result: ItemResponseDto[]; count: number }>(
+        { cmd: 'items.table' },
+        {
+          businessUnitId: buId,
+          filters: state.filters,
+          sort: state.sort,
+          search: state.search ?? null,
+          pagination: { limit, offset },
+        },
+      )
+      .toPromise()) as { result: ItemResponseDto[]; count: number };
+
+    return { result, count, state, activeViewId };
   }
 
   // Creates a new item, resolving organizationId from the authenticated user

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { ItemData } from '@/schemas/items';
 import { type UpdateItemPayload, updateItem } from '@/services/items.service';
+import { ITEMS_TABLE_KEY } from './useItemsTable';
 
 type UpdateItemVariables = { id: string; data: UpdateItemPayload };
 
@@ -16,7 +17,7 @@ export function useUpdateItem(
     ...options,
     mutationFn: updateItem,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ['items'] });
+      queryClient.invalidateQueries({ queryKey: ITEMS_TABLE_KEY });
       queryClient.invalidateQueries({ queryKey: ['item'] });
       options?.onSuccess?.(...args);
     },

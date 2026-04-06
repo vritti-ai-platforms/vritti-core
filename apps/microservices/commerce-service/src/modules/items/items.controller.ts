@@ -1,5 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
+import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
 import type { ItemDto } from './dto/item.dto';
 import type { ItemDetailDto, ItemVariantDto } from './dto/item-detail.dto';
 import type { CreateItemDto } from './dto/create-item.dto';
@@ -14,11 +15,23 @@ export class ItemsController {
 
   constructor(private readonly itemsService: ItemsService) {}
 
-  // Lists all items for a business unit
-  @MessagePattern({ cmd: 'items.list' })
-  async list(data: { organizationId: string; businessUnitId: string }): Promise<ItemDto[]> {
-    this.logger.log(`items.list — buId: ${data.businessUnitId}`);
-    return this.itemsService.list(data.businessUnitId);
+  // Returns paginated, filtered, and sorted items for the data table
+  @MessagePattern({ cmd: 'items.table' })
+  async table(data: {
+    businessUnitId: string;
+    filters: FilterCondition[];
+    sort: SortCondition[];
+    search: SearchState | null;
+    pagination: { limit: number; offset: number };
+  }): Promise<{ result: ItemDto[]; count: number }> {
+    this.logger.log(`items.table — buId: ${data.businessUnitId}`);
+    return this.itemsService.findForTable({
+      businessUnitId: data.businessUnitId,
+      filters: data.filters ?? [],
+      sort: data.sort ?? [],
+      search: data.search ?? null,
+      pagination: data.pagination ?? { limit: 20, offset: 0 },
+    });
   }
 
   // Creates a new catalog item

@@ -3,8 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import { deleteItem } from '@/services/items.service';
+import { ITEMS_TABLE_KEY } from './useItemsTable';
 
-// Deletes an item and invalidates the items list
+// Deletes an item and invalidates the items table
 export function useDeleteItem(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
@@ -14,7 +15,7 @@ export function useDeleteItem(
     ...options,
     mutationFn: deleteItem,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ['items'] });
+      queryClient.invalidateQueries({ queryKey: ITEMS_TABLE_KEY });
       options?.onSuccess?.(...args);
     },
   });

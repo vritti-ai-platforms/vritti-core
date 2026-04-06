@@ -1,10 +1,10 @@
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
 import type {
-  ItemData,
   ItemDetail,
   ItemModifierGroup,
   ItemVariant,
+  ItemsTableResponse,
   SaveOptionsPayload,
   UpdateVariantData,
 } from '@/schemas/items';
@@ -29,10 +29,10 @@ export interface UpdateItemPayload {
   categoryId?: string | null;
 }
 
-// Lists all items for a business unit
-export function listItems(buId: string): Promise<ItemData[]> {
+// Fetches items for the data table — server applies filter/sort state
+export function getItemsTable(buId: string): Promise<ItemsTableResponse> {
   return axios
-    .get<ItemData[]>(`commerce-api/items?buId=${buId}`, { showSuccessToast: false })
+    .get<ItemsTableResponse>('commerce-api/items/table', { params: { buId }, showSuccessToast: false })
     .then((r) => r.data);
 }
 

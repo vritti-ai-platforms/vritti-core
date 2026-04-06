@@ -8,9 +8,9 @@ import {
   ApiDeleteItemVariant,
   ApiGenerateItemVariants,
   ApiGetItem,
+  ApiGetItemsTable,
   ApiListItemModifiers,
   ApiListItemVariants,
-  ApiListItems,
   ApiSaveItemModifiers,
   ApiSaveItemOptions,
   ApiUpdateItem,
@@ -20,6 +20,7 @@ import { CreateItemDto } from './dto/create-item.dto';
 import type { ItemDetailResponseDto, ItemVariantResponseDto } from './dto/item-detail-response.dto';
 import type { ItemModifierGroupResponseDto } from './dto/item-modifier-group-response.dto';
 import type { ItemResponseDto } from './dto/item-response.dto';
+import type { ItemsTableResponseDto } from './dto/items-table-response.dto';
 import { SaveItemModifiersDto } from './dto/save-item-modifiers.dto';
 import { SaveOptionsDto } from './dto/save-options.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
@@ -35,12 +36,12 @@ export class ItemsGatewayController {
 
   constructor(private readonly itemsGatewayService: ItemsGatewayService) {}
 
-  // Returns all items for a business unit
-  @Get()
-  @ApiListItems()
-  async list(@UserId() userId: string, @Query('buId') buId: string): Promise<ItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/items?buId=${buId} — user: ${userId}`);
-    return this.itemsGatewayService.list(userId, buId);
+  // Returns paginated items for the data table with server-stored state
+  @Get('table')
+  @ApiGetItemsTable()
+  getItemsTable(@UserId() userId: string, @Query('buId') buId: string): Promise<ItemsTableResponseDto> {
+    this.logger.log(`GET /commerce-api/items/table?buId=${buId} — user: ${userId}`);
+    return this.itemsGatewayService.findForTable(userId, buId);
   }
 
   // Creates a new catalog item

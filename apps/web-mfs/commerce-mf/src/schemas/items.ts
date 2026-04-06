@@ -1,3 +1,4 @@
+import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { z } from 'zod';
 
 export const createItemSchema = z.object({
@@ -18,6 +19,8 @@ export const updateItemSchema = z.object({
   trackInventory: z.boolean().optional(),
   categoryId: z.string().nullable().optional(),
 });
+
+export type ItemsTableResponse = TableResponse<ItemData>;
 
 export type CreateItemFormData = z.infer<typeof createItemSchema>;
 export type UpdateItemFormData = z.infer<typeof updateItemSchema>;
