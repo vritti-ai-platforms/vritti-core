@@ -8,12 +8,12 @@ import {
   type SortCondition,
 } from '@vritti/api-sdk';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
-import { type ItemOptionValue, catalogItems } from '@/db/schema';
+import { type ItemOptionValue, items } from '@/db/schema';
+import type { CreateItemDto } from '../dto/create-item.dto';
 import { ItemDto } from '../dto/item.dto';
 import { ItemDetailDto, ItemOptionDto, ItemVariantDto } from '../dto/item-detail.dto';
-import type { CreateItemDto } from '../dto/create-item.dto';
-import type { UpdateItemDto } from '../dto/update-item.dto';
 import type { SaveOptionsDto } from '../dto/save-options.dto';
+import type { UpdateItemDto } from '../dto/update-item.dto';
 import type { UpdateVariantDto } from '../dto/update-variant.dto';
 import { ItemsRepository } from '../repositories/items.repository';
 
@@ -22,12 +22,12 @@ export class ItemsService {
   private readonly logger = new Logger(ItemsService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
-    name: { column: catalogItems.name, type: 'string' },
-    code: { column: catalogItems.code, type: 'string' },
-    type: { column: catalogItems.type, type: 'string' },
-    basePrice: { column: catalogItems.basePrice, type: 'number' },
-    isAvailable: { column: catalogItems.isAvailable, type: 'boolean' },
-    categoryId: { column: catalogItems.categoryId, type: 'string' },
+    name: { column: items.name, type: 'string' },
+    code: { column: items.code, type: 'string' },
+    type: { column: items.type, type: 'string' },
+    basePrice: { column: items.basePrice, type: 'number' },
+    isAvailable: { column: items.isAvailable, type: 'boolean' },
+    categoryId: { column: items.categoryId, type: 'string' },
   };
 
   constructor(private readonly itemsRepository: ItemsRepository) {}
@@ -42,12 +42,12 @@ export class ItemsService {
   }): Promise<{ result: ItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(params.filters, ItemsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(params.search, ItemsService.FIELD_MAP);
-    const where = and(eq(catalogItems.businessUnitId, params.businessUnitId), filterWhere, searchWhere);
+    const where = and(eq(items.businessUnitId, params.businessUnitId), filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(params.sort, ItemsService.FIELD_MAP);
 
     const { rows, total } = await this.itemsRepository.findForTable({
       where,
-      orderBy: orderBy[0] ?? desc(catalogItems.createdAt),
+      orderBy: orderBy[0] ?? desc(items.createdAt),
       limit: params.pagination.limit,
       offset: params.pagination.offset,
     });
@@ -190,7 +190,7 @@ export class ItemsService {
     const optionEntities = await this.itemsRepository.findOptionsByItemId(itemId);
     if (optionEntities.length === 0) return [];
 
-    const optionsWithValues: { option: typeof optionEntities[0]; values: ItemOptionValue[] }[] = [];
+    const optionsWithValues: { option: (typeof optionEntities)[0]; values: ItemOptionValue[] }[] = [];
     for (const opt of optionEntities) {
       const values = await this.itemsRepository.findOptionValuesByOptionId(opt.id);
       optionsWithValues.push({ option: opt, values });
@@ -217,7 +217,12 @@ export class ItemsService {
         combo.map((v) => ({ variantId: variant.id, optionValueId: v.id })),
       );
 
-      result.push(ItemVariantDto.from(variant, combo.map((v) => v.id)));
+      result.push(
+        ItemVariantDto.from(
+          variant,
+          combo.map((v) => v.id),
+        ),
+      );
     }
 
     this.logger.log(`Generated ${result.length} variants for item: ${itemId}`);
@@ -275,9 +280,6 @@ export class ItemsService {
   // Computes the cartesian product of an array of arrays
   private cartesianProduct<T>(arrays: T[][]): T[][] {
     if (arrays.length === 0) return [[]];
-    return arrays.reduce<T[][]>(
-      (acc, curr) => acc.flatMap((a) => curr.map((v) => [...a, v])),
-      [[]],
-    );
+    return arrays.reduce<T[][]>((acc, curr) => acc.flatMap((a) => curr.map((v) => [...a, v])), [[]]);
   }
 }

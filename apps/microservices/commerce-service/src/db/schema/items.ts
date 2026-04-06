@@ -2,8 +2,8 @@ import { boolean, decimal, index, integer, jsonb, text, timestamp, unique, uuid,
 import { catalogItemTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 
-export const catalogItems = coreSchema.table(
-  'catalog_items',
+export const items = coreSchema.table(
+  'items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     businessUnitId: uuid('business_unit_id').notNull(),
@@ -29,14 +29,14 @@ export const catalogItems = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_catalog_items_bu_code').on(table.businessUnitId, table.code),
-    index('idx_catalog_items_bu').on(table.businessUnitId),
-    index('idx_catalog_items_category').on(table.categoryId),
+    unique('uq_items_bu_code').on(table.businessUnitId, table.code),
+    index('idx_items_bu').on(table.businessUnitId),
+    index('idx_items_category').on(table.categoryId),
   ],
 );
 
-export type CatalogItem = typeof catalogItems.$inferSelect;
-export type NewCatalogItem = typeof catalogItems.$inferInsert;
+export type Item = typeof items.$inferSelect;
+export type NewItem = typeof items.$inferInsert;
 
 export const itemImages = coreSchema.table(
   'item_images',

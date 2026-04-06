@@ -1,4 +1,4 @@
-import type { CatalogItem, CatalogItemType } from '@/db/schema';
+import type { CatalogItemType, Item } from '@/db/schema';
 
 export class ItemDto {
   id: string;
@@ -20,8 +20,8 @@ export class ItemDto {
   createdAt: string;
   updatedAt: string;
 
-  // Maps a CatalogItem entity to an ItemDto
-  static from(entity: CatalogItem, categoryName?: string | null): ItemDto {
+  // Maps an Item entity to an ItemDto
+  static from(entity: Item, categoryName?: string | null): ItemDto {
     const dto = new ItemDto();
     dto.id = entity.id;
     dto.businessUnitId = entity.businessUnitId;

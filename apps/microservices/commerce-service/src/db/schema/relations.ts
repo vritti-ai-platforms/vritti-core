@@ -3,7 +3,7 @@ import * as schema from './index';
 
 export const relations = defineRelations(schema, (_r) => ({
   categories: {},
-  catalogItems: {},
+  items: {},
   itemImages: {},
   itemOptions: {},
   itemOptionValues: {},

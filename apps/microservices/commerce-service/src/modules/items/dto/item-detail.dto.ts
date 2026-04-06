@@ -1,4 +1,4 @@
-import type { CatalogItem, CatalogItemType, ItemOption, ItemOptionValue, ItemVariant } from '@/db/schema';
+import type { CatalogItemType, Item, ItemOption, ItemOptionValue, ItemVariant } from '@/db/schema';
 
 export class ItemOptionValueDto {
   id: string;
@@ -87,9 +87,9 @@ export class ItemDetailDto {
   createdAt: string;
   updatedAt: string;
 
-  // Maps a CatalogItem entity with related data to a full detail DTO
+  // Maps an Item entity with related data to a full detail DTO
   static from(
-    entity: CatalogItem,
+    entity: Item,
     categoryName: string | null,
     options: ItemOptionDto[],
     variants: ItemVariantDto[],

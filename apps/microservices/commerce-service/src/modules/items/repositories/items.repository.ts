@@ -1,55 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { type SQL, eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  type CatalogItem,
+  categories,
+  type Item,
   type ItemOption,
   type ItemOptionValue,
   type ItemVariant,
   type ItemVariantOptionValue,
-  catalogItems,
-  categories,
-  itemOptionValues,
   itemOptions,
+  itemOptionValues,
+  items,
   itemVariantOptionValues,
   itemVariants,
 } from '@/db/schema';
 
 @Injectable()
-export class ItemsRepository extends PrimaryBaseRepository<typeof catalogItems> {
+export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, catalogItems);
+    super(database, items);
   }
 
   // Returns all items for a business unit with category name joined
-  async findByBuWithCategory(buId: string): Promise<(CatalogItem & { categoryName: string | null })[]> {
+  async findByBuWithCategory(buId: string): Promise<(Item & { categoryName: string | null })[]> {
     return this.db
       .select({
-        id: catalogItems.id,
-        businessUnitId: catalogItems.businessUnitId,
-        categoryId: catalogItems.categoryId,
-        type: catalogItems.type,
-        code: catalogItems.code,
-        name: catalogItems.name,
-        description: catalogItems.description,
-        basePrice: catalogItems.basePrice,
-        costPrice: catalogItems.costPrice,
-        taxGroupId: catalogItems.taxGroupId,
-        hsnSacCode: catalogItems.hsnSacCode,
-        isAvailable: catalogItems.isAvailable,
-        isVisible: catalogItems.isVisible,
-        trackInventory: catalogItems.trackInventory,
-        sortOrder: catalogItems.sortOrder,
-        attributes: catalogItems.attributes,
-        metadata: catalogItems.metadata,
-        createdAt: catalogItems.createdAt,
-        updatedAt: catalogItems.updatedAt,
+        id: items.id,
+        businessUnitId: items.businessUnitId,
+        categoryId: items.categoryId,
+        type: items.type,
+        code: items.code,
+        name: items.name,
+        description: items.description,
+        basePrice: items.basePrice,
+        costPrice: items.costPrice,
+        taxGroupId: items.taxGroupId,
+        hsnSacCode: items.hsnSacCode,
+        isAvailable: items.isAvailable,
+        isVisible: items.isVisible,
+        trackInventory: items.trackInventory,
+        sortOrder: items.sortOrder,
+        attributes: items.attributes,
+        metadata: items.metadata,
+        createdAt: items.createdAt,
+        updatedAt: items.updatedAt,
         categoryName: categories.name,
       })
-      .from(catalogItems)
-      .leftJoin(categories, eq(catalogItems.categoryId, categories.id))
-      .where(eq(catalogItems.businessUnitId, buId))
-      .orderBy(catalogItems.sortOrder);
+      .from(items)
+      .leftJoin(categories, eq(items.categoryId, categories.id))
+      .where(eq(items.businessUnitId, buId))
+      .orderBy(items.sortOrder);
   }
 
   // Returns paginated items with category name for table display
@@ -58,38 +58,38 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof catalogItems> 
     orderBy: SQL;
     limit: number;
     offset: number;
-  }): Promise<{ rows: (CatalogItem & { categoryName: string | null })[]; total: number }> {
+  }): Promise<{ rows: (Item & { categoryName: string | null })[]; total: number }> {
     const [countResult, rows] = await Promise.all([
       this.db
         .select({ count: sql<number>`count(*)` })
-        .from(catalogItems)
-        .leftJoin(categories, eq(catalogItems.categoryId, categories.id))
+        .from(items)
+        .leftJoin(categories, eq(items.categoryId, categories.id))
         .where(params.where),
       this.db
         .select({
-          id: catalogItems.id,
-          businessUnitId: catalogItems.businessUnitId,
-          categoryId: catalogItems.categoryId,
-          type: catalogItems.type,
-          code: catalogItems.code,
-          name: catalogItems.name,
-          description: catalogItems.description,
-          basePrice: catalogItems.basePrice,
-          costPrice: catalogItems.costPrice,
-          taxGroupId: catalogItems.taxGroupId,
-          hsnSacCode: catalogItems.hsnSacCode,
-          isAvailable: catalogItems.isAvailable,
-          isVisible: catalogItems.isVisible,
-          trackInventory: catalogItems.trackInventory,
-          sortOrder: catalogItems.sortOrder,
-          attributes: catalogItems.attributes,
-          metadata: catalogItems.metadata,
-          createdAt: catalogItems.createdAt,
-          updatedAt: catalogItems.updatedAt,
+          id: items.id,
+          businessUnitId: items.businessUnitId,
+          categoryId: items.categoryId,
+          type: items.type,
+          code: items.code,
+          name: items.name,
+          description: items.description,
+          basePrice: items.basePrice,
+          costPrice: items.costPrice,
+          taxGroupId: items.taxGroupId,
+          hsnSacCode: items.hsnSacCode,
+          isAvailable: items.isAvailable,
+          isVisible: items.isVisible,
+          trackInventory: items.trackInventory,
+          sortOrder: items.sortOrder,
+          attributes: items.attributes,
+          metadata: items.metadata,
+          createdAt: items.createdAt,
+          updatedAt: items.updatedAt,
           categoryName: categories.name,
         })
-        .from(catalogItems)
-        .leftJoin(categories, eq(catalogItems.categoryId, categories.id))
+        .from(items)
+        .leftJoin(categories, eq(items.categoryId, categories.id))
         .where(params.where)
         .orderBy(params.orderBy)
         .limit(params.limit)
@@ -97,18 +97,14 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof catalogItems> 
     ]);
 
     return {
-      rows: rows as (CatalogItem & { categoryName: string | null })[],
+      rows: rows as (Item & { categoryName: string | null })[],
       total: Number(countResult[0]?.count ?? 0),
     };
   }
 
   // Returns options for an item ordered by sortOrder
   async findOptionsByItemId(itemId: string): Promise<ItemOption[]> {
-    return this.db
-      .select()
-      .from(itemOptions)
-      .where(eq(itemOptions.itemId, itemId))
-      .orderBy(itemOptions.sortOrder);
+    return this.db.select().from(itemOptions).where(eq(itemOptions.itemId, itemId)).orderBy(itemOptions.sortOrder);
   }
 
   // Returns option values for a given option ID
@@ -137,20 +133,13 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof catalogItems> 
 
   // Returns variants for an item ordered by sortOrder
   async findVariantsByItemId(itemId: string): Promise<ItemVariant[]> {
-    return this.db
-      .select()
-      .from(itemVariants)
-      .where(eq(itemVariants.itemId, itemId))
-      .orderBy(itemVariants.sortOrder);
+    return this.db.select().from(itemVariants).where(eq(itemVariants.itemId, itemId)).orderBy(itemVariants.sortOrder);
   }
 
   // Returns variant-option-value links for given variant IDs
   async findVariantOptionValues(variantIds: string[]): Promise<ItemVariantOptionValue[]> {
     if (variantIds.length === 0) return [];
-    return this.db
-      .select()
-      .from(itemVariantOptionValues)
-      .where(inArray(itemVariantOptionValues.variantId, variantIds));
+    return this.db.select().from(itemVariantOptionValues).where(inArray(itemVariantOptionValues.variantId, variantIds));
   }
 
   // Deletes all options (and cascading values) for an item
@@ -218,7 +207,10 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof catalogItems> 
   // Returns the category name for a given category ID
   async findCategoryName(categoryId: string | null): Promise<string | null> {
     if (!categoryId) return null;
-    const results = await this.db.select({ name: categories.name }).from(categories).where(eq(categories.id, categoryId));
+    const results = await this.db
+      .select({ name: categories.name })
+      .from(categories)
+      .where(eq(categories.id, categoryId));
     return results[0]?.name ?? null;
   }
 
@@ -232,8 +224,8 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof catalogItems> 
   async generateCode(buId: string): Promise<string> {
     const result = await this.db
       .select({ count: sql<number>`count(*)` })
-      .from(catalogItems)
-      .where(eq(catalogItems.businessUnitId, buId));
+      .from(items)
+      .where(eq(items.businessUnitId, buId));
     const count = Number(result[0]?.count ?? 0);
     return `ITEM-${String(count + 1).padStart(4, '0')}`;
   }

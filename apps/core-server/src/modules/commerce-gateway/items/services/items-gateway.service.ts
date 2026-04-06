@@ -1,10 +1,10 @@
+import { UserService } from '@domain/user/services/user.service';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { DataTableStateService } from '@vritti/api-sdk';
-import { UserService } from '@domain/user/services/user.service';
 import { COMMERCE_SERVICE } from '../../commerce-client.module';
 import type { CreateItemDto } from '../dto/create-item.dto';
-import type { ItemDetailResponseDto } from '../dto/item-detail-response.dto';
+import type { ItemDetailResponseDto, ItemVariantResponseDto } from '../dto/item-detail-response.dto';
 import type { ItemModifierGroupResponseDto } from '../dto/item-modifier-group-response.dto';
 import type { ItemResponseDto } from '../dto/item-response.dto';
 import type { ItemsTableResponseDto } from '../dto/items-table-response.dto';
@@ -12,7 +12,6 @@ import type { SaveItemModifiersDto } from '../dto/save-item-modifiers.dto';
 import type { SaveOptionsDto } from '../dto/save-options.dto';
 import type { UpdateItemDto } from '../dto/update-item.dto';
 import type { UpdateVariantDto } from '../dto/update-variant.dto';
-import type { ItemVariantResponseDto } from '../dto/item-detail-response.dto';
 
 @Injectable()
 export class ItemsGatewayService {
@@ -106,7 +105,12 @@ export class ItemsGatewayService {
   }
 
   // Updates a specific variant
-  async updateVariant(userId: string, itemId: string, variantId: string, dto: UpdateVariantDto): Promise<ItemVariantResponseDto> {
+  async updateVariant(
+    userId: string,
+    itemId: string,
+    variantId: string,
+    dto: UpdateVariantDto,
+  ): Promise<ItemVariantResponseDto> {
     await this.userService.findByIdOrThrow(userId);
     return this.client
       .send<ItemVariantResponseDto>({ cmd: 'items.variants.update' }, { itemId, variantId, ...dto })
@@ -121,7 +125,11 @@ export class ItemsGatewayService {
   }
 
   // Saves modifier group assignments for an item (replaces existing)
-  async saveModifiers(userId: string, itemId: string, dto: SaveItemModifiersDto): Promise<ItemModifierGroupResponseDto[]> {
+  async saveModifiers(
+    userId: string,
+    itemId: string,
+    dto: SaveItemModifiersDto,
+  ): Promise<ItemModifierGroupResponseDto[]> {
     await this.userService.findByIdOrThrow(userId);
     return this.client
       .send<ItemModifierGroupResponseDto[]>({ cmd: 'items.modifiers.save' }, { itemId, ...dto })
