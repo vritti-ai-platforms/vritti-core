@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
-import { TaxGroupDto } from '../dto/tax-group.dto';
-import type { CreateTaxGroupDto } from '../dto/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from '../dto/update-tax-group.dto';
+import { TaxGroupDto } from '../dto/entity/tax-group.dto';
+import type { CreateTaxGroupDto } from '@/modules/tax-groups/dto/request/create-tax-group.dto';
+import type { UpdateTaxGroupDto } from '@/modules/tax-groups/dto/request/update-tax-group.dto';
 import { TaxGroupsRepository } from '../repositories/tax-groups.repository';
 
 @Injectable()

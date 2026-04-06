@@ -2,11 +2,11 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { UserService } from '@domain/user/services/user.service';
 import { COMMERCE_SERVICE } from '../../commerce-client.module';
-import type { CreateModifierGroupDto } from '../dto/create-modifier-group.dto';
-import type { CreateModifierOptionDto } from '../dto/create-modifier-option.dto';
-import type { ModifierGroupResponseDto, ModifierOptionResponseDto } from '../dto/modifier-group-response.dto';
-import type { UpdateModifierGroupDto } from '../dto/update-modifier-group.dto';
-import type { UpdateModifierOptionDto } from '../dto/update-modifier-option.dto';
+import type { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
+import type { CreateModifierOptionDto } from '../dto/request/create-modifier-option.dto';
+import type { UpdateModifierGroupDto } from '../dto/request/update-modifier-group.dto';
+import type { UpdateModifierOptionDto } from '../dto/request/update-modifier-option.dto';
+import type { ModifierGroupResponseDto, ModifierOptionResponseDto } from '../dto/response/modifier-group-response.dto';
 
 @Injectable()
 export class ModifierGroupsGatewayService {

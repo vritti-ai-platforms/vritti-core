@@ -1,15 +1,15 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
-import { ItemDetailResponseDto, ItemVariantResponseDto } from '../dto/item-detail-response.dto';
-import { ItemModifierGroupResponseDto } from '../dto/item-modifier-group-response.dto';
-import { ItemResponseDto } from '../dto/item-response.dto';
-import { ItemsTableResponseDto } from '../dto/items-table-response.dto';
-import { SaveItemModifiersDto } from '../dto/save-item-modifiers.dto';
-import { SaveOptionsDto } from '../dto/save-options.dto';
-import { CreateItemDto } from '../dto/create-item.dto';
-import { UpdateItemDto } from '../dto/update-item.dto';
-import { UpdateVariantDto } from '../dto/update-variant.dto';
+import { CreateItemDto } from '../dto/request/create-item.dto';
+import { SaveItemModifiersDto } from '../dto/request/save-item-modifiers.dto';
+import { SaveOptionsDto } from '../dto/request/save-options.dto';
+import { UpdateItemDto } from '../dto/request/update-item.dto';
+import { UpdateVariantDto } from '../dto/request/update-variant.dto';
+import { ItemDetailResponseDto, ItemVariantResponseDto } from '../dto/response/item-detail-response.dto';
+import { ItemModifierGroupResponseDto } from '../dto/response/item-modifier-group-response.dto';
+import { ItemResponseDto } from '../dto/response/item-response.dto';
+import { ItemsTableResponseDto } from '../dto/response/items-table-response.dto';
 
 export function ApiGetItemsTable() {
   return applyDecorators(

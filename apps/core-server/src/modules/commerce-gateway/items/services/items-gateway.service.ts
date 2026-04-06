@@ -3,15 +3,15 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { DataTableStateService } from '@vritti/api-sdk';
 import { COMMERCE_SERVICE } from '../../commerce-client.module';
-import type { CreateItemDto } from '../dto/create-item.dto';
-import type { ItemDetailResponseDto, ItemVariantResponseDto } from '../dto/item-detail-response.dto';
-import type { ItemModifierGroupResponseDto } from '../dto/item-modifier-group-response.dto';
-import type { ItemResponseDto } from '../dto/item-response.dto';
-import type { ItemsTableResponseDto } from '../dto/items-table-response.dto';
-import type { SaveItemModifiersDto } from '../dto/save-item-modifiers.dto';
-import type { SaveOptionsDto } from '../dto/save-options.dto';
-import type { UpdateItemDto } from '../dto/update-item.dto';
-import type { UpdateVariantDto } from '../dto/update-variant.dto';
+import type { CreateItemDto } from '../dto/request/create-item.dto';
+import type { SaveItemModifiersDto } from '../dto/request/save-item-modifiers.dto';
+import type { SaveOptionsDto } from '../dto/request/save-options.dto';
+import type { UpdateItemDto } from '../dto/request/update-item.dto';
+import type { UpdateVariantDto } from '../dto/request/update-variant.dto';
+import type { ItemDetailResponseDto, ItemVariantResponseDto } from '../dto/response/item-detail-response.dto';
+import type { ItemModifierGroupResponseDto } from '../dto/response/item-modifier-group-response.dto';
+import type { ItemResponseDto } from '../dto/response/item-response.dto';
+import type { ItemsTableResponseDto } from '../dto/response/items-table-response.dto';
 
 @Injectable()
 export class ItemsGatewayService {

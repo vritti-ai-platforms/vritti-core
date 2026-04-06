@@ -1,13 +1,13 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
-import type { ItemDto } from './dto/item.dto';
-import type { ItemDetailDto, ItemVariantDto } from './dto/item-detail.dto';
-import type { CreateItemDto } from './dto/create-item.dto';
-import type { UpdateItemDto } from './dto/update-item.dto';
-import type { SaveOptionsDto } from './dto/save-options.dto';
-import type { UpdateVariantDto } from './dto/update-variant.dto';
-import { ItemsService } from './services/items.service';
+import type { ItemDto } from '@domain/items/dto/entity/item.dto';
+import type { ItemDetailDto, ItemVariantDto } from '@domain/items/dto/entity/item-detail.dto';
+import type { CreateItemDto } from './dto/request/create-item.dto';
+import type { UpdateItemDto } from './dto/request/update-item.dto';
+import type { SaveOptionsDto } from './dto/request/save-options.dto';
+import type { UpdateVariantDto } from './dto/request/update-variant.dto';
+import { ItemsService } from '@domain/items/services/items.service';
 
 @Controller()
 export class ItemsController {

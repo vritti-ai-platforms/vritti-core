@@ -9,12 +9,12 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { type ItemOptionValue, items } from '@/db/schema';
-import type { CreateItemDto } from '../dto/create-item.dto';
-import { ItemDto } from '../dto/item.dto';
-import { ItemDetailDto, ItemOptionDto, ItemVariantDto } from '../dto/item-detail.dto';
-import type { SaveOptionsDto } from '../dto/save-options.dto';
-import type { UpdateItemDto } from '../dto/update-item.dto';
-import type { UpdateVariantDto } from '../dto/update-variant.dto';
+import type { CreateItemDto } from '@/modules/items/dto/request/create-item.dto';
+import { ItemDto } from '../dto/entity/item.dto';
+import { ItemDetailDto, ItemOptionDto, ItemVariantDto } from '../dto/entity/item-detail.dto';
+import type { SaveOptionsDto } from '@/modules/items/dto/request/save-options.dto';
+import type { UpdateItemDto } from '@/modules/items/dto/request/update-item.dto';
+import type { UpdateVariantDto } from '@/modules/items/dto/request/update-variant.dto';
 import { ItemsRepository } from '../repositories/items.repository';
 
 @Injectable()

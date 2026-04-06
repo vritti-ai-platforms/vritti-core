@@ -2,9 +2,9 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { UserService } from '@domain/user/services/user.service';
 import { COMMERCE_SERVICE } from '../../commerce-client.module';
-import type { TaxGroupResponseDto } from '../dto/tax-group-response.dto';
-import type { CreateTaxGroupDto } from '../dto/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from '../dto/update-tax-group.dto';
+import type { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
+import type { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
+import type { TaxGroupResponseDto } from '../dto/response/tax-group-response.dto';
 
 @Injectable()
 export class TaxGroupsGatewayService {

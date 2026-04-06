@@ -12,11 +12,11 @@ import {
   ApiUpdateModifierGroup,
   ApiUpdateModifierOption,
 } from './docs/modifier-groups-gateway.docs';
-import { CreateModifierGroupDto } from './dto/create-modifier-group.dto';
-import { CreateModifierOptionDto } from './dto/create-modifier-option.dto';
-import type { ModifierGroupResponseDto, ModifierOptionResponseDto } from './dto/modifier-group-response.dto';
-import { UpdateModifierGroupDto } from './dto/update-modifier-group.dto';
-import { UpdateModifierOptionDto } from './dto/update-modifier-option.dto';
+import { CreateModifierGroupDto } from './dto/request/create-modifier-group.dto';
+import { CreateModifierOptionDto } from './dto/request/create-modifier-option.dto';
+import { UpdateModifierGroupDto } from './dto/request/update-modifier-group.dto';
+import { UpdateModifierOptionDto } from './dto/request/update-modifier-option.dto';
+import type { ModifierGroupResponseDto, ModifierOptionResponseDto } from './dto/response/modifier-group-response.dto';
 import { ModifierGroupsGatewayService } from './services/modifier-groups-gateway.service';
 
 @ApiTags('Commerce - Modifier Groups')

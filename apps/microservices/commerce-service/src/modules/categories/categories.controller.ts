@@ -1,10 +1,10 @@
+import type { CategoryDto } from '@domain/categories/dto/entity/category.dto';
+import { CategoriesService } from '@domain/categories/services/categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import type { SelectQueryResult } from '@vritti/api-sdk';
-import { CategoriesService } from '@domain/categories/services/categories.service';
-import type { CategoryDto } from '@domain/categories/dto/category.dto';
-import type { CreateCategoryDto } from './dto/create-category.dto';
-import type { UpdateCategoryDto } from './dto/update-category.dto';
+import type { CreateCategoryDto } from './dto/request/create-category.dto';
+import type { UpdateCategoryDto } from './dto/request/update-category.dto';
 
 @Controller()
 export class CategoriesController {

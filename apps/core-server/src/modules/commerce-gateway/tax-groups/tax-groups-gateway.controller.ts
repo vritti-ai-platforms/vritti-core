@@ -9,9 +9,9 @@ import {
   ApiListTaxGroups,
   ApiUpdateTaxGroup,
 } from './docs/tax-groups-gateway.docs';
-import type { TaxGroupResponseDto } from './dto/tax-group-response.dto';
-import { CreateTaxGroupDto } from './dto/create-tax-group.dto';
-import { UpdateTaxGroupDto } from './dto/update-tax-group.dto';
+import { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
+import { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
+import type { TaxGroupResponseDto } from './dto/response/tax-group-response.dto';
 import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 
 @ApiTags('Commerce - Tax Groups')

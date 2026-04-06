@@ -1,9 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
-import { CategoryResponseDto } from '../dto/category-response.dto';
-import { CreateCategoryDto } from '../dto/create-category.dto';
-import { UpdateCategoryDto } from '../dto/update-category.dto';
+import { CreateCategoryDto } from '../dto/request/create-category.dto';
+import { UpdateCategoryDto } from '../dto/request/update-category.dto';
+import { CategoryResponseDto } from '../dto/response/category-response.dto';
 
 export function ApiGetCategoriesSelect() {
   return applyDecorators(

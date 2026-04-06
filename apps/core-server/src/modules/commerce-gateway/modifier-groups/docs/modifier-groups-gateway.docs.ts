@@ -1,11 +1,11 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
-import { CreateModifierGroupDto } from '../dto/create-modifier-group.dto';
-import { CreateModifierOptionDto } from '../dto/create-modifier-option.dto';
-import { ModifierGroupResponseDto, ModifierOptionResponseDto } from '../dto/modifier-group-response.dto';
-import { UpdateModifierGroupDto } from '../dto/update-modifier-group.dto';
-import { UpdateModifierOptionDto } from '../dto/update-modifier-option.dto';
+import { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
+import { CreateModifierOptionDto } from '../dto/request/create-modifier-option.dto';
+import { UpdateModifierGroupDto } from '../dto/request/update-modifier-group.dto';
+import { UpdateModifierOptionDto } from '../dto/request/update-modifier-option.dto';
+import { ModifierGroupResponseDto, ModifierOptionResponseDto } from '../dto/response/modifier-group-response.dto';
 
 export function ApiListModifierGroups() {
   return applyDecorators(

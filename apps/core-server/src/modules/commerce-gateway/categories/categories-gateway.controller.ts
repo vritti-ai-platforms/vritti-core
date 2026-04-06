@@ -10,9 +10,9 @@ import {
   ApiListCategories,
   ApiUpdateCategory,
 } from './docs/categories-gateway.docs';
-import type { CategoryResponseDto } from './dto/category-response.dto';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CreateCategoryDto } from './dto/request/create-category.dto';
+import { UpdateCategoryDto } from './dto/request/update-category.dto';
+import type { CategoryResponseDto } from './dto/response/category-response.dto';
 import { CategoriesGatewayService } from './services/categories-gateway.service';
 
 @ApiTags('Commerce - Categories')

@@ -1,9 +1,9 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
-import { TaxGroupResponseDto } from '../dto/tax-group-response.dto';
-import { CreateTaxGroupDto } from '../dto/create-tax-group.dto';
-import { UpdateTaxGroupDto } from '../dto/update-tax-group.dto';
+import { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
+import { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
+import { TaxGroupResponseDto } from '../dto/response/tax-group-response.dto';
 
 export function ApiListTaxGroups() {
   return applyDecorators(

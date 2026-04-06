@@ -3,9 +3,9 @@ import { ClientProxy } from '@nestjs/microservices';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { UserService } from '@domain/user/services/user.service';
 import { COMMERCE_SERVICE } from '../../commerce-client.module';
-import type { CategoryResponseDto } from '../dto/category-response.dto';
-import type { CreateCategoryDto } from '../dto/create-category.dto';
-import type { UpdateCategoryDto } from '../dto/update-category.dto';
+import type { CreateCategoryDto } from '../dto/request/create-category.dto';
+import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
+import type { CategoryResponseDto } from '../dto/response/category-response.dto';
 
 @Injectable()
 export class CategoriesGatewayService {

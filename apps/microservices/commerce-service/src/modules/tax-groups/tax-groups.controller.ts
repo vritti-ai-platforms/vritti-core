@@ -1,9 +1,9 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import type { TaxGroupDto } from './dto/tax-group.dto';
-import type { CreateTaxGroupDto } from './dto/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from './dto/update-tax-group.dto';
-import { TaxGroupsService } from './services/tax-groups.service';
+import type { TaxGroupDto } from '@domain/tax-groups/dto/entity/tax-group.dto';
+import type { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
+import type { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
+import { TaxGroupsService } from '@domain/tax-groups/services/tax-groups.service';
 
 @Controller()
 export class TaxGroupsController {
