@@ -4,8 +4,11 @@ import { z } from 'zod';
 export const createItemSchema = z.object({
   type: z.enum(['PRODUCT', 'SERVICE']),
   name: z.string().min(1, 'Name is required').max(255),
+  description: z.string().optional(),
   categoryId: z.string().optional(),
   basePrice: z.string().min(1, 'Base price is required'),
+  taxGroupId: z.string().optional(),
+  isAvailable: z.boolean().optional(),
 });
 
 export const updateItemSchema = z.object({
@@ -14,6 +17,7 @@ export const updateItemSchema = z.object({
   basePrice: z.string().optional(),
   taxGroupId: z.string().nullable().optional(),
   categoryId: z.string().nullable().optional(),
+  isAvailable: z.boolean().optional(),
 });
 
 export type ItemsTableResponse = TableResponse<ItemData>;

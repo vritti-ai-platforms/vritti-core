@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -9,57 +8,56 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCategories } from '@/hooks/useCategories';
-import { useCreateItem } from '@/hooks/useCreateItem';
 import { useTaxGroups } from '@/hooks/useTaxGroups';
-import { type CreateItemFormData, createItemSchema } from '@/schemas/items';
+import { useUpdateItem } from '@/hooks/useUpdateItem';
+import { type ItemDetail, type UpdateItemFormData, updateItemSchema } from '@/schemas/items';
 
-interface AddItemDialogProps {
-  businessUnitId: string;
+interface EditItemFormProps {
+  item: ItemDetail;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-const itemTypeOptions = [
-  { value: 'PRODUCT', label: 'Product' },
-  { value: 'SERVICE', label: 'Service' },
-];
-
-export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, onSuccess, onCancel }) => {
-  const form = useForm<CreateItemFormData>({
-    resolver: zodResolver(createItemSchema),
+export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onCancel }) => {
+  const form = useForm<UpdateItemFormData>({
+    resolver: zodResolver(updateItemSchema),
     defaultValues: {
-      type: 'PRODUCT',
-      name: '',
-      description: '',
-      categoryId: undefined,
-      basePrice: '',
-      taxGroupId: undefined,
-      isAvailable: true,
+      name: item.name,
+      description: item.description ?? '',
+      basePrice: item.basePrice,
+      taxGroupId: item.taxGroupId ?? undefined,
+      categoryId: item.categoryId ?? undefined,
+      isAvailable: item.isAvailable,
     },
   });
 
-  const createMutation = useCreateItem({ onSuccess });
-  const { data: categories = [] } = useCategories(businessUnitId);
-  const { data: taxGroups = [] } = useTaxGroups(businessUnitId);
+  const updateMutation = useUpdateItem({ onSuccess });
+  const { data: categories = [] } = useCategories(item.businessUnitId);
+  const { data: taxGroups = [] } = useTaxGroups(item.businessUnitId);
 
   const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }));
-  const taxGroupOptions = taxGroups.map((t) => ({ value: t.id, label: t.name }));
+  const taxGroupOptions = taxGroups.map((tg) => ({
+    value: tg.id,
+    label: tg.name,
+    description: tg.taxRates.map((r) => `${r.name} ${r.rate}%`).join(', '),
+  }));
 
   return (
     <Form
       form={form}
-      mutation={createMutation}
+      mutation={updateMutation}
       showRootError
-      resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        ...data,
-        basePrice: Number(data.basePrice),
-        businessUnitId,
+        id: item.id,
+        data: {
+          ...data,
+          basePrice: data.basePrice ? Number(data.basePrice) : undefined,
+          taxGroupId: data.taxGroupId || null,
+        },
       })}
     >
-      <RadioGroup name="type" label="Item Type" options={itemTypeOptions} orientation="horizontal" />
-      <TextField name="name" label="Name" placeholder="e.g. Chicken Burger" />
+      <TextField name="name" label="Name" placeholder="Item name" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
       <Select name="categoryId" label="Category" placeholder="Select a category" options={categoryOptions} />
       <TextField name="basePrice" label="Base Price" type="number" placeholder="0.00" />
@@ -69,8 +67,8 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, on
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" loadingText="Creating...">
-          Add Item
+        <Button type="submit" loadingText="Saving...">
+          Save Changes
         </Button>
       </div>
     </Form>
