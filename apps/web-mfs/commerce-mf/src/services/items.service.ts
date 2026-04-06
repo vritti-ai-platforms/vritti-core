@@ -39,10 +39,7 @@ export function listItems(buId: string): Promise<ItemData[]> {
 // Creates a new catalog item
 export function createItem(data: CreateItemPayload): Promise<ItemData> {
   return axios
-    .post<ItemData>('commerce-api/items', data, {
-      loadingMessage: 'Creating item...',
-      successMessage: 'Item created',
-    })
+    .post<ItemData>('commerce-api/items', data)
     .then((r) => r.data);
 }
 
@@ -56,40 +53,28 @@ export function getItem(id: string): Promise<ItemDetail> {
 // Updates an item's basic info
 export function updateItem({ id, data }: { id: string; data: UpdateItemPayload }): Promise<ItemData> {
   return axios
-    .patch<ItemData>(`commerce-api/items/${id}`, data, {
-      loadingMessage: 'Updating item...',
-      successMessage: 'Item updated',
-    })
+    .patch<ItemData>(`commerce-api/items/${id}`, data)
     .then((r) => r.data);
 }
 
 // Deletes an item by ID
 export function deleteItem(id: string): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/items/${id}`, {
-      loadingMessage: 'Deleting item...',
-      successMessage: 'Item deleted',
-    })
+    .delete<SuccessResponse>(`commerce-api/items/${id}`)
     .then((r) => r.data);
 }
 
 // Bulk saves options for an item
 export function saveItemOptions({ id, data }: { id: string; data: SaveOptionsPayload }): Promise<ItemDetail> {
   return axios
-    .put<ItemDetail>(`commerce-api/items/${id}/options`, data, {
-      loadingMessage: 'Saving options...',
-      successMessage: 'Options saved',
-    })
+    .put<ItemDetail>(`commerce-api/items/${id}/options`, data)
     .then((r) => r.data);
 }
 
 // Generates variants from current item options
 export function generateVariants(itemId: string): Promise<ItemVariant[]> {
   return axios
-    .post<ItemVariant[]>(`commerce-api/items/${itemId}/variants/generate`, {}, {
-      loadingMessage: 'Generating variants...',
-      successMessage: 'Variants generated',
-    })
+    .post<ItemVariant[]>(`commerce-api/items/${itemId}/variants/generate`, {})
     .then((r) => r.data);
 }
 
@@ -111,10 +96,7 @@ export function updateVariant({
   data: UpdateVariantData;
 }): Promise<ItemVariant> {
   return axios
-    .patch<ItemVariant>(`commerce-api/items/${itemId}/variants/${variantId}`, data, {
-      loadingMessage: 'Updating variant...',
-      successMessage: 'Variant updated',
-    })
+    .patch<ItemVariant>(`commerce-api/items/${itemId}/variants/${variantId}`, data)
     .then((r) => r.data);
 }
 
@@ -153,9 +135,6 @@ export function saveItemModifiers({
   groupIds: string[];
 }): Promise<ItemModifierGroup[]> {
   return axios
-    .put<ItemModifierGroup[]>(`commerce-api/items/${itemId}/modifiers`, { groupIds }, {
-      loadingMessage: 'Saving modifiers...',
-      successMessage: 'Modifiers saved',
-    })
+    .put<ItemModifierGroup[]>(`commerce-api/items/${itemId}/modifiers`, { groupIds })
     .then((r) => r.data);
 }

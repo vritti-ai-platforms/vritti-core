@@ -12,10 +12,7 @@ export function createCategory(
   data: CategoryFormData & { businessUnitId: string },
 ): Promise<CreateResponse<CategoryData>> {
   return axios
-    .post<CreateResponse<CategoryData>>('commerce-api/categories', data, {
-      loadingMessage: 'Creating category...',
-      successMessage: 'Category created',
-    })
+    .post<CreateResponse<CategoryData>>('commerce-api/categories', data)
     .then((r) => r.data);
 }
 
@@ -27,18 +24,12 @@ export function updateCategory({
   data: Partial<CategoryFormData>;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/categories/${id}`, data, {
-      loadingMessage: 'Updating category...',
-      successMessage: 'Category updated',
-    })
+    .patch<SuccessResponse>(`commerce-api/categories/${id}`, data)
     .then((r) => r.data);
 }
 
 export function deleteCategory(id: string): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/categories/${id}`, {
-      loadingMessage: 'Deleting category...',
-      successMessage: 'Category deleted',
-    })
+    .delete<SuccessResponse>(`commerce-api/categories/${id}`)
     .then((r) => r.data);
 }

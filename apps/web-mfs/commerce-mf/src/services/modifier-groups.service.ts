@@ -30,10 +30,7 @@ export interface CreateModifierGroupPayload {
 // Creates a new modifier group
 export function createModifierGroup(data: CreateModifierGroupPayload): Promise<ModifierGroupData> {
   return axios
-    .post<ModifierGroupData>('commerce-api/modifier-groups', data, {
-      loadingMessage: 'Creating modifier group...',
-      successMessage: 'Modifier group created',
-    })
+    .post<ModifierGroupData>('commerce-api/modifier-groups', data)
     .then((r) => r.data);
 }
 
@@ -52,20 +49,14 @@ export interface UpdateModifierGroupPayload {
 // Updates a modifier group by ID
 export function updateModifierGroup({ id, data }: UpdateModifierGroupPayload): Promise<ModifierGroupData> {
   return axios
-    .patch<ModifierGroupData>(`commerce-api/modifier-groups/${id}`, data, {
-      loadingMessage: 'Updating modifier group...',
-      successMessage: 'Modifier group updated',
-    })
+    .patch<ModifierGroupData>(`commerce-api/modifier-groups/${id}`, data)
     .then((r) => r.data);
 }
 
 // Deletes a modifier group by ID
 export function deleteModifierGroup(id: string): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/modifier-groups/${id}`, {
-      loadingMessage: 'Deleting modifier group...',
-      successMessage: 'Modifier group deleted',
-    })
+    .delete<SuccessResponse>(`commerce-api/modifier-groups/${id}`)
     .then((r) => r.data);
 }
 
@@ -81,10 +72,7 @@ export interface CreateModifierOptionPayload {
 // Adds an option to a modifier group
 export function createModifierOption({ groupId, data }: CreateModifierOptionPayload): Promise<ModifierOptionData> {
   return axios
-    .post<ModifierOptionData>(`commerce-api/modifier-groups/${groupId}/options`, data, {
-      loadingMessage: 'Adding option...',
-      successMessage: 'Option added',
-    })
+    .post<ModifierOptionData>(`commerce-api/modifier-groups/${groupId}/options`, data)
     .then((r) => r.data);
 }
 
@@ -109,9 +97,6 @@ export function updateModifierOption({ groupId, optionId, data }: UpdateModifier
 // Deletes an option from a modifier group
 export function deleteModifierOption({ groupId, optionId }: DeleteModifierOptionPayload): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/modifier-groups/${groupId}/options/${optionId}`, {
-      loadingMessage: 'Deleting option...',
-      successMessage: 'Option deleted',
-    })
+    .delete<SuccessResponse>(`commerce-api/modifier-groups/${groupId}/options/${optionId}`)
     .then((r) => r.data);
 }

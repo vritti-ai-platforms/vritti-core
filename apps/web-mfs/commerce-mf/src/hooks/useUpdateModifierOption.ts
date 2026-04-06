@@ -15,12 +15,11 @@ type UseUpdateModifierOptionOptions = Omit<UseMutationOptions<ModifierOptionData
 export function useUpdateModifierOption(options?: UseUpdateModifierOptionOptions) {
   const queryClient = useQueryClient();
   return useMutation<ModifierOptionData, AxiosError, UpdateModifierOptionParams>({
+    ...options,
     mutationFn: updateModifierOption,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ['modifier-group'] });
       queryClient.invalidateQueries({ queryKey: ['modifier-groups'] });
       options?.onSuccess?.(...args);
     },
-    ...options,
   });
 }

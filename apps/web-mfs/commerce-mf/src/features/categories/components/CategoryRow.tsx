@@ -19,7 +19,7 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({ item, allCategories, i
   return (
     <div className="flex items-center gap-1.5 flex-1 min-w-0">
       <FolderIcon
-        className={`h-4 w-4 shrink-0 ${isOpen && hasChildren ? 'text-amber-500' : 'text-muted-foreground'}`}
+        className={`h-4 w-4 shrink-0 ${isOpen && hasChildren ? 'text-warning' : 'text-muted-foreground'}`}
       />
       <Typography variant="body2" className="truncate">{item.name}</Typography>
       <div className="flex items-center gap-1 shrink-0 ml-auto">
