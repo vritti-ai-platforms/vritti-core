@@ -3,26 +3,17 @@ import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useItem } from '@/hooks/useItem';
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { InventoryRecipeTab } from './tabs/InventoryRecipeTab';
 import { ModifiersTab } from './tabs/ModifiersTab';
 import { VariationsTab } from './tabs/VariationsTab';
 
-const TAB_ORDER = ['basic', 'variations', 'modifiers', 'inventory'] as const;
-
 export const ItemFormPage = () => {
   const { id } = useSlugParams('itemSlug');
   const { data: item, isLoading } = useItem(id ?? null);
   const [activeTab, setActiveTab] = useState<string>('basic');
-
-  const goToNextTab = useCallback(() => {
-    const currentIndex = TAB_ORDER.indexOf(activeTab as (typeof TAB_ORDER)[number]);
-    if (currentIndex < TAB_ORDER.length - 1) {
-      setActiveTab(TAB_ORDER[currentIndex + 1]);
-    }
-  }, [activeTab]);
 
   if (isLoading) {
     return (
@@ -65,7 +56,7 @@ export const ItemFormPage = () => {
 
       <Tabs
         tabs={[
-          { value: 'basic', label: 'Basic Info', content: <BasicInfoTab item={item} onNext={goToNextTab} /> },
+          { value: 'basic', label: 'Basic Info', content: <BasicInfoTab item={item} /> },
           { value: 'variations', label: 'Variations', content: <VariationsTab item={item} /> },
           { value: 'modifiers', label: 'Modifiers', content: <ModifiersTab item={item} /> },
           { value: 'inventory', label: 'Inventory Recipe', content: <InventoryRecipeTab /> },

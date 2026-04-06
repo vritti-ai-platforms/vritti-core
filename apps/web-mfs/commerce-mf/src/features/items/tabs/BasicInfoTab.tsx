@@ -7,7 +7,6 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useRef } from 'react';
 import { useCategories } from '@/hooks/useCategories';
 import { useTaxGroups } from '@/hooks/useTaxGroups';
 import { useUpdateItem } from '@/hooks/useUpdateItem';
@@ -15,12 +14,9 @@ import { type ItemDetail, type UpdateItemFormData, updateItemSchema } from '@/sc
 
 interface BasicInfoTabProps {
   item: ItemDetail;
-  onNext?: () => void;
 }
 
-export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
-  const shouldAdvance = useRef(false);
-
+export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item }) => {
   const form = useForm<UpdateItemFormData>({
     resolver: zodResolver(updateItemSchema),
     defaultValues: {
@@ -32,14 +28,7 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
     },
   });
 
-  const updateMutation = useUpdateItem({
-    onSuccess: () => {
-      if (shouldAdvance.current) {
-        onNext?.();
-      }
-      shouldAdvance.current = false;
-    },
-  });
+  const updateMutation = useUpdateItem();
   const { data: categories = [] } = useCategories(item.businessUnitId);
   const { data: taxGroups = [] } = useTaxGroups(item.businessUnitId);
 
@@ -115,12 +104,9 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ item, onNext }) => {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-2">
-          <Button type="submit" variant="outline" loadingText="Saving..." onClick={() => { shouldAdvance.current = false; }}>
+        <div className="flex justify-end">
+          <Button type="submit" loadingText="Saving...">
             Save
-          </Button>
-          <Button type="submit" loadingText="Saving..." onClick={() => { shouldAdvance.current = true; }}>
-            Save & Continue
           </Button>
         </div>
       </div>
