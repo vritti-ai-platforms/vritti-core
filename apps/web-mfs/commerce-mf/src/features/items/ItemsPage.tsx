@@ -135,7 +135,7 @@ function getColumns({ onView, onDelete }: ColumnActions): ColumnDef<ItemData, un
     {
       accessorKey: 'categoryName',
       header: 'Category',
-      cell: ({ row }) => <span className="text-muted-foreground text-sm">{row.original.categoryName ?? '—'}</span>,
+      cell: ({ row }) => row.original.categoryName ? <Badge variant="outline">{row.original.categoryName}</Badge> : <span className="text-muted-foreground">—</span>,
       enableSorting: false,
     },
     {
