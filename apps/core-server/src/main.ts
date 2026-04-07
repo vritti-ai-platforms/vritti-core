@@ -9,7 +9,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import {
   BadRequestException,
   CorrelationIdMiddleware,
-  configureApiSdk,
   HttpExceptionFilter,
   HttpLoggerInterceptor,
   LoggerService,
@@ -61,23 +60,6 @@ const CORS_CONFIG = {
 // Configuration Functions
 // ============================================================================
 
-// Configure api-sdk BEFORE creating the NestJS app
-function configureApiSdkSettings() {
-  configureApiSdk({
-    cookie: {
-      refreshCookieName: ENV.refreshCookieName,
-      refreshCookieSecure: ENV.nodeEnv === 'production',
-      refreshCookieMaxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      refreshCookieSameSite: 'strict',
-      refreshCookieDomain: ENV.refreshCookieDomain,
-    },
-    guard: {
-      tenantHeaderName: 'x-tenant-id',
-      defaultSessionTypes: ['NEXUS', 'MOBILE'],
-    },
-  });
-}
-
 // Create Swagger/OpenAPI configuration
 function createSwaggerConfig() {
   return new DocumentBuilder()
@@ -104,7 +86,6 @@ function createSwaggerConfig() {
 
 async function bootstrap() {
   // Configure API SDK settings
-  configureApiSdkSettings();
 
   // Determine logger configuration
   // When using default provider, let NestJS use its built-in logger to avoid circular reference

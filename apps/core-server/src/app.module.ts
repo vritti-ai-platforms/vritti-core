@@ -15,6 +15,8 @@ import {
   EmailModule,
   LoggerModule,
   RootModule,
+  type TokenExpiryString,
+  UnauthorizedException,
 } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
@@ -94,7 +96,36 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     }),
     // Authentication module (Global guard + JWT)
     // Must be imported after DatabaseModule since VrittiAuthGuard depends on its services
-    AuthConfigModule.forRootAsync(),
+    AuthConfigModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        tokenExpiry: {
+          access: config.getOrThrow('ACCESS_TOKEN_EXPIRY') as TokenExpiryString,
+          refresh: config.getOrThrow('REFRESH_TOKEN_EXPIRY') as TokenExpiryString,
+        },
+        cookie: {
+          refreshCookieName: config.get('REFRESH_COOKIE_NAME', 'vritti_core_refresh'),
+          refreshCookieSecure: config.get('NODE_ENV') === 'production',
+          refreshCookieSameSite: 'strict' as const,
+          refreshCookieDomain: config.get('REFRESH_COOKIE_DOMAIN'),
+        },
+        guard: {
+          onAuthenticated: (request, sessionInfo) => {
+            const host = request.headers.host ?? '';
+            const subdomain = host.split('.')[0];
+            if (!subdomain) {
+              throw new UnauthorizedException('Invalid request host');
+            }
+            sessionInfo.subdomain = subdomain;
+
+            const buId = request.headers['x-bu-id'];
+            if (buId) {
+              sessionInfo.buId = buId;
+            }
+          },
+        },
+      }),
+    }),
     // Root module — health check and CSRF endpoints
     RootModule,
     // Email module — globally provided EmailService

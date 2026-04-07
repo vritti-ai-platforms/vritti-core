@@ -3,9 +3,9 @@ import { SessionDomainModule } from '@domain/session/session.module';
 import { UserDomainModule } from '@domain/user/user.module';
 import { VerificationDomainModule } from '@domain/verification/verification.module';
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { EmailModule, jwtConfigFactory } from '@vritti/api-sdk';
+import { EmailModule } from '@vritti/api-sdk';
 import { ForgotPasswordController } from './forgot-password/controllers/forgot-password.controller';
 import { PasswordResetService } from './forgot-password/services/password-reset.service';
 import { MobileAuthController } from './mobile/controllers/mobile-auth.controller';
@@ -17,8 +17,12 @@ import { AuthStatusSseService } from './root/services/auth-status-sse.service';
 @Module({
   imports: [
     JwtModule.registerAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: jwtConfigFactory,
+      useFactory: (config: ConfigService) => ({
+        secret: config.getOrThrow<string>('JWT_SECRET'),
+        signOptions: { algorithm: 'HS256' as const },
+      }),
     }),
     EmailModule,
     SessionDomainModule,

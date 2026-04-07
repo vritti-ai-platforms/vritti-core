@@ -5355,32 +5355,14 @@
             "type": "string",
             "description": "Base price"
           },
-          "costPrice": {
-            "type": "object",
-            "description": "Cost price",
-            "nullable": true
-          },
           "taxGroupId": {
             "type": "object",
             "description": "Tax group ID",
             "nullable": true
           },
-          "hsnSacCode": {
-            "type": "object",
-            "description": "HSN/SAC code",
-            "nullable": true
-          },
           "isAvailable": {
             "type": "boolean",
             "description": "Whether the item is available"
-          },
-          "isVisible": {
-            "type": "boolean",
-            "description": "Whether the item is visible"
-          },
-          "trackInventory": {
-            "type": "boolean",
-            "description": "Whether inventory is tracked"
           },
           "sortOrder": {
             "type": "number",
@@ -5403,8 +5385,6 @@
           "name",
           "basePrice",
           "isAvailable",
-          "isVisible",
-          "trackInventory",
           "sortOrder",
           "createdAt",
           "updatedAt"
@@ -5473,33 +5453,14 @@
             "description": "Base price",
             "example": 10
           },
-          "costPrice": {
-            "type": "number",
-            "description": "Cost price",
-            "example": 5
-          },
           "taxGroupId": {
             "type": "string",
             "description": "Tax group ID"
-          },
-          "hsnSacCode": {
-            "type": "string",
-            "description": "HSN/SAC code"
           },
           "isAvailable": {
             "type": "boolean",
             "description": "Whether the item is available",
             "default": true
-          },
-          "isVisible": {
-            "type": "boolean",
-            "description": "Whether the item is visible",
-            "default": true
-          },
-          "trackInventory": {
-            "type": "boolean",
-            "description": "Whether to track inventory",
-            "default": false
           },
           "sortOrder": {
             "type": "number",
@@ -5584,11 +5545,6 @@
           "price": {
             "type": "object",
             "description": "Variant price override",
-            "nullable": true
-          },
-          "costPrice": {
-            "type": "object",
-            "description": "Variant cost price",
             "nullable": true
           },
           "isAvailable": {
@@ -5677,32 +5633,14 @@
             "type": "string",
             "description": "Base price"
           },
-          "costPrice": {
-            "type": "object",
-            "description": "Cost price",
-            "nullable": true
-          },
           "taxGroupId": {
             "type": "object",
             "description": "Tax group ID",
             "nullable": true
           },
-          "hsnSacCode": {
-            "type": "object",
-            "description": "HSN/SAC code",
-            "nullable": true
-          },
           "isAvailable": {
             "type": "boolean",
             "description": "Whether the item is available"
-          },
-          "isVisible": {
-            "type": "boolean",
-            "description": "Whether the item is visible"
-          },
-          "trackInventory": {
-            "type": "boolean",
-            "description": "Whether inventory is tracked"
           },
           "sortOrder": {
             "type": "number",
@@ -5739,8 +5677,6 @@
           "name",
           "basePrice",
           "isAvailable",
-          "isVisible",
-          "trackInventory",
           "sortOrder",
           "options",
           "variants",
@@ -5776,30 +5712,13 @@
             "description": "Updated base price",
             "example": 10
           },
-          "costPrice": {
-            "type": "object",
-            "description": "Updated cost price",
-            "example": 5
-          },
           "taxGroupId": {
             "type": "object",
             "description": "Tax group ID"
           },
-          "hsnSacCode": {
-            "type": "object",
-            "description": "HSN/SAC code"
-          },
           "isAvailable": {
             "type": "boolean",
             "description": "Whether the item is available"
-          },
-          "isVisible": {
-            "type": "boolean",
-            "description": "Whether the item is visible"
-          },
-          "trackInventory": {
-            "type": "boolean",
-            "description": "Whether to track inventory"
           },
           "sortOrder": {
             "type": "number",
@@ -5871,11 +5790,6 @@
             "type": "object",
             "description": "Updated variant price",
             "example": 12
-          },
-          "costPrice": {
-            "type": "object",
-            "description": "Updated cost price",
-            "example": 6
           },
           "isAvailable": {
             "type": "boolean",
@@ -6222,6 +6136,44 @@
           }
         }
       },
+      "TaxRateResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Tax rate ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Tax rate name",
+            "example": "CGST"
+          },
+          "rate": {
+            "type": "number",
+            "description": "Tax rate percentage",
+            "example": 9
+          },
+          "type": {
+            "type": "string",
+            "description": "Rate type",
+            "enum": [
+              "inclusive",
+              "exclusive"
+            ]
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Sort order"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "rate",
+          "type",
+          "sortOrder"
+        ]
+      },
       "TaxGroupResponseDto": {
         "type": "object",
         "properties": {
@@ -6232,36 +6184,6 @@
           "name": {
             "type": "string",
             "description": "Tax group name"
-          },
-          "rate": {
-            "type": "number",
-            "description": "Combined tax rate",
-            "example": 18
-          },
-          "hsnSacCode": {
-            "type": "object",
-            "description": "HSN/SAC code",
-            "example": "99631100"
-          },
-          "cgstRate": {
-            "type": "number",
-            "description": "CGST rate",
-            "example": 9
-          },
-          "sgstRate": {
-            "type": "number",
-            "description": "SGST rate",
-            "example": 9
-          },
-          "igstRate": {
-            "type": "number",
-            "description": "IGST rate",
-            "example": 0
-          },
-          "cessRate": {
-            "type": "number",
-            "description": "Cess rate",
-            "example": 0
           },
           "isDefault": {
             "type": "boolean",
@@ -6274,19 +6196,50 @@
           "sortOrder": {
             "type": "number",
             "description": "Display sort order"
+          },
+          "taxRates": {
+            "description": "Tax rates in this group",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxRateResponseDto"
+            }
           }
         },
         "required": [
           "id",
           "name",
-          "rate",
-          "cgstRate",
-          "sgstRate",
-          "igstRate",
-          "cessRate",
           "isDefault",
           "isActive",
-          "sortOrder"
+          "sortOrder",
+          "taxRates"
+        ]
+      },
+      "CreateTaxRateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Tax rate name",
+            "example": "CGST"
+          },
+          "rate": {
+            "type": "number",
+            "description": "Tax rate percentage",
+            "example": 9
+          },
+          "type": {
+            "type": "string",
+            "description": "Rate type",
+            "enum": [
+              "inclusive",
+              "exclusive"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "rate",
+          "type"
         ]
       },
       "CreateTaxGroupDto": {
@@ -6301,39 +6254,12 @@
             "description": "Tax group name",
             "example": "GST 18%"
           },
-          "rate": {
-            "type": "number",
-            "description": "Combined tax rate",
-            "example": 18
-          },
-          "hsnSacCode": {
-            "type": "string",
-            "description": "HSN/SAC code",
-            "example": "99631100"
-          },
-          "cgstRate": {
-            "type": "number",
-            "description": "CGST rate",
-            "example": 9,
-            "default": 0
-          },
-          "sgstRate": {
-            "type": "number",
-            "description": "SGST rate",
-            "example": 9,
-            "default": 0
-          },
-          "igstRate": {
-            "type": "number",
-            "description": "IGST rate",
-            "example": 0,
-            "default": 0
-          },
-          "cessRate": {
-            "type": "number",
-            "description": "Cess rate",
-            "example": 0,
-            "default": 0
+          "taxRates": {
+            "description": "Tax rates for this group",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateTaxRateDto"
+            }
           },
           "isDefault": {
             "type": "boolean",
@@ -6343,9 +6269,31 @@
         },
         "required": [
           "businessUnitId",
-          "name",
-          "rate"
+          "name"
         ]
+      },
+      "UpdateTaxRateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Tax rate name",
+            "example": "CGST"
+          },
+          "rate": {
+            "type": "number",
+            "description": "Tax rate percentage",
+            "example": 9
+          },
+          "type": {
+            "type": "string",
+            "description": "Rate type",
+            "enum": [
+              "inclusive",
+              "exclusive"
+            ]
+          }
+        }
       },
       "UpdateTaxGroupDto": {
         "type": "object",
@@ -6354,29 +6302,12 @@
             "type": "string",
             "description": "Updated tax group name"
           },
-          "rate": {
-            "type": "number",
-            "description": "Updated combined tax rate"
-          },
-          "hsnSacCode": {
-            "type": "string",
-            "description": "Updated HSN/SAC code"
-          },
-          "cgstRate": {
-            "type": "number",
-            "description": "Updated CGST rate"
-          },
-          "sgstRate": {
-            "type": "number",
-            "description": "Updated SGST rate"
-          },
-          "igstRate": {
-            "type": "number",
-            "description": "Updated IGST rate"
-          },
-          "cessRate": {
-            "type": "number",
-            "description": "Updated cess rate"
+          "taxRates": {
+            "description": "Updated tax rates (replaces all existing rates)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateTaxRateDto"
+            }
           },
           "isDefault": {
             "type": "boolean",

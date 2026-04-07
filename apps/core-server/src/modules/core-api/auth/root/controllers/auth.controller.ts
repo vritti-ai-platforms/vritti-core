@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, type MessageEvent, Post, Req, Res, Sse } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
-import { AccessToken, Public, RefreshTokenCookie, SkipCsrf, UserId } from '@vritti/api-sdk';
+import { AccessToken, CookieName, type CookieSerializeOptions, Public, RefreshCookieOptions, RefreshTokenCookie, SkipCsrf, UserId } from '@vritti/api-sdk';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { NEVER, type Observable, concat, merge, of } from 'rxjs';
 import {
@@ -19,7 +19,6 @@ import { SetPasswordDto } from '../dto/request/set-password.dto';
 import { AuthResponseDto } from '../dto/response/auth-response.dto';
 import { MessageResponseDto } from '../dto/response/message-response.dto';
 import { TokenResponseDto } from '../dto/response/token-response.dto';
-import { getRefreshCookieName, getRefreshCookieOptionsFromConfig } from '@domain/session/services/session.service';
 import { AuthService } from '../services/auth.service';
 import { AuthStatusSseService } from '../services/auth-status-sse.service';
 
@@ -42,13 +41,15 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) reply: FastifyReply,
     @Ip() ipAddress: string,
+    @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
+    @CookieName() cookieName: string,
   ): Promise<AuthResponseDto> {
     this.logger.log(`POST /api/auth/login - Email: ${dto.email}`);
 
     const { refreshToken, ...response } = await this.authService.login(dto, ipAddress);
 
     if (refreshToken) {
-      reply.setCookie(getRefreshCookieName(), refreshToken, getRefreshCookieOptionsFromConfig());
+      reply.setCookie(cookieName, refreshToken, cookieOptions);
     }
 
     return response;
@@ -61,10 +62,11 @@ export class AuthController {
   async logout(
     @AccessToken() accessToken: string,
     @Res({ passthrough: true }) reply: FastifyReply,
+    @CookieName() cookieName: string,
   ): Promise<MessageResponseDto> {
     this.logger.log('POST /api/auth/logout');
     const result = await this.authService.logout(accessToken);
-    reply.clearCookie(getRefreshCookieName(), { path: '/' });
+    reply.clearCookie(cookieName, { path: '/' });
     return result;
   }
 
@@ -76,10 +78,11 @@ export class AuthController {
     @UserId() userId: string,
     @Body() dto: SetPasswordDto,
     @Res({ passthrough: true }) reply: FastifyReply,
+    @CookieName() cookieName: string,
   ): Promise<MessageResponseDto> {
     this.logger.log(`POST /api/auth/set-password - User: ${userId}`);
     const result = await this.authService.setPassword(dto, userId);
-    reply.clearCookie(getRefreshCookieName(), { path: '/' });
+    reply.clearCookie(cookieName, { path: '/' });
     return result;
   }
 
@@ -128,12 +131,14 @@ export class AuthController {
   async refreshTokens(
     @RefreshTokenCookie() refreshToken: string | undefined,
     @Res({ passthrough: true }) reply: FastifyReply,
+    @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
+    @CookieName() cookieName: string,
   ): Promise<TokenResponseDto> {
     this.logger.log('POST /api/auth/refresh-tokens');
 
     const result = await this.authService.refreshTokens(refreshToken);
 
-    reply.setCookie(getRefreshCookieName(), result.refreshToken, getRefreshCookieOptionsFromConfig());
+    reply.setCookie(cookieName, result.refreshToken, cookieOptions);
 
     return { accessToken: result.accessToken, expiresIn: result.expiresIn };
   }

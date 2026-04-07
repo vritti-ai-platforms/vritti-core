@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Logger, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, RequireSession, UserId } from '@vritti/api-sdk';
+import { CookieName, type CookieSerializeOptions, Public, RefreshCookieOptions, RequireSession, UserId } from '@vritti/api-sdk';
 import type { FastifyReply } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
@@ -31,9 +31,15 @@ export class ForgotPasswordController {
   async forgotPassword(
     @Body() dto: ForgotPasswordDto,
     @Res({ passthrough: true }) reply: FastifyReply,
+    @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
+    @CookieName() cookieName: string,
   ): Promise<ForgotPasswordResponseDto> {
     this.logger.log(`POST /auth/forgot-password - Email: ${dto.email}`);
-    return this.passwordResetService.requestPasswordReset(dto.email, reply);
+    const { refreshToken, ...response } = await this.passwordResetService.requestPasswordReset(dto.email);
+    if (refreshToken) {
+      reply.setCookie(cookieName, refreshToken, cookieOptions);
+    }
+    return response;
   }
 
   // Resends the reset OTP using the active RESET session
@@ -65,8 +71,13 @@ export class ForgotPasswordController {
     @Body() dto: ResetPasswordDto,
     @UserId() userId: string,
     @Res({ passthrough: true }) reply: FastifyReply,
+    @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
+    @CookieName() cookieName: string,
   ): Promise<ResetPasswordResponseDto> {
     this.logger.log(`POST /auth/reset-password - User: ${userId}`);
-    return this.passwordResetService.resetPassword(dto.newPassword, userId, reply);
+    const { refreshToken, ...response } = await this.passwordResetService.resetPassword(dto.newPassword, userId);
+    reply.clearCookie(cookieName, { path: '/' });
+    reply.setCookie(cookieName, refreshToken, cookieOptions);
+    return response;
   }
 }

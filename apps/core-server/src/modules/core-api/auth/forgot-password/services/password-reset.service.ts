@@ -2,13 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BadRequestException, EmailService } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
-import type { FastifyReply } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
-import {
-  getRefreshCookieName,
-  getRefreshCookieOptionsFromConfig,
-  SessionService,
-} from '@domain/session/services/session.service';
+import { SessionService } from '@domain/session/services/session.service';
 import { UserService } from '@domain/user/services/user.service';
 import { VerificationRepository } from '@domain/verification/repositories/verification.repository';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
@@ -57,7 +52,7 @@ export class PasswordResetService {
   }
 
   // Sends OTP and creates a RESET session — returns generic message if user not found (no email enumeration)
-  async requestPasswordReset(email: string, reply: FastifyReply): Promise<ForgotPasswordResponseDto> {
+  async requestPasswordReset(email: string): Promise<ForgotPasswordResponseDto & { refreshToken?: string }> {
     const user = await this.userService.findByEmail(email);
 
     if (!user) {
@@ -98,12 +93,9 @@ export class PasswordResetService {
       SessionTypeValues.RESET,
     );
 
-    // Set refresh cookie for the RESET session
-    reply.setCookie(getRefreshCookieName(), refreshToken, getRefreshCookieOptionsFromConfig());
-
     this.logger.log(`Created RESET session for user: ${user.id}`);
 
-    return { success: true, message: this.RESET_MESSAGE, accessToken, expiresIn };
+    return { success: true, message: this.RESET_MESSAGE, accessToken, expiresIn, refreshToken };
   }
 
   // Verifies the submitted OTP against the stored hash and marks the record as verified
@@ -188,7 +180,7 @@ export class PasswordResetService {
   }
 
   // Validates verified OTP window, resets password, and creates a new NEXUS session
-  async resetPassword(newPassword: string, userId: string, reply: FastifyReply): Promise<ResetPasswordResponseDto> {
+  async resetPassword(newPassword: string, userId: string): Promise<ResetPasswordResponseDto & { refreshToken: string }> {
     const verification = await this.verificationRepository.findByUserId(userId);
 
     if (!verification?.isVerified || !verification.verifiedAt) {
@@ -221,10 +213,6 @@ export class PasswordResetService {
       SessionTypeValues.NEXUS,
     );
 
-    // Clear old cookie, set new NEXUS refresh cookie
-    reply.clearCookie(getRefreshCookieName(), { path: '/' });
-    reply.setCookie(getRefreshCookieName(), refreshToken, getRefreshCookieOptionsFromConfig());
-
     this.logger.log(`Password reset completed for user: ${userId}`);
 
     return {
@@ -232,6 +220,7 @@ export class PasswordResetService {
       message: 'Password has been reset successfully.',
       accessToken,
       expiresIn,
+      refreshToken,
     };
   }
 }

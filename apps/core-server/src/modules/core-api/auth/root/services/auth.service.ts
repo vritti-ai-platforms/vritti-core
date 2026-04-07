@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BadRequestException, JwtAuthService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
+import { BadRequestException, TokenService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
 import { OrganizationService } from '@domain/organization/services/organization.service';
@@ -20,7 +20,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly sessionService: SessionService,
-    private readonly jwtService: JwtAuthService,
+    private readonly tokenService: TokenService,
     private readonly organizationService: OrganizationService,
   ) {}
 
@@ -138,7 +138,7 @@ export class AuthService {
 
     // Verify the JWT token and validate the session exists
     try {
-      decoded = this.jwtService.verify(dto.token, TokenType.ACCESS);
+      decoded = this.tokenService.verify(dto.token, TokenType.ACCESS);
       await this.sessionService.validateAccessTokenSession(dto.token);
     } catch {
       throw new UnauthorizedException({

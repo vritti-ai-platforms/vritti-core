@@ -1,25 +1,15 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
-  getConfig,
-  getRefreshCookieOptions,
+  AUTH_CONFIG,
+  type AuthConfig,
   hashToken,
-  JwtAuthService,
+  TokenService,
   TokenType,
   UnauthorizedException,
 } from '@vritti/api-sdk';
 import { type Session, type SessionType } from '@/db/schema';
 import { SessionRepository } from '../repositories/session.repository';
-
-// Returns the configured refresh cookie name from api-sdk settings
-export function getRefreshCookieName(): string {
-  return getConfig().cookie.refreshCookieName;
-}
-
-// Returns the configured refresh cookie options from api-sdk settings
-export function getRefreshCookieOptionsFromConfig() {
-  return getRefreshCookieOptions();
-}
 
 @Injectable()
 export class SessionService {
@@ -27,8 +17,14 @@ export class SessionService {
 
   constructor(
     private readonly sessionRepository: SessionRepository,
-    private readonly jwtService: JwtAuthService,
+    private readonly tokenService: TokenService,
+    @Inject(AUTH_CONFIG) private readonly authConfig: AuthConfig,
   ) {}
+
+  // Returns the configured refresh cookie name
+  getRefreshCookieName(): string {
+    return this.authConfig.cookie.refreshCookieName;
+  }
 
   // Creates a session with both access and refresh tokens for the given session type
   async createSession(
@@ -43,9 +39,9 @@ export class SessionService {
     expiresIn: number;
   }> {
     const sessionId = randomUUID();
-    const refreshToken = this.jwtService.generateRefreshToken(userId, sessionId, sessionType);
-    const accessToken = this.jwtService.generateAccessToken(userId, sessionId, sessionType, refreshToken);
-    const expiresAt = this.jwtService.getExpiryTime(TokenType.REFRESH);
+    const refreshToken = this.tokenService.generateRefreshToken(userId, sessionId, sessionType);
+    const accessToken = this.tokenService.generateAccessToken(userId, sessionId, sessionType, refreshToken);
+    const expiresAt = this.tokenService.getExpiryTime(TokenType.REFRESH);
 
     const session = await this.sessionRepository.create({
       id: sessionId,
@@ -58,7 +54,7 @@ export class SessionService {
       expiresAt,
     });
 
-    const expiresIn = this.jwtService.getExpiryInSeconds(TokenType.ACCESS);
+    const expiresIn = this.tokenService.getExpiryInSeconds(TokenType.ACCESS);
 
     this.logger.log(`Created ${sessionType} session for user: ${userId}`);
 
@@ -72,14 +68,14 @@ export class SessionService {
     expiresIn: number;
   }> {
     const session = await this.validateRefreshToken(refreshToken);
-    const newRefreshToken = this.jwtService.generateRefreshToken(session.userId, session.id, session.type);
-    const newAccessToken = this.jwtService.generateAccessToken(
+    const newRefreshToken = this.tokenService.generateRefreshToken(session.userId, session.id, session.type);
+    const newAccessToken = this.tokenService.generateAccessToken(
       session.userId,
       session.id,
       session.type,
       newRefreshToken,
     );
-    const expiresAt = this.jwtService.getExpiryTime(TokenType.REFRESH);
+    const expiresAt = this.tokenService.getExpiryTime(TokenType.REFRESH);
 
     await this.sessionRepository.rotateTokens(
       session.id,
@@ -88,7 +84,7 @@ export class SessionService {
       expiresAt,
     );
 
-    const expiresIn = this.jwtService.getExpiryInSeconds(TokenType.ACCESS);
+    const expiresIn = this.tokenService.getExpiryInSeconds(TokenType.ACCESS);
 
     this.logger.log(`Rotated tokens for session: ${session.id}`);
 
@@ -104,7 +100,7 @@ export class SessionService {
     sessionId: string;
   }> {
     const session = await this.validateRefreshToken(refreshToken);
-    const newAccessToken = this.jwtService.generateAccessToken(
+    const newAccessToken = this.tokenService.generateAccessToken(
       session.userId,
       session.id,
       session.type,
@@ -113,7 +109,7 @@ export class SessionService {
 
     await this.sessionRepository.updateAccessTokenHash(session.id, hashToken(newAccessToken));
 
-    const expiresIn = this.jwtService.getExpiryInSeconds(TokenType.ACCESS);
+    const expiresIn = this.tokenService.getExpiryInSeconds(TokenType.ACCESS);
 
     this.logger.log(`Generated access token for user: ${session.userId}`);
 
