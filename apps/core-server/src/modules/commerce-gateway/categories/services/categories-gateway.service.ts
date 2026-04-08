@@ -1,8 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
-import { UserService } from '@domain/user/services/user.service';
-import { COMMERCE_SERVICE } from '../../commerce-client.module';
+import { Injectable, Logger } from '@nestjs/common';
+import { NatsClientService, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import type { CreateCategoryDto } from '../dto/request/create-category.dto';
 import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
 import type { CategoryResponseDto } from '../dto/response/category-response.dto';
@@ -11,57 +8,41 @@ import type { CategoryResponseDto } from '../dto/response/category-response.dto'
 export class CategoriesGatewayService {
   private readonly logger = new Logger(CategoriesGatewayService.name);
 
-  constructor(
-    @Inject(COMMERCE_SERVICE) private readonly client: ClientProxy,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly nats: NatsClientService) {}
 
   // Returns paginated category options for the select component
-  async select(userId: string, query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
-    const user = await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<SelectQueryResult>(
-        { cmd: 'categories.select' },
-        { organizationId: user.organizationId, businessUnitId: query.buId, ...query },
-      )
-      .toPromise() as Promise<SelectQueryResult>;
+  async select(query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
+    this.logger.log('categories.select');
+    return this.nats.send('commerce', 'categories.select', query);
   }
 
-  // Returns all categories for the user's org + given BU
-  async list(userId: string, buId: string): Promise<CategoryResponseDto[]> {
-    const user = await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<CategoryResponseDto[]>({ cmd: 'categories.list' }, { organizationId: user.organizationId, businessUnitId: buId })
-      .toPromise() as Promise<CategoryResponseDto[]>;
+  // Returns all categories for the given BU
+  async list(): Promise<CategoryResponseDto[]> {
+    this.logger.log('categories.list');
+    return this.nats.send('commerce', 'categories.list');
   }
 
-  // Creates a new category, resolving organizationId from the authenticated user
-  async create(userId: string, dto: CreateCategoryDto): Promise<CategoryResponseDto> {
-    const user = await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<CategoryResponseDto>({ cmd: 'categories.create' }, { organizationId: user.organizationId, ...dto })
-      .toPromise() as Promise<CategoryResponseDto>;
+  // Creates a new category
+  async create(dto: CreateCategoryDto): Promise<CategoryResponseDto> {
+    this.logger.log(`categories.create — name: ${dto.name}`);
+    return this.nats.send('commerce', 'categories.create', dto);
   }
 
   // Finds a category by ID
   async findById(id: string): Promise<CategoryResponseDto> {
-    return this.client
-      .send<CategoryResponseDto>({ cmd: 'categories.findById' }, { id })
-      .toPromise() as Promise<CategoryResponseDto>;
+    this.logger.log(`categories.findById — id: ${id}`);
+    return this.nats.send('commerce', 'categories.findById', { id });
   }
 
-  // Updates a category by ID, resolving organizationId from the authenticated user
-  async update(userId: string, id: string, dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
-    await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<CategoryResponseDto>({ cmd: 'categories.update' }, { id, ...dto })
-      .toPromise() as Promise<CategoryResponseDto>;
+  // Updates a category by ID
+  async update(id: string, dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
+    this.logger.log(`categories.update — id: ${id}`);
+    return this.nats.send('commerce', 'categories.update', { id, ...dto });
   }
 
   // Deletes a category by ID
   async delete(id: string): Promise<{ success: boolean; message: string }> {
-    return this.client
-      .send<{ success: boolean; message: string }>({ cmd: 'categories.delete' }, { id })
-      .toPromise() as Promise<{ success: boolean; message: string }>;
+    this.logger.log(`categories.delete — id: ${id}`);
+    return this.nats.send('commerce', 'categories.delete', { id });
   }
 }

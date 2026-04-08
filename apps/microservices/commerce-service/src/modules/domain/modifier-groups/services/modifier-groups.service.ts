@@ -16,9 +16,9 @@ export class ModifierGroupsService {
 
   constructor(private readonly modifierGroupsRepository: ModifierGroupsRepository) {}
 
-  // Returns all modifier groups for a business unit
-  async list(buId: string): Promise<ModifierGroupDto[]> {
-    const entities = await this.modifierGroupsRepository.findByBu(buId);
+  // Returns all modifier groups (RLS scopes to org + BU ancestors)
+  async list(): Promise<ModifierGroupDto[]> {
+    const entities = await this.modifierGroupsRepository.findAll();
     return entities.map(ModifierGroupDto.from);
   }
 
@@ -33,7 +33,6 @@ export class ModifierGroupsService {
   // Creates a new modifier group
   async create(data: CreateModifierGroupDto): Promise<ModifierGroupDto> {
     const entity = await this.modifierGroupsRepository.create({
-      businessUnitId: data.businessUnitId,
       name: data.name,
       selectionType: data.selectionType,
       minSelections: data.minSelections ?? 0,

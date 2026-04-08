@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
@@ -39,86 +39,65 @@ export class ItemsGatewayController {
   // Returns paginated items for the data table with server-stored state
   @Get('table')
   @ApiGetItemsTable()
-  getItemsTable(@UserId() userId: string, @Query('buId') buId: string): Promise<ItemsTableResponseDto> {
-    this.logger.log(`GET /commerce-api/items/table?buId=${buId} — user: ${userId}`);
-    return this.itemsGatewayService.findForTable(userId, buId);
+  getItemsTable(@UserId() userId: string): Promise<ItemsTableResponseDto> {
+    return this.itemsGatewayService.findForTable(userId);
   }
 
   // Creates a new catalog item
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateItem()
-  async create(@UserId() userId: string, @Body() dto: CreateItemDto): Promise<ItemResponseDto> {
-    this.logger.log(`POST /commerce-api/items — user: ${userId}`);
-    return this.itemsGatewayService.create(userId, dto);
+  async create(@Body() dto: CreateItemDto): Promise<ItemResponseDto> {
+    return this.itemsGatewayService.create(dto);
   }
 
   // Returns an item with full details
   @Get(':id')
   @ApiGetItem()
-  async findById(@UserId() userId: string, @Param('id') id: string): Promise<ItemDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/items/${id} — user: ${userId}`);
+  async findById(@Param('id') id: string): Promise<ItemDetailResponseDto> {
     return this.itemsGatewayService.findById(id);
   }
 
   // Updates an item by ID
   @Patch(':id')
   @ApiUpdateItem()
-  async update(
-    @UserId() userId: string,
-    @Param('id') id: string,
-    @Body() dto: UpdateItemDto,
-  ): Promise<ItemResponseDto> {
-    this.logger.log(`PATCH /commerce-api/items/${id} — user: ${userId}`);
-    return this.itemsGatewayService.update(userId, id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateItemDto): Promise<ItemResponseDto> {
+    return this.itemsGatewayService.update(id, dto);
   }
 
   // Deletes an item by ID
   @Delete(':id')
   @ApiDeleteItem()
-  async delete(@UserId() userId: string, @Param('id') id: string): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`DELETE /commerce-api/items/${id} — user: ${userId}`);
+  async delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
     return this.itemsGatewayService.delete(id);
   }
 
   // Bulk saves options for an item
   @Put(':id/options')
   @ApiSaveItemOptions()
-  async saveOptions(
-    @UserId() userId: string,
-    @Param('id') id: string,
-    @Body() dto: SaveOptionsDto,
-  ): Promise<ItemDetailResponseDto> {
-    this.logger.log(`PUT /commerce-api/items/${id}/options — user: ${userId}`);
-    return this.itemsGatewayService.saveOptions(userId, id, dto);
+  async saveOptions(@Param('id') id: string, @Body() dto: SaveOptionsDto): Promise<ItemDetailResponseDto> {
+    return this.itemsGatewayService.saveOptions(id, dto);
   }
 
   // Generates variants based on item options
   @Post(':id/variants/generate')
   @HttpCode(HttpStatus.CREATED)
   @ApiGenerateItemVariants()
-  async generateVariants(@UserId() userId: string, @Param('id') id: string): Promise<ItemVariantResponseDto[]> {
-    this.logger.log(`POST /commerce-api/items/${id}/variants/generate — user: ${userId}`);
-    return this.itemsGatewayService.generateVariants(userId, id);
+  async generateVariants(@Param('id') id: string): Promise<ItemVariantResponseDto[]> {
+    return this.itemsGatewayService.generateVariants(id);
   }
 
   // Lists all variants for an item
   @Get(':id/variants')
   @ApiListItemVariants()
-  async listVariants(@UserId() userId: string, @Param('id') id: string): Promise<ItemVariantResponseDto[]> {
-    this.logger.log(`GET /commerce-api/items/${id}/variants — user: ${userId}`);
+  async listVariants(@Param('id') id: string): Promise<ItemVariantResponseDto[]> {
     return this.itemsGatewayService.listVariants(id);
   }
 
   // Deletes a specific variant by ID
   @Delete(':id/variants/:variantId')
   @ApiDeleteItemVariant()
-  async deleteVariant(
-    @UserId() userId: string,
-    @Param('id') id: string,
-    @Param('variantId') variantId: string,
-  ): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`DELETE /commerce-api/items/${id}/variants/${variantId} — user: ${userId}`);
+  async deleteVariant(@Param('variantId') variantId: string): Promise<{ success: boolean; message: string }> {
     return this.itemsGatewayService.deleteVariant(variantId);
   }
 
@@ -126,32 +105,24 @@ export class ItemsGatewayController {
   @Patch(':id/variants/:variantId')
   @ApiUpdateItemVariant()
   async updateVariant(
-    @UserId() userId: string,
     @Param('id') id: string,
     @Param('variantId') variantId: string,
     @Body() dto: UpdateVariantDto,
   ): Promise<ItemVariantResponseDto> {
-    this.logger.log(`PATCH /commerce-api/items/${id}/variants/${variantId} — user: ${userId}`);
-    return this.itemsGatewayService.updateVariant(userId, id, variantId, dto);
+    return this.itemsGatewayService.updateVariant(id, variantId, dto);
   }
 
   // Lists modifier groups assigned to an item
   @Get(':id/modifiers')
   @ApiListItemModifiers()
-  async listModifiers(@UserId() userId: string, @Param('id') id: string): Promise<ItemModifierGroupResponseDto[]> {
-    this.logger.log(`GET /commerce-api/items/${id}/modifiers — user: ${userId}`);
+  async listModifiers(@Param('id') id: string): Promise<ItemModifierGroupResponseDto[]> {
     return this.itemsGatewayService.listModifiers(id);
   }
 
   // Saves modifier group assignments for an item
   @Put(':id/modifiers')
   @ApiSaveItemModifiers()
-  async saveModifiers(
-    @UserId() userId: string,
-    @Param('id') id: string,
-    @Body() dto: SaveItemModifiersDto,
-  ): Promise<ItemModifierGroupResponseDto[]> {
-    this.logger.log(`PUT /commerce-api/items/${id}/modifiers — user: ${userId}`);
-    return this.itemsGatewayService.saveModifiers(userId, id, dto);
+  async saveModifiers(@Param('id') id: string, @Body() dto: SaveItemModifiersDto): Promise<ItemModifierGroupResponseDto[]> {
+    return this.itemsGatewayService.saveModifiers(id, dto);
   }
 }

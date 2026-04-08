@@ -14,10 +14,12 @@ import {
   DataTableModule,
   EmailModule,
   LoggerModule,
+  NatsClientModule,
   RootModule,
   type TokenExpiryString,
   UnauthorizedException,
 } from '@vritti/api-sdk';
+import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
@@ -151,6 +153,24 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     UserDomainModule,
     UserRoleDomainModule,
     UserPermissionsDomainModule,
+    // NATS client — gateway mode, resolves BU context from sessionInfo
+    NatsClientModule.forRoot({
+      inject: [ConfigService, BusinessUnitRepository],
+      useFactory: (config: ConfigService, buRepo: BusinessUnitRepository) => ({
+        natsUrl: config.get<string>('NATS_URL'),
+        services: [{ name: 'commerce' }],
+        contextResolver: async (sessionInfo) => {
+          const buId = sessionInfo.buId ?? '';
+          const orgId = sessionInfo.organizationId ?? '';
+          const bu = buId ? await buRepo.findById(buId) : null;
+          const path = bu?.path ?? '';
+          const [buAncestorIds, buDescendantIds] = path
+            ? await Promise.all([buRepo.findAncestors(path), buRepo.findDescendants(path)])
+            : [[buId], [buId]];
+          return { orgId, userId: sessionInfo.userId, buId, buAncestorIds, buDescendantIds };
+        },
+      }),
+    }),
     // API modules — controllers + DTOs + docs
     AuthApiModule,
     ConfigApiModule,

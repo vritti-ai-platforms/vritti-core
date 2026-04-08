@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, UserId } from '@vritti/api-sdk';
+import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiCreateCategory,
@@ -27,56 +27,43 @@ export class CategoriesGatewayController {
   // Returns all categories for a business unit
   @Get()
   @ApiListCategories()
-  async list(@UserId() userId: string, @Query('buId') buId: string): Promise<CategoryResponseDto[]> {
-    this.logger.log(`GET /commerce-api/categories?buId=${buId} — user: ${userId}`);
-    return this.categoriesGatewayService.list(userId, buId);
+  async list(): Promise<CategoryResponseDto[]> {
+    return this.categoriesGatewayService.list();
   }
 
   // Creates a new category
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateCategory()
-  async create(@UserId() userId: string, @Body() dto: CreateCategoryDto): Promise<CategoryResponseDto> {
-    this.logger.log(`POST /commerce-api/categories — user: ${userId}`);
-    return this.categoriesGatewayService.create(userId, dto);
+  async create(@Body() dto: CreateCategoryDto): Promise<CategoryResponseDto> {
+    return this.categoriesGatewayService.create(dto);
   }
 
   // Returns paginated category options for the select component
   @Get('select')
   @ApiGetCategoriesSelect()
-  async select(
-    @UserId() userId: string,
-    @Query() query: SelectOptionsQueryDto & { buId: string },
-  ): Promise<SelectQueryResult> {
-    this.logger.log(`GET /select-api/categories?buId=${query.buId} — user: ${userId}`);
-    return this.categoriesGatewayService.select(userId, query);
+  async select(@Query() query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
+    return this.categoriesGatewayService.select(query);
   }
 
   // Returns a single category by ID
   @Get(':id')
   @ApiGetCategory()
-  async findById(@UserId() userId: string, @Param('id') id: string): Promise<CategoryResponseDto> {
-    this.logger.log(`GET /commerce-api/categories/${id} — user: ${userId}`);
+  async findById(@Param('id') id: string): Promise<CategoryResponseDto> {
     return this.categoriesGatewayService.findById(id);
   }
 
   // Updates a category by ID
   @Patch(':id')
   @ApiUpdateCategory()
-  async update(
-    @UserId() userId: string,
-    @Param('id') id: string,
-    @Body() dto: UpdateCategoryDto,
-  ): Promise<CategoryResponseDto> {
-    this.logger.log(`PATCH /commerce-api/categories/${id} — user: ${userId}`);
-    return this.categoriesGatewayService.update(userId, id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
+    return this.categoriesGatewayService.update(id, dto);
   }
 
   // Deletes a category by ID
   @Delete(':id')
   @ApiDeleteCategory()
-  async delete(@UserId() userId: string, @Param('id') id: string): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`DELETE /commerce-api/categories/${id} — user: ${userId}`);
+  async delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
     return this.categoriesGatewayService.delete(id);
   }
 }

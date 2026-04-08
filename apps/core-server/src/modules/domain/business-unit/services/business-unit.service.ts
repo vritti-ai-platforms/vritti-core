@@ -1,11 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import type { BuMetadata, BuType, BusinessUnit } from '@/db/schema';
+import type { BuMetadata, BuType } from '@/db/schema';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
 import type { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { BusinessUnitRepository } from '../repositories/business-unit.repository';
+
+// Builds an ltree path by appending a lowercase code to the parent path
+function buildLtreePath(parentPath: string | null, code: string): string {
+  const label = code.toLowerCase();
+  return parentPath ? `${parentPath}.${label}` : label;
+}
 
 @Injectable()
 export class BusinessUnitService {
@@ -16,32 +22,32 @@ export class BusinessUnitService {
   // Creates a business unit, computes depth/path from parent, and updates path with new ID
   async create(orgId: string, dto: CreateBusinessUnitWebhookDto): Promise<BusinessUnitDto> {
     let depth = 0;
-    let parentPath = '';
+    let parentPath: string | null = null;
 
     // Compute depth and parent path if parent is specified
     if (dto.parentId) {
       const parent = await this.businessUnitRepository.findById(dto.parentId);
       if (!parent) throw new NotFoundException('Parent business unit not found.');
       depth = parent.depth + 1;
-      parentPath = parent.path ?? `/${parent.id}`;
+      parentPath = parent.path;
     }
+
+    const code = dto.code.toLowerCase();
+    const path = buildLtreePath(parentPath, code);
 
     const bu = await this.businessUnitRepository.create({
       organizationId: orgId,
       parentId: dto.parentId ?? null,
       name: dto.name,
-      code: dto.code,
+      code,
       type: dto.type as BuType,
       depth,
+      path,
       metadata: dto.metadata as BuMetadata,
     });
 
-    // Update path to include the newly generated ID
-    const path = parentPath ? `${parentPath}/${bu.id}` : `/${bu.id}`;
-    const updated = await this.businessUnitRepository.updatePath(bu.id, path);
-
-    this.logger.log(`Created business unit "${dto.name}" (${updated.id}) at depth ${depth}`);
-    return BusinessUnitDto.from(updated);
+    this.logger.log(`Created business unit "${dto.name}" (${bu.id}) at path ${path}`);
+    return BusinessUnitDto.from(bu);
   }
 
   // Returns a flat list of business units for an organization
@@ -62,7 +68,7 @@ export class BusinessUnitService {
     const bu = await this.businessUnitRepository.findById(id);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    const path = bu.path ?? `/${bu.id}`;
+    const path = bu.path;
     const subtree = await this.businessUnitRepository.findSubtree(path);
     return subtree.map(BusinessUnitDto.from);
   }

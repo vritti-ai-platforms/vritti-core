@@ -15,12 +15,6 @@ export class CreateTaxRateDto {
 }
 
 export class CreateTaxGroupDto {
-  @IsUUID()
-  organizationId: string;
-
-  @IsUUID()
-  businessUnitId: string;
-
   @IsString()
   @IsNotEmpty()
   name: string;

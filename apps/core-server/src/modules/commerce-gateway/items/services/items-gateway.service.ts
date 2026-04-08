@@ -1,8 +1,5 @@
-import { UserService } from '@domain/user/services/user.service';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { DataTableStateService } from '@vritti/api-sdk';
-import { COMMERCE_SERVICE } from '../../commerce-client.module';
+import { Injectable, Logger } from '@nestjs/common';
+import { DataTableStateService, NatsClientService } from '@vritti/api-sdk';
 import type { CreateItemDto } from '../dto/request/create-item.dto';
 import type { SaveItemModifiersDto } from '../dto/request/save-item-modifiers.dto';
 import type { SaveOptionsDto } from '../dto/request/save-options.dto';
@@ -18,121 +15,93 @@ export class ItemsGatewayService {
   private readonly logger = new Logger(ItemsGatewayService.name);
 
   constructor(
-    @Inject(COMMERCE_SERVICE) private readonly client: ClientProxy,
-    private readonly userService: UserService,
+    private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
   // Returns paginated, filtered, and sorted items for the data table
-  async findForTable(userId: string, buId: string): Promise<ItemsTableResponseDto> {
+  async findForTable(userId: string): Promise<ItemsTableResponseDto> {
+    this.logger.log('items.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-items');
     const { limit = 20, offset = 0 } = state.pagination ?? {};
 
-    const { result, count } = (await this.client
-      .send<{ result: ItemResponseDto[]; count: number }>(
-        { cmd: 'items.table' },
-        {
-          businessUnitId: buId,
-          filters: state.filters,
-          sort: state.sort,
-          search: state.search ?? null,
-          pagination: { limit, offset },
-        },
-      )
-      .toPromise()) as { result: ItemResponseDto[]; count: number };
+    const { result, count } = await this.nats.send<{ result: ItemResponseDto[]; count: number }>(
+      'commerce',
+      'items.table',
+      {
+        filters: state.filters,
+        sort: state.sort,
+        search: state.search ?? null,
+        pagination: { limit, offset },
+      },
+    );
 
     return { result, count, state, activeViewId };
   }
 
-  // Creates a new item, resolving organizationId from the authenticated user
-  async create(userId: string, dto: CreateItemDto): Promise<ItemResponseDto> {
-    const user = await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<ItemResponseDto>({ cmd: 'items.create' }, { organizationId: user.organizationId, ...dto })
-      .toPromise() as Promise<ItemResponseDto>;
+  // Creates a new item
+  async create(dto: CreateItemDto): Promise<ItemResponseDto> {
+    this.logger.log(`items.create — name: ${dto.name}`);
+    return this.nats.send('commerce', 'items.create', dto);
   }
 
   // Finds an item by ID with full details
   async findById(id: string): Promise<ItemDetailResponseDto> {
-    return this.client
-      .send<ItemDetailResponseDto>({ cmd: 'items.findById' }, { id })
-      .toPromise() as Promise<ItemDetailResponseDto>;
+    this.logger.log(`items.findById — id: ${id}`);
+    return this.nats.send('commerce', 'items.findById', { id });
   }
 
   // Updates an item by ID
-  async update(userId: string, id: string, dto: UpdateItemDto): Promise<ItemResponseDto> {
-    await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<ItemResponseDto>({ cmd: 'items.update' }, { id, ...dto })
-      .toPromise() as Promise<ItemResponseDto>;
+  async update(id: string, dto: UpdateItemDto): Promise<ItemResponseDto> {
+    this.logger.log(`items.update — id: ${id}`);
+    return this.nats.send('commerce', 'items.update', { id, ...dto });
   }
 
   // Deletes an item by ID
   async delete(id: string): Promise<{ success: boolean; message: string }> {
-    return this.client
-      .send<{ success: boolean; message: string }>({ cmd: 'items.delete' }, { id })
-      .toPromise() as Promise<{ success: boolean; message: string }>;
+    this.logger.log(`items.delete — id: ${id}`);
+    return this.nats.send('commerce', 'items.delete', { id });
   }
 
   // Bulk saves options for an item (replaces existing options)
-  async saveOptions(userId: string, itemId: string, dto: SaveOptionsDto): Promise<ItemDetailResponseDto> {
-    await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<ItemDetailResponseDto>({ cmd: 'items.options.save' }, { itemId, ...dto })
-      .toPromise() as Promise<ItemDetailResponseDto>;
+  async saveOptions(itemId: string, dto: SaveOptionsDto): Promise<ItemDetailResponseDto> {
+    this.logger.log(`items.options.save — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'items.options.save', { itemId, ...dto });
   }
 
   // Generates variants based on current item options
-  async generateVariants(userId: string, itemId: string): Promise<ItemVariantResponseDto[]> {
-    await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<ItemVariantResponseDto[]>({ cmd: 'items.variants.generate' }, { itemId })
-      .toPromise() as Promise<ItemVariantResponseDto[]>;
+  async generateVariants(itemId: string): Promise<ItemVariantResponseDto[]> {
+    this.logger.log(`items.variants.generate — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'items.variants.generate', { itemId });
   }
 
   // Lists all variants for an item
   async listVariants(itemId: string): Promise<ItemVariantResponseDto[]> {
-    return this.client
-      .send<ItemVariantResponseDto[]>({ cmd: 'items.variants.list' }, { itemId })
-      .toPromise() as Promise<ItemVariantResponseDto[]>;
+    this.logger.log(`items.variants.list — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'items.variants.list', { itemId });
   }
 
   // Deletes a specific variant by ID
   async deleteVariant(variantId: string): Promise<{ success: boolean; message: string }> {
-    return this.client
-      .send<{ success: boolean; message: string }>({ cmd: 'items.variants.delete' }, { variantId })
-      .toPromise() as Promise<{ success: boolean; message: string }>;
+    this.logger.log(`items.variants.delete — variantId: ${variantId}`);
+    return this.nats.send('commerce', 'items.variants.delete', { variantId });
   }
 
   // Updates a specific variant
-  async updateVariant(
-    userId: string,
-    itemId: string,
-    variantId: string,
-    dto: UpdateVariantDto,
-  ): Promise<ItemVariantResponseDto> {
-    await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<ItemVariantResponseDto>({ cmd: 'items.variants.update' }, { itemId, variantId, ...dto })
-      .toPromise() as Promise<ItemVariantResponseDto>;
+  async updateVariant(itemId: string, variantId: string, dto: UpdateVariantDto): Promise<ItemVariantResponseDto> {
+    this.logger.log(`items.variants.update — variantId: ${variantId}`);
+    return this.nats.send('commerce', 'items.variants.update', { itemId, variantId, ...dto });
   }
 
   // Lists modifier groups assigned to an item
   async listModifiers(itemId: string): Promise<ItemModifierGroupResponseDto[]> {
-    return this.client
-      .send<ItemModifierGroupResponseDto[]>({ cmd: 'items.modifiers.list' }, { itemId })
-      .toPromise() as Promise<ItemModifierGroupResponseDto[]>;
+    this.logger.log(`items.modifiers.list — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'items.modifiers.list', { itemId });
   }
 
   // Saves modifier group assignments for an item (replaces existing)
-  async saveModifiers(
-    userId: string,
-    itemId: string,
-    dto: SaveItemModifiersDto,
-  ): Promise<ItemModifierGroupResponseDto[]> {
-    await this.userService.findByIdOrThrow(userId);
-    return this.client
-      .send<ItemModifierGroupResponseDto[]>({ cmd: 'items.modifiers.save' }, { itemId, ...dto })
-      .toPromise() as Promise<ItemModifierGroupResponseDto[]>;
+  async saveModifiers(itemId: string, dto: SaveItemModifiersDto): Promise<ItemModifierGroupResponseDto[]> {
+    this.logger.log(`items.modifiers.save — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'items.modifiers.save', { itemId, ...dto });
   }
 }

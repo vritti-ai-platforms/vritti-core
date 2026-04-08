@@ -1,7 +1,13 @@
-import { boolean, index, integer, jsonb, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, customType, index, integer, jsonb, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { buTypeEnum } from './enums';
 import { organizations } from './organizations';
+
+const ltreeType = customType<{ data: string }>({
+  dataType() {
+    return 'ltree';
+  },
+});
 
 export interface BuMetadata {
   address?: string;
@@ -23,10 +29,10 @@ export const businessUnits = coreSchema.table(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     parentId: uuid('parent_id'),
     name: varchar('name', { length: 255 }).notNull(),
-    code: varchar('code', { length: 100 }),
+    code: varchar('code', { length: 100 }).notNull(),
     type: buTypeEnum('type').notNull(),
     depth: integer('depth').notNull().default(0),
-    path: text('path'),
+    path: ltreeType('path').notNull(),
     appOverrides: jsonb('app_overrides').$type<Record<string, Record<string, unknown>>>(),
     inheritConfig: boolean('inherit_config').notNull().default(true),
     isActive: boolean('is_active').notNull().default(true),
@@ -39,7 +45,6 @@ export const businessUnits = coreSchema.table(
   (table) => [
     index('business_units_organization_id_idx').on(table.organizationId),
     index('business_units_parent_id_idx').on(table.parentId),
-    index('business_units_path_idx').on(table.path),
   ],
 );
 

@@ -9,10 +9,9 @@ export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups>
     super(database, taxGroups);
   }
 
-  // Returns all tax groups for a BU with their associated tax rates
-  async findByBuWithRates(orgId: string, buId: string): Promise<(TaxGroup & { taxRates: TaxRate[] })[]> {
+  // Returns all tax groups with their associated tax rates (RLS scopes to org + BU)
+  async findAllWithRates(): Promise<(TaxGroup & { taxRates: TaxRate[] })[]> {
     const groups = await this.model.findMany({
-      where: { organizationId: orgId, businessUnitId: buId },
       orderBy: { sortOrder: 'asc' },
     });
 

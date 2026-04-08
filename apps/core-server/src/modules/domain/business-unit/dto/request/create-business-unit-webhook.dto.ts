@@ -17,10 +17,9 @@ export class CreateBusinessUnitWebhookDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ description: 'Business unit code', example: 'US-EAST' })
-  @IsOptional()
+  @ApiProperty({ description: 'Business unit code', example: 'us-east' })
   @IsString()
-  code?: string;
+  code: string;
 
   @ApiProperty({
     description: 'Business unit type',

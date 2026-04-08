@@ -2,10 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateModifierGroupDto {
-  @ApiProperty({ description: 'Business unit ID this modifier group belongs to' })
-  @IsUUID()
-  businessUnitId: string;
-
   @ApiProperty({ description: 'Modifier group name' })
   @IsString()
   @IsNotEmpty()

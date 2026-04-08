@@ -2,9 +2,6 @@ import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min
 import type { ModifierSelectionType } from '@/db/schema';
 
 export class CreateModifierGroupDto {
-  @IsUUID()
-  businessUnitId: string;
-
   @IsString()
   @IsNotEmpty()
   name: string;

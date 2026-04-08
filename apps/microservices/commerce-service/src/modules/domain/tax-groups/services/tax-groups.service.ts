@@ -11,17 +11,15 @@ export class TaxGroupsService {
 
   constructor(private readonly taxGroupsRepository: TaxGroupsRepository) {}
 
-  // Returns all tax groups for a business unit with their tax rates
-  async list(orgId: string, buId: string): Promise<TaxGroupDto[]> {
-    const groups = await this.taxGroupsRepository.findByBuWithRates(orgId, buId);
+  // Returns all tax groups with their tax rates (RLS scopes to org + BU ancestors)
+  async list(): Promise<TaxGroupDto[]> {
+    const groups = await this.taxGroupsRepository.findAllWithRates();
     return groups.map((g) => TaxGroupDto.from(g, g.taxRates));
   }
 
   // Creates a new tax group with associated tax rates
   async create(data: CreateTaxGroupDto): Promise<TaxGroupDto> {
     const entity = await this.taxGroupsRepository.create({
-      organizationId: data.organizationId,
-      businessUnitId: data.businessUnitId,
       name: data.name,
       isDefault: data.isDefault ?? false,
     });

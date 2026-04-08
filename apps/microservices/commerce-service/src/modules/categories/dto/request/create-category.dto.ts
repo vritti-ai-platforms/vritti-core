@@ -1,12 +1,6 @@
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateCategoryDto {
-  @IsUUID()
-  organizationId: string;
-
-  @IsUUID()
-  businessUnitId: string;
-
   @IsString()
   @IsNotEmpty()
   name: string;

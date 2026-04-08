@@ -16,10 +16,9 @@ export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modif
     super(database, modifierGroups);
   }
 
-  // Returns all modifier groups for a business unit ordered by sortOrder
-  async findByBu(buId: string): Promise<ModifierGroup[]> {
+  // Returns all modifier groups ordered by sortOrder (RLS scopes to org + BU)
+  async findAll(): Promise<ModifierGroup[]> {
     return this.model.findMany({
-      where: { businessUnitId: buId },
       orderBy: { sortOrder: 'asc' },
     });
   }

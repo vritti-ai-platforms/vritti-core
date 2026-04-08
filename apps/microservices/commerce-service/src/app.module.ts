@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema/relations';
 
 import './db/schema.registry';
 
 import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk';
+import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ItemsModule } from './modules/items/items.module';
@@ -43,6 +45,12 @@ import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
     ItemsModule,
     ModifierGroupsModule,
     TaxGroupsModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RlsInterceptor,
+    },
   ],
 })
 export class AppModule {}

@@ -2,10 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateItemDto {
-  @ApiProperty({ description: 'Business unit ID this item belongs to' })
-  @IsUUID()
-  businessUnitId: string;
-
   @ApiPropertyOptional({ description: 'Category ID' })
   @IsOptional()
   @IsUUID()

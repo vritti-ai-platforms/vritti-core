@@ -7,7 +7,7 @@ import {
   type SearchState,
   type SortCondition,
 } from '@vritti/api-sdk';
-import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type ItemOptionValue, items } from '@/db/schema';
 import type { CreateItemDto } from '@/modules/items/dto/request/create-item.dto';
 import { ItemDto } from '../dto/entity/item.dto';
@@ -32,9 +32,8 @@ export class ItemsService {
 
   constructor(private readonly itemsRepository: ItemsRepository) {}
 
-  // Returns paginated, filtered, and sorted items for the data table
+  // Returns paginated, filtered, and sorted items (RLS scopes to org + BU ancestors)
   async findForTable(params: {
-    businessUnitId: string;
     filters: FilterCondition[];
     sort: SortCondition[];
     search: SearchState | null;
@@ -42,7 +41,7 @@ export class ItemsService {
   }): Promise<{ result: ItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(params.filters, ItemsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(params.search, ItemsService.FIELD_MAP);
-    const where = and(eq(items.businessUnitId, params.businessUnitId), filterWhere, searchWhere);
+    const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(params.sort, ItemsService.FIELD_MAP);
 
     const { rows, total } = await this.itemsRepository.findForTable({
@@ -52,15 +51,13 @@ export class ItemsService {
       offset: params.pagination.offset,
     });
 
-    this.logger.log(`Fetched items table for BU ${params.businessUnitId} (${total} results)`);
     return { result: rows.map((row) => ItemDto.from(row, row.categoryName)), count: total };
   }
 
   // Creates a new catalog item, auto-generating code if not provided
   async create(data: CreateItemDto): Promise<ItemDto> {
-    const code = data.code || (await this.itemsRepository.generateCode(data.businessUnitId));
+    const code = data.code || (await this.itemsRepository.generateCode());
     const entity = await this.itemsRepository.create({
-      businessUnitId: data.businessUnitId,
       categoryId: data.categoryId ?? null,
       type: data.type,
       code,

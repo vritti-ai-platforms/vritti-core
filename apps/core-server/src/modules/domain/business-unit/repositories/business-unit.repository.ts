@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
-import { eq, like, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type BusinessUnit, businessUnits } from '@/db/schema';
 
 @Injectable()
@@ -24,13 +24,31 @@ export class BusinessUnitRepository extends PrimaryBaseRepository<typeof busines
     });
   }
 
-  // Finds all descendants of a business unit using path prefix matching
+  // Finds all descendants of a business unit using ltree descendant-of operator
   async findSubtree(path: string): Promise<BusinessUnit[]> {
     const rows = await this.db
       .select()
       .from(businessUnits)
-      .where(like(businessUnits.path, `${path}%`));
+      .where(sql`${businessUnits.path} <@ ${path}::ltree`);
     return rows as BusinessUnit[];
+  }
+
+  // Finds all ancestor IDs of a business unit using ltree ancestor-of operator
+  async findAncestors(path: string): Promise<string[]> {
+    const result = await this.db
+      .select({ id: businessUnits.id })
+      .from(businessUnits)
+      .where(sql`${businessUnits.path} @> ${path}::ltree`);
+    return result.map((r) => r.id);
+  }
+
+  // Finds all descendant IDs of a business unit using ltree descendant-of operator
+  async findDescendants(path: string): Promise<string[]> {
+    const result = await this.db
+      .select({ id: businessUnits.id })
+      .from(businessUnits)
+      .where(sql`${businessUnits.path} <@ ${path}::ltree`);
+    return result.map((r) => r.id);
   }
 
   // Counts direct children of a parent business unit

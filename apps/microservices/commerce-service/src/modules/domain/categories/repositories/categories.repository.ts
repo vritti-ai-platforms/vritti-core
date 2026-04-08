@@ -8,10 +8,9 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
     super(database, categories);
   }
 
-  // Returns all categories for a specific organization and business unit, ordered by sortOrder
-  async findByBu(orgId: string, buId: string): Promise<Category[]> {
+  // Returns all categories ordered by sortOrder (RLS scopes to org + BU)
+  async findAll(): Promise<Category[]> {
     return this.model.findMany({
-      where: { organizationId: orgId, businessUnitId: buId },
       orderBy: { sortOrder: 'asc' },
     });
   }

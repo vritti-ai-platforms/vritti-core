@@ -2,9 +2,6 @@ import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, I
 import type { CatalogItemType } from '@/db/schema';
 
 export class CreateItemDto {
-  @IsUUID()
-  businessUnitId: string;
-
   @IsOptional()
   @IsUUID()
   categoryId?: string;

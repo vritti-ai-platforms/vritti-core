@@ -1,4 +1,5 @@
-import { boolean, decimal, index, integer, jsonb, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, decimal, index, integer, jsonb, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { catalogItemTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 
@@ -6,7 +7,7 @@ export const items = coreSchema.table(
   'items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    businessUnitId: uuid('business_unit_id').notNull(),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     categoryId: uuid('category_id'),
     type: catalogItemTypeEnum('type').notNull(),
     code: varchar('code', { length: 100 }).notNull(),
@@ -28,6 +29,22 @@ export const items = coreSchema.table(
     unique('uq_items_bu_code').on(table.businessUnitId, table.code),
     index('idx_items_bu').on(table.businessUnitId),
     index('idx_items_category').on(table.categoryId),
+    pgPolicy('bu_ancestor_read', {
+      for: 'select',
+      using: sql`business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])`,
+    }),
+    pgPolicy('bu_write', {
+      for: 'insert',
+      withCheck: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+    }),
+    pgPolicy('bu_update', {
+      for: 'update',
+      using: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+    }),
+    pgPolicy('bu_delete', {
+      for: 'delete',
+      using: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+    }),
   ],
 );
 

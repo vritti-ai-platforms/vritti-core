@@ -23,7 +23,7 @@ export class BusinessUnitDto {
   @ApiProperty({ example: 0 })
   depth: number;
 
-  @ApiPropertyOptional({ example: '/root-id/child-id', nullable: true })
+  @ApiPropertyOptional({ example: 'a1b2c3d4_e5f6_7890_abcd_ef1234567890.f1e2d3c4_b5a6_0987_dcba_fe9876543210', nullable: true })
   path: string | null;
 
   @ApiProperty({ example: true })

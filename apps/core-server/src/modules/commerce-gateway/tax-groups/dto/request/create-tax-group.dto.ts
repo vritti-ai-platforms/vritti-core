@@ -18,10 +18,6 @@ export class CreateTaxRateDto {
 }
 
 export class CreateTaxGroupDto {
-  @ApiProperty({ description: 'Business unit ID this tax group belongs to' })
-  @IsUUID()
-  businessUnitId: string;
-
   @ApiProperty({ description: 'Tax group name', example: 'GST 18%' })
   @IsString()
   @IsNotEmpty()

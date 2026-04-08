@@ -1,4 +1,5 @@
-import { boolean, decimal, index, integer, jsonb, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, decimal, index, integer, jsonb, pgPolicy, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { modifierSelectionTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 
@@ -6,7 +7,7 @@ export const modifierGroups = coreSchema.table(
   'modifier_groups',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    businessUnitId: uuid('business_unit_id').notNull(),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     name: varchar('name', { length: 255 }).notNull(),
     selectionType: modifierSelectionTypeEnum('selection_type').notNull(),
     minSelections: integer('min_selections').notNull().default(0),
@@ -18,6 +19,22 @@ export const modifierGroups = coreSchema.table(
   (table) => [
     unique('uq_modifier_groups_bu_name').on(table.businessUnitId, table.name),
     index('idx_modifier_groups_bu').on(table.businessUnitId),
+    pgPolicy('bu_ancestor_read', {
+      for: 'select',
+      using: sql`business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])`,
+    }),
+    pgPolicy('bu_write', {
+      for: 'insert',
+      withCheck: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+    }),
+    pgPolicy('bu_update', {
+      for: 'update',
+      using: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+    }),
+    pgPolicy('bu_delete', {
+      for: 'delete',
+      using: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+    }),
   ],
 );
 

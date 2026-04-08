@@ -3,10 +3,6 @@ import { Type } from 'class-transformer';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateCategoryDto {
-  @ApiProperty({ description: 'Business unit ID this category belongs to' })
-  @IsUUID()
-  businessUnitId: string;
-
   @ApiProperty({ description: 'Category name' })
   @IsString()
   @IsNotEmpty()

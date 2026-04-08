@@ -11,17 +11,15 @@ export class CategoriesService {
 
   constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
-  // Returns paginated category options for the select component
+  // Returns paginated category options for the select component (RLS scopes results)
   findForSelect(params: {
-    organizationId: string;
-    businessUnitId: string;
     search?: string;
     limit?: number;
     offset?: number;
     values?: string;
     excludeIds?: string;
   }): Promise<SelectQueryResult> {
-    const { organizationId, businessUnitId, search, limit, offset, values, excludeIds } = params;
+    const { search, limit, offset, values, excludeIds } = params;
     return this.categoriesRepository.findForSelect({
       value: 'id',
       label: 'name',
@@ -30,14 +28,13 @@ export class CategoriesService {
       offset,
       values,
       excludeIds,
-      where: { organizationId, businessUnitId },
       orderBy: { name: 'asc' },
     });
   }
 
-  // Returns all categories for a business unit
-  async list(orgId: string, buId: string): Promise<CategoryDto[]> {
-    const entities = await this.categoriesRepository.findByBu(orgId, buId);
+  // Returns all categories (RLS scopes to org + BU ancestors)
+  async list(): Promise<CategoryDto[]> {
+    const entities = await this.categoriesRepository.findAll();
     return entities.map(CategoryDto.from);
   }
 
