@@ -63,10 +63,11 @@ export class AuthController {
     @AccessToken() accessToken: string,
     @Res({ passthrough: true }) reply: FastifyReply,
     @CookieName() cookieName: string,
+    @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
   ): Promise<MessageResponseDto> {
     this.logger.log('POST /api/auth/logout');
     const result = await this.authService.logout(accessToken);
-    reply.clearCookie(cookieName, { path: '/' });
+    reply.clearCookie(cookieName, { path: cookieOptions.path, domain: cookieOptions.domain });
     return result;
   }
 
@@ -79,10 +80,11 @@ export class AuthController {
     @Body() dto: SetPasswordDto,
     @Res({ passthrough: true }) reply: FastifyReply,
     @CookieName() cookieName: string,
+    @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
   ): Promise<MessageResponseDto> {
     this.logger.log(`POST /api/auth/set-password - User: ${userId}`);
     const result = await this.authService.setPassword(dto, userId);
-    reply.clearCookie(cookieName, { path: '/' });
+    reply.clearCookie(cookieName, { path: cookieOptions.path, domain: cookieOptions.domain });
     return result;
   }
 

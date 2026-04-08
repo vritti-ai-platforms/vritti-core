@@ -76,7 +76,7 @@ export class ForgotPasswordController {
   ): Promise<ResetPasswordResponseDto> {
     this.logger.log(`POST /auth/reset-password - User: ${userId}`);
     const { refreshToken, ...response } = await this.passwordResetService.resetPassword(dto.newPassword, userId);
-    reply.clearCookie(cookieName, { path: '/' });
+    reply.clearCookie(cookieName, { path: cookieOptions.path, domain: cookieOptions.domain });
     reply.setCookie(cookieName, refreshToken, cookieOptions);
     return response;
   }
