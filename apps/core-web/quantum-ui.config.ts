@@ -1,4 +1,5 @@
 import { defineConfig } from '@vritti/quantum-ui';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 
 /**
  * quantum-ui configuration for vritti-web-nexus (host app)
@@ -26,6 +27,16 @@ export default defineConfig({
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+    },
+    onRequest: (config) => {
+      // Extract buId from URL path (e.g. /bu-hq~uuid/items → uuid)
+      const buSegment = window.location.pathname.split('/').find((s) => s.startsWith('bu-'));
+      if (buSegment) {
+        const parsed = parseSlug(buSegment.replace(/^bu-/, ''));
+        if (parsed?.id) {
+          config.headers['x-bu-id'] = parsed.id;
+        }
+      }
     },
   },
 
