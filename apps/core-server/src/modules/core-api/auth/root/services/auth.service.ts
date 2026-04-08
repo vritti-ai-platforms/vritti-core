@@ -78,9 +78,15 @@ export class AuthService {
       });
     }
 
+    const org = await this.organizationService.getById(user.organizationId);
+    if (!org) {
+      throw new UnauthorizedException('Organization not found. Please contact support.');
+    }
+
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       user.id,
       sessionType,
+      { organizationId: user.organizationId, subdomain: org.subdomain },
       ipAddress,
     );
 

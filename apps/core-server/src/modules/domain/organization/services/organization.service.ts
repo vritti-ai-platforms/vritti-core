@@ -12,6 +12,12 @@ export class OrganizationService {
 
   constructor(private readonly organizationRepository: OrganizationRepository) {}
 
+  // Finds an organization by ID, returns DTO or null
+  async getById(id: string): Promise<OrganizationDto | null> {
+    const org = await this.organizationRepository.findById(id);
+    return org ? OrganizationDto.from(org) : null;
+  }
+
   // Finds an organization by subdomain, returns DTO or null
   async getBySubdomain(subdomain: string): Promise<OrganizationDto | null> {
     const org = await this.organizationRepository.findBySubdomain(subdomain);

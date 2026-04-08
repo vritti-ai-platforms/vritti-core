@@ -91,6 +91,7 @@ export class PasswordResetService {
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       user.id,
       SessionTypeValues.RESET,
+      {},
     );
 
     this.logger.log(`Created RESET session for user: ${user.id}`);
@@ -211,6 +212,7 @@ export class PasswordResetService {
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       userId,
       SessionTypeValues.NEXUS,
+      {},
     );
 
     this.logger.log(`Password reset completed for user: ${userId}`);

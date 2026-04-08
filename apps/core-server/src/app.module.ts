@@ -110,15 +110,25 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           refreshCookieDomain: config.get('REFRESH_COOKIE_DOMAIN'),
         },
         guard: {
-          onAuthenticated: (request, sessionInfo) => {
-            const host = request.headers.host ?? '';
-            const subdomain = host.split('.')[0];
-            if (!subdomain) {
+          onAuthenticated: (requestService, sessionInfo) => {
+            // Extract subdomain from request host
+            const hostname = requestService.getHostname();
+            const requestSubdomain = hostname.split('.')[0];
+            if (!requestSubdomain) {
               throw new UnauthorizedException('Invalid request host');
             }
-            sessionInfo.subdomain = subdomain;
 
-            const buId = request.headers['x-bu-id'];
+            // Validate request subdomain matches the token's subdomain (skip for old tokens without subdomain)
+            if (sessionInfo.subdomain !== requestSubdomain) {
+              throw new UnauthorizedException('Subdomain mismatch — token does not belong to this organization');
+            }
+
+            // Set subdomain on sessionInfo
+            sessionInfo.subdomain = requestSubdomain;
+
+            // Extract BU ID from header
+            const buHeader = requestService.getHeader('x-bu-id');
+            const buId = Array.isArray(buHeader) ? buHeader[0] : buHeader;
             if (buId) {
               sessionInfo.buId = buId;
             }

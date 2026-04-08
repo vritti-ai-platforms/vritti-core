@@ -69,7 +69,7 @@ export class UserService {
     const org = await this.organizationRepository.findById(dto.orgId);
     if (!org) throw new NotFoundException('Organization not found.');
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
-    const { accessToken } = await this.sessionService.createSession(user.id, SessionTypeValues.SET_PASSWORD);
+    const { accessToken } = await this.sessionService.createSession(user.id, SessionTypeValues.SET_PASSWORD, {});
     const inviteUrl = `https://${org.subdomain}.${baseDomain}/accept-invite?token=${accessToken}`;
     await this.emailService.sendInviteEmail({ to: user.email, name: user.fullName, inviteUrl });
 
@@ -194,7 +194,7 @@ export class UserService {
     if (!org) throw new NotFoundException('Organization not found.');
 
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
-    const { accessToken } = await this.sessionService.createSession(user.id, 'SET_PASSWORD');
+    const { accessToken } = await this.sessionService.createSession(user.id, 'SET_PASSWORD', {});
     const inviteUrl = `https://${org.subdomain}.${baseDomain}/accept-invite?token=${accessToken}`;
     await this.emailService.sendInviteEmail({ to: user.email, name: user.fullName, inviteUrl });
 

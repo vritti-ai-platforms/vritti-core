@@ -30,6 +30,7 @@ export class SessionService {
   async createSession(
     userId: string,
     sessionType: SessionType,
+    metadata?: Record<string, unknown>,
     ipAddress?: string,
     userAgent?: string,
   ): Promise<{
@@ -39,8 +40,9 @@ export class SessionService {
     expiresIn: number;
   }> {
     const sessionId = randomUUID();
-    const refreshToken = this.tokenService.generateRefreshToken(userId, sessionId, sessionType);
-    const accessToken = this.tokenService.generateAccessToken(userId, sessionId, sessionType, refreshToken);
+    const sessionInfo = { userId, sessionId, sessionType, ...metadata };
+    const refreshToken = this.tokenService.generateRefreshToken(sessionInfo);
+    const accessToken = this.tokenService.generateAccessToken(sessionInfo, refreshToken);
     const expiresAt = this.tokenService.getExpiryTime(TokenType.REFRESH);
 
     const session = await this.sessionRepository.create({
@@ -49,6 +51,7 @@ export class SessionService {
       type: sessionType,
       accessTokenHash: hashToken(accessToken),
       refreshTokenHash: hashToken(refreshToken),
+      metadata: metadata ?? {},
       ipAddress,
       userAgent,
       expiresAt,
@@ -68,13 +71,9 @@ export class SessionService {
     expiresIn: number;
   }> {
     const session = await this.validateRefreshToken(refreshToken);
-    const newRefreshToken = this.tokenService.generateRefreshToken(session.userId, session.id, session.type);
-    const newAccessToken = this.tokenService.generateAccessToken(
-      session.userId,
-      session.id,
-      session.type,
-      newRefreshToken,
-    );
+    const sessionInfo = { userId: session.userId, sessionId: session.id, sessionType: session.type, ...(session.metadata as Record<string, unknown>) };
+    const newRefreshToken = this.tokenService.generateRefreshToken(sessionInfo);
+    const newAccessToken = this.tokenService.generateAccessToken(sessionInfo, newRefreshToken);
     const expiresAt = this.tokenService.getExpiryTime(TokenType.REFRESH);
 
     await this.sessionRepository.rotateTokens(
@@ -100,12 +99,8 @@ export class SessionService {
     sessionId: string;
   }> {
     const session = await this.validateRefreshToken(refreshToken);
-    const newAccessToken = this.tokenService.generateAccessToken(
-      session.userId,
-      session.id,
-      session.type,
-      refreshToken as string,
-    );
+    const sessionInfo = { userId: session.userId, sessionId: session.id, sessionType: session.type, ...(session.metadata as Record<string, unknown>) };
+    const newAccessToken = this.tokenService.generateAccessToken(sessionInfo, refreshToken as string);
 
     await this.sessionRepository.updateAccessTokenHash(session.id, hashToken(newAccessToken));
 
