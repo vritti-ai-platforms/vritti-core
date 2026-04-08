@@ -1,8 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
-  AUTH_CONFIG,
-  type AuthConfig,
   hashToken,
   TokenService,
   TokenType,
@@ -18,13 +16,7 @@ export class SessionService {
   constructor(
     private readonly sessionRepository: SessionRepository,
     private readonly tokenService: TokenService,
-    @Inject(AUTH_CONFIG) private readonly authConfig: AuthConfig,
   ) {}
-
-  // Returns the configured refresh cookie name
-  getRefreshCookieName(): string {
-    return this.authConfig.cookie.refreshCookieName;
-  }
 
   // Creates a session with both access and refresh tokens for the given session type
   async createSession(
