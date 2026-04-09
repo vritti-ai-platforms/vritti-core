@@ -155,6 +155,7 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     UserPermissionsDomainModule,
     // NATS client — gateway mode, resolves BU context from sessionInfo
     NatsClientModule.forRoot({
+      imports: [BusinessUnitDomainModule],
       inject: [ConfigService, BusinessUnitRepository],
       useFactory: (config: ConfigService, buRepo: BusinessUnitRepository) => ({
         natsUrl: config.get<string>('NATS_URL'),

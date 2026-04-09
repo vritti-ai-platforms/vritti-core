@@ -2327,9 +2327,7 @@
             "required": true,
             "in": "query",
             "description": "Business unit ID",
-            "schema": {
-              "type": "string"
-            }
+            "schema": {}
           }
         ],
         "responses": {
@@ -2475,14 +2473,6 @@
         "operationId": "CategoriesGatewayController_findById",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -2523,14 +2513,6 @@
       "patch": {
         "operationId": "CategoriesGatewayController_update",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -2583,14 +2565,6 @@
         "operationId": "CategoriesGatewayController_delete",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -2639,9 +2613,7 @@
             "required": true,
             "in": "query",
             "description": "Business unit ID",
-            "schema": {
-              "type": "string"
-            }
+            "schema": {}
           }
         ],
         "responses": {
@@ -2720,14 +2692,6 @@
         "operationId": "ItemsGatewayController_findById",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -2768,14 +2732,6 @@
       "patch": {
         "operationId": "ItemsGatewayController_update",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -2828,14 +2784,6 @@
         "operationId": "ItemsGatewayController_delete",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -2879,14 +2827,6 @@
         "description": "Replaces all options for an item with the provided set.",
         "operationId": "ItemsGatewayController_saveOptions",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -2942,14 +2882,6 @@
         "operationId": "ItemsGatewayController_generateVariants",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -2995,14 +2927,6 @@
       "get": {
         "operationId": "ItemsGatewayController_listVariants",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -3050,9 +2974,10 @@
         "operationId": "ItemsGatewayController_deleteVariant",
         "parameters": [
           {
-            "name": "buId",
+            "name": "variantId",
             "required": true,
-            "in": "query",
+            "in": "path",
+            "description": "Variant ID",
             "schema": {
               "type": "string"
             }
@@ -3062,18 +2987,7 @@
             "required": true,
             "in": "path",
             "description": "Item ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "variantId",
-            "required": true,
-            "in": "path",
-            "description": "Variant ID",
-            "schema": {
-              "type": "string"
-            }
+            "schema": {}
           }
         ],
         "responses": {
@@ -3107,14 +3021,6 @@
       "patch": {
         "operationId": "ItemsGatewayController_updateVariant",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -3178,14 +3084,6 @@
         "operationId": "ItemsGatewayController_listModifiers",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -3230,14 +3128,6 @@
         "description": "Replaces all modifier group assignments for the item.",
         "operationId": "ItemsGatewayController_saveModifiers",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -3300,9 +3190,7 @@
             "required": true,
             "in": "query",
             "description": "Business unit ID",
-            "schema": {
-              "type": "string"
-            }
+            "schema": {}
           }
         ],
         "responses": {
@@ -3382,14 +3270,6 @@
         "operationId": "ModifierGroupsGatewayController_get",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -3430,14 +3310,6 @@
       "patch": {
         "operationId": "ModifierGroupsGatewayController_update",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -3490,14 +3362,6 @@
         "operationId": "ModifierGroupsGatewayController_delete",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -3541,14 +3405,6 @@
         "description": "Adds a new option to a modifier group.",
         "operationId": "ModifierGroupsGatewayController_createOption",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -3602,14 +3458,6 @@
       "patch": {
         "operationId": "ModifierGroupsGatewayController_updateOption",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -3671,14 +3519,6 @@
         "operationId": "ModifierGroupsGatewayController_deleteOption",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -3736,9 +3576,7 @@
             "required": true,
             "in": "query",
             "description": "Business unit ID",
-            "schema": {
-              "type": "string"
-            }
+            "schema": {}
           }
         ],
         "responses": {
@@ -3817,14 +3655,6 @@
         "operationId": "TaxGroupsGatewayController_findById",
         "parameters": [
           {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "id",
             "required": true,
             "in": "path",
@@ -3865,14 +3695,6 @@
       "patch": {
         "operationId": "TaxGroupsGatewayController_update",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -3924,14 +3746,6 @@
       "delete": {
         "operationId": "TaxGroupsGatewayController_delete",
         "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "id",
             "required": true,
@@ -5437,10 +5251,6 @@
       "CreateCategoryDto": {
         "type": "object",
         "properties": {
-          "businessUnitId": {
-            "type": "string",
-            "description": "Business unit ID this category belongs to"
-          },
           "name": {
             "type": "string",
             "description": "Category name"
@@ -5461,7 +5271,6 @@
           }
         },
         "required": [
-          "businessUnitId",
           "name"
         ]
       },
@@ -5597,10 +5406,6 @@
       "CreateItemDto": {
         "type": "object",
         "properties": {
-          "businessUnitId": {
-            "type": "string",
-            "description": "Business unit ID this item belongs to"
-          },
           "categoryId": {
             "type": "string",
             "description": "Category ID"
@@ -5646,7 +5451,6 @@
           }
         },
         "required": [
-          "businessUnitId",
           "type",
           "name",
           "basePrice"
@@ -6179,10 +5983,6 @@
       "CreateModifierGroupDto": {
         "type": "object",
         "properties": {
-          "businessUnitId": {
-            "type": "string",
-            "description": "Business unit ID this modifier group belongs to"
-          },
           "name": {
             "type": "string",
             "description": "Modifier group name"
@@ -6216,7 +6016,6 @@
           }
         },
         "required": [
-          "businessUnitId",
           "name",
           "selectionType"
         ]
@@ -6422,10 +6221,6 @@
       "CreateTaxGroupDto": {
         "type": "object",
         "properties": {
-          "businessUnitId": {
-            "type": "string",
-            "description": "Business unit ID this tax group belongs to"
-          },
           "name": {
             "type": "string",
             "description": "Tax group name",
@@ -6445,7 +6240,6 @@
           }
         },
         "required": [
-          "businessUnitId",
           "name"
         ]
       },

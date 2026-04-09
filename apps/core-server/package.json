@@ -61,7 +61,6 @@
     "drizzle-orm": "^1.0.0-beta.3-36e9b9e",
     "fastify": "5.7.4",
     "fastify-raw-body": "^5.0.0",
-    "nats": "^2.29.3",
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
