@@ -2,7 +2,7 @@ import type { CategoryDto } from '@domain/categories/dto/entity/category.dto';
 import { CategoriesService } from '@domain/categories/services/categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectQueryResult } from '@vritti/api-sdk';
+import { type SelectQueryResult } from '@vritti/api-sdk';
 import type { CreateCategoryDto } from './dto/request/create-category.dto';
 import type { UpdateCategoryDto } from './dto/request/update-category.dto';
 
