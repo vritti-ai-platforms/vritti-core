@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."organizations" ADD COLUMN "feature_catalog" jsonb;

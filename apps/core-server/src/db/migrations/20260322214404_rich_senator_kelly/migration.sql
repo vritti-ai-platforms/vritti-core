@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."org_roles" ALTER COLUMN "features" SET DEFAULT '{}';

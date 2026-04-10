@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."sessions" ADD COLUMN "metadata" jsonb DEFAULT '{}' NOT NULL;
