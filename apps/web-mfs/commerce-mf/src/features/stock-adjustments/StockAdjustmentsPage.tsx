@@ -1,0 +1,135 @@
+import { Badge } from '@vritti/quantum-ui/Badge';
+import { Button } from '@vritti/quantum-ui/Button';
+import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useDialog } from '@vritti/quantum-ui/hooks';
+import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { useQueryClient } from '@tanstack/react-query';
+import { ClipboardMinus, Plus } from 'lucide-react';
+import { useMemo } from 'react';
+import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/useStockAdjustmentsTable';
+import type { StockAdjustmentData, StockAdjustmentType } from '@/schemas/stock-adjustments';
+import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog';
+
+const typeConfig: Record<StockAdjustmentType, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+  WASTE: { label: 'Waste', variant: 'destructive' },
+  DAMAGE: { label: 'Damage', variant: 'destructive' },
+  THEFT: { label: 'Theft', variant: 'destructive' },
+  EXPIRED: { label: 'Expired', variant: 'secondary', className: 'bg-warning/15 text-warning' },
+  CORRECTION: { label: 'Correction', variant: 'outline' },
+  PRODUCTION: { label: 'Production', variant: 'secondary', className: 'bg-success/15 text-success' },
+};
+
+export const StockAdjustmentsPage = () => {
+  const queryClient = useQueryClient();
+  const { data: response, isLoading } = useStockAdjustmentsTable();
+  const addDialog = useDialog();
+
+  const columns = useMemo<ColumnDef<StockAdjustmentData>[]>(
+    () => [
+      {
+        accessorKey: 'inventoryItemName',
+        header: 'Inventory Item',
+        cell: ({ row }) => row.original.inventoryItemName ?? '—',
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'type',
+        header: 'Type',
+        cell: ({ row }) => {
+          const config = typeConfig[row.original.type];
+          return (
+            <Badge variant={config.variant} className={config.className}>
+              {config.label}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: 'quantity',
+        header: 'Quantity',
+        cell: ({ row }) => {
+          const qty = row.original.quantity;
+          const isPositive = qty > 0;
+          return (
+            <span className={`font-mono ${isPositive ? 'text-success' : 'text-destructive'}`}>
+              {isPositive ? '+' : ''}{qty}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: 'reason',
+        header: 'Reason',
+        cell: ({ row }) => row.original.reason ?? '—',
+      },
+      {
+        accessorKey: 'adjustedBy',
+        header: 'Adjusted By',
+        cell: ({ row }) => row.original.adjustedBy ?? '—',
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Date',
+        cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+        enableSorting: true,
+      },
+    ],
+    [],
+  );
+
+  const { table } = useDataTable({
+    columns,
+    slug: 'commerce-stock-adjustments',
+    label: 'stock adjustment',
+    serverState: response,
+    enableRowSelection: false,
+    enableSorting: true,
+    enableMultiSort: false,
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENTS_TABLE_KEY }),
+  });
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Stock Adjustments" description="Record stock corrections, waste, damage, and other adjustments" />
+
+      <DataTable
+        table={table}
+        isLoading={isLoading}
+        searchConfig={{
+          columns: [
+            { id: 'inventoryItemName', label: 'Item' },
+            { id: 'reason', label: 'Reason' },
+          ],
+          searchAll: true,
+        }}
+        toolbarActions={{
+          actions: (
+            <Button size="sm" onClick={addDialog.open}>
+              <Plus className="mr-2 size-4" />
+              Add Adjustment
+            </Button>
+          ),
+        }}
+        emptyStateConfig={{
+          icon: ClipboardMinus,
+          title: 'No stock adjustments',
+          description: 'Record your first stock adjustment to track inventory changes.',
+          action: (
+            <Button onClick={addDialog.open}>
+              <Plus className="mr-2 size-4" />
+              Add Adjustment
+            </Button>
+          ),
+        }}
+      />
+
+      <Dialog
+        handle={addDialog}
+        title="Add Stock Adjustment"
+        description="Record a stock adjustment for an inventory item."
+        content={(close) => <CreateStockAdjustmentDialog onSuccess={close} onCancel={close} />}
+      />
+    </div>
+  );
+};

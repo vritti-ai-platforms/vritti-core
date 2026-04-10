@@ -2855,6 +2855,262 @@
         ]
       }
     },
+    "/commerce-api/conversions/table": {
+      "get": {
+        "operationId": "ConversionsGatewayController_getConversionTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Conversions"
+        ]
+      }
+    },
+    "/commerce-api/conversions": {
+      "post": {
+        "operationId": "ConversionsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Conversions"
+        ]
+      }
+    },
+    "/commerce-api/conversions/{id}": {
+      "get": {
+        "operationId": "ConversionsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Conversions"
+        ]
+      }
+    },
+    "/commerce-api/conversions/{id}/complete": {
+      "post": {
+        "operationId": "ConversionsGatewayController_complete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Conversions"
+        ]
+      }
+    },
+    "/commerce-api/credit-notes": {
+      "post": {
+        "operationId": "CreditNotesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCreditNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Credit Notes"
+        ]
+      }
+    },
+    "/commerce-api/credit-notes/{id}": {
+      "get": {
+        "operationId": "CreditNotesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Credit Notes"
+        ]
+      }
+    },
+    "/commerce-api/credit-notes/{id}/apply": {
+      "post": {
+        "operationId": "CreditNotesGatewayController_apply",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCreditNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Credit Notes"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGoodsReceiptDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/by-po/{poId}": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_findByPoId",
+        "parameters": [
+          {
+            "name": "poId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/inventory-items/table": {
       "get": {
         "operationId": "InventoryItemsGatewayController_getTable",
@@ -3104,6 +3360,118 @@
         ],
         "tags": [
           "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/invoices/table": {
+      "get": {
+        "operationId": "InvoicesGatewayController_getInvoiceTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Invoices"
+        ]
+      }
+    },
+    "/commerce-api/invoices": {
+      "post": {
+        "operationId": "InvoicesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvoiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Invoices"
+        ]
+      }
+    },
+    "/commerce-api/invoices/{id}": {
+      "get": {
+        "operationId": "InvoicesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Invoices"
+        ]
+      },
+      "patch": {
+        "operationId": "InvoicesGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInvoiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Invoices"
         ]
       }
     },
@@ -4067,6 +4435,767 @@
         "summary": "Delete a modifier option",
         "tags": [
           "Commerce - Modifier Groups"
+        ]
+      }
+    },
+    "/commerce-api/orders/table": {
+      "get": {
+        "operationId": "OrdersGatewayController_getOrderTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders": {
+      "post": {
+        "operationId": "OrdersGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}": {
+      "get": {
+        "operationId": "OrdersGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}/status": {
+      "post": {
+        "operationId": "OrdersGatewayController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/payments": {
+      "post": {
+        "operationId": "PaymentsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Payments"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/table": {
+      "get": {
+        "operationId": "PurchaseOrdersGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders": {
+      "post": {
+        "operationId": "PurchaseOrdersGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePurchaseOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}": {
+      "get": {
+        "operationId": "PurchaseOrdersGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      },
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePurchaseOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      },
+      "delete": {
+        "operationId": "PurchaseOrdersGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}/status": {
+      "post": {
+        "operationId": "PurchaseOrdersGatewayController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/table": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getStockAdjustmentTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments": {
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStockAdjustmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-transfers/table": {
+      "get": {
+        "operationId": "StockTransfersGatewayController_getStockTransferTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Transfers"
+        ]
+      }
+    },
+    "/commerce-api/stock-transfers": {
+      "post": {
+        "operationId": "StockTransfersGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStockTransferDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Transfers"
+        ]
+      }
+    },
+    "/commerce-api/stock-transfers/{id}/status": {
+      "post": {
+        "operationId": "StockTransfersGatewayController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStockTransferStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Transfers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/table": {
+      "get": {
+        "operationId": "SuppliersGatewayController_getSupplierTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/select": {
+      "get": {
+        "operationId": "SuppliersGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers": {
+      "post": {
+        "operationId": "SuppliersGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/{id}": {
+      "get": {
+        "operationId": "SuppliersGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      },
+      "patch": {
+        "operationId": "SuppliersGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      },
+      "delete": {
+        "operationId": "SuppliersGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/{id}/items": {
+      "post": {
+        "operationId": "SuppliersGatewayController_linkItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkSupplierItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/items/{itemId}": {
+      "delete": {
+        "operationId": "SuppliersGatewayController_unlinkItem",
+        "parameters": [
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
         ]
       }
     },
@@ -6137,6 +7266,218 @@
           }
         }
       },
+      "ConversionLineDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity",
+            "example": 10
+          },
+          "wastageQuantity": {
+            "type": "number",
+            "description": "Wastage quantity",
+            "example": 0.5
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "quantity"
+        ]
+      },
+      "CreateConversionDto": {
+        "type": "object",
+        "properties": {
+          "bomId": {
+            "type": "string",
+            "description": "BOM template ID"
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial status",
+            "example": "DRAFT"
+          },
+          "producedBy": {
+            "type": "string",
+            "description": "User ID of the person performing the conversion"
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "ISO timestamp when conversion started"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          },
+          "inputs": {
+            "description": "Input materials",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConversionLineDto"
+            }
+          },
+          "outputs": {
+            "description": "Output products",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConversionLineDto"
+            }
+          }
+        },
+        "required": [
+          "inputs",
+          "outputs"
+        ]
+      },
+      "CreateCreditNoteDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Credit note type",
+            "enum": [
+              "PAYABLE",
+              "RECEIVABLE"
+            ],
+            "example": "PAYABLE"
+          },
+          "partyType": {
+            "type": "string",
+            "description": "Party type",
+            "enum": [
+              "SUPPLIER",
+              "CUSTOMER",
+              "AGGREGATOR"
+            ],
+            "example": "SUPPLIER"
+          },
+          "partyId": {
+            "type": "string",
+            "description": "Party entity ID"
+          },
+          "partyName": {
+            "type": "string",
+            "description": "Party display name",
+            "example": "Acme Foods Pvt Ltd"
+          },
+          "creditNoteNumber": {
+            "type": "string",
+            "description": "Unique credit note number",
+            "example": "CN-2026-001"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Credit note amount",
+            "example": 2500
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for credit note"
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial status override",
+            "enum": [
+              "DRAFT",
+              "ISSUED"
+            ]
+          },
+          "issuedBy": {
+            "type": "string",
+            "description": "User ID of issuer"
+          }
+        },
+        "required": [
+          "type",
+          "partyType",
+          "partyName",
+          "creditNoteNumber",
+          "amount"
+        ]
+      },
+      "ApplyCreditNoteDto": {
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "description": "Invoice to apply credit note against"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount to apply",
+            "example": 1000
+          }
+        },
+        "required": [
+          "invoiceId",
+          "amount"
+        ]
+      },
+      "CreateGoodsReceiptItemDto": {
+        "type": "object",
+        "properties": {
+          "purchaseOrderItemId": {
+            "type": "string",
+            "description": "Purchase order item ID"
+          },
+          "acceptedQuantity": {
+            "type": "number",
+            "description": "Accepted quantity",
+            "example": 90
+          },
+          "rejectedQuantity": {
+            "type": "number",
+            "description": "Rejected quantity",
+            "example": 10
+          },
+          "rejectionReason": {
+            "type": "string",
+            "description": "Reason for rejection"
+          }
+        },
+        "required": [
+          "purchaseOrderItemId",
+          "acceptedQuantity"
+        ]
+      },
+      "CreateGoodsReceiptDto": {
+        "type": "object",
+        "properties": {
+          "purchaseOrderId": {
+            "type": "string",
+            "description": "Purchase order ID"
+          },
+          "receivedBy": {
+            "type": "string",
+            "description": "User ID of the person who received the goods"
+          },
+          "receivedDate": {
+            "type": "string",
+            "description": "Date the goods were received (ISO string)",
+            "example": "2026-04-10"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes"
+          },
+          "items": {
+            "description": "Receipt line items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateGoodsReceiptItemDto"
+            }
+          }
+        },
+        "required": [
+          "purchaseOrderId",
+          "receivedDate",
+          "items"
+        ]
+      },
       "CreateInventoryItemDto": {
         "type": "object",
         "properties": {
@@ -6209,6 +7550,198 @@
           "requiresShipping": {
             "type": "boolean",
             "description": "Requires shipping"
+          }
+        }
+      },
+      "CreateInvoiceItemDto": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Line item description",
+            "example": "Basmati Rice 25kg"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity",
+            "example": 10
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "Unit price",
+            "example": 1200
+          },
+          "taxAmount": {
+            "type": "number",
+            "description": "Tax amount for this item",
+            "example": 216
+          },
+          "referenceItemId": {
+            "type": "string",
+            "description": "Reference to source item (e.g. PO item)"
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unitPrice"
+        ]
+      },
+      "CreateInvoiceDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Invoice type",
+            "enum": [
+              "PAYABLE",
+              "RECEIVABLE"
+            ],
+            "example": "PAYABLE"
+          },
+          "invoiceNumber": {
+            "type": "string",
+            "description": "Unique invoice number",
+            "example": "INV-2026-001"
+          },
+          "partyType": {
+            "type": "string",
+            "description": "Party type",
+            "enum": [
+              "SUPPLIER",
+              "CUSTOMER",
+              "AGGREGATOR"
+            ],
+            "example": "SUPPLIER"
+          },
+          "partyId": {
+            "type": "string",
+            "description": "Party entity ID"
+          },
+          "partyName": {
+            "type": "string",
+            "description": "Party display name",
+            "example": "Acme Foods Pvt Ltd"
+          },
+          "referenceType": {
+            "type": "string",
+            "description": "Source reference type",
+            "example": "PURCHASE_ORDER"
+          },
+          "referenceId": {
+            "type": "string",
+            "description": "Source reference entity ID"
+          },
+          "discountAmount": {
+            "type": "number",
+            "description": "Discount amount",
+            "example": 500
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial status override",
+            "enum": [
+              "DRAFT",
+              "ISSUED"
+            ]
+          },
+          "paymentTerms": {
+            "type": "string",
+            "description": "Payment terms",
+            "example": "Net 30"
+          },
+          "issuedDate": {
+            "type": "string",
+            "description": "Issue date (YYYY-MM-DD)",
+            "example": "2026-04-10"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Due date (YYYY-MM-DD)",
+            "example": "2026-05-10"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          },
+          "items": {
+            "description": "Invoice line items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateInvoiceItemDto"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "invoiceNumber",
+          "partyType",
+          "partyName",
+          "items"
+        ]
+      },
+      "UpdateInvoiceDto": {
+        "type": "object",
+        "properties": {
+          "partyType": {
+            "type": "string",
+            "description": "Updated party type",
+            "enum": [
+              "SUPPLIER",
+              "CUSTOMER",
+              "AGGREGATOR"
+            ]
+          },
+          "partyId": {
+            "type": "string",
+            "description": "Updated party entity ID"
+          },
+          "partyName": {
+            "type": "string",
+            "description": "Updated party display name"
+          },
+          "referenceType": {
+            "type": "string",
+            "description": "Updated reference type"
+          },
+          "referenceId": {
+            "type": "string",
+            "description": "Updated reference ID"
+          },
+          "discountAmount": {
+            "type": "number",
+            "description": "Updated discount amount"
+          },
+          "status": {
+            "type": "string",
+            "description": "Updated status",
+            "enum": [
+              "DRAFT",
+              "ISSUED"
+            ]
+          },
+          "paymentTerms": {
+            "type": "string",
+            "description": "Updated payment terms"
+          },
+          "issuedDate": {
+            "type": "string",
+            "description": "Updated issue date (YYYY-MM-DD)"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Updated due date (YYYY-MM-DD)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Updated notes"
+          },
+          "items": {
+            "description": "Replacement line items (replaces all existing)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateInvoiceItemDto"
+            }
           }
         }
       },
@@ -7007,6 +8540,539 @@
             "description": "Display sort order"
           }
         }
+      },
+      "CreateOrderItemModifierDto": {
+        "type": "object",
+        "properties": {
+          "modifierGroupId": {
+            "type": "string",
+            "description": "Modifier group ID"
+          },
+          "modifierOptionId": {
+            "type": "string",
+            "description": "Modifier option ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Modifier display name",
+            "example": "Extra Cheese"
+          },
+          "additionalPrice": {
+            "type": "number",
+            "description": "Additional price for this modifier",
+            "example": 30
+          }
+        },
+        "required": [
+          "modifierGroupId",
+          "modifierOptionId",
+          "name",
+          "additionalPrice"
+        ]
+      },
+      "CreateOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "string",
+            "description": "Item variant ID"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity ordered",
+            "example": 2
+          },
+          "notes": {
+            "type": "string",
+            "description": "Special instructions for this item"
+          },
+          "modifiers": {
+            "description": "Modifier selections",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemModifierDto"
+            }
+          }
+        },
+        "required": [
+          "variantId",
+          "quantity"
+        ]
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Order type",
+            "example": "DINE_IN",
+            "enum": [
+              "DINE_IN",
+              "TAKEAWAY",
+              "DELIVERY"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "description": "Order channel",
+            "example": "WALK_IN",
+            "enum": [
+              "ONLINE",
+              "WALK_IN"
+            ]
+          },
+          "customerName": {
+            "type": "string",
+            "description": "Customer name"
+          },
+          "customerPhone": {
+            "type": "string",
+            "description": "Customer phone number"
+          },
+          "deliveryAddress": {
+            "type": "string",
+            "description": "Delivery address (required for DELIVERY type)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Order notes"
+          },
+          "serviceCharge": {
+            "type": "number",
+            "description": "Service charge amount",
+            "example": 50
+          },
+          "deliveryCharge": {
+            "type": "number",
+            "description": "Delivery charge amount",
+            "example": 40
+          },
+          "discountAmount": {
+            "type": "number",
+            "description": "Discount amount",
+            "example": 100
+          },
+          "items": {
+            "description": "Order line items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemDto"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "channel",
+          "items"
+        ]
+      },
+      "UpdateOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Target order status",
+            "example": "ACCEPTED",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "PREPARING",
+              "READY",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "cancellationReason": {
+            "type": "string",
+            "description": "Reason for cancellation (required when cancelling)"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CreatePaymentDto": {
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "description": "Invoice to record payment against"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Payment amount",
+            "example": 5000
+          },
+          "method": {
+            "type": "string",
+            "description": "Payment method",
+            "enum": [
+              "CASH",
+              "CARD",
+              "UPI",
+              "BANK_TRANSFER",
+              "WALLET",
+              "ONLINE"
+            ],
+            "example": "BANK_TRANSFER"
+          },
+          "reference": {
+            "type": "string",
+            "description": "Payment reference number",
+            "example": "TXN-123456"
+          },
+          "status": {
+            "type": "string",
+            "description": "Payment status",
+            "enum": [
+              "COMPLETED",
+              "FAILED",
+              "REFUNDED"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "required": [
+          "invoiceId",
+          "amount",
+          "method"
+        ]
+      },
+      "CreatePurchaseOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "orderedQuantity": {
+            "type": "number",
+            "description": "Ordered quantity",
+            "example": 100
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "orderedQuantity"
+        ]
+      },
+      "CreatePurchaseOrderDto": {
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "string",
+            "description": "Supplier ID"
+          },
+          "poNumber": {
+            "type": "string",
+            "description": "PO number (auto-generated if omitted)"
+          },
+          "orderDate": {
+            "type": "string",
+            "description": "Order date (ISO string)",
+            "example": "2026-04-10"
+          },
+          "expectedDate": {
+            "type": "string",
+            "description": "Expected delivery date (ISO string)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes"
+          },
+          "items": {
+            "description": "Line items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreatePurchaseOrderItemDto"
+            }
+          }
+        },
+        "required": [
+          "supplierId",
+          "orderDate"
+        ]
+      },
+      "UpdatePurchaseOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "orderedQuantity": {
+            "type": "number",
+            "description": "Ordered quantity",
+            "example": 100
+          }
+        }
+      },
+      "UpdatePurchaseOrderDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "PO status",
+            "enum": [
+              "DRAFT",
+              "SENT",
+              "PARTIALLY_RECEIVED",
+              "RECEIVED",
+              "CANCELLED"
+            ]
+          },
+          "orderDate": {
+            "type": "string",
+            "description": "Order date (ISO string)"
+          },
+          "expectedDate": {
+            "type": "string",
+            "description": "Expected delivery date (ISO string)"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes"
+          },
+          "totalAmount": {
+            "type": "object",
+            "description": "Total amount (null to clear)",
+            "nullable": true
+          },
+          "items": {
+            "description": "Replace all line items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdatePurchaseOrderItemDto"
+            }
+          }
+        }
+      },
+      "CreateStockAdjustmentDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "type": {
+            "type": "string",
+            "description": "Adjustment type",
+            "example": "WASTE"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Adjustment quantity (positive or negative)",
+            "example": -5
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for adjustment"
+          },
+          "adjustedBy": {
+            "type": "string",
+            "description": "User ID who performed the adjustment"
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "type",
+          "quantity"
+        ]
+      },
+      "CreateStockTransferDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "fromBuId": {
+            "type": "string",
+            "description": "Source business unit ID"
+          },
+          "toBuId": {
+            "type": "string",
+            "description": "Destination business unit ID"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Transfer quantity",
+            "example": 50
+          },
+          "requestedBy": {
+            "type": "string",
+            "description": "User ID who requested the transfer"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "fromBuId",
+          "toBuId",
+          "quantity"
+        ]
+      },
+      "UpdateStockTransferStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "New transfer status",
+            "example": "IN_TRANSIT"
+          },
+          "receivedBy": {
+            "type": "string",
+            "description": "User ID who received the transfer"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CreateSupplierDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Supplier name",
+            "example": "Acme Foods Pvt Ltd"
+          },
+          "code": {
+            "type": "string",
+            "description": "Unique supplier code",
+            "example": "SUP-001"
+          },
+          "contactName": {
+            "type": "string",
+            "description": "Primary contact person name"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address"
+          },
+          "address": {
+            "type": "string",
+            "description": "Mailing address"
+          },
+          "gstin": {
+            "type": "string",
+            "description": "GST identification number",
+            "example": "22AAAAA0000A1Z5"
+          },
+          "paymentTerms": {
+            "type": "string",
+            "description": "Payment terms",
+            "example": "Net 30"
+          },
+          "leadTimeDays": {
+            "type": "number",
+            "description": "Default lead time in days",
+            "example": 7
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "required": [
+          "name",
+          "code"
+        ]
+      },
+      "UpdateSupplierDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Updated supplier name"
+          },
+          "code": {
+            "type": "string",
+            "description": "Updated supplier code"
+          },
+          "contactName": {
+            "type": "string",
+            "description": "Updated contact person name"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Updated phone number"
+          },
+          "email": {
+            "type": "string",
+            "description": "Updated email address"
+          },
+          "address": {
+            "type": "string",
+            "description": "Updated mailing address"
+          },
+          "gstin": {
+            "type": "string",
+            "description": "Updated GSTIN"
+          },
+          "paymentTerms": {
+            "type": "string",
+            "description": "Updated payment terms"
+          },
+          "leadTimeDays": {
+            "type": "number",
+            "description": "Updated lead time in days"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Updated notes"
+          }
+        }
+      },
+      "LinkSupplierItemDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID to link"
+          },
+          "supplierCode": {
+            "type": "string",
+            "description": "Supplier-specific item code"
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "Unit price from this supplier",
+            "example": 12.5
+          },
+          "uomId": {
+            "type": "string",
+            "description": "UOM ID for pricing"
+          },
+          "minOrderQuantity": {
+            "type": "number",
+            "description": "Minimum order quantity",
+            "example": 10
+          },
+          "leadTimeDays": {
+            "type": "number",
+            "description": "Lead time in days for this item",
+            "example": 5
+          },
+          "isPreferred": {
+            "type": "boolean",
+            "description": "Whether this is the preferred supplier for this item",
+            "default": false
+          }
+        },
+        "required": [
+          "inventoryItemId"
+        ]
       },
       "TaxRateResponseDto": {
         "type": "object",

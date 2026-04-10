@@ -1,0 +1,88 @@
+import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import { z } from 'zod';
+
+export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY';
+export type OrderChannel = 'ONLINE' | 'WALK_IN';
+export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
+
+export interface OrderItemModifierData {
+  id: string;
+  name: string;
+  additionalPrice: number;
+}
+
+export interface OrderItemData {
+  id: string;
+  itemName: string;
+  variantName: string | null;
+  quantity: number;
+  unitPrice: number;
+  taxRate: number;
+  taxAmount: number;
+  subtotal: number;
+  total: number;
+  notes: string | null;
+  modifiers: OrderItemModifierData[];
+}
+
+export interface OrderData {
+  id: string;
+  orderNumber: string;
+  type: OrderType;
+  channel: OrderChannel;
+  status: OrderStatus;
+  customerName: string | null;
+  customerPhone: string | null;
+  subtotal: number;
+  taxAmount: number;
+  serviceCharge: number;
+  deliveryCharge: number;
+  discountAmount: number;
+  totalAmount: number;
+  placedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderDetail extends OrderData {
+  items: OrderItemData[];
+  deliveryAddress: string | null;
+  notes: string | null;
+  externalOrderId: string | null;
+  confirmedAt: string | null;
+  readyAt: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  cancellationReason: string | null;
+}
+
+export type OrdersTableResponse = TableResponse<OrderData>;
+
+const orderItemModifierSchema = z.object({
+  modifierGroupId: z.string().min(1),
+  modifierOptionId: z.string().min(1),
+  name: z.string().min(1),
+  additionalPrice: z.number(),
+});
+
+const orderItemSchema = z.object({
+  variantId: z.string().min(1, 'Variant is required'),
+  quantity: z.number().min(1, 'Quantity must be at least 1'),
+  notes: z.string().optional(),
+  modifiers: z.array(orderItemModifierSchema).optional(),
+});
+
+export const createOrderSchema = z.object({
+  type: z.enum(['DINE_IN', 'TAKEAWAY', 'DELIVERY'], { message: 'Order type is required' }),
+  channel: z.enum(['ONLINE', 'WALK_IN'], { message: 'Channel is required' }),
+  customerName: z.string().optional(),
+  customerPhone: z.string().optional(),
+  deliveryAddress: z.string().optional(),
+  notes: z.string().optional(),
+  serviceCharge: z.string().optional(),
+  deliveryCharge: z.string().optional(),
+  discountAmount: z.string().optional(),
+  items: z.array(orderItemSchema).optional(),
+});
+
+export type CreateOrderFormData = z.infer<typeof createOrderSchema>;

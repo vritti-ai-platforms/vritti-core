@@ -1,0 +1,167 @@
+import { Badge } from '@vritti/quantum-ui/Badge';
+import { Button } from '@vritti/quantum-ui/Button';
+import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { buildSlug } from '@vritti/quantum-ui/slug';
+import { useQueryClient } from '@tanstack/react-query';
+import { ClipboardList, Eye, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDeletePurchaseOrder } from '@/hooks/useDeletePurchaseOrder';
+import { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from '@/hooks/usePurchaseOrdersTable';
+import type { PurchaseOrderData, PurchaseOrderStatus } from '@/schemas/purchase-orders';
+import { CreatePurchaseOrderDialog } from './forms/CreatePurchaseOrderDialog';
+
+const statusConfig: Record<PurchaseOrderStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+  DRAFT: { label: 'Draft', variant: 'outline' },
+  SENT: { label: 'Sent', variant: 'secondary' },
+  CONFIRMED: { label: 'Confirmed', variant: 'secondary', className: 'bg-success/15 text-success' },
+  PARTIALLY_RECEIVED: { label: 'Partial', variant: 'secondary', className: 'bg-warning/15 text-warning' },
+  RECEIVED: { label: 'Received', variant: 'secondary', className: 'bg-success/15 text-success' },
+  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
+};
+
+export const PurchaseOrdersPage = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { data: response, isLoading } = usePurchaseOrdersTable();
+  const deleteMutation = useDeletePurchaseOrder();
+  const addDialog = useDialog();
+  const confirm = useConfirm();
+
+  const handleDelete = useCallback(
+    async (id: string, poNumber: string) => {
+      const confirmed = await confirm({
+        title: `Delete "${poNumber}"?`,
+        description: 'This purchase order and all its line items will be permanently removed.',
+        confirmLabel: 'Delete',
+        variant: 'destructive',
+      });
+      if (confirmed) deleteMutation.mutate(id);
+    },
+    [confirm, deleteMutation],
+  );
+
+  const columns = useMemo<ColumnDef<PurchaseOrderData>[]>(
+    () => [
+      {
+        accessorKey: 'poNumber',
+        header: 'PO Number',
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'supplierName',
+        header: 'Supplier',
+        cell: ({ row }) => row.original.supplierName ?? '—',
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'orderDate',
+        header: 'Order Date',
+        cell: ({ row }) => new Date(row.original.orderDate).toLocaleDateString(),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => {
+          const config = statusConfig[row.original.status];
+          return (
+            <Badge variant={config.variant} className={config.className}>
+              {config.label}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: 'totalAmount',
+        header: 'Total',
+        cell: ({ row }) => row.original.totalAmount != null ? row.original.totalAmount.toFixed(2) : '—',
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <RowActions
+            actions={[
+              {
+                id: 'view',
+                icon: Eye,
+                label: 'View',
+                onClick: () => navigate(buildSlug(row.original.poNumber, row.original.id)),
+              },
+              {
+                id: 'delete',
+                icon: Trash2,
+                label: 'Delete',
+                variant: 'destructive',
+                hidden: row.original.status !== 'DRAFT',
+                onClick: () => handleDelete(row.original.id, row.original.poNumber),
+              },
+            ]}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [navigate, handleDelete],
+  );
+
+  const { table } = useDataTable({
+    columns,
+    slug: 'commerce-purchase-orders',
+    label: 'purchase order',
+    serverState: response,
+    enableRowSelection: false,
+    enableSorting: true,
+    enableMultiSort: false,
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_TABLE_KEY }),
+  });
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Purchase Orders" description="Create and manage purchase orders with your suppliers" />
+
+      <DataTable
+        table={table}
+        isLoading={isLoading}
+        searchConfig={{
+          columns: [
+            { id: 'poNumber', label: 'PO Number' },
+            { id: 'supplierName', label: 'Supplier' },
+          ],
+          searchAll: true,
+        }}
+        toolbarActions={{
+          actions: (
+            <Button size="sm" onClick={addDialog.open}>
+              <Plus className="mr-2 size-4" />
+              New Purchase Order
+            </Button>
+          ),
+        }}
+        emptyStateConfig={{
+          icon: ClipboardList,
+          title: 'No purchase orders',
+          description: 'Create your first purchase order to start tracking procurement.',
+          action: (
+            <Button onClick={addDialog.open}>
+              <Plus className="mr-2 size-4" />
+              New Purchase Order
+            </Button>
+          ),
+        }}
+      />
+
+      <Dialog
+        handle={addDialog}
+        title="New Purchase Order"
+        description="Create a purchase order for a supplier."
+        content={(close) => <CreatePurchaseOrderDialog onSuccess={close} onCancel={close} />}
+      />
+    </div>
+  );
+};

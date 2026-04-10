@@ -26,9 +26,17 @@ export default defineConfig({
       exposes: {
         './BOM': './src/features/bom/index.tsx',
         './Categories': './src/features/categories/index.tsx',
+        './Conversions': './src/features/conversions/index.tsx',
+        './CreditNotes': './src/features/credit-notes/index.tsx',
         './InventoryItems': './src/features/inventory-items/index.tsx',
+        './Invoices': './src/features/invoices/index.tsx',
         './Items': './src/features/items/index.tsx',
         './Modifiers': './src/features/modifiers/index.tsx',
+        './Orders': './src/features/orders/index.tsx',
+        './PurchaseOrders': './src/features/purchase-orders/index.tsx',
+        './StockAdjustments': './src/features/stock-adjustments/index.tsx',
+        './StockTransfers': './src/features/stock-transfers/index.tsx',
+        './Suppliers': './src/features/suppliers/index.tsx',
         './UOM': './src/features/uom/index.tsx',
       },
       shared: {

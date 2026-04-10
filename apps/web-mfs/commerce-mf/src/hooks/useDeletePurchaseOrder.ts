@@ -1,0 +1,22 @@
+import type { UseMutationOptions } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
+import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import { deletePurchaseOrder } from '@/services/purchase-orders.service';
+import { PURCHASE_ORDERS_TABLE_KEY } from './usePurchaseOrdersTable';
+
+// Deletes a purchase order and invalidates the table
+export function useDeletePurchaseOrder(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<SuccessResponse, AxiosError, string>({
+    ...options,
+    mutationFn: deletePurchaseOrder,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_TABLE_KEY });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
