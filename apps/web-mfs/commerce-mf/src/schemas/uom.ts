@@ -31,5 +31,6 @@ export interface UomData {
   baseUnitId: string | null;
   baseUnitSymbol: string | null;
   conversionFactor: number;
+  canDelete: boolean;
   createdAt: string;
 }

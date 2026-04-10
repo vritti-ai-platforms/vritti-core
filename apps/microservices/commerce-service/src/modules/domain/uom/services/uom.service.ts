@@ -1,14 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
+  ConflictException,
   type CreateResponseDto,
   NotFoundException,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
-import { UomDto } from '../dto/entity/uom.dto';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
+import { UomDto } from '../dto/entity/uom.dto';
 import { UomRepository } from '../repositories/uom.repository';
 
 @Injectable()
@@ -20,7 +21,7 @@ export class UomService {
   // Returns base units, optionally filtered by search
   async findBaseUnits(search?: string): Promise<UomDto[]> {
     const entities = await this.uomRepository.findBaseUnits(search);
-    return entities.map((e) => UomDto.from(e));
+    return Promise.all(entities.map(async (e) => UomDto.from(e, null, !(await this.uomRepository.hasReferences(e.id)))));
   }
 
   // Returns all derived units for a given base unit
@@ -28,7 +29,7 @@ export class UomService {
     const baseUnit = await this.uomRepository.findById(baseUnitId);
     if (!baseUnit) throw new NotFoundException('Base unit not found.');
     const entities = await this.uomRepository.findDerivedUnits(baseUnitId);
-    return entities.map((e) => UomDto.from(e, baseUnit.symbol));
+    return Promise.all(entities.map(async (e) => UomDto.from(e, baseUnit.symbol, !(await this.uomRepository.hasReferences(e.id)))));
   }
 
   // Returns paginated UOM options for select dropdowns
@@ -78,7 +79,7 @@ export class UomService {
     }
 
     this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);
-    return { success: true, message: 'Unit of measure created successfully.', data: UomDto.from(entity, baseSymbol) };
+    return { success: true, message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`, data: UomDto.from(entity, baseSymbol) };
   }
 
   // Finds a UOM by ID or throws NotFoundException
@@ -113,15 +114,18 @@ export class UomService {
     }
 
     this.logger.log(`Updated UOM: ${existing.name} (${existing.symbol})`);
-    return { success: true, message: 'Unit of measure updated successfully.' };
+    return { success: true, message: `Unit "${existing.name}" updated successfully.` };
   }
 
   // Deletes a UOM by ID
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.uomRepository.findById(id);
     if (!existing) throw new NotFoundException('Unit of measure not found.');
+    if (await this.uomRepository.hasReferences(id)) {
+      throw new ConflictException('This unit of measure is in use and cannot be deleted.');
+    }
     await this.uomRepository.delete(id);
-    this.logger.log(`Deleted UOM: ${id}`);
-    return { success: true, message: 'Unit of measure deleted successfully.' };
+    this.logger.log(`Deleted UOM: ${existing.name} (${id})`);
+    return { success: true, message: `Unit "${existing.name}" deleted successfully.` };
   }
 }

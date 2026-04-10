@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type FindForSelectConfig, PrimaryBaseRepository, PrimaryDatabaseService, type SelectQueryResult } from '@vritti/api-sdk';
-import { and, eq, ilike, isNull, or } from '@vritti/api-sdk/drizzle-orm';
-import { type Uom, uom } from '@/db/schema';
+import { and, eq, ilike, isNull, or, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type Uom, inventoryItems, supplierItems, uom } from '@/db/schema';
 
 @Injectable()
 export class UomRepository extends PrimaryBaseRepository<typeof uom> {
@@ -26,5 +26,26 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
   // Returns all derived units for a given base unit
   async findDerivedUnits(baseUnitId: string): Promise<Uom[]> {
     return this.db.select().from(uom).where(eq(uom.baseUnitId, baseUnitId)).orderBy(uom.name);
+  }
+
+  // Checks if a UOM is referenced by inventory items, supplier items, or derived units
+  async hasReferences(id: string): Promise<boolean> {
+    const result = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryItems)
+      .where(eq(inventoryItems.uomId, id));
+    if (Number(result[0]?.count) > 0) return true;
+
+    const supplierResult = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(supplierItems)
+      .where(eq(supplierItems.uomId, id));
+    if (Number(supplierResult[0]?.count) > 0) return true;
+
+    const derivedResult = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(uom)
+      .where(eq(uom.baseUnitId, id));
+    return Number(derivedResult[0]?.count) > 0;
   }
 }

@@ -19,6 +19,9 @@ export class UomResponseDto {
   @ApiProperty({ description: 'Conversion factor to base unit', example: 1000 })
   conversionFactor: number;
 
+  @ApiProperty({ description: 'Whether this UOM can be deleted' })
+  canDelete: boolean;
+
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
 }

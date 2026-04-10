@@ -100,6 +100,8 @@ export const UomDetailPanel: React.FC<UomDetailPanelProps> = ({
           description="This action cannot be undone. All derived units will lose their base unit reference."
           buttonText="Delete Base Unit"
           onClick={handleDeleteBase}
+          disabled={!baseUnit.canDelete}
+          warning={!baseUnit.canDelete ? 'This unit is referenced by inventory items, supplier items, or derived units and cannot be deleted.' : undefined}
         />
       </div>
 
