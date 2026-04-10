@@ -13,14 +13,12 @@ export interface CreateItemPayload {
   type: 'PRODUCT' | 'SERVICE';
   name: string;
   categoryId?: string;
-  basePrice: number;
   businessUnitId: string;
 }
 
 export interface UpdateItemPayload {
   name?: string;
   description?: string | null;
-  basePrice?: number;
   taxGroupId?: string | null;
   categoryId?: string | null;
 }

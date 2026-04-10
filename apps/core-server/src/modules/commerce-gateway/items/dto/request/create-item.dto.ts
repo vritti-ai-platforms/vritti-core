@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateItemDto {
   @ApiPropertyOptional({ description: 'Category ID' })
@@ -25,11 +25,6 @@ export class CreateItemDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @ApiProperty({ description: 'Base price', example: 10.0 })
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  basePrice: number;
 
   @ApiPropertyOptional({ description: 'Tax group ID' })
   @IsOptional()

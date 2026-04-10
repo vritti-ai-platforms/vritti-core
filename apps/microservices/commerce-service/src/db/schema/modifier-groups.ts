@@ -7,6 +7,7 @@ export const modifierGroups = coreSchema.table(
   'modifier_groups',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     name: varchar('name', { length: 255 }).notNull(),
     selectionType: modifierSelectionTypeEnum('selection_type').notNull(),
@@ -18,7 +19,11 @@ export const modifierGroups = coreSchema.table(
   },
   (table) => [
     unique('uq_modifier_groups_bu_name').on(table.businessUnitId, table.name),
-    index('idx_modifier_groups_bu').on(table.businessUnitId),
+    index('idx_modifier_groups_bu').on(table.organizationId, table.businessUnitId),
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = current_setting('app.org_id', true)::uuid`,
+    }),
     pgPolicy('bu_ancestor_read', {
       for: 'select',
       using: sql`business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])`,
@@ -45,6 +50,7 @@ export const modifierOptions = coreSchema.table(
   'modifier_options',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     groupId: uuid('group_id').notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     additionalPrice: decimal('additional_price', { precision: 12, scale: 2 }).notNull().default('0'),
@@ -65,6 +71,7 @@ export type NewModifierOption = typeof modifierOptions.$inferInsert;
 export const itemModifierGroups = coreSchema.table(
   'item_modifier_groups',
   {
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     itemId: uuid('item_id').notNull(),
     groupId: uuid('group_id').notNull(),
   },

@@ -6,7 +6,6 @@ export const createItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   description: z.string().optional(),
   categoryId: z.string().optional(),
-  basePrice: z.string().min(1, 'Base price is required'),
   taxGroupId: z.string().optional(),
   isAvailable: z.boolean().optional(),
 });
@@ -14,7 +13,6 @@ export const createItemSchema = z.object({
 export const updateItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255).optional(),
   description: z.string().nullable().optional(),
-  basePrice: z.string().optional(),
   taxGroupId: z.string().nullable().optional(),
   categoryId: z.string().nullable().optional(),
   isAvailable: z.boolean().optional(),
@@ -36,7 +34,6 @@ export interface ItemData {
   code: string;
   name: string;
   description: string | null;
-  basePrice: string;
   isAvailable: boolean;
   sortOrder: number;
   createdAt: string;
@@ -59,7 +56,7 @@ export interface ItemVariant {
   id: string;
   sku: string;
   name: string;
-  price: string | null;
+  price: string;
   isAvailable: boolean;
   sortOrder: number;
   createdAt: string;
@@ -74,7 +71,6 @@ export interface ItemDetail {
   code: string;
   name: string;
   description: string | null;
-  basePrice: string;
   taxGroupId: string | null;
   isAvailable: boolean;
   sortOrder: number;

@@ -35,8 +35,8 @@ export class ItemVariantResponseDto {
   @ApiProperty({ description: 'Variant name' })
   name: string;
 
-  @ApiPropertyOptional({ description: 'Variant price override', nullable: true })
-  price: string | null;
+  @ApiProperty({ description: 'Variant price' })
+  price: string;
 
   @ApiProperty({ description: 'Whether the variant is available' })
   isAvailable: boolean;
@@ -81,9 +81,6 @@ export class ItemDetailResponseDto {
 
   @ApiPropertyOptional({ description: 'Item description', nullable: true })
   description: string | null;
-
-  @ApiProperty({ description: 'Base price' })
-  basePrice: string;
 
   @ApiPropertyOptional({ description: 'Tax group ID', nullable: true })
   taxGroupId: string | null;

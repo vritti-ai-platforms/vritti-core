@@ -155,15 +155,6 @@ function getColumns({ onView, onDelete }: ColumnActions): ColumnDef<ItemData, un
       enableSorting: false,
     },
     {
-      accessorKey: 'basePrice',
-      header: 'Base Price',
-      cell: ({ row }) => {
-        const num = Number.parseFloat(row.original.basePrice);
-        return <span className="font-mono">{Number.isNaN(num) ? row.original.basePrice : num.toFixed(2)}</span>;
-      },
-      enableSorting: true,
-    },
-    {
       accessorKey: 'isAvailable',
       header: 'Status',
       cell: ({ row }) => {

@@ -5337,10 +5337,6 @@
             "description": "Item description",
             "nullable": true
           },
-          "basePrice": {
-            "type": "string",
-            "description": "Base price"
-          },
           "taxGroupId": {
             "type": "object",
             "description": "Tax group ID",
@@ -5369,7 +5365,6 @@
           "type",
           "code",
           "name",
-          "basePrice",
           "isAvailable",
           "sortOrder",
           "createdAt",
@@ -5430,11 +5425,6 @@
             "type": "string",
             "description": "Item description"
           },
-          "basePrice": {
-            "type": "number",
-            "description": "Base price",
-            "example": 10
-          },
           "taxGroupId": {
             "type": "string",
             "description": "Tax group ID"
@@ -5452,8 +5442,7 @@
         },
         "required": [
           "type",
-          "name",
-          "basePrice"
+          "name"
         ]
       },
       "ItemOptionValueResponseDto": {
@@ -5524,9 +5513,8 @@
             "description": "Variant name"
           },
           "price": {
-            "type": "object",
-            "description": "Variant price override",
-            "nullable": true
+            "type": "string",
+            "description": "Variant price"
           },
           "isAvailable": {
             "type": "boolean",
@@ -5560,6 +5548,7 @@
           "id",
           "sku",
           "name",
+          "price",
           "isAvailable",
           "manageInventory",
           "sortOrder",
@@ -5610,10 +5599,6 @@
             "description": "Item description",
             "nullable": true
           },
-          "basePrice": {
-            "type": "string",
-            "description": "Base price"
-          },
           "taxGroupId": {
             "type": "object",
             "description": "Tax group ID",
@@ -5656,7 +5641,6 @@
           "type",
           "code",
           "name",
-          "basePrice",
           "isAvailable",
           "sortOrder",
           "options",
@@ -5687,11 +5671,6 @@
           "description": {
             "type": "object",
             "description": "Updated description"
-          },
-          "basePrice": {
-            "type": "number",
-            "description": "Updated base price",
-            "example": 10
           },
           "taxGroupId": {
             "type": "object",

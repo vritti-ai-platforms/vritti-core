@@ -4,7 +4,6 @@ import * as schema from './index';
 export const relations = defineRelations(schema, (_r) => ({
   categories: {},
   items: {},
-  itemImages: {},
   itemOptions: {},
   itemOptionValues: {},
   itemVariants: {},

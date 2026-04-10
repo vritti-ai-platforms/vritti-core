@@ -7,6 +7,7 @@ export const itemFieldDefinitions = coreSchema.table(
   'item_field_definitions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     name: varchar('name', { length: 100 }).notNull(),
     fieldType: fieldTypeEnum('field_type').notNull(),
@@ -16,6 +17,10 @@ export const itemFieldDefinitions = coreSchema.table(
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   (table) => [
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = current_setting('app.org_id', true)::uuid`,
+    }),
     pgPolicy('bu_ancestor_read', {
       for: 'select',
       using: sql`business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])`,

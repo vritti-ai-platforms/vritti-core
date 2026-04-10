@@ -36,7 +36,7 @@ export class ItemVariantDto {
   id: string;
   sku: string;
   name: string;
-  price: string | null;
+  price: string;
   isAvailable: boolean;
   manageInventory: boolean;
   sortOrder: number;
@@ -50,7 +50,7 @@ export class ItemVariantDto {
     dto.id = entity.id;
     dto.sku = entity.sku;
     dto.name = entity.name;
-    dto.price = entity.price ?? null;
+    dto.price = entity.price;
     dto.isAvailable = entity.isAvailable;
     dto.manageInventory = entity.manageInventory;
     dto.sortOrder = entity.sortOrder;
@@ -70,7 +70,6 @@ export class ItemDetailDto {
   code: string;
   name: string;
   description: string | null;
-  basePrice: string;
   taxGroupId: string | null;
   isAvailable: boolean;
   sortOrder: number;
@@ -97,7 +96,6 @@ export class ItemDetailDto {
     dto.code = entity.code;
     dto.name = entity.name;
     dto.description = entity.description ?? null;
-    dto.basePrice = entity.basePrice;
     dto.taxGroupId = entity.taxGroupId ?? null;
     dto.isAvailable = entity.isAvailable;
     dto.sortOrder = entity.sortOrder;

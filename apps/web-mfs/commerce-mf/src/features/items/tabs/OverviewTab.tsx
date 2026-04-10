@@ -50,7 +50,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ item }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
-            <InfoRow label="Base Price" value={<span className="font-mono">{Number.parseFloat(item.basePrice).toFixed(2)}</span>} />
             <InfoRow label="Tax Group" value={item.taxGroupId ? 'Assigned' : null} />
           </div>
         </CardContent>

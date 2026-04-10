@@ -24,7 +24,6 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
     defaultValues: {
       name: item.name,
       description: item.description ?? '',
-      basePrice: item.basePrice,
       taxGroupId: item.taxGroupId ?? undefined,
       categoryId: item.categoryId ?? undefined,
       isAvailable: item.isAvailable,
@@ -52,7 +51,6 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
         id: item.id,
         data: {
           ...data,
-          basePrice: data.basePrice ? Number(data.basePrice) : undefined,
           taxGroupId: data.taxGroupId || null,
         },
       })}
@@ -60,7 +58,6 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
       <TextField name="name" label="Name" placeholder="Item name" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
       <Select name="categoryId" label="Category" placeholder="Select a category" options={categoryOptions} />
-      <TextField name="basePrice" label="Base Price" type="number" placeholder="0.00" />
       <Select name="taxGroupId" label="Tax Group" placeholder="Select tax group" options={taxGroupOptions} />
       <Switch name="isAvailable" label="Available" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

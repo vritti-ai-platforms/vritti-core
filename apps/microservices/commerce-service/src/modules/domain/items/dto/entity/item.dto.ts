@@ -9,7 +9,6 @@ export class ItemDto {
   code: string;
   name: string;
   description: string | null;
-  basePrice: string;
   taxGroupId: string | null;
   isAvailable: boolean;
   sortOrder: number;
@@ -27,7 +26,6 @@ export class ItemDto {
     dto.code = entity.code;
     dto.name = entity.name;
     dto.description = entity.description ?? null;
-    dto.basePrice = entity.basePrice;
     dto.taxGroupId = entity.taxGroupId ?? null;
     dto.isAvailable = entity.isAvailable;
     dto.sortOrder = entity.sortOrder;

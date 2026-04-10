@@ -25,7 +25,6 @@ export class ItemsService {
     name: { column: items.name, type: 'string' },
     code: { column: items.code, type: 'string' },
     type: { column: items.type, type: 'string' },
-    basePrice: { column: items.basePrice, type: 'number' },
     isAvailable: { column: items.isAvailable, type: 'boolean' },
     categoryId: { column: items.categoryId, type: 'string' },
   };
@@ -63,7 +62,6 @@ export class ItemsService {
       code,
       name: data.name,
       description: data.description ?? null,
-      basePrice: String(data.basePrice),
       taxGroupId: data.taxGroupId ?? null,
       isAvailable: data.isAvailable ?? true,
       sortOrder: data.sortOrder ?? 0,
@@ -110,7 +108,6 @@ export class ItemsService {
     if (data.type !== undefined) updatePayload.type = data.type;
     if (data.name !== undefined) updatePayload.name = data.name;
     if (data.description !== undefined) updatePayload.description = data.description;
-    if (data.basePrice !== undefined) updatePayload.basePrice = String(data.basePrice);
     if (data.taxGroupId !== undefined) updatePayload.taxGroupId = data.taxGroupId;
     if (data.isAvailable !== undefined) updatePayload.isAvailable = data.isAvailable;
     if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
@@ -198,7 +195,7 @@ export class ItemsService {
         itemId,
         sku,
         name: variantName,
-        price: existing.basePrice,
+        price: '0',
         sortOrder: i,
       });
 
@@ -241,7 +238,7 @@ export class ItemsService {
     const updatePayload: Record<string, unknown> = {};
     if (data.sku !== undefined) updatePayload.sku = data.sku;
     if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.price !== undefined) updatePayload.price = data.price != null ? String(data.price) : null;
+    if (data.price !== undefined) updatePayload.price = String(data.price);
     if (data.isAvailable !== undefined) updatePayload.isAvailable = data.isAvailable;
     if (data.manageInventory !== undefined) updatePayload.manageInventory = data.manageInventory;
     if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;

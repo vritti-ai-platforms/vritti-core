@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import type { CatalogItemType } from '@/db/schema';
 
 export class UpdateItemDto {
@@ -17,11 +17,6 @@ export class UpdateItemDto {
   @IsOptional()
   @IsString()
   description?: string | null;
-
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  basePrice?: number;
 
   @IsOptional()
   @IsUUID()

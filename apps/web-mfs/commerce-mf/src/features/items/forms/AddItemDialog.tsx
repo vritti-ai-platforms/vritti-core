@@ -32,7 +32,6 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, on
       name: '',
       description: '',
       categoryId: undefined,
-      basePrice: '',
       taxGroupId: undefined,
       isAvailable: true,
     },
@@ -54,7 +53,6 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, on
       onCancel={onCancel}
       transformSubmit={(data) => ({
         ...data,
-        basePrice: Number(data.basePrice),
         businessUnitId,
       })}
     >
@@ -62,7 +60,6 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, on
       <TextField name="name" label="Name" placeholder="e.g. Chicken Burger" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
       <Select name="categoryId" label="Category" placeholder="Select a category" options={categoryOptions} />
-      <TextField name="basePrice" label="Base Price" type="number" placeholder="0.00" />
       <Select name="taxGroupId" label="Tax Group" placeholder="Select tax group" options={taxGroupOptions} />
       <Switch name="isAvailable" label="Available" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

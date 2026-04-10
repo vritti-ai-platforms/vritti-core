@@ -1,4 +1,5 @@
 import { boolean, decimal, index, integer, jsonb, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 
 import { coreSchema } from './core-schema';
 
@@ -6,6 +7,7 @@ export const itemOptions = coreSchema.table(
   'item_options',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     itemId: uuid('item_id').notNull(),
     name: varchar('name', { length: 100 }).notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -20,6 +22,7 @@ export const itemOptionValues = coreSchema.table(
   'item_option_values',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     optionId: uuid('option_id').notNull(),
     value: varchar('value', { length: 100 }).notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -34,10 +37,12 @@ export const itemVariants = coreSchema.table(
   'item_variants',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     itemId: uuid('item_id').notNull(),
+    bomId: uuid('bom_id'),
     sku: varchar('sku', { length: 100 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
-    price: decimal('price', { precision: 12, scale: 2 }),
+    price: decimal('price', { precision: 12, scale: 2 }).notNull(),
     isAvailable: boolean('is_available').notNull().default(true),
     manageInventory: boolean('manage_inventory').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -60,6 +65,7 @@ export type NewItemVariant = typeof itemVariants.$inferInsert;
 export const itemVariantOptionValues = coreSchema.table(
   'item_variant_option_values',
   {
+    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     variantId: uuid('variant_id').notNull(),
     optionValueId: uuid('option_value_id').notNull(),
   },

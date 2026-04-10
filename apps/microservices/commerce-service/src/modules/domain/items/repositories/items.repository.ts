@@ -26,13 +26,13 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
     return this.db
       .select({
         id: items.id,
+        organizationId: items.organizationId,
         businessUnitId: items.businessUnitId,
         categoryId: items.categoryId,
         type: items.type,
         code: items.code,
         name: items.name,
         description: items.description,
-        basePrice: items.basePrice,
         taxGroupId: items.taxGroupId,
         isAvailable: items.isAvailable,
         sortOrder: items.sortOrder,
@@ -64,13 +64,13 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
       this.db
         .select({
           id: items.id,
+          organizationId: items.organizationId,
           businessUnitId: items.businessUnitId,
           categoryId: items.categoryId,
           type: items.type,
           code: items.code,
           name: items.name,
           description: items.description,
-          basePrice: items.basePrice,
           taxGroupId: items.taxGroupId,
           isAvailable: items.isAvailable,
           sortOrder: items.sortOrder,
@@ -170,7 +170,7 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
     itemId: string;
     sku: string;
     name: string;
-    price?: string | null;
+    price: string;
     sortOrder: number;
   }): Promise<ItemVariant> {
     const results = await this.db.insert(itemVariants).values(data).returning();

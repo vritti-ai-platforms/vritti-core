@@ -25,9 +25,6 @@ export class ItemResponseDto {
   @ApiPropertyOptional({ description: 'Item description', nullable: true })
   description: string | null;
 
-  @ApiProperty({ description: 'Base price' })
-  basePrice: string;
-
   @ApiPropertyOptional({ description: 'Tax group ID', nullable: true })
   taxGroupId: string | null;
 
