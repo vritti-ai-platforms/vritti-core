@@ -1,29 +1,28 @@
-import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
+import { type UseQueryOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { UomData, UomTableResponse } from '@/schemas/uom';
-import { getUomTable, listUom } from '@/services/uom.service';
+import type { UomData } from '@/schemas/uom';
+import { listBaseUnits, listDerivedUnits } from '@/services/uom.service';
 
-export const UOM_TABLE_KEY = ['commerce', 'uom', 'table'] as const;
-export const UOM_LIST_KEY = ['commerce', 'uom', 'list'] as const;
+export const UOM_BASE_KEY = ['commerce', 'uom', 'base'] as const;
+export const UOM_DERIVED_KEY = ['commerce', 'uom', 'derived'] as const;
 
-// Fetches UOM table data with server state
-export function useUomTable(
-  options?: Omit<UseQueryOptions<UomTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
-) {
-  return useQuery<UomTableResponse, AxiosError>({
-    queryKey: [...UOM_TABLE_KEY],
-    queryFn: getUomTable,
-    ...options,
+// Fetches base units, optionally filtered by search — suspends until data is available
+export function useBaseUnits(search?: string) {
+  return useSuspenseQuery<UomData[], AxiosError>({
+    queryKey: [...UOM_BASE_KEY, search],
+    queryFn: () => listBaseUnits(search),
   });
 }
 
-// Fetches all UOMs as a simple list (for form dropdowns)
-export function useUom(
+// Fetches derived units for a given base unit
+export function useDerivedUnits(
+  baseUnitId: string | null,
   options?: Omit<UseQueryOptions<UomData[], AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery<UomData[], AxiosError>({
-    queryKey: [...UOM_LIST_KEY],
-    queryFn: listUom,
+    queryKey: [...UOM_DERIVED_KEY, baseUnitId],
+    queryFn: () => listDerivedUnits(baseUnitId as string),
+    enabled: !!baseUnitId,
     ...options,
   });
 }

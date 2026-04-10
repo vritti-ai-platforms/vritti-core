@@ -1,24 +1,28 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { CreateResponse } from '@vritti/quantum-ui/api-response';
+import type { Resolver } from 'react-hook-form';
 import { z } from 'zod';
 
-export const createUomSchema = z.object({
+// Base unit form — name + symbol only
+const _baseUnitSchema = z.object({
   name: z.string().min(1, 'Name is required').max(50),
   symbol: z.string().min(1, 'Symbol is required').max(10),
-  baseUnitId: z.string().optional(),
-  conversionFactor: z.string().optional(),
 });
 
-export const updateUomSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(50).optional(),
-  symbol: z.string().min(1, 'Symbol is required').max(10).optional(),
-  baseUnitId: z.string().nullable().optional(),
-  conversionFactor: z.string().optional(),
+// Derived unit form — name + symbol + conversion factor
+const _derivedUnitSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(50),
+  symbol: z.string().min(1, 'Symbol is required').max(10),
+  conversionFactor: z.coerce.number().positive('Must be greater than 0'),
 });
 
-export type CreateUomFormData = z.infer<typeof createUomSchema>;
-export type UpdateUomFormData = z.infer<typeof updateUomSchema>;
+export type BaseUnitFormData = { name: string; symbol: string };
+export type DerivedUnitFormData = { name: string; symbol: string; conversionFactor: number };
 
-export type UomTableResponse = TableResponse<UomData>;
+export const baseUnitFormResolver = zodResolver(_baseUnitSchema) as unknown as Resolver<BaseUnitFormData>;
+export const derivedUnitFormResolver = zodResolver(_derivedUnitSchema) as unknown as Resolver<DerivedUnitFormData>;
+
+export type CreateUomResponse = CreateResponse<UomData>;
 
 export interface UomData {
   id: string;

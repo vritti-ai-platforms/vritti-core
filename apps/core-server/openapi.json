@@ -5418,10 +5418,47 @@
         ]
       }
     },
-    "/commerce-api/uom/table": {
+    "/commerce-api/uom/base": {
       "get": {
-        "operationId": "UomGatewayController_getUomTable",
-        "parameters": [],
+        "operationId": "UomGatewayController_findBaseUnits",
+        "parameters": [
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      }
+    },
+    "/commerce-api/uom/{id}/derived": {
+      "get": {
+        "operationId": "UomGatewayController_findDerivedUnits",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""

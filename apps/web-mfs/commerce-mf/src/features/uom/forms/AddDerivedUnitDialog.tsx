@@ -1,27 +1,27 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateUom } from '@/hooks/useCreateUom';
-import { type CreateUomFormData, createUomSchema } from '@/schemas/uom';
+import { type DerivedUnitFormData, derivedUnitFormResolver } from '@/schemas/uom';
 
-interface AddUomDialogProps {
+interface AddDerivedUnitDialogProps {
+  baseUnitId: string;
+  baseUnitSymbol: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddUomDialog: React.FC<AddUomDialogProps> = ({ onSuccess, onCancel }) => {
-  const form = useForm<CreateUomFormData>({
-    resolver: zodResolver(createUomSchema),
-    defaultValues: {
-      name: '',
-      symbol: '',
-      baseUnitId: undefined,
-      conversionFactor: '1',
-    },
+export const AddDerivedUnitDialog: React.FC<AddDerivedUnitDialogProps> = ({
+  baseUnitId,
+  baseUnitSymbol,
+  onSuccess,
+  onCancel,
+}) => {
+  const form = useForm<DerivedUnitFormData>({
+    resolver: derivedUnitFormResolver,
+    defaultValues: { name: '', symbol: '', conversionFactor: 1 },
   });
 
   const createMutation = useCreateUom({ onSuccess });
@@ -36,20 +36,24 @@ export const AddUomDialog: React.FC<AddUomDialogProps> = ({ onSuccess, onCancel 
       transformSubmit={(data) => ({
         name: data.name,
         symbol: data.symbol,
-        baseUnitId: data.baseUnitId || undefined,
-        conversionFactor: data.conversionFactor ? Number(data.conversionFactor) : 1,
+        baseUnitId,
+        conversionFactor: data.conversionFactor,
       })}
     >
       <TextField name="name" label="Name" placeholder="e.g. Kilogram" />
       <TextField name="symbol" label="Symbol" placeholder="e.g. kg" />
-      <UomSelector name="baseUnitId" label="Base Unit" placeholder="None (this is a base unit)" />
-      <TextField name="conversionFactor" label="Conversion Factor" type="number" placeholder="1" />
+      <TextField
+        name="conversionFactor"
+        label={`Conversion Factor (relative to ${baseUnitSymbol})`}
+        type="number"
+        placeholder="e.g. 1000"
+      />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
-          Add Unit
+          Add Derived Unit
         </Button>
       </div>
     </Form>

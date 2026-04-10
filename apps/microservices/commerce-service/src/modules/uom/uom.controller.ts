@@ -2,7 +2,7 @@ import type { UomDto } from '@domain/uom/dto/entity/uom.dto';
 import { UomService } from '@domain/uom/services/uom.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SelectQueryResult, SortCondition } from '@vritti/api-sdk';
+import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateUomDto } from './dto/request/create-uom.dto';
 import type { UpdateUomDto } from './dto/request/update-uom.dto';
 
@@ -12,21 +12,18 @@ export class UomController {
 
   constructor(private readonly uomService: UomService) {}
 
-  // Returns paginated, filtered, and sorted UOMs for the data table
-  @MessagePattern({ cmd: 'uom.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: UomDto[]; count: number }> {
-    this.logger.log('uom.table');
-    return this.uomService.findForTable({
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+  // Returns base units, optionally filtered by search
+  @MessagePattern({ cmd: 'uom.base' })
+  async base(@Payload() data: { search?: string }): Promise<UomDto[]> {
+    this.logger.log('uom.base');
+    return this.uomService.findBaseUnits(data.search);
+  }
+
+  // Returns derived units for a given base unit
+  @MessagePattern({ cmd: 'uom.derived' })
+  async derived(@Payload() data: { baseUnitId: string }): Promise<UomDto[]> {
+    this.logger.log(`uom.derived — baseUnitId: ${data.baseUnitId}`);
+    return this.uomService.findDerivedUnits(data.baseUnitId);
   }
 
   // Returns paginated UOM options for the select component
@@ -40,7 +37,7 @@ export class UomController {
 
   // Creates a new UOM
   @MessagePattern({ cmd: 'uom.create' })
-  async create(@Payload() dto: CreateUomDto): Promise<UomDto> {
+  async create(@Payload() dto: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
     this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
     return this.uomService.create(dto);
   }
@@ -54,7 +51,7 @@ export class UomController {
 
   // Updates a UOM by ID
   @MessagePattern({ cmd: 'uom.update' })
-  async update(@Payload() data: { id: string } & UpdateUomDto): Promise<UomDto> {
+  async update(@Payload() data: { id: string } & UpdateUomDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`uom.update — id: ${id}`);
     return this.uomService.update(id, updateData);
@@ -62,7 +59,7 @@ export class UomController {
 
   // Deletes a UOM by ID
   @MessagePattern({ cmd: 'uom.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`uom.delete — id: ${data.id}`);
     return this.uomService.delete(data.id);
   }

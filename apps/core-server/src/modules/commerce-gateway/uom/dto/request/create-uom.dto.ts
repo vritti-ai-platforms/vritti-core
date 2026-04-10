@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
   @ApiProperty({ description: 'Unit name', example: 'Kilogram' })
@@ -22,6 +22,6 @@ export class CreateUomDto {
   @ApiPropertyOptional({ description: 'Conversion factor to base unit', default: 1, example: 1000 })
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 6 })
-  @Min(0)
+  @IsPositive()
   conversionFactor?: number;
 }

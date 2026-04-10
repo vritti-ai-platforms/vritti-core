@@ -1,13 +1,15 @@
-import { IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(50)
   name?: string;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(10)
   symbol?: string;
 
@@ -17,6 +19,6 @@ export class UpdateUomDto {
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 6 })
-  @Min(0)
+  @IsPositive()
   conversionFactor?: number;
 }

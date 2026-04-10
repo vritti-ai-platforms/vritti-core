@@ -1,16 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
   @ApiPropertyOptional({ description: 'Updated unit name' })
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(50)
   name?: string;
 
   @ApiPropertyOptional({ description: 'Updated unit symbol' })
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MaxLength(10)
   symbol?: string;
 
@@ -22,6 +24,6 @@ export class UpdateUomDto {
   @ApiPropertyOptional({ description: 'Updated conversion factor' })
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 6 })
-  @Min(0)
+  @IsPositive()
   conversionFactor?: number;
 }

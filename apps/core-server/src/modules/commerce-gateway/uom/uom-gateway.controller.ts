@@ -1,11 +1,10 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, UserId } from '@vritti/api-sdk';
+import { type CreateResponseDto, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateUomDto } from './dto/request/create-uom.dto';
 import { UpdateUomDto } from './dto/request/update-uom.dto';
 import type { UomResponseDto } from './dto/response/uom-response.dto';
-import type { UomTableResponseDto } from './dto/response/uom-table-response.dto';
 import { UomGatewayService } from './services/uom-gateway.service';
 
 @ApiTags('Commerce - Units of Measure')
@@ -17,10 +16,16 @@ export class UomGatewayController {
 
   constructor(private readonly uomGatewayService: UomGatewayService) {}
 
-  // Returns paginated UOMs for the data table with server-stored state
-  @Get('table')
-  getUomTable(@UserId() userId: string): Promise<UomTableResponseDto> {
-    return this.uomGatewayService.findForTable(userId);
+  // Returns base units, optionally filtered by search
+  @Get('base')
+  findBaseUnits(@Query('search') search?: string): Promise<UomResponseDto[]> {
+    return this.uomGatewayService.findBaseUnits(search);
+  }
+
+  // Returns derived units for a given base unit
+  @Get(':id/derived')
+  findDerivedUnits(@Param('id') id: string): Promise<UomResponseDto[]> {
+    return this.uomGatewayService.findDerivedUnits(id);
   }
 
   // Returns paginated UOM options for select dropdowns
@@ -32,7 +37,7 @@ export class UomGatewayController {
   // Creates a new UOM
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateUomDto): Promise<UomResponseDto> {
+  create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
     return this.uomGatewayService.create(dto);
   }
 
@@ -44,13 +49,13 @@ export class UomGatewayController {
 
   // Updates a UOM by ID
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateUomDto): Promise<UomResponseDto> {
+  update(@Param('id') id: string, @Body() dto: UpdateUomDto): Promise<SuccessResponseDto> {
     return this.uomGatewayService.update(id, dto);
   }
 
   // Deletes a UOM by ID
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.uomGatewayService.delete(id);
   }
 }
