@@ -2317,6 +2317,258 @@
         ]
       }
     },
+    "/commerce-api/bom/table": {
+      "get": {
+        "operationId": "BomGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Bill of Materials"
+        ]
+      }
+    },
+    "/commerce-api/bom/select": {
+      "get": {
+        "operationId": "BomGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Bill of Materials"
+        ]
+      }
+    },
+    "/commerce-api/bom": {
+      "post": {
+        "operationId": "BomGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Bill of Materials"
+        ]
+      }
+    },
+    "/commerce-api/bom/{id}": {
+      "get": {
+        "operationId": "BomGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Bill of Materials"
+        ]
+      },
+      "patch": {
+        "operationId": "BomGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Bill of Materials"
+        ]
+      },
+      "delete": {
+        "operationId": "BomGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Bill of Materials"
+        ]
+      }
+    },
     "/commerce-api/categories": {
       "get": {
         "description": "Returns all categories for the specified business unit, ordered by sort order.",
@@ -2600,6 +2852,258 @@
         "summary": "Delete a category",
         "tags": [
           "Commerce - Categories"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/table": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/select": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items": {
+      "post": {
+        "operationId": "InventoryItemsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInventoryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      },
+      "patch": {
+        "operationId": "InventoryItemsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInventoryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      },
+      "delete": {
+        "operationId": "InventoryItemsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
         ]
       }
     },
@@ -3782,6 +4286,258 @@
         "summary": "Delete a tax group",
         "tags": [
           "Commerce - Tax Groups"
+        ]
+      }
+    },
+    "/commerce-api/uom/table": {
+      "get": {
+        "operationId": "UomGatewayController_getUomTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      }
+    },
+    "/commerce-api/uom/select": {
+      "get": {
+        "operationId": "UomGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      }
+    },
+    "/commerce-api/uom": {
+      "post": {
+        "operationId": "UomGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      }
+    },
+    "/commerce-api/uom/{id}": {
+      "get": {
+        "operationId": "UomGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      },
+      "patch": {
+        "operationId": "UomGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      },
+      "delete": {
+        "operationId": "UomGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
         ]
       }
     }
@@ -5205,6 +5961,92 @@
           "isCurrent"
         ]
       },
+      "CreateBomLineDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "requiredQuantity": {
+            "type": "number",
+            "description": "Required quantity per unit",
+            "example": 300
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "requiredQuantity"
+        ]
+      },
+      "CreateBomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "BOM name",
+            "example": "Chicken Biryani Full"
+          },
+          "code": {
+            "type": "string",
+            "description": "BOM code",
+            "example": "BOM-BIR-CHK-F"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether BOM is active",
+            "default": true
+          },
+          "lines": {
+            "description": "BOM lines",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateBomLineDto"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "code"
+        ]
+      },
+      "UpdateBomLineDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "requiredQuantity": {
+            "type": "number",
+            "description": "Required quantity per unit"
+          }
+        }
+      },
+      "UpdateBomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "BOM name"
+          },
+          "code": {
+            "type": "string",
+            "description": "BOM code"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether BOM is active"
+          },
+          "lines": {
+            "description": "BOM lines (replaces all)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateBomLineDto"
+            }
+          }
+        }
+      },
       "CategoryResponseDto": {
         "type": "object",
         "properties": {
@@ -5292,6 +6134,81 @@
           "isActive": {
             "type": "boolean",
             "description": "Updated active status"
+          }
+        }
+      },
+      "CreateInventoryItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Item name",
+            "example": "Basmati Rice"
+          },
+          "code": {
+            "type": "string",
+            "description": "Item code",
+            "example": "RAW-RICE-BAS"
+          },
+          "type": {
+            "type": "string",
+            "description": "Item type",
+            "enum": [
+              "MATERIAL",
+              "PRODUCT"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "description": "Description"
+          },
+          "uomId": {
+            "type": "string",
+            "description": "Unit of measure ID"
+          },
+          "requiresShipping": {
+            "type": "boolean",
+            "description": "Requires shipping",
+            "default": false
+          }
+        },
+        "required": [
+          "name",
+          "code",
+          "type",
+          "uomId"
+        ]
+      },
+      "UpdateInventoryItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Item name"
+          },
+          "code": {
+            "type": "string",
+            "description": "Item code"
+          },
+          "type": {
+            "type": "string",
+            "description": "Item type",
+            "enum": [
+              "MATERIAL",
+              "PRODUCT"
+            ]
+          },
+          "description": {
+            "type": "object",
+            "description": "Description"
+          },
+          "uomId": {
+            "type": "string",
+            "description": "Unit of measure ID"
+          },
+          "requiresShipping": {
+            "type": "boolean",
+            "description": "Requires shipping"
           }
         }
       },
@@ -6270,6 +7187,56 @@
           "sortOrder": {
             "type": "number",
             "description": "Updated display sort order"
+          }
+        }
+      },
+      "CreateUomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unit name",
+            "example": "Kilogram"
+          },
+          "symbol": {
+            "type": "string",
+            "description": "Unit symbol",
+            "example": "kg"
+          },
+          "baseUnitId": {
+            "type": "string",
+            "description": "Base unit ID (null = this is a base unit)"
+          },
+          "conversionFactor": {
+            "type": "number",
+            "description": "Conversion factor to base unit",
+            "default": 1,
+            "example": 1000
+          }
+        },
+        "required": [
+          "name",
+          "symbol"
+        ]
+      },
+      "UpdateUomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Updated unit name"
+          },
+          "symbol": {
+            "type": "string",
+            "description": "Updated unit symbol"
+          },
+          "baseUnitId": {
+            "type": "object",
+            "description": "Updated base unit ID (null = this is a base unit)"
+          },
+          "conversionFactor": {
+            "type": "number",
+            "description": "Updated conversion factor"
           }
         }
       }

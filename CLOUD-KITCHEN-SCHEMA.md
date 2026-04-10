@@ -115,13 +115,15 @@ Unit of Measure. Defined at org level with base unit conversion for auto-convert
 | Column | Type | Constraints | Notes |
 |--------|------|-------------|-------|
 | id | uuid | PK | |
-| org_id | uuid | FK → organizations.id | |
+| org_id | uuid | FK → organizations.id | Multi-tenancy |
+| bu_id | uuid | FK → business_units.id | Ancestor-read RLS |
 | name | varchar(50) | NOT NULL | "Gram", "Kilogram", "Millilitre" |
 | symbol | varchar(10) | NOT NULL | "g", "kg", "ml", "L", "pcs" |
 | base_unit_id | uuid | FK → uom.id | null = this IS the base unit |
 | conversion_factor | decimal(15,6) | NOT NULL, default 1 | Multiply by this to get base unit |
 | created_at | timestamptz | NOT NULL, default now() | |
-| **UNIQUE** | | (org_id, symbol) | |
+| **UNIQUE** | | (bu_id, symbol) | |
+| **RLS** | | org_isolation, bu_ancestor_read, bu_write, bu_update, bu_delete | |
 
 **Sample data:**
 

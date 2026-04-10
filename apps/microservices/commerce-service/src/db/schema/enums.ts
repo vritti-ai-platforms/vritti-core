@@ -87,3 +87,31 @@ export type FieldType = (typeof fieldTypeEnum.enumValues)[number];
 export const taxRateTypeEnum = coreSchema.enum('tax_rate_type', ['inclusive', 'exclusive']);
 export const TaxRateTypeValues = { INCLUSIVE: 'inclusive', EXCLUSIVE: 'exclusive' } as const;
 export type TaxRateType = (typeof taxRateTypeEnum.enumValues)[number];
+
+export const inventoryItemTypeEnum = coreSchema.enum('inventory_item_type', ['MATERIAL', 'PRODUCT']);
+export const InventoryItemTypeValues = { MATERIAL: 'MATERIAL' as const, PRODUCT: 'PRODUCT' as const };
+export type InventoryItemType = (typeof inventoryItemTypeEnum.enumValues)[number];
+
+export const inventoryLedgerTypeEnum = coreSchema.enum('inventory_ledger_type', [
+  'GOODS_RECEIPT',
+  'ORDER_RESERVE',
+  'ORDER_DEDUCT',
+  'ORDER_CANCEL',
+  'ADJUSTMENT',
+  'CONVERSION_INPUT',
+  'CONVERSION_OUTPUT',
+  'TRANSFER_OUT',
+  'TRANSFER_IN',
+]);
+export const InventoryLedgerTypeValues = {
+  GOODS_RECEIPT: 'GOODS_RECEIPT' as const,
+  ORDER_RESERVE: 'ORDER_RESERVE' as const,
+  ORDER_DEDUCT: 'ORDER_DEDUCT' as const,
+  ORDER_CANCEL: 'ORDER_CANCEL' as const,
+  ADJUSTMENT: 'ADJUSTMENT' as const,
+  CONVERSION_INPUT: 'CONVERSION_INPUT' as const,
+  CONVERSION_OUTPUT: 'CONVERSION_OUTPUT' as const,
+  TRANSFER_OUT: 'TRANSFER_OUT' as const,
+  TRANSFER_IN: 'TRANSFER_IN' as const,
+};
+export type InventoryLedgerType = (typeof inventoryLedgerTypeEnum.enumValues)[number];

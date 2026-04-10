@@ -29,7 +29,7 @@ export class BusinessUnitRepository extends PrimaryBaseRepository<typeof busines
     const rows = await this.db
       .select()
       .from(businessUnits)
-      .where(sql`${businessUnits.path} <@ ${path}::ltree`);
+      .where(sql`${businessUnits.path} <@ cast(${path} as ltree)`);
     return rows as BusinessUnit[];
   }
 
@@ -38,7 +38,7 @@ export class BusinessUnitRepository extends PrimaryBaseRepository<typeof busines
     const result = await this.db
       .select({ id: businessUnits.id })
       .from(businessUnits)
-      .where(sql`${businessUnits.path} @> ${path}::ltree`);
+      .where(sql`${businessUnits.path} @> cast(${path} as ltree)`);
     return result.map((r) => r.id);
   }
 
@@ -47,7 +47,7 @@ export class BusinessUnitRepository extends PrimaryBaseRepository<typeof busines
     const result = await this.db
       .select({ id: businessUnits.id })
       .from(businessUnits)
-      .where(sql`${businessUnits.path} <@ ${path}::ltree`);
+      .where(sql`${businessUnits.path} <@ cast(${path} as ltree)`);
     return result.map((r) => r.id);
   }
 

@@ -8,3 +8,8 @@ export * from './item-field-values';
 export * from './modifier-groups';
 export * from './tax-groups';
 export * from './tax-rates';
+export * from './uom';
+export * from './inventory-items';
+export * from './inventory-levels';
+export * from './inventory-ledger';
+export * from './bom';

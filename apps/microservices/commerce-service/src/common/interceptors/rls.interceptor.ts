@@ -15,9 +15,11 @@ export class RlsInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const rpcContext = context.switchToRpc().getContext<NatsContext>();
     const rawHeaders = rpcContext?.getHeaders?.();
+
     const natsHeaders = parseNatsHeaders(rawHeaders);
 
     if (!natsHeaders) {
+      this.logger.warn('No NATS headers found — skipping RLS. Request will use DB defaults.');
       return next.handle();
     }
 

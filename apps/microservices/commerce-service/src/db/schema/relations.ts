@@ -15,4 +15,10 @@ export const relations = defineRelations(schema, (_r) => ({
   taxRates: {},
   itemFieldDefinitions: {},
   itemFieldValues: {},
+  uom: {},
+  inventoryItems: {},
+  inventoryLevels: {},
+  inventoryLedger: {},
+  bom: {},
+  bomLines: {},
 }));

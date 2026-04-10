@@ -1,6 +1,7 @@
 import { boolean, decimal, index, integer, jsonb, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 
+import { bom } from './bom';
 import { coreSchema } from './core-schema';
 
 export const itemOptions = coreSchema.table(
@@ -39,7 +40,7 @@ export const itemVariants = coreSchema.table(
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     itemId: uuid('item_id').notNull(),
-    bomId: uuid('bom_id'),
+    bomId: uuid('bom_id').references(() => bom.id, { onDelete: 'set null' }),
     sku: varchar('sku', { length: 100 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     price: decimal('price', { precision: 12, scale: 2 }).notNull(),

@@ -113,6 +113,7 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
     return this.db
       .select({
         id: itemOptionValues.id,
+        organizationId: itemOptionValues.organizationId,
         optionId: itemOptionValues.optionId,
         value: itemOptionValues.value,
         sortOrder: itemOptionValues.sortOrder,

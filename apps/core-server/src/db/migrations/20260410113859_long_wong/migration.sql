@@ -1,6 +1,6 @@
 
 --> statement-breakpoint
-CREATE EXTENSION IF NOT EXISTS ltree;
+CREATE EXTENSION IF NOT EXISTS ltree SCHEMA vritti_core;
 --> statement-breakpoint
 CREATE TYPE "vritti_core"."assignment_type" AS ENUM('DIRECT', 'INHERITED');--> statement-breakpoint
 CREATE TYPE "vritti_core"."bu_type" AS ENUM('ORGANIZATION', 'REGION', 'FRANCHISEE', 'BRANCH', 'TEAM', 'DEPARTMENT', 'CUSTOM');--> statement-breakpoint

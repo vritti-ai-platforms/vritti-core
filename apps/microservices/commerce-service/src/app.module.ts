@@ -13,6 +13,9 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ItemsModule } from './modules/items/items.module';
 import { ModifierGroupsModule } from './modules/modifier-groups/modifier-groups.module';
 import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
+import { UomModule } from './modules/uom/uom.module';
+import { InventoryItemsModule } from './modules/inventory-items/inventory-items.module';
+import { BomModule } from './modules/bom/bom.module';
 
 @Module({
   imports: [
@@ -45,6 +48,9 @@ import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
     ItemsModule,
     ModifierGroupsModule,
     TaxGroupsModule,
+    UomModule,
+    InventoryItemsModule,
+    BomModule,
   ],
   providers: [
     {
