@@ -34,12 +34,6 @@ export class UomGatewayService {
     return this.nats.send('commerce', 'uom.create', dto);
   }
 
-  // Finds a UOM by ID
-  async findById(id: string): Promise<UomResponseDto> {
-    this.logger.log(`uom.findById — id: ${id}`);
-    return this.nats.send('commerce', 'uom.findById', { id });
-  }
-
   // Updates a UOM by ID
   async update(id: string, dto: UpdateUomDto): Promise<SuccessResponseDto> {
     this.logger.log(`uom.update — id: ${id}`);

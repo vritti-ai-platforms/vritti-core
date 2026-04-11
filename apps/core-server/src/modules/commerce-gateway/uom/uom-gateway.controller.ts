@@ -41,12 +41,6 @@ export class UomGatewayController {
     return this.uomGatewayService.create(dto);
   }
 
-  // Returns a single UOM by ID
-  @Get(':id')
-  findById(@Param('id') id: string): Promise<UomResponseDto> {
-    return this.uomGatewayService.findById(id);
-  }
-
   // Updates a UOM by ID
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateUomDto): Promise<SuccessResponseDto> {

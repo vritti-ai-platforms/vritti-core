@@ -5618,32 +5618,6 @@
       }
     },
     "/commerce-api/uom/{id}": {
-      "get": {
-        "operationId": "UomGatewayController_findById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Units of Measure"
-        ]
-      },
       "patch": {
         "operationId": "UomGatewayController_update",
         "parameters": [
