@@ -7,7 +7,6 @@ export const createInventoryItemSchema = z.object({
   type: z.enum(['MATERIAL', 'PRODUCT']),
   description: z.string().optional(),
   uomId: z.string().min(1, 'Unit of measure is required'),
-  requiresShipping: z.boolean().optional(),
 });
 
 export const updateInventoryItemSchema = z.object({
@@ -16,7 +15,6 @@ export const updateInventoryItemSchema = z.object({
   type: z.enum(['MATERIAL', 'PRODUCT']).optional(),
   description: z.string().nullable().optional(),
   uomId: z.string().optional(),
-  requiresShipping: z.boolean().optional(),
 });
 
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
@@ -33,7 +31,7 @@ export interface InventoryItemData {
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
-  requiresShipping: boolean;
+  canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 }

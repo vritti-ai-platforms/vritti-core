@@ -2,7 +2,7 @@ import type { InventoryItemDetailDto, InventoryItemDto } from '@domain/inventory
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SelectQueryResult, SortCondition } from '@vritti/api-sdk';
+import type { CreateResponseDto, FilterCondition, SearchState, SelectOptionsQueryDto, SelectQueryResult, SortCondition, SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 
@@ -31,17 +31,15 @@ export class InventoryItemsController {
 
   // Returns paginated inventory item options for select dropdowns
   @MessagePattern({ cmd: 'inventoryItems.select' })
-  async select(
-    @Payload() data: { search?: string; limit?: number; offset?: number; values?: string; excludeIds?: string },
-  ): Promise<SelectQueryResult> {
+  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('inventoryItems.select');
     return this.service.findForSelect(data);
   }
 
   // Creates a new inventory item
   @MessagePattern({ cmd: 'inventoryItems.create' })
-  async create(@Payload() dto: CreateInventoryItemDto): Promise<InventoryItemDto> {
-    this.logger.log(`inventoryItems.create — name: ${dto.name}`);
+  async create(@Payload() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+    this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
     return this.service.create(dto);
   }
 
@@ -54,7 +52,7 @@ export class InventoryItemsController {
 
   // Updates an inventory item
   @MessagePattern({ cmd: 'inventoryItems.update' })
-  async update(@Payload() data: { id: string } & UpdateInventoryItemDto): Promise<InventoryItemDto> {
+  async update(@Payload() data: { id: string } & UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`inventoryItems.update — id: ${id}`);
     return this.service.update(id, updateData);
@@ -62,7 +60,7 @@ export class InventoryItemsController {
 
   // Deletes an inventory item
   @MessagePattern({ cmd: 'inventoryItems.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.delete — id: ${data.id}`);
     return this.service.delete(data.id);
   }

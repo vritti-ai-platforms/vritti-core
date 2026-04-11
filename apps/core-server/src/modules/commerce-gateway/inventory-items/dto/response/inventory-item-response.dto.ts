@@ -22,8 +22,8 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ nullable: true })
   uomSymbol: string | null;
 
-  @ApiProperty()
-  requiresShipping: boolean;
+  @ApiProperty({ description: 'Whether this item can be deleted' })
+  canDelete: boolean;
 
   @ApiProperty()
   createdAt: string;

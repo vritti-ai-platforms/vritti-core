@@ -1,4 +1,4 @@
-import { boolean, index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
@@ -15,7 +15,6 @@ export const inventoryItems = coreSchema.table(
     type: inventoryItemTypeEnum('type').notNull(),
     description: varchar('description', { length: 500 }),
     uomId: uuid('uom_id').notNull().references(() => uom.id),
-    requiresShipping: boolean('requires_shipping').notNull().default(false),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')

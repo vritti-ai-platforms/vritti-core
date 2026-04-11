@@ -8,7 +8,7 @@ import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
-import { useInventoryItem } from '@/hooks/useInventoryItem';
+import { useInventoryItem } from '@/hooks/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { LedgerTab } from './tabs/LedgerTab';
 import { LevelsTab } from './tabs/LevelsTab';
@@ -68,10 +68,6 @@ export const InventoryItemDetailPage = () => {
                     <div>
                       <p className="text-sm text-muted-foreground">Unit of Measure</p>
                       <p className="mt-1 font-medium">{item.uomSymbol ?? '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Requires Shipping</p>
-                      <p className="mt-1 font-medium">{item.requiresShipping ? 'Yes' : 'No'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Description</p>

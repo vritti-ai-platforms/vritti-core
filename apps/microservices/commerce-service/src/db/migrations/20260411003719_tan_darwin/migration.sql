@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."inventory_items" DROP COLUMN "requires_shipping";

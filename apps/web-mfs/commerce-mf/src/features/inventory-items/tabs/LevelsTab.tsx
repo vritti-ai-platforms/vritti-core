@@ -51,7 +51,7 @@ export const LevelsTab: React.FC<LevelsTabProps> = ({ levels, uomSymbol }) => {
                       {isLow ? (
                         <Badge variant="destructive">Low Stock</Badge>
                       ) : (
-                        <Badge variant="secondary" className="bg-success/15 text-success">In Stock</Badge>
+                        <Badge variant="secondary">In Stock</Badge>
                       )}
                     </td>
                   </tr>

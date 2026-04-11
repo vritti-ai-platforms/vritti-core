@@ -1,12 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  ConflictException,
+  type CreateResponseDto,
   type FieldMap,
   type FilterCondition,
   FilterProcessor,
   NotFoundException,
   type SearchState,
+  type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SortCondition,
+  type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems } from '@/db/schema';
@@ -46,48 +50,40 @@ export class InventoryItemsService {
       offset: params.pagination.offset,
     });
 
-    const dtos: InventoryItemDto[] = [];
-    for (const entity of rows) {
-      const uomSymbol = await this.repository.findUomSymbol(entity.uomId);
-      dtos.push(InventoryItemDto.from(entity, uomSymbol));
-    }
+    const referencedIds = await this.repository.findReferencedIds(rows.map((r) => r.id));
+    const dtos = rows.map((entity) => InventoryItemDto.from(entity, null, !referencedIds.has(entity.id)));
 
     return { result: dtos, count };
   }
 
   // Returns paginated inventory item options for select dropdowns
-  findForSelect(params: {
-    search?: string;
-    limit?: number;
-    offset?: number;
-    values?: string;
-    excludeIds?: string;
-  }): Promise<SelectQueryResult> {
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
-      value: 'id',
-      label: 'name',
-      search: params.search,
-      limit: params.limit,
-      offset: params.offset,
-      values: params.values,
-      excludeIds: params.excludeIds,
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      groupId: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
       orderBy: { name: 'asc' },
     });
   }
 
   // Creates a new inventory item
-  async create(data: CreateInventoryItemDto): Promise<InventoryItemDto> {
+  async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     const entity = await this.repository.create({
       name: data.name,
       code: data.code,
       type: data.type,
       description: data.description ?? null,
       uomId: data.uomId,
-      requiresShipping: data.requiresShipping ?? false,
     });
     const uomSymbol = await this.repository.findUomSymbol(entity.uomId);
     this.logger.log(`Created inventory item: ${entity.name} (${entity.code})`);
-    return InventoryItemDto.from(entity, uomSymbol);
+    return { success: true, message: `Item "${entity.name}" (${entity.code}) created successfully.`, data: InventoryItemDto.from(entity, uomSymbol) };
   }
 
   // Returns inventory item detail with levels and ledger
@@ -101,7 +97,7 @@ export class InventoryItemsService {
   }
 
   // Updates an inventory item
-  async update(id: string, data: UpdateInventoryItemDto): Promise<InventoryItemDto> {
+  async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
 
@@ -111,20 +107,34 @@ export class InventoryItemsService {
     if (data.type !== undefined) updatePayload.type = data.type;
     if (data.description !== undefined) updatePayload.description = data.description;
     if (data.uomId !== undefined) updatePayload.uomId = data.uomId;
-    if (data.requiresShipping !== undefined) updatePayload.requiresShipping = data.requiresShipping;
 
-    const entity = await this.repository.update(id, updatePayload);
-    const uomSymbol = await this.repository.findUomSymbol(entity.uomId);
-    this.logger.log(`Updated inventory item: ${entity.name} (${entity.id})`);
-    return InventoryItemDto.from(entity, uomSymbol);
+    if (Object.keys(updatePayload).length > 0) {
+      await this.repository.update(id, updatePayload);
+    }
+
+    this.logger.log(`Updated inventory item: ${existing.name} (${existing.code})`);
+    return { success: true, message: `Item "${existing.name}" updated successfully.` };
   }
 
-  // Deletes an inventory item (cascades to levels and ledger)
-  async delete(id: string): Promise<{ success: boolean; message: string }> {
+  // Deletes an inventory item; throws ConflictException if referenced
+  async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
+    const refs = await this.repository.countReferences(id);
+    const parts: string[] = [];
+    if (refs.bomLines > 0) parts.push(`${refs.bomLines} BOM line${refs.bomLines > 1 ? 's' : ''}`);
+    if (refs.conversions > 0) parts.push(`${refs.conversions} conversion${refs.conversions > 1 ? 's' : ''}`);
+    if (refs.stockAdjustments > 0) parts.push(`${refs.stockAdjustments} stock adjustment${refs.stockAdjustments > 1 ? 's' : ''}`);
+    if (refs.stockTransfers > 0) parts.push(`${refs.stockTransfers} stock transfer${refs.stockTransfers > 1 ? 's' : ''}`);
+    if (refs.purchaseOrderItems > 0) parts.push(`${refs.purchaseOrderItems} purchase order item${refs.purchaseOrderItems > 1 ? 's' : ''}`);
+    if (parts.length > 0) {
+      throw new ConflictException({
+        label: 'Item In Use',
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
+      });
+    }
     await this.repository.delete(id);
-    this.logger.log(`Deleted inventory item: ${id}`);
-    return { success: true, message: 'Inventory item deleted successfully.' };
+    this.logger.log(`Deleted inventory item: ${existing.name} (${id})`);
+    return { success: true, message: `Item "${existing.name}" deleted successfully.` };
   }
 }

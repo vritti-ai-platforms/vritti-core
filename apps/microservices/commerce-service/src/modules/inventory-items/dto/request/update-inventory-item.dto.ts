@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import type { InventoryItemType } from '@/db/schema';
 
 export class UpdateInventoryItemDto {
@@ -24,8 +24,4 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @IsUUID()
   uomId?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  requiresShipping?: boolean;
 }

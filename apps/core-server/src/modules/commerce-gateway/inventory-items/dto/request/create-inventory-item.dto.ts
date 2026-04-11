@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateInventoryItemDto {
   @ApiProperty({ description: 'Item name', example: 'Basmati Rice' })
@@ -27,9 +27,4 @@ export class CreateInventoryItemDto {
   @ApiProperty({ description: 'Unit of measure ID' })
   @IsUUID()
   uomId: string;
-
-  @ApiPropertyOptional({ description: 'Requires shipping', default: false })
-  @IsOptional()
-  @IsBoolean()
-  requiresShipping?: boolean;
 }

@@ -52,11 +52,11 @@ export class InventoryItemDto {
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
-  requiresShipping: boolean;
+  canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 
-  static from(entity: InventoryItem, uomSymbol?: string | null): InventoryItemDto {
+  static from(entity: InventoryItem, uomSymbol?: string | null, canDelete = true): InventoryItemDto {
     const dto = new InventoryItemDto();
     dto.id = entity.id;
     dto.name = entity.name;
@@ -65,7 +65,7 @@ export class InventoryItemDto {
     dto.description = entity.description ?? null;
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? null;
-    dto.requiresShipping = entity.requiresShipping;
+    dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

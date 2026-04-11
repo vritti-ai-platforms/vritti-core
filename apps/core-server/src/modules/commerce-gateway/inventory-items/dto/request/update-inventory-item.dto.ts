@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateInventoryItemDto {
   @ApiPropertyOptional({ description: 'Item name' })
@@ -29,9 +29,4 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @IsUUID()
   uomId?: string;
-
-  @ApiPropertyOptional({ description: 'Requires shipping' })
-  @IsOptional()
-  @IsBoolean()
-  requiresShipping?: boolean;
 }

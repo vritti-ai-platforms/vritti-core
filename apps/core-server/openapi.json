@@ -7518,11 +7518,6 @@
           "uomId": {
             "type": "string",
             "description": "Unit of measure ID"
-          },
-          "requiresShipping": {
-            "type": "boolean",
-            "description": "Requires shipping",
-            "default": false
           }
         },
         "required": [
@@ -7558,10 +7553,6 @@
           "uomId": {
             "type": "string",
             "description": "Unit of measure ID"
-          },
-          "requiresShipping": {
-            "type": "boolean",
-            "description": "Requires shipping"
           }
         }
       },

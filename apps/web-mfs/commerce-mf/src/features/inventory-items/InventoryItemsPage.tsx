@@ -9,8 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Eye, Package, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteInventoryItem } from '@/hooks/useDeleteInventoryItem';
-import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/useInventoryItemsTable';
+import { INVENTORY_ITEMS_TABLE_KEY, useDeleteInventoryItem, useInventoryItemsTable } from '@/hooks/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
 import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
 

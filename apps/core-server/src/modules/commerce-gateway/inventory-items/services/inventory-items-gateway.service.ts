@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
@@ -41,8 +41,8 @@ export class InventoryItemsGatewayService {
   }
 
   // Creates a new inventory item
-  async create(dto: CreateInventoryItemDto): Promise<InventoryItemResponseDto> {
-    this.logger.log(`inventoryItems.create — name: ${dto.name}`);
+  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
+    this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'inventoryItems.create', dto);
   }
 
@@ -53,13 +53,13 @@ export class InventoryItemsGatewayService {
   }
 
   // Updates an inventory item
-  async update(id: string, dto: UpdateInventoryItemDto): Promise<InventoryItemResponseDto> {
+  async update(id: string, dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.update — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.update', { id, ...dto });
   }
 
   // Deletes an inventory item
-  async delete(id: string): Promise<{ success: boolean; message: string }> {
+  async delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.delete — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.delete', { id });
   }

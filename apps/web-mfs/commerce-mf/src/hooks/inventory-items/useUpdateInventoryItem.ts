@@ -1,17 +1,18 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
-import type { InventoryItemData } from '@/schemas/inventory-items';
-import { type UpdateInventoryItemPayload, updateInventoryItem } from '@/services/inventory-items.service';
+import type { UpdateInventoryItemFormData } from '@/schemas/inventory-items';
+import { updateInventoryItem } from '@/services/inventory-items.service';
 import { INVENTORY_ITEMS_TABLE_KEY } from './useInventoryItemsTable';
 
 // Updates an inventory item and invalidates table + detail
 export function useUpdateInventoryItem(
-  options?: Omit<UseMutationOptions<InventoryItemData, AxiosError, { id: string; data: UpdateInventoryItemPayload }>, 'mutationFn'>,
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, { id: string; data: UpdateInventoryItemFormData }>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<InventoryItemData, AxiosError, { id: string; data: UpdateInventoryItemPayload }>({
+  return useMutation<SuccessResponse, AxiosError, { id: string; data: UpdateInventoryItemFormData }>({
     ...options,
     mutationFn: updateInventoryItem,
     onSuccess: (...args) => {
