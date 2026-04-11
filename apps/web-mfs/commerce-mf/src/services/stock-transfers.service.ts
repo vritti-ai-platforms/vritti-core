@@ -6,6 +6,8 @@ export interface CreateStockTransferPayload {
   inventoryItemId: string;
   fromBuId: string;
   toBuId: string;
+  fromLocationId: string;
+  toLocationId: string;
   quantity: number;
   notes?: string;
 }

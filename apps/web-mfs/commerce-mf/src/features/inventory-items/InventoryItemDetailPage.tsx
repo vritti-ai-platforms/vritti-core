@@ -10,7 +10,7 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteInventoryItem, useInventoryItem, useInventoryItemLedger, useInventoryItemLevels } from '@/hooks/inventory-items';
+import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { LedgerTab } from './tabs/LedgerTab';
 import { LevelsTab } from './tabs/LevelsTab';
@@ -19,8 +19,6 @@ export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
   const navigate = useNavigate();
   const { data: item, isLoading } = useInventoryItem(id ?? null);
-  const { data: levels = [] } = useInventoryItemLevels(id ?? null);
-  const { data: ledger = [] } = useInventoryItemLedger(id ?? null);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
   const confirm = useConfirm();
@@ -99,12 +97,12 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'levels',
             label: 'Stock Levels',
-            content: <LevelsTab levels={levels} uomSymbol={item.uomSymbol} />,
+            content: <LevelsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'ledger',
             label: 'Ledger',
-            content: <LedgerTab ledger={ledger} uomSymbol={item.uomSymbol} />,
+            content: <LedgerTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
         ]}
         value={activeTab}

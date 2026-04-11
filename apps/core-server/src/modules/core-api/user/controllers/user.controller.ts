@@ -12,7 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf, SuccessResponseDto } from '@vritti/api-sdk';
+import { Public, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, SkipCsrf, SuccessResponseDto } from '@vritti/api-sdk';
+import { SessionTypeValues } from '@/db/schema';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
 import {
   ApiCreateUserWebhook,
@@ -33,6 +34,14 @@ export class UserController {
   private readonly logger = new Logger(UserController.name);
 
   constructor(private readonly userService: UserService) {}
+
+  // Returns paginated user options for the select component
+  @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS)
+  findForSelect(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('GET /users/select');
+    return this.userService.findForSelect(query);
+  }
 
   // Receives user creation from cloud-server via webhook and upserts in nexus
   @Post('webhook')

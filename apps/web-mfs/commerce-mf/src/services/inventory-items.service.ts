@@ -1,6 +1,6 @@
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { CreateInventoryItemFormData, InventoryItemData, InventoryItemsTableResponse, InventoryLedgerData, InventoryLevelData, UpdateInventoryItemFormData } from '@/schemas/inventory-items';
+import type { CreateInventoryItemFormData, InventoryItemData, InventoryItemsTableResponse, InventoryLedgerTableResponse, InventoryLevelsTableResponse, UpdateInventoryItemFormData } from '@/schemas/inventory-items';
 
 // Fetches inventory items for the data table
 export function getInventoryItemsTable(): Promise<InventoryItemsTableResponse> {
@@ -17,14 +17,14 @@ export function getInventoryItem(id: string): Promise<InventoryItemData> {
   return axios.get<InventoryItemData>(`commerce-api/inventory-items/${id}`).then((r) => r.data);
 }
 
-// Fetches stock levels for an inventory item
-export function getInventoryItemLevels(id: string): Promise<InventoryLevelData[]> {
-  return axios.get<InventoryLevelData[]>(`commerce-api/inventory-items/${id}/levels`).then((r) => r.data);
+// Fetches stock levels table for an inventory item
+export function getInventoryItemLevelsTable(id: string): Promise<InventoryLevelsTableResponse> {
+  return axios.get<InventoryLevelsTableResponse>(`commerce-api/inventory-items/${id}/levels/table`).then((r) => r.data);
 }
 
-// Fetches ledger entries for an inventory item
-export function getInventoryItemLedger(id: string): Promise<InventoryLedgerData[]> {
-  return axios.get<InventoryLedgerData[]>(`commerce-api/inventory-items/${id}/ledger`).then((r) => r.data);
+// Fetches ledger table for an inventory item
+export function getInventoryItemLedgerTable(id: string): Promise<InventoryLedgerTableResponse> {
+  return axios.get<InventoryLedgerTableResponse>(`commerce-api/inventory-items/${id}/ledger/table`).then((r) => r.data);
 }
 
 // Updates an inventory item

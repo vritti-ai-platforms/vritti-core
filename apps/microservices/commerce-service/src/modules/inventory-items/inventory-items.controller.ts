@@ -64,6 +64,34 @@ export class InventoryItemsController {
     return this.service.findLedger(data.itemId);
   }
 
+  // Returns paginated stock levels for an inventory item data table
+  @MessagePattern({ cmd: 'inventoryItems.levelsTable' })
+  async levelsTable(
+    @Payload() data: { itemId: string; filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+  ): Promise<{ result: InventoryLevelDto[]; count: number }> {
+    this.logger.log(`inventoryItems.levelsTable — itemId: ${data.itemId}`);
+    return this.service.findLevelsForTable(data.itemId, {
+      filters: data.filters ?? [],
+      sort: data.sort ?? [],
+      search: data.search ?? null,
+      pagination: data.pagination ?? { limit: 20, offset: 0 },
+    });
+  }
+
+  // Returns paginated ledger entries for an inventory item data table
+  @MessagePattern({ cmd: 'inventoryItems.ledgerTable' })
+  async ledgerTable(
+    @Payload() data: { itemId: string; filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+  ): Promise<{ result: InventoryLedgerDto[]; count: number }> {
+    this.logger.log(`inventoryItems.ledgerTable — itemId: ${data.itemId}`);
+    return this.service.findLedgerForTable(data.itemId, {
+      filters: data.filters ?? [],
+      sort: data.sort ?? [],
+      search: data.search ?? null,
+      pagination: data.pagination ?? { limit: 20, offset: 0 },
+    });
+  }
+
   // Updates an inventory item
   @MessagePattern({ cmd: 'inventoryItems.update' })
   async update(@Payload() data: { id: string } & UpdateInventoryItemDto): Promise<SuccessResponseDto> {

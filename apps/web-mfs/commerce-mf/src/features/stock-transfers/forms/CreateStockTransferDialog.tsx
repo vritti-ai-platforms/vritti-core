@@ -4,6 +4,7 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateStockTransfer } from '@/hooks/useCreateStockTransfer';
@@ -21,6 +22,8 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
       inventoryItemId: '',
       fromBuId: '',
       toBuId: '',
+      fromLocationId: undefined,
+      toLocationId: undefined,
       quantity: '',
       notes: '',
     },
@@ -39,13 +42,17 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
         inventoryItemId: data.inventoryItemId,
         fromBuId: data.fromBuId,
         toBuId: data.toBuId,
+        fromLocationId: data.fromLocationId,
+        toLocationId: data.toLocationId,
         quantity: Number(data.quantity),
         notes: data.notes || undefined,
       })}
     >
       <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />
       <TextField name="fromBuId" label="From Location (BU ID)" placeholder="Source business unit ID" />
+      <StorageLocationSelector name="fromLocationId" label="From Storage Location" placeholder="Select source location" />
       <TextField name="toBuId" label="To Location (BU ID)" placeholder="Destination business unit ID" />
+      <StorageLocationSelector name="toLocationId" label="To Storage Location" placeholder="Select destination location" />
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 100" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

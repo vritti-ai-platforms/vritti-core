@@ -1,7 +1,10 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { InventoryItemData, InventoryLedgerData, InventoryLevelData } from '@/schemas/inventory-items';
-import { getInventoryItem, getInventoryItemLedger, getInventoryItemLevels } from '@/services/inventory-items.service';
+import type { InventoryItemData, InventoryLedgerTableResponse, InventoryLevelsTableResponse } from '@/schemas/inventory-items';
+import { getInventoryItem, getInventoryItemLedgerTable, getInventoryItemLevelsTable } from '@/services/inventory-items.service';
+
+export const INVENTORY_ITEM_LEVELS_KEY = (itemId: string) => ['commerce', 'inventory-items', itemId, 'levels'] as const;
+export const INVENTORY_ITEM_LEDGER_KEY = (itemId: string) => ['commerce', 'inventory-items', itemId, 'ledger'] as const;
 
 // Fetches a single inventory item
 export function useInventoryItem(
@@ -16,27 +19,27 @@ export function useInventoryItem(
   });
 }
 
-// Fetches stock levels for an inventory item
-export function useInventoryItemLevels(
+// Fetches stock levels table for an inventory item
+export function useInventoryItemLevelsTable(
   itemId: string | null,
-  options?: Omit<UseQueryOptions<InventoryLevelData[], AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
+  options?: Omit<UseQueryOptions<InventoryLevelsTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
-  return useQuery<InventoryLevelData[], AxiosError>({
-    queryKey: ['commerce', 'inventory-items', itemId, 'levels'],
-    queryFn: () => getInventoryItemLevels(itemId as string),
+  return useQuery<InventoryLevelsTableResponse, AxiosError>({
+    queryKey: [...INVENTORY_ITEM_LEVELS_KEY(itemId ?? '')],
+    queryFn: () => getInventoryItemLevelsTable(itemId as string),
     enabled: !!itemId,
     ...options,
   });
 }
 
-// Fetches ledger entries for an inventory item
-export function useInventoryItemLedger(
+// Fetches ledger table for an inventory item
+export function useInventoryItemLedgerTable(
   itemId: string | null,
-  options?: Omit<UseQueryOptions<InventoryLedgerData[], AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
+  options?: Omit<UseQueryOptions<InventoryLedgerTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
-  return useQuery<InventoryLedgerData[], AxiosError>({
-    queryKey: ['commerce', 'inventory-items', itemId, 'ledger'],
-    queryFn: () => getInventoryItemLedger(itemId as string),
+  return useQuery<InventoryLedgerTableResponse, AxiosError>({
+    queryKey: [...INVENTORY_ITEM_LEDGER_KEY(itemId ?? '')],
+    queryFn: () => getInventoryItemLedgerTable(itemId as string),
     enabled: !!itemId,
     ...options,
   });

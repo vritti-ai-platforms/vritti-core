@@ -18,6 +18,7 @@ export interface UpdatePurchaseOrderPayload {
 
 export interface CreateGoodsReceiptPayload {
   purchaseOrderId: string;
+  locationId: string;
   notes?: string;
   items: {
     purchaseOrderItemId: string;

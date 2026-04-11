@@ -20,6 +20,8 @@ export const updateInventoryItemSchema = z.object({
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
 export type UpdateInventoryItemFormData = z.infer<typeof updateInventoryItemSchema>;
 export type InventoryItemsTableResponse = TableResponse<InventoryItemData>;
+export type InventoryLevelsTableResponse = TableResponse<InventoryLevelData>;
+export type InventoryLedgerTableResponse = TableResponse<InventoryLedgerData>;
 
 export type InventoryItemType = 'MATERIAL' | 'PRODUCT';
 

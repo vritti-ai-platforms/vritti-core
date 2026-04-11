@@ -3,6 +3,7 @@ import type { StockAdjustmentData, StockAdjustmentsTableResponse } from '@/schem
 
 export interface CreateStockAdjustmentPayload {
   inventoryItemId: string;
+  locationId: string;
   type: string;
   quantity: number;
   reason?: string;

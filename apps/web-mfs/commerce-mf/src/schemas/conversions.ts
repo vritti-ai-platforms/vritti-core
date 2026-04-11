@@ -47,6 +47,7 @@ const conversionLineSchema = z.object({
 
 export const createConversionSchema = z.object({
   bomId: z.string().optional(),
+  locationId: z.string().min(1, 'Location is required'),
   notes: z.string().optional(),
   inputs: z.array(conversionLineSchema).min(1, 'At least one input is required'),
   outputs: z.array(conversionLineSchema).min(1, 'At least one output is required'),

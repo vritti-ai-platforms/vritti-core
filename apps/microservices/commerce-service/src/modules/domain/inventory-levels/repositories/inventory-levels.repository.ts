@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk';
-import { desc, eq, and, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type SQL, desc, eq, and, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryLedgerEntry,
   type InventoryLevel,
@@ -101,5 +101,62 @@ export class InventoryLevelsRepository {
       .where(eq(inventoryLedger.inventoryItemId, itemId))
       .orderBy(desc(inventoryLedger.createdAt))
       .limit(limit);
+  }
+
+  // Returns paginated levels for an item with location names, applying filters/sort/pagination
+  async findLevelsForTable(
+    itemId: string,
+    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: { id: string; locationId: string; locationName: string | null; stockedQuantity: string; reservedQuantity: string; reorderLevel: string }[]; count: number }> {
+    const baseWhere = eq(inventoryLevels.inventoryItemId, itemId);
+    const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
+
+    const [countResult] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryLevels)
+      .leftJoin(storageLocations, eq(inventoryLevels.locationId, storageLocations.id))
+      .where(combinedWhere);
+
+    const result = await this.db
+      .select({
+        id: inventoryLevels.id,
+        locationId: inventoryLevels.locationId,
+        locationName: storageLocations.name,
+        stockedQuantity: inventoryLevels.stockedQuantity,
+        reservedQuantity: inventoryLevels.reservedQuantity,
+        reorderLevel: inventoryLevels.reorderLevel,
+      })
+      .from(inventoryLevels)
+      .leftJoin(storageLocations, eq(inventoryLevels.locationId, storageLocations.id))
+      .where(combinedWhere)
+      .orderBy(...(options.orderBy?.length ? options.orderBy : [storageLocations.name]))
+      .limit(options.limit)
+      .offset(options.offset);
+
+    return { result, count: Number(countResult?.count ?? 0) };
+  }
+
+  // Returns paginated ledger entries for an item, applying filters/sort/pagination
+  async findLedgerForTable(
+    itemId: string,
+    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: InventoryLedgerEntry[]; count: number }> {
+    const baseWhere = eq(inventoryLedger.inventoryItemId, itemId);
+    const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
+
+    const [countResult] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryLedger)
+      .where(combinedWhere);
+
+    const result = await this.db
+      .select()
+      .from(inventoryLedger)
+      .where(combinedWhere)
+      .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(inventoryLedger.createdAt)]))
+      .limit(options.limit)
+      .offset(options.offset);
+
+    return { result, count: Number(countResult?.count ?? 0) };
   }
 }

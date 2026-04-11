@@ -6,6 +6,8 @@ import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto'
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
+import type { InventoryLedgerTableResponseDto } from './dto/response/inventory-ledger-table-response.dto';
+import type { InventoryLevelTableResponseDto } from './dto/response/inventory-level-table-response.dto';
 import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Inventory Items')
@@ -58,6 +60,20 @@ export class InventoryItemsGatewayController {
   findLedger(@Param('id') id: string) {
     this.logger.log(`GET /commerce-api/inventory-items/${id}/ledger`);
     return this.service.findLedger(id);
+  }
+
+  // Returns paginated stock levels for an inventory item data table
+  @Get(':id/levels/table')
+  getLevelsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryLevelTableResponseDto> {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/levels/table`);
+    return this.service.findLevelsForTable(id, userId);
+  }
+
+  // Returns paginated ledger entries for an inventory item data table
+  @Get(':id/ledger/table')
+  getLedgerTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryLedgerTableResponseDto> {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/ledger/table`);
+    return this.service.findLedgerForTable(id, userId);
   }
 
   // Updates an inventory item

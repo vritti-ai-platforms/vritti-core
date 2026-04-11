@@ -119,6 +119,26 @@ export class InventoryItemsService {
     return this.levelsService.findLedgerByItemId(itemId);
   }
 
+  // Returns paginated, filtered levels for the data table
+  async findLevelsForTable(
+    itemId: string,
+    params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+  ): Promise<{ result: InventoryLevelDto[]; count: number }> {
+    const entity = await this.repository.findById(itemId);
+    if (!entity) throw new NotFoundException('Inventory item not found.');
+    return this.levelsService.findLevelsForTable(itemId, params);
+  }
+
+  // Returns paginated, filtered ledger entries for the data table
+  async findLedgerForTable(
+    itemId: string,
+    params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+  ): Promise<{ result: InventoryLedgerDto[]; count: number }> {
+    const entity = await this.repository.findById(itemId);
+    if (!entity) throw new NotFoundException('Inventory item not found.');
+    return this.levelsService.findLedgerForTable(itemId, params);
+  }
+
   // Updates an inventory item
   async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);

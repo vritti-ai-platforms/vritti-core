@@ -5,6 +5,7 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { BomSelector } from '@vritti/quantum-ui/selects/bom';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -23,6 +24,7 @@ export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ 
     resolver: zodResolver(createConversionSchema),
     defaultValues: {
       bomId: '',
+      locationId: undefined,
       notes: '',
       inputs: [{ ...emptyLine }],
       outputs: [{ ...emptyLine }],
@@ -43,6 +45,7 @@ export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ 
       onCancel={onCancel}
       transformSubmit={(data) => ({
         bomId: data.bomId || undefined,
+        locationId: data.locationId,
         notes: data.notes || undefined,
         inputs: data.inputs.map((i) => ({
           inventoryItemId: i.inventoryItemId,
@@ -57,6 +60,7 @@ export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ 
       })}
     >
       <BomSelector name="bomId" label="BOM (Optional)" placeholder="Select BOM" />
+      <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
 
       <div className="space-y-3">

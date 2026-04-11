@@ -3,6 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -16,6 +17,7 @@ interface ReceiveGoodsDialogProps {
 }
 
 const receiveGoodsSchema = z.object({
+  locationId: z.string().min(1, 'Location is required'),
   notes: z.string().optional(),
   items: z.array(
     z.object({
@@ -37,6 +39,7 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
   const form = useForm<ReceiveGoodsFormData>({
     resolver: zodResolver(receiveGoodsSchema),
     defaultValues: {
+      locationId: undefined,
       notes: '',
       items: receivableItems.map((item) => ({
         purchaseOrderItemId: item.id,
@@ -70,6 +73,7 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
       onCancel={onCancel}
       transformSubmit={(data) => ({
         purchaseOrderId: purchaseOrder.id,
+        locationId: data.locationId,
         notes: data.notes || undefined,
         items: data.items
           .filter((item) => Number(item.acceptedQuantity) > 0 || Number(item.rejectedQuantity) > 0)
@@ -81,6 +85,7 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
           })),
       })}
     >
+      <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
       <div className="space-y-6">
         {receivableItems.map((item, index) => (
           <div key={item.id} className="rounded-lg border p-4 space-y-3">

@@ -9,6 +9,8 @@ import {
   FilterProcessor,
   NotFoundException,
   type SearchState,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
   type SortCondition,
   SuccessResponseDto,
 } from '@vritti/api-sdk';
@@ -40,6 +42,23 @@ export class UserService {
     private readonly emailService: EmailService,
     private readonly config: ConfigService,
   ) {}
+
+  // Returns paginated user options for the select component
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`Fetched user select options (limit: ${query.limit}, offset: ${query.offset})`);
+    return this.userRepository.findForSelect({
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'fullName',
+      description: query.descriptionKey || 'email',
+      groupId: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderBy: { fullName: 'asc' },
+    });
+  }
 
   // Creates a portal user from cloud-server webhook and sends invite email
   async createFromWebhook(dto: CreateUserWebhookDto): Promise<SuccessResponseDto> {

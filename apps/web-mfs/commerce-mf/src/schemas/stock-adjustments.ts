@@ -18,6 +18,7 @@ export type StockAdjustmentsTableResponse = TableResponse<StockAdjustmentData>;
 
 export const createStockAdjustmentSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
+  locationId: z.string().min(1, 'Location is required'),
   type: z.enum(['WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'CORRECTION', 'PRODUCTION'], { message: 'Adjustment type is required' }),
   quantity: z.string().min(1, 'Quantity is required'),
   reason: z.string().optional(),

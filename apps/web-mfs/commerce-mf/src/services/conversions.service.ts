@@ -4,6 +4,7 @@ import type { ConversionData, ConversionDetail, ConversionsTableResponse } from 
 
 export interface CreateConversionPayload {
   bomId?: string;
+  locationId: string;
   notes?: string;
   inputs: { inventoryItemId: string; quantity: number; wastageQuantity?: number }[];
   outputs: { inventoryItemId: string; quantity: number; wastageQuantity?: number }[];
@@ -27,8 +28,8 @@ export function getConversion(id: string): Promise<ConversionDetail> {
     .then((r) => r.data);
 }
 
-export function completeConversion(id: string): Promise<SuccessResponse> {
+export function completeConversion({ id, locationId }: { id: string; locationId: string }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/conversions/${id}/complete`)
+    .patch<SuccessResponse>(`commerce-api/conversions/${id}/complete`, { locationId })
     .then((r) => r.data);
 }

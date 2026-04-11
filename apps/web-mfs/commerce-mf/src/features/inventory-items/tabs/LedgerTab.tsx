@@ -1,10 +1,14 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { ScrollText } from 'lucide-react';
 import type React from 'react';
+import { useMemo } from 'react';
+import { INVENTORY_ITEM_LEDGER_KEY, useInventoryItemLedgerTable } from '@/hooks/inventory-items';
 import type { InventoryLedgerData } from '@/schemas/inventory-items';
 
 interface LedgerTabProps {
-  ledger: InventoryLedgerData[];
+  itemId: string;
   uomSymbol: string | null;
 }
 
@@ -20,59 +24,75 @@ const TYPE_LABELS: Record<string, string> = {
   TRANSFER_IN: 'Transfer In',
 };
 
-export const LedgerTab: React.FC<LedgerTabProps> = ({ ledger, uomSymbol }) => {
-  if (ledger.length === 0) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          No ledger entries yet. Entries are created automatically when stock changes.
-        </CardContent>
-      </Card>
-    );
-  }
+export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
+  const queryClient = useQueryClient();
+  const { data: response, isLoading } = useInventoryItemLedgerTable(itemId);
+  const columns = useMemo<ColumnDef<InventoryLedgerData>[]>(
+    () => [
+      {
+        accessorKey: 'createdAt',
+        header: 'Date',
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{new Date(row.original.createdAt).toLocaleDateString()}</span>
+        ),
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'type',
+        header: 'Type',
+        cell: ({ row }) => <Badge variant="outline">{TYPE_LABELS[row.original.type] ?? row.original.type}</Badge>,
+      },
+      {
+        accessorKey: 'quantity',
+        header: 'Quantity',
+        cell: ({ row }) => {
+          const isPositive = row.original.quantity > 0;
+          return (
+            <span className={`font-mono ${isPositive ? 'text-success' : 'text-destructive'}`}>
+              {isPositive ? '+' : ''}{row.original.quantity} {uomSymbol}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: 'balanceAfter',
+        header: 'Balance',
+        cell: ({ row }) => <span className="font-mono">{row.original.balanceAfter} {uomSymbol}</span>,
+      },
+      {
+        accessorKey: 'referenceType',
+        header: 'Reference',
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.referenceType ?? '—'}</span>,
+      },
+      {
+        accessorKey: 'notes',
+        header: 'Notes',
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.notes ?? '—'}</span>,
+      },
+    ],
+    [uomSymbol],
+  );
+
+  const { table } = useDataTable({
+    columns,
+    serverState: response,
+    slug: `inventory-item-${itemId}-ledger`,
+    label: 'entry',
+    enableRowSelection: false,
+    enableSorting: true,
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LEDGER_KEY(itemId)] }),
+  });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Stock Movement Ledger</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-muted-foreground">
-                <th className="pb-2 font-medium">Date</th>
-                <th className="pb-2 font-medium">Type</th>
-                <th className="pb-2 font-medium text-right">Quantity</th>
-                <th className="pb-2 font-medium text-right">Balance</th>
-                <th className="pb-2 font-medium">Reference</th>
-                <th className="pb-2 font-medium">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ledger.map((entry) => {
-                const isPositive = entry.quantity > 0;
-                return (
-                  <tr key={entry.id} className="border-b last:border-0">
-                    <td className="py-3 text-muted-foreground">
-                      {new Date(entry.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-3">
-                      <Badge variant="outline">{TYPE_LABELS[entry.type] ?? entry.type}</Badge>
-                    </td>
-                    <td className={`py-3 text-right font-mono ${isPositive ? 'text-success' : 'text-destructive'}`}>
-                      {isPositive ? '+' : ''}{entry.quantity} {uomSymbol}
-                    </td>
-                    <td className="py-3 text-right font-mono">{entry.balanceAfter} {uomSymbol}</td>
-                    <td className="py-3 text-muted-foreground">{entry.referenceType ?? '—'}</td>
-                    <td className="py-3 text-muted-foreground">{entry.notes ?? '—'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+    <DataTable
+      table={table}
+      mode="compact"
+      isLoading={isLoading}
+      emptyStateConfig={{
+        icon: ScrollText,
+        title: 'No ledger entries',
+        description: 'Entries are created automatically when stock changes.',
+      }}
+    />
   );
 };

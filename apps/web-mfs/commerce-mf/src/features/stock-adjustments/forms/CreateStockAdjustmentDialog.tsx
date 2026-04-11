@@ -5,6 +5,7 @@ import { Select } from '@vritti/quantum-ui/Select';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateStockAdjustment } from '@/hooks/useCreateStockAdjustment';
@@ -29,6 +30,7 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
     resolver: zodResolver(createStockAdjustmentSchema),
     defaultValues: {
       inventoryItemId: '',
+      locationId: undefined,
       type: undefined,
       quantity: '',
       reason: '',
@@ -46,12 +48,14 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
       onCancel={onCancel}
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
+        locationId: data.locationId,
         type: data.type,
         quantity: Number(data.quantity),
         reason: data.reason || undefined,
       })}
     >
       <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />
+      <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
       <Select name="type" label="Adjustment Type" placeholder="Select type" options={adjustmentTypeOptions} />
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. -50 or 100" />
       <TextArea name="reason" label="Reason" placeholder="Optional reason for adjustment" />
