@@ -6,13 +6,16 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { ClipboardMinus, Plus, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
-import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/useStockAdjustmentsTable';
+import { useCallback, useMemo } from 'react';
 import { useDeleteStockAdjustment } from '@/hooks/useDeleteStockAdjustment';
+import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/useStockAdjustmentsTable';
 import type { StockAdjustmentData, StockAdjustmentType } from '@/schemas/stock-adjustments';
 import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog';
 
-const typeConfig: Record<StockAdjustmentType, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' }> = {
+const typeConfig: Record<
+  StockAdjustmentType,
+  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' }
+> = {
   OPENING_STOCK: { label: 'Opening Stock', variant: 'default' },
   WASTE: { label: 'Waste', variant: 'destructive' },
   DAMAGE: { label: 'Damage', variant: 'destructive' },
@@ -29,15 +32,18 @@ export const StockAdjustmentsPage = () => {
   const confirm = useConfirm();
   const deleteMutation = useDeleteStockAdjustment();
 
-  const handleDelete = async (adjustment: StockAdjustmentData) => {
-    const confirmed = await confirm({
-      title: 'Delete this adjustment?',
-      description: 'This stock adjustment will be permanently removed.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(adjustment.id);
-  };
+  const handleDelete = useCallback(
+    async (adjustment: StockAdjustmentData) => {
+      const confirmed = await confirm({
+        title: 'Delete this adjustment?',
+        description: 'This stock adjustment will be permanently removed.',
+        confirmLabel: 'Delete',
+        variant: 'destructive',
+      });
+      if (confirmed) deleteMutation.mutate(adjustment.id);
+    },
+    [confirm, deleteMutation],
+  );
 
   const columns = useMemo<ColumnDef<StockAdjustmentData>[]>(
     () => [
@@ -63,7 +69,8 @@ export const StockAdjustmentsPage = () => {
           const isPositive = qty > 0;
           return (
             <span className={`font-mono ${isPositive ? 'text-success' : 'text-destructive'}`}>
-              {isPositive ? '+' : ''}{qty}
+              {isPositive ? '+' : ''}
+              {qty}
             </span>
           );
         },
@@ -108,7 +115,7 @@ export const StockAdjustmentsPage = () => {
         enableHiding: false,
       },
     ],
-    [],
+    [handleDelete],
   );
 
   const { table } = useDataTable({
@@ -124,7 +131,10 @@ export const StockAdjustmentsPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Stock Adjustments" description="Record stock corrections, waste, damage, and other adjustments" />
+      <PageHeader
+        title="Stock Adjustments"
+        description="Record stock corrections, waste, damage, and other adjustments"
+      />
 
       <DataTable
         table={table}
