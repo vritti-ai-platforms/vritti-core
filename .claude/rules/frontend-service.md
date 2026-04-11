@@ -63,6 +63,36 @@ export function createOrganization(data: CreateOrgDto): Promise<OrgListItem> {
 }
 ```
 
+## No `showSuccessToast: false` on GET requests
+
+The axios interceptor does not show toasts for GET requests. Never add `showSuccessToast: false` to GETs — it's redundant.
+
+```typescript
+// WRONG — unnecessary config
+export function listBaseUnits(): Promise<UomData[]> {
+  return axios.get<UomData[]>('commerce-api/uom/base', { showSuccessToast: false }).then((r) => r.data);
+}
+
+// CORRECT — clean GET
+export function listBaseUnits(): Promise<UomData[]> {
+  return axios.get<UomData[]>('commerce-api/uom/base').then((r) => r.data);
+}
+```
+
+## Types — define in schemas, import in services
+
+Payload interfaces (`CreateUomData`, `UpdateUomData`) and response types live in `@/schemas/*`. Services import them — never define inline interfaces.
+
+```typescript
+// WRONG — inline interface in service file
+export interface CreateUomPayload { name: string; symbol: string; }
+export function createUom(data: CreateUomPayload): Promise<CreateUomResponse> { ... }
+
+// CORRECT — import from schema
+import type { CreateUomData, CreateUomResponse } from '@/schemas/uom';
+export function createUom(data: CreateUomData): Promise<CreateUomResponse> { ... }
+```
+
 ## TS80006 hint — expected, not an error
 
 TypeScript may suggest "This may be converted to an async function" on service functions that return a Promise chain. This is intentional — ignore it. The no-async/await convention takes precedence.
