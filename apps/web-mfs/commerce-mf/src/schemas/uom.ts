@@ -24,6 +24,19 @@ export const derivedUnitFormResolver = zodResolver(_derivedUnitSchema) as unknow
 
 export type CreateUomResponse = CreateResponse<UomData>;
 
+export interface CreateUomData {
+  name: string;
+  symbol: string;
+  baseUnitId?: string;
+  conversionFactor?: number;
+}
+
+export interface UpdateUomData {
+  name?: string;
+  symbol?: string;
+  conversionFactor?: number;
+}
+
 export interface UomData {
   id: string;
   name: string;

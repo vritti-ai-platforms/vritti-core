@@ -5,7 +5,7 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useDeleteUom } from '@/hooks/useDeleteUom';
+import { useDeleteUom } from '@/hooks/uom';
 import type { UomData } from '@/schemas/uom';
 import { EditDerivedUnitDialog } from '../forms/EditDerivedUnitDialog';
 

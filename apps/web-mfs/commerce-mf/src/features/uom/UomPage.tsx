@@ -6,7 +6,7 @@ import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useBaseUnits, useDerivedUnits } from '@/hooks/useUom';
+import { useBaseUnits, useDerivedUnits } from '@/hooks/uom';
 import { UomDetailPanel, UomEmptyState, UomListPanel } from './components';
 import { AddBaseUnitDialog } from './forms/AddBaseUnitDialog';
 

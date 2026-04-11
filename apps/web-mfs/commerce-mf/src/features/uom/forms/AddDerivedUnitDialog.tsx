@@ -3,7 +3,7 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateUom } from '@/hooks/useCreateUom';
+import { useCreateUom } from '@/hooks/uom';
 import { type DerivedUnitFormData, derivedUnitFormResolver } from '@/schemas/uom';
 
 interface AddDerivedUnitDialogProps {
