@@ -4,7 +4,7 @@ import { InventoryLedgerTypeValues } from '@/db/schema';
 import { GoodsReceiptDto, GoodsReceiptItemDto } from '../dto/entity/goods-receipt.dto';
 import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
-import { InventoryItemsRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
+import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
 import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class GoodsReceiptsService {
   constructor(
     private readonly repository: GoodsReceiptsRepository,
     private readonly poRepository: PurchaseOrdersRepository,
-    private readonly inventoryRepository: InventoryItemsRepository,
+    private readonly inventoryLevelsService: InventoryLevelsService,
   ) {}
 
   // Creates a goods receipt, updates PO received quantities, and updates inventory levels + ledger
@@ -48,18 +48,15 @@ export class GoodsReceiptsService {
       // Update PO item received_quantity
       await this.repository.updatePoItemReceivedQty(item.purchaseOrderItemId, acceptedQty);
 
-      // Update inventory stocked_quantity
+      // Add stock via InventoryLevelsService
       const inventoryItemId = await this.repository.findInventoryItemIdFromPoItem(item.purchaseOrderItemId);
       if (inventoryItemId && acceptedQty > 0) {
-        await this.repository.addToInventoryLevel(inventoryItemId, acceptedQty);
-
-        // Create ledger entry
-        await this.inventoryRepository.createLedgerEntry({
-          inventoryItemId,
+        await this.inventoryLevelsService.addStock({
+          itemId: inventoryItemId,
+          locationId: data.locationId,
+          quantity: acceptedQty,
           type: InventoryLedgerTypeValues.GOODS_RECEIPT,
-          quantity: String(acceptedQty),
-          balanceAfter: '0', // Will be recalculated — simplified for now
-          referenceType: 'goods_receipt',
+          referenceType: 'GOODS_RECEIPT',
           referenceId: gr.id,
           notes: `GR for PO ${po.poNumber}`,
         });

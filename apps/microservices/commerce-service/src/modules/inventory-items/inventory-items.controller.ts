@@ -1,4 +1,4 @@
-import type { InventoryItemDetailDto, InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import type { InventoryItemDto, InventoryLedgerDto, InventoryLevelDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -43,11 +43,25 @@ export class InventoryItemsController {
     return this.service.create(dto);
   }
 
-  // Returns inventory item detail with levels and ledger
+  // Returns a single inventory item
   @MessagePattern({ cmd: 'inventoryItems.findById' })
-  async findById(@Payload() data: { id: string }): Promise<InventoryItemDetailDto> {
+  async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
     this.logger.log(`inventoryItems.findById — id: ${data.id}`);
     return this.service.findById(data.id);
+  }
+
+  // Returns stock levels for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.levels' })
+  async levels(@Payload() data: { itemId: string }): Promise<InventoryLevelDto[]> {
+    this.logger.log(`inventoryItems.levels — itemId: ${data.itemId}`);
+    return this.service.findLevels(data.itemId);
+  }
+
+  // Returns ledger entries for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.ledger' })
+  async ledger(@Payload() data: { itemId: string }): Promise<InventoryLedgerDto[]> {
+    this.logger.log(`inventoryItems.ledger — itemId: ${data.itemId}`);
+    return this.service.findLedger(data.itemId);
   }
 
   // Updates an inventory item

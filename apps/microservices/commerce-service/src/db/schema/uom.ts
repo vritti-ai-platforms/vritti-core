@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { doublePrecision, index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 
 export const uom = coreSchema.table(
@@ -11,7 +11,7 @@ export const uom = coreSchema.table(
     name: varchar('name', { length: 50 }).notNull(),
     symbol: varchar('symbol', { length: 10 }).notNull(),
     baseUnitId: uuid('base_unit_id'),
-    conversionFactor: decimal('conversion_factor', { precision: 15, scale: 6 }).notNull().default('1'),
+    conversionFactor: doublePrecision('conversion_factor').notNull().default(1),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [

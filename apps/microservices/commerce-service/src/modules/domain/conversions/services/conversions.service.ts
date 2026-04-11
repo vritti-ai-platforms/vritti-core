@@ -18,6 +18,7 @@ import {
 } from '../dto/entity/conversion.dto';
 import type { CreateConversionDto } from '@/modules/conversions/dto/request/create-conversion.dto';
 import { ConversionsRepository } from '../repositories/conversions.repository';
+import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
 
 @Injectable()
 export class ConversionsService {
@@ -27,7 +28,10 @@ export class ConversionsService {
     status: { column: conversions.status, type: 'string' },
   };
 
-  constructor(private readonly repository: ConversionsRepository) {}
+  constructor(
+    private readonly repository: ConversionsRepository,
+    private readonly inventoryLevelsService: InventoryLevelsService,
+  ) {}
 
   // Returns paginated conversions for the data table
   async findForTable(params: {
@@ -99,8 +103,8 @@ export class ConversionsService {
     return ConversionDetailDto.fromDetail(entity, inputDtos, outputDtos);
   }
 
-  // Completes a conversion: deducts inputs, adds outputs, creates ledger entries
-  async complete(id: string): Promise<{ success: boolean; message: string }> {
+  // Completes a conversion: deducts inputs, adds outputs via InventoryLevelsService
+  async complete(id: string, locationId: string): Promise<{ success: boolean; message: string }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Conversion not found.');
     if (entity.status === ConversionStatusValues.COMPLETED) {
@@ -116,13 +120,12 @@ export class ConversionsService {
     // Deduct inputs from inventory
     for (const input of inputs) {
       const totalDeduct = Number(input.quantity) + Number(input.wastageQuantity);
-      await this.repository.deductFromInventoryLevel(input.inventoryItemId, totalDeduct);
-      await this.repository.createLedgerEntry({
-        inventoryItemId: input.inventoryItemId,
+      await this.inventoryLevelsService.deductStock({
+        itemId: input.inventoryItemId,
+        locationId,
+        quantity: totalDeduct,
         type: InventoryLedgerTypeValues.CONVERSION_INPUT,
-        quantity: String(-totalDeduct),
-        balanceAfter: '0',
-        referenceType: 'conversion',
+        referenceType: 'CONVERSION',
         referenceId: id,
         notes: `Conversion input (qty: ${input.quantity}, wastage: ${input.wastageQuantity})`,
       });
@@ -130,13 +133,12 @@ export class ConversionsService {
 
     // Add outputs to inventory
     for (const output of outputs) {
-      await this.repository.addToInventoryLevel(output.inventoryItemId, Number(output.quantity));
-      await this.repository.createLedgerEntry({
-        inventoryItemId: output.inventoryItemId,
+      await this.inventoryLevelsService.addStock({
+        itemId: output.inventoryItemId,
+        locationId,
+        quantity: Number(output.quantity),
         type: InventoryLedgerTypeValues.CONVERSION_OUTPUT,
-        quantity: String(output.quantity),
-        balanceAfter: '0',
-        referenceType: 'conversion',
+        referenceType: 'CONVERSION',
         referenceId: id,
         notes: `Conversion output (qty: ${output.quantity})`,
       });

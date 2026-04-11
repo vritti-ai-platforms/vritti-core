@@ -38,7 +38,9 @@ export interface InventoryItemData {
 
 export interface InventoryLevelData {
   id: string;
-  businessUnitId: string;
+  locationId: string;
+  locationName: string | null;
+  locationCode: string | null;
   stockedQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;

@@ -19,6 +19,7 @@ import { BomModule } from './modules/bom/bom.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
 import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.module';
+import { StorageLocationsModule } from './modules/storage-locations/storage-locations.module';
 import { ConversionsModule } from './modules/conversions/conversions.module';
 import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjustments.module';
 import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
@@ -64,6 +65,7 @@ import { OrdersModule } from './modules/orders/orders.module';
     SuppliersModule,
     PurchaseOrdersModule,
     GoodsReceiptsModule,
+    StorageLocationsModule,
     ConversionsModule,
     StockAdjustmentsModule,
     StockTransfersModule,

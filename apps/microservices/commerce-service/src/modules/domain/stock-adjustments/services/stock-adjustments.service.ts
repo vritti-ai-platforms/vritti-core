@@ -11,6 +11,7 @@ import { type StockAdjustmentType, stockAdjustments, InventoryLedgerTypeValues }
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
 import type { CreateStockAdjustmentDto } from '@/modules/stock-adjustments/dto/request/create-stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';
+import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
 
 @Injectable()
 export class StockAdjustmentsService {
@@ -20,7 +21,10 @@ export class StockAdjustmentsService {
     type: { column: stockAdjustments.type, type: 'string' },
   };
 
-  constructor(private readonly repository: StockAdjustmentsRepository) {}
+  constructor(
+    private readonly repository: StockAdjustmentsRepository,
+    private readonly inventoryLevelsService: InventoryLevelsService,
+  ) {}
 
   // Returns paginated stock adjustments for the data table
   async findForTable(params: {
@@ -44,7 +48,7 @@ export class StockAdjustmentsService {
     return { result: rows.map((r) => StockAdjustmentDto.from(r, r.inventoryItemName)), count };
   }
 
-  // Creates a stock adjustment and updates inventory level + ledger
+  // Creates a stock adjustment and updates inventory level + ledger via InventoryLevelsService
   async create(data: CreateStockAdjustmentDto): Promise<StockAdjustmentDto> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
@@ -54,19 +58,30 @@ export class StockAdjustmentsService {
       adjustedBy: data.adjustedBy ?? null,
     });
 
-    // Update inventory level (quantity can be positive or negative)
-    await this.repository.adjustInventoryLevel(data.inventoryItemId, data.quantity);
+    const notes = `${data.type} adjustment: ${data.reason ?? 'No reason provided'}`;
 
-    // Create ledger entry
-    await this.repository.createLedgerEntry({
-      inventoryItemId: data.inventoryItemId,
-      type: InventoryLedgerTypeValues.ADJUSTMENT,
-      quantity: String(data.quantity),
-      balanceAfter: '0',
-      referenceType: 'stock_adjustment',
-      referenceId: entity.id,
-      notes: `${data.type} adjustment: ${data.reason ?? 'No reason provided'}`,
-    });
+    // Use addStock for positive, deductStock for negative
+    if (data.quantity >= 0) {
+      await this.inventoryLevelsService.addStock({
+        itemId: data.inventoryItemId,
+        locationId: data.locationId,
+        quantity: data.quantity,
+        type: InventoryLedgerTypeValues.ADJUSTMENT,
+        referenceType: 'STOCK_ADJUSTMENT',
+        referenceId: entity.id,
+        notes,
+      });
+    } else {
+      await this.inventoryLevelsService.deductStock({
+        itemId: data.inventoryItemId,
+        locationId: data.locationId,
+        quantity: Math.abs(data.quantity),
+        type: InventoryLedgerTypeValues.ADJUSTMENT,
+        referenceType: 'STOCK_ADJUSTMENT',
+        referenceId: entity.id,
+        notes,
+      });
+    }
 
     this.logger.log(`Created stock adjustment: ${entity.id} (${data.type}, qty: ${data.quantity})`);
     return StockAdjustmentDto.from(entity);

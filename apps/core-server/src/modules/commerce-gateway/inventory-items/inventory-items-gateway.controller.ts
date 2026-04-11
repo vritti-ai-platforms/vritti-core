@@ -39,11 +39,25 @@ export class InventoryItemsGatewayController {
     return this.service.create(dto);
   }
 
-  // Returns inventory item detail with levels and ledger
+  // Returns a single inventory item
   @Get(':id')
-  findById(@Param('id') id: string) {
+  findById(@Param('id') id: string): Promise<InventoryItemResponseDto> {
     this.logger.log(`GET /commerce-api/inventory-items/${id}`);
     return this.service.findById(id);
+  }
+
+  // Returns stock levels for an inventory item
+  @Get(':id/levels')
+  findLevels(@Param('id') id: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/levels`);
+    return this.service.findLevels(id);
+  }
+
+  // Returns ledger entries for an inventory item
+  @Get(':id/ledger')
+  findLedger(@Param('id') id: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/ledger`);
+    return this.service.findLedger(id);
   }
 
   // Updates an inventory item

@@ -1,0 +1,30 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class StorageLocationResponseDto {
+  @ApiProperty({ description: 'Location ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Location name', example: 'Walk-in Fridge' })
+  name: string;
+
+  @ApiProperty({ description: 'Location code', example: 'WIF' })
+  code: string;
+
+  @ApiPropertyOptional({ description: 'Location area', example: 'Kitchen', nullable: true })
+  area: string | null;
+
+  @ApiPropertyOptional({ description: 'Manager user ID', nullable: true })
+  managerId: string | null;
+
+  @ApiPropertyOptional({ description: 'Location address', nullable: true })
+  address: string | null;
+
+  @ApiProperty({ description: 'Whether the location is active' })
+  isActive: boolean;
+
+  @ApiProperty({ description: 'Whether this location can be deleted' })
+  canDelete: boolean;
+
+  @ApiProperty({ description: 'ISO timestamp of creation' })
+  createdAt: string;
+}

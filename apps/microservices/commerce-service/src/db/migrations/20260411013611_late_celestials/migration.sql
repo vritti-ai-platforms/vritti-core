@@ -1,0 +1,2 @@
+ALTER TABLE "vritti_core"."uom" ALTER COLUMN "conversion_factor" SET DATA TYPE double precision USING "conversion_factor"::double precision;--> statement-breakpoint
+ALTER TABLE "vritti_core"."uom" ALTER COLUMN "conversion_factor" SET DEFAULT 1;

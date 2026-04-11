@@ -23,6 +23,9 @@ export class CreateGoodsReceiptDto {
   @IsUUID()
   purchaseOrderId: string;
 
+  @IsUUID()
+  locationId: string;
+
   @IsOptional()
   @IsUUID()
   receivedBy?: string;

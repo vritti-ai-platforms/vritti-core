@@ -7,7 +7,6 @@ import {
   goodsReceiptItems,
   goodsReceipts,
   inventoryItems,
-  inventoryLevels,
   purchaseOrderItems,
 } from '@/db/schema';
 
@@ -57,29 +56,6 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         receivedQuantity: sql`${purchaseOrderItems.receivedQuantity} + ${String(addQty)}`,
       })
       .where(eq(purchaseOrderItems.id, poItemId));
-  }
-
-  // Upserts inventory level (creates if not exists, adds to stocked_quantity)
-  async addToInventoryLevel(inventoryItemId: string, quantity: number): Promise<void> {
-    const existing = await this.db
-      .select()
-      .from(inventoryLevels)
-      .where(eq(inventoryLevels.inventoryItemId, inventoryItemId))
-      .then((rows) => rows[0]);
-
-    if (existing) {
-      await this.db
-        .update(inventoryLevels)
-        .set({
-          stockedQuantity: sql`${inventoryLevels.stockedQuantity} + ${String(quantity)}`,
-        })
-        .where(eq(inventoryLevels.id, existing.id));
-    } else {
-      await this.db.insert(inventoryLevels).values({
-        inventoryItemId,
-        stockedQuantity: String(quantity),
-      });
-    }
   }
 
   // Returns inventory item ID from a PO item

@@ -5,6 +5,9 @@ export class CreateStockAdjustmentDto {
   @IsNotEmpty()
   inventoryItemId: string;
 
+  @IsUUID()
+  locationId: string;
+
   @IsString()
   @IsNotEmpty()
   type: string;

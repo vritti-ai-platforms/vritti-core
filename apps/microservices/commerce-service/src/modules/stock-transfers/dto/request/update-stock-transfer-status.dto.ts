@@ -5,6 +5,12 @@ export class UpdateStockTransferStatusDto {
   @IsNotEmpty()
   status: string;
 
+  @IsUUID()
+  fromLocationId: string;
+
+  @IsUUID()
+  toLocationId: string;
+
   @IsOptional()
   @IsUUID()
   receivedBy?: string;

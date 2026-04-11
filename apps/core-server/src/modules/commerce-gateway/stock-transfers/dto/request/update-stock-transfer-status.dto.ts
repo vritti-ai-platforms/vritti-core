@@ -7,6 +7,14 @@ export class UpdateStockTransferStatusDto {
   @IsNotEmpty()
   status: string;
 
+  @ApiProperty({ description: 'Source inventory location ID' })
+  @IsUUID()
+  fromLocationId: string;
+
+  @ApiProperty({ description: 'Destination inventory location ID' })
+  @IsUUID()
+  toLocationId: string;
+
   @ApiPropertyOptional({ description: 'User ID who received the transfer' })
   @IsOptional()
   @IsUUID()

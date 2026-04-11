@@ -15,7 +15,7 @@ export class UomDto {
     dto.name = entity.name;
     dto.symbol = entity.symbol;
     dto.baseUnitId = entity.baseUnitId ?? null;
-    dto.conversionFactor = Number(entity.conversionFactor);
+    dto.conversionFactor = entity.conversionFactor;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;

@@ -13,6 +13,12 @@ export class CreateStockTransferDto {
   @IsNotEmpty()
   toBuId: string;
 
+  @IsUUID()
+  fromLocationId: string;
+
+  @IsUUID()
+  toLocationId: string;
+
   @IsNumber()
   @Min(0)
   quantity: number;

@@ -1,21 +1,23 @@
-import type { InventoryItem, InventoryItemType, InventoryLedgerEntry, InventoryLedgerType, InventoryLevel } from '@/db/schema';
+import type { InventoryItem, InventoryItemType, InventoryLedgerEntry, InventoryLedgerType } from '@/db/schema';
 
 export class InventoryLevelDto {
   id: string;
-  businessUnitId: string;
+  locationId: string;
+  locationName: string | null;
   stockedQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;
   reorderLevel: number;
 
-  static from(entity: InventoryLevel): InventoryLevelDto {
+  static from(row: { id: string; locationId: string; locationName: string | null; stockedQuantity: string; reservedQuantity: string; reorderLevel: string }): InventoryLevelDto {
     const dto = new InventoryLevelDto();
-    dto.id = entity.id;
-    dto.businessUnitId = entity.businessUnitId;
-    dto.stockedQuantity = Number(entity.stockedQuantity);
-    dto.reservedQuantity = Number(entity.reservedQuantity);
-    dto.availableQuantity = Number(entity.stockedQuantity) - Number(entity.reservedQuantity);
-    dto.reorderLevel = Number(entity.reorderLevel);
+    dto.id = row.id;
+    dto.locationId = row.locationId;
+    dto.locationName = row.locationName;
+    dto.stockedQuantity = Number(row.stockedQuantity);
+    dto.reservedQuantity = Number(row.reservedQuantity);
+    dto.availableQuantity = Number(row.stockedQuantity) - Number(row.reservedQuantity);
+    dto.reorderLevel = Number(row.reorderLevel);
     return dto;
   }
 }
@@ -68,24 +70,6 @@ export class InventoryItemDto {
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
-    return dto;
-  }
-}
-
-export class InventoryItemDetailDto extends InventoryItemDto {
-  levels: InventoryLevelDto[];
-  ledger: InventoryLedgerDto[];
-
-  static fromDetail(
-    entity: InventoryItem,
-    uomSymbol: string | null,
-    levels: InventoryLevel[],
-    ledger: InventoryLedgerEntry[],
-  ): InventoryItemDetailDto {
-    const dto = new InventoryItemDetailDto();
-    Object.assign(dto, InventoryItemDto.from(entity, uomSymbol));
-    dto.levels = levels.map(InventoryLevelDto.from);
-    dto.ledger = ledger.map(InventoryLedgerDto.from);
     return dto;
   }
 }

@@ -7,6 +7,10 @@ export class CreateStockAdjustmentDto {
   @IsNotEmpty()
   inventoryItemId: string;
 
+  @ApiProperty({ description: 'Inventory location ID where the adjustment occurs' })
+  @IsUUID()
+  locationId: string;
+
   @ApiProperty({ description: 'Adjustment type', example: 'WASTE' })
   @IsString()
   @IsNotEmpty()

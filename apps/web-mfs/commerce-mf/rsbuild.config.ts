@@ -29,6 +29,7 @@ export default defineConfig({
         './Conversions': './src/features/conversions/index.tsx',
         './CreditNotes': './src/features/credit-notes/index.tsx',
         './InventoryItems': './src/features/inventory-items/index.tsx',
+        './StorageLocations': './src/features/storage-locations/index.tsx',
         './Invoices': './src/features/invoices/index.tsx',
         './Items': './src/features/items/index.tsx',
         './Modifiers': './src/features/modifiers/index.tsx',

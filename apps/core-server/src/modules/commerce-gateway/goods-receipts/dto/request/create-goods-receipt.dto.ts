@@ -29,6 +29,10 @@ export class CreateGoodsReceiptDto {
   @IsUUID()
   purchaseOrderId: string;
 
+  @ApiProperty({ description: 'Inventory location ID where goods are received' })
+  @IsUUID()
+  locationId: string;
+
   @ApiPropertyOptional({ description: 'User ID of the person who received the goods' })
   @IsOptional()
   @IsUUID()

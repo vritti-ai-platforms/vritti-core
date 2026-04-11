@@ -17,6 +17,9 @@ export class ConversionLineDto {
 }
 
 export class CreateConversionDto {
+  @IsUUID()
+  locationId: string;
+
   @IsOptional()
   @IsUUID()
   bomId?: string;

@@ -46,10 +46,22 @@ export class InventoryItemsGatewayService {
     return this.nats.send('commerce', 'inventoryItems.create', dto);
   }
 
-  // Returns inventory item detail with levels and ledger
-  async findById(id: string): Promise<unknown> {
+  // Returns a single inventory item
+  async findById(id: string): Promise<InventoryItemResponseDto> {
     this.logger.log(`inventoryItems.findById — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.findById', { id });
+  }
+
+  // Returns stock levels for an inventory item
+  async findLevels(itemId: string) {
+    this.logger.log(`inventoryItems.levels — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'inventoryItems.levels', { itemId });
+  }
+
+  // Returns ledger entries for an inventory item
+  async findLedger(itemId: string) {
+    this.logger.log(`inventoryItems.ledger — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'inventoryItems.ledger', { itemId });
   }
 
   // Updates an inventory item

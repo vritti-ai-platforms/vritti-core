@@ -8,10 +8,10 @@ import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateInventoryItem } from '@/hooks/inventory-items';
-import { type InventoryItemDetail, type UpdateInventoryItemFormData, updateInventoryItemSchema } from '@/schemas/inventory-items';
+import { type InventoryItemData, type UpdateInventoryItemFormData, updateInventoryItemSchema } from '@/schemas/inventory-items';
 
 interface EditInventoryItemFormProps {
-  item: InventoryItemDetail;
+  item: InventoryItemData;
   onSuccess: () => void;
   onCancel: () => void;
 }

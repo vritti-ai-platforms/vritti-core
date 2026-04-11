@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, Post } from
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
+import { CompleteConversionDto } from './dto/request/complete-conversion.dto';
 import { CreateConversionDto } from './dto/request/create-conversion.dto';
 import type { ConversionDetailResponseDto } from './dto/response/conversion-response.dto';
 import type { ConversionTableResponseDto } from './dto/response/conversion-table-response.dto';
@@ -38,7 +39,7 @@ export class ConversionsGatewayController {
   // Completes a conversion and adjusts inventory
   @Post(':id/complete')
   @HttpCode(HttpStatus.OK)
-  complete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
-    return this.service.complete(id);
+  complete(@Param('id') id: string, @Body() dto: CompleteConversionDto): Promise<{ success: boolean; message: string }> {
+    return this.service.complete(id, dto.locationId);
   }
 }

@@ -68,7 +68,7 @@ export class UomService {
       name: data.name,
       symbol: data.symbol,
       baseUnitId: data.baseUnitId ?? null,
-      conversionFactor: String(data.conversionFactor ?? 1),
+      conversionFactor: data.conversionFactor ?? 1,
     });
 
     this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);
@@ -90,19 +90,8 @@ export class UomService {
   async update(id: string, data: UpdateUomDto): Promise<SuccessResponseDto> {
     const existing = await this.uomRepository.findById(id);
     if (!existing) throw new NotFoundException('Unit of measure not found.');
-
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId, id);
-
-    const updatePayload: Record<string, unknown> = {};
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.symbol !== undefined) updatePayload.symbol = data.symbol;
-    if (data.baseUnitId !== undefined) updatePayload.baseUnitId = data.baseUnitId;
-    if (data.conversionFactor !== undefined) updatePayload.conversionFactor = String(data.conversionFactor);
-
-    if (Object.keys(updatePayload).length > 0) {
-      await this.uomRepository.update(id, updatePayload);
-    }
-
+    await this.uomRepository.update(id, data);
     this.logger.log(`Updated UOM: ${existing.name} (${existing.symbol})`);
     return { success: true, message: `Unit "${existing.name}" updated successfully.` };
   }
@@ -112,10 +101,12 @@ export class UomService {
     const existing = await this.uomRepository.findById(id);
     if (!existing) throw new NotFoundException('Unit of measure not found.');
     const refs = await this.uomRepository.countReferences(id);
-    const parts: string[] = [];
-    if (refs.inventoryItems > 0) parts.push(`${refs.inventoryItems} inventory item${refs.inventoryItems > 1 ? 's' : ''}`);
-    if (refs.supplierItems > 0) parts.push(`${refs.supplierItems} supplier item${refs.supplierItems > 1 ? 's' : ''}`);
-    if (refs.derivedUnits > 0) parts.push(`${refs.derivedUnits} derived unit${refs.derivedUnits > 1 ? 's' : ''}`);
+    const refLabels: [number, string][] = [
+      [refs.inventoryItems, 'inventory item'],
+      [refs.supplierItems, 'supplier item'],
+      [refs.derivedUnits, 'derived unit'],
+    ];
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
     if (parts.length > 0) {
       throw new ConflictException({
         label: 'Unit In Use',

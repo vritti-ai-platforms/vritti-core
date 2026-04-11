@@ -45,9 +45,9 @@ export class ConversionsGatewayService {
     return this.nats.send('commerce', 'conversions.findById', { id });
   }
 
-  // Completes a conversion
-  async complete(id: string): Promise<{ success: boolean; message: string }> {
+  // Completes a conversion and adjusts inventory at the given location
+  async complete(id: string, locationId: string): Promise<{ success: boolean; message: string }> {
     this.logger.log(`conversions.complete — id: ${id}`);
-    return this.nats.send('commerce', 'conversions.complete', { id });
+    return this.nats.send('commerce', 'conversions.complete', { id, locationId });
   }
 }

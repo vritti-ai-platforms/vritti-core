@@ -1,6 +1,8 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 import type React from 'react';
+import { Link } from 'react-router-dom';
 import type { InventoryLevelData } from '@/schemas/inventory-items';
 
 interface LevelsTabProps {
@@ -29,7 +31,8 @@ export const LevelsTab: React.FC<LevelsTabProps> = ({ levels, uomSymbol }) => {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-muted-foreground">
-                <th className="pb-2 font-medium">Business Unit</th>
+                <th className="pb-2 font-medium">Location</th>
+                <th className="pb-2 font-medium">Code</th>
                 <th className="pb-2 font-medium text-right">Stocked</th>
                 <th className="pb-2 font-medium text-right">Reserved</th>
                 <th className="pb-2 font-medium text-right">Available</th>
@@ -42,7 +45,19 @@ export const LevelsTab: React.FC<LevelsTabProps> = ({ levels, uomSymbol }) => {
                 const isLow = level.availableQuantity <= level.reorderLevel && level.reorderLevel > 0;
                 return (
                   <tr key={level.id} className="border-b last:border-0">
-                    <td className="py-3">{level.businessUnitId}</td>
+                    <td className="py-3">
+                      {level.locationName ? (
+                        <Link
+                          to={`/inventory/locations/${buildSlug(level.locationName, level.locationId)}`}
+                          className="text-primary hover:underline"
+                        >
+                          {level.locationName}
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td className="py-3 font-mono">{level.locationCode ?? '—'}</td>
                     <td className="py-3 text-right font-mono">{level.stockedQuantity} {uomSymbol}</td>
                     <td className="py-3 text-right font-mono">{level.reservedQuantity} {uomSymbol}</td>
                     <td className="py-3 text-right font-mono font-medium">{level.availableQuantity} {uomSymbol}</td>

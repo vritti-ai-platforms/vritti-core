@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq } from '@vritti/api-sdk/drizzle-orm';
 import {
   type ConversionInput,
   type ConversionOutput,
@@ -10,10 +10,6 @@ import {
   conversionOutputs,
   conversions,
   inventoryItems,
-  inventoryLedger,
-  inventoryLevels,
-  type NewInventoryLedgerEntry,
-  type InventoryLedgerEntry,
 } from '@/db/schema';
 
 @Injectable()
@@ -74,44 +70,5 @@ export class ConversionsRepository extends PrimaryBaseRepository<typeof conversi
   async createOutputs(items: NewConversionOutput[]): Promise<ConversionOutput[]> {
     if (items.length === 0) return [];
     return this.db.insert(conversionOutputs).values(items).returning() as Promise<ConversionOutput[]>;
-  }
-
-  // Deducts from inventory level stocked quantity
-  async deductFromInventoryLevel(inventoryItemId: string, quantity: number): Promise<void> {
-    await this.db
-      .update(inventoryLevels)
-      .set({
-        stockedQuantity: sql`${inventoryLevels.stockedQuantity} - ${String(quantity)}`,
-      })
-      .where(eq(inventoryLevels.inventoryItemId, inventoryItemId));
-  }
-
-  // Adds to inventory level stocked quantity (upserts if not exists)
-  async addToInventoryLevel(inventoryItemId: string, quantity: number): Promise<void> {
-    const existing = await this.db
-      .select()
-      .from(inventoryLevels)
-      .where(eq(inventoryLevels.inventoryItemId, inventoryItemId))
-      .then((rows) => rows[0]);
-
-    if (existing) {
-      await this.db
-        .update(inventoryLevels)
-        .set({
-          stockedQuantity: sql`${inventoryLevels.stockedQuantity} + ${String(quantity)}`,
-        })
-        .where(eq(inventoryLevels.id, existing.id));
-    } else {
-      await this.db.insert(inventoryLevels).values({
-        inventoryItemId,
-        stockedQuantity: String(quantity),
-      });
-    }
-  }
-
-  // Appends a ledger entry
-  async createLedgerEntry(data: NewInventoryLedgerEntry): Promise<InventoryLedgerEntry> {
-    const results = await this.db.insert(inventoryLedger).values(data).returning();
-    return results[0] as InventoryLedgerEntry;
   }
 }

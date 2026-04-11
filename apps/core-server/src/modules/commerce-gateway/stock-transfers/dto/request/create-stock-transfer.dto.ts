@@ -17,6 +17,14 @@ export class CreateStockTransferDto {
   @IsNotEmpty()
   toBuId: string;
 
+  @ApiProperty({ description: 'Source inventory location ID' })
+  @IsUUID()
+  fromLocationId: string;
+
+  @ApiProperty({ description: 'Destination inventory location ID' })
+  @IsUUID()
+  toLocationId: string;
+
   @ApiProperty({ description: 'Transfer quantity', example: 50 })
   @IsNumber()
   @Min(0)

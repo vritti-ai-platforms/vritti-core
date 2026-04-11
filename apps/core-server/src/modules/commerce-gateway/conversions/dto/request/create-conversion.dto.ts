@@ -21,6 +21,10 @@ export class ConversionLineDto {
 }
 
 export class CreateConversionDto {
+  @ApiProperty({ description: 'Inventory location ID where the conversion occurs' })
+  @IsUUID()
+  locationId: string;
+
   @ApiPropertyOptional({ description: 'BOM template ID' })
   @IsOptional()
   @IsUUID()

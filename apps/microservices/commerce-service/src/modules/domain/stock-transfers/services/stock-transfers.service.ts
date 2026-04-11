@@ -14,6 +14,7 @@ import { StockTransferDto } from '../dto/entity/stock-transfer.dto';
 import type { CreateStockTransferDto } from '@/modules/stock-transfers/dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from '@/modules/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransfersRepository } from '../repositories/stock-transfers.repository';
+import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
 
 @Injectable()
 export class StockTransfersService {
@@ -23,7 +24,10 @@ export class StockTransfersService {
     status: { column: stockTransfers.status, type: 'string' },
   };
 
-  constructor(private readonly repository: StockTransfersRepository) {}
+  constructor(
+    private readonly repository: StockTransfersRepository,
+    private readonly inventoryLevelsService: InventoryLevelsService,
+  ) {}
 
   // Returns paginated stock transfers for the data table
   async findForTable(params: {
@@ -78,35 +82,31 @@ export class StockTransfersService {
       throw new BadRequestException('Cannot update a cancelled transfer.');
     }
 
-    // On IN_TRANSIT: deduct from source BU
+    // On IN_TRANSIT: deduct from source location
     if (newStatus === StockTransferStatusValues.IN_TRANSIT && currentStatus === StockTransferStatusValues.REQUESTED) {
       const qty = Number(entity.quantity);
-      await this.repository.deductFromInventoryLevelForBu(entity.inventoryItemId, entity.fromBuId, qty);
-      await this.repository.createLedgerEntry({
-        inventoryItemId: entity.inventoryItemId,
-        businessUnitId: entity.fromBuId,
+      await this.inventoryLevelsService.deductStock({
+        itemId: entity.inventoryItemId,
+        locationId: data.fromLocationId,
+        quantity: qty,
         type: InventoryLedgerTypeValues.TRANSFER_OUT,
-        quantity: String(-qty),
-        balanceAfter: '0',
-        referenceType: 'stock_transfer',
+        referenceType: 'STOCK_TRANSFER',
         referenceId: id,
-        notes: `Transfer out to BU ${entity.toBuId}`,
+        notes: `Transfer out to location ${data.toLocationId}`,
       });
     }
 
-    // On RECEIVED: add to destination BU
+    // On RECEIVED: add to destination location
     if (newStatus === StockTransferStatusValues.RECEIVED) {
       const qty = Number(entity.quantity);
-      await this.repository.addToInventoryLevelForBu(entity.inventoryItemId, entity.toBuId, qty);
-      await this.repository.createLedgerEntry({
-        inventoryItemId: entity.inventoryItemId,
-        businessUnitId: entity.toBuId,
+      await this.inventoryLevelsService.addStock({
+        itemId: entity.inventoryItemId,
+        locationId: data.toLocationId,
+        quantity: qty,
         type: InventoryLedgerTypeValues.TRANSFER_IN,
-        quantity: String(qty),
-        balanceAfter: '0',
-        referenceType: 'stock_transfer',
+        referenceType: 'STOCK_TRANSFER',
         referenceId: id,
-        notes: `Transfer in from BU ${entity.fromBuId}`,
+        notes: `Transfer in from location ${data.fromLocationId}`,
       });
     }
 

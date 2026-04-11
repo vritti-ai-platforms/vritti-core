@@ -2,14 +2,16 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
+import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Eye, Package, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { Eye, Package, Plus } from 'lucide-react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { INVENTORY_ITEMS_TABLE_KEY, useDeleteInventoryItem, useInventoryItemsTable } from '@/hooks/inventory-items';
+import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
 import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
 
@@ -17,22 +19,7 @@ export const InventoryItemsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useInventoryItemsTable();
-  const deleteMutation = useDeleteInventoryItem();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-
-  const handleDelete = useCallback(
-    async (id: string, name: string) => {
-      const confirmed = await confirm({
-        title: `Delete "${name}"?`,
-        description: 'This inventory item and all its stock levels and ledger entries will be permanently removed.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<InventoryItemData>[]>(
     () => [
@@ -75,13 +62,6 @@ export const InventoryItemsPage = () => {
                 label: 'View',
                 onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
               },
-              {
-                id: 'delete',
-                icon: Trash2,
-                label: 'Delete',
-                variant: 'destructive',
-                onClick: () => handleDelete(row.original.id, row.original.name),
-              },
             ]}
           />
         ),
@@ -89,7 +69,7 @@ export const InventoryItemsPage = () => {
         enableHiding: false,
       },
     ],
-    [navigate, handleDelete],
+    [navigate],
   );
 
   const { table } = useDataTable({
@@ -117,6 +97,18 @@ export const InventoryItemsPage = () => {
           ],
           searchAll: true,
         }}
+        filters={[
+          <SelectFilter
+            key="type"
+            name="type"
+            label="Type"
+            options={[
+              { label: 'Material', value: 'MATERIAL' },
+              { label: 'Product', value: 'PRODUCT' },
+            ]}
+          />,
+          <UomFilter key="uomId" />,
+        ]}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={addDialog.open}>
