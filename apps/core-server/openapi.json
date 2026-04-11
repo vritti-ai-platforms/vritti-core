@@ -2964,6 +2964,116 @@
         ]
       }
     },
+    "/commerce-api/inventory-item-batches/{id}": {
+      "get": {
+        "operationId": "InventoryItemBatchesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Item Batches"
+        ]
+      },
+      "delete": {
+        "operationId": "InventoryItemBatchesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Item Batches"
+        ]
+      }
+    },
+    "/commerce-api/inventory-item-batches/{id}/ledger/table": {
+      "get": {
+        "operationId": "InventoryItemBatchesGatewayController_getLedgerTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Item Batches"
+        ]
+      }
+    },
+    "/commerce-api/inventory-item-batches/{id}/adjustments/table": {
+      "get": {
+        "operationId": "InventoryItemBatchesGatewayController_getAdjustmentsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Item Batches"
+        ]
+      }
+    },
     "/commerce-api/conversions/table": {
       "get": {
         "operationId": "ConversionsGatewayController_getConversionTable",
@@ -3572,6 +3682,208 @@
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/location-stock": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_getLocationStock",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/batches/table": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_getBatchesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/storage-location-configs/table": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_getStorageLocationConfigsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/storage-location-configs": {
+      "post": {
+        "operationId": "InventoryItemsGatewayController_createStorageLocationConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorageLocationConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/storage-location-configs/{configId}": {
+      "patch": {
+        "operationId": "InventoryItemsGatewayController_updateStorageLocationConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "configId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStorageLocationConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      },
+      "delete": {
+        "operationId": "InventoryItemsGatewayController_deleteStorageLocationConfig",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "configId",
             "required": true,
             "in": "path",
             "schema": {
@@ -5291,6 +5603,34 @@
         },
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}": {
+      "delete": {
+        "operationId": "StockAdjustmentsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -8056,6 +8396,35 @@
           "code",
           "type",
           "uomId"
+        ]
+      },
+      "CreateStorageLocationConfigDto": {
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "description": "Storage location ID"
+          },
+          "reorderLevel": {
+            "type": "number",
+            "description": "Minimum stock level threshold for reorder at this location"
+          }
+        },
+        "required": [
+          "locationId",
+          "reorderLevel"
+        ]
+      },
+      "UpdateStorageLocationConfigDto": {
+        "type": "object",
+        "properties": {
+          "reorderLevel": {
+            "type": "number",
+            "description": "Minimum stock level threshold for reorder at this location"
+          }
+        },
+        "required": [
+          "reorderLevel"
         ]
       },
       "UpdateInventoryItemDto": {

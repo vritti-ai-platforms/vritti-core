@@ -11,11 +11,11 @@ CREATE TABLE "vritti_core"."inventory_locations" (
 );
 --> statement-breakpoint
 ALTER TABLE "vritti_core"."inventory_locations" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "vritti_core"."inventory_levels" DROP CONSTRAINT "uq_inventory_levels_item_bu";--> statement-breakpoint
-ALTER TABLE "vritti_core"."inventory_levels" ADD COLUMN "location_id" uuid;--> statement-breakpoint
-CREATE INDEX "idx_inventory_locations_bu" ON "vritti_core"."inventory_locations" ("organization_id","business_unit_id");--> statement-breakpoint
-CREATE UNIQUE INDEX "uq_inventory_levels_item_bu_loc" ON "vritti_core"."inventory_levels" ("inventory_item_id","business_unit_id","location_id");--> statement-breakpoint
-CREATE INDEX "idx_inventory_levels_location" ON "vritti_core"."inventory_levels" ("location_id");--> statement-breakpoint
+ALTER TABLE "vritti_core"."inventory_levels" DROP CONSTRAINT IF EXISTS "uq_inventory_levels_item_bu";--> statement-breakpoint
+ALTER TABLE "vritti_core"."inventory_levels" ADD COLUMN IF NOT EXISTS "location_id" uuid;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_inventory_locations_bu" ON "vritti_core"."inventory_locations" ("organization_id","business_unit_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_inventory_levels_location" ON "vritti_core"."inventory_levels" ("location_id");--> statement-breakpoint
+ALTER TABLE "vritti_core"."inventory_levels" DROP CONSTRAINT IF EXISTS "inventory_levels_location_id_inventory_locations_id_fkey";--> statement-breakpoint
 ALTER TABLE "vritti_core"."inventory_levels" ADD CONSTRAINT "inventory_levels_location_id_inventory_locations_id_fkey" FOREIGN KEY ("location_id") REFERENCES "vritti_core"."inventory_locations"("id") ON DELETE SET NULL;--> statement-breakpoint
 CREATE POLICY "org_isolation" ON "vritti_core"."inventory_locations" AS PERMISSIVE FOR ALL TO public USING (organization_id = current_setting('app.org_id', true)::uuid);--> statement-breakpoint
 CREATE POLICY "bu_ancestor_read" ON "vritti_core"."inventory_locations" AS PERMISSIVE FOR SELECT TO public USING (business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[]));--> statement-breakpoint

@@ -3,7 +3,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type CreateResponseDto, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
+import { CreateStorageLocationConfigDto } from './dto/request/create-storage-location-config.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
+import { UpdateStorageLocationConfigDto } from './dto/request/update-storage-location-config.dto';
 import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
 import type { InventoryLedgerTableResponseDto } from './dto/response/inventory-ledger-table-response.dto';
@@ -74,6 +76,49 @@ export class InventoryItemsGatewayController {
   getLedgerTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryLedgerTableResponseDto> {
     this.logger.log(`GET /commerce-api/inventory-items/${id}/ledger/table`);
     return this.service.findLedgerForTable(id, userId);
+  }
+
+  // Returns location-wise stock aggregates for an inventory item
+  @Get(':id/location-stock')
+  getLocationStock(@Param('id') id: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/location-stock`);
+    return this.service.findLocationStock(id);
+  }
+
+  // Returns paginated batches for an inventory item data table
+  @Get(':id/batches/table')
+  getBatchesTable(@Param('id') id: string, @UserId() userId: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/batches/table`);
+    return this.service.findBatchesForTable(id, userId);
+  }
+
+  // Returns paginated storage location configs for an inventory item
+  @Get(':id/storage-location-configs/table')
+  getStorageLocationConfigsTable(@Param('id') id: string, @UserId() userId: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/storage-location-configs/table`);
+    return this.service.findStorageLocationConfigsForTable(id, userId);
+  }
+
+  // Creates a storage location config for an inventory item
+  @Post(':id/storage-location-configs')
+  @HttpCode(HttpStatus.CREATED)
+  createStorageLocationConfig(@Param('id') id: string, @Body() dto: CreateStorageLocationConfigDto) {
+    this.logger.log(`POST /commerce-api/inventory-items/${id}/storage-location-configs`);
+    return this.service.createStorageLocationConfig(id, dto);
+  }
+
+  // Updates a storage location config
+  @Patch(':id/storage-location-configs/:configId')
+  updateStorageLocationConfig(@Param('id') id: string, @Param('configId') configId: string, @Body() dto: UpdateStorageLocationConfigDto) {
+    this.logger.log(`PATCH /commerce-api/inventory-items/${id}/storage-location-configs/${configId}`);
+    return this.service.updateStorageLocationConfig(configId, dto);
+  }
+
+  // Deletes a storage location config
+  @Delete(':id/storage-location-configs/:configId')
+  deleteStorageLocationConfig(@Param('id') id: string, @Param('configId') configId: string) {
+    this.logger.log(`DELETE /commerce-api/inventory-items/${id}/storage-location-configs/${configId}`);
+    return this.service.deleteStorageLocationConfig(configId);
   }
 
   // Updates an inventory item

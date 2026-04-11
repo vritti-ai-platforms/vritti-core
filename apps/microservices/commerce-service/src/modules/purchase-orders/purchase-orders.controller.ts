@@ -2,7 +2,8 @@ import type { PurchaseOrderDetailDto, PurchaseOrderDto } from '@domain/purchase-
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, PurchaseOrderStatus, SearchState, SortCondition } from '@vritti/api-sdk';
+import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
+import { PurchaseOrderStatus } from '@/db/schema';
 import type { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderDto } from './dto/request/update-purchase-order.dto';
 
@@ -13,12 +14,14 @@ export class PurchaseOrdersController {
   constructor(private readonly service: PurchaseOrdersService) {}
 
   @MessagePattern({ cmd: 'purchaseOrders.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: PurchaseOrderDto[]; count: number }> {
+  async table(
+    @Payload() data: {
+      filters: FilterCondition[];
+      sort: SortCondition[];
+      search: SearchState | null;
+      pagination: { limit: number; offset: number };
+    },
+  ): Promise<{ result: PurchaseOrderDto[]; count: number }> {
     this.logger.log('purchaseOrders.table');
     return this.service.findForTable({
       filters: data.filters ?? [],

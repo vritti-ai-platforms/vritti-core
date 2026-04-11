@@ -18,6 +18,7 @@ export const relations = defineRelations(schema, (_r) => ({
   uom: {},
   inventoryItems: {},
   storageLocations: {},
+  inventoryItemBatches: {},
   inventoryLevels: {},
   inventoryLedger: {},
   bom: {},

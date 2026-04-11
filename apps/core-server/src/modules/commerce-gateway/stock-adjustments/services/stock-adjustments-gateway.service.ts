@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService } from '@vritti/api-sdk';
+import { DataTableStateService, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjustment.dto';
 import type { StockAdjustmentResponseDto } from '../dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from '../dto/response/stock-adjustment-table-response.dto';
@@ -37,5 +37,11 @@ export class StockAdjustmentsGatewayService {
   async create(dto: CreateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
     this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
     return this.nats.send('commerce', 'stockAdjustments.create', dto);
+  }
+
+  // Deletes a stock adjustment
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.delete — id: ${id}`);
+    return this.nats.send('commerce', 'stockAdjustments.delete', { id });
   }
 }

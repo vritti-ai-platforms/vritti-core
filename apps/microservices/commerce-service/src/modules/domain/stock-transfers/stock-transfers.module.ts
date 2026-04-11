@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { InventoryLevelsDomainModule } from '@domain/inventory-levels/inventory-levels.module';
+import { InventoryItemBatchesDomainModule } from '@domain/inventory-item-batches/inventory-item-batches.module';
 import { StockTransfersRepository } from './repositories/stock-transfers.repository';
 import { StockTransfersService } from './services/stock-transfers.service';
 
 @Module({
-  imports: [InventoryLevelsDomainModule],
+  imports: [InventoryItemBatchesDomainModule],
   providers: [StockTransfersService, StockTransfersRepository],
   exports: [StockTransfersService, StockTransfersRepository],
 })

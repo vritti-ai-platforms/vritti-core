@@ -11,6 +11,8 @@ export * from './tax-rates';
 export * from './uom';
 export * from './inventory-items';
 export * from './storage-locations';
+export * from './inventory-item-batches';
+export * from './storage-location-configs';
 export * from './inventory-levels';
 export * from './inventory-ledger';
 export * from './bom';

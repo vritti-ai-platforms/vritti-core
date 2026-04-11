@@ -3,6 +3,8 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { stockAdjustmentTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
+import { inventoryItemBatches } from './inventory-item-batches';
+import { storageLocations } from './storage-locations';
 
 export const stockAdjustments = coreSchema.table(
   'stock_adjustments',
@@ -11,6 +13,8 @@ export const stockAdjustments = coreSchema.table(
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id),
+    batchId: uuid('batch_id').references(() => inventoryItemBatches.id, { onDelete: 'set null' }),
+    locationId: uuid('location_id').references(() => storageLocations.id),
     type: stockAdjustmentTypeEnum('type').notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     reason: text('reason'),
@@ -20,6 +24,7 @@ export const stockAdjustments = coreSchema.table(
   (table) => [
     index('idx_stock_adjustments_bu').on(table.organizationId, table.businessUnitId),
     index('idx_stock_adjustments_item').on(table.inventoryItemId),
+    index('idx_stock_adjustments_batch').on(table.batchId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

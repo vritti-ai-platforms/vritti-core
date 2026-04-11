@@ -164,6 +164,7 @@ export const inventoryLedgerTypeEnum = coreSchema.enum('inventory_ledger_type', 
   'CONVERSION_OUTPUT',
   'TRANSFER_OUT',
   'TRANSFER_IN',
+  'OPENING_STOCK',
 ]);
 export const InventoryLedgerTypeValues = {
   GOODS_RECEIPT: 'GOODS_RECEIPT' as const,
@@ -175,6 +176,7 @@ export const InventoryLedgerTypeValues = {
   CONVERSION_OUTPUT: 'CONVERSION_OUTPUT' as const,
   TRANSFER_OUT: 'TRANSFER_OUT' as const,
   TRANSFER_IN: 'TRANSFER_IN' as const,
+  OPENING_STOCK: 'OPENING_STOCK' as const,
 };
 export type InventoryLedgerType = (typeof inventoryLedgerTypeEnum.enumValues)[number];
 
@@ -215,6 +217,7 @@ export const stockAdjustmentTypeEnum = coreSchema.enum('stock_adjustment_type', 
   'EXPIRED',
   'CORRECTION',
   'PRODUCTION',
+  'OPENING_STOCK',
 ]);
 export const StockAdjustmentTypeValues = {
   WASTE: 'WASTE' as const,
@@ -223,6 +226,7 @@ export const StockAdjustmentTypeValues = {
   EXPIRED: 'EXPIRED' as const,
   CORRECTION: 'CORRECTION' as const,
   PRODUCTION: 'PRODUCTION' as const,
+  OPENING_STOCK: 'OPENING_STOCK' as const,
 };
 export type StockAdjustmentType = (typeof stockAdjustmentTypeEnum.enumValues)[number];
 

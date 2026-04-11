@@ -16,7 +16,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     super(database, goodsReceipts);
   }
 
-  // Returns GR items for a goods receipt with inventory item names
+  // Returns GR items for a goods receipt with inventory item names and batch fields
   async findItemsByGrId(grId: string): Promise<(GoodsReceiptItem & { inventoryItemName: string | null })[]> {
     const rows = await this.db
       .select({
@@ -27,6 +27,9 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         acceptedQuantity: goodsReceiptItems.acceptedQuantity,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         rejectionReason: goodsReceiptItems.rejectionReason,
+        batchNumber: goodsReceiptItems.batchNumber,
+        manufacturingDate: goodsReceiptItems.manufacturingDate,
+        expiryDate: goodsReceiptItems.expiryDate,
         inventoryItemName: inventoryItems.name,
       })
       .from(goodsReceiptItems)
@@ -42,7 +45,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     return this.db.select().from(goodsReceipts).where(eq(goodsReceipts.purchaseOrderId, poId));
   }
 
-  // Creates GR line items
+  // Creates GR line items with batch fields
   async createItems(items: NewGoodsReceiptItem[]): Promise<GoodsReceiptItem[]> {
     if (items.length === 0) return [];
     return this.db.insert(goodsReceiptItems).values(items).returning() as Promise<GoodsReceiptItem[]>;

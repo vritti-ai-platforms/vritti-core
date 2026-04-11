@@ -4,7 +4,7 @@ import { InventoryLedgerTypeValues } from '@/db/schema';
 import { GoodsReceiptDto, GoodsReceiptItemDto } from '../dto/entity/goods-receipt.dto';
 import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
-import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
+import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
 import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 
 @Injectable()
@@ -14,10 +14,10 @@ export class GoodsReceiptsService {
   constructor(
     private readonly repository: GoodsReceiptsRepository,
     private readonly poRepository: PurchaseOrdersRepository,
-    private readonly inventoryLevelsService: InventoryLevelsService,
+    private readonly batchesService: InventoryItemBatchesService,
   ) {}
 
-  // Creates a goods receipt, updates PO received quantities, and updates inventory levels + ledger
+  // Creates a goods receipt, updates PO received quantities, and creates inventory batches + ledger entries
   async create(data: CreateGoodsReceiptDto): Promise<GoodsReceiptDto> {
     const po = await this.poRepository.findById(data.purchaseOrderId);
     if (!po) throw new NotFoundException('Purchase order not found.');
@@ -38,27 +38,36 @@ export class GoodsReceiptsService {
         acceptedQuantity: String(item.acceptedQuantity),
         rejectedQuantity: String(item.rejectedQuantity ?? 0),
         rejectionReason: item.rejectionReason ?? null,
+        batchNumber: item.batchNumber ?? null,
+        manufacturingDate: item.manufacturingDate ?? null,
+        expiryDate: item.expiryDate ?? null,
       })),
     );
 
-    // Update PO item received quantities and inventory levels
-    for (const item of data.items) {
+    // Update PO item received quantities and create inventory batches
+    for (let i = 0; i < data.items.length; i++) {
+      const item = data.items[i];
+      const grItem = grItems[i];
       const acceptedQty = item.acceptedQuantity;
 
       // Update PO item received_quantity
       await this.repository.updatePoItemReceivedQty(item.purchaseOrderItemId, acceptedQty);
 
-      // Add stock via InventoryLevelsService
+      // Create inventory batch via InventoryItemBatchesService
       const inventoryItemId = await this.repository.findInventoryItemIdFromPoItem(item.purchaseOrderItemId);
       if (inventoryItemId && acceptedQty > 0) {
-        await this.inventoryLevelsService.addStock({
-          itemId: inventoryItemId,
+        await this.batchesService.createBatch({
+          inventoryItemId,
           locationId: data.locationId,
           quantity: acceptedQty,
+          batchNumber: item.batchNumber ?? undefined,
+          manufacturingDate: item.manufacturingDate ?? undefined,
+          expiryDate: item.expiryDate ?? undefined,
+          goodsReceiptItemId: grItem.id,
           type: InventoryLedgerTypeValues.GOODS_RECEIPT,
           referenceType: 'GOODS_RECEIPT',
           referenceId: gr.id,
-          notes: `GR for PO ${po.poNumber}`,
+          notes: `Goods receipt for PO ${po.poNumber}`,
         });
       }
     }

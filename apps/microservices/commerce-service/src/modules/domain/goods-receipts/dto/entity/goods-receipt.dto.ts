@@ -7,6 +7,9 @@ export class GoodsReceiptItemDto {
   acceptedQuantity: number;
   rejectedQuantity: number;
   rejectionReason: string | null;
+  batchNumber: string | null;
+  manufacturingDate: string | null;
+  expiryDate: string | null;
 
   static from(entity: GoodsReceiptItem, itemName?: string | null): GoodsReceiptItemDto {
     const dto = new GoodsReceiptItemDto();
@@ -16,6 +19,9 @@ export class GoodsReceiptItemDto {
     dto.acceptedQuantity = Number(entity.acceptedQuantity);
     dto.rejectedQuantity = Number(entity.rejectedQuantity);
     dto.rejectionReason = entity.rejectionReason ?? null;
+    dto.batchNumber = entity.batchNumber ?? null;
+    dto.manufacturingDate = entity.manufacturingDate ?? null;
+    dto.expiryDate = entity.expiryDate ?? null;
     return dto;
   }
 }

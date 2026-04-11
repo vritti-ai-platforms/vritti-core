@@ -2,7 +2,7 @@ import type { StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/st
 import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
+import type { FilterCondition, SearchState, SortCondition, SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
 
 @Controller()
@@ -11,6 +11,7 @@ export class StockAdjustmentsController {
 
   constructor(private readonly service: StockAdjustmentsService) {}
 
+  // Returns paginated stock adjustments for the data table
   @MessagePattern({ cmd: 'stockAdjustments.table' })
   async table(@Payload() data: {
     filters: FilterCondition[];
@@ -27,9 +28,17 @@ export class StockAdjustmentsController {
     });
   }
 
+  // Creates a new stock adjustment
   @MessagePattern({ cmd: 'stockAdjustments.create' })
   async create(@Payload() dto: CreateStockAdjustmentDto): Promise<StockAdjustmentDto> {
     this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
     return this.service.create(dto);
+  }
+
+  // Deletes an OPENING_STOCK or CORRECTION adjustment and its batch
+  @MessagePattern({ cmd: 'stockAdjustments.delete' })
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.delete — id: ${data.id}`);
+    return this.service.delete(data.id);
   }
 }

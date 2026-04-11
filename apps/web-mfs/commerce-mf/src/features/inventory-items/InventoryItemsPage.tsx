@@ -1,13 +1,13 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { buildSlug } from '@vritti/quantum-ui/slug';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
-import { useQueryClient } from '@tanstack/react-query';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -38,11 +38,7 @@ export const InventoryItemsPage = () => {
         header: 'Type',
         cell: ({ row }) => {
           const isMaterial = row.original.type === 'MATERIAL';
-          return (
-            <Badge variant={isMaterial ? 'secondary' : 'outline'}>
-              {isMaterial ? 'Material' : 'Product'}
-            </Badge>
-          );
+          return <Badge variant={isMaterial ? 'secondary' : 'outline'}>{isMaterial ? 'Material' : 'Product'}</Badge>;
         },
       },
       {

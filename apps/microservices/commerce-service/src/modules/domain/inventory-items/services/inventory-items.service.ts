@@ -16,8 +16,11 @@ import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems } from '@/db/schema';
 import type { CreateInventoryItemDto } from '@/modules/inventory-items/dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '@/modules/inventory-items/dto/request/update-inventory-item.dto';
-import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
-import { InventoryItemDto, InventoryLedgerDto, InventoryLevelDto } from '../dto/entity/inventory-item.dto';
+import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
+import type { InventoryItemBatchDto, LocationStockDto } from '@domain/inventory-item-batches/dto/entity/inventory-item-batch.dto';
+import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
+import { StorageLocationConfigsService } from '@domain/storage-location-configs/services/storage-location-configs.service';
+import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
 
 @Injectable()
@@ -33,7 +36,8 @@ export class InventoryItemsService {
 
   constructor(
     private readonly repository: InventoryItemsRepository,
-    private readonly levelsService: InventoryLevelsService,
+    private readonly batchesService: InventoryItemBatchesService,
+    private readonly storageLocationConfigsService: StorageLocationConfigsService,
   ) {}
 
   // Returns paginated, filtered, and sorted inventory items for the data table
@@ -105,38 +109,48 @@ export class InventoryItemsService {
     return InventoryItemDto.from(entity, uomSymbol, !referencedIds.has(id));
   }
 
-  // Returns stock levels for an inventory item
-  async findLevels(itemId: string): Promise<InventoryLevelDto[]> {
-    const entity = await this.repository.findById(itemId);
-    if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.levelsService.findLevelsByItemId(itemId);
-  }
-
-  // Returns ledger entries for an inventory item
-  async findLedger(itemId: string): Promise<InventoryLedgerDto[]> {
-    const entity = await this.repository.findById(itemId);
-    if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.levelsService.findLedgerByItemId(itemId);
-  }
-
-  // Returns paginated, filtered levels for the data table
-  async findLevelsForTable(
+  // Returns paginated batches for an inventory item
+  async findBatchesForTable(
     itemId: string,
     params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
-  ): Promise<{ result: InventoryLevelDto[]; count: number }> {
+  ): Promise<{ result: InventoryItemBatchDto[]; count: number }> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.levelsService.findLevelsForTable(itemId, params);
+    return this.batchesService.findBatchesForTable(itemId, params);
   }
 
-  // Returns paginated, filtered ledger entries for the data table
-  async findLedgerForTable(
-    itemId: string,
-    params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
-  ): Promise<{ result: InventoryLedgerDto[]; count: number }> {
+  // Returns location-wise stock aggregates from the inventoryLevels view
+  async findLocationStock(itemId: string): Promise<LocationStockDto[]> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.levelsService.findLedgerForTable(itemId, params);
+    return this.batchesService.findLocationStockByItemId(itemId);
+  }
+
+  // Returns paginated storage location configs for an item
+  async findStorageLocationConfigs(
+    itemId: string,
+    params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+  ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
+    const entity = await this.repository.findById(itemId);
+    if (!entity) throw new NotFoundException('Inventory item not found.');
+    return this.storageLocationConfigsService.findForTable(itemId, params);
+  }
+
+  // Creates a storage location config for an item
+  async createStorageLocationConfig(itemId: string, data: { locationId: string; reorderLevel: number }): Promise<CreateResponseDto<StorageLocationConfigDto>> {
+    const entity = await this.repository.findById(itemId);
+    if (!entity) throw new NotFoundException('Inventory item not found.');
+    return this.storageLocationConfigsService.create(itemId, data);
+  }
+
+  // Updates a storage location config
+  async updateStorageLocationConfig(id: string, data: { reorderLevel: number }): Promise<SuccessResponseDto> {
+    return this.storageLocationConfigsService.update(id, data);
+  }
+
+  // Deletes a storage location config
+  async deleteStorageLocationConfig(id: string): Promise<SuccessResponseDto> {
+    return this.storageLocationConfigsService.delete(id);
   }
 
   // Updates an inventory item

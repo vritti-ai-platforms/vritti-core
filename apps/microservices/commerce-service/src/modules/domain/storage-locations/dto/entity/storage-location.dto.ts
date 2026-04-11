@@ -28,7 +28,6 @@ export class StorageLocationDto {
 }
 
 export class LocationStockDto {
-  id: string;
   inventoryItemId: string;
   itemName: string | null;
   itemCode: string | null;
@@ -36,29 +35,25 @@ export class LocationStockDto {
   stockedQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;
-  reorderLevel: number;
 
-  // Maps a joined inventory level row to a stock DTO
+  // Maps a joined inventory level view row to a stock DTO
   static from(row: {
-    id: string;
     inventoryItemId: string;
     itemName: string | null;
     itemCode: string | null;
     uomSymbol: string | null;
     stockedQuantity: string;
     reservedQuantity: string;
-    reorderLevel: string;
+    availableQuantity: string;
   }): LocationStockDto {
     const dto = new LocationStockDto();
-    dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;
     dto.itemName = row.itemName;
     dto.itemCode = row.itemCode;
     dto.uomSymbol = row.uomSymbol;
     dto.stockedQuantity = Number(row.stockedQuantity);
     dto.reservedQuantity = Number(row.reservedQuantity);
-    dto.availableQuantity = Number(row.stockedQuantity) - Number(row.reservedQuantity);
-    dto.reorderLevel = Number(row.reorderLevel);
+    dto.availableQuantity = Number(row.availableQuantity);
     return dto;
   }
 }

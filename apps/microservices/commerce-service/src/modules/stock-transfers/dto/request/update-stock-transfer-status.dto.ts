@@ -13,5 +13,9 @@ export class UpdateStockTransferStatusDto {
 
   @IsOptional()
   @IsUUID()
+  fromBatchId?: string;
+
+  @IsOptional()
+  @IsUUID()
   receivedBy?: string;
 }

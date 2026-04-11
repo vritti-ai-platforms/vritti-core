@@ -1,5 +1,7 @@
-import type { InventoryItemDto, InventoryLedgerDto, InventoryLevelDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import type { InventoryItemBatchDto, LocationStockDto } from '@domain/inventory-item-batches/dto/entity/inventory-item-batch.dto';
+import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
+import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, FilterCondition, SearchState, SelectOptionsQueryDto, SelectQueryResult, SortCondition, SuccessResponseDto } from '@vritti/api-sdk';
@@ -50,27 +52,13 @@ export class InventoryItemsController {
     return this.service.findById(data.id);
   }
 
-  // Returns stock levels for an inventory item
-  @MessagePattern({ cmd: 'inventoryItems.levels' })
-  async levels(@Payload() data: { itemId: string }): Promise<InventoryLevelDto[]> {
-    this.logger.log(`inventoryItems.levels — itemId: ${data.itemId}`);
-    return this.service.findLevels(data.itemId);
-  }
-
-  // Returns ledger entries for an inventory item
-  @MessagePattern({ cmd: 'inventoryItems.ledger' })
-  async ledger(@Payload() data: { itemId: string }): Promise<InventoryLedgerDto[]> {
-    this.logger.log(`inventoryItems.ledger — itemId: ${data.itemId}`);
-    return this.service.findLedger(data.itemId);
-  }
-
-  // Returns paginated stock levels for an inventory item data table
-  @MessagePattern({ cmd: 'inventoryItems.levelsTable' })
-  async levelsTable(
+  // Returns paginated inventory batches for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.batchesTable' })
+  async batchesTable(
     @Payload() data: { itemId: string; filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
-  ): Promise<{ result: InventoryLevelDto[]; count: number }> {
-    this.logger.log(`inventoryItems.levelsTable — itemId: ${data.itemId}`);
-    return this.service.findLevelsForTable(data.itemId, {
+  ): Promise<{ result: InventoryItemBatchDto[]; count: number }> {
+    this.logger.log(`inventoryItems.batchesTable — itemId: ${data.itemId}`);
+    return this.service.findBatchesForTable(data.itemId, {
       filters: data.filters ?? [],
       sort: data.sort ?? [],
       search: data.search ?? null,
@@ -78,18 +66,52 @@ export class InventoryItemsController {
     });
   }
 
-  // Returns paginated ledger entries for an inventory item data table
-  @MessagePattern({ cmd: 'inventoryItems.ledgerTable' })
-  async ledgerTable(
+  // Returns location-wise stock aggregates for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.locationStock' })
+  async locationStock(@Payload() data: { itemId: string }): Promise<LocationStockDto[]> {
+    this.logger.log(`inventoryItems.locationStock — itemId: ${data.itemId}`);
+    return this.service.findLocationStock(data.itemId);
+  }
+
+  // Returns paginated storage location configs for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.table' })
+  async storageLocationConfigsTable(
     @Payload() data: { itemId: string; filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
-  ): Promise<{ result: InventoryLedgerDto[]; count: number }> {
-    this.logger.log(`inventoryItems.ledgerTable — itemId: ${data.itemId}`);
-    return this.service.findLedgerForTable(data.itemId, {
+  ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
+    this.logger.log(`inventoryItems.storageLocationConfigs.table — itemId: ${data.itemId}`);
+    return this.service.findStorageLocationConfigs(data.itemId, {
       filters: data.filters ?? [],
       sort: data.sort ?? [],
       search: data.search ?? null,
       pagination: data.pagination ?? { limit: 20, offset: 0 },
     });
+  }
+
+  // Creates a storage location config for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.create' })
+  async createStorageLocationConfig(
+    @Payload() data: { itemId: string; locationId: string; reorderLevel: number },
+  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
+    this.logger.log(`inventoryItems.storageLocationConfigs.create — itemId: ${data.itemId}`);
+    return this.service.createStorageLocationConfig(data.itemId, { locationId: data.locationId, reorderLevel: data.reorderLevel });
+  }
+
+  // Updates a storage location config
+  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.update' })
+  async updateStorageLocationConfig(
+    @Payload() data: { id: string; reorderLevel: number },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.storageLocationConfigs.update — id: ${data.id}`);
+    return this.service.updateStorageLocationConfig(data.id, { reorderLevel: data.reorderLevel });
+  }
+
+  // Deletes a storage location config
+  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.delete' })
+  async deleteStorageLocationConfig(
+    @Payload() data: { id: string },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.storageLocationConfigs.delete — id: ${data.id}`);
+    return this.service.deleteStorageLocationConfig(data.id);
   }
 
   // Updates an inventory item

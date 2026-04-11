@@ -25,6 +25,9 @@ const receiveGoodsSchema = z.object({
       acceptedQuantity: z.string(),
       rejectedQuantity: z.string(),
       rejectionReason: z.string().optional(),
+      batchNumber: z.string().optional(),
+      manufacturingDate: z.string().optional(),
+      expiryDate: z.string().optional(),
     }),
   ),
 });
@@ -46,6 +49,9 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
         acceptedQuantity: '',
         rejectedQuantity: '0',
         rejectionReason: '',
+        batchNumber: '',
+        manufacturingDate: '',
+        expiryDate: '',
       })),
     },
   });
@@ -82,6 +88,9 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
             acceptedQuantity: Number(item.acceptedQuantity) || 0,
             rejectedQuantity: Number(item.rejectedQuantity) || 0,
             rejectionReason: item.rejectionReason || undefined,
+            batchNumber: item.batchNumber || undefined,
+            manufacturingDate: item.manufacturingDate || undefined,
+            expiryDate: item.expiryDate || undefined,
           })),
       })}
     >
@@ -114,6 +123,15 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
               label="Rejection Reason"
               placeholder="Reason for rejection (if any)"
             />
+            <TextField
+              name={`items.${index}.batchNumber`}
+              label="Batch / Lot Number"
+              placeholder="Supplier's lot number (optional)"
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <TextField name={`items.${index}.manufacturingDate`} label="Mfg Date" type="date" />
+              <TextField name={`items.${index}.expiryDate`} label="Expiry Date" type="date" />
+            </div>
           </div>
         ))}
       </div>

@@ -14,7 +14,7 @@ import { StockTransferDto } from '../dto/entity/stock-transfer.dto';
 import type { CreateStockTransferDto } from '@/modules/stock-transfers/dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from '@/modules/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransfersRepository } from '../repositories/stock-transfers.repository';
-import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
+import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
 
 @Injectable()
 export class StockTransfersService {
@@ -26,7 +26,7 @@ export class StockTransfersService {
 
   constructor(
     private readonly repository: StockTransfersRepository,
-    private readonly inventoryLevelsService: InventoryLevelsService,
+    private readonly batchesService: InventoryItemBatchesService,
   ) {}
 
   // Returns paginated stock transfers for the data table
@@ -66,7 +66,7 @@ export class StockTransfersService {
     return StockTransferDto.from(entity);
   }
 
-  // Updates transfer status, handles inventory changes on IN_TRANSIT and RECEIVED
+  // Updates transfer status; handles inventory batch changes on IN_TRANSIT and RECEIVED
   async updateStatus(id: string, data: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Stock transfer not found.');
@@ -82,27 +82,26 @@ export class StockTransfersService {
       throw new BadRequestException('Cannot update a cancelled transfer.');
     }
 
-    // On IN_TRANSIT: deduct from source location
+    // On IN_TRANSIT: deduct from source batch
     if (newStatus === StockTransferStatusValues.IN_TRANSIT && currentStatus === StockTransferStatusValues.REQUESTED) {
-      const qty = Number(entity.quantity);
-      await this.inventoryLevelsService.deductStock({
-        itemId: entity.inventoryItemId,
-        locationId: data.fromLocationId,
-        quantity: qty,
-        type: InventoryLedgerTypeValues.TRANSFER_OUT,
-        referenceType: 'STOCK_TRANSFER',
-        referenceId: id,
-        notes: `Transfer out to location ${data.toLocationId}`,
-      });
+      if (data.fromBatchId) {
+        await this.batchesService.adjustBatch({
+          batchId: data.fromBatchId,
+          quantity: -Number(entity.quantity),
+          type: InventoryLedgerTypeValues.TRANSFER_OUT,
+          referenceType: 'STOCK_TRANSFER',
+          referenceId: id,
+          notes: `Transfer out to location ${data.toLocationId}`,
+        });
+      }
     }
 
-    // On RECEIVED: add to destination location
+    // On RECEIVED: create new batch in destination location
     if (newStatus === StockTransferStatusValues.RECEIVED) {
-      const qty = Number(entity.quantity);
-      await this.inventoryLevelsService.addStock({
-        itemId: entity.inventoryItemId,
+      await this.batchesService.createBatch({
+        inventoryItemId: entity.inventoryItemId,
         locationId: data.toLocationId,
-        quantity: qty,
+        quantity: Number(entity.quantity),
         type: InventoryLedgerTypeValues.TRANSFER_IN,
         referenceType: 'STOCK_TRANSFER',
         referenceId: id,

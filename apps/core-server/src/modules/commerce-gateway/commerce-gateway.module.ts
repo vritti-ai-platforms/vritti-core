@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { BomGatewayController } from './bom/bom-gateway.controller';
 import { BomGatewayService } from './bom/services/bom-gateway.service';
+import { InventoryItemBatchesGatewayController } from './inventory-item-batches/inventory-item-batches-gateway.controller';
+import { InventoryItemBatchesGatewayService } from './inventory-item-batches/services/inventory-item-batches-gateway.service';
 import { CategoriesGatewayController } from './categories/categories-gateway.controller';
 import { CategoriesGatewayService } from './categories/services/categories-gateway.service';
 import { ConversionsGatewayController } from './conversions/conversions-gateway.controller';
@@ -40,6 +42,7 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
   controllers: [
     BomGatewayController,
     CategoriesGatewayController,
+    InventoryItemBatchesGatewayController,
     ConversionsGatewayController,
     CreditNotesGatewayController,
     GoodsReceiptsGatewayController,
@@ -60,6 +63,7 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
   providers: [
     BomGatewayService,
     CategoriesGatewayService,
+    InventoryItemBatchesGatewayService,
     ConversionsGatewayService,
     CreditNotesGatewayService,
     GoodsReceiptsGatewayService,

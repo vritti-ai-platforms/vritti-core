@@ -1,6 +1,4 @@
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
@@ -12,8 +10,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
-import { LedgerTab } from './tabs/LedgerTab';
-import { LevelsTab } from './tabs/LevelsTab';
+import { BatchesTab } from './tabs/BatchesTab';
+import { OverviewTab } from './tabs/OverviewTab';
+import { StorageLocationsTab } from './tabs/StorageLocationsTab';
 
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
@@ -28,7 +27,7 @@ export const InventoryItemDetailPage = () => {
     if (!item) return;
     const confirmed = await confirm({
       title: `Delete "${item.name}"?`,
-      description: 'This inventory item and all its stock levels and ledger entries will be permanently removed.',
+      description: 'This inventory item and all its batches and ledger entries will be permanently removed.',
       confirmLabel: 'Delete',
       variant: 'destructive',
     });
@@ -66,43 +65,17 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'overview',
             label: 'Overview',
-            content: (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Type</p>
-                      <Badge variant="outline" className="mt-1">
-                        {item.type === 'MATERIAL' ? 'Material' : 'Product'}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Unit of Measure</p>
-                      <p className="mt-1 font-medium">{item.uomSymbol ?? '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Description</p>
-                      <p className={`mt-1 ${item.description ? '' : 'text-muted-foreground'}`}>
-                        {item.description ?? 'No description'}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ),
+            content: <OverviewTab item={item} />,
           },
           {
-            value: 'levels',
-            label: 'Stock Levels',
-            content: <LevelsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+            value: 'storage-locations',
+            label: 'Storage Locations',
+            content: <StorageLocationsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
-            value: 'ledger',
-            label: 'Ledger',
-            content: <LedgerTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+            value: 'batches',
+            label: 'Batches',
+            content: <BatchesTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
         ]}
         value={activeTab}
@@ -111,7 +84,7 @@ export const InventoryItemDetailPage = () => {
 
       <DangerZone
         title="Delete this inventory item"
-        description="This action cannot be undone. All stock levels and ledger entries will be permanently removed."
+        description="This action cannot be undone. All batches and ledger entries will be permanently removed."
         buttonText="Delete Item"
         onClick={handleDelete}
         disabled={!item.canDelete}

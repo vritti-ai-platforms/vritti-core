@@ -3,6 +3,7 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryLedgerTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
+import { inventoryItemBatches } from './inventory-item-batches';
 
 export const inventoryLedger = coreSchema.table(
   'inventory_ledger',
@@ -11,9 +12,9 @@ export const inventoryLedger = coreSchema.table(
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id, { onDelete: 'cascade' }),
+    batchId: uuid('batch_id').references(() => inventoryItemBatches.id, { onDelete: 'set null' }),
     type: inventoryLedgerTypeEnum('type').notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    balanceAfter: decimal('balance_after', { precision: 12, scale: 3 }).notNull(),
     referenceType: varchar('reference_type', { length: 50 }),
     referenceId: uuid('reference_id'),
     notes: text('notes'),
@@ -24,6 +25,7 @@ export const inventoryLedger = coreSchema.table(
     index('idx_inventory_ledger_bu').on(table.businessUnitId),
     index('idx_inventory_ledger_ref').on(table.referenceType, table.referenceId),
     index('idx_inventory_ledger_created').on(table.inventoryItemId, table.createdAt),
+    index('idx_inventory_ledger_batch').on(table.batchId),
   ],
 );
 

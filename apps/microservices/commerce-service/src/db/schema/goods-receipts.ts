@@ -1,4 +1,4 @@
-import { date, decimal, index, pgPolicy, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { date, decimal, index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 import { purchaseOrders, purchaseOrderItems } from './purchase-orders';
@@ -54,6 +54,9 @@ export const goodsReceiptItems = coreSchema.table(
     acceptedQuantity: decimal('accepted_quantity', { precision: 12, scale: 3 }).notNull(),
     rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     rejectionReason: text('rejection_reason'),
+    batchNumber: varchar('batch_number', { length: 100 }),
+    manufacturingDate: date('manufacturing_date'),
+    expiryDate: date('expiry_date'),
   },
   (table) => [
     index('idx_goods_receipt_items_gr').on(table.goodsReceiptId),

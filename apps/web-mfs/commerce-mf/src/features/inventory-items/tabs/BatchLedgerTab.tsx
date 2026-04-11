@@ -4,12 +4,12 @@ import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/Data
 import { ScrollText } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import { INVENTORY_ITEM_LEDGER_KEY, useInventoryItemLedgerTable } from '@/hooks/inventory-items';
-import type { InventoryLedgerData } from '@/schemas/inventory-items';
+import { INVENTORY_ITEM_BATCH_LEDGER_KEY, useInventoryItemBatchLedgerTable } from '@/hooks/inventory-item-batches';
+import type { BatchLedgerData } from '@/schemas/inventory-item-batches';
 
-interface LedgerTabProps {
-  itemId: string;
-  uomSymbol: string | null;
+interface BatchLedgerTabProps {
+  batchId: string;
+  uomSymbol?: string | null;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -24,10 +24,11 @@ const TYPE_LABELS: Record<string, string> = {
   TRANSFER_IN: 'Transfer In',
 };
 
-export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
+export const BatchLedgerTab: React.FC<BatchLedgerTabProps> = ({ batchId, uomSymbol }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useInventoryItemLedgerTable(itemId);
-  const columns = useMemo<ColumnDef<InventoryLedgerData>[]>(
+  const { data: response, isLoading } = useInventoryItemBatchLedgerTable(batchId);
+
+  const columns = useMemo<ColumnDef<BatchLedgerData>[]>(
     () => [
       {
         accessorKey: 'createdAt',
@@ -40,7 +41,9 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
       {
         accessorKey: 'type',
         header: 'Type',
-        cell: ({ row }) => <Badge variant="outline">{TYPE_LABELS[row.original.type] ?? row.original.type}</Badge>,
+        cell: ({ row }) => (
+          <Badge variant="outline">{TYPE_LABELS[row.original.type] ?? row.original.type}</Badge>
+        ),
       },
       {
         accessorKey: 'quantity',
@@ -55,19 +58,18 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
         },
       },
       {
-        accessorKey: 'balanceAfter',
-        header: 'Balance',
-        cell: ({ row }) => <span className="font-mono">{row.original.balanceAfter} {uomSymbol}</span>,
-      },
-      {
         accessorKey: 'referenceType',
         header: 'Reference',
-        cell: ({ row }) => <span className="text-muted-foreground">{row.original.referenceType ?? '—'}</span>,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.referenceType ?? '—'}</span>
+        ),
       },
       {
         accessorKey: 'notes',
         header: 'Notes',
-        cell: ({ row }) => <span className="text-muted-foreground">{row.original.notes ?? '—'}</span>,
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.notes ?? '—'}</span>
+        ),
       },
     ],
     [uomSymbol],
@@ -76,11 +78,11 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-ledger`,
+    slug: `inventory-batch-${batchId}-ledger`,
     label: 'entry',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LEDGER_KEY(itemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_BATCH_LEDGER_KEY(batchId)] }),
   });
 
   return (

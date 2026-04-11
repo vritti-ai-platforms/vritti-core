@@ -18,7 +18,7 @@ import {
 } from '../dto/entity/conversion.dto';
 import type { CreateConversionDto } from '@/modules/conversions/dto/request/create-conversion.dto';
 import { ConversionsRepository } from '../repositories/conversions.repository';
-import { InventoryLevelsService } from '@domain/inventory-levels/services/inventory-levels.service';
+import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
 
 @Injectable()
 export class ConversionsService {
@@ -30,7 +30,7 @@ export class ConversionsService {
 
   constructor(
     private readonly repository: ConversionsRepository,
-    private readonly inventoryLevelsService: InventoryLevelsService,
+    private readonly batchesService: InventoryItemBatchesService,
   ) {}
 
   // Returns paginated conversions for the data table
@@ -103,8 +103,8 @@ export class ConversionsService {
     return ConversionDetailDto.fromDetail(entity, inputDtos, outputDtos);
   }
 
-  // Completes a conversion: deducts inputs, adds outputs via InventoryLevelsService
-  async complete(id: string, locationId: string): Promise<{ success: boolean; message: string }> {
+  // Completes a conversion: deducts inputs from batches, creates output batches
+  async complete(id: string, locationId: string, inputBatchIds?: Record<string, string>): Promise<{ success: boolean; message: string }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Conversion not found.');
     if (entity.status === ConversionStatusValues.COMPLETED) {
@@ -117,24 +117,27 @@ export class ConversionsService {
     const inputs = await this.repository.findInputsByConversionId(id);
     const outputs = await this.repository.findOutputsByConversionId(id);
 
-    // Deduct inputs from inventory
+    // Deduct inputs from specified batches
     for (const input of inputs) {
       const totalDeduct = Number(input.quantity) + Number(input.wastageQuantity);
-      await this.inventoryLevelsService.deductStock({
-        itemId: input.inventoryItemId,
-        locationId,
-        quantity: totalDeduct,
-        type: InventoryLedgerTypeValues.CONVERSION_INPUT,
-        referenceType: 'CONVERSION',
-        referenceId: id,
-        notes: `Conversion input (qty: ${input.quantity}, wastage: ${input.wastageQuantity})`,
-      });
+      const batchId = inputBatchIds?.[input.inventoryItemId];
+
+      if (batchId) {
+        await this.batchesService.adjustBatch({
+          batchId,
+          quantity: -totalDeduct,
+          type: InventoryLedgerTypeValues.CONVERSION_INPUT,
+          referenceType: 'CONVERSION',
+          referenceId: id,
+          notes: `Conversion input (qty: ${input.quantity}, wastage: ${input.wastageQuantity})`,
+        });
+      }
     }
 
-    // Add outputs to inventory
+    // Create output batches
     for (const output of outputs) {
-      await this.inventoryLevelsService.addStock({
-        itemId: output.inventoryItemId,
+      await this.batchesService.createBatch({
+        inventoryItemId: output.inventoryItemId,
         locationId,
         quantity: Number(output.quantity),
         type: InventoryLedgerTypeValues.CONVERSION_OUTPUT,

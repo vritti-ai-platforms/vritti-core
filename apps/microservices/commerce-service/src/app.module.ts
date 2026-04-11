@@ -22,6 +22,7 @@ import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.mod
 import { StorageLocationsModule } from './modules/storage-locations/storage-locations.module';
 import { ConversionsModule } from './modules/conversions/conversions.module';
 import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjustments.module';
+import { InventoryItemBatchesModule } from './modules/inventory-item-batches/inventory-item-batches.module';
 import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { PaymentsModule } from './modules/payments/payments.module';
@@ -68,6 +69,7 @@ import { OrdersModule } from './modules/orders/orders.module';
     StorageLocationsModule,
     ConversionsModule,
     StockAdjustmentsModule,
+    InventoryItemBatchesModule,
     StockTransfersModule,
     InvoicesModule,
     PaymentsModule,

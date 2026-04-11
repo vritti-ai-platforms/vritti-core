@@ -20,8 +20,6 @@ export const updateInventoryItemSchema = z.object({
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
 export type UpdateInventoryItemFormData = z.infer<typeof updateInventoryItemSchema>;
 export type InventoryItemsTableResponse = TableResponse<InventoryItemData>;
-export type InventoryLevelsTableResponse = TableResponse<InventoryLevelData>;
-export type InventoryLedgerTableResponse = TableResponse<InventoryLedgerData>;
 
 export type InventoryItemType = 'MATERIAL' | 'PRODUCT';
 
@@ -36,31 +34,4 @@ export interface InventoryItemData {
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface InventoryLevelData {
-  id: string;
-  locationId: string;
-  locationName: string | null;
-  locationCode: string | null;
-  stockedQuantity: number;
-  reservedQuantity: number;
-  availableQuantity: number;
-  reorderLevel: number;
-}
-
-export interface InventoryLedgerData {
-  id: string;
-  type: string;
-  quantity: number;
-  balanceAfter: number;
-  referenceType: string | null;
-  referenceId: string | null;
-  notes: string | null;
-  createdAt: string;
-}
-
-export interface InventoryItemDetail extends InventoryItemData {
-  levels: InventoryLevelData[];
-  ledger: InventoryLedgerData[];
 }

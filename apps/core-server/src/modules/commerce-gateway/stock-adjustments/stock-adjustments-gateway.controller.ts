@@ -1,6 +1,6 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk';
+import { RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
 import type { StockAdjustmentResponseDto } from './dto/response/stock-adjustment-response.dto';
@@ -27,5 +27,12 @@ export class StockAdjustmentsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
     return this.service.create(dto);
+  }
+
+  // Deletes a stock adjustment
+  @Delete(':id')
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}`);
+    return this.service.delete(id);
   }
 }

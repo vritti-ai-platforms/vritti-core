@@ -1,7 +1,7 @@
 import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItemTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
+import { inventoryItemTypeEnum } from './enums';
 import { uom } from './uom';
 
 export const inventoryItems = coreSchema.table(

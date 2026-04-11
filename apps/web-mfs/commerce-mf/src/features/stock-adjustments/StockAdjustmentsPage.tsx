@@ -1,29 +1,43 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { useQueryClient } from '@tanstack/react-query';
-import { ClipboardMinus, Plus } from 'lucide-react';
+import { ClipboardMinus, Plus, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/useStockAdjustmentsTable';
+import { useDeleteStockAdjustment } from '@/hooks/useDeleteStockAdjustment';
 import type { StockAdjustmentData, StockAdjustmentType } from '@/schemas/stock-adjustments';
 import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog';
 
-const typeConfig: Record<StockAdjustmentType, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const typeConfig: Record<StockAdjustmentType, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' }> = {
+  OPENING_STOCK: { label: 'Opening Stock', variant: 'default' },
   WASTE: { label: 'Waste', variant: 'destructive' },
   DAMAGE: { label: 'Damage', variant: 'destructive' },
   THEFT: { label: 'Theft', variant: 'destructive' },
-  EXPIRED: { label: 'Expired', variant: 'secondary', className: 'bg-warning/15 text-warning' },
+  EXPIRED: { label: 'Expired', variant: 'secondary' },
   CORRECTION: { label: 'Correction', variant: 'outline' },
-  PRODUCTION: { label: 'Production', variant: 'secondary', className: 'bg-success/15 text-success' },
+  PRODUCTION: { label: 'Production', variant: 'secondary' },
 };
 
 export const StockAdjustmentsPage = () => {
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useStockAdjustmentsTable();
   const addDialog = useDialog();
+  const confirm = useConfirm();
+  const deleteMutation = useDeleteStockAdjustment();
+
+  const handleDelete = async (adjustment: StockAdjustmentData) => {
+    const confirmed = await confirm({
+      title: 'Delete this adjustment?',
+      description: 'This stock adjustment will be permanently removed.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (confirmed) deleteMutation.mutate(adjustment.id);
+  };
 
   const columns = useMemo<ColumnDef<StockAdjustmentData>[]>(
     () => [
@@ -38,11 +52,7 @@ export const StockAdjustmentsPage = () => {
         header: 'Type',
         cell: ({ row }) => {
           const config = typeConfig[row.original.type];
-          return (
-            <Badge variant={config.variant} className={config.className}>
-              {config.label}
-            </Badge>
-          );
+          return <Badge variant={config.variant}>{config.label}</Badge>;
         },
       },
       {
@@ -73,6 +83,29 @@ export const StockAdjustmentsPage = () => {
         header: 'Date',
         cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
         enableSorting: true,
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => {
+          const isDeletable = row.original.type === 'OPENING_STOCK' || row.original.type === 'CORRECTION';
+          return (
+            <RowActions
+              actions={[
+                {
+                  id: 'delete',
+                  icon: Trash2,
+                  label: 'Delete',
+                  variant: 'destructive',
+                  hidden: !isDeletable,
+                  onClick: () => handleDelete(row.original),
+                },
+              ]}
+            />
+          );
+        },
+        enableSorting: false,
+        enableHiding: false,
       },
     ],
     [],

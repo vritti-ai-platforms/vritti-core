@@ -5,8 +5,25 @@ export class CreateStockAdjustmentDto {
   @IsNotEmpty()
   inventoryItemId: string;
 
+  @IsOptional()
   @IsUUID()
-  locationId: string;
+  locationId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  batchId?: string;
+
+  @IsOptional()
+  @IsString()
+  batchNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  manufacturingDate?: string;
+
+  @IsOptional()
+  @IsString()
+  expiryDate?: string;
 
   @IsString()
   @IsNotEmpty()
