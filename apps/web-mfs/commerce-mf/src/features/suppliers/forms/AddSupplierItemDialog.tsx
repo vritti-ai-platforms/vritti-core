@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
+import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useLinkSupplierItem } from '@/hooks/useLinkSupplierItem';
-import { type LinkSupplierItemFormData, type SupplierDetail, linkSupplierItemSchema } from '@/schemas/suppliers';
+import { type LinkSupplierItemFormData, linkSupplierItemSchema, type SupplierDetail } from '@/schemas/suppliers';
 
 interface AddSupplierItemDialogProps {
   supplier: SupplierDetail;

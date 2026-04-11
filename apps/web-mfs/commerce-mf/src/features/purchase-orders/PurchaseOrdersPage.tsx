@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -5,7 +6,6 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, Eye, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,10 @@ import { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from '@/hooks/usePu
 import type { PurchaseOrderData, PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { CreatePurchaseOrderDialog } from './forms/CreatePurchaseOrderDialog';
 
-const statusConfig: Record<PurchaseOrderStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  PurchaseOrderStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   SENT: { label: 'Sent', variant: 'secondary' },
   CONFIRMED: { label: 'Confirmed', variant: 'secondary', className: 'bg-success/15 text-success' },
@@ -78,7 +81,7 @@ export const PurchaseOrdersPage = () => {
       {
         accessorKey: 'totalAmount',
         header: 'Total',
-        cell: ({ row }) => row.original.totalAmount != null ? row.original.totalAmount.toFixed(2) : '—',
+        cell: ({ row }) => (row.original.totalAmount != null ? row.original.totalAmount.toFixed(2) : '—'),
       },
       {
         id: 'actions',

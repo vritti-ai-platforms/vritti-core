@@ -47,7 +47,13 @@ export const DerivedUnitRow: React.FC<DerivedUnitRowProps> = ({ unit, baseUnitSy
           <Button variant="ghost" size="icon" className="size-7" onClick={editDialog.open}>
             <Pencil className="size-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="size-7 text-destructive hover:text-destructive" onClick={handleDelete} disabled={!unit.canDelete}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:text-destructive"
+            onClick={handleDelete}
+            disabled={!unit.canDelete}
+          >
             <Trash2 className="size-4" />
           </Button>
         </div>

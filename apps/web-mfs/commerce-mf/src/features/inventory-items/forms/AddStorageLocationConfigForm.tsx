@@ -1,12 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
+import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateStorageLocationConfig } from '@/hooks/inventory-items';
-import { type CreateStorageLocationConfigFormData, createStorageLocationConfigSchema } from '@/schemas/storage-location-configs';
+import {
+  type CreateStorageLocationConfigFormData,
+  createStorageLocationConfigSchema,
+} from '@/schemas/storage-location-configs';
 
 interface AddStorageLocationConfigFormProps {
   itemId: string;
@@ -14,7 +17,11 @@ interface AddStorageLocationConfigFormProps {
   onCancel: () => void;
 }
 
-export const AddStorageLocationConfigForm: React.FC<AddStorageLocationConfigFormProps> = ({ itemId, onSuccess, onCancel }) => {
+export const AddStorageLocationConfigForm: React.FC<AddStorageLocationConfigFormProps> = ({
+  itemId,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<CreateStorageLocationConfigFormData>({
     resolver: zodResolver(createStorageLocationConfigSchema),
     defaultValues: { locationId: '', reorderLevel: 0 },

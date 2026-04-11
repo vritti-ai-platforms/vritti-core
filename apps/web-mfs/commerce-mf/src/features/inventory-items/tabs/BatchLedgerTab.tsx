@@ -41,9 +41,7 @@ export const BatchLedgerTab: React.FC<BatchLedgerTabProps> = ({ batchId, uomSymb
       {
         accessorKey: 'type',
         header: 'Type',
-        cell: ({ row }) => (
-          <Badge variant="outline">{TYPE_LABELS[row.original.type] ?? row.original.type}</Badge>
-        ),
+        cell: ({ row }) => <Badge variant="outline">{TYPE_LABELS[row.original.type] ?? row.original.type}</Badge>,
       },
       {
         accessorKey: 'quantity',
@@ -52,7 +50,8 @@ export const BatchLedgerTab: React.FC<BatchLedgerTabProps> = ({ batchId, uomSymb
           const isPositive = row.original.quantity > 0;
           return (
             <span className={`font-mono ${isPositive ? 'text-success' : 'text-destructive'}`}>
-              {isPositive ? '+' : ''}{row.original.quantity} {uomSymbol}
+              {isPositive ? '+' : ''}
+              {row.original.quantity} {uomSymbol}
             </span>
           );
         },
@@ -60,16 +59,12 @@ export const BatchLedgerTab: React.FC<BatchLedgerTabProps> = ({ batchId, uomSymb
       {
         accessorKey: 'referenceType',
         header: 'Reference',
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.referenceType ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.referenceType ?? '—'}</span>,
       },
       {
         accessorKey: 'notes',
         header: 'Notes',
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.notes ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-muted-foreground">{row.original.notes ?? '—'}</span>,
       },
     ],
     [uomSymbol],

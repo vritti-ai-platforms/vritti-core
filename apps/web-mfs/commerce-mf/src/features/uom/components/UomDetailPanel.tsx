@@ -101,7 +101,11 @@ export const UomDetailPanel: React.FC<UomDetailPanelProps> = ({
           buttonText="Delete Base Unit"
           onClick={handleDeleteBase}
           disabled={!baseUnit.canDelete}
-          warning={!baseUnit.canDelete ? 'This unit is referenced by inventory items, supplier items, or derived units and cannot be deleted.' : undefined}
+          warning={
+            !baseUnit.canDelete
+              ? 'This unit is referenced by inventory items, supplier items, or derived units and cannot be deleted.'
+              : undefined
+          }
         />
       </div>
 

@@ -1,5 +1,5 @@
-import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 
 export const UomPageSkeleton = () => (

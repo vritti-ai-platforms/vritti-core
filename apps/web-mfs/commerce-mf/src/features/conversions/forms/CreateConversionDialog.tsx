@@ -1,11 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { BomSelector } from '@vritti/quantum-ui/selects/bom';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
+import { TextArea } from '@vritti/quantum-ui/TextArea';
+import { TextField } from '@vritti/quantum-ui/TextField';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';

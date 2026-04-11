@@ -2,10 +2,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useSupplier } from '@/hooks/useSupplier';
@@ -44,11 +44,7 @@ export const SupplierDetailPage = () => {
   }
 
   if (!supplier) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Supplier not found.
-      </div>
-    );
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Supplier not found.</div>;
   }
 
   return (
@@ -166,11 +162,15 @@ export const SupplierDetailPage = () => {
                               <td className="py-3 font-medium">{item.inventoryItemName ?? item.inventoryItemId}</td>
                               <td className="py-3 font-mono">{item.supplierCode ?? '—'}</td>
                               <td className="py-3">{item.uomSymbol ?? '—'}</td>
-                              <td className="py-3 text-right font-mono">{item.unitPrice != null ? item.unitPrice.toFixed(2) : '—'}</td>
+                              <td className="py-3 text-right font-mono">
+                                {item.unitPrice != null ? item.unitPrice.toFixed(2) : '—'}
+                              </td>
                               <td className="py-3 text-right font-mono">{item.minOrderQuantity ?? '—'}</td>
                               <td className="py-3 text-center">
                                 {item.isPreferred ? (
-                                  <Badge variant="secondary" className="bg-success/15 text-success">Yes</Badge>
+                                  <Badge variant="secondary" className="bg-success/15 text-success">
+                                    Yes
+                                  </Badge>
                                 ) : (
                                   <span className="text-muted-foreground">—</span>
                                 )}

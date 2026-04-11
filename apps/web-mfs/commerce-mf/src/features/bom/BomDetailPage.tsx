@@ -2,10 +2,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useBom } from '@/hooks/useBom';
@@ -54,11 +54,7 @@ export const BomDetailPage = () => {
   }
 
   if (!bom) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        BOM not found.
-      </div>
-    );
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">BOM not found.</div>;
   }
 
   return (
@@ -141,7 +137,9 @@ export const BomDetailPage = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon-sm"
-                                  onClick={() => handleRemoveLine(line.inventoryItemId, line.inventoryItemName ?? 'item')}
+                                  onClick={() =>
+                                    handleRemoveLine(line.inventoryItemId, line.inventoryItemName ?? 'item')
+                                  }
                                 >
                                   <Trash2 className="size-4 text-destructive" />
                                 </Button>

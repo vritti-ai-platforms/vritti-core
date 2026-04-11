@@ -2,10 +2,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { PackageCheck, Plus, Send, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useGoodsReceipts } from '@/hooks/useGoodsReceipts';
@@ -16,7 +16,10 @@ import { updatePurchaseOrderStatus } from '@/services/purchase-orders.service';
 import { AddPurchaseOrderItemDialog } from './forms/AddPurchaseOrderItemDialog';
 import { ReceiveGoodsDialog } from './forms/ReceiveGoodsDialog';
 
-const statusConfig: Record<PurchaseOrderStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  PurchaseOrderStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   SENT: { label: 'Sent', variant: 'secondary' },
   CONFIRMED: { label: 'Confirmed', variant: 'secondary', className: 'bg-success/15 text-success' },
@@ -56,22 +59,19 @@ export const PurchaseOrderDetailPage = () => {
     [id, confirm, refetch],
   );
 
-  const handleCancelOrder = useCallback(
-    async () => {
-      if (!id) return;
-      const confirmed = await confirm({
-        title: 'Cancel Purchase Order?',
-        description: 'This action cannot be undone. The purchase order will be marked as cancelled.',
-        confirmLabel: 'Cancel Order',
-        variant: 'destructive',
-      });
-      if (confirmed) {
-        await updatePurchaseOrderStatus({ id, status: 'CANCELLED' });
-        refetch();
-      }
-    },
-    [id, confirm, refetch],
-  );
+  const handleCancelOrder = useCallback(async () => {
+    if (!id) return;
+    const confirmed = await confirm({
+      title: 'Cancel Purchase Order?',
+      description: 'This action cannot be undone. The purchase order will be marked as cancelled.',
+      confirmLabel: 'Cancel Order',
+      variant: 'destructive',
+    });
+    if (confirmed) {
+      await updatePurchaseOrderStatus({ id, status: 'CANCELLED' });
+      refetch();
+    }
+  }, [id, confirm, refetch]);
 
   const handleRemoveItem = useCallback(
     async (inventoryItemId: string, itemName: string) => {
@@ -109,9 +109,7 @@ export const PurchaseOrderDetailPage = () => {
 
   if (!po) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Purchase order not found.
-      </div>
+      <div className="flex items-center justify-center py-20 text-muted-foreground">Purchase order not found.</div>
     );
   }
 
@@ -141,21 +139,12 @@ export const PurchaseOrderDetailPage = () => {
               </Button>
             )}
             {canReceive && (
-              <Button
-                size="sm"
-                startAdornment={<PackageCheck className="size-4" />}
-                onClick={receiveDialog.open}
-              >
+              <Button size="sm" startAdornment={<PackageCheck className="size-4" />} onClick={receiveDialog.open}>
                 Receive Goods
               </Button>
             )}
             {canCancel && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive"
-                onClick={handleCancelOrder}
-              >
+              <Button variant="outline" size="sm" className="text-destructive" onClick={handleCancelOrder}>
                 Cancel Order
               </Button>
             )}
@@ -202,7 +191,9 @@ export const PurchaseOrderDetailPage = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Total Amount</p>
-                      <p className="mt-1 font-mono font-medium">{po.totalAmount != null ? po.totalAmount.toFixed(2) : '—'}</p>
+                      <p className="mt-1 font-mono font-medium">
+                        {po.totalAmount != null ? po.totalAmount.toFixed(2) : '—'}
+                      </p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-sm text-muted-foreground">Notes</p>
@@ -253,14 +244,20 @@ export const PurchaseOrderDetailPage = () => {
                               <td className="py-3 font-medium">{item.inventoryItemName ?? item.inventoryItemId}</td>
                               <td className="py-3 text-right font-mono">{item.orderedQuantity}</td>
                               <td className="py-3 text-right font-mono">{item.receivedQuantity}</td>
-                              <td className="py-3 text-right font-mono">{item.unitPrice != null ? item.unitPrice.toFixed(2) : '—'}</td>
-                              <td className="py-3 text-right font-mono">{item.totalPrice != null ? item.totalPrice.toFixed(2) : '—'}</td>
+                              <td className="py-3 text-right font-mono">
+                                {item.unitPrice != null ? item.unitPrice.toFixed(2) : '—'}
+                              </td>
+                              <td className="py-3 text-right font-mono">
+                                {item.totalPrice != null ? item.totalPrice.toFixed(2) : '—'}
+                              </td>
                               {canModifyItems && (
                                 <td className="py-3 text-right">
                                   <Button
                                     variant="ghost"
                                     size="icon-sm"
-                                    onClick={() => handleRemoveItem(item.inventoryItemId, item.inventoryItemName ?? 'item')}
+                                    onClick={() =>
+                                      handleRemoveItem(item.inventoryItemId, item.inventoryItemName ?? 'item')
+                                    }
                                   >
                                     <Trash2 className="size-4 text-destructive" />
                                   </Button>
@@ -308,15 +305,11 @@ export const PurchaseOrderDetailPage = () => {
                               <p className="font-medium">
                                 Received on {new Date(gr.receivedDate).toLocaleDateString()}
                               </p>
-                              {gr.receivedBy && (
-                                <p className="text-sm text-muted-foreground">By: {gr.receivedBy}</p>
-                              )}
+                              {gr.receivedBy && <p className="text-sm text-muted-foreground">By: {gr.receivedBy}</p>}
                             </div>
                             <Badge variant="outline">{gr.items.length} items</Badge>
                           </div>
-                          {gr.notes && (
-                            <p className="text-sm text-muted-foreground mb-3">{gr.notes}</p>
-                          )}
+                          {gr.notes && <p className="text-sm text-muted-foreground mb-3">{gr.notes}</p>}
                           <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                               <thead>

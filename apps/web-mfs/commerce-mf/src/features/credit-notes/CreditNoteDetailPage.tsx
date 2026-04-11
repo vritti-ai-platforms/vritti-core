@@ -2,10 +2,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { FileCheck } from 'lucide-react';
 import { useState } from 'react';
 import { useCreditNote } from '@/hooks/useCreditNote';
@@ -39,11 +39,7 @@ export const CreditNoteDetailPage = () => {
   }
 
   if (!creditNote) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Credit note not found.
-      </div>
-    );
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Credit note not found.</div>;
   }
 
   const badge = statusVariant(creditNote.status);
@@ -66,11 +62,7 @@ export const CreditNoteDetailPage = () => {
               {creditNote.status}
             </Badge>
             {canApply && (
-              <Button
-                size="sm"
-                startAdornment={<FileCheck className="size-4" />}
-                onClick={applyDialog.open}
-              >
+              <Button size="sm" startAdornment={<FileCheck className="size-4" />} onClick={applyDialog.open}>
                 Apply to Invoice
               </Button>
             )}

@@ -1,12 +1,12 @@
+import { cn } from '@vritti/quantum-ui';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { cn } from '@vritti/quantum-ui';
 import { Layers, Plus, Trash2, X } from 'lucide-react';
-import { useConfirm } from '@vritti/quantum-ui/hooks';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useBatchUpdateVariants } from '@/hooks/useBatchUpdateVariants';
@@ -79,10 +79,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
     for (const variant of item.variants) {
       const edit = variantEdits.get(variant.id);
       if (!edit) continue;
-      if (
-        edit.price !== (variant.price ?? '') ||
-        edit.isAvailable !== variant.isAvailable
-      ) {
+      if (edit.price !== (variant.price ?? '') || edit.isAvailable !== variant.isAvailable) {
         dirty.add(variant.id);
       }
     }
@@ -109,9 +106,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
     if (!value.trim()) return;
     setOptions((prev) =>
       prev.map((o, i) =>
-        i === optionIndex && !o.values.includes(value.trim())
-          ? { ...o, values: [...o.values, value.trim()] }
-          : o,
+        i === optionIndex && !o.values.includes(value.trim()) ? { ...o, values: [...o.values, value.trim()] } : o,
       ),
     );
     setNewValueInputs((prev) => ({ ...prev, [optionIndex]: '' }));
@@ -120,9 +115,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
   // Removes a value from an option
   const handleRemoveValue = useCallback((optionIndex: number, valueIndex: number) => {
     setOptions((prev) =>
-      prev.map((o, i) =>
-        i === optionIndex ? { ...o, values: o.values.filter((_, vi) => vi !== valueIndex) } : o,
-      ),
+      prev.map((o, i) => (i === optionIndex ? { ...o, values: o.values.filter((_, vi) => vi !== valueIndex) } : o)),
     );
   }, []);
 
@@ -173,17 +166,20 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
   }, [item.id, dirtyVariantIds, variantEdits, batchUpdateMutation]);
 
   // Confirms and deletes a single variant
-  const handleDeleteVariant = useCallback(async (variant: ItemVariant) => {
-    const confirmed = await confirm({
-      title: `Delete variant "${variant.name}"?`,
-      description: 'This variant will be permanently removed.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) {
-      deleteVariantMutation.mutate({ itemId: item.id, variantId: variant.id });
-    }
-  }, [confirm, deleteVariantMutation, item.id]);
+  const handleDeleteVariant = useCallback(
+    async (variant: ItemVariant) => {
+      const confirmed = await confirm({
+        title: `Delete variant "${variant.name}"?`,
+        description: 'This variant will be permanently removed.',
+        confirmLabel: 'Delete',
+        variant: 'destructive',
+      });
+      if (confirmed) {
+        deleteVariantMutation.mutate({ itemId: item.id, variantId: variant.id });
+      }
+    },
+    [confirm, deleteVariantMutation, item.id],
+  );
 
   const hasOptions = options.some((o) => o.name.trim() && o.values.length > 0);
 
@@ -215,11 +211,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
                   value={option.name}
                   onChange={(e) => handleOptionNameChange(optionIndex, e.target.value)}
                 />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveOption(optionIndex)}
-                >
+                <Button variant="ghost" size="icon" onClick={() => handleRemoveOption(optionIndex)}>
                   <Trash2 className="size-4 text-destructive" />
                 </Button>
               </div>
@@ -240,9 +232,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
                 <TextField
                   placeholder="Add value + Enter"
                   value={newValueInputs[optionIndex] ?? ''}
-                  onChange={(e) =>
-                    setNewValueInputs((prev) => ({ ...prev, [optionIndex]: e.target.value }))
-                  }
+                  onChange={(e) => setNewValueInputs((prev) => ({ ...prev, [optionIndex]: e.target.value }))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -256,12 +246,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
           ))}
           {options.length > 0 && (
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveOptions}
-                disabled={saveOptionsMutation.isPending}
-              >
+              <Button variant="outline" size="sm" onClick={handleSaveOptions} disabled={saveOptionsMutation.isPending}>
                 {saveOptionsMutation.isPending ? <Spinner className="size-4" /> : 'Save Options'}
               </Button>
             </div>
@@ -288,7 +273,11 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
                 onClick={handleSaveAllVariants}
                 disabled={batchUpdateMutation.isPending}
               >
-                {batchUpdateMutation.isPending ? <Spinner className="size-4" /> : `Save ${dirtyVariantIds.size} changes`}
+                {batchUpdateMutation.isPending ? (
+                  <Spinner className="size-4" />
+                ) : (
+                  `Save ${dirtyVariantIds.size} changes`
+                )}
               </Button>
             )}
             {hasOptions && (
@@ -312,9 +301,7 @@ export const VariationsTab: React.FC<VariationsTabProps> = ({ item }) => {
         </CardHeader>
         <CardContent>
           {item.variants.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No variants yet. Add options above and generate variants.
-            </p>
+            <p className="text-sm text-muted-foreground">No variants yet. Add options above and generate variants.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

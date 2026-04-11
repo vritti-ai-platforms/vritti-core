@@ -2,9 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateInventoryItem } from '@/hooks/inventory-items';
@@ -35,13 +35,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
   const createMutation = useCreateInventoryItem({ onSuccess });
 
   return (
-    <Form
-      form={form}
-      mutation={createMutation}
-      showRootError
-      resetOnSuccess
-      onCancel={onCancel}
-    >
+    <Form form={form} mutation={createMutation} showRootError resetOnSuccess onCancel={onCancel}>
       <RadioGroup name="type" label="Type" options={typeOptions} orientation="horizontal" />
       <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
       <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />

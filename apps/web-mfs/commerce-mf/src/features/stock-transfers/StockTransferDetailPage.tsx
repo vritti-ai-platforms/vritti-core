@@ -1,16 +1,19 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { PackageCheck, Send, XCircle } from 'lucide-react';
 import { useCallback } from 'react';
 import { useStockTransfer } from '@/hooks/useStockTransfer';
 import { useUpdateStockTransferStatus } from '@/hooks/useUpdateStockTransferStatus';
 import type { StockTransferStatus } from '@/schemas/stock-transfers';
 
-const statusConfig: Record<StockTransferStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  StockTransferStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   REQUESTED: { label: 'Requested', variant: 'outline' },
   IN_TRANSIT: { label: 'In Transit', variant: 'secondary', className: 'bg-warning/15 text-warning' },
   RECEIVED: { label: 'Received', variant: 'secondary', className: 'bg-success/15 text-success' },
@@ -49,9 +52,7 @@ export const StockTransferDetailPage = () => {
 
   if (!transfer) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Stock transfer not found.
-      </div>
+      <div className="flex items-center justify-center py-20 text-muted-foreground">Stock transfer not found.</div>
     );
   }
 

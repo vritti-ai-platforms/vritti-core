@@ -16,7 +16,12 @@ interface RecordPaymentDialogProps {
   onCancel: () => void;
 }
 
-export const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({ invoiceId, balance, onSuccess, onCancel }) => {
+export const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({
+  invoiceId,
+  balance,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<CreatePaymentFormData>({
     resolver: zodResolver(createPaymentSchema),
     defaultValues: {
@@ -45,12 +50,7 @@ export const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({ invoic
         notes: data.notes || undefined,
       })}
     >
-      <TextField
-        name="amount"
-        label="Amount"
-        type="number"
-        placeholder={`Max: ${balance.toFixed(2)}`}
-      />
+      <TextField name="amount" label="Amount" type="number" placeholder={`Max: ${balance.toFixed(2)}`} />
       <Select
         name="method"
         label="Payment Method"

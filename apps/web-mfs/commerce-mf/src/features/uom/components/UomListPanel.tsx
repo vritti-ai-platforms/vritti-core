@@ -51,9 +51,13 @@ export const UomListPanel: React.FC<UomListPanelProps> = ({
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Ruler className="size-4 shrink-0 text-muted-foreground" />
-                <Typography variant="body2" className="truncate">{unit.name}</Typography>
+                <Typography variant="body2" className="truncate">
+                  {unit.name}
+                </Typography>
               </div>
-              <Badge variant="outline" className="text-xs shrink-0 ml-2 font-mono">{unit.symbol}</Badge>
+              <Badge variant="outline" className="text-xs shrink-0 ml-2 font-mono">
+                {unit.symbol}
+              </Badge>
             </Button>
           ))}
         </div>

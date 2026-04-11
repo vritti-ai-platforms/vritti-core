@@ -19,7 +19,11 @@ const completeConversionSchema = z.object({
 
 type CompleteConversionFormData = z.infer<typeof completeConversionSchema>;
 
-export const CompleteConversionDialog: React.FC<CompleteConversionDialogProps> = ({ conversionId, onSuccess, onCancel }) => {
+export const CompleteConversionDialog: React.FC<CompleteConversionDialogProps> = ({
+  conversionId,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<CompleteConversionFormData>({
     resolver: zodResolver(completeConversionSchema),
     defaultValues: {

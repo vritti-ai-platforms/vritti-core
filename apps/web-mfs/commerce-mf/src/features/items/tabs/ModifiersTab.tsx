@@ -68,10 +68,7 @@ const ModifierGroupRow: React.FC<ModifierGroupRowProps> = ({ group, isSelected, 
   return (
     <div className="rounded-lg border">
       <div className="flex items-start gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={() => onToggle(group.id)}
-        />
+        <Checkbox checked={isSelected} onCheckedChange={() => onToggle(group.id)} />
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="font-medium">{group.name}</span>
@@ -94,12 +91,7 @@ const ModifierGroupRow: React.FC<ModifierGroupRowProps> = ({ group, isSelected, 
             {group.maxSelections != null && ` / Max: ${group.maxSelections}`}
           </span>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 shrink-0"
-          onClick={() => setIsExpanded((prev) => !prev)}
-        >
+        <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => setIsExpanded((prev) => !prev)}>
           {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         </Button>
       </div>

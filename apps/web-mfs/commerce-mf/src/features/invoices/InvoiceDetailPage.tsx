@@ -2,10 +2,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { useInvoice } from '@/hooks/useInvoice';
@@ -13,7 +13,10 @@ import { usePayments } from '@/hooks/usePayments';
 import type { InvoiceStatus, InvoiceType } from '@/schemas/invoices';
 import { RecordPaymentDialog } from './forms/RecordPaymentDialog';
 
-const statusConfig: Record<InvoiceStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  InvoiceStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   ISSUED: { label: 'Issued', variant: 'secondary' },
   PARTIALLY_PAID: { label: 'Partial', variant: 'secondary', className: 'bg-warning/15 text-warning' },
@@ -43,11 +46,7 @@ export const InvoiceDetailPage = () => {
   }
 
   if (!invoice) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Invoice not found.
-      </div>
-    );
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Invoice not found.</div>;
   }
 
   const statusBadge = statusConfig[invoice.status];
@@ -68,11 +67,7 @@ export const InvoiceDetailPage = () => {
               {statusBadge.label}
             </Badge>
             {canRecordPayment && (
-              <Button
-                size="sm"
-                startAdornment={<CreditCard className="size-4" />}
-                onClick={paymentDialog.open}
-              >
+              <Button size="sm" startAdornment={<CreditCard className="size-4" />} onClick={paymentDialog.open}>
                 Record Payment
               </Button>
             )}
@@ -124,10 +119,7 @@ export const InvoiceDetailPage = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge
-                        variant={statusBadge.variant}
-                        className={`mt-1 ${statusBadge.className ?? ''}`}
-                      >
+                      <Badge variant={statusBadge.variant} className={`mt-1 ${statusBadge.className ?? ''}`}>
                         {statusBadge.label}
                       </Badge>
                     </div>
@@ -183,9 +175,7 @@ export const InvoiceDetailPage = () => {
                 </CardHeader>
                 <CardContent>
                   {invoice.items.length === 0 ? (
-                    <p className="py-4 text-center text-muted-foreground">
-                      No line items on this invoice.
-                    </p>
+                    <p className="py-4 text-center text-muted-foreground">No line items on this invoice.</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
@@ -289,12 +279,7 @@ export const InvoiceDetailPage = () => {
         title="Record Payment"
         description="Record a payment against this invoice."
         content={(close) => (
-          <RecordPaymentDialog
-            invoiceId={invoice.id}
-            balance={invoice.balance}
-            onSuccess={close}
-            onCancel={close}
-          />
+          <RecordPaymentDialog invoiceId={invoice.id} balance={invoice.balance} onSuccess={close} onCancel={close} />
         )}
       />
     </div>

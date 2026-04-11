@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -5,7 +6,6 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRightLeft, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,10 @@ import { STOCK_TRANSFERS_TABLE_KEY, useStockTransfersTable } from '@/hooks/useSt
 import type { StockTransferData, StockTransferStatus } from '@/schemas/stock-transfers';
 import { CreateStockTransferDialog } from './forms/CreateStockTransferDialog';
 
-const statusConfig: Record<StockTransferStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  StockTransferStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   REQUESTED: { label: 'Requested', variant: 'outline' },
   IN_TRANSIT: { label: 'In Transit', variant: 'secondary', className: 'bg-warning/15 text-warning' },
   RECEIVED: { label: 'Received', variant: 'secondary', className: 'bg-success/15 text-success' },
@@ -108,9 +111,7 @@ export const StockTransfersPage = () => {
         table={table}
         isLoading={isLoading}
         searchConfig={{
-          columns: [
-            { id: 'inventoryItemName', label: 'Item' },
-          ],
+          columns: [{ id: 'inventoryItemName', label: 'Item' }],
           searchAll: true,
         }}
         toolbarActions={{

@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -35,9 +35,7 @@ const receiveGoodsSchema = z.object({
 type ReceiveGoodsFormData = z.infer<typeof receiveGoodsSchema>;
 
 export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchaseOrder, onSuccess, onCancel }) => {
-  const receivableItems = purchaseOrder.items.filter(
-    (item) => item.receivedQuantity < item.orderedQuantity,
-  );
+  const receivableItems = purchaseOrder.items.filter((item) => item.receivedQuantity < item.orderedQuantity);
 
   const form = useForm<ReceiveGoodsFormData>({
     resolver: zodResolver(receiveGoodsSchema),
@@ -101,22 +99,13 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
             <div className="flex items-center justify-between">
               <p className="font-medium">{item.inventoryItemName ?? item.inventoryItemId}</p>
               <p className="text-sm text-muted-foreground">
-                Ordered: {item.orderedQuantity} | Received: {item.receivedQuantity} | Remaining: {item.orderedQuantity - item.receivedQuantity}
+                Ordered: {item.orderedQuantity} | Received: {item.receivedQuantity} | Remaining:{' '}
+                {item.orderedQuantity - item.receivedQuantity}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <TextField
-                name={`items.${index}.acceptedQuantity`}
-                label="Accepted Qty"
-                type="number"
-                placeholder="0"
-              />
-              <TextField
-                name={`items.${index}.rejectedQuantity`}
-                label="Rejected Qty"
-                type="number"
-                placeholder="0"
-              />
+              <TextField name={`items.${index}.acceptedQuantity`} label="Accepted Qty" type="number" placeholder="0" />
+              <TextField name={`items.${index}.rejectedQuantity`} label="Rejected Qty" type="number" placeholder="0" />
             </div>
             <TextField
               name={`items.${index}.rejectionReason`}

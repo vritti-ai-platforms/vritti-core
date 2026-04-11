@@ -22,7 +22,10 @@ function getBatchStatus(expiryDate: string | null): InventoryItemBatchStatus {
   return 'FRESH';
 }
 
-const STATUS_CONFIG: Record<InventoryItemBatchStatus, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' }> = {
+const STATUS_CONFIG: Record<
+  InventoryItemBatchStatus,
+  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' }
+> = {
   EXPIRED: { label: 'Expired', variant: 'destructive' },
   EXPIRING_SOON: { label: 'Expiring Soon', variant: 'secondary' },
   FRESH: { label: 'Fresh', variant: 'default' },
@@ -59,9 +62,7 @@ export const BatchDetailPage = () => {
   }
 
   if (!batch) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">Batch not found.</div>
-    );
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Batch not found.</div>;
   }
 
   const status = getBatchStatus(batch.expiryDate);
@@ -129,17 +130,13 @@ export const BatchDetailPage = () => {
                     <div>
                       <dt className="text-sm text-muted-foreground">Manufacturing Date</dt>
                       <dd className="mt-1 font-mono">
-                        {batch.manufacturingDate
-                          ? new Date(batch.manufacturingDate).toLocaleDateString()
-                          : '—'}
+                        {batch.manufacturingDate ? new Date(batch.manufacturingDate).toLocaleDateString() : '—'}
                       </dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Expiry Date</dt>
                       <dd className="mt-1 font-mono">
-                        {batch.expiryDate
-                          ? new Date(batch.expiryDate).toLocaleDateString()
-                          : '—'}
+                        {batch.expiryDate ? new Date(batch.expiryDate).toLocaleDateString() : '—'}
                       </dd>
                     </div>
                     <div>
@@ -148,9 +145,7 @@ export const BatchDetailPage = () => {
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Created</dt>
-                      <dd className="mt-1 text-muted-foreground">
-                        {new Date(batch.createdAt).toLocaleDateString()}
-                      </dd>
+                      <dd className="mt-1 text-muted-foreground">{new Date(batch.createdAt).toLocaleDateString()}</dd>
                     </div>
                   </dl>
                 </CardContent>

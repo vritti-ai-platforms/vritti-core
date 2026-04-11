@@ -14,7 +14,12 @@ interface ApplyCreditNoteDialogProps {
   onCancel: () => void;
 }
 
-export const ApplyCreditNoteDialog: React.FC<ApplyCreditNoteDialogProps> = ({ creditNoteId, remaining, onSuccess, onCancel }) => {
+export const ApplyCreditNoteDialog: React.FC<ApplyCreditNoteDialogProps> = ({
+  creditNoteId,
+  remaining,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<ApplyCreditNoteFormData>({
     resolver: zodResolver(applyCreditNoteSchema),
     defaultValues: {
@@ -41,12 +46,7 @@ export const ApplyCreditNoteDialog: React.FC<ApplyCreditNoteDialogProps> = ({ cr
       })}
     >
       <TextField name="invoiceId" label="Invoice ID" placeholder="Enter invoice ID" />
-      <TextField
-        name="amount"
-        label="Amount"
-        type="number"
-        placeholder={`Max: ${remaining.toFixed(2)}`}
-      />
+      <TextField name="amount" label="Amount" type="number" placeholder={`Max: ${remaining.toFixed(2)}`} />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

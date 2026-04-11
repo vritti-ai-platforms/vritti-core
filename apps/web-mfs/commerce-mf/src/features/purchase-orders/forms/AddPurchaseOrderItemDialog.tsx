@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
+import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -22,7 +22,11 @@ const addLineItemSchema = z.object({
 
 type AddLineItemFormData = z.infer<typeof addLineItemSchema>;
 
-export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({ purchaseOrder, onSuccess, onCancel }) => {
+export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({
+  purchaseOrder,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<AddLineItemFormData>({
     resolver: zodResolver(addLineItemSchema),
     defaultValues: {

@@ -15,9 +15,7 @@ export const InventoryRecipeTab: React.FC = () => {
           </div>
           <div className="text-center">
             <p className="font-medium">Coming Soon</p>
-            <p className="text-sm">
-              Inventory recipe management will be available once the inventory module is built.
-            </p>
+            <p className="text-sm">Inventory recipe management will be available once the inventory module is built.</p>
           </div>
         </div>
       </CardContent>

@@ -2,17 +2,20 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useConversion } from '@/hooks/useConversion';
 import type { ConversionStatus } from '@/schemas/conversions';
 import { CompleteConversionDialog } from './forms/CompleteConversionDialog';
 
-const statusConfig: Record<ConversionStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  ConversionStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   IN_PROGRESS: { label: 'In Progress', variant: 'secondary', className: 'bg-warning/15 text-warning' },
   COMPLETED: { label: 'Completed', variant: 'secondary', className: 'bg-success/15 text-success' },
@@ -34,11 +37,7 @@ export const ConversionDetailPage = () => {
   }
 
   if (!conversion) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Conversion not found.
-      </div>
-    );
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Conversion not found.</div>;
   }
 
   const badgeConfig = statusConfig[conversion.status];
@@ -55,11 +54,7 @@ export const ConversionDetailPage = () => {
               {badgeConfig.label}
             </Badge>
             {canComplete && (
-              <Button
-                size="sm"
-                startAdornment={<CheckCircle className="size-4" />}
-                onClick={completeDialog.open}
-              >
+              <Button size="sm" startAdornment={<CheckCircle className="size-4" />} onClick={completeDialog.open}>
                 Complete
               </Button>
             )}
@@ -85,10 +80,7 @@ export const ConversionDetailPage = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge
-                        variant={badgeConfig.variant}
-                        className={`mt-1 ${badgeConfig.className ?? ''}`}
-                      >
+                      <Badge variant={badgeConfig.variant} className={`mt-1 ${badgeConfig.className ?? ''}`}>
                         {badgeConfig.label}
                       </Badge>
                     </div>
@@ -98,11 +90,15 @@ export const ConversionDetailPage = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Started At</p>
-                      <p className="mt-1">{conversion.startedAt ? new Date(conversion.startedAt).toLocaleString() : '—'}</p>
+                      <p className="mt-1">
+                        {conversion.startedAt ? new Date(conversion.startedAt).toLocaleString() : '—'}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Completed At</p>
-                      <p className="mt-1">{conversion.completedAt ? new Date(conversion.completedAt).toLocaleString() : '—'}</p>
+                      <p className="mt-1">
+                        {conversion.completedAt ? new Date(conversion.completedAt).toLocaleString() : '—'}
+                      </p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-sm text-muted-foreground">Notes</p>

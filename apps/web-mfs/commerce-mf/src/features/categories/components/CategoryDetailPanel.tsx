@@ -43,22 +43,36 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({
       {/* Image placeholder */}
       <div className="border rounded-lg flex flex-col items-center justify-center h-48 bg-muted/30 gap-2">
         <Image className="h-8 w-8 opacity-40 text-muted-foreground" />
-        <Typography variant="body2" intent="muted">No image</Typography>
+        <Typography variant="body2" intent="muted">
+          No image
+        </Typography>
       </div>
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
         <div>
-          <Typography variant="overline" intent="muted" className="mb-1">Sort Order</Typography>
-          <Typography variant="body2" className="font-medium">{category.sortOrder}</Typography>
+          <Typography variant="overline" intent="muted" className="mb-1">
+            Sort Order
+          </Typography>
+          <Typography variant="body2" className="font-medium">
+            {category.sortOrder}
+          </Typography>
         </div>
         <div>
-          <Typography variant="overline" intent="muted" className="mb-1">Sub-categories</Typography>
-          <Typography variant="body2" className="font-medium">{subCategories.length}</Typography>
+          <Typography variant="overline" intent="muted" className="mb-1">
+            Sub-categories
+          </Typography>
+          <Typography variant="body2" className="font-medium">
+            {subCategories.length}
+          </Typography>
         </div>
         <div>
-          <Typography variant="overline" intent="muted" className="mb-1">Parent</Typography>
-          <Typography variant="body2" className="font-medium">{parent?.name ?? '—'}</Typography>
+          <Typography variant="overline" intent="muted" className="mb-1">
+            Parent
+          </Typography>
+          <Typography variant="body2" className="font-medium">
+            {parent?.name ?? '—'}
+          </Typography>
         </div>
       </div>
 
@@ -78,7 +92,9 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <Typography variant="body2" className="truncate">{sub.name}</Typography>
+                  <Typography variant="body2" className="truncate">
+                    {sub.name}
+                  </Typography>
                 </div>
                 <Badge
                   variant={sub.isActive ? 'secondary' : 'outline'}

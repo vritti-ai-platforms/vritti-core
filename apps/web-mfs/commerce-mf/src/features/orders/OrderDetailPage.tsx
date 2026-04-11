@@ -1,17 +1,20 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Spinner } from '@vritti/quantum-ui/Spinner';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle, ChefHat, PackageCheck, ThumbsUp, XCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useOrder } from '@/hooks/useOrder';
 import { useUpdateOrderStatus } from '@/hooks/useUpdateOrderStatus';
 import type { OrderChannel, OrderStatus, OrderType } from '@/schemas/orders';
 
-const statusConfig: Record<OrderStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  OrderStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   PENDING: { label: 'Pending', variant: 'outline' },
   ACCEPTED: { label: 'Accepted', variant: 'secondary' },
   PREPARING: { label: 'Preparing', variant: 'secondary', className: 'bg-warning/15 text-warning' },
@@ -31,7 +34,9 @@ const channelLabels: Record<OrderChannel, string> = {
   WALK_IN: 'Walk-in',
 };
 
-const nextStatusActions: Partial<Record<OrderStatus, { label: string; status: OrderStatus; icon: typeof CheckCircle }>> = {
+const nextStatusActions: Partial<
+  Record<OrderStatus, { label: string; status: OrderStatus; icon: typeof CheckCircle }>
+> = {
   PENDING: { label: 'Accept', status: 'ACCEPTED', icon: ThumbsUp },
   ACCEPTED: { label: 'Start Preparing', status: 'PREPARING', icon: ChefHat },
   PREPARING: { label: 'Mark Ready', status: 'READY', icon: PackageCheck },
@@ -70,11 +75,7 @@ export const OrderDetailPage = () => {
   }
 
   if (!order) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Order not found.
-      </div>
-    );
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Order not found.</div>;
   }
 
   const badgeConfig = statusConfig[order.status];
@@ -134,7 +135,9 @@ export const OrderDetailPage = () => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Type</p>
-                        <Badge variant="outline" className="mt-1">{typeLabels[order.type]}</Badge>
+                        <Badge variant="outline" className="mt-1">
+                          {typeLabels[order.type]}
+                        </Badge>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Channel</p>
@@ -260,9 +263,7 @@ export const OrderDetailPage = () => {
                                       <span className="ml-1 text-muted-foreground">({item.variantName})</span>
                                     )}
                                   </div>
-                                  {item.notes && (
-                                    <p className="mt-0.5 text-xs text-muted-foreground">{item.notes}</p>
-                                  )}
+                                  {item.notes && <p className="mt-0.5 text-xs text-muted-foreground">{item.notes}</p>}
                                 </td>
                                 <td className="py-3 text-right font-mono">{item.quantity}</td>
                                 <td className="py-3 text-right font-mono">{item.unitPrice.toFixed(2)}</td>
@@ -278,7 +279,9 @@ export const OrderDetailPage = () => {
                                         <Badge key={mod.id} variant="outline" className="text-xs">
                                           {mod.name}
                                           {mod.additionalPrice > 0 && (
-                                            <span className="ml-1 text-muted-foreground">+{mod.additionalPrice.toFixed(2)}</span>
+                                            <span className="ml-1 text-muted-foreground">
+                                              +{mod.additionalPrice.toFixed(2)}
+                                            </span>
                                           )}
                                         </Badge>
                                       ))}

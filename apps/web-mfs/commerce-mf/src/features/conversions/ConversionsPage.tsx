@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -5,7 +6,6 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { useQueryClient } from '@tanstack/react-query';
 import { Eye, FlaskConical, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,10 @@ import { CONVERSIONS_TABLE_KEY, useConversionsTable } from '@/hooks/useConversio
 import type { ConversionData, ConversionStatus } from '@/schemas/conversions';
 import { CreateConversionDialog } from './forms/CreateConversionDialog';
 
-const statusConfig: Record<ConversionStatus, { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }> = {
+const statusConfig: Record<
+  ConversionStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   IN_PROGRESS: { label: 'In Progress', variant: 'secondary', className: 'bg-warning/15 text-warning' },
   COMPLETED: { label: 'Completed', variant: 'secondary', className: 'bg-success/15 text-success' },
@@ -58,13 +61,13 @@ export const ConversionsPage = () => {
       {
         accessorKey: 'startedAt',
         header: 'Started',
-        cell: ({ row }) => row.original.startedAt ? new Date(row.original.startedAt).toLocaleDateString() : '—',
+        cell: ({ row }) => (row.original.startedAt ? new Date(row.original.startedAt).toLocaleDateString() : '—'),
         enableSorting: true,
       },
       {
         accessorKey: 'completedAt',
         header: 'Completed',
-        cell: ({ row }) => row.original.completedAt ? new Date(row.original.completedAt).toLocaleDateString() : '—',
+        cell: ({ row }) => (row.original.completedAt ? new Date(row.original.completedAt).toLocaleDateString() : '—'),
       },
       {
         id: 'actions',
