@@ -4,6 +4,7 @@ import {
   ConflictException,
   type CreateResponseDto,
   NotFoundException,
+  type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
@@ -21,7 +22,8 @@ export class UomService {
   // Returns base units, optionally filtered by search
   async findBaseUnits(search?: string): Promise<UomDto[]> {
     const entities = await this.uomRepository.findBaseUnits(search);
-    return Promise.all(entities.map(async (e) => UomDto.from(e, null, !(await this.uomRepository.hasReferences(e.id)))));
+    const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
+    return entities.map((e) => UomDto.from(e, null, !referencedIds.has(e.id)));
   }
 
   // Returns all derived units for a given base unit
@@ -29,25 +31,22 @@ export class UomService {
     const baseUnit = await this.uomRepository.findById(baseUnitId);
     if (!baseUnit) throw new NotFoundException('Base unit not found.');
     const entities = await this.uomRepository.findDerivedUnits(baseUnitId);
-    return Promise.all(entities.map(async (e) => UomDto.from(e, baseUnit.symbol, !(await this.uomRepository.hasReferences(e.id)))));
+    const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
+    return entities.map((e) => UomDto.from(e, baseUnit.symbol, !referencedIds.has(e.id)));
   }
 
   // Returns paginated UOM options for select dropdowns
-  findForSelect(params: {
-    search?: string;
-    limit?: number;
-    offset?: number;
-    values?: string;
-    excludeIds?: string;
-  }): Promise<SelectQueryResult> {
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.uomRepository.findForSelect({
-      value: 'id',
-      label: 'name',
-      search: params.search,
-      limit: params.limit,
-      offset: params.offset,
-      values: params.values,
-      excludeIds: params.excludeIds,
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      groupId: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
       orderBy: { name: 'asc' },
     });
   }
@@ -79,7 +78,11 @@ export class UomService {
     }
 
     this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);
-    return { success: true, message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`, data: UomDto.from(entity, baseSymbol) };
+    return {
+      success: true,
+      message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
+      data: UomDto.from(entity, baseSymbol),
+    };
   }
 
   // Finds a UOM by ID or throws NotFoundException
@@ -117,12 +120,20 @@ export class UomService {
     return { success: true, message: `Unit "${existing.name}" updated successfully.` };
   }
 
-  // Deletes a UOM by ID
+  // Deletes a UOM by ID; throws ConflictException if referenced
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.uomRepository.findById(id);
     if (!existing) throw new NotFoundException('Unit of measure not found.');
-    if (await this.uomRepository.hasReferences(id)) {
-      throw new ConflictException('This unit of measure is in use and cannot be deleted.');
+    const refs = await this.uomRepository.countReferences(id);
+    const parts: string[] = [];
+    if (refs.inventoryItems > 0) parts.push(`${refs.inventoryItems} inventory item${refs.inventoryItems > 1 ? 's' : ''}`);
+    if (refs.supplierItems > 0) parts.push(`${refs.supplierItems} supplier item${refs.supplierItems > 1 ? 's' : ''}`);
+    if (refs.derivedUnits > 0) parts.push(`${refs.derivedUnits} derived unit${refs.derivedUnits > 1 ? 's' : ''}`);
+    if (parts.length > 0) {
+      throw new ConflictException({
+        label: 'Unit In Use',
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
+      });
     }
     await this.uomRepository.delete(id);
     this.logger.log(`Deleted UOM: ${existing.name} (${id})`);

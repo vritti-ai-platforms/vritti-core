@@ -2,7 +2,7 @@ import type { UomDto } from '@domain/uom/dto/entity/uom.dto';
 import { UomService } from '@domain/uom/services/uom.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
+import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateUomDto } from './dto/request/create-uom.dto';
 import type { UpdateUomDto } from './dto/request/update-uom.dto';
 
@@ -28,9 +28,7 @@ export class UomController {
 
   // Returns paginated UOM options for the select component
   @MessagePattern({ cmd: 'uom.select' })
-  async select(
-    @Payload() data: { search?: string; limit?: number; offset?: number; values?: string; excludeIds?: string },
-  ): Promise<SelectQueryResult> {
+  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('uom.select');
     return this.uomService.findForSelect(data);
   }
