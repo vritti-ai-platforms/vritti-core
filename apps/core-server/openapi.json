@@ -5424,8 +5424,9 @@
         "parameters": [
           {
             "name": "search",
-            "required": true,
+            "required": false,
             "in": "query",
+            "description": "Search by name or symbol",
             "schema": {
               "type": "string"
             }
