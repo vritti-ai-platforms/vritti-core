@@ -5,18 +5,16 @@ export class UomDto {
   name: string;
   symbol: string;
   baseUnitId: string | null;
-  baseUnitSymbol: string | null;
   conversionFactor: number;
   canDelete: boolean;
   createdAt: string;
 
-  static from(entity: Uom, baseUnitSymbol?: string | null, canDelete = true): UomDto {
+  static from(entity: Uom, canDelete = true): UomDto {
     const dto = new UomDto();
     dto.id = entity.id;
     dto.name = entity.name;
     dto.symbol = entity.symbol;
     dto.baseUnitId = entity.baseUnitId ?? null;
-    dto.baseUnitSymbol = baseUnitSymbol ?? null;
     dto.conversionFactor = Number(entity.conversionFactor);
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();

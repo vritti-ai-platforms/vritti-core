@@ -23,7 +23,7 @@ export class UomService {
   async findBaseUnits(search?: string): Promise<UomDto[]> {
     const entities = await this.uomRepository.findBaseUnits(search);
     const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
-    return entities.map((e) => UomDto.from(e, null, !referencedIds.has(e.id)));
+    return entities.map((e) => UomDto.from(e, !referencedIds.has(e.id)));
   }
 
   // Returns all derived units for a given base unit
@@ -32,7 +32,7 @@ export class UomService {
     if (!baseUnit) throw new NotFoundException('Base unit not found.');
     const entities = await this.uomRepository.findDerivedUnits(baseUnitId);
     const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
-    return entities.map((e) => UomDto.from(e, baseUnit.symbol, !referencedIds.has(e.id)));
+    return entities.map((e) => UomDto.from(e, !referencedIds.has(e.id)));
   }
 
   // Returns paginated UOM options for select dropdowns
@@ -71,17 +71,11 @@ export class UomService {
       conversionFactor: String(data.conversionFactor ?? 1),
     });
 
-    let baseSymbol: string | null = null;
-    if (entity.baseUnitId) {
-      const base = await this.uomRepository.findById(entity.baseUnitId);
-      baseSymbol = base?.symbol ?? null;
-    }
-
     this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);
     return {
       success: true,
       message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
-      data: UomDto.from(entity, baseSymbol),
+      data: UomDto.from(entity),
     };
   }
 
@@ -89,14 +83,7 @@ export class UomService {
   async findById(id: string): Promise<UomDto> {
     const entity = await this.uomRepository.findById(id);
     if (!entity) throw new NotFoundException('Unit of measure not found.');
-
-    let baseSymbol: string | null = null;
-    if (entity.baseUnitId) {
-      const base = await this.uomRepository.findById(entity.baseUnitId);
-      baseSymbol = base?.symbol ?? null;
-    }
-
-    return UomDto.from(entity, baseSymbol);
+    return UomDto.from(entity);
   }
 
   // Updates a UOM

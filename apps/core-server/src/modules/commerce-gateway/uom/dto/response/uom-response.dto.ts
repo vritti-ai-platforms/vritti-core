@@ -13,9 +13,6 @@ export class UomResponseDto {
   @ApiPropertyOptional({ description: 'Base unit ID', nullable: true })
   baseUnitId: string | null;
 
-  @ApiPropertyOptional({ description: 'Base unit symbol', nullable: true, example: 'g' })
-  baseUnitSymbol: string | null;
-
   @ApiProperty({ description: 'Conversion factor to base unit', example: 1000 })
   conversionFactor: number;
 
