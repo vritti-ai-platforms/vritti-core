@@ -25,7 +25,7 @@ export const LevelsTab: React.FC<LevelsTabProps> = ({ itemId, uomSymbol }) => {
         cell: ({ row }) =>
           row.original.locationName ? (
             <Link
-              to={`/storage-locations/${buildSlug(row.original.locationName, row.original.locationId)}`}
+              to={`../../storage-locations/${buildSlug(row.original.locationName, row.original.locationId)}`}
               className="text-primary hover:underline"
             >
               {row.original.locationName}

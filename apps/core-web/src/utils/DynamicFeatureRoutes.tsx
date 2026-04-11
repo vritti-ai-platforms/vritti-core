@@ -27,7 +27,6 @@ export const DynamicFeatureRoutes = () => {
     });
   }, [features, selectedBuId]);
 
-  // Key by pathname to force remount when navigating between features
   const { pathname } = useLocation();
   const routeElement = useRoutes(routes, pathname);
 
@@ -54,6 +53,5 @@ export const DynamicFeatureRoutes = () => {
     );
   }
 
-  const firstPrefix = features[0].route.routePrefix.replace(/^\//, '');
-  return routeElement ?? <Navigate to={firstPrefix} replace />;
+  return routeElement ?? null;
 };
