@@ -29,10 +29,10 @@ export class SuppliersService {
   // Returns paginated suppliers for the data table
   async findForTable(state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, SuppliersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, SuppliersService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, SuppliersService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, SuppliersService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
       where: where || undefined,

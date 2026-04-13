@@ -44,10 +44,10 @@ export class InventoryItemsService {
   // Returns paginated, filtered, and sorted inventory items for the data table
   async findForTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, InventoryItemsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemsService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllWithUom({
       where: where || undefined,

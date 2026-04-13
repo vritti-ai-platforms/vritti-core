@@ -32,10 +32,10 @@ export class ItemsService {
   // Returns paginated, filtered, and sorted items (RLS scopes to org + BU ancestors)
   async findForTable(state: TableViewState): Promise<{ result: ItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, ItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, ItemsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, ItemsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, ItemsService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { rows, total } = await this.itemsRepository.findForTable({
       where,

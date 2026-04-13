@@ -39,10 +39,10 @@ export class OrdersService {
   // Returns paginated orders for the data table
   async findForTable(state: TableViewState): Promise<{ result: OrderDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, OrdersService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, OrdersService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, OrdersService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
       where: where || undefined,

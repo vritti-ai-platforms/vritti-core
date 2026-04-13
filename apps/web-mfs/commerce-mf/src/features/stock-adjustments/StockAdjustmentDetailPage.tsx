@@ -84,7 +84,7 @@ export const StockAdjustmentDetailPage = () => {
     async (lineId: string) => {
       const confirmed = await confirm({
         title: 'Remove this line?',
-        description: 'This batch line will be removed from the adjustment.',
+        description: 'This line will be removed from the adjustment.',
         confirmLabel: 'Remove',
         variant: 'destructive',
       });
@@ -170,7 +170,7 @@ export const StockAdjustmentDetailPage = () => {
     columns,
     serverState: linesResponse,
     slug: id ? `stock-adjustment-${id}-lines` : '',
-    label: 'batch line',
+    label: 'line',
     enableRowSelection: false,
     enableSorting: false,
     onStatePush: () => {
@@ -261,7 +261,7 @@ export const StockAdjustmentDetailPage = () => {
                 actions: (
                   <Button size="sm" onClick={addLineDialog.open}>
                     <Plus className="mr-2 size-4" />
-                    Add Batch Line
+                    Add Line
                   </Button>
                 ),
               }
@@ -269,14 +269,14 @@ export const StockAdjustmentDetailPage = () => {
         }
         emptyStateConfig={{
           icon: ClipboardList,
-          title: 'No batch lines',
+          title: 'No lines',
           description: isDraft
-            ? 'Add batch lines to this adjustment before publishing.'
-            : 'This adjustment has no batch lines.',
+            ? 'Add lines to this adjustment before publishing.'
+            : 'This adjustment has no lines.',
           action: isDraft ? (
             <Button onClick={addLineDialog.open}>
               <Plus className="mr-2 size-4" />
-              Add Batch Line
+              Add Line
             </Button>
           ) : undefined,
         }}
@@ -284,7 +284,7 @@ export const StockAdjustmentDetailPage = () => {
 
       <Dialog
         handle={addLineDialog}
-        title="Add Batch Line"
+        title="Add Line"
         description={
           isOpeningStock
             ? 'Add a new opening stock entry with location and quantity.'
@@ -304,7 +304,7 @@ export const StockAdjustmentDetailPage = () => {
       {isDraft && (
         <DangerZone
           title="Delete this draft adjustment"
-          description="This action cannot be undone. The draft adjustment and all its batch lines will be permanently removed."
+          description="This action cannot be undone. The draft adjustment and all its lines will be permanently removed."
           buttonText="Delete Draft"
           onClick={handleDelete}
         />

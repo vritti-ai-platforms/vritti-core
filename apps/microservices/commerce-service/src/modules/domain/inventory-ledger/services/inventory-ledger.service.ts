@@ -37,10 +37,10 @@ export class InventoryLedgerService {
 
   async findForTable(state: TableViewState): Promise<{ result: InventoryLedgerDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryLedgerService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, InventoryLedgerService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryLedgerService.FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryLedgerService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findAllForTable({
       where,
@@ -60,10 +60,10 @@ export class InventoryLedgerService {
     state: TableViewState,
   ): Promise<{ result: InventoryLedgerDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryLedgerService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, InventoryLedgerService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryLedgerService.FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryLedgerService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findByBatchId(batchId, {
       where,

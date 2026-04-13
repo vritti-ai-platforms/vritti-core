@@ -138,10 +138,10 @@ export class InventoryItemBatchesService {
     state: TableViewState,
   ): Promise<{ result: InventoryItemBatchDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemBatchesService.BATCHES_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, InventoryItemBatchesService.BATCHES_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemBatchesService.BATCHES_FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemBatchesService.BATCHES_FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findBatchesForTable(itemId, {
       where,

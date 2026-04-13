@@ -151,7 +151,7 @@ export const StockAdjustmentsPage = () => {
       <Dialog
         handle={addDialog}
         title="New Stock Adjustment"
-        description="Create a draft stock adjustment. You can add batch lines after creation."
+        description="Create a draft stock adjustment. You can add lines after creation."
         content={(close) => (
           <CreateStockAdjustmentDialog
             onSuccess={(adjustment) => {

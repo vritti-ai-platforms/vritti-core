@@ -30,10 +30,10 @@ export class StorageLocationConfigsService {
     state: TableViewState,
   ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StorageLocationConfigsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, StorageLocationConfigsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StorageLocationConfigsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, StorageLocationConfigsService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findByItemId(itemId, {
       where,

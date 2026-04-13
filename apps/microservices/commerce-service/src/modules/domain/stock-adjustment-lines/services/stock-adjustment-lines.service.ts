@@ -7,8 +7,14 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import type { StockAdjustmentStatus, StockAdjustmentType } from '@/db/schema';
-import { stockAdjustmentLines, storageLocations } from '@/db/schema';
+import {
+  type StockAdjustmentStatus,
+  StockAdjustmentStatusValues,
+  type StockAdjustmentType,
+  StockAdjustmentTypeValues,
+  stockAdjustmentLines,
+  storageLocations,
+} from '@/db/schema';
 
 interface AdjustmentContext {
   id: string;
@@ -36,9 +42,9 @@ export class StockAdjustmentLinesService {
     state: TableViewState,
   ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLinesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, StockAdjustmentLinesService.FIELD_MAP);
-    const where = and(filterWhere, searchWhere) || undefined;
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLinesService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findForTable(adjustmentId, {
       where,
@@ -60,7 +66,7 @@ export class StockAdjustmentLinesService {
       expiryDate?: string;
     },
   ): Promise<StockAdjustmentLineDto> {
-    if (adjustment.status !== 'DRAFT') {
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be added to DRAFT adjustments.');
     }
 
@@ -89,7 +95,7 @@ export class StockAdjustmentLinesService {
       expiryDate?: string;
     },
   ): Promise<StockAdjustmentLineDto> {
-    if (adjustment.status !== 'DRAFT') {
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be updated on DRAFT adjustments.');
     }
 
@@ -111,7 +117,7 @@ export class StockAdjustmentLinesService {
   }
 
   async removeLine(adjustment: AdjustmentContext, lineId: string): Promise<void> {
-    if (adjustment.status !== 'DRAFT') {
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be removed from DRAFT adjustments.');
     }
 
@@ -131,7 +137,7 @@ export class StockAdjustmentLinesService {
   }
 
   private validateLineForType(type: StockAdjustmentType, data: { batchId?: string; locationId?: string }): void {
-    if (type === 'OPENING_STOCK') {
+    if (type === StockAdjustmentTypeValues.OPENING_STOCK) {
       if (!data.locationId) {
         throw new BadRequestException('Storage location is required for OPENING_STOCK lines.');
       }

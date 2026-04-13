@@ -13,7 +13,13 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import { InventoryLedgerTypeValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
+import {
+  InventoryLedgerTypeValues,
+  StockAdjustmentStatusValues,
+  type StockAdjustmentType,
+  StockAdjustmentTypeValues,
+  stockAdjustments,
+} from '@/db/schema';
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';
 
@@ -37,9 +43,9 @@ export class StockAdjustmentsService {
   // Returns paginated stock adjustments for the data table
   async findForTable(state: TableViewState): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, StockAdjustmentsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllForTable({
       where: where || undefined,
@@ -82,7 +88,7 @@ export class StockAdjustmentsService {
   async publish(id: string): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithItemName(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    if (adjustment.status !== 'DRAFT') {
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be published.');
     }
 
@@ -91,11 +97,20 @@ export class StockAdjustmentsService {
       throw new BadRequestException('Cannot publish an adjustment with no lines.');
     }
 
-    const isDeductType = (t: StockAdjustmentType) => ['WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'PRODUCTION'].includes(t);
+    const isDeductType = (t: StockAdjustmentType): boolean =>
+      (
+        [
+          StockAdjustmentTypeValues.WASTE,
+          StockAdjustmentTypeValues.DAMAGE,
+          StockAdjustmentTypeValues.THEFT,
+          StockAdjustmentTypeValues.EXPIRED,
+          StockAdjustmentTypeValues.PRODUCTION,
+        ] as readonly StockAdjustmentType[]
+      ).includes(t);
 
     await this.repository.transaction(async (tx) => {
       for (const line of lines) {
-        if (adjustment.type === 'OPENING_STOCK') {
+        if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
           const batchNumber = await this.generateBatchNumber(
             adjustment.inventoryItemId,
             line.manufacturingDate ?? undefined,
@@ -138,7 +153,7 @@ export class StockAdjustmentsService {
         }
       }
 
-      await this.repository.updateStatusInTx(tx, id, 'PUBLISHED', new Date());
+      await this.repository.updateStatusInTx(tx, id, StockAdjustmentStatusValues.PUBLISHED, new Date());
     });
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${lines.length} lines)`);
@@ -149,7 +164,7 @@ export class StockAdjustmentsService {
   async delete(id: string): Promise<SuccessResponseDto> {
     const adjustment = await this.repository.findById(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    if (adjustment.status !== 'DRAFT') {
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be deleted.');
     }
 
@@ -158,7 +173,7 @@ export class StockAdjustmentsService {
     return { success: true, message: 'Adjustment deleted.' };
   }
 
-  // Returns paginated batch lines for an adjustment
+  // Returns paginated lines for an adjustment
   async findLinesForTable(
     adjustmentId: string,
     state: TableViewState,
@@ -166,7 +181,7 @@ export class StockAdjustmentsService {
     return this.linesService.findForTable(adjustmentId, state);
   }
 
-  // Adds a batch line to a DRAFT adjustment
+  // Adds a line to a DRAFT adjustment
   async addLine(
     adjustmentId: string,
     data: { batchId?: string; locationId?: string; quantity: number; manufacturingDate?: string; expiryDate?: string },
@@ -176,7 +191,7 @@ export class StockAdjustmentsService {
     return this.linesService.addLine(adjustment, data);
   }
 
-  // Updates a batch line on a DRAFT adjustment
+  // Updates a line on a DRAFT adjustment
   async updateLine(
     adjustmentId: string,
     lineId: string,
@@ -187,7 +202,7 @@ export class StockAdjustmentsService {
     return this.linesService.updateLine(adjustment, lineId, data);
   }
 
-  // Removes a batch line from a DRAFT adjustment
+  // Removes a line from a DRAFT adjustment
   async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
     const adjustment = await this.repository.findByIdWithItemName(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');

@@ -38,10 +38,10 @@ export class InvoicesService {
   // Returns paginated invoices for the data table
   async findForTable(state: TableViewState): Promise<{ result: InvoiceDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InvoicesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, InvoicesService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InvoicesService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InvoicesService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
+    const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllAndCount({
       where: where || undefined,
