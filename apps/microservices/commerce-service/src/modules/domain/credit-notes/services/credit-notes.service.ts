@@ -1,11 +1,17 @@
+import { InvoicesRepository } from '@domain/invoices/repositories/invoices.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk';
-import { type CreditNoteStatus, type CreditNoteType, type InvoicePartyType, CreditNoteStatusValues, InvoiceStatusValues } from '@/db/schema';
-import { CreditNoteApplicationDto, CreditNoteDetailDto, CreditNoteDto } from '../dto/entity/credit-note.dto';
-import type { CreateCreditNoteDto } from '@/modules/credit-notes/dto/request/create-credit-note.dto';
+import {
+  type CreditNoteStatus,
+  CreditNoteStatusValues,
+  type CreditNoteType,
+  type InvoicePartyType,
+  InvoiceStatusValues,
+} from '@/db/schema';
 import type { ApplyCreditNoteDto } from '@/modules/credit-notes/dto/request/apply-credit-note.dto';
+import type { CreateCreditNoteDto } from '@/modules/credit-notes/dto/request/create-credit-note.dto';
+import { CreditNoteApplicationDto, CreditNoteDetailDto, CreditNoteDto } from '../dto/entity/credit-note.dto';
 import { CreditNotesRepository } from '../repositories/credit-notes.repository';
-import { InvoicesRepository } from '@domain/invoices/repositories/invoices.repository';
 
 @Injectable()
 export class CreditNotesService {
@@ -79,9 +85,8 @@ export class CreditNotesService {
 
     const newAppliedAmount = Number(creditNote.appliedAmount) + data.amount;
     const newRemaining = Number(creditNote.amount) - newAppliedAmount;
-    const newCnStatus = newRemaining <= 0
-      ? CreditNoteStatusValues.FULLY_APPLIED
-      : CreditNoteStatusValues.PARTIALLY_APPLIED;
+    const newCnStatus =
+      newRemaining <= 0 ? CreditNoteStatusValues.FULLY_APPLIED : CreditNoteStatusValues.PARTIALLY_APPLIED;
 
     await this.repository.update(id, {
       appliedAmount: String(newAppliedAmount),
@@ -91,9 +96,7 @@ export class CreditNotesService {
 
     const newInvoiceBalance = invoiceBalance - data.amount;
     const newPaidAmount = Number(invoice.paidAmount) + data.amount;
-    const newInvoiceStatus = newInvoiceBalance <= 0
-      ? InvoiceStatusValues.PAID
-      : InvoiceStatusValues.PARTIALLY_PAID;
+    const newInvoiceStatus = newInvoiceBalance <= 0 ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
 
     await this.invoicesRepository.update(invoice.id, {
       paidAmount: String(newPaidAmount),
@@ -101,7 +104,9 @@ export class CreditNotesService {
       status: newInvoiceStatus,
     });
 
-    this.logger.log(`Applied ${data.amount} from CN ${creditNote.creditNoteNumber} to invoice ${invoice.invoiceNumber}`);
+    this.logger.log(
+      `Applied ${data.amount} from CN ${creditNote.creditNoteNumber} to invoice ${invoice.invoiceNumber}`,
+    );
     return { success: true, message: 'Credit note applied successfully.' };
   }
 }

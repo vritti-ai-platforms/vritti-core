@@ -1,5 +1,4 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import type { StockAdjustmentsTableResponse } from './stock-adjustments';
 
 export type InventoryItemBatchStatus = 'FRESH' | 'EXPIRING_SOON' | 'EXPIRED';
 
@@ -33,4 +32,3 @@ export interface BatchLedgerData {
 
 export type InventoryItemBatchesTableResponse = TableResponse<InventoryItemBatchData>;
 export type BatchLedgerTableResponse = TableResponse<BatchLedgerData>;
-export type { StockAdjustmentsTableResponse };

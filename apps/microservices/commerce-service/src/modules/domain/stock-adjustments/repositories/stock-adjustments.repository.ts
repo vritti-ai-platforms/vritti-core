@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  type StockAdjustment,
+  inventoryItemBatches,
   inventoryItems,
+  type StockAdjustment,
+  type StockAdjustmentStatus,
   stockAdjustments,
-  storageLocations,
 } from '@/db/schema';
 
 @Injectable()
@@ -14,50 +15,102 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     super(database, stockAdjustments);
   }
 
-  // Returns all stock adjustments with inventory item names
-  async findAllWithItemNames(
-    params: { where?: any; orderBy?: any; limit?: number; offset?: number },
-  ): Promise<{ result: (StockAdjustment & { inventoryItemName: string | null })[]; count: number }> {
-    const baseResult = await this.findAllAndCount(params);
-    const enriched: (StockAdjustment & { inventoryItemName: string | null })[] = [];
-
-    for (const row of baseResult.result) {
-      const itemRow = await this.db
-        .select({ name: inventoryItems.name })
-        .from(inventoryItems)
-        .where(eq(inventoryItems.id, row.inventoryItemId))
-        .then((rows) => rows[0]);
-      enriched.push({ ...row, inventoryItemName: itemRow?.name ?? null });
-    }
-
-    return { result: enriched, count: baseResult.count };
+  async findAllForTable(options: {
+    where?: SQL;
+    orderBy?: SQL[];
+    limit: number;
+    offset: number;
+  }): Promise<{ result: (StockAdjustment & { inventoryItemName: string | null })[]; count: number }> {
+    return this.findAllAndCount<StockAdjustment & { inventoryItemName: string | null }>({
+      select: {
+        id: stockAdjustments.id,
+        organizationId: stockAdjustments.organizationId,
+        businessUnitId: stockAdjustments.businessUnitId,
+        inventoryItemId: stockAdjustments.inventoryItemId,
+        code: stockAdjustments.code,
+        type: stockAdjustments.type,
+        status: stockAdjustments.status,
+        reason: stockAdjustments.reason,
+        createdById: stockAdjustments.createdById,
+        publishedAt: stockAdjustments.publishedAt,
+        createdAt: stockAdjustments.createdAt,
+        inventoryItemName: inventoryItems.name,
+      },
+      leftJoin: { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
+      where: options.where,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(stockAdjustments.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
-  // Returns a single stock adjustment by ID
-  async findById(id: string): Promise<StockAdjustment | undefined> {
+  async findByIdWithItemName(
+    id: string,
+  ): Promise<(StockAdjustment & { inventoryItemName: string | null }) | undefined> {
     const rows = await this.db
-      .select()
+      .select({
+        id: stockAdjustments.id,
+        organizationId: stockAdjustments.organizationId,
+        businessUnitId: stockAdjustments.businessUnitId,
+        inventoryItemId: stockAdjustments.inventoryItemId,
+        code: stockAdjustments.code,
+        type: stockAdjustments.type,
+        status: stockAdjustments.status,
+        reason: stockAdjustments.reason,
+        createdById: stockAdjustments.createdById,
+        publishedAt: stockAdjustments.publishedAt,
+        createdAt: stockAdjustments.createdAt,
+        inventoryItemName: inventoryItems.name,
+      })
       .from(stockAdjustments)
+      .leftJoin(inventoryItems, eq(stockAdjustments.inventoryItemId, inventoryItems.id))
       .where(eq(stockAdjustments.id, id));
-    return rows[0] as StockAdjustment | undefined;
+
+    return rows[0] as (StockAdjustment & { inventoryItemName: string | null }) | undefined;
   }
 
-  // Returns the item code and location code for batch number generation
-  async findItemAndLocationCodes(itemId: string, locationId: string): Promise<{ itemCode: string; locationCode: string }> {
-    const [itemRow] = await this.db
+  async updateStatusInTx(
+    tx: TypedDrizzleClient,
+    id: string,
+    status: StockAdjustmentStatus,
+    publishedAt?: Date,
+  ): Promise<void> {
+    await tx
+      .update(stockAdjustments)
+      .set({ status, ...(publishedAt ? { publishedAt } : {}) })
+      .where(eq(stockAdjustments.id, id));
+  }
+
+  // Returns the item code for batch number generation
+  async findItemCode(itemId: string): Promise<string> {
+    const [row] = await this.db
       .select({ code: inventoryItems.code })
       .from(inventoryItems)
       .where(eq(inventoryItems.id, itemId));
 
-    const [locationRow] = await this.db
-      .select({ code: storageLocations.code })
-      .from(storageLocations)
-      .where(eq(storageLocations.id, locationId));
-
-    return { itemCode: itemRow?.code ?? '', locationCode: locationRow?.code ?? '' };
+    return row?.code ?? '';
   }
 
-  // Deletes a stock adjustment by ID
+  // Counts batches for an item on a given date (org-scoped via RLS)
+  async countBatchesForItemOnDate(itemId: string, date: string): Promise<number> {
+    const [result] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryItemBatches)
+      .where(and(
+        eq(inventoryItemBatches.inventoryItemId, itemId),
+        eq(inventoryItemBatches.manufacturingDate, date),
+      ));
+
+    return Number(result?.count ?? 0);
+  }
+
+  // Generates a unique stock adjustment code (org-scoped via RLS)
+  async generateCode(): Promise<string> {
+    const result = await this.db.select({ count: sql<number>`count(*)` }).from(stockAdjustments);
+    const count = Number(result[0]?.count ?? 0);
+    return `SA-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+  }
+
   async deleteById(id: string): Promise<void> {
     await this.db.delete(stockAdjustments).where(eq(stockAdjustments.id, id));
   }

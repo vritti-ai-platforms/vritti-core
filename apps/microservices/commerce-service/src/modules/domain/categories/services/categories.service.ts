@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { SelectQueryResult } from '@vritti/api-sdk';
-import { CategoryDto } from '../dto/entity/category.dto';
 import type { CreateCategoryDto } from '@/modules/categories/dto/request/create-category.dto';
 import type { UpdateCategoryDto } from '@/modules/categories/dto/request/update-category.dto';
+import { CategoryDto } from '../dto/entity/category.dto';
 import { CategoriesRepository } from '../repositories/categories.repository';
 
 @Injectable()

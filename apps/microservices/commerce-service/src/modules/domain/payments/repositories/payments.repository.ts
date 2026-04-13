@@ -11,9 +11,6 @@ export class PaymentsRepository extends PrimaryBaseRepository<typeof payments> {
 
   // Returns all payments for an invoice
   async findByInvoiceId(invoiceId: string): Promise<Payment[]> {
-    return this.db
-      .select()
-      .from(payments)
-      .where(eq(payments.invoiceId, invoiceId));
+    return this.db.select().from(payments).where(eq(payments.invoiceId, invoiceId));
   }
 }

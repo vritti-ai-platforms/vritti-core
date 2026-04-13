@@ -215,9 +215,7 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
   // Generates a unique item code for a business unit
   // Generates a sequential item code (RLS scopes the count to current BU)
   async generateCode(): Promise<string> {
-    const result = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(items);
+    const result = await this.db.select({ count: sql<number>`count(*)` }).from(items);
     const count = Number(result[0]?.count ?? 0);
     return `ITEM-${String(count + 1).padStart(4, '0')}`;
   }

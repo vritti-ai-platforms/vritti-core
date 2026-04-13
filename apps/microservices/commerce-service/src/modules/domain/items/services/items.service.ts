@@ -1,20 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
-  type SortCondition,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type ItemOptionValue, items } from '@/db/schema';
 import type { CreateItemDto } from '@/modules/items/dto/request/create-item.dto';
-import { ItemDto } from '../dto/entity/item.dto';
-import { ItemDetailDto, ItemOptionDto, ItemVariantDto } from '../dto/entity/item-detail.dto';
 import type { SaveOptionsDto } from '@/modules/items/dto/request/save-options.dto';
 import type { UpdateItemDto } from '@/modules/items/dto/request/update-item.dto';
 import type { UpdateVariantDto } from '@/modules/items/dto/request/update-variant.dto';
+import { ItemDto } from '../dto/entity/item.dto';
+import { ItemDetailDto, ItemOptionDto, ItemVariantDto } from '../dto/entity/item-detail.dto';
 import { ItemsRepository } from '../repositories/items.repository';
 
 @Injectable()
@@ -32,22 +30,18 @@ export class ItemsService {
   constructor(private readonly itemsRepository: ItemsRepository) {}
 
   // Returns paginated, filtered, and sorted items (RLS scopes to org + BU ancestors)
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: ItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, ItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, ItemsService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: ItemDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, ItemsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, ItemsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, ItemsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, ItemsService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { rows, total } = await this.itemsRepository.findForTable({
       where,
       orderBy: orderBy[0] ?? desc(items.createdAt),
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     return { result: rows.map((row) => ItemDto.from(row, row.categoryName)), count: total };

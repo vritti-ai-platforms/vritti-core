@@ -55,7 +55,11 @@ export class PurchaseOrderDto {
 export class PurchaseOrderDetailDto extends PurchaseOrderDto {
   items: PurchaseOrderItemDto[];
 
-  static fromDetail(entity: PurchaseOrder, supplierName: string | null, items: PurchaseOrderItemDto[]): PurchaseOrderDetailDto {
+  static fromDetail(
+    entity: PurchaseOrder,
+    supplierName: string | null,
+    items: PurchaseOrderItemDto[],
+  ): PurchaseOrderDetailDto {
     const dto = new PurchaseOrderDetailDto();
     Object.assign(dto, PurchaseOrderDto.from(entity, supplierName));
     dto.items = items;

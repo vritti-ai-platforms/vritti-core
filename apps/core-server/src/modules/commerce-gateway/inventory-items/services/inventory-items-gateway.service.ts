@@ -22,17 +22,11 @@ export class InventoryItemsGatewayService {
   async findForTable(userId: string): Promise<InventoryItemTableResponseDto> {
     this.logger.log('inventoryItems.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-inventory-items');
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.nats.send<{ result: InventoryItemResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.table',
-      {
-        filters: state.filters,
-        sort: state.sort,
-        search: state.search ?? null,
-        pagination: { limit, offset },
-      },
+      state,
     );
 
     return { result, count, state, activeViewId };
@@ -72,18 +66,11 @@ export class InventoryItemsGatewayService {
   async findLevelsForTable(itemId: string, userId: string): Promise<InventoryLevelTableResponseDto> {
     this.logger.log('inventoryItems.levelsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-${itemId}-levels`);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.nats.send<{ result: InventoryLevelResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.levelsTable',
-      {
-        itemId,
-        filters: state.filters,
-        sort: state.sort,
-        search: state.search ?? null,
-        pagination: { limit, offset },
-      },
+      { itemId, ...state },
     );
 
     return { result, count, state, activeViewId };
@@ -93,18 +80,11 @@ export class InventoryItemsGatewayService {
   async findLedgerForTable(itemId: string, userId: string): Promise<InventoryLedgerTableResponseDto> {
     this.logger.log('inventoryItems.ledgerTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-${itemId}-ledger`);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.nats.send<{ result: InventoryLedgerResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.ledgerTable',
-      {
-        itemId,
-        filters: state.filters,
-        sort: state.sort,
-        search: state.search ?? null,
-        pagination: { limit, offset },
-      },
+      { itemId, ...state },
     );
 
     return { result, count, state, activeViewId };
@@ -120,18 +100,11 @@ export class InventoryItemsGatewayService {
   async findBatchesForTable(itemId: string, userId: string) {
     this.logger.log('inventoryItems.batchesTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-${itemId}-batches`);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.nats.send<{ result: any[]; count: number }>(
       'commerce',
       'inventoryItems.batchesTable',
-      {
-        itemId,
-        filters: state.filters,
-        sort: state.sort,
-        search: state.search ?? null,
-        pagination: { limit, offset },
-      },
+      { itemId, ...state },
     );
 
     return { result, count, state, activeViewId };
@@ -141,18 +114,11 @@ export class InventoryItemsGatewayService {
   async findStorageLocationConfigsForTable(itemId: string, userId: string) {
     this.logger.log('inventoryItems.storageLocationConfigs.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-${itemId}-storage-location-configs`);
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.nats.send<{ result: any[]; count: number }>(
       'commerce',
       'inventoryItems.storageLocationConfigs.table',
-      {
-        itemId,
-        filters: state.filters,
-        sort: state.sort,
-        search: state.search ?? null,
-        pagination: { limit, offset },
-      },
+      { itemId, ...state },
     );
 
     return { result, count, state, activeViewId };

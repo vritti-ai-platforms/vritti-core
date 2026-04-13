@@ -10,7 +10,6 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDeleteInventoryItemBatch, useInventoryItemBatch } from '@/hooks/inventory-item-batches';
 import type { InventoryItemBatchStatus } from '@/schemas/inventory-item-batches';
-import { BatchAdjustmentsTab } from './tabs/BatchAdjustmentsTab';
 import { BatchLedgerTab } from './tabs/BatchLedgerTab';
 
 function getBatchStatus(expiryDate: string | null): InventoryItemBatchStatus {
@@ -156,11 +155,6 @@ export const BatchDetailPage = () => {
             value: 'ledger',
             label: 'Ledger',
             content: <BatchLedgerTab batchId={batch.id} />,
-          },
-          {
-            value: 'adjustments',
-            label: 'Adjustments',
-            content: <BatchAdjustmentsTab batchId={batch.id} />,
           },
         ]}
         value={activeTab}

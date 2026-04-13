@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { type FindForSelectConfig, PrimaryBaseRepository, PrimaryDatabaseService, type SelectQueryResult } from '@vritti/api-sdk';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
 import {
-  type NewSupplierItem,
-  type SupplierItem,
-  inventoryItems,
-  supplierItems,
-  suppliers,
-  uom,
-} from '@/db/schema';
+  type FindForSelectConfig,
+  PrimaryBaseRepository,
+  PrimaryDatabaseService,
+  type SelectQueryResult,
+} from '@vritti/api-sdk';
+import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { inventoryItems, type NewSupplierItem, type SupplierItem, supplierItems, suppliers, uom } from '@/db/schema';
 
 @Injectable()
 export class SuppliersRepository extends PrimaryBaseRepository<typeof suppliers> {
@@ -22,7 +20,9 @@ export class SuppliersRepository extends PrimaryBaseRepository<typeof suppliers>
   }
 
   // Returns all supplier items for a supplier with inventory item names and UOM symbols
-  async findItemsBySupplierId(supplierId: string): Promise<(SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null })[]> {
+  async findItemsBySupplierId(
+    supplierId: string,
+  ): Promise<(SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null })[]> {
     const rows = await this.db
       .select({
         id: supplierItems.id,

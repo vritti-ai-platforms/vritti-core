@@ -1,20 +1,21 @@
+import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
+import { InventoryLedgerService } from '@domain/inventory-ledger/services/inventory-ledger.service';
+import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/entity/stock-adjustment-line.dto';
+import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
+import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
-  type SortCondition,
   type SuccessResponseDto,
+  type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { type StockAdjustmentType, stockAdjustments, InventoryLedgerTypeValues } from '@/db/schema';
+import { and } from '@vritti/api-sdk/drizzle-orm';
+import { InventoryLedgerTypeValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
-import type { CreateStockAdjustmentDto } from '@/modules/stock-adjustments/dto/request/create-stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';
-import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
 
 @Injectable()
 export class StockAdjustmentsService {
@@ -22,118 +23,184 @@ export class StockAdjustmentsService {
 
   private static readonly FIELD_MAP: FieldMap = {
     type: { column: stockAdjustments.type, type: 'string' },
+    status: { column: stockAdjustments.status, type: 'string' },
   };
 
   constructor(
     private readonly repository: StockAdjustmentsRepository,
+    private readonly linesService: StockAdjustmentLinesService,
+    private readonly linesRepository: StockAdjustmentLinesRepository,
     private readonly batchesService: InventoryItemBatchesService,
+    private readonly ledgerService: InventoryLedgerService,
   ) {}
 
   // Returns paginated stock adjustments for the data table
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, StockAdjustmentsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, StockAdjustmentsService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, StockAdjustmentsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, StockAdjustmentsService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
-    const { result: rows, count } = await this.repository.findAllWithItemNames({
+    const { result: rows, count } = await this.repository.findAllForTable({
       where: where || undefined,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(stockAdjustments.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentsService.FIELD_MAP),
+      limit,
+      offset,
     });
 
-    return { result: rows.map((r) => StockAdjustmentDto.from(r, r.inventoryItemName)), count };
+    return { result: rows.map((r) => StockAdjustmentDto.from(r)), count };
   }
 
-  // Generates a batch number from item code, location code, and dates
-  private async generateBatchNumber(itemId: string, locationId: string, mfd?: string, exp?: string): Promise<string> {
-    const { itemCode, locationCode } = await this.repository.findItemAndLocationCodes(itemId, locationId);
-    const parts = [itemCode, locationCode];
-    if (mfd) parts.push(`MFD${mfd.replace(/-/g, '')}`);
-    if (exp) parts.push(`EXP${exp.replace(/-/g, '')}`);
-    return parts.join('-');
+  // Returns a single stock adjustment by ID with item name
+  async findById(id: string): Promise<StockAdjustmentDto> {
+    const adjustment = await this.repository.findByIdWithItemName(id);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    return StockAdjustmentDto.from(adjustment);
   }
 
-  // Creates a stock adjustment — OPENING_STOCK creates a new batch; all other types adjust an existing batch
-  async create(data: CreateStockAdjustmentDto): Promise<StockAdjustmentDto> {
-    if (data.type === 'OPENING_STOCK') {
-      const batchNumber = await this.generateBatchNumber(
-        data.inventoryItemId, data.locationId!, data.manufacturingDate, data.expiryDate,
-      );
-
-      const { batch } = await this.batchesService.createBatch({
-        inventoryItemId: data.inventoryItemId,
-        locationId: data.locationId!,
-        quantity: data.quantity,
-        batchNumber,
-        manufacturingDate: data.manufacturingDate,
-        expiryDate: data.expiryDate,
-        type: InventoryLedgerTypeValues.OPENING_STOCK,
-        referenceType: 'STOCK_ADJUSTMENT',
-        notes: data.reason ?? undefined,
-      });
-
-      const entity = await this.repository.create({
-        inventoryItemId: data.inventoryItemId,
-        type: 'OPENING_STOCK' as StockAdjustmentType,
-        quantity: String(data.quantity),
-        batchId: batch.id,
-        locationId: data.locationId ?? null,
-        reason: data.reason ?? null,
-        adjustedBy: data.adjustedBy ?? null,
-      });
-
-      this.logger.log(`Created OPENING_STOCK adjustment for item ${data.inventoryItemId} at location ${data.locationId}`);
-      return StockAdjustmentDto.from(entity);
-    }
-
-    // CORRECTION can be positive or negative; negative types always deduct
-    const isDeductType = ['WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'PRODUCTION'].includes(data.type);
-    const delta = isDeductType ? -Math.abs(data.quantity) : data.quantity;
-
-    const { batch } = await this.batchesService.adjustBatch({
-      batchId: data.batchId!,
-      quantity: delta,
-      type: InventoryLedgerTypeValues.ADJUSTMENT,
-      referenceType: 'STOCK_ADJUSTMENT',
-      notes: `${data.type}: ${data.reason ?? ''}`,
-    });
-
+  // Creates a new DRAFT stock adjustment with an auto-generated code
+  async create(data: {
+    inventoryItemId: string;
+    type: StockAdjustmentType;
+    reason?: string;
+    createdById?: string;
+  }): Promise<StockAdjustmentDto> {
+    const code = await this.repository.generateCode();
     const entity = await this.repository.create({
-      inventoryItemId: batch.inventoryItemId,
-      type: data.type as StockAdjustmentType,
-      quantity: String(delta),
-      batchId: data.batchId ?? null,
-      locationId: null,
+      inventoryItemId: data.inventoryItemId,
+      code,
+      type: data.type,
       reason: data.reason ?? null,
-      adjustedBy: data.adjustedBy ?? null,
+      createdById: data.createdById ?? null,
     });
 
-    this.logger.log(`Created ${data.type} adjustment for batch ${data.batchId} (delta: ${delta})`);
+    this.logger.log(`Created DRAFT adjustment ${code} (${data.type}) for item ${data.inventoryItemId}`);
     return StockAdjustmentDto.from(entity);
   }
 
-  // Deletes an OPENING_STOCK or CORRECTION adjustment and its associated batch
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const adj = await this.repository.findById(id);
-    if (!adj) throw new NotFoundException('Stock adjustment not found.');
-
-    if (!['OPENING_STOCK', 'CORRECTION'].includes(adj.type)) {
-      throw new BadRequestException('Only OPENING_STOCK and CORRECTION adjustments can be deleted.');
+  // Publishes a DRAFT adjustment — atomically creates/adjusts batches and writes ledger entries
+  async publish(id: string): Promise<StockAdjustmentDto> {
+    const adjustment = await this.repository.findByIdWithItemName(id);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    if (adjustment.status !== 'DRAFT') {
+      throw new BadRequestException('Only DRAFT adjustments can be published.');
     }
 
-    if (adj.batchId) {
-      await this.batchesService.deleteBatch(adj.batchId);
+    const lines = await this.linesRepository.findByAdjustmentId(id);
+    if (lines.length === 0) {
+      throw new BadRequestException('Cannot publish an adjustment with no lines.');
+    }
+
+    const isDeductType = (t: StockAdjustmentType) => ['WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'PRODUCTION'].includes(t);
+
+    await this.repository.transaction(async (tx) => {
+      for (const line of lines) {
+        if (adjustment.type === 'OPENING_STOCK') {
+          const batchNumber = await this.generateBatchNumber(
+            adjustment.inventoryItemId,
+            line.manufacturingDate ?? undefined,
+          );
+
+          const batch = await this.batchesService.createBatchInTx(tx, {
+            inventoryItemId: adjustment.inventoryItemId,
+            locationId: line.locationId!,
+            quantity: Number(line.quantity),
+            batchNumber,
+            manufacturingDate: line.manufacturingDate ?? undefined,
+            expiryDate: line.expiryDate ?? undefined,
+          });
+
+          await this.ledgerService.createEntryInTx(tx, {
+            inventoryItemId: adjustment.inventoryItemId,
+            batchId: batch.id,
+            type: InventoryLedgerTypeValues.OPENING_STOCK,
+            quantity: line.quantity,
+            referenceType: 'STOCK_ADJUSTMENT',
+            referenceId: id,
+            notes: adjustment.reason ?? null,
+          });
+
+          await this.linesRepository.updateLineWithBatchInTx(tx, line.id, batch.id, batchNumber);
+        } else {
+          const delta = isDeductType(adjustment.type) ? -Math.abs(Number(line.quantity)) : Number(line.quantity);
+
+          await this.batchesService.adjustBatchInTx(tx, line.batchId!, delta);
+
+          await this.ledgerService.createEntryInTx(tx, {
+            inventoryItemId: adjustment.inventoryItemId,
+            batchId: line.batchId!,
+            type: InventoryLedgerTypeValues.ADJUSTMENT,
+            quantity: String(delta),
+            referenceType: 'STOCK_ADJUSTMENT',
+            referenceId: id,
+            notes: `${adjustment.type}: ${adjustment.reason ?? ''}`,
+          });
+        }
+      }
+
+      await this.repository.updateStatusInTx(tx, id, 'PUBLISHED', new Date());
+    });
+
+    this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${lines.length} lines)`);
+    return this.findById(id);
+  }
+
+  // Deletes a DRAFT adjustment and all its lines (CASCADE)
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const adjustment = await this.repository.findById(id);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    if (adjustment.status !== 'DRAFT') {
+      throw new BadRequestException('Only DRAFT adjustments can be deleted.');
     }
 
     await this.repository.deleteById(id);
-    this.logger.log(`Deleted stock adjustment ${id} (${adj.type})`);
+    this.logger.log(`Deleted DRAFT adjustment ${id}`);
     return { success: true, message: 'Adjustment deleted.' };
+  }
+
+  // Returns paginated batch lines for an adjustment
+  async findLinesForTable(
+    adjustmentId: string,
+    state: TableViewState,
+  ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
+    return this.linesService.findForTable(adjustmentId, state);
+  }
+
+  // Adds a batch line to a DRAFT adjustment
+  async addLine(
+    adjustmentId: string,
+    data: { batchId?: string; locationId?: string; quantity: number; manufacturingDate?: string; expiryDate?: string },
+  ): Promise<StockAdjustmentLineDto> {
+    const adjustment = await this.repository.findByIdWithItemName(adjustmentId);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    return this.linesService.addLine(adjustment, data);
+  }
+
+  // Updates a batch line on a DRAFT adjustment
+  async updateLine(
+    adjustmentId: string,
+    lineId: string,
+    data: { quantity?: number; locationId?: string; manufacturingDate?: string; expiryDate?: string },
+  ): Promise<StockAdjustmentLineDto> {
+    const adjustment = await this.repository.findByIdWithItemName(adjustmentId);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    return this.linesService.updateLine(adjustment, lineId, data);
+  }
+
+  // Removes a batch line from a DRAFT adjustment
+  async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
+    const adjustment = await this.repository.findByIdWithItemName(adjustmentId);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    await this.linesService.removeLine(adjustment, lineId);
+    return { success: true, message: 'Line removed.' };
+  }
+
+  // Generates a batch number: {ITEM_CODE}-{YYMMDD}-{NNNN} (org-scoped sequence per item per day)
+  private async generateBatchNumber(itemId: string, mfd?: string): Promise<string> {
+    const itemCode = await this.repository.findItemCode(itemId);
+    const date = mfd ?? new Date().toISOString().slice(0, 10);
+    const dateCompact = date.replace(/-/g, '').slice(2);
+    const count = await this.repository.countBatchesForItemOnDate(itemId, date);
+    return `${itemCode}-${dateCompact}-${String(count + 1).padStart(4, '0')}`;
   }
 }

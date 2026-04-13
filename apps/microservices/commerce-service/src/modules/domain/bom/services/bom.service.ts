@@ -1,18 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
   type SelectQueryResult,
-  type SortCondition,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { bom } from '@/db/schema';
-import { BomDetailDto, BomDto, BomLineDto } from '../dto/entity/bom.dto';
 import type { CreateBomDto } from '@/modules/bom/dto/request/create-bom.dto';
 import type { UpdateBomDto } from '@/modules/bom/dto/request/update-bom.dto';
+import { BomDetailDto, BomDto, BomLineDto } from '../dto/entity/bom.dto';
 import { BomRepository } from '../repositories/bom.repository';
 
 @Injectable()
@@ -28,22 +26,18 @@ export class BomService {
   constructor(private readonly bomRepository: BomRepository) {}
 
   // Returns paginated, filtered, and sorted BOMs for the data table
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: BomDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, BomService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, BomService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: BomDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, BomService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, BomService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, BomService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, BomService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result: rows, count } = await this.bomRepository.findAllAndCount({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(bom.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     return { result: rows.map(BomDto.from), count };
@@ -114,9 +108,8 @@ export class BomService {
     if (data.code !== undefined) updatePayload.code = data.code;
     if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
 
-    const entity = Object.keys(updatePayload).length > 0
-      ? await this.bomRepository.update(id, updatePayload)
-      : existing;
+    const entity =
+      Object.keys(updatePayload).length > 0 ? await this.bomRepository.update(id, updatePayload) : existing;
 
     if (data.lines !== undefined) {
       await this.bomRepository.deleteLinesByBomId(id);

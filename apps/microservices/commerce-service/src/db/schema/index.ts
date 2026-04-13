@@ -21,6 +21,7 @@ export * from './purchase-orders';
 export * from './goods-receipts';
 export * from './conversions';
 export * from './stock-adjustments';
+export * from './stock-adjustment-lines';
 export * from './stock-transfers';
 export * from './invoices';
 export * from './invoice-items';

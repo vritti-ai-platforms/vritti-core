@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { type FindForSelectConfig, PrimaryBaseRepository, PrimaryDatabaseService, type SelectQueryResult } from '@vritti/api-sdk';
+import {
+  type FindForSelectConfig,
+  PrimaryBaseRepository,
+  PrimaryDatabaseService,
+  type SelectQueryResult,
+} from '@vritti/api-sdk';
 import { type Category, categories } from '@/db/schema';
 
 @Injectable()

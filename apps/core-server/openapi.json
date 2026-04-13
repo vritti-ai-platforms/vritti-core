@@ -3046,34 +3046,6 @@
         ]
       }
     },
-    "/commerce-api/inventory-item-batches/{id}/adjustments/table": {
-      "get": {
-        "operationId": "InventoryItemBatchesGatewayController_getAdjustmentsTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Inventory Item Batches"
-        ]
-      }
-    },
     "/commerce-api/conversions/table": {
       "get": {
         "operationId": "ConversionsGatewayController_getConversionTable",
@@ -5587,6 +5559,88 @@
         ]
       }
     },
+    "/commerce-api/stock-adjustments/{id}": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
+      "delete": {
+        "operationId": "StockAdjustmentsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lines/table": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLinesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
     "/commerce-api/stock-adjustments": {
       "post": {
         "operationId": "StockAdjustmentsGatewayController_create",
@@ -5616,9 +5670,127 @@
         ]
       }
     },
-    "/commerce-api/stock-adjustments/{id}": {
+    "/commerce-api/stock-adjustments/{id}/lines": {
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_addLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddStockAdjustmentLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lines/{lineId}": {
+      "patch": {
+        "operationId": "StockAdjustmentsGatewayController_updateLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStockAdjustmentLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
       "delete": {
-        "operationId": "StockAdjustmentsGatewayController_delete",
+        "operationId": "StockAdjustmentsGatewayController_removeLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/publish": {
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_publish",
         "parameters": [
           {
             "name": "id",
@@ -5630,7 +5802,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": ""
           }
         },
@@ -9826,35 +9998,62 @@
             "type": "string",
             "description": "Inventory item ID"
           },
-          "locationId": {
-            "type": "string",
-            "description": "Inventory location ID where the adjustment occurs"
-          },
           "type": {
             "type": "string",
             "description": "Adjustment type",
             "example": "WASTE"
           },
-          "quantity": {
-            "type": "number",
-            "description": "Adjustment quantity (positive or negative)",
-            "example": -5
-          },
           "reason": {
             "type": "string",
             "description": "Reason for adjustment"
-          },
-          "adjustedBy": {
-            "type": "string",
-            "description": "User ID who performed the adjustment"
           }
         },
         "required": [
           "inventoryItemId",
-          "locationId",
-          "type",
-          "quantity"
+          "type"
         ]
+      },
+      "AddStockAdjustmentLineDto": {
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "description": "Batch ID (required for non-OPENING_STOCK)"
+          },
+          "locationId": {
+            "type": "string",
+            "description": "Storage location ID (required for OPENING_STOCK)"
+          },
+          "manufacturingDate": {
+            "type": "string",
+            "description": "Manufacturing date (OPENING_STOCK)"
+          },
+          "expiryDate": {
+            "type": "string",
+            "description": "Expiry date (OPENING_STOCK)"
+          }
+        }
+      },
+      "UpdateStockAdjustmentLineDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Quantity"
+          },
+          "locationId": {
+            "type": "string",
+            "description": "Storage location ID"
+          },
+          "manufacturingDate": {
+            "type": "string",
+            "description": "Manufacturing date"
+          },
+          "expiryDate": {
+            "type": "string",
+            "description": "Expiry date"
+          }
+        }
       },
       "CreateStockTransferDto": {
         "type": "object",

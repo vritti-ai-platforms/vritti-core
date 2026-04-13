@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { type FindForSelectConfig, PrimaryBaseRepository, PrimaryDatabaseService, type SelectQueryResult } from '@vritti/api-sdk';
+import {
+  type FindForSelectConfig,
+  PrimaryBaseRepository,
+  PrimaryDatabaseService,
+  type SelectQueryResult,
+} from '@vritti/api-sdk';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
-import { type Bom, type BomLine, type NewBomLine, bom, bomLines, inventoryItems } from '@/db/schema';
+import { type Bom, type BomLine, bom, bomLines, inventoryItems, type NewBomLine } from '@/db/schema';
 
 @Injectable()
 export class BomRepository extends PrimaryBaseRepository<typeof bom> {

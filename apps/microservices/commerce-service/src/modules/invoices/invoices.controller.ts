@@ -2,7 +2,7 @@ import type { InvoiceDetailDto, InvoiceDto } from '@domain/invoices/dto/entity/i
 import { InvoicesService } from '@domain/invoices/services/invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk';
 import type { CreateInvoiceDto } from './dto/request/create-invoice.dto';
 import type { UpdateInvoiceDto } from './dto/request/update-invoice.dto';
 
@@ -13,19 +13,11 @@ export class InvoicesController {
   constructor(private readonly service: InvoicesService) {}
 
   @MessagePattern({ cmd: 'invoices.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: InvoiceDto[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+  ): Promise<{ result: InvoiceDto[]; count: number }> {
     this.logger.log('invoices.table');
-    return this.service.findForTable({
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.service.findForTable(state);
   }
 
   @MessagePattern({ cmd: 'invoices.create' })

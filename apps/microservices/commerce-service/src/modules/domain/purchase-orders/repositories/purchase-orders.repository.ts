@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  inventoryItems,
   type NewPurchaseOrderItem,
   type PurchaseOrder,
   type PurchaseOrderItem,
-  inventoryItems,
   purchaseOrderItems,
   purchaseOrders,
   suppliers,
@@ -67,9 +67,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
 
   // Generates a sequential PO number
   async generatePoNumber(): Promise<string> {
-    const result = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(purchaseOrders);
+    const result = await this.db.select({ count: sql<number>`count(*)` }).from(purchaseOrders);
     const count = Number(result[0]?.count ?? 0);
     return `PO-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
   }

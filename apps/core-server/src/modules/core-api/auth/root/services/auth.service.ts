@@ -1,10 +1,10 @@
+import { OrganizationService } from '@domain/organization/services/organization.service';
+import { SessionService } from '@domain/session/services/session.service';
+import { UserService } from '@domain/user/services/user.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, TokenService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
-import { OrganizationService } from '@domain/organization/services/organization.service';
-import { SessionService } from '@domain/session/services/session.service';
-import { UserService } from '@domain/user/services/user.service';
 import { MobileLookupResponseDto } from '../../mobile/dto/response/mobile-lookup-response.dto';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
@@ -232,8 +232,6 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
     return this.sessionService.refreshTokens(refreshToken);
   }
-
-
 
   // Recovers session from httpOnly cookie without rotating the refresh token
   async getAccessToken(refreshToken: string | undefined): Promise<TokenResponseDto> {

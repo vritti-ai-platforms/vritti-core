@@ -3,9 +3,9 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq, inArray } from '@vritti/api-sdk/drizzle-orm';
 import {
   type ItemModifierGroup,
+  itemModifierGroups,
   type ModifierGroup,
   type ModifierOption,
-  itemModifierGroups,
   modifierGroups,
   modifierOptions,
 } from '@/db/schema';
@@ -69,10 +69,7 @@ export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modif
 
   // Returns item-modifier-group links for an item
   async findItemModifierGroups(itemId: string): Promise<ItemModifierGroup[]> {
-    return this.db
-      .select()
-      .from(itemModifierGroups)
-      .where(eq(itemModifierGroups.itemId, itemId));
+    return this.db.select().from(itemModifierGroups).where(eq(itemModifierGroups.itemId, itemId));
   }
 
   // Replaces all modifier group assignments for an item

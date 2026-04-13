@@ -3,18 +3,19 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { ClipboardMinus, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
-import { useDeleteStockAdjustment } from '@/hooks/useDeleteStockAdjustment';
-import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/useStockAdjustmentsTable';
-import type { StockAdjustmentData, StockAdjustmentType } from '@/schemas/stock-adjustments';
+import { buildSlug } from '@vritti/quantum-ui/slug';
+import { ClipboardMinus, Eye, Plus } from 'lucide-react';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/stock-adjustments';
+import type { StockAdjustmentData, StockAdjustmentStatus, StockAdjustmentType } from '@/schemas/stock-adjustments';
 import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog';
 
 const typeConfig: Record<
   StockAdjustmentType,
-  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' }
+  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }
 > = {
   OPENING_STOCK: { label: 'Opening Stock', variant: 'default' },
   WASTE: { label: 'Waste', variant: 'destructive' },
@@ -25,28 +26,24 @@ const typeConfig: Record<
   PRODUCTION: { label: 'Production', variant: 'secondary' },
 };
 
+const statusConfig: Record<StockAdjustmentStatus, { label: string; variant: 'outline' | 'default' }> = {
+  DRAFT: { label: 'Draft', variant: 'outline' },
+  PUBLISHED: { label: 'Published', variant: 'default' },
+};
+
 export const StockAdjustmentsPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useStockAdjustmentsTable();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-  const deleteMutation = useDeleteStockAdjustment();
-
-  const handleDelete = useCallback(
-    async (adjustment: StockAdjustmentData) => {
-      const confirmed = await confirm({
-        title: 'Delete this adjustment?',
-        description: 'This stock adjustment will be permanently removed.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(adjustment.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<StockAdjustmentData>[]>(
     () => [
+      {
+        accessorKey: 'code',
+        header: 'Code',
+        cell: ({ row }) => row.original.code,
+      },
       {
         accessorKey: 'inventoryItemName',
         header: 'Inventory Item',
@@ -62,28 +59,17 @@ export const StockAdjustmentsPage = () => {
         },
       },
       {
-        accessorKey: 'quantity',
-        header: 'Quantity',
+        accessorKey: 'status',
+        header: 'Status',
         cell: ({ row }) => {
-          const qty = row.original.quantity;
-          const isPositive = qty > 0;
-          return (
-            <span className={`font-mono ${isPositive ? 'text-success' : 'text-destructive'}`}>
-              {isPositive ? '+' : ''}
-              {qty}
-            </span>
-          );
+          const config = statusConfig[row.original.status];
+          return <Badge variant={config.variant}>{config.label}</Badge>;
         },
       },
       {
         accessorKey: 'reason',
         header: 'Reason',
         cell: ({ row }) => row.original.reason ?? '—',
-      },
-      {
-        accessorKey: 'adjustedBy',
-        header: 'Adjusted By',
-        cell: ({ row }) => row.original.adjustedBy ?? '—',
       },
       {
         accessorKey: 'createdAt',
@@ -94,28 +80,23 @@ export const StockAdjustmentsPage = () => {
       {
         id: 'actions',
         header: '',
-        cell: ({ row }) => {
-          const isDeletable = row.original.type === 'OPENING_STOCK' || row.original.type === 'CORRECTION';
-          return (
-            <RowActions
-              actions={[
-                {
-                  id: 'delete',
-                  icon: Trash2,
-                  label: 'Delete',
-                  variant: 'destructive',
-                  hidden: !isDeletable,
-                  onClick: () => handleDelete(row.original),
-                },
-              ]}
-            />
-          );
-        },
+        cell: ({ row }) => (
+          <RowActions
+            actions={[
+              {
+                id: 'view',
+                icon: Eye,
+                label: 'View',
+                onClick: () => navigate(buildSlug(row.original.code, row.original.id)),
+              },
+            ]}
+          />
+        ),
         enableSorting: false,
         enableHiding: false,
       },
     ],
-    [handleDelete],
+    [navigate],
   );
 
   const { table } = useDataTable({
@@ -169,9 +150,17 @@ export const StockAdjustmentsPage = () => {
 
       <Dialog
         handle={addDialog}
-        title="Add Stock Adjustment"
-        description="Record a stock adjustment for an inventory item."
-        content={(close) => <CreateStockAdjustmentDialog onSuccess={close} onCancel={close} />}
+        title="New Stock Adjustment"
+        description="Create a draft stock adjustment. You can add batch lines after creation."
+        content={(close) => (
+          <CreateStockAdjustmentDialog
+            onSuccess={(adjustment) => {
+              close();
+              navigate(buildSlug(adjustment.code, adjustment.id));
+            }}
+            onCancel={close}
+          />
+        )}
       />
     </div>
   );

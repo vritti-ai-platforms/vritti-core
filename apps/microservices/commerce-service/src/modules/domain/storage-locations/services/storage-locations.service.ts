@@ -9,7 +9,7 @@ import {
 } from '@vritti/api-sdk';
 import type { CreateStorageLocationDto } from '@/modules/storage-locations/dto/request/create-storage-location.dto';
 import type { UpdateStorageLocationDto } from '@/modules/storage-locations/dto/request/update-storage-location.dto';
-import { StorageLocationDto, LocationStockDto } from '../dto/entity/storage-location.dto';
+import { LocationStockDto, StorageLocationDto } from '../dto/entity/storage-location.dto';
 import { StorageLocationsRepository } from '../repositories/storage-locations.repository';
 
 @Injectable()

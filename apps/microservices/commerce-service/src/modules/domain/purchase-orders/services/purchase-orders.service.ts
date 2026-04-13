@@ -2,17 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
-  type SortCondition,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrders } from '@/db/schema';
-import { PurchaseOrderDetailDto, PurchaseOrderDto, PurchaseOrderItemDto } from '../dto/entity/purchase-order.dto';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/update-purchase-order.dto';
+import { PurchaseOrderDetailDto, PurchaseOrderDto, PurchaseOrderItemDto } from '../dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
 
 @Injectable()
@@ -28,22 +26,18 @@ export class PurchaseOrdersService {
   constructor(private readonly repository: PurchaseOrdersRepository) {}
 
   // Returns paginated POs for the data table
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: PurchaseOrderDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, PurchaseOrdersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, PurchaseOrdersService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrdersService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, PurchaseOrdersService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, PurchaseOrdersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result: rows, count } = await this.repository.findAllAndCount({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(purchaseOrders.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     const dtos: PurchaseOrderDto[] = [];
@@ -107,11 +101,10 @@ export class PurchaseOrdersService {
     if (data.orderDate !== undefined) updatePayload.orderDate = data.orderDate;
     if (data.expectedDate !== undefined) updatePayload.expectedDate = data.expectedDate;
     if (data.notes !== undefined) updatePayload.notes = data.notes;
-    if (data.totalAmount !== undefined) updatePayload.totalAmount = data.totalAmount != null ? String(data.totalAmount) : null;
+    if (data.totalAmount !== undefined)
+      updatePayload.totalAmount = data.totalAmount != null ? String(data.totalAmount) : null;
 
-    const entity = Object.keys(updatePayload).length > 0
-      ? await this.repository.update(id, updatePayload)
-      : existing;
+    const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
 
     if (data.items !== undefined) {
       await this.repository.deleteItemsByPoId(id);

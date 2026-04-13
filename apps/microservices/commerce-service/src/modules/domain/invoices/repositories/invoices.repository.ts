@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type InvoiceItem,
-  type NewInvoiceItem,
-  invoiceItems,
-  invoices,
-} from '@/db/schema';
+import { type InvoiceItem, invoiceItems, invoices, type NewInvoiceItem } from '@/db/schema';
 
 @Injectable()
 export class InvoicesRepository extends PrimaryBaseRepository<typeof invoices> {
@@ -16,10 +11,7 @@ export class InvoicesRepository extends PrimaryBaseRepository<typeof invoices> {
 
   // Returns all line items for an invoice
   async findItemsByInvoiceId(invoiceId: string): Promise<InvoiceItem[]> {
-    return this.db
-      .select()
-      .from(invoiceItems)
-      .where(eq(invoiceItems.invoiceId, invoiceId));
+    return this.db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId));
   }
 
   // Creates multiple invoice line items

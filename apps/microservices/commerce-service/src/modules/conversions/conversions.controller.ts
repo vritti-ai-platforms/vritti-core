@@ -2,7 +2,7 @@ import type { ConversionDetailDto, ConversionDto } from '@domain/conversions/dto
 import { ConversionsService } from '@domain/conversions/services/conversions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk';
 import type { CreateConversionDto } from './dto/request/create-conversion.dto';
 
 @Controller()
@@ -13,19 +13,11 @@ export class ConversionsController {
 
   // Returns paginated conversions for the data table
   @MessagePattern({ cmd: 'conversions.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: ConversionDto[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+  ): Promise<{ result: ConversionDto[]; count: number }> {
     this.logger.log('conversions.table');
-    return this.service.findForTable({
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.service.findForTable(state);
   }
 
   // Creates a new conversion

@@ -2,7 +2,7 @@ import type { BomDetailDto, BomDto } from '@domain/bom/dto/entity/bom.dto';
 import { BomService } from '@domain/bom/services/bom.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SelectQueryResult, SortCondition } from '@vritti/api-sdk';
+import type { SelectQueryResult, TableViewState } from '@vritti/api-sdk';
 import type { CreateBomDto } from './dto/request/create-bom.dto';
 import type { UpdateBomDto } from './dto/request/update-bom.dto';
 
@@ -14,19 +14,11 @@ export class BomController {
 
   // Returns paginated BOMs for the data table
   @MessagePattern({ cmd: 'bom.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: BomDto[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+  ): Promise<{ result: BomDto[]; count: number }> {
     this.logger.log('bom.table');
-    return this.bomService.findForTable({
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.bomService.findForTable(state);
   }
 
   // Returns paginated BOM options for select dropdowns

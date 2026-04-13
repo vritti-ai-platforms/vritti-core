@@ -1,4 +1,4 @@
-import type { InventoryItemBatch, InventoryLedgerEntry, InventoryLedgerType } from '@/db/schema';
+import type { InventoryItemBatch } from '@/db/schema';
 
 export class InventoryItemBatchDto {
   id: string;
@@ -32,30 +32,6 @@ export class InventoryItemBatchDto {
     dto.canDelete = canDelete;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
-    return dto;
-  }
-}
-
-export class InventoryLedgerDto {
-  id: string;
-  batchId: string | null;
-  type: InventoryLedgerType;
-  quantity: number;
-  referenceType: string | null;
-  referenceId: string | null;
-  notes: string | null;
-  createdAt: string;
-
-  static from(entry: InventoryLedgerEntry): InventoryLedgerDto {
-    const dto = new InventoryLedgerDto();
-    dto.id = entry.id;
-    dto.batchId = entry.batchId ?? null;
-    dto.type = entry.type;
-    dto.quantity = Number(entry.quantity);
-    dto.referenceType = entry.referenceType ?? null;
-    dto.referenceId = entry.referenceId ?? null;
-    dto.notes = entry.notes ?? null;
-    dto.createdAt = entry.createdAt.toISOString();
     return dto;
   }
 }

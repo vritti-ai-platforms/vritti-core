@@ -2,17 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
-  type SortCondition,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { type OrderSource, type OrderStatus, type OrderType, OrderStatusValues, orders } from '@/db/schema';
-import { OrderDetailDto, OrderDto, OrderItemDto, OrderItemModifierDto } from '../dto/entity/order.dto';
+import { type OrderSource, type OrderStatus, OrderStatusValues, type OrderType, orders } from '@/db/schema';
 import type { CreateOrderDto, CreateOrderItemDto } from '@/modules/orders/dto/request/create-order.dto';
 import type { UpdateOrderStatusDto } from '@/modules/orders/dto/request/update-order-status.dto';
+import { OrderDetailDto, OrderDto, OrderItemDto, OrderItemModifierDto } from '../dto/entity/order.dto';
 import { OrdersRepository } from '../repositories/orders.repository';
 
 @Injectable()
@@ -39,22 +37,18 @@ export class OrdersService {
   constructor(private readonly repository: OrdersRepository) {}
 
   // Returns paginated orders for the data table
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: OrderDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, OrdersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, OrdersService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: OrderDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, OrdersService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, OrdersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, OrdersService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result: rows, count } = await this.repository.findAllAndCount({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(orders.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     return { result: rows.map(OrderDto.from), count };
@@ -157,9 +151,7 @@ export class OrdersService {
 
     const allowedNext = OrdersService.STATUS_TRANSITIONS[existing.status] ?? [];
     if (!allowedNext.includes(data.status)) {
-      throw new BadRequestException(
-        `Cannot transition from ${existing.status} to ${data.status}.`,
-      );
+      throw new BadRequestException(`Cannot transition from ${existing.status} to ${data.status}.`);
     }
 
     const updatePayload: Record<string, unknown> = {

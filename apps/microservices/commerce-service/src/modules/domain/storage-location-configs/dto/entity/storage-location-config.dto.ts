@@ -13,7 +13,13 @@ export class StorageLocationConfigDto {
   updatedAt: string;
 
   // Maps a StorageLocationConfig entity to a DTO
-  static from(row: StorageLocationConfig & { locationName?: string | null; stockedQuantity?: string | null; reservedQuantity?: string | null }): StorageLocationConfigDto {
+  static from(
+    row: StorageLocationConfig & {
+      locationName?: string | null;
+      stockedQuantity?: string | null;
+      reservedQuantity?: string | null;
+    },
+  ): StorageLocationConfigDto {
     const dto = new StorageLocationConfigDto();
     dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;

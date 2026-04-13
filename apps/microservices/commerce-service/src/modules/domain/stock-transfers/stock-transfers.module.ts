@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
 import { InventoryItemBatchesDomainModule } from '@domain/inventory-item-batches/inventory-item-batches.module';
+import { Module } from '@nestjs/common';
 import { StockTransfersRepository } from './repositories/stock-transfers.repository';
 import { StockTransfersService } from './services/stock-transfers.service';
 

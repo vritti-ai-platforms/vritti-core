@@ -17,17 +17,11 @@ export class ConversionsGatewayService {
   async findForTable(userId: string): Promise<ConversionTableResponseDto> {
     this.logger.log('conversions.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-conversions');
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.nats.send<{ result: ConversionDetailResponseDto[]; count: number }>(
       'commerce',
       'conversions.table',
-      {
-        filters: state.filters,
-        sort: state.sort,
-        search: state.search ?? null,
-        pagination: { limit, offset },
-      },
+      state,
     );
 
     return { result, count, state, activeViewId };

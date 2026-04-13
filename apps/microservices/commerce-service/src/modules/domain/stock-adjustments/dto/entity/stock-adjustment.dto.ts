@@ -1,28 +1,28 @@
-import type { StockAdjustment } from '@/db/schema';
+import type { StockAdjustment, StockAdjustmentStatus, StockAdjustmentType } from '@/db/schema';
 
 export class StockAdjustmentDto {
   id: string;
+  code: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
-  batchId: string | null;
-  locationId: string | null;
-  type: string;
-  quantity: number;
+  type: StockAdjustmentType;
+  status: StockAdjustmentStatus;
   reason: string | null;
-  adjustedBy: string | null;
+  createdById: string | null;
+  publishedAt: string | null;
   createdAt: string;
 
-  static from(entity: StockAdjustment, itemName?: string | null): StockAdjustmentDto {
+  static from(entity: StockAdjustment & { inventoryItemName?: string | null }): StockAdjustmentDto {
     const dto = new StockAdjustmentDto();
     dto.id = entity.id;
+    dto.code = entity.code;
     dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
-    dto.batchId = entity.batchId ?? null;
-    dto.locationId = entity.locationId ?? null;
+    dto.inventoryItemName = entity.inventoryItemName ?? null;
     dto.type = entity.type;
-    dto.quantity = Number(entity.quantity);
+    dto.status = entity.status;
     dto.reason = entity.reason ?? null;
-    dto.adjustedBy = entity.adjustedBy ?? null;
+    dto.createdById = entity.createdById ?? null;
+    dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;
   }

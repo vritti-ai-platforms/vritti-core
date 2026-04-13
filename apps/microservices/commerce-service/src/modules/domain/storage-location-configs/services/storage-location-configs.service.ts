@@ -3,12 +3,10 @@ import {
   ConflictException,
   type CreateResponseDto,
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
-  type SortCondition,
   type SuccessResponseDto,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { storageLocationConfigs, storageLocations } from '@/db/schema';
@@ -29,25 +27,29 @@ export class StorageLocationConfigsService {
   // Returns paginated, filtered, and sorted configs for an inventory item
   async findForTable(
     itemId: string,
-    params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+    state: TableViewState,
   ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, StorageLocationConfigsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, StorageLocationConfigsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StorageLocationConfigsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, StorageLocationConfigsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, StorageLocationConfigsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, StorageLocationConfigsService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.repository.findByItemId(itemId, {
       where,
       orderBy: orderBy.length > 0 ? orderBy : [desc(storageLocationConfigs.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     return { result: result.map(StorageLocationConfigDto.from), count };
   }
 
   // Creates a new config for an item at a location
-  async create(itemId: string, data: { locationId: string; reorderLevel: number }): Promise<CreateResponseDto<StorageLocationConfigDto>> {
+  async create(
+    itemId: string,
+    data: { locationId: string; reorderLevel: number },
+  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
     const existing = await this.repository.findByCompositeKey(itemId, data.locationId);
     if (existing) throw new ConflictException('A configuration already exists for this item at this location.');
 

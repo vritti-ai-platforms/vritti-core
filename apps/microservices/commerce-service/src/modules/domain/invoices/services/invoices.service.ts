@@ -1,18 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  BadRequestException,
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  BadRequestException,
-  type SearchState,
-  type SortCondition,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { type InvoicePartyType, type InvoiceStatus, type InvoiceType, invoices, InvoiceStatusValues } from '@/db/schema';
-import { InvoiceDetailDto, InvoiceDto, InvoiceItemDto } from '../dto/entity/invoice.dto';
+import {
+  type InvoicePartyType,
+  type InvoiceStatus,
+  InvoiceStatusValues,
+  type InvoiceType,
+  invoices,
+} from '@/db/schema';
 import type { CreateInvoiceDto, CreateInvoiceItemDto } from '@/modules/invoices/dto/request/create-invoice.dto';
 import type { UpdateInvoiceDto } from '@/modules/invoices/dto/request/update-invoice.dto';
+import { InvoiceDetailDto, InvoiceDto, InvoiceItemDto } from '../dto/entity/invoice.dto';
 import { InvoicesRepository } from '../repositories/invoices.repository';
 
 @Injectable()
@@ -32,22 +36,18 @@ export class InvoicesService {
   constructor(private readonly repository: InvoicesRepository) {}
 
   // Returns paginated invoices for the data table
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: InvoiceDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, InvoicesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, InvoicesService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: InvoiceDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InvoicesService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, InvoicesService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, InvoicesService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InvoicesService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result: rows, count } = await this.repository.findAllAndCount({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(invoices.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     return { result: rows.map(InvoiceDto.from), count };
@@ -164,9 +164,7 @@ export class InvoicesService {
       updatePayload.balance = String(totalAmount - Number(existing.paidAmount));
     }
 
-    const entity = Object.keys(updatePayload).length > 0
-      ? await this.repository.update(id, updatePayload)
-      : existing;
+    const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
 
     this.logger.log(`Updated invoice: ${entity.invoiceNumber} (${entity.id})`);
     return InvoiceDto.from(entity);

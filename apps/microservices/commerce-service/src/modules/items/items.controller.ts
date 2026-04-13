@@ -1,6 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk';
 import type { ItemDto } from '@domain/items/dto/entity/item.dto';
 import type { ItemDetailDto, ItemVariantDto } from '@domain/items/dto/entity/item-detail.dto';
 import type { CreateItemDto } from './dto/request/create-item.dto';
@@ -17,19 +17,11 @@ export class ItemsController {
 
   // Returns paginated, filtered, and sorted items (RLS scopes to org + BU ancestors)
   @MessagePattern({ cmd: 'items.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: ItemDto[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+  ): Promise<{ result: ItemDto[]; count: number }> {
     this.logger.log('items.table');
-    return this.itemsService.findForTable({
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.itemsService.findForTable(state);
   }
 
   // Creates a new catalog item (org_id/bu_id auto-filled by DB defaults from session vars)

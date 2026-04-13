@@ -3,9 +3,9 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
 import {
   type CreditNoteApplication,
-  type NewCreditNoteApplication,
   creditNoteApplications,
   creditNotes,
+  type NewCreditNoteApplication,
 } from '@/db/schema';
 
 @Injectable()
@@ -16,10 +16,7 @@ export class CreditNotesRepository extends PrimaryBaseRepository<typeof creditNo
 
   // Returns all applications for a credit note
   async findApplicationsByCreditNoteId(creditNoteId: string): Promise<CreditNoteApplication[]> {
-    return this.db
-      .select()
-      .from(creditNoteApplications)
-      .where(eq(creditNoteApplications.creditNoteId, creditNoteId));
+    return this.db.select().from(creditNoteApplications).where(eq(creditNoteApplications.creditNoteId, creditNoteId));
   }
 
   // Creates a credit note application record

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  items,
+  itemVariants,
   type NewOrderItem,
   type NewOrderItemModifier,
   type OrderItem,
@@ -9,8 +11,6 @@ import {
   orderItemModifiers,
   orderItems,
   orders,
-  items,
-  itemVariants,
   taxRates,
 } from '@/db/schema';
 
@@ -22,27 +22,18 @@ export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
 
   // Returns all line items for an order
   async findItemsByOrderId(orderId: string): Promise<OrderItem[]> {
-    return this.db
-      .select()
-      .from(orderItems)
-      .where(eq(orderItems.orderId, orderId));
+    return this.db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   }
 
   // Returns all modifiers for an order item
   async findModifiersByOrderItemId(orderItemId: string): Promise<OrderItemModifier[]> {
-    return this.db
-      .select()
-      .from(orderItemModifiers)
-      .where(eq(orderItemModifiers.orderItemId, orderItemId));
+    return this.db.select().from(orderItemModifiers).where(eq(orderItemModifiers.orderItemId, orderItemId));
   }
 
   // Returns all modifiers for multiple order items at once
   async findModifiersByOrderItemIds(orderItemIds: string[]): Promise<OrderItemModifier[]> {
     if (orderItemIds.length === 0) return [];
-    return this.db
-      .select()
-      .from(orderItemModifiers)
-      .where(inArray(orderItemModifiers.orderItemId, orderItemIds));
+    return this.db.select().from(orderItemModifiers).where(inArray(orderItemModifiers.orderItemId, orderItemIds));
   }
 
   // Creates multiple order line items
@@ -59,21 +50,22 @@ export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
 
   // Generates a sequential order number (RLS scopes the count to current BU)
   async generateOrderNumber(): Promise<string> {
-    const result = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(orders);
+    const result = await this.db.select({ count: sql<number>`count(*)` }).from(orders);
     const count = Number(result[0]?.count ?? 0);
     return `ORD-${String(count + 1).padStart(5, '0')}`;
   }
 
   // Looks up variant details with item info for denormalization during order creation
-  async findVariantWithItem(variantId: string): Promise<{
-    itemId: string;
-    itemName: string;
-    variantName: string;
-    price: string;
-    taxGroupId: string | null;
-  } | undefined> {
+  async findVariantWithItem(variantId: string): Promise<
+    | {
+        itemId: string;
+        itemName: string;
+        variantName: string;
+        price: string;
+        taxGroupId: string | null;
+      }
+    | undefined
+  > {
     const rows = await this.db
       .select({
         itemId: items.id,

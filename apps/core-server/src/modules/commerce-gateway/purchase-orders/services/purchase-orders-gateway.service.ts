@@ -18,17 +18,11 @@ export class PurchaseOrdersGatewayService {
   async findForTable(userId: string): Promise<PurchaseOrderTableResponseDto> {
     this.logger.log('purchaseOrders.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-purchase-orders');
-    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result, count } = await this.nats.send<{ result: PurchaseOrderResponseDto[]; count: number }>(
       'commerce',
       'purchaseOrders.table',
-      {
-        filters: state.filters,
-        sort: state.sort,
-        search: state.search ?? null,
-        pagination: { limit, offset },
-      },
+      state,
     );
 
     return { result, count, state, activeViewId };

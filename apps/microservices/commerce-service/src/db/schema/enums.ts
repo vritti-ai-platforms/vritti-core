@@ -230,6 +230,13 @@ export const StockAdjustmentTypeValues = {
 };
 export type StockAdjustmentType = (typeof stockAdjustmentTypeEnum.enumValues)[number];
 
+export const stockAdjustmentStatusEnum = coreSchema.enum('stock_adjustment_status', ['DRAFT', 'PUBLISHED']);
+export const StockAdjustmentStatusValues = {
+  DRAFT: 'DRAFT' as const,
+  PUBLISHED: 'PUBLISHED' as const,
+};
+export type StockAdjustmentStatus = (typeof stockAdjustmentStatusEnum.enumValues)[number];
+
 export const stockTransferStatusEnum = coreSchema.enum('stock_transfer_status', [
   'REQUESTED',
   'IN_TRANSIT',

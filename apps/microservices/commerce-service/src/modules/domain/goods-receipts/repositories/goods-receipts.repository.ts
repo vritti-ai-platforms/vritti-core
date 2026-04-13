@@ -3,10 +3,10 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptItem,
-  type NewGoodsReceiptItem,
   goodsReceiptItems,
   goodsReceipts,
   inventoryItems,
+  type NewGoodsReceiptItem,
   purchaseOrderItems,
 } from '@/db/schema';
 

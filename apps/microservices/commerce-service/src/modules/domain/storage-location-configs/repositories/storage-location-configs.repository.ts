@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { type SQL, and, desc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type StorageLocationConfig, inventoryItemBatches, storageLocationConfigs, storageLocations } from '@/db/schema';
+import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  inventoryItemBatches,
+  type StorageLocationConfig,
+  storageLocationConfigs,
+  storageLocations,
+} from '@/db/schema';
 
 @Injectable()
 export class StorageLocationConfigsRepository extends PrimaryBaseRepository<typeof storageLocationConfigs> {
@@ -13,7 +18,14 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
   async findByItemId(
     itemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: (StorageLocationConfig & { locationName: string | null; stockedQuantity: string | null; reservedQuantity: string | null })[]; count: number }> {
+  ): Promise<{
+    result: (StorageLocationConfig & {
+      locationName: string | null;
+      stockedQuantity: string | null;
+      reservedQuantity: string | null;
+    })[];
+    count: number;
+  }> {
     const baseWhere = eq(storageLocationConfigs.inventoryItemId, itemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
 
@@ -23,7 +35,9 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
         inventoryItemId: inventoryItemBatches.inventoryItemId,
         locationId: inventoryItemBatches.locationId,
         stockedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.quantity}) AS TEXT)`.as('stocked_quantity'),
-        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.reservedQuantity}) AS TEXT)`.as('reserved_quantity'),
+        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.reservedQuantity}) AS TEXT)`.as(
+          'reserved_quantity',
+        ),
       })
       .from(inventoryItemBatches)
       .groupBy(inventoryItemBatches.inventoryItemId, inventoryItemBatches.locationId)
@@ -50,30 +64,46 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
       })
       .from(storageLocationConfigs)
       .leftJoin(storageLocations, eq(storageLocationConfigs.locationId, storageLocations.id))
-      .leftJoin(stockAgg, and(
-        eq(storageLocationConfigs.inventoryItemId, stockAgg.inventoryItemId),
-        eq(storageLocationConfigs.locationId, stockAgg.locationId),
-      ))
+      .leftJoin(
+        stockAgg,
+        and(
+          eq(storageLocationConfigs.inventoryItemId, stockAgg.inventoryItemId),
+          eq(storageLocationConfigs.locationId, stockAgg.locationId),
+        ),
+      )
       .where(combinedWhere)
       .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(storageLocationConfigs.createdAt)]))
       .limit(options.limit)
       .offset(options.offset);
 
     return {
-      result: result as (StorageLocationConfig & { locationName: string | null; stockedQuantity: string | null; reservedQuantity: string | null })[],
+      result: result as (StorageLocationConfig & {
+        locationName: string | null;
+        stockedQuantity: string | null;
+        reservedQuantity: string | null;
+      })[],
       count: Number(countResult?.count ?? 0),
     };
   }
 
   // Returns a single config by ID with location name and aggregated stock
-  async findByIdWithLocation(id: string): Promise<(StorageLocationConfig & { locationName: string | null; stockedQuantity: string | null; reservedQuantity: string | null }) | undefined> {
+  async findByIdWithLocation(id: string): Promise<
+    | (StorageLocationConfig & {
+        locationName: string | null;
+        stockedQuantity: string | null;
+        reservedQuantity: string | null;
+      })
+    | undefined
+  > {
     // Subquery: aggregate stock per (inventoryItemId, locationId)
     const stockAgg = this.db
       .select({
         inventoryItemId: inventoryItemBatches.inventoryItemId,
         locationId: inventoryItemBatches.locationId,
         stockedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.quantity}) AS TEXT)`.as('stocked_quantity'),
-        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.reservedQuantity}) AS TEXT)`.as('reserved_quantity'),
+        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.reservedQuantity}) AS TEXT)`.as(
+          'reserved_quantity',
+        ),
       })
       .from(inventoryItemBatches)
       .groupBy(inventoryItemBatches.inventoryItemId, inventoryItemBatches.locationId)
@@ -95,13 +125,22 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
       })
       .from(storageLocationConfigs)
       .leftJoin(storageLocations, eq(storageLocationConfigs.locationId, storageLocations.id))
-      .leftJoin(stockAgg, and(
-        eq(storageLocationConfigs.inventoryItemId, stockAgg.inventoryItemId),
-        eq(storageLocationConfigs.locationId, stockAgg.locationId),
-      ))
+      .leftJoin(
+        stockAgg,
+        and(
+          eq(storageLocationConfigs.inventoryItemId, stockAgg.inventoryItemId),
+          eq(storageLocationConfigs.locationId, stockAgg.locationId),
+        ),
+      )
       .where(eq(storageLocationConfigs.id, id));
 
-    return rows[0] as (StorageLocationConfig & { locationName: string | null; stockedQuantity: string | null; reservedQuantity: string | null }) | undefined;
+    return rows[0] as
+      | (StorageLocationConfig & {
+          locationName: string | null;
+          stockedQuantity: string | null;
+          reservedQuantity: string | null;
+        })
+      | undefined;
   }
 
   // Returns a config by composite key (item + location)

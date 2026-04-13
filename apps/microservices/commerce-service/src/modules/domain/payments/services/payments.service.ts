@@ -1,10 +1,10 @@
+import { InvoicesRepository } from '@domain/invoices/repositories/invoices.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk';
-import { type PaymentMethod, type PaymentStatus, InvoiceStatusValues } from '@/db/schema';
-import { PaymentDto } from '../dto/entity/payment.dto';
+import { InvoiceStatusValues, type PaymentMethod, type PaymentStatus } from '@/db/schema';
 import type { CreatePaymentDto } from '@/modules/payments/dto/request/create-payment.dto';
+import { PaymentDto } from '../dto/entity/payment.dto';
 import { PaymentsRepository } from '../repositories/payments.repository';
-import { InvoicesRepository } from '@domain/invoices/repositories/invoices.repository';
 
 @Injectable()
 export class PaymentsService {
@@ -44,9 +44,7 @@ export class PaymentsService {
 
     const newPaidAmount = Number(invoice.paidAmount) + data.amount;
     const newBalance = Number(invoice.totalAmount) - newPaidAmount;
-    const newStatus = newBalance <= 0
-      ? InvoiceStatusValues.PAID
-      : InvoiceStatusValues.PARTIALLY_PAID;
+    const newStatus = newBalance <= 0 ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
 
     await this.invoicesRepository.update(invoice.id, {
       paidAmount: String(newPaidAmount),

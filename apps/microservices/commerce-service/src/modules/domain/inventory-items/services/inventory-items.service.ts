@@ -1,25 +1,26 @@
+import type {
+  InventoryItemBatchDto,
+  LocationStockDto,
+} from '@domain/inventory-item-batches/dto/entity/inventory-item-batch.dto';
+import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
+import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
+import { StorageLocationConfigsService } from '@domain/storage-location-configs/services/storage-location-configs.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
   type CreateResponseDto,
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
-  type SortCondition,
   type SuccessResponseDto,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems } from '@/db/schema';
 import type { CreateInventoryItemDto } from '@/modules/inventory-items/dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '@/modules/inventory-items/dto/request/update-inventory-item.dto';
-import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
-import type { InventoryItemBatchDto, LocationStockDto } from '@domain/inventory-item-batches/dto/entity/inventory-item-batch.dto';
-import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
-import { StorageLocationConfigsService } from '@domain/storage-location-configs/services/storage-location-configs.service';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
 
@@ -41,22 +42,18 @@ export class InventoryItemsService {
   ) {}
 
   // Returns paginated, filtered, and sorted inventory items for the data table
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: InventoryItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, InventoryItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, InventoryItemsService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, InventoryItemsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, InventoryItemsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemsService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result: rows, count } = await this.repository.findAllWithUom({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol));
@@ -112,11 +109,11 @@ export class InventoryItemsService {
   // Returns paginated batches for an inventory item
   async findBatchesForTable(
     itemId: string,
-    params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+    state: TableViewState,
   ): Promise<{ result: InventoryItemBatchDto[]; count: number }> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.batchesService.findBatchesForTable(itemId, params);
+    return this.batchesService.findBatchesForTable(itemId, state);
   }
 
   // Returns location-wise stock aggregates from the inventoryLevels view
@@ -129,15 +126,18 @@ export class InventoryItemsService {
   // Returns paginated storage location configs for an item
   async findStorageLocationConfigs(
     itemId: string,
-    params: { filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+    state: TableViewState,
   ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.storageLocationConfigsService.findForTable(itemId, params);
+    return this.storageLocationConfigsService.findForTable(itemId, state);
   }
 
   // Creates a storage location config for an item
-  async createStorageLocationConfig(itemId: string, data: { locationId: string; reorderLevel: number }): Promise<CreateResponseDto<StorageLocationConfigDto>> {
+  async createStorageLocationConfig(
+    itemId: string,
+    data: { locationId: string; reorderLevel: number },
+  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     return this.storageLocationConfigsService.create(itemId, data);

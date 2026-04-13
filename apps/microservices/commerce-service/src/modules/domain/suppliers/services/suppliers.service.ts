@@ -1,19 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type FieldMap,
-  type FilterCondition,
   FilterProcessor,
   NotFoundException,
-  type SearchState,
   type SelectQueryResult,
-  type SortCondition,
+  type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { suppliers } from '@/db/schema';
-import { SupplierDetailDto, SupplierDto, SupplierItemDto } from '../dto/entity/supplier.dto';
 import type { CreateSupplierDto } from '@/modules/suppliers/dto/request/create-supplier.dto';
-import type { UpdateSupplierDto } from '@/modules/suppliers/dto/request/update-supplier.dto';
 import type { LinkSupplierItemDto } from '@/modules/suppliers/dto/request/link-supplier-item.dto';
+import type { UpdateSupplierDto } from '@/modules/suppliers/dto/request/update-supplier.dto';
+import { SupplierDetailDto, SupplierDto, SupplierItemDto } from '../dto/entity/supplier.dto';
 import { SuppliersRepository } from '../repositories/suppliers.repository';
 
 @Injectable()
@@ -29,22 +27,18 @@ export class SuppliersService {
   constructor(private readonly repository: SuppliersRepository) {}
 
   // Returns paginated suppliers for the data table
-  async findForTable(params: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: SupplierDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(params.filters, SuppliersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(params.search, SuppliersService.FIELD_MAP);
+  async findForTable(state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, SuppliersService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search ?? null, SuppliersService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(params.sort, SuppliersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, SuppliersService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination ?? {};
 
     const { result: rows, count } = await this.repository.findAllAndCount({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(suppliers.createdAt)],
-      limit: params.pagination.limit,
-      offset: params.pagination.offset,
+      limit,
+      offset,
     });
 
     return { result: rows.map(SupplierDto.from), count };
@@ -115,9 +109,7 @@ export class SuppliersService {
     if (data.notes !== undefined) updatePayload.notes = data.notes;
     if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
 
-    const entity = Object.keys(updatePayload).length > 0
-      ? await this.repository.update(id, updatePayload)
-      : existing;
+    const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
 
     this.logger.log(`Updated supplier: ${entity.name} (${entity.id})`);
     return SupplierDto.from(entity);

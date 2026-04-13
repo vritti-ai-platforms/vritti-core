@@ -2,7 +2,7 @@ import type { StockTransferDto } from '@domain/stock-transfers/dto/entity/stock-
 import { StockTransfersService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { FilterCondition, SearchState, SortCondition } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk';
 import type { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
 
@@ -13,19 +13,11 @@ export class StockTransfersController {
   constructor(private readonly service: StockTransfersService) {}
 
   @MessagePattern({ cmd: 'stockTransfers.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: StockTransferDto[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+  ): Promise<{ result: StockTransferDto[]; count: number }> {
     this.logger.log('stockTransfers.table');
-    return this.service.findForTable({
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.service.findForTable(state);
   }
 
   @MessagePattern({ cmd: 'stockTransfers.create' })

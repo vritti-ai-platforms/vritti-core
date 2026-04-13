@@ -4,7 +4,7 @@ import { InventoryItemsService } from '@domain/inventory-items/services/inventor
 import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, FilterCondition, SearchState, SelectOptionsQueryDto, SelectQueryResult, SortCondition, SuccessResponseDto } from '@vritti/api-sdk';
+import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 
@@ -16,19 +16,11 @@ export class InventoryItemsController {
 
   // Returns paginated inventory items for the data table
   @MessagePattern({ cmd: 'inventoryItems.table' })
-  async table(@Payload() data: {
-    filters: FilterCondition[];
-    sort: SortCondition[];
-    search: SearchState | null;
-    pagination: { limit: number; offset: number };
-  }): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+  ): Promise<{ result: InventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');
-    return this.service.findForTable({
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.service.findForTable(state);
   }
 
   // Returns paginated inventory item options for select dropdowns
@@ -55,15 +47,10 @@ export class InventoryItemsController {
   // Returns paginated inventory batches for an inventory item
   @MessagePattern({ cmd: 'inventoryItems.batchesTable' })
   async batchesTable(
-    @Payload() data: { itemId: string; filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+    @Payload() data: { itemId: string } & TableViewState,
   ): Promise<{ result: InventoryItemBatchDto[]; count: number }> {
     this.logger.log(`inventoryItems.batchesTable — itemId: ${data.itemId}`);
-    return this.service.findBatchesForTable(data.itemId, {
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.service.findBatchesForTable(data.itemId, data);
   }
 
   // Returns location-wise stock aggregates for an inventory item
@@ -76,15 +63,10 @@ export class InventoryItemsController {
   // Returns paginated storage location configs for an inventory item
   @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.table' })
   async storageLocationConfigsTable(
-    @Payload() data: { itemId: string; filters: FilterCondition[]; sort: SortCondition[]; search: SearchState | null; pagination: { limit: number; offset: number } },
+    @Payload() data: { itemId: string } & TableViewState,
   ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
     this.logger.log(`inventoryItems.storageLocationConfigs.table — itemId: ${data.itemId}`);
-    return this.service.findStorageLocationConfigs(data.itemId, {
-      filters: data.filters ?? [],
-      sort: data.sort ?? [],
-      search: data.search ?? null,
-      pagination: data.pagination ?? { limit: 20, offset: 0 },
-    });
+    return this.service.findStorageLocationConfigs(data.itemId, data);
   }
 
   // Creates a storage location config for an inventory item

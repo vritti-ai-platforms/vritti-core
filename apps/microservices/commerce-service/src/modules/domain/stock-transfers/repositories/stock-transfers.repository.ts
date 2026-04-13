@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type StockTransfer,
-  inventoryItems,
-  stockTransfers,
-} from '@/db/schema';
+import { inventoryItems, type StockTransfer, stockTransfers } from '@/db/schema';
 
 @Injectable()
 export class StockTransfersRepository extends PrimaryBaseRepository<typeof stockTransfers> {
@@ -14,9 +10,12 @@ export class StockTransfersRepository extends PrimaryBaseRepository<typeof stock
   }
 
   // Returns all stock transfers with inventory item names
-  async findAllWithItemNames(
-    params: { where?: any; orderBy?: any; limit?: number; offset?: number },
-  ): Promise<{ result: (StockTransfer & { inventoryItemName: string | null })[]; count: number }> {
+  async findAllWithItemNames(params: {
+    where?: any;
+    orderBy?: any;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ result: (StockTransfer & { inventoryItemName: string | null })[]; count: number }> {
     const baseResult = await this.findAllAndCount(params);
     const enriched: (StockTransfer & { inventoryItemName: string | null })[] = [];
 

@@ -4,12 +4,12 @@ import { eq } from '@vritti/api-sdk/drizzle-orm';
 import {
   type ConversionInput,
   type ConversionOutput,
-  type NewConversionInput,
-  type NewConversionOutput,
   conversionInputs,
   conversionOutputs,
   conversions,
   inventoryItems,
+  type NewConversionInput,
+  type NewConversionOutput,
 } from '@/db/schema';
 
 @Injectable()
