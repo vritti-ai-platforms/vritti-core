@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "ea4eb4ba-9802-465a-a7f5-a1013dd6af75",
+  "id": "0cefb2d2-cf86-40ad-a030-b168bde61446",
   "prevIds": [
-    "49defdaf-354e-4ede-a087-d643e596e89b"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
@@ -80,7 +80,8 @@
         "CONVERSION_INPUT",
         "CONVERSION_OUTPUT",
         "TRANSFER_OUT",
-        "TRANSFER_IN"
+        "TRANSFER_IN",
+        "OPENING_STOCK"
       ],
       "name": "inventory_ledger_type",
       "entityType": "enums",
@@ -208,12 +209,22 @@
     },
     {
       "values": [
+        "DRAFT",
+        "PUBLISHED"
+      ],
+      "name": "stock_adjustment_status",
+      "entityType": "enums",
+      "schema": "vritti_core"
+    },
+    {
+      "values": [
         "WASTE",
         "DAMAGE",
         "THEFT",
         "EXPIRED",
         "CORRECTION",
-        "PRODUCTION"
+        "PRODUCTION",
+        "OPENING_STOCK"
       ],
       "name": "stock_adjustment_type",
       "entityType": "enums",
@@ -330,8 +341,20 @@
       "schema": "vritti_core"
     },
     {
-      "isRlsEnabled": false,
-      "name": "inventory_levels",
+      "isRlsEnabled": true,
+      "name": "storage_locations",
+      "entityType": "tables",
+      "schema": "vritti_core"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "inventory_item_batches",
+      "entityType": "tables",
+      "schema": "vritti_core"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "storage_location_configs",
       "entityType": "tables",
       "schema": "vritti_core"
     },
@@ -410,6 +433,12 @@
     {
       "isRlsEnabled": true,
       "name": "stock_adjustments",
+      "entityType": "tables",
+      "schema": "vritti_core"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "stock_adjustment_lines",
       "entityType": "tables",
       "schema": "vritti_core"
     },
@@ -1885,11 +1914,11 @@
       "table": "uom"
     },
     {
-      "type": "numeric(15,6)",
+      "type": "double precision",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "'1'",
+      "default": "1",
       "generated": null,
       "identity": null,
       "name": "conversion_factor",
@@ -2015,19 +2044,6 @@
       "table": "inventory_items"
     },
     {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "false",
-      "generated": null,
-      "identity": null,
-      "name": "requires_shipping",
-      "entityType": "columns",
-      "schema": "vritti_core",
-      "table": "inventory_items"
-    },
-    {
       "type": "jsonb",
       "typeSchema": null,
       "notNull": true,
@@ -2077,7 +2093,7 @@
       "name": "id",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
     },
     {
       "type": "uuid",
@@ -2090,20 +2106,7 @@
       "name": "organization_id",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "inventory_item_id",
-      "entityType": "columns",
-      "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
     },
     {
       "type": "uuid",
@@ -2116,46 +2119,85 @@
       "name": "business_unit_id",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
     },
     {
-      "type": "numeric(12,3)",
+      "type": "varchar(100)",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "'0'",
+      "default": null,
       "generated": null,
       "identity": null,
-      "name": "stocked_quantity",
+      "name": "name",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
     },
     {
-      "type": "numeric(12,3)",
+      "type": "varchar(50)",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "'0'",
+      "default": null,
       "generated": null,
       "identity": null,
-      "name": "reserved_quantity",
+      "name": "code",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
     },
     {
-      "type": "numeric(12,3)",
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "area",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "manager_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "address",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "type": "boolean",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "'0'",
+      "default": "true",
       "generated": null,
       "identity": null,
-      "name": "reorder_level",
+      "name": "is_active",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
     },
     {
       "type": "timestamp",
@@ -2168,7 +2210,7 @@
       "name": "created_at",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
     },
     {
       "type": "timestamp",
@@ -2181,7 +2223,280 @@
       "name": "updated_at",
       "entityType": "columns",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.org_id')",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.bu_id')",
+      "generated": null,
+      "identity": null,
+      "name": "business_unit_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "inventory_item_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "location_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "batch_number",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "reserved_quantity",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "manufacturing_date",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expiry_date",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "goods_receipt_item_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.org_id')",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.bu_id')",
+      "generated": null,
+      "identity": null,
+      "name": "business_unit_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "inventory_item_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "location_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "reorder_level",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
     },
     {
       "type": "uuid",
@@ -2236,6 +2551,19 @@
       "table": "inventory_ledger"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "batch_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_ledger"
+    },
+    {
       "type": "inventory_ledger_type",
       "typeSchema": "vritti_core",
       "notNull": true,
@@ -2257,19 +2585,6 @@
       "generated": null,
       "identity": null,
       "name": "quantity",
-      "entityType": "columns",
-      "schema": "vritti_core",
-      "table": "inventory_ledger"
-    },
-    {
-      "type": "numeric(12,3)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "balance_after",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "inventory_ledger"
@@ -3237,6 +3552,45 @@
       "table": "goods_receipt_items"
     },
     {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "batch_number",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "goods_receipt_items"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "manufacturing_date",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "goods_receipt_items"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expiry_date",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "goods_receipt_items"
+    },
+    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -3692,6 +4046,19 @@
       "table": "stock_adjustments"
     },
     {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "code",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustments"
+    },
+    {
       "type": "stock_adjustment_type",
       "typeSchema": "vritti_core",
       "notNull": true,
@@ -3705,14 +4072,14 @@
       "table": "stock_adjustments"
     },
     {
-      "type": "numeric(12,3)",
-      "typeSchema": null,
+      "type": "stock_adjustment_status",
+      "typeSchema": "vritti_core",
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "'DRAFT'",
       "generated": null,
       "identity": null,
-      "name": "quantity",
+      "name": "status",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "stock_adjustments"
@@ -3738,7 +4105,20 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "adjusted_by",
+      "name": "created_by_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustments"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "published_at",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "stock_adjustments"
@@ -3755,6 +4135,162 @@
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "stock_adjustments"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.org_id')",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.bu_id')",
+      "generated": null,
+      "identity": null,
+      "name": "business_unit_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "stock_adjustment_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "batch_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "location_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "batch_number",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "manufacturing_date",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expiry_date",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
     },
     {
       "type": "uuid",
@@ -5646,26 +6182,12 @@
       "nameExplicit": true,
       "columns": [
         {
-          "value": "inventory_item_id",
+          "value": "organization_id",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
           "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "idx_inventory_levels_item",
-      "entityType": "indexes",
-      "schema": "vritti_core",
-      "table": "inventory_levels"
-    },
-    {
-      "nameExplicit": true,
-      "columns": [
+        },
         {
           "value": "business_unit_id",
           "isExpression": false,
@@ -5679,10 +6201,143 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_inventory_levels_bu",
+      "name": "idx_storage_locations_bu",
       "entityType": "indexes",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "inventory_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_item_batches_item",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "location_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_item_batches_location",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "inventory_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "location_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_item_batches_item_location",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "expiry_date",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_item_batches_expiry",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "inventory_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_storage_location_configs_item",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "location_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_storage_location_configs_location",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
     },
     {
       "nameExplicit": true,
@@ -5778,6 +6433,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "idx_inventory_ledger_created",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_ledger"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "batch_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_ledger_batch",
       "entityType": "indexes",
       "schema": "vritti_core",
       "table": "inventory_ledger"
@@ -6234,6 +6910,69 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_stock_adjustments_status",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "stock_adjustments"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "stock_adjustment_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_stock_adjustment_lines_adjustment",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "batch_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_stock_adjustment_lines_batch",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "inventory_item_id",
           "isExpression": false,
           "asc": true,
@@ -6649,10 +7388,78 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "inventory_levels_inventory_item_id_inventory_items_id_fkey",
+      "name": "inventory_item_batches_IizScUrOf6zq_fkey",
       "entityType": "fks",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "inventory_item_batches"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "location_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "storage_locations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "inventory_item_batches_location_id_storage_locations_id_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "goods_receipt_item_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "goods_receipt_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "inventory_item_batches_w3J0T1PiuGL4_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "inventory_item_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "inventory_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "storage_location_configs_8BqhgfMaA2Jm_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "location_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "storage_locations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "storage_location_configs_location_id_storage_locations_id_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
     },
     {
       "nameExplicit": false,
@@ -6667,6 +7474,23 @@
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_ledger_inventory_item_id_inventory_items_id_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "inventory_ledger"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "batch_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "inventory_item_batches",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "inventory_ledger_batch_id_inventory_item_batches_id_fkey",
       "entityType": "fks",
       "schema": "vritti_core",
       "table": "inventory_ledger"
@@ -6959,6 +7783,57 @@
       "entityType": "fks",
       "schema": "vritti_core",
       "table": "stock_adjustments"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "stock_adjustment_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "stock_adjustments",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "stock_adjustment_lines_V8pV4VOOh3IT_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "batch_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "inventory_item_batches",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "stock_adjustment_lines_batch_id_inventory_item_batches_id_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "location_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "storage_locations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "stock_adjustment_lines_location_id_storage_locations_id_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
     },
     {
       "nameExplicit": false,
@@ -7270,9 +8145,29 @@
         "id"
       ],
       "nameExplicit": false,
-      "name": "inventory_levels_pkey",
+      "name": "storage_locations_pkey",
       "schema": "vritti_core",
-      "table": "inventory_levels",
+      "table": "storage_locations",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "inventory_item_batches_pkey",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "storage_location_configs_pkey",
+      "schema": "vritti_core",
+      "table": "storage_location_configs",
       "entityType": "pks"
     },
     {
@@ -7403,6 +8298,16 @@
       "name": "stock_adjustments_pkey",
       "schema": "vritti_core",
       "table": "stock_adjustments",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "stock_adjustment_lines_pkey",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines",
       "entityType": "pks"
     },
     {
@@ -7582,14 +8487,26 @@
     {
       "nameExplicit": true,
       "columns": [
-        "inventory_item_id",
-        "business_unit_id"
+        "business_unit_id",
+        "code"
       ],
       "nullsNotDistinct": false,
-      "name": "uq_inventory_levels_item_bu",
+      "name": "uq_storage_locations_bu_code",
       "entityType": "uniques",
       "schema": "vritti_core",
-      "table": "inventory_levels"
+      "table": "storage_locations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "inventory_item_id",
+        "location_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_storage_location_configs",
+      "entityType": "uniques",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
     },
     {
       "nameExplicit": true,
@@ -8153,6 +9070,201 @@
       "name": "org_isolation",
       "entityType": "policies",
       "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])",
+      "withCheck": null,
+      "name": "bu_ancestor_read",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "name": "bu_write",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_update",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_delete",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = current_setting('app.org_id', true)::uuid",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])",
+      "withCheck": null,
+      "name": "bu_ancestor_read",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "name": "bu_write",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_update",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_delete",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batches"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = current_setting('app.org_id', true)::uuid",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])",
+      "withCheck": null,
+      "name": "bu_ancestor_read",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "name": "bu_write",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_update",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_delete",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "storage_location_configs"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = current_setting('app.org_id', true)::uuid",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "vritti_core",
       "table": "bom"
     },
     {
@@ -8531,6 +9643,71 @@
       "entityType": "policies",
       "schema": "vritti_core",
       "table": "stock_adjustments"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = current_setting('app.org_id', true)::uuid",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])",
+      "withCheck": null,
+      "name": "bu_ancestor_read",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "name": "bu_write",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_update",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_delete",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
     },
     {
       "as": "PERMISSIVE",
@@ -8739,6 +9916,17 @@
       "entityType": "policies",
       "schema": "vritti_core",
       "table": "orders"
+    },
+    {
+      "definition": "select \"vritti_core\".\"inventory_item_batches\".\"inventory_item_id\", \"vritti_core\".\"inventory_item_batches\".\"location_id\", CAST(SUM(\"vritti_core\".\"inventory_item_batches\".\"quantity\") AS TEXT) as \"stocked_quantity\", CAST(SUM(\"vritti_core\".\"inventory_item_batches\".\"reserved_quantity\") AS TEXT) as \"reserved_quantity\", CAST(SUM(\"vritti_core\".\"inventory_item_batches\".\"quantity\" - \"vritti_core\".\"inventory_item_batches\".\"reserved_quantity\") AS TEXT) as \"available_quantity\", \"vritti_core\".\"storage_location_configs\".\"reorder_level\" from \"vritti_core\".\"inventory_item_batches\" left join \"vritti_core\".\"storage_location_configs\" on \"vritti_core\".\"inventory_item_batches\".\"inventory_item_id\" = \"vritti_core\".\"storage_location_configs\".\"inventory_item_id\" AND \"vritti_core\".\"inventory_item_batches\".\"location_id\" = \"vritti_core\".\"storage_location_configs\".\"location_id\" group by \"vritti_core\".\"inventory_item_batches\".\"inventory_item_id\", \"vritti_core\".\"inventory_item_batches\".\"location_id\", \"vritti_core\".\"storage_location_configs\".\"reorder_level\"",
+      "with": null,
+      "withNoData": null,
+      "using": null,
+      "tablespace": null,
+      "materialized": false,
+      "name": "inventory_levels",
+      "entityType": "views",
+      "schema": "vritti_core"
     }
   ],
   "renames": []

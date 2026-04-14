@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."inventory_items" DROP COLUMN IF EXISTS "requires_shipping";
