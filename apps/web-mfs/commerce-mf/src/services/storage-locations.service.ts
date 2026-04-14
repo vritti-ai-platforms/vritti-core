@@ -4,20 +4,11 @@ import type {
 	CreateLocationResponse,
 	StorageLocationData,
 	LocationFormData,
-	LocationStockData,
 	UpdateLocationData,
 } from '@/schemas/storage-locations';
 
 export function listLocations(): Promise<StorageLocationData[]> {
 	return axios.get<StorageLocationData[]>('commerce-api/storage-locations').then((r) => r.data);
-}
-
-export function getLocation(id: string): Promise<StorageLocationData> {
-	return axios.get<StorageLocationData>(`commerce-api/storage-locations/${id}`).then((r) => r.data);
-}
-
-export function getLocationLevels(id: string): Promise<LocationStockData[]> {
-	return axios.get<LocationStockData[]>(`commerce-api/storage-locations/${id}/levels`).then((r) => r.data);
 }
 
 export function createLocation(data: LocationFormData): Promise<CreateLocationResponse> {

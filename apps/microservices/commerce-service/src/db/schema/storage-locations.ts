@@ -1,4 +1,4 @@
-import { boolean, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 
@@ -10,6 +10,8 @@ export const storageLocations = coreSchema.table(
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
+    parentId: uuid('parent_id'),
+    sortOrder: integer('sort_order').notNull().default(1),
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),
     address: text('address'),
@@ -23,6 +25,7 @@ export const storageLocations = coreSchema.table(
   (table) => [
     unique('uq_storage_locations_bu_code').on(table.businessUnitId, table.code),
     index('idx_storage_locations_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_storage_locations_parent').on(table.parentId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

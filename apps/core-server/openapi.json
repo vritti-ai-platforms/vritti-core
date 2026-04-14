@@ -4128,34 +4128,6 @@
         ]
       }
     },
-    "/commerce-api/storage-locations/{id}/levels": {
-      "get": {
-        "operationId": "StorageLocationsGatewayController_findLevels",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Storage Locations"
-        ]
-      }
-    },
     "/commerce-api/invoices/table": {
       "get": {
         "operationId": "InvoicesGatewayController_getInvoiceTable",
@@ -8641,6 +8613,15 @@
             "description": "Location code",
             "example": "WIF"
           },
+          "parentId": {
+            "type": "object",
+            "description": "Parent storage location ID (null for root)"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Display sort order",
+            "default": 1
+          },
           "area": {
             "type": "string",
             "description": "Location area",
@@ -8675,6 +8656,14 @@
           "code": {
             "type": "string",
             "description": "Updated location code"
+          },
+          "parentId": {
+            "type": "object",
+            "description": "Parent storage location ID (null for root)"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Updated display sort order"
           },
           "area": {
             "type": "string",

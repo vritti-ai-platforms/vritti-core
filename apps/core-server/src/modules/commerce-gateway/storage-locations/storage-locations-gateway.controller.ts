@@ -11,7 +11,6 @@ import { SessionTypeValues } from '@/db/schema';
 import { CreateStorageLocationDto } from './dto/request/create-storage-location.dto';
 import { UpdateStorageLocationDto } from './dto/request/update-storage-location.dto';
 import type { StorageLocationResponseDto } from './dto/response/storage-location-response.dto';
-import type { LocationStockResponseDto } from './dto/response/location-stock-response.dto';
 import { StorageLocationsGatewayService } from './services/storage-locations-gateway.service';
 
 @ApiTags('Commerce - Storage Locations')
@@ -42,13 +41,6 @@ export class StorageLocationsGatewayController {
   findById(@Param('id') id: string): Promise<StorageLocationResponseDto> {
     this.logger.log(`GET /commerce-api/storage-locations/${id}`);
     return this.storageLocationsGatewayService.findById(id);
-  }
-
-  // Returns stock levels at a location
-  @Get(':id/levels')
-  findLevels(@Param('id') id: string): Promise<LocationStockResponseDto[]> {
-    this.logger.log(`GET /commerce-api/storage-locations/${id}/levels`);
-    return this.storageLocationsGatewayService.findLevels(id);
   }
 
   // Creates a new storage location

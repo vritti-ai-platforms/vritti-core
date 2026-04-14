@@ -1,5 +1,4 @@
 import type { StorageLocationDto } from '@domain/storage-locations/dto/entity/storage-location.dto';
-import type { LocationStockDto } from '@domain/storage-locations/dto/entity/storage-location.dto';
 import { StorageLocationsService } from '@domain/storage-locations/services/storage-locations.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -25,13 +24,6 @@ export class StorageLocationsController {
   async findById(@Payload() data: { id: string }): Promise<StorageLocationDto> {
     this.logger.log(`storageLocations.findById — id: ${data.id}`);
     return this.storageLocationsService.findById(data.id);
-  }
-
-  // Returns stock levels at a location
-  @MessagePattern({ cmd: 'storageLocations.levels' })
-  async levels(@Payload() data: { locationId: string }): Promise<LocationStockDto[]> {
-    this.logger.log(`storageLocations.levels — locationId: ${data.locationId}`);
-    return this.storageLocationsService.findLevels(data.locationId);
   }
 
   // Returns paginated location options for select dropdowns

@@ -4,11 +4,23 @@ export class StorageLocationResponseDto {
   @ApiProperty({ description: 'Location ID' })
   id: string;
 
+  @ApiProperty({ description: 'Organization ID' })
+  organizationId: string;
+
+  @ApiProperty({ description: 'Business unit ID' })
+  businessUnitId: string;
+
   @ApiProperty({ description: 'Location name', example: 'Walk-in Fridge' })
   name: string;
 
   @ApiProperty({ description: 'Location code', example: 'WIF' })
   code: string;
+
+  @ApiPropertyOptional({ description: 'Parent location ID, or null for root-level locations', nullable: true })
+  parentId: string | null;
+
+  @ApiProperty({ description: 'Display sort order' })
+  sortOrder: number;
 
   @ApiPropertyOptional({ description: 'Location area', example: 'Kitchen', nullable: true })
   area: string | null;
@@ -27,4 +39,7 @@ export class StorageLocationResponseDto {
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
+
+  @ApiProperty({ description: 'ISO timestamp of last update' })
+  updatedAt: string;
 }

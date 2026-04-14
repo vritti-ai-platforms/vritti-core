@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateStorageLocationDto {
   @IsString()
@@ -10,6 +10,15 @@ export class CreateStorageLocationDto {
   @IsNotEmpty()
   @MaxLength(50)
   code: string;
+
+  @IsOptional()
+  @IsUUID()
+  parentId?: string | null;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  sortOrder?: number;
 
   @IsOptional()
   @IsString()

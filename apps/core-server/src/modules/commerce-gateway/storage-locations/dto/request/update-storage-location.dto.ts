@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class UpdateStorageLocationDto {
   @ApiPropertyOptional({ description: 'Updated location name' })
@@ -15,6 +16,18 @@ export class UpdateStorageLocationDto {
   @IsNotEmpty()
   @MaxLength(50)
   code?: string;
+
+  @ApiPropertyOptional({ description: 'Parent storage location ID (null for root)', type: String, nullable: true })
+  @IsOptional()
+  @IsUUID()
+  parentId?: string | null;
+
+  @ApiPropertyOptional({ description: 'Updated display sort order' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  sortOrder?: number;
 
   @ApiPropertyOptional({ description: 'Updated location area' })
   @IsOptional()

@@ -6,6 +6,8 @@ import { z } from 'zod';
 const _locationSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(100),
 	code: z.string().min(1, 'Code is required').max(50),
+	parentId: z.string().optional().nullable(),
+	sortOrder: z.coerce.number().int().min(1, 'Sort order must be at least 1'),
 	isActive: z.boolean(),
 	area: z.string().max(100).optional().or(z.literal('')),
 	managerId: z.string().max(100).optional().or(z.literal('')),
@@ -15,6 +17,8 @@ const _locationSchema = z.object({
 export type LocationFormData = {
 	name: string;
 	code: string;
+	parentId?: string | null;
+	sortOrder: number;
 	isActive: boolean;
 	area: string;
 	managerId: string;
@@ -25,26 +29,21 @@ export type CreateLocationResponse = CreateResponse<StorageLocationData>;
 
 export interface StorageLocationData {
 	id: string;
+	organizationId: string;
+	businessUnitId: string;
 	name: string;
 	code: string;
+	parentId: string | null;
+	sortOrder: number;
 	area: string | null;
 	managerId: string | null;
 	address: string | null;
 	isActive: boolean;
 	canDelete: boolean;
 	createdAt: string;
+	updatedAt: string;
 }
 
-export interface LocationStockData {
-	id: string;
-	inventoryItemId: string;
-	itemName: string | null;
-	itemCode: string | null;
-	uomSymbol: string | null;
-	stockedQuantity: number;
-	reservedQuantity: number;
-	availableQuantity: number;
-	reorderLevel: number;
-}
-
-export type UpdateLocationData = Partial<Pick<LocationFormData, 'name' | 'code' | 'isActive' | 'area' | 'managerId' | 'address'>>;
+export type UpdateLocationData = Partial<
+	Pick<LocationFormData, 'name' | 'code' | 'parentId' | 'sortOrder' | 'isActive' | 'area' | 'managerId' | 'address'>
+>;

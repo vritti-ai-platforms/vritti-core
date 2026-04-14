@@ -4,7 +4,6 @@ import type { SelectOptionsQueryDto } from '@vritti/api-sdk';
 import type { CreateStorageLocationDto } from '../dto/request/create-storage-location.dto';
 import type { UpdateStorageLocationDto } from '../dto/request/update-storage-location.dto';
 import type { StorageLocationResponseDto } from '../dto/response/storage-location-response.dto';
-import type { LocationStockResponseDto } from '../dto/response/location-stock-response.dto';
 
 @Injectable()
 export class StorageLocationsGatewayService {
@@ -22,12 +21,6 @@ export class StorageLocationsGatewayService {
   async findById(id: string): Promise<StorageLocationResponseDto> {
     this.logger.log(`storageLocations.findById — id: ${id}`);
     return this.nats.send('commerce', 'storageLocations.findById', { id });
-  }
-
-  // Returns stock levels at a location
-  async findLevels(locationId: string): Promise<LocationStockResponseDto[]> {
-    this.logger.log(`storageLocations.levels — locationId: ${locationId}`);
-    return this.nats.send('commerce', 'storageLocations.levels', { locationId });
   }
 
   // Returns paginated location options for select dropdowns

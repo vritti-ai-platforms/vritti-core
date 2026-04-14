@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -17,7 +18,16 @@ interface AddLocationDialogProps {
 export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ onSuccess, onCancel }) => {
   const form = useForm<LocationFormData>({
     resolver: locationFormResolver,
-    defaultValues: { name: '', code: '', isActive: true, area: '', managerId: undefined, address: '' },
+    defaultValues: {
+      name: '',
+      code: '',
+      parentId: null,
+      sortOrder: 1,
+      isActive: true,
+      area: '',
+      managerId: undefined,
+      address: '',
+    },
   });
 
   const createMutation = useCreateLocation({ onSuccess });
@@ -26,6 +36,8 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ onSuccess,
     <Form form={form} mutation={createMutation} showRootError resetOnSuccess onCancel={onCancel}>
       <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
       <TextField name="code" label="Code" placeholder="e.g. WIF" />
+      <StorageLocationSelector name="parentId" label="Parent Location" placeholder="None (root location)" clearable />
+      <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
       <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
       <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
       <TextArea name="address" label="Address" placeholder="Location address" />

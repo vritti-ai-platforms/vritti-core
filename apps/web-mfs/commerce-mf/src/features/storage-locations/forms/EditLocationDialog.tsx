@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -22,6 +23,8 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
     defaultValues: {
       name: location.name,
       code: location.code,
+      parentId: location.parentId ?? null,
+      sortOrder: location.sortOrder,
       isActive: location.isActive,
       area: location.area ?? '',
       managerId: location.managerId ?? undefined,
@@ -42,6 +45,8 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
         data: {
           name: data.name,
           code: data.code,
+          parentId: data.parentId || null,
+          sortOrder: Number(data.sortOrder),
           isActive: data.isActive,
           area: data.area,
           managerId: data.managerId,
@@ -51,6 +56,8 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
     >
       <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
       <TextField name="code" label="Code" placeholder="e.g. WIF" />
+      <StorageLocationSelector name="parentId" label="Parent Location" placeholder="None (root location)" clearable />
+      <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
       <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
       <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
       <TextArea name="address" label="Address" placeholder="Location address" />
