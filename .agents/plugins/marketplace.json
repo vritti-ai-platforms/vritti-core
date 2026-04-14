@@ -1,0 +1,21 @@
+{
+  "name": "vritti-plugins",
+  "interface": {
+    "displayName": "Vritti Plugins"
+  },
+  "plugins": [
+    {
+      "name": "vritti-dev-tools",
+      "source": {
+        "source": "github",
+        "repo": "vritti-ai-platforms/vritti-plugins",
+        "path": "./vritti-dev-tools"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
