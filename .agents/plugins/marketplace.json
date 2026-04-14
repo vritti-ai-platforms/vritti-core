@@ -8,7 +8,7 @@
       "name": "vritti-dev-tools",
       "source": {
         "source": "local",
-        "path": "../vritti-plugins/vritti-dev-tools"
+        "path": "../../../vritti-plugins/vritti-dev-tools"
       },
       "policy": {
         "installation": "AVAILABLE",
