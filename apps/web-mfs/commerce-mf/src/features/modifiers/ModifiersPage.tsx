@@ -9,11 +9,12 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { SearchBar } from '@vritti/quantum-ui/SearchBar';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { Layers, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
@@ -58,6 +59,7 @@ export const ModifiersPage = () => {
   const { data: groups = [], isLoading } = useModifierGroups(selectedBuId);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
 
   const { data: selectedGroupDetail, isLoading: isLoadingDetail } = useModifierGroup(selectedGroupId);
 
@@ -143,11 +145,12 @@ export const ModifiersPage = () => {
           </div>
 
           <div className="p-3 border-b">
-            <TextField
+            <SearchBar
               placeholder="Search groups..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              startAdornment={<Search className="size-4 text-muted-foreground" />}
+              value={searchInput}
+              onChange={setSearchInput}
+              onDebouncedChange={setSearchQuery}
+              debounceMs={250}
             />
           </div>
 
@@ -159,9 +162,9 @@ export const ModifiersPage = () => {
             ) : filteredGroups.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {searchQuery ? 'No groups match your search.' : 'No modifier groups yet.'}
+                  {searchInput ? 'No groups match your search.' : 'No modifier groups yet.'}
                 </p>
-                {!searchQuery && (
+                {!searchInput && (
                   <Button size="sm" variant="link" onClick={createGroupDialog.open} className="mt-2">
                     Create your first group
                   </Button>

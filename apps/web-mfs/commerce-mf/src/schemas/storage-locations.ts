@@ -1,3 +1,4 @@
+import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import type { Resolver } from 'react-hook-form';
@@ -42,6 +43,23 @@ export interface StorageLocationData {
 	canDelete: boolean;
 	createdAt: string;
 	updatedAt: string;
+}
+
+export interface StorageLocationTreeNode {
+	id: string;
+	name: string;
+	children?: StorageLocationTreeNode[];
+}
+
+export interface StorageLocationCountData {
+	count: number;
+}
+
+export type StorageLocationChildrenTableResponse = TableResponse<StorageLocationData>;
+
+export interface ReorderLocationsData {
+	parentId: string | null;
+	orderedIds: string[];
 }
 
 export type UpdateLocationData = Partial<

@@ -1,30 +1,73 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
+import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { MapPin, Pencil, Trash2 } from 'lucide-react';
+import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useConfirm } from '@vritti/quantum-ui/hooks';
-import { useDeleteLocation } from '@/hooks/storage-locations';
+import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { LOCATION_CHILDREN_TABLE_KEY, useDeleteLocation, useLocationChildrenTable } from '@/hooks/storage-locations';
 import type { StorageLocationData } from '@/schemas/storage-locations';
+import { AddLocationDialog } from '../forms/AddLocationDialog';
+import { EditLocationDialog } from '../forms/EditLocationDialog';
 
 interface LocationDetailPanelProps {
   location: StorageLocationData;
-  allLocations: StorageLocationData[];
-  onEdit: () => void;
   onSelectLocation: (id: string | null) => void;
 }
 
-export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({
-  location,
-  allLocations,
-  onEdit,
-  onSelectLocation,
-}) => {
+export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ location, onSelectLocation }) => {
+  const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const addChildDialog = useDialog();
+  const editDialog = useDialog();
   const deleteMutation = useDeleteLocation();
+  const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(location.id);
 
-  const childLocations = allLocations.filter((entry) => entry.parentId === location.id);
-  const parent = allLocations.find((entry) => entry.id === location.parentId);
+  const columns = useMemo<ColumnDef<StorageLocationData>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+      },
+      {
+        accessorKey: 'code',
+        header: 'Code',
+      },
+      {
+        accessorKey: 'sortOrder',
+        header: 'Sort Order',
+      },
+      {
+        accessorKey: 'isActive',
+        header: 'Status',
+        cell: ({ row }) => (row.original.isActive ? 'Active' : 'Inactive'),
+      },
+      {
+        id: 'open',
+        header: '',
+        cell: ({ row }) => (
+          <Button variant="ghost" size="sm" onClick={() => onSelectLocation(row.original.id)}>
+            Open
+          </Button>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [onSelectLocation],
+  );
+
+  const { table } = useDataTable({
+    columns,
+    serverState: childrenResponse,
+    slug: `storage-location-${location.id}-children`,
+    label: 'child location',
+    enableRowSelection: false,
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(location.id) }),
+  });
 
   const handleDelete = async () => {
     const confirmed = await confirm({
@@ -35,7 +78,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({
     });
     if (confirmed) {
       deleteMutation.mutate(location.id, {
-        onSuccess: () => onSelectLocation(parent?.id ?? null),
+        onSuccess: () => onSelectLocation(location.parentId),
       });
     }
   };
@@ -54,7 +97,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({
           <Badge variant="outline">{location.code}</Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onEdit}>
+          <Button variant="outline" size="sm" onClick={editDialog.open}>
             <Pencil className="h-3.5 w-3.5 mr-1.5" />
             Edit
           </Button>
@@ -85,7 +128,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({
             Child Locations
           </Typography>
           <Typography variant="body2" className="font-medium">
-            {childLocations.length}
+            {childrenResponse?.count ?? 0}
           </Typography>
         </div>
         <div>
@@ -93,7 +136,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({
             Parent
           </Typography>
           <Typography variant="body2" className="font-medium">
-            {parent?.name ?? '—'}
+            {location.parentId ?? '—'}
           </Typography>
         </div>
         <div>
@@ -114,36 +157,57 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({
         </div>
       </div>
 
-      {childLocations.length > 0 && (
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-3">
-            Child Locations ({childLocations.length})
-          </Typography>
-          <div className="space-y-1">
-            {childLocations.map((child) => (
-              <Button
-                key={child.id}
-                variant="outline"
-                onClick={() => onSelectLocation(child.id)}
-                className="w-full justify-between px-3 py-2.5 h-auto font-normal"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <Typography variant="body2" className="truncate">
-                    {child.name}
-                  </Typography>
-                </div>
-                <Badge
-                  variant={child.isActive ? 'secondary' : 'outline'}
-                  className={`text-xs shrink-0 ${child.isActive ? 'bg-success/15 text-success' : ''}`}
-                >
-                  {child.isActive ? 'active' : 'inactive'}
-                </Badge>
+      <div>
+        <Typography variant="overline" intent="muted" className="mb-3">
+          Child Locations ({childrenResponse?.count ?? 0})
+        </Typography>
+        <DataTable
+          table={table}
+          mode="compact"
+          isLoading={isChildrenLoading}
+          toolbarActions={{
+            actions: (
+              <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
+                Add Child Location
               </Button>
-            ))}
-          </div>
-        </div>
-      )}
+            ),
+          }}
+          emptyStateConfig={{
+            icon: MapPin,
+            title: 'No child locations',
+            description: 'This location has no direct children.',
+          }}
+        />
+      </div>
+
+      <Dialog
+        handle={addChildDialog}
+        title="Add Child Location"
+        description={`Add a child location under "${location.name}".`}
+        content={(close) => (
+          <AddLocationDialog
+            defaultParentId={location.id}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(location.id) });
+              close();
+            }}
+            onCancel={close}
+          />
+        )}
+      />
+
+      <Dialog
+        handle={editDialog}
+        title="Edit Location"
+        description="Update the details for this location."
+        content={(close) => (
+          <EditLocationDialog
+            location={location}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
+      />
     </div>
   );
 };

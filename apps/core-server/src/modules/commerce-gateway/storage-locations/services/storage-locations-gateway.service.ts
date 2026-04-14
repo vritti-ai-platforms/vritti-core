@@ -1,20 +1,52 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, NatsClientService, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, NatsClientService, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { SelectOptionsQueryDto } from '@vritti/api-sdk';
 import type { CreateStorageLocationDto } from '../dto/request/create-storage-location.dto';
+import type { ReorderStorageLocationsDto } from '../dto/request/reorder-storage-locations.dto';
 import type { UpdateStorageLocationDto } from '../dto/request/update-storage-location.dto';
+import type { StorageLocationChildrenTableResponseDto } from '../dto/response/storage-location-children-table-response.dto';
+import type { StorageLocationCountResponseDto } from '../dto/response/storage-location-count-response.dto';
 import type { StorageLocationResponseDto } from '../dto/response/storage-location-response.dto';
+import type { StorageLocationTreeResponseDto } from '../dto/response/storage-location-tree-response.dto';
 
 @Injectable()
 export class StorageLocationsGatewayService {
   private readonly logger = new Logger(StorageLocationsGatewayService.name);
 
-  constructor(private readonly nats: NatsClientService) {}
+  constructor(
+    private readonly nats: NatsClientService,
+    private readonly dataTableStateService: DataTableStateService,
+  ) {}
 
   // Returns all storage locations
   async findAll(): Promise<StorageLocationResponseDto[]> {
     this.logger.log('storageLocations.list');
     return this.nats.send('commerce', 'storageLocations.list', {});
+  }
+
+  // Returns total storage location count
+  async count(): Promise<StorageLocationCountResponseDto> {
+    this.logger.log('storageLocations.count');
+    return this.nats.send('commerce', 'storageLocations.count', {});
+  }
+
+  // Returns storage locations as a tree hierarchy
+  async findTree(search?: string): Promise<StorageLocationTreeResponseDto[]> {
+    this.logger.log('storageLocations.tree');
+    return this.nats.send('commerce', 'storageLocations.tree', { search });
+  }
+
+  // Returns paginated child locations for a given parent ID
+  async findChildrenForTable(userId: string, parentId: string): Promise<StorageLocationChildrenTableResponseDto> {
+    this.logger.log(`storageLocations.childrenTable — parentId: ${parentId}`);
+    const slug = `storage-locations-children-${parentId}`;
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, slug);
+    const { result, count } = await this.nats.send<{ result: StorageLocationResponseDto[]; count: number }>(
+      'commerce',
+      'storageLocations.childrenTable',
+      { parentId, ...state },
+    );
+    return { result, count, state, activeViewId };
   }
 
   // Returns a single storage location by ID
@@ -27,6 +59,12 @@ export class StorageLocationsGatewayService {
   async select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('storageLocations.select');
     return this.nats.send('commerce', 'storageLocations.select', params);
+  }
+
+  // Reorders sibling locations under a parent
+  async reorder(dto: ReorderStorageLocationsDto): Promise<SuccessResponseDto> {
+    this.logger.log('storageLocations.reorder');
+    return this.nats.send('commerce', 'storageLocations.reorder', dto);
   }
 
   // Creates a new storage location

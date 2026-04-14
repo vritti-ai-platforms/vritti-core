@@ -5,39 +5,19 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { LOCATIONS_KEY, useLocations } from '@/hooks/storage-locations';
-import type { StorageLocationData } from '@/schemas/storage-locations';
+import { useState } from 'react';
+import { LOCATIONS_KEY, useLocationById, useLocationCount } from '@/hooks/storage-locations';
 import { LocationDetailPanel, LocationEmptyState, LocationTreePanel } from './components';
 import { AddLocationDialog } from './forms/AddLocationDialog';
-import { EditLocationDialog } from './forms/EditLocationDialog';
-import { filterTree, toTreeItems } from './utils';
 
 export const StorageLocationsPage = () => {
   const queryClient = useQueryClient();
-  const { data: locations = [] } = useLocations();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { data: locationCount } = useLocationCount();
+  const { data: selectedLocation, isLoading: isSelectedLocationLoading } = useLocationById(selectedId);
   const formDialog = useDialog();
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [formLocation, setFormLocation] = useState<StorageLocationData | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [expandAll, setExpandAll] = useState(false);
-
-  const selectedLocation = locations.find((location) => location.id === selectedId) ?? null;
-  const activeCount = locations.filter((location) => location.isActive).length;
-
-  const treeData = useMemo(() => {
-    const tree = toTreeItems(locations);
-    return searchQuery.trim() ? filterTree(tree, searchQuery) : tree;
-  }, [locations, searchQuery]);
-
   function openAdd() {
-    setFormLocation(null);
-    formDialog.open();
-  }
-
-  function openEdit(location: StorageLocationData) {
-    setFormLocation(location);
     formDialog.open();
   }
 
@@ -49,7 +29,7 @@ export const StorageLocationsPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Storage Locations"
-        description={`${activeCount} active · ${locations.length} total locations`}
+        description={`${locationCount.count} total locations`}
         actions={
           <Button onClick={openAdd} startAdornment={<Plus className="size-4" />}>
             Add Location
@@ -58,26 +38,13 @@ export const StorageLocationsPage = () => {
       />
 
       <PageContent>
-        <LocationTreePanel
-          locations={locations}
-          treeData={treeData}
-          selectedId={selectedId}
-          searchQuery={searchQuery}
-          expandAll={expandAll}
-          onSelect={setSelectedId}
-          onSearchChange={setSearchQuery}
-          onExpandAll={() => setExpandAll(true)}
-          onCollapseAll={() => setExpandAll(false)}
-        />
+        <LocationTreePanel selectedId={selectedId} onSelect={setSelectedId} />
 
         <div className="flex-1 overflow-auto p-6 min-w-0 flex flex-col">
           {selectedLocation ? (
-            <LocationDetailPanel
-              location={selectedLocation}
-              allLocations={locations}
-              onEdit={() => openEdit(selectedLocation)}
-              onSelectLocation={setSelectedId}
-            />
+            <LocationDetailPanel location={selectedLocation} onSelectLocation={setSelectedId} />
+          ) : selectedId && isSelectedLocationLoading ? (
+            <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Loading…</div>
           ) : (
             <LocationEmptyState />
           )}
@@ -86,28 +53,17 @@ export const StorageLocationsPage = () => {
 
       <Dialog
         handle={formDialog}
-        title={formLocation ? 'Edit Location' : 'Add Location'}
-        description={formLocation ? 'Update the details for this location.' : 'Enter the details for the new location.'}
-        content={(close) =>
-          formLocation ? (
-            <EditLocationDialog
-              location={formLocation}
-              onSuccess={() => {
-                invalidateLocations();
-                close();
-              }}
-              onCancel={close}
-            />
-          ) : (
-            <AddLocationDialog
-              onSuccess={() => {
-                invalidateLocations();
-                close();
-              }}
-              onCancel={close}
-            />
-          )
-        }
+        title="Add Location"
+        description="Enter the details for the new location."
+        content={(close) => (
+          <AddLocationDialog
+            onSuccess={() => {
+              invalidateLocations();
+              close();
+            }}
+            onCancel={close}
+          />
+        )}
       />
     </div>
   );

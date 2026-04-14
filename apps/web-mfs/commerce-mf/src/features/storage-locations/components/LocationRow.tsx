@@ -3,15 +3,8 @@ import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/Tree
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { MapPin, MapPinCheck } from 'lucide-react';
 import type React from 'react';
-import type { StorageLocationData } from '@/schemas/storage-locations';
-
-interface LocationRowProps extends TreeRenderItemParams {
-  allLocations: StorageLocationData[];
-}
-
-export const LocationRow: React.FC<LocationRowProps> = ({ item, allLocations, isOpen }) => {
-  const location = allLocations.find((entry) => entry.id === item.id);
-  const childCount = location ? allLocations.filter((entry) => entry.parentId === location.id).length : 0;
+export const LocationRow: React.FC<TreeRenderItemParams> = ({ item, isOpen }) => {
+  const childCount = (item as TreeDataItem).children?.length ?? 0;
   const hasChildren = (item as TreeDataItem).children !== undefined;
   const Icon = isOpen && hasChildren ? MapPinCheck : MapPin;
 
@@ -22,14 +15,6 @@ export const LocationRow: React.FC<LocationRowProps> = ({ item, allLocations, is
         {item.name}
       </Typography>
       <div className="flex items-center gap-1 shrink-0 ml-auto">
-        {location && !location.isActive && (
-          <Badge
-            variant="outline"
-            className="text-[10px] px-1.5 py-0.5 leading-none bg-destructive/15 text-destructive border-destructive/25"
-          >
-            Off
-          </Badge>
-        )}
         {childCount > 0 && (
           <Badge variant="secondary" className="text-[10px] rounded-full px-1.5 py-0.5 leading-none">
             {childCount}

@@ -11,17 +11,20 @@ import { useCreateLocation } from '@/hooks/storage-locations';
 import { type LocationFormData, locationFormResolver } from '@/schemas/storage-locations';
 
 interface AddLocationDialogProps {
+  defaultParentId?: string | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ onSuccess, onCancel }) => {
+export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ defaultParentId = null, onSuccess, onCancel }) => {
+  const isParentLocked = !!defaultParentId;
+
   const form = useForm<LocationFormData>({
     resolver: locationFormResolver,
     defaultValues: {
       name: '',
       code: '',
-      parentId: null,
+      parentId: defaultParentId,
       sortOrder: 1,
       isActive: true,
       area: '',
@@ -36,7 +39,13 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ onSuccess,
     <Form form={form} mutation={createMutation} showRootError resetOnSuccess onCancel={onCancel}>
       <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
       <TextField name="code" label="Code" placeholder="e.g. WIF" />
-      <StorageLocationSelector name="parentId" label="Parent Location" placeholder="None (root location)" clearable />
+      <StorageLocationSelector
+        name="parentId"
+        label="Parent Location"
+        placeholder="None (root location)"
+        clearable={!isParentLocked}
+        disabled={isParentLocked}
+      />
       <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
       <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
       <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />

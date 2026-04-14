@@ -2,19 +2,33 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
   type CreateResponseDto,
+  type FieldMap,
+  FilterProcessor,
   NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
+  type TableViewState,
 } from '@vritti/api-sdk';
+import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { storageLocations } from '@/db/schema';
 import type { CreateStorageLocationDto } from '@/modules/storage-locations/dto/request/create-storage-location.dto';
 import type { UpdateStorageLocationDto } from '@/modules/storage-locations/dto/request/update-storage-location.dto';
+import type { StorageLocationCountDto } from '../dto/entity/storage-location-count.dto';
 import { StorageLocationDto } from '../dto/entity/storage-location.dto';
+import type { StorageLocationTreeDto } from '../dto/entity/storage-location-tree.dto';
 import { StorageLocationsRepository } from '../repositories/storage-locations.repository';
 
 @Injectable()
 export class StorageLocationsService {
   private readonly logger = new Logger(StorageLocationsService.name);
+  private static readonly FIELD_MAP: FieldMap = {
+    name: { column: storageLocations.name, type: 'string' },
+    code: { column: storageLocations.code, type: 'string' },
+    isActive: { column: storageLocations.isActive, type: 'boolean' },
+    sortOrder: { column: storageLocations.sortOrder, type: 'number' },
+    area: { column: storageLocations.area, type: 'string' },
+  };
 
   constructor(private readonly storageLocationsRepository: StorageLocationsRepository) {}
 
@@ -28,12 +42,63 @@ export class StorageLocationsService {
     return entities.map((e) => StorageLocationDto.from(e, !referencedIds.has(e.id) && !parentIdsWithChildren.has(e.id)));
   }
 
+  // Returns total storage location count (independent of tree search/filter)
+  async count(): Promise<StorageLocationCountDto> {
+    const count = await this.storageLocationsRepository.countAll();
+    return { count };
+  }
+
   // Returns a single storage location by ID with canDelete computed
   async findById(id: string): Promise<StorageLocationDto> {
     const entity = await this.storageLocationsRepository.findById(id);
     if (!entity) throw new NotFoundException('Storage location not found.');
     const refs = await this.storageLocationsRepository.countReferences(id);
     return StorageLocationDto.from(entity, refs.inventoryLevels === 0 && refs.childLocations === 0);
+  }
+
+  // Returns paginated child locations for a given parent ID
+  async findChildrenForTable(parentId: string, state: TableViewState): Promise<{ result: StorageLocationDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StorageLocationsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StorageLocationsService.FIELD_MAP);
+    const where = and(eq(storageLocations.parentId, parentId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, StorageLocationsService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.storageLocationsRepository.findAllAndCount({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(storageLocations.sortOrder), asc(storageLocations.name)],
+      limit,
+      offset,
+    });
+
+    const referencedIds = await this.storageLocationsRepository.findReferencedIds(rows.map((e) => e.id));
+    const parentIdsWithChildren = await this.storageLocationsRepository.findParentIdsWithChildren(rows.map((e) => e.id));
+
+    return {
+      result: rows.map((e) => StorageLocationDto.from(e, !referencedIds.has(e.id) && !parentIdsWithChildren.has(e.id))),
+      count,
+    };
+  }
+
+  // Returns storage locations as a TreeView-compatible hierarchy
+  async findTree(search?: string): Promise<StorageLocationTreeDto[]> {
+    const normalizedSearch = search?.trim();
+    const rows = await this.storageLocationsRepository.findHierarchyRows(normalizedSearch);
+
+    const childrenMap = new Map<string | null, StorageLocationTreeDto[]>();
+    for (const row of rows) {
+      const siblings = childrenMap.get(row.parentId) ?? [];
+      siblings.push({ id: row.id, name: row.name });
+      childrenMap.set(row.parentId, siblings);
+    }
+
+    const build = (parentId: string | null): StorageLocationTreeDto[] =>
+      (childrenMap.get(parentId) ?? []).map((node) => {
+        const children = build(node.id);
+        return children.length > 0 ? { ...node, children } : node;
+      });
+
+    return build(null);
   }
 
   // Returns paginated location options for select dropdowns
@@ -50,6 +115,38 @@ export class StorageLocationsService {
       excludeIds: query.excludeIds,
       orderBy: { name: 'asc' },
     });
+  }
+
+  // Reorders all siblings under a parent location using the provided final ID order
+  async reorderSiblings(parentId: string | null, orderedIds: string[]): Promise<SuccessResponseDto> {
+    if (orderedIds.length === 0) {
+      throw new BadRequestException('orderedIds must contain at least one location ID.');
+    }
+
+    const uniqueOrderedIds = new Set(orderedIds);
+    if (uniqueOrderedIds.size !== orderedIds.length) {
+      throw new BadRequestException('orderedIds must not contain duplicates.');
+    }
+
+    const siblingIds = await this.storageLocationsRepository.findChildIdsByParent(parentId);
+    if (siblingIds.length !== orderedIds.length) {
+      throw new BadRequestException('orderedIds must include all siblings for the selected parent.');
+    }
+
+    const siblingSet = new Set(siblingIds);
+    const hasOutOfScopeIds = orderedIds.some((id) => !siblingSet.has(id));
+    if (hasOutOfScopeIds) {
+      throw new BadRequestException('orderedIds contains invalid location IDs for the selected parent.');
+    }
+
+    await this.storageLocationsRepository.transaction(async (tx) => {
+      for (let index = 0; index < orderedIds.length; index += 1) {
+        await this.storageLocationsRepository.updateSortOrderInTx(tx, orderedIds[index], index + 1);
+      }
+    });
+
+    this.logger.log(`Reordered ${orderedIds.length} storage locations under parent ${parentId ?? 'ROOT'}`);
+    return { success: true, message: 'Storage locations reordered successfully.' };
   }
 
   // Creates a new storage location

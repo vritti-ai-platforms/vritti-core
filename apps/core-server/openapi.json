@@ -3924,6 +3924,81 @@
         ]
       }
     },
+    "/commerce-api/storage-locations/count": {
+      "get": {
+        "operationId": "StorageLocationsGatewayController_count",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Storage Locations"
+        ]
+      }
+    },
+    "/commerce-api/storage-locations/tree": {
+      "get": {
+        "operationId": "StorageLocationsGatewayController_findTree",
+        "parameters": [
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Storage Locations"
+        ]
+      }
+    },
+    "/commerce-api/storage-locations/{parentId}/children/table": {
+      "get": {
+        "operationId": "StorageLocationsGatewayController_childrenTable",
+        "parameters": [
+          {
+            "name": "parentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Storage Locations"
+        ]
+      }
+    },
     "/commerce-api/storage-locations/select": {
       "get": {
         "operationId": "StorageLocationsGatewayController_select",
@@ -4025,6 +4100,35 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Storage Locations"
+        ]
+      }
+    },
+    "/commerce-api/storage-locations/reorder": {
+      "post": {
+        "operationId": "StorageLocationsGatewayController_reorder",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderStorageLocationsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -8600,6 +8704,26 @@
           }
         }
       },
+      "ReorderStorageLocationsDto": {
+        "type": "object",
+        "properties": {
+          "parentId": {
+            "type": "object",
+            "description": "Parent location ID (null for root-level locations)",
+            "nullable": true
+          },
+          "orderedIds": {
+            "description": "Sibling location IDs in final order",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "orderedIds"
+        ]
+      },
       "CreateStorageLocationDto": {
         "type": "object",
         "properties": {
@@ -8614,8 +8738,9 @@
             "example": "WIF"
           },
           "parentId": {
-            "type": "object",
-            "description": "Parent storage location ID (null for root)"
+            "type": "string",
+            "description": "Parent storage location ID (null for root)",
+            "nullable": true
           },
           "sortOrder": {
             "type": "number",
@@ -8658,8 +8783,9 @@
             "description": "Updated location code"
           },
           "parentId": {
-            "type": "object",
-            "description": "Parent storage location ID (null for root)"
+            "type": "string",
+            "description": "Parent storage location ID (null for root)",
+            "nullable": true
           },
           "sortOrder": {
             "type": "number",
