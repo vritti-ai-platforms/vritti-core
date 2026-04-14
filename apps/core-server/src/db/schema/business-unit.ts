@@ -5,7 +5,7 @@ import { organizations } from './organizations';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
-    return 'ltree';
+    return 'vritti_core.ltree';
   },
 });
 
