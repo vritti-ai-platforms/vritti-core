@@ -2678,35 +2678,41 @@
         ]
       }
     },
-    "/commerce-api/categories": {
+    "/commerce-api/categories/count": {
       "get": {
-        "description": "Returns all categories for the specified business unit, ordered by sort order.",
-        "operationId": "CategoriesGatewayController_list",
+        "operationId": "CategoriesGatewayController_count",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Categories"
+        ]
+      }
+    },
+    "/commerce-api/categories/tree": {
+      "get": {
+        "operationId": "CategoriesGatewayController_findTree",
         "parameters": [
           {
-            "name": "buId",
+            "name": "search",
             "required": true,
             "in": "query",
-            "description": "Business unit ID",
-            "schema": {}
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Categories retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CategoryResponseDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
+            "description": ""
           }
         },
         "security": [
@@ -2714,41 +2720,27 @@
             "bearer": []
           }
         ],
-        "summary": "List categories for a business unit",
         "tags": [
           "Commerce - Categories"
         ]
-      },
-      "post": {
-        "description": "Creates a new category for the business unit. organizationId is resolved from the authenticated user.",
-        "operationId": "CategoriesGatewayController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCategoryDto"
-              }
+      }
+    },
+    "/commerce-api/categories/{parentId}/children/table": {
+      "get": {
+        "operationId": "CategoriesGatewayController_childrenTable",
+        "parameters": [
+          {
+            "name": "parentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
-          "201": {
-            "description": "Category created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CategoryResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data."
-          },
-          "401": {
-            "description": "Unauthorized."
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2756,7 +2748,6 @@
             "bearer": []
           }
         ],
-        "summary": "Create a category",
         "tags": [
           "Commerce - Categories"
         ]
@@ -2824,6 +2815,79 @@
           }
         ],
         "summary": "Get category select options",
+        "tags": [
+          "Commerce - Categories"
+        ]
+      }
+    },
+    "/commerce-api/categories/reorder": {
+      "post": {
+        "operationId": "CategoriesGatewayController_reorder",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderCategoriesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Categories"
+        ]
+      }
+    },
+    "/commerce-api/categories": {
+      "post": {
+        "description": "Creates a new category for the business unit. organizationId is resolved from the authenticated user.",
+        "operationId": "CategoriesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a category",
         "tags": [
           "Commerce - Categories"
         ]
@@ -3878,52 +3942,6 @@
         ]
       }
     },
-    "/commerce-api/storage-locations": {
-      "get": {
-        "operationId": "StorageLocationsGatewayController_findAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Storage Locations"
-        ]
-      },
-      "post": {
-        "operationId": "StorageLocationsGatewayController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateStorageLocationDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Storage Locations"
-        ]
-      }
-    },
     "/commerce-api/storage-locations/count": {
       "get": {
         "operationId": "StorageLocationsGatewayController_count",
@@ -4219,6 +4237,35 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Storage Locations"
+        ]
+      }
+    },
+    "/commerce-api/storage-locations": {
+      "post": {
+        "operationId": "StorageLocationsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStorageLocationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -8285,47 +8332,24 @@
           }
         }
       },
-      "CategoryResponseDto": {
+      "ReorderCategoriesDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Category ID"
-          },
-          "businessUnitId": {
-            "type": "string",
-            "description": "Business unit ID"
-          },
-          "name": {
-            "type": "string",
-            "description": "Category name"
-          },
-          "sortOrder": {
-            "type": "number",
-            "description": "Display sort order"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the category is active"
-          },
           "parentId": {
             "type": "object",
-            "description": "Parent category ID, or null for root-level categories",
+            "description": "Parent category ID. Use null for root categories.",
             "nullable": true
           },
-          "createdAt": {
-            "type": "string",
-            "description": "ISO timestamp of creation"
+          "orderedIds": {
+            "description": "Ordered category IDs for siblings under parentId",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
-          "id",
-          "businessUnitId",
-          "name",
-          "sortOrder",
-          "isActive",
-          "parentId",
-          "createdAt"
+          "orderedIds"
         ]
       },
       "CreateCategoryDto": {
@@ -8352,6 +8376,54 @@
         },
         "required": [
           "name"
+        ]
+      },
+      "CategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Category ID"
+          },
+          "businessUnitId": {
+            "type": "string",
+            "description": "Business unit ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Category name"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Display sort order"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the category is active"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "Whether this category can be deleted safely"
+          },
+          "parentId": {
+            "type": "object",
+            "description": "Parent category ID, or null for root-level categories",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          }
+        },
+        "required": [
+          "id",
+          "businessUnitId",
+          "name",
+          "sortOrder",
+          "isActive",
+          "canDelete",
+          "parentId",
+          "createdAt"
         ]
       },
       "UpdateCategoryDto": {

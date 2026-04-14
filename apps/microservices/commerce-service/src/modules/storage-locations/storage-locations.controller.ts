@@ -15,13 +15,6 @@ export class StorageLocationsController {
 
   constructor(private readonly storageLocationsService: StorageLocationsService) {}
 
-  // Returns all storage locations
-  @MessagePattern({ cmd: 'storageLocations.list' })
-  async list(): Promise<StorageLocationDto[]> {
-    this.logger.log('storageLocations.list');
-    return this.storageLocationsService.findAll();
-  }
-
   // Returns total storage location count
   @MessagePattern({ cmd: 'storageLocations.count' })
   async count(): Promise<StorageLocationCountDto> {

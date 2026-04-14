@@ -1,14 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NatsClientService, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import {
+  type CreateResponseDto,
+  DataTableStateService,
+  NatsClientService,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+} from '@vritti/api-sdk';
 import type { CreateCategoryDto } from '../dto/request/create-category.dto';
+import type { ReorderCategoriesDto } from '../dto/request/reorder-categories.dto';
 import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
+import type { CategoryChildrenTableResponseDto } from '../dto/response/category-children-table-response.dto';
+import type { CategoryCountResponseDto } from '../dto/response/category-count-response.dto';
 import type { CategoryResponseDto } from '../dto/response/category-response.dto';
+import type { CategoryTreeResponseDto } from '../dto/response/category-tree-response.dto';
 
 @Injectable()
 export class CategoriesGatewayService {
   private readonly logger = new Logger(CategoriesGatewayService.name);
 
-  constructor(private readonly nats: NatsClientService) {}
+  constructor(
+    private readonly nats: NatsClientService,
+    private readonly dataTableStateService: DataTableStateService,
+  ) {}
 
   // Returns paginated category options for the select component
   async select(query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
@@ -16,14 +30,34 @@ export class CategoriesGatewayService {
     return this.nats.send('commerce', 'categories.select', query);
   }
 
-  // Returns all categories for the given BU
-  async list(): Promise<CategoryResponseDto[]> {
-    this.logger.log('categories.list');
-    return this.nats.send('commerce', 'categories.list');
+  // Returns total category count
+  async count(): Promise<CategoryCountResponseDto> {
+    this.logger.log('categories.count');
+    return this.nats.send('commerce', 'categories.count', {});
+  }
+
+  // Returns categories as tree hierarchy
+  async findTree(search?: string): Promise<CategoryTreeResponseDto[]> {
+    this.logger.log('categories.tree');
+    return this.nats.send('commerce', 'categories.tree', { search });
+  }
+
+  // Returns paginated child categories for a given parent ID
+  async findChildrenForTable(userId: string, parentId: string): Promise<CategoryChildrenTableResponseDto> {
+    this.logger.log(`categories.childrenTable — parentId: ${parentId}`);
+    const slug = `categories-children-${parentId}`;
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, slug);
+    const { result, count } = await this.nats.send<{ result: CategoryResponseDto[]; count: number }>(
+      'commerce',
+      'categories.childrenTable',
+      { parentId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
   }
 
   // Creates a new category
-  async create(dto: CreateCategoryDto): Promise<CategoryResponseDto> {
+  async create(dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
     this.logger.log(`categories.create — name: ${dto.name}`);
     return this.nats.send('commerce', 'categories.create', dto);
   }
@@ -38,6 +72,12 @@ export class CategoriesGatewayService {
   async update(id: string, dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
     this.logger.log(`categories.update — id: ${id}`);
     return this.nats.send('commerce', 'categories.update', { id, ...dto });
+  }
+
+  // Reorders sibling categories under a parent
+  async reorder(dto: ReorderCategoriesDto): Promise<SuccessResponseDto> {
+    this.logger.log('categories.reorder');
+    return this.nats.send('commerce', 'categories.reorder', dto);
   }
 
   // Deletes a category by ID

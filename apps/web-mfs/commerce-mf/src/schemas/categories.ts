@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse, SuccessResponse, TableResponse } from '@vritti/quantum-ui/api-response';
 import type { Resolver } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -29,8 +29,26 @@ export interface CategoryData {
   parentId: string | null;
   sortOrder: number;
   isActive: boolean;
+  canDelete: boolean;
   createdAt: string;
 }
+
+export interface CategoryTreeNode {
+  id: string;
+  name: string;
+  children?: CategoryTreeNode[];
+}
+
+export interface CategoryCountData {
+  count: number;
+}
+
+export interface ReorderCategoriesData {
+  parentId: string | null;
+  orderedIds: string[];
+}
+
+export type CategoryChildrenTableResponse = TableResponse<CategoryData>;
 
 export type CategoryCreateResponse = CreateResponse<CategoryData>;
 export type { SuccessResponse };

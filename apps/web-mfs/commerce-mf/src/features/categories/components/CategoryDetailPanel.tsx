@@ -1,29 +1,90 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
+import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Folder, Image, Pencil } from 'lucide-react';
+import { Folder, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
+import { useMemo } from 'react';
+import {
+  CATEGORY_CHILDREN_TABLE_KEY,
+  useCategoryChildrenTable,
+  useDeleteCategory,
+} from '@/hooks/categories';
 import type { CategoryData } from '@/schemas/categories';
+import { AddCategoryDialog } from '../forms/AddCategoryDialog';
+import { EditCategoryDialog } from '../forms/EditCategoryDialog';
 
 interface CategoryDetailPanelProps {
   category: CategoryData;
-  allCategories: CategoryData[];
-  onEdit: () => void;
-  onSelectCategory: (id: string) => void;
+  onSelectCategory: (id: string | null) => void;
 }
 
-export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({
-  category,
-  allCategories,
-  onEdit,
-  onSelectCategory,
-}) => {
-  const subCategories = allCategories.filter((c) => c.parentId === category.id);
-  const parent = allCategories.find((c) => c.id === category.parentId);
+export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ category, onSelectCategory }) => {
+  const queryClient = useQueryClient();
+  const confirm = useConfirm();
+  const addChildDialog = useDialog();
+  const editDialog = useDialog();
+  const deleteMutation = useDeleteCategory();
+  const { data: childrenResponse, isLoading: isChildrenLoading } = useCategoryChildrenTable(category.id);
+
+  const columns = useMemo<ColumnDef<CategoryData>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+      },
+      {
+        accessorKey: 'sortOrder',
+        header: 'Sort Order',
+      },
+      {
+        accessorKey: 'isActive',
+        header: 'Status',
+        cell: ({ row }) => (row.original.isActive ? 'Active' : 'Inactive'),
+      },
+      {
+        id: 'open',
+        header: '',
+        cell: ({ row }) => (
+          <Button variant="ghost" size="sm" onClick={() => onSelectCategory(row.original.id)}>
+            Open
+          </Button>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [onSelectCategory],
+  );
+
+  const { table } = useDataTable({
+    columns,
+    serverState: childrenResponse,
+    slug: `category-${category.id}-children`,
+    label: 'child category',
+    enableRowSelection: false,
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: CATEGORY_CHILDREN_TABLE_KEY(category.id) }),
+  });
+
+  const handleDelete = async () => {
+    const confirmed = await confirm({
+      title: `Delete "${category.name}"?`,
+      description: 'This category will be permanently removed.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (confirmed) {
+      deleteMutation.mutate(category.id, {
+        onSuccess: () => onSelectCategory(category.parentId),
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3 flex-wrap">
           <Typography variant="h3">{category.name}</Typography>
@@ -34,21 +95,24 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({
             {category.isActive ? 'Active' : 'Inactive'}
           </Badge>
         </div>
-        <Button variant="outline" size="sm" onClick={onEdit}>
-          <Pencil className="h-3.5 w-3.5 mr-1.5" />
-          Edit
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={editDialog.open}>
+            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDelete}
+            disabled={!category.canDelete}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+            Delete
+          </Button>
+        </div>
       </div>
 
-      {/* Image placeholder */}
-      <div className="border rounded-lg flex flex-col items-center justify-center h-48 bg-muted/30 gap-2">
-        <Image className="h-8 w-8 opacity-40 text-muted-foreground" />
-        <Typography variant="body2" intent="muted">
-          No image
-        </Typography>
-      </div>
-
-      {/* Stats grid */}
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
         <div>
           <Typography variant="overline" intent="muted" className="mb-1">
@@ -60,10 +124,10 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({
         </div>
         <div>
           <Typography variant="overline" intent="muted" className="mb-1">
-            Sub-categories
+            Child Categories
           </Typography>
           <Typography variant="body2" className="font-medium">
-            {subCategories.length}
+            {childrenResponse?.count ?? 0}
           </Typography>
         </div>
         <div>
@@ -71,42 +135,56 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({
             Parent
           </Typography>
           <Typography variant="body2" className="font-medium">
-            {parent?.name ?? '—'}
+            {category.parentId ?? '—'}
           </Typography>
         </div>
       </div>
 
-      {/* Sub-categories list */}
-      {subCategories.length > 0 && (
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-3">
-            Sub-categories ({subCategories.length})
-          </Typography>
-          <div className="space-y-1">
-            {subCategories.map((sub) => (
-              <Button
-                key={sub.id}
-                variant="outline"
-                onClick={() => onSelectCategory(sub.id)}
-                className="w-full justify-between px-3 py-2.5 h-auto font-normal"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <Typography variant="body2" className="truncate">
-                    {sub.name}
-                  </Typography>
-                </div>
-                <Badge
-                  variant={sub.isActive ? 'secondary' : 'outline'}
-                  className={`text-xs shrink-0 ${sub.isActive ? 'bg-success/15 text-success' : ''}`}
-                >
-                  {sub.isActive ? 'active' : 'inactive'}
-                </Badge>
+      <div>
+        <Typography variant="overline" intent="muted" className="mb-3">
+          Child Categories ({childrenResponse?.count ?? 0})
+        </Typography>
+        <DataTable
+          table={table}
+          mode="compact"
+          isLoading={isChildrenLoading}
+          toolbarActions={{
+            actions: (
+              <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
+                Add Child Category
               </Button>
-            ))}
-          </div>
-        </div>
-      )}
+            ),
+          }}
+          emptyStateConfig={{
+            icon: Folder,
+            title: 'No child categories',
+            description: 'This category has no direct children.',
+          }}
+        />
+      </div>
+
+      <Dialog
+        handle={addChildDialog}
+        title="Add Child Category"
+        description={`Add a child category under "${category.name}".`}
+        content={(close) => (
+          <AddCategoryDialog
+            defaultParentId={category.id}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: CATEGORY_CHILDREN_TABLE_KEY(category.id) });
+              close();
+            }}
+            onCancel={close}
+          />
+        )}
+      />
+
+      <Dialog
+        handle={editDialog}
+        title="Edit Category"
+        description="Update the details for this category."
+        content={(close) => <EditCategoryDialog category={category} onSuccess={close} onCancel={close} />}
+      />
     </div>
   );
 };

@@ -3,7 +3,6 @@ import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient 
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemBatches,
-  type StorageLocation,
   storageLocations,
 } from '@/db/schema';
 
@@ -11,11 +10,6 @@ import {
 export class StorageLocationsRepository extends PrimaryBaseRepository<typeof storageLocations> {
   constructor(database: PrimaryDatabaseService) {
     super(database, storageLocations);
-  }
-
-  // Returns all storage locations ordered by sort order and name
-  async findAll(): Promise<StorageLocation[]> {
-    return this.db.select().from(storageLocations).orderBy(asc(storageLocations.sortOrder), asc(storageLocations.name));
   }
 
   // Returns total storage location count (independent of tree search/filter)

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import { deleteLocation } from '@/services/storage-locations.service';
-import { LOCATIONS_KEY } from './useLocations';
+import { LOCATIONS_KEY } from './keys';
 
 export function useDeleteLocation(
 	options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,

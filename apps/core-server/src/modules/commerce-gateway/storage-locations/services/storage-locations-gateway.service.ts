@@ -18,12 +18,6 @@ export class StorageLocationsGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Returns all storage locations
-  async findAll(): Promise<StorageLocationResponseDto[]> {
-    this.logger.log('storageLocations.list');
-    return this.nats.send('commerce', 'storageLocations.list', {});
-  }
-
   // Returns total storage location count
   async count(): Promise<StorageLocationCountResponseDto> {
     this.logger.log('storageLocations.count');

@@ -4,11 +4,11 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
+import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCategories } from '@/hooks/useCategories';
 import { useCreateItem } from '@/hooks/useCreateItem';
 import { useTaxGroups } from '@/hooks/useTaxGroups';
 import { type CreateItemFormData, createItemSchema } from '@/schemas/items';
@@ -38,10 +38,8 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, on
   });
 
   const createMutation = useCreateItem({ onSuccess });
-  const { data: categories = [] } = useCategories(businessUnitId);
   const { data: taxGroups = [] } = useTaxGroups(businessUnitId);
 
-  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }));
   const taxGroupOptions = taxGroups.map((t) => ({ value: t.id, label: t.name }));
 
   return (
@@ -59,7 +57,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, on
       <RadioGroup name="type" label="Item Type" options={itemTypeOptions} orientation="horizontal" />
       <TextField name="name" label="Name" placeholder="e.g. Chicken Burger" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
-      <Select name="categoryId" label="Category" placeholder="Select a category" options={categoryOptions} />
+      <CategorySelector name="categoryId" params={{ buId: businessUnitId, status: 'active' }} clearable />
       <Select name="taxGroupId" label="Tax Group" placeholder="Select tax group" options={taxGroupOptions} />
       <Switch name="isAvailable" label="Available" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

@@ -4,7 +4,7 @@ import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { ReorderLocationsData } from '@/schemas/storage-locations';
 import { reorderLocations } from '@/services/storage-locations.service';
-import { LOCATIONS_KEY } from './useLocations';
+import { LOCATIONS_KEY } from './keys';
 
 export function useReorderLocations(
 	options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, ReorderLocationsData>, 'mutationFn'>,

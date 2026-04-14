@@ -3,16 +3,10 @@ import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/Tree
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Folder, FolderOpen } from 'lucide-react';
 import type React from 'react';
-import type { CategoryData } from '@/schemas/categories';
 
-interface CategoryRowProps extends TreeRenderItemParams {
-  allCategories: CategoryData[];
-}
-
-// Custom tree row: folder icon (amber when expanded), name, Off badge and sub-count pill
-export const CategoryRow: React.FC<CategoryRowProps> = ({ item, allCategories, isOpen }) => {
-  const cat = allCategories.find((c) => c.id === item.id);
-  const subCount = cat ? allCategories.filter((c) => c.parentId === cat.id).length : 0;
+// Custom tree row: folder icon (amber when expanded), name, and child-count pill
+export const CategoryRow: React.FC<TreeRenderItemParams> = ({ item, isOpen }) => {
+  const childCount = (item as TreeDataItem).children?.length ?? 0;
   const hasChildren = (item as TreeDataItem).children !== undefined;
   const FolderIcon = isOpen && hasChildren ? FolderOpen : Folder;
 
@@ -23,17 +17,9 @@ export const CategoryRow: React.FC<CategoryRowProps> = ({ item, allCategories, i
         {item.name}
       </Typography>
       <div className="flex items-center gap-1 shrink-0 ml-auto">
-        {cat && !cat.isActive && (
-          <Badge
-            variant="outline"
-            className="text-[10px] px-1.5 py-0.5 leading-none bg-destructive/15 text-destructive border-destructive/25"
-          >
-            Off
-          </Badge>
-        )}
-        {subCount > 0 && (
+        {childCount > 0 && (
           <Badge variant="secondary" className="text-[10px] rounded-full px-1.5 py-0.5 leading-none">
-            {subCount}
+            {childCount}
           </Badge>
         )}
       </div>

@@ -32,16 +32,6 @@ export class StorageLocationsService {
 
   constructor(private readonly storageLocationsRepository: StorageLocationsRepository) {}
 
-  // Returns all storage locations with canDelete computed
-  async findAll(): Promise<StorageLocationDto[]> {
-    const entities = await this.storageLocationsRepository.findAll();
-    const referencedIds = await this.storageLocationsRepository.findReferencedIds(entities.map((e) => e.id));
-    const parentIdsWithChildren = await this.storageLocationsRepository.findParentIdsWithChildren(
-      entities.map((e) => e.id),
-    );
-    return entities.map((e) => StorageLocationDto.from(e, !referencedIds.has(e.id) && !parentIdsWithChildren.has(e.id)));
-  }
-
   // Returns total storage location count (independent of tree search/filter)
   async count(): Promise<StorageLocationCountDto> {
     const count = await this.storageLocationsRepository.countAll();

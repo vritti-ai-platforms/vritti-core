@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { CreateLocationResponse, LocationFormData } from '@/schemas/storage-locations';
 import { createLocation } from '@/services/storage-locations.service';
-import { LOCATIONS_KEY } from './useLocations';
+import { LOCATIONS_KEY } from './keys';
 
 export function useCreateLocation(
 	options?: Omit<UseMutationOptions<CreateLocationResponse, AxiosError, LocationFormData>, 'mutationFn'>,

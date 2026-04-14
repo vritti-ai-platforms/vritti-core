@@ -16,6 +16,9 @@ export class CategoryResponseDto {
   @ApiProperty({ description: 'Whether the category is active' })
   isActive: boolean;
 
+  @ApiProperty({ description: 'Whether this category can be deleted safely' })
+  canDelete: boolean;
+
   @ApiProperty({ description: 'Parent category ID, or null for root-level categories', nullable: true })
   parentId: string | null;
 

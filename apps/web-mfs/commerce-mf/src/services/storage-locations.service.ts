@@ -11,10 +11,6 @@ import type {
 	StorageLocationTreeNode,
 } from '@/schemas/storage-locations';
 
-export function listLocations(): Promise<StorageLocationData[]> {
-	return axios.get<StorageLocationData[]>('commerce-api/storage-locations').then((r) => r.data);
-}
-
 export function listLocationTree(search?: string): Promise<StorageLocationTreeNode[]> {
 	return axios
 		.get<StorageLocationTreeNode[]>('commerce-api/storage-locations/tree', {

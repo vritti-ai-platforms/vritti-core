@@ -5,25 +5,33 @@ import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateCategory } from '@/hooks/useCreateCategory';
-import { useUpdateCategory } from '@/hooks/useUpdateCategory';
+import { useCreateCategory, useUpdateCategory } from '@/hooks/categories';
 import { type CategoryData, type CategoryFormData, categoryFormResolver } from '@/schemas/categories';
 
 interface CategoryFormProps {
   category?: CategoryData;
+  defaultParentId?: string | null;
+  disableParentSelector?: boolean;
   businessUnitId: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const CategoryForm: React.FC<CategoryFormProps> = ({ category, businessUnitId, onSuccess, onCancel }) => {
+export const CategoryForm: React.FC<CategoryFormProps> = ({
+  category,
+  defaultParentId,
+  disableParentSelector = false,
+  businessUnitId,
+  onSuccess,
+  onCancel,
+}) => {
   const isEditing = !!category;
 
   const form = useForm<CategoryFormData>({
     resolver: categoryFormResolver,
     defaultValues: {
       name: category?.name ?? '',
-      parentId: category?.parentId ?? null,
+      parentId: category?.parentId ?? defaultParentId ?? null,
       sortOrder: category?.sortOrder ?? 1,
       isActive: category?.isActive ?? true,
     },
@@ -43,7 +51,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ category, businessUn
     if (isEditing) {
       await updateMutation.mutateAsync({ id: category.id, data: coerced });
     } else {
-      await createMutation.mutateAsync({ ...coerced, businessUnitId });
+      await createMutation.mutateAsync(coerced);
     }
   };
 
@@ -55,6 +63,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({ category, businessUn
         name="parentId"
         placeholder="None (root category)"
         value={watchedParentId ?? undefined}
+        disabled={disableParentSelector}
         params={{
           buId: businessUnitId,
           status: 'active',

@@ -22,18 +22,6 @@ export function ApiGetCategoriesSelect() {
   );
 }
 
-export function ApiListCategories() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'List categories for a business unit',
-      description: 'Returns all categories for the specified business unit, ordered by sort order.',
-    }),
-    ApiQuery({ name: 'buId', description: 'Business unit ID', required: true }),
-    ApiResponse({ status: 200, description: 'Categories retrieved successfully.', type: CategoryResponseDto, isArray: true }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
 export function ApiCreateCategory() {
   return applyDecorators(
     ApiOperation({

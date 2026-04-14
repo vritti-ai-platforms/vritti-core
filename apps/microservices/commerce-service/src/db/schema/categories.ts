@@ -21,6 +21,7 @@ export const categories = coreSchema.table(
   },
   (table) => [
     index('idx_categories_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_categories_parent').on(table.parentId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

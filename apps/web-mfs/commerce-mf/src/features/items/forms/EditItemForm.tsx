@@ -3,11 +3,11 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
+import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCategories } from '@/hooks/useCategories';
 import { useTaxGroups } from '@/hooks/useTaxGroups';
 import { useUpdateItem } from '@/hooks/useUpdateItem';
 import { type ItemDetail, type UpdateItemFormData, updateItemSchema } from '@/schemas/items';
@@ -31,10 +31,7 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
   });
 
   const updateMutation = useUpdateItem({ onSuccess });
-  const { data: categories = [] } = useCategories(item.businessUnitId);
   const { data: taxGroups = [] } = useTaxGroups(item.businessUnitId);
-
-  const categoryOptions = categories.map((c) => ({ value: c.id, label: c.name }));
   const taxGroupOptions = taxGroups.map((tg) => ({
     value: tg.id,
     label: tg.name,
@@ -57,7 +54,7 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
     >
       <TextField name="name" label="Name" placeholder="Item name" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
-      <Select name="categoryId" label="Category" placeholder="Select a category" options={categoryOptions} />
+      <CategorySelector name="categoryId" params={{ buId: item.businessUnitId, status: 'active' }} clearable />
       <Select name="taxGroupId" label="Tax Group" placeholder="Select tax group" options={taxGroupOptions} />
       <Switch name="isAvailable" label="Available" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

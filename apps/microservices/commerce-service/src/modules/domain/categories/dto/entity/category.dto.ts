@@ -11,9 +11,10 @@ export class CategoryDto {
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
+  canDelete: boolean;
 
   // Maps a Category entity to a CategoryDto
-  static from(entity: Category): CategoryDto {
+  static from(entity: Category, canDelete = true): CategoryDto {
     const dto = new CategoryDto();
     dto.id = entity.id;
     dto.organizationId = entity.organizationId;
@@ -25,6 +26,7 @@ export class CategoryDto {
     dto.sortOrder = entity.sortOrder;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
+    dto.canDelete = canDelete;
     return dto;
   }
 }

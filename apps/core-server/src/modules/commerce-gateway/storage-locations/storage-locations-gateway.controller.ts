@@ -27,13 +27,6 @@ export class StorageLocationsGatewayController {
 
   constructor(private readonly storageLocationsGatewayService: StorageLocationsGatewayService) {}
 
-  // Returns all storage locations
-  @Get()
-  findAll(): Promise<StorageLocationResponseDto[]> {
-    this.logger.log('GET /commerce-api/storage-locations');
-    return this.storageLocationsGatewayService.findAll();
-  }
-
   // Returns total storage location count
   @Get('count')
   count(): Promise<StorageLocationCountResponseDto> {
