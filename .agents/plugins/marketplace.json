@@ -7,9 +7,8 @@
     {
       "name": "vritti-dev-tools",
       "source": {
-        "source": "github",
-        "repo": "vritti-ai-platforms/vritti-plugins",
-        "path": "./vritti-dev-tools"
+        "source": "local",
+        "path": "../vritti-plugins/vritti-dev-tools"
       },
       "policy": {
         "installation": "AVAILABLE",
