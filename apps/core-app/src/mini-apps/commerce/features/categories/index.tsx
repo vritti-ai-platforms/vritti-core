@@ -1,4 +1,3 @@
-import '../../../../../global.css';
 import { SafeAreaView, ScrollView, View } from 'react-native';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 
