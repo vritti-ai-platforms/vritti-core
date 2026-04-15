@@ -16,6 +16,7 @@ interface StockAdjustmentContentProps {
   selectedLineId: string | null;
   isDraft: boolean;
   isOpeningStock: boolean;
+  onSelectLine: (lineId: string | null) => void;
 }
 
 export const StockAdjustmentContent = ({
@@ -23,6 +24,7 @@ export const StockAdjustmentContent = ({
   selectedLineId,
   isDraft,
   isOpeningStock,
+  onSelectLine,
 }: StockAdjustmentContentProps) => {
   const confirm = useConfirm();
   const editLineDialog = useDialog();
@@ -38,7 +40,11 @@ export const StockAdjustmentContent = ({
       confirmLabel: 'Remove',
       variant: 'destructive',
     });
-    if (confirmed) removeLineMutation.mutate(lineId);
+    if (confirmed) {
+      removeLineMutation.mutate(lineId, {
+        onSuccess: () => onSelectLine(null),
+      });
+    }
   }
 
   return (

@@ -56,7 +56,10 @@ export class StockAdjustmentsGatewayController {
 
   @Post(':id/lines')
   @HttpCode(HttpStatus.CREATED)
-  addLine(@Param('id') id: string, @Body() dto: AddStockAdjustmentLineDto) {
+  addLine(
+    @Param('id') id: string,
+    @Body() dto: AddStockAdjustmentLineDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
     this.logger.log(`POST /commerce-api/stock-adjustments/${id}/lines`);
     return this.service.addLine(id, dto);
   }

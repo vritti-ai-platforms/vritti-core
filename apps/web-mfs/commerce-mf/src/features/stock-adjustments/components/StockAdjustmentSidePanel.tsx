@@ -5,6 +5,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { ClipboardList, Plus } from 'lucide-react';
+import { useEffect } from 'react';
 import { useStockAdjustmentLines } from '@/hooks/stock-adjustments';
 import type { StockAdjustmentType } from '@/schemas/stock-adjustments';
 import { AddStockAdjustmentLineDialog } from '../forms/AddStockAdjustmentLineDialog';
@@ -30,6 +31,13 @@ export const StockAdjustmentSidePanel = ({
 }: StockAdjustmentSidePanelProps) => {
   const addLineDialog = useDialog();
   const { data: lines = [], isLoading: isLoadingLines } = useStockAdjustmentLines(adjustmentId);
+
+  useEffect(() => {
+    if (!selectedLineId) return;
+    if (!lines.some((line) => line.id === selectedLineId)) {
+      onSelectLine(null);
+    }
+  }, [lines, selectedLineId, onSelectLine]);
 
   return (
     <>

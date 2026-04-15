@@ -3,6 +3,7 @@ import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-lin
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -21,6 +22,7 @@ import {
 
 interface AdjustmentContext {
   id: string;
+  code: string;
   status: StockAdjustmentStatus;
   type: StockAdjustmentType;
 }
@@ -121,9 +123,14 @@ export class StockAdjustmentLinesService {
       manufacturingDate?: string;
       expiryDate?: string;
     },
-  ): Promise<StockAdjustmentLineDto> {
+  ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
-    return this.addLine(adjustment, data);
+    const line = await this.addLine(adjustment, data);
+    return {
+      success: true,
+      message: `Line added to adjustment "${adjustment.code}" successfully.`,
+      data: line,
+    };
   }
 
   async updateLine(
@@ -192,7 +199,7 @@ export class StockAdjustmentLinesService {
   async removeLineByAdjustmentId(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     await this.removeLine(adjustment, lineId);
-    return { success: true, message: `Line "${lineId}" removed from adjustment "${adjustment.id}".` };
+    return { success: true, message: `Line removed from adjustment "${adjustment.code}" successfully.` };
   }
 
   async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineDto[]> {

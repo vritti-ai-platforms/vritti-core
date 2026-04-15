@@ -39,4 +39,22 @@ export class StockAdjustmentDto {
     dto.createdAt = entity.createdAt.toISOString();
     return dto;
   }
+
+  static fromEntity(entity: StockAdjustment): StockAdjustmentDto {
+    const dto = new StockAdjustmentDto();
+    dto.id = entity.id;
+    dto.code = entity.code;
+    dto.inventoryItemId = entity.inventoryItemId;
+    dto.inventoryItemName = '';
+    dto.inventoryItemUomSymbol = '';
+    dto.type = entity.type;
+    dto.status = entity.status;
+    dto.reason = entity.reason ?? null;
+    dto.createdById = entity.createdById;
+    dto.createdByFullName = '';
+    dto.isPublishable = false;
+    dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
+    dto.createdAt = entity.createdAt.toISOString();
+    return dto;
+  }
 }

@@ -61,14 +61,12 @@ export class StockAdjustmentsService {
       reason: data.reason,
       createdById: data.createdById,
     });
-    const created = await this.repository.findByIdWithItemName(entity.id);
-    if (!created) throw new NotFoundException('Stock adjustment not found.');
 
     this.logger.log(`Created DRAFT adjustment ${entity.code} (${data.type}) for item ${data.inventoryItemId}`);
     return {
       success: true,
       message: `Stock adjustment "${entity.code}" created successfully.`,
-      data: StockAdjustmentDto.from(created),
+      data: StockAdjustmentDto.fromEntity(entity),
     };
   }
 

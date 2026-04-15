@@ -125,9 +125,12 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         inventoryItems.name,
         uom.symbol,
         users.fullName,
-      );
+      )
+      .limit(1);
 
-    return rows[0] as
+    const [row] = rows;
+
+    return row as
       | (StockAdjustment & {
           inventoryItemName: string;
           inventoryItemUomSymbol: string | null;

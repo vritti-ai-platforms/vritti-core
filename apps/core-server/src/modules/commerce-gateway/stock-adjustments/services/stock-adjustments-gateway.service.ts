@@ -61,7 +61,10 @@ export class StockAdjustmentsGatewayService {
     return this.nats.send('commerce', 'stockAdjustments.create', dto);
   }
 
-  async addLine(adjustmentId: string, dto: AddStockAdjustmentLineDto) {
+  async addLine(
+    adjustmentId: string,
+    dto: AddStockAdjustmentLineDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
     this.logger.log(`stockAdjustments.addLine — adjustment: ${adjustmentId}`);
     return this.nats.send('commerce', 'stockAdjustments.addLine', { adjustmentId, ...dto });
   }

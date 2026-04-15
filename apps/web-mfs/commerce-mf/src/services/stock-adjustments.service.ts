@@ -59,7 +59,9 @@ export function createStockAdjustment(data: CreateStockAdjustmentPayload): Promi
 }
 
 export function addStockAdjustmentLine(id: string, data: AddStockAdjustmentLinePayload): Promise<StockAdjustmentLineData> {
-  return axios.post<StockAdjustmentLineData>(`commerce-api/stock-adjustments/${id}/lines`, data).then((r) => r.data);
+  return axios
+    .post<CreateResponse<StockAdjustmentLineData>>(`commerce-api/stock-adjustments/${id}/lines`, data)
+    .then((r) => r.data.data);
 }
 
 export function updateStockAdjustmentLine(

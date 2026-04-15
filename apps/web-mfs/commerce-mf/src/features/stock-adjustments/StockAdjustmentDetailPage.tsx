@@ -116,6 +116,7 @@ export const StockAdjustmentDetailPage = () => {
             selectedLineId={selectedLineId}
             isDraft={Boolean(isDraft)}
             isOpeningStock={isOpeningStock}
+            onSelectLine={setSelectedLineId}
           />
         </PageContentDetails>
       </PageContent>
