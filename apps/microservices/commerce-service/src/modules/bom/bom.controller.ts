@@ -2,7 +2,7 @@ import type { BomDetailDto, BomDto } from '@domain/bom/dto/entity/bom.dto';
 import { BomService } from '@domain/bom/services/bom.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateBomDto } from './dto/request/create-bom.dto';
 import type { UpdateBomDto } from './dto/request/update-bom.dto';
 
@@ -50,7 +50,7 @@ export class BomController {
 
   // Deletes a BOM (cascades to lines)
   @MessagePattern({ cmd: 'bom.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`bom.delete — id: ${data.id}`);
     return this.bomService.delete(data.id);
   }

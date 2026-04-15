@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession, type SuccessResponseDto } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiCreateModifierGroup,
@@ -60,7 +60,7 @@ export class ModifierGroupsGatewayController {
   // Deletes a modifier group by ID
   @Delete(':id')
   @ApiDeleteModifierGroup()
-  async delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  async delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.modifierGroupsGatewayService.delete(id);
   }
 
@@ -86,7 +86,7 @@ export class ModifierGroupsGatewayController {
   // Deletes an option from a modifier group
   @Delete(':id/options/:optionId')
   @ApiDeleteModifierOption()
-  async deleteOption(@Param('id') id: string, @Param('optionId') optionId: string): Promise<{ success: boolean; message: string }> {
+  async deleteOption(@Param('id') id: string, @Param('optionId') optionId: string): Promise<SuccessResponseDto> {
     return this.modifierGroupsGatewayService.deleteOption(id, optionId);
   }
 }

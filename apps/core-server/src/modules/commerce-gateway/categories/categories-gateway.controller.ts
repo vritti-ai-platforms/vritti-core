@@ -90,7 +90,12 @@ export class CategoriesGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateCategory()
   async create(@Body() dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
-    return this.categoriesGatewayService.create(dto);
+    const data = await this.categoriesGatewayService.create(dto);
+    return {
+      success: true,
+      message: `Category "${data.name}" created successfully.`,
+      data,
+    };
   }
 
   // Returns a single category by ID
@@ -110,7 +115,7 @@ export class CategoriesGatewayController {
   // Deletes a category by ID
   @Delete(':id')
   @ApiDeleteCategory()
-  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<{ success: boolean; message: string }> {
+  async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     return this.categoriesGatewayService.delete(id);
   }
 }

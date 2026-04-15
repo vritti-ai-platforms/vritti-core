@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, UserId } from '@vritti/api-sdk';
+import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
@@ -51,7 +51,7 @@ export class SuppliersGatewayController {
 
   // Deletes a supplier by ID
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.suppliersGatewayService.delete(id);
   }
 
@@ -64,7 +64,7 @@ export class SuppliersGatewayController {
 
   // Unlinks an inventory item from a supplier
   @Delete('items/:itemId')
-  unlinkItem(@Param('itemId') itemId: string): Promise<{ success: boolean; message: string }> {
+  unlinkItem(@Param('itemId') itemId: string): Promise<SuccessResponseDto> {
     return this.suppliersGatewayService.unlinkItem(itemId);
   }
 }

@@ -5,7 +5,6 @@ import { CategoriesService } from '@domain/categories/services/categories.servic
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
-  type CreateResponseDto,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
@@ -53,7 +52,7 @@ export class CategoriesController {
 
   // Creates a new category (org_id/bu_id auto-filled by DB defaults from session vars)
   @MessagePattern({ cmd: 'categories.create' })
-  async create(@Payload() dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryDto>> {
+  async create(@Payload() dto: CreateCategoryDto): Promise<CategoryDto> {
     this.logger.log(`categories.create — name: ${dto.name}`);
     return this.categoriesService.create(dto);
   }
@@ -82,7 +81,7 @@ export class CategoriesController {
 
   // Deletes a category by ID
   @MessagePattern({ cmd: 'categories.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`categories.delete — id: ${data.id}`);
     return this.categoriesService.delete(data.id);
   }

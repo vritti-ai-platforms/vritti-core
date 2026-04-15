@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   ConflictException,
-  type CreateResponseDto,
   NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
@@ -62,7 +61,7 @@ export class UomService {
   }
 
   // Creates a new UOM
-  async create(data: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
+  async create(data: CreateUomDto): Promise<UomDto> {
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId);
 
     const entity = await this.uomRepository.create({
@@ -73,11 +72,7 @@ export class UomService {
     });
 
     this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);
-    return {
-      success: true,
-      message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
-      data: UomDto.from(entity),
-    };
+    return UomDto.from(entity);
   }
 
   // Finds a UOM by ID or throws NotFoundException

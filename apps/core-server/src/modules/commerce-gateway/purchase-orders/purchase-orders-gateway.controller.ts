@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk';
+import { RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import { UpdatePurchaseOrderDto } from './dto/request/update-purchase-order.dto';
@@ -51,7 +51,7 @@ export class PurchaseOrdersGatewayController {
 
   // Deletes a purchase order by ID
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.service.delete(id);
   }
 }

@@ -8,7 +8,7 @@ export class StockAdjustmentResponseDto {
   @ApiProperty({ example: 'WASTE' }) type: string;
   @ApiProperty({ example: 'DRAFT' }) status: string;
   @ApiPropertyOptional({ nullable: true }) reason: string | null;
-  @ApiPropertyOptional({ nullable: true }) createdById: string | null;
+  @ApiProperty() createdById: string;
   @ApiPropertyOptional({ nullable: true }) publishedAt: string | null;
   @ApiProperty() createdAt: string;
 }

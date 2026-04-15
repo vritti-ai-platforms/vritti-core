@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk';
+import { RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiCreateItem,
@@ -68,7 +68,7 @@ export class ItemsGatewayController {
   // Deletes an item by ID
   @Delete(':id')
   @ApiDeleteItem()
-  async delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  async delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.itemsGatewayService.delete(id);
   }
 
@@ -97,7 +97,7 @@ export class ItemsGatewayController {
   // Deletes a specific variant by ID
   @Delete(':id/variants/:variantId')
   @ApiDeleteItemVariant()
-  async deleteVariant(@Param('variantId') variantId: string): Promise<{ success: boolean; message: string }> {
+  async deleteVariant(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
     return this.itemsGatewayService.deleteVariant(variantId);
   }
 

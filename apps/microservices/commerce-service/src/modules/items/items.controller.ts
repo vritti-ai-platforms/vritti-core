@@ -1,6 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { ItemDto } from '@domain/items/dto/entity/item.dto';
 import type { ItemDetailDto, ItemVariantDto } from '@domain/items/dto/entity/item-detail.dto';
 import type { CreateItemDto } from './dto/request/create-item.dto';
@@ -48,7 +48,7 @@ export class ItemsController {
 
   // Deletes an item by ID
   @MessagePattern({ cmd: 'items.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`items.delete — id: ${data.id}`);
     return this.itemsService.delete(data.id);
   }
@@ -76,7 +76,7 @@ export class ItemsController {
 
   // Deletes a single variant by ID
   @MessagePattern({ cmd: 'items.variants.delete' })
-  async deleteVariant(@Payload() data: { variantId: string }): Promise<{ success: boolean; message: string }> {
+  async deleteVariant(@Payload() data: { variantId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`items.variants.delete — variantId: ${data.variantId}`);
     return this.itemsService.deleteVariant(data.variantId);
   }

@@ -15,7 +15,7 @@ export const stockAdjustments = coreSchema.table(
     type: stockAdjustmentTypeEnum('type').notNull(),
     status: stockAdjustmentStatusEnum('status').notNull().default('DRAFT'),
     reason: text('reason'),
-    createdById: uuid('created_by_id'),
+    createdById: uuid('created_by_id').notNull(),
     publishedAt: timestamp('published_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

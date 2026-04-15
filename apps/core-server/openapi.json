@@ -10362,7 +10362,8 @@
         },
         "required": [
           "inventoryItemId",
-          "type"
+          "type",
+          "reason"
         ]
       },
       "AddStockAdjustmentLineDto": {

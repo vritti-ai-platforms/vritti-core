@@ -49,12 +49,12 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
         type: data.type,
-        reason: data.reason || undefined,
+        reason: data.reason,
       })}
     >
       <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />
       <Select name="type" label="Adjustment Type" placeholder="Select type" options={adjustmentTypeOptions} />
-      <TextArea name="reason" label="Reason" placeholder="Optional reason for adjustment" />
+      <TextArea name="reason" label="Reason" placeholder="Enter reason for adjustment" />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>

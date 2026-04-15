@@ -32,9 +32,9 @@ export class CreateStockAdjustmentDto {
   @IsNumber()
   quantity: number;
 
-  @IsOptional()
   @IsString()
-  reason?: string;
+  @IsNotEmpty()
+  reason: string;
 
   @IsOptional()
   @IsUUID()

@@ -4,6 +4,7 @@ import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemBatches,
   inventoryItems,
+  type NewStockAdjustment,
   type StockAdjustment,
   type StockAdjustmentStatus,
   stockAdjustments,
@@ -108,7 +109,15 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
   async generateCode(): Promise<string> {
     const result = await this.db.select({ count: sql<number>`count(*)` }).from(stockAdjustments);
     const count = Number(result[0]?.count ?? 0);
-    return `SA-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    const now = new Date();
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return `SA-${yearMonth}-${String(count + 1).padStart(4, '0')}`;
+  }
+
+  // Creates a stock adjustment with an auto-generated code
+  async create(data: Omit<NewStockAdjustment, 'code'>): Promise<StockAdjustment> {
+    const code = await this.generateCode();
+    return super.create({ ...data, code });
   }
 
   async deleteById(id: string): Promise<void> {

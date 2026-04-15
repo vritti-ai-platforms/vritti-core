@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { AddStockAdjustmentLineDto } from './dto/request/add-stock-adjustment-line.dto';
 import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
@@ -38,9 +38,14 @@ export class StockAdjustmentsGatewayController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
+  async create(@Body() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
     this.logger.log('POST /commerce-api/stock-adjustments');
-    return this.service.create(dto);
+    const data = await this.service.create(dto);
+    return {
+      success: true,
+      message: `Stock adjustment "${data.code}" created successfully.`,
+      data,
+    };
   }
 
   @Post(':id/lines')

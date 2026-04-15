@@ -2,7 +2,7 @@ import type { SupplierDetailDto, SupplierDto, SupplierItemDto } from '@domain/su
 import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import type { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
@@ -45,7 +45,7 @@ export class SuppliersController {
   }
 
   @MessagePattern({ cmd: 'suppliers.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.delete — id: ${data.id}`);
     return this.service.delete(data.id);
   }
@@ -58,7 +58,7 @@ export class SuppliersController {
   }
 
   @MessagePattern({ cmd: 'suppliers.unlinkItem' })
-  async unlinkItem(@Payload() data: { supplierItemId: string }): Promise<{ success: boolean; message: string }> {
+  async unlinkItem(@Payload() data: { supplierItemId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.unlinkItem — id: ${data.supplierItemId}`);
     return this.service.unlinkItem(data.supplierItemId);
   }

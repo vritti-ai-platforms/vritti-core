@@ -8,7 +8,7 @@ export class StockAdjustmentDto {
   type: StockAdjustmentType;
   status: StockAdjustmentStatus;
   reason: string | null;
-  createdById: string | null;
+  createdById: string;
   publishedAt: string | null;
   createdAt: string;
 
@@ -21,7 +21,7 @@ export class StockAdjustmentDto {
     dto.type = entity.type;
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
-    dto.createdById = entity.createdById ?? null;
+    dto.createdById = entity.createdById;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;

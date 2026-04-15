@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession, type SuccessResponseDto } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiCreateTaxGroup,
@@ -55,7 +55,7 @@ export class TaxGroupsGatewayController {
   // Deletes a tax group by ID
   @Delete(':id')
   @ApiDeleteTaxGroup()
-  async delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  async delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.taxGroupsGatewayService.delete(id);
   }
 }

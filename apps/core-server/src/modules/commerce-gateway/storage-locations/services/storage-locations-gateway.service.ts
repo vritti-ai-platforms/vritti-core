@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, DataTableStateService, NatsClientService, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
+import { DataTableStateService, NatsClientService, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { SelectOptionsQueryDto } from '@vritti/api-sdk';
 import type { CreateStorageLocationDto } from '../dto/request/create-storage-location.dto';
 import type { ReorderStorageLocationsDto } from '../dto/request/reorder-storage-locations.dto';
@@ -62,7 +62,7 @@ export class StorageLocationsGatewayService {
   }
 
   // Creates a new storage location
-  async create(dto: CreateStorageLocationDto): Promise<CreateResponseDto<StorageLocationResponseDto>> {
+  async create(dto: CreateStorageLocationDto): Promise<StorageLocationResponseDto> {
     this.logger.log(`storageLocations.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'storageLocations.create', dto);
   }

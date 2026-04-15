@@ -1,4 +1,4 @@
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
 import type {
   StockAdjustmentData,
@@ -10,7 +10,7 @@ import type {
 export interface CreateStockAdjustmentPayload {
   inventoryItemId: string;
   type: StockAdjustmentType;
-  reason?: string;
+  reason: string;
 }
 
 export interface AddStockAdjustmentLinePayload {
@@ -36,7 +36,9 @@ export function getStockAdjustmentLinesTable(id: string): Promise<StockAdjustmen
 }
 
 export function createStockAdjustment(data: CreateStockAdjustmentPayload): Promise<StockAdjustmentData> {
-  return axios.post<StockAdjustmentData>('commerce-api/stock-adjustments', data).then((r) => r.data);
+  return axios
+    .post<CreateResponse<StockAdjustmentData>>('commerce-api/stock-adjustments', data)
+    .then((r) => r.data.data);
 }
 
 export function addStockAdjustmentLine(id: string, data: AddStockAdjustmentLinePayload): Promise<StockAdjustmentData> {

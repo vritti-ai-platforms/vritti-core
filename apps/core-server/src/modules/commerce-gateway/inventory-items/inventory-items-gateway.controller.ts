@@ -38,9 +38,14 @@ export class InventoryItemsGatewayController {
   // Creates a new inventory item
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
+  async create(@Body() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
     this.logger.log('POST /commerce-api/inventory-items');
-    return this.service.create(dto);
+    const data = await this.service.create(dto);
+    return {
+      success: true,
+      message: `Inventory item "${data.name}" (${data.code}) created successfully.`,
+      data,
+    };
   }
 
   // Returns a single inventory item
@@ -102,9 +107,14 @@ export class InventoryItemsGatewayController {
   // Creates a storage location config for an inventory item
   @Post(':id/storage-location-configs')
   @HttpCode(HttpStatus.CREATED)
-  createStorageLocationConfig(@Param('id') id: string, @Body() dto: CreateStorageLocationConfigDto) {
+  async createStorageLocationConfig(@Param('id') id: string, @Body() dto: CreateStorageLocationConfigDto) {
     this.logger.log(`POST /commerce-api/inventory-items/${id}/storage-location-configs`);
-    return this.service.createStorageLocationConfig(id, dto);
+    const data = await this.service.createStorageLocationConfig(id, dto);
+    return {
+      success: true,
+      message: 'Storage location configuration created successfully.',
+      data,
+    };
   }
 
   // Updates a storage location config

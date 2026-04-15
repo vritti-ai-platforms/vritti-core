@@ -33,7 +33,7 @@ export interface StockAdjustmentData {
   type: StockAdjustmentType;
   status: StockAdjustmentStatus;
   reason: string | null;
-  createdById: string | null;
+  createdById: string;
   publishedAt: string | null;
   createdAt: string;
 }
@@ -46,7 +46,7 @@ export const createStockAdjustmentSchema = z.object({
   type: z.enum(['OPENING_STOCK', 'WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'CORRECTION', 'PRODUCTION'], {
     message: 'Adjustment type is required',
   }),
-  reason: z.string().optional(),
+  reason: z.string().min(1, 'Reason is required'),
 });
 
 export type CreateStockAdjustmentFormData = z.infer<typeof createStockAdjustmentSchema>;

@@ -1,5 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import type { SuccessResponseDto } from '@vritti/api-sdk';
 import type { ModifierGroupDto, ModifierGroupWithOptionsDto } from '@domain/modifier-groups/dto/entity/modifier-group.dto';
 import type { ModifierOptionDto } from '@domain/modifier-groups/dto/entity/modifier-option.dto';
 import type { CreateModifierGroupDto } from './dto/request/create-modifier-group.dto';
@@ -46,7 +47,7 @@ export class ModifierGroupsController {
 
   // Deletes a modifier group by ID
   @MessagePattern({ cmd: 'modifierGroups.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`modifierGroups.delete — id: ${data.id}`);
     return this.modifierGroupsService.delete(data.id);
   }
@@ -68,7 +69,7 @@ export class ModifierGroupsController {
 
   // Removes an option from a modifier group
   @MessagePattern({ cmd: 'modifierGroups.options.delete' })
-  async deleteOption(@Payload() data: { optionId: string }): Promise<{ success: boolean; message: string }> {
+  async deleteOption(@Payload() data: { optionId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`modifierGroups.options.delete — optionId: ${data.optionId}`);
     return this.modifierGroupsService.deleteOption(data.optionId);
   }

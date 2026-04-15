@@ -47,9 +47,14 @@ export class UomGatewayController {
   // Creates a new UOM
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
+  async create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
     this.logger.log('POST /commerce-api/uom');
-    return this.uomGatewayService.create(dto);
+    const data = await this.uomGatewayService.create(dto);
+    return {
+      success: true,
+      message: `Unit "${data.name}" (${data.symbol}) created successfully.`,
+      data,
+    };
   }
 
   // Updates a UOM by ID

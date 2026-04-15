@@ -2,7 +2,7 @@ import type { UomDto } from '@domain/uom/dto/entity/uom.dto';
 import { UomService } from '@domain/uom/services/uom.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateUomDto } from './dto/request/create-uom.dto';
 import type { UpdateUomDto } from './dto/request/update-uom.dto';
 
@@ -35,7 +35,7 @@ export class UomController {
 
   // Creates a new UOM
   @MessagePattern({ cmd: 'uom.create' })
-  async create(@Payload() dto: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
+  async create(@Payload() dto: CreateUomDto): Promise<UomDto> {
     this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
     return this.uomService.create(dto);
   }

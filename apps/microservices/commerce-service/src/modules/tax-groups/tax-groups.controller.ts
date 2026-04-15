@@ -1,5 +1,6 @@
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import type { SuccessResponseDto } from '@vritti/api-sdk';
 import type { TaxGroupDto } from '@domain/tax-groups/dto/entity/tax-group.dto';
 import type { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
@@ -42,7 +43,7 @@ export class TaxGroupsController {
 
   // Deletes a tax group by ID
   @MessagePattern({ cmd: 'taxGroups.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`taxGroups.delete — id: ${data.id}`);
     return this.taxGroupsService.delete(data.id);
   }

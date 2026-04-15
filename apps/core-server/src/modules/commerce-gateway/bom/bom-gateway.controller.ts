@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, UserId } from '@vritti/api-sdk';
+import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateBomDto } from './dto/request/create-bom.dto';
 import { UpdateBomDto } from './dto/request/update-bom.dto';
@@ -50,7 +50,7 @@ export class BomGatewayController {
 
   // Deletes a BOM (cascades to lines)
   @Delete(':id')
-  delete(@Param('id') id: string): Promise<{ success: boolean; message: string }> {
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.service.delete(id);
   }
 }

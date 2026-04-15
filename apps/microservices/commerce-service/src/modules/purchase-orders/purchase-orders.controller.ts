@@ -2,7 +2,7 @@ import type { PurchaseOrderDetailDto, PurchaseOrderDto } from '@domain/purchase-
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
 import type { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderDto } from './dto/request/update-purchase-order.dto';
@@ -47,7 +47,7 @@ export class PurchaseOrdersController {
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.delete' })
-  async delete(@Payload() data: { id: string }): Promise<{ success: boolean; message: string }> {
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.delete — id: ${data.id}`);
     return this.service.delete(data.id);
   }

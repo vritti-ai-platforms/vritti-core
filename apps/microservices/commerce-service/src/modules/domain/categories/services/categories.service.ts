@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
-  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -102,7 +101,7 @@ export class CategoriesService {
   }
 
   // Creates a new category and returns the entity DTO
-  async create(data: CreateCategoryDto): Promise<CreateResponseDto<CategoryDto>> {
+  async create(data: CreateCategoryDto): Promise<CategoryDto> {
     if (data.parentId) {
       await this.assertNoCircularReference(null, data.parentId);
     }
@@ -115,11 +114,7 @@ export class CategoriesService {
     });
 
     this.logger.log(`Created category: ${entity.name} (${entity.id})`);
-    return {
-      success: true,
-      message: `Category "${entity.name}" created successfully.`,
-      data: CategoryDto.from(entity, true),
-    };
+    return CategoryDto.from(entity, true);
   }
 
   // Finds a category by ID or throws NotFoundException
