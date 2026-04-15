@@ -3,7 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
+import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { ClipboardList, Plus } from 'lucide-react';
 import { useStockAdjustmentLines } from '@/hooks/stock-adjustments';
 import type { StockAdjustmentType } from '@/schemas/stock-adjustments';
@@ -36,7 +36,9 @@ export const StockAdjustmentSidePanel = ({
       <PageContentPanel
         className="w-80"
         header={`Lines (${lines.length})`}
-        options={
+        isLoading={isLoadingLines}
+        contentClassName={!isLoadingLines && lines.length === 0 ? 'flex items-center justify-center p-3' : undefined}
+        actions={
           isDraft ? (
             <Button size="sm" onClick={addLineDialog.open} startAdornment={<Plus className="size-4" />}>
               Add Line
@@ -44,9 +46,7 @@ export const StockAdjustmentSidePanel = ({
           ) : null
         }
         content={
-          isLoadingLines ? (
-            <div className="p-4 text-sm text-muted-foreground">Loading lines…</div>
-          ) : lines.length === 0 ? (
+          lines.length === 0 ? (
             <Empty
               icon={<ClipboardList />}
               title="No lines"
@@ -58,10 +58,9 @@ export const StockAdjustmentSidePanel = ({
               {lines.map((line) => {
                 const active = selectedLineId === line.id;
                 return (
-                  <button
-                    type="button"
+                  <SidePanelListItem
                     key={line.id}
-                    className={`w-full rounded-md border px-3 py-2 text-left ${active ? 'bg-accent border-accent' : 'hover:bg-accent/40'}`}
+                    active={active}
                     onClick={() => onSelectLine(line.id)}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -80,7 +79,7 @@ export const StockAdjustmentSidePanel = ({
                       Items: {line.lineItemsCount}{' '}
                       {line.isLineItemsBalanced ? '• Balanced' : `• Delta ${line.lineItemsDelta}`}
                     </div>
-                  </button>
+                  </SidePanelListItem>
                 );
               })}
             </div>

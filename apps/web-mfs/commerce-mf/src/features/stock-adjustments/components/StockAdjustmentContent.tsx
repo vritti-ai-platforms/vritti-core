@@ -140,7 +140,7 @@ export const StockAdjustmentContent = ({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       {selectedLine ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-3">
@@ -223,20 +223,20 @@ export const StockAdjustmentContent = ({
           </Card>
         </div>
       ) : (
-        <div className="h-full">
+        <div className="flex-1 flex items-center justify-center">
           {isDraft ? (
             <Empty
               icon={<ClipboardList />}
               title="No line selected"
               description="Create or select a line from the left panel."
-              className="h-full"
+              className="py-8"
             />
           ) : (
             <Empty
               icon={<ClipboardList />}
               title="No lines"
               description="This adjustment has no lines."
-              className="h-full"
+              className="py-8"
             />
           )}
         </div>

@@ -32,6 +32,7 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
 
   return (
     <PageContentPanel
+      contentClassName={!isFetching && treeData.length === 0 ? 'flex items-center justify-center p-3' : undefined}
       header={
         <SearchBar
           placeholder="Search locations..."
