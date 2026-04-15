@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  type CreateResponseDto,
   DataTableStateService,
   NatsClientService,
   type SelectOptionsQueryDto,
@@ -56,7 +57,7 @@ export class CategoriesGatewayService {
   }
 
   // Creates a new category
-  async create(dto: CreateCategoryDto): Promise<CategoryResponseDto> {
+  async create(dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
     this.logger.log(`categories.create — name: ${dto.name}`);
     return this.nats.send('commerce', 'categories.create', dto);
   }

@@ -70,8 +70,8 @@ export class ModifierGroupsService {
     await this.modifierGroupsRepository.deleteItemModifierGroupsByGroupId(id);
     await this.modifierGroupsRepository.deleteOptionsByGroupId(id);
     await this.modifierGroupsRepository.delete(id);
-    this.logger.log(`Deleted modifier group: ${id}`);
-    return { success: true, message: 'Modifier group deleted successfully.' };
+    this.logger.log(`Deleted modifier group: ${existing.name} (${id})`);
+    return { success: true, message: `Modifier group "${existing.name}" deleted successfully.` };
   }
 
   // Creates a modifier option within a group
@@ -114,8 +114,8 @@ export class ModifierGroupsService {
     if (!existing) throw new NotFoundException('Modifier option not found.');
 
     await this.modifierGroupsRepository.deleteOption(optionId);
-    this.logger.log(`Deleted modifier option: ${optionId}`);
-    return { success: true, message: 'Modifier option deleted successfully.' };
+    this.logger.log(`Deleted modifier option: ${existing.name} (${optionId})`);
+    return { success: true, message: `Modifier option "${existing.name}" deleted successfully.` };
   }
 
   // Returns assigned modifier groups for an item with their options

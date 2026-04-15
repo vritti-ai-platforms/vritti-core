@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -101,7 +102,7 @@ export class CategoriesService {
   }
 
   // Creates a new category and returns the entity DTO
-  async create(data: CreateCategoryDto): Promise<CategoryDto> {
+  async create(data: CreateCategoryDto): Promise<CreateResponseDto<CategoryDto>> {
     if (data.parentId) {
       await this.assertNoCircularReference(null, data.parentId);
     }
@@ -114,7 +115,11 @@ export class CategoriesService {
     });
 
     this.logger.log(`Created category: ${entity.name} (${entity.id})`);
-    return CategoryDto.from(entity, true);
+    return {
+      success: true,
+      message: `Category "${entity.name}" created successfully.`,
+      data: CategoryDto.from(entity, true),
+    };
   }
 
   // Finds a category by ID or throws NotFoundException
@@ -216,7 +221,7 @@ export class CategoriesService {
     }
 
     await this.categoriesRepository.delete(id);
-    this.logger.log(`Deleted category: ${id}`);
-    return { success: true, message: 'Category deleted successfully.' };
+    this.logger.log(`Deleted category: ${existing.name} (${id})`);
+    return { success: true, message: `Category "${existing.name}" deleted successfully.` };
   }
 }

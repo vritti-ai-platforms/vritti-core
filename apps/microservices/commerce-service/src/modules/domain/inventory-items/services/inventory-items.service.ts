@@ -8,6 +8,7 @@ import { StorageLocationConfigsService } from '@domain/storage-location-configs/
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -79,7 +80,7 @@ export class InventoryItemsService {
   }
 
   // Creates a new inventory item
-  async create(data: CreateInventoryItemDto): Promise<InventoryItemDto> {
+  async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     const entity = await this.repository.create({
       name: data.name,
       code: data.code,
@@ -93,7 +94,11 @@ export class InventoryItemsService {
       this.repository.findCategoryName(entity.categoryId),
     ]);
     this.logger.log(`Created inventory item: ${entity.name} (${entity.code})`);
-    return InventoryItemDto.from(entity, uomSymbol, true, categoryName);
+    return {
+      success: true,
+      message: `Inventory item "${entity.name}" (${entity.code}) created successfully.`,
+      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName),
+    };
   }
 
   // Returns a single inventory item with UOM symbol and canDelete
@@ -139,7 +144,7 @@ export class InventoryItemsService {
   async createStorageLocationConfig(
     itemId: string,
     data: { locationId: string; reorderLevel: number },
-  ): Promise<StorageLocationConfigDto> {
+  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     return this.storageLocationConfigsService.create(itemId, data);

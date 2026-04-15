@@ -4,7 +4,7 @@ import { InventoryItemsService } from '@domain/inventory-items/services/inventor
 import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 
@@ -32,7 +32,7 @@ export class InventoryItemsController {
 
   // Creates a new inventory item
   @MessagePattern({ cmd: 'inventoryItems.create' })
-  async create(@Payload() dto: CreateInventoryItemDto): Promise<InventoryItemDto> {
+  async create(@Payload() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
     return this.service.create(dto);
   }
@@ -73,7 +73,7 @@ export class InventoryItemsController {
   @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.create' })
   async createStorageLocationConfig(
     @Payload() data: { itemId: string; locationId: string; reorderLevel: number },
-  ): Promise<StorageLocationConfigDto> {
+  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
     this.logger.log(`inventoryItems.storageLocationConfigs.create — itemId: ${data.itemId}`);
     return this.service.createStorageLocationConfig(data.itemId, { locationId: data.locationId, reorderLevel: data.reorderLevel });
   }

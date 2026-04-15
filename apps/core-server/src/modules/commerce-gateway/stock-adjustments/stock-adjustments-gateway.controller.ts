@@ -40,12 +40,7 @@ export class StockAdjustmentsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
     this.logger.log('POST /commerce-api/stock-adjustments');
-    const data = await this.service.create(dto);
-    return {
-      success: true,
-      message: `Stock adjustment "${data.code}" created successfully.`,
-      data,
-    };
+    return this.service.create(dto);
   }
 
   @Post(':id/lines')

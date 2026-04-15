@@ -77,12 +77,7 @@ export class StorageLocationsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateStorageLocationDto): Promise<CreateResponseDto<StorageLocationResponseDto>> {
     this.logger.log('POST /commerce-api/storage-locations');
-    const data = await this.storageLocationsGatewayService.create(dto);
-    return {
-      success: true,
-      message: `Storage location "${data.name}" (${data.code}) created successfully.`,
-      data,
-    };
+    return this.storageLocationsGatewayService.create(dto);
   }
 
   // Updates an storage location by ID

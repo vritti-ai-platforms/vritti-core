@@ -85,7 +85,7 @@ export class TaxGroupsService {
     const existing = await this.taxGroupsRepository.findById(id);
     if (!existing) throw new NotFoundException('Tax group not found.');
     await this.taxGroupsRepository.delete(id);
-    this.logger.log(`Deleted tax group: ${id}`);
-    return { success: true, message: 'Tax group deleted successfully.' };
+    this.logger.log(`Deleted tax group: ${existing.name} (${id})`);
+    return { success: true, message: `Tax group "${existing.name}" deleted successfully.` };
   }
 }

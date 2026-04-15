@@ -146,7 +146,7 @@ export class PurchaseOrdersService {
     }
     await this.repository.deleteItemsByPoId(id);
     await this.repository.delete(id);
-    this.logger.log(`Deleted PO: ${id}`);
-    return { success: true, message: 'Purchase order deleted successfully.' };
+    this.logger.log(`Deleted PO: ${existing.poNumber} (${id})`);
+    return { success: true, message: `Purchase order "${existing.poNumber}" deleted successfully.` };
   }
 }

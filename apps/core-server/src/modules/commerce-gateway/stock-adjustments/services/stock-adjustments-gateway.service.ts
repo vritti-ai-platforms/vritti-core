@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { AddStockAdjustmentLineDto } from '../dto/request/add-stock-adjustment-line.dto';
 import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjustment.dto';
 import type { UpdateStockAdjustmentLineDto } from '../dto/request/update-stock-adjustment-line.dto';
@@ -49,7 +49,7 @@ export class StockAdjustmentsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async create(dto: CreateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
+  async create(dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
     this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
     return this.nats.send('commerce', 'stockAdjustments.create', dto);
   }

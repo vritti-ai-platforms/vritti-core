@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -145,7 +146,7 @@ export class StorageLocationsService {
   }
 
   // Creates a new storage location
-  async create(data: CreateStorageLocationDto): Promise<StorageLocationDto> {
+  async create(data: CreateStorageLocationDto): Promise<CreateResponseDto<StorageLocationDto>> {
     if (data.parentId) {
       await this.assertNoCircularReference(null, data.parentId);
     }
@@ -161,7 +162,11 @@ export class StorageLocationsService {
       isActive: data.isActive,
     });
     this.logger.log(`Created storage location: ${entity.name} (${entity.code})`);
-    return StorageLocationDto.from(entity);
+    return {
+      success: true,
+      message: `Storage location "${entity.name}" (${entity.code}) created successfully.`,
+      data: StorageLocationDto.from(entity),
+    };
   }
 
   // Updates an storage location by ID

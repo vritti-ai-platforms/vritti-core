@@ -121,8 +121,8 @@ export class ItemsService {
     await this.itemsRepository.deleteVariantsByItemId(id);
     await this.itemsRepository.deleteOptionsByItemId(id);
     await this.itemsRepository.delete(id);
-    this.logger.log(`Deleted item: ${id}`);
-    return { success: true, message: 'Item deleted successfully.' };
+    this.logger.log(`Deleted item: ${existing.name} (${id})`);
+    return { success: true, message: `Item "${existing.name}" deleted successfully.` };
   }
 
   // Replaces all options and values for an item and returns updated detail
@@ -252,8 +252,8 @@ export class ItemsService {
     if (!existing) throw new NotFoundException('Variant not found.');
 
     await this.itemsRepository.deleteVariant(variantId);
-    this.logger.log(`Deleted variant: ${variantId}`);
-    return { success: true, message: 'Variant deleted successfully.' };
+    this.logger.log(`Deleted variant: ${existing.name} (${variantId})`);
+    return { success: true, message: `Variant "${existing.name}" deleted successfully.` };
   }
 
   // Computes the cartesian product of an array of arrays

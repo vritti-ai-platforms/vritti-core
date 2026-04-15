@@ -137,7 +137,7 @@ export class SuppliersService {
   async unlinkItem(supplierItemId: string): Promise<{ success: boolean; message: string }> {
     await this.repository.deleteSupplierItem(supplierItemId);
     this.logger.log(`Unlinked supplier item: ${supplierItemId}`);
-    return { success: true, message: 'Item unlinked from supplier.' };
+    return { success: true, message: `Supplier item link "${supplierItemId}" removed successfully.` };
   }
 
   // Deletes a supplier
@@ -145,7 +145,7 @@ export class SuppliersService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Supplier not found.');
     await this.repository.delete(id);
-    this.logger.log(`Deleted supplier: ${id}`);
-    return { success: true, message: 'Supplier deleted successfully.' };
+    this.logger.log(`Deleted supplier: ${existing.name} (${id})`);
+    return { success: true, message: `Supplier "${existing.name}" deleted successfully.` };
   }
 }

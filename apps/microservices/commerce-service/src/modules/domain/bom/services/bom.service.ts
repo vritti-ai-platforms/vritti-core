@@ -133,7 +133,7 @@ export class BomService {
     const existing = await this.bomRepository.findById(id);
     if (!existing) throw new NotFoundException('BOM not found.');
     await this.bomRepository.delete(id);
-    this.logger.log(`Deleted BOM: ${id}`);
-    return { success: true, message: 'BOM deleted successfully.' };
+    this.logger.log(`Deleted BOM: ${existing.name} (${id})`);
+    return { success: true, message: `BOM "${existing.name}" deleted successfully.` };
   }
 }

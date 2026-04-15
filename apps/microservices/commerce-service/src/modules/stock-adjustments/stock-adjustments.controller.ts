@@ -5,6 +5,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
   BadRequestException,
+  type CreateResponseDto,
   type NatsHeaders,
   RpcNatsHeaders,
   type SuccessResponseDto,
@@ -42,7 +43,7 @@ export class StockAdjustmentsController {
   async create(
     @Payload() data: { inventoryItemId: string; type: StockAdjustmentType; reason: string },
     @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<StockAdjustmentDto> {
+  ): Promise<CreateResponseDto<StockAdjustmentDto>> {
     this.logger.log(`stockAdjustments.create — item: ${data.inventoryItemId}, type: ${data.type}`);
     if (!headers.userId) {
       throw new BadRequestException('User ID is required to create stock adjustments.');

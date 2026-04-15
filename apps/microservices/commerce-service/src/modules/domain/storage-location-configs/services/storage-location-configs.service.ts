@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -48,7 +49,7 @@ export class StorageLocationConfigsService {
   async create(
     itemId: string,
     data: { locationId: string; reorderLevel: number },
-  ): Promise<StorageLocationConfigDto> {
+  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
     const existing = await this.repository.findByCompositeKey(itemId, data.locationId);
     if (existing) throw new ConflictException('A configuration already exists for this item at this location.');
 
@@ -60,7 +61,11 @@ export class StorageLocationConfigsService {
 
     const row = await this.repository.findByIdWithLocation(entity.id);
     this.logger.log(`Created storage location config for item ${itemId} at location ${data.locationId}`);
-    return StorageLocationConfigDto.from(row ?? { ...entity, locationName: null });
+    return {
+      success: true,
+      message: 'Storage location configuration created successfully.',
+      data: StorageLocationConfigDto.from(row ?? { ...entity, locationName: null }),
+    };
   }
 
   // Updates the reorder level of an existing config
@@ -81,7 +86,7 @@ export class StorageLocationConfigsService {
 
     await this.repository.delete(id);
     this.logger.log(`Deleted storage location config ${id}`);
-
-    return { success: true, message: 'Storage location configuration deleted successfully.' };
+    const locationLabel = existing.locationName ?? existing.locationId;
+    return { success: true, message: `Storage location configuration for "${locationLabel}" deleted successfully.` };
   }
 }

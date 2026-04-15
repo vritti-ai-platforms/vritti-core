@@ -6,6 +6,7 @@ import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/serv
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -70,7 +71,7 @@ export class StockAdjustmentsService {
     type: StockAdjustmentType;
     reason: string;
     createdById: string;
-  }): Promise<StockAdjustmentDto> {
+  }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
       type: data.type,
@@ -79,7 +80,11 @@ export class StockAdjustmentsService {
     });
 
     this.logger.log(`Created DRAFT adjustment ${entity.code} (${data.type}) for item ${data.inventoryItemId}`);
-    return StockAdjustmentDto.from(entity);
+    return {
+      success: true,
+      message: `Stock adjustment "${entity.code}" created successfully.`,
+      data: StockAdjustmentDto.from(entity),
+    };
   }
 
   // Publishes a DRAFT adjustment — atomically creates/adjusts batches and writes ledger entries
@@ -167,8 +172,8 @@ export class StockAdjustmentsService {
     }
 
     await this.repository.deleteById(id);
-    this.logger.log(`Deleted DRAFT adjustment ${id}`);
-    return { success: true, message: 'Adjustment deleted.' };
+    this.logger.log(`Deleted DRAFT adjustment ${adjustment.code} (${id})`);
+    return { success: true, message: `Stock adjustment "${adjustment.code}" deleted successfully.` };
   }
 
   // Returns paginated lines for an adjustment
@@ -205,7 +210,7 @@ export class StockAdjustmentsService {
     const adjustment = await this.repository.findByIdWithItemName(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     await this.linesService.removeLine(adjustment, lineId);
-    return { success: true, message: 'Line removed.' };
+    return { success: true, message: `Line "${lineId}" removed from adjustment "${adjustment.code}".` };
   }
 
   // Generates a batch number: {ITEM_CODE}-{YYMMDD}-{NNNN} (org-scoped sequence per item per day)

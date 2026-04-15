@@ -4,7 +4,7 @@ import type { StorageLocationTreeDto } from '@domain/storage-locations/dto/entit
 import { StorageLocationsService } from '@domain/storage-locations/services/storage-locations.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateStorageLocationDto } from './dto/request/create-storage-location.dto';
 import type { ReorderStorageLocationsDto } from './dto/request/reorder-storage-locations.dto';
 import type { UpdateStorageLocationDto } from './dto/request/update-storage-location.dto';
@@ -61,7 +61,7 @@ export class StorageLocationsController {
 
   // Creates a new storage location
   @MessagePattern({ cmd: 'storageLocations.create' })
-  async create(@Payload() dto: CreateStorageLocationDto): Promise<StorageLocationDto> {
+  async create(@Payload() dto: CreateStorageLocationDto): Promise<CreateResponseDto<StorageLocationDto>> {
     this.logger.log(`storageLocations.create — name: ${dto.name}, code: ${dto.code}`);
     return this.storageLocationsService.create(dto);
   }

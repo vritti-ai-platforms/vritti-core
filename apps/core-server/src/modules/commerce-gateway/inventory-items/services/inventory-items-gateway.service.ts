@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
@@ -39,7 +39,7 @@ export class InventoryItemsGatewayService {
   }
 
   // Creates a new inventory item
-  async create(dto: CreateInventoryItemDto): Promise<InventoryItemResponseDto> {
+  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
     this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'inventoryItems.create', dto);
   }

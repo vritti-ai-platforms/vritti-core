@@ -90,12 +90,7 @@ export class CategoriesGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateCategory()
   async create(@Body() dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
-    const data = await this.categoriesGatewayService.create(dto);
-    return {
-      success: true,
-      message: `Category "${data.name}" created successfully.`,
-      data,
-    };
+    return this.categoriesGatewayService.create(dto);
   }
 
   // Returns a single category by ID
