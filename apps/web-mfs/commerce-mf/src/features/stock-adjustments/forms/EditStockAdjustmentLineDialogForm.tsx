@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
+import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -15,6 +16,19 @@ const schema = z.object({
   expiryDate: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
+
+function formatLocationPathLabel(path: string): string {
+  return path
+    .split('.')
+    .map((segment) =>
+      segment
+        .split('_')
+        .filter(Boolean)
+        .map((part) => part.toUpperCase())
+        .join(' '),
+    )
+    .join(' / ');
+}
 
 interface EditStockAdjustmentLineDialogFormProps {
   adjustmentId: string;
@@ -35,18 +49,18 @@ export const EditStockAdjustmentLineDialogForm = ({
     resolver: zodResolver(schema),
     defaultValues: {
       quantity: String(line.quantity),
-      locationId: line.locationId ?? '',
-      manufacturingDate: line.manufacturingDate ?? '',
-      expiryDate: line.expiryDate ?? '',
+      locationId: line.locationId || undefined,
+      manufacturingDate: line.manufacturingDate || '',
+      expiryDate: line.expiryDate || '',
     },
   });
 
   useEffect(() => {
     form.reset({
       quantity: String(line.quantity),
-      locationId: line.locationId ?? '',
-      manufacturingDate: line.manufacturingDate ?? '',
-      expiryDate: line.expiryDate ?? '',
+      locationId: line.locationId || undefined,
+      manufacturingDate: line.manufacturingDate || '',
+      expiryDate: line.expiryDate || '',
     });
   }, [line, form]);
 
@@ -69,16 +83,22 @@ export const EditStockAdjustmentLineDialogForm = ({
           : {}),
       })}
     >
-      <div className="grid grid-cols-2 gap-4">
+      {isOpeningStock ? (
+        <>
+          <StorageLocationSelector
+            name="locationId"
+            label="Storage Location"
+            placeholder="Select location"
+            fieldKeys={{ valueKey: 'id', labelKey: 'path' }}
+            transformLabel={(label) => formatLocationPathLabel(label)}
+          />
+          <TextField name="quantity" label="Quantity" type="number" />
+          <TextField name="manufacturingDate" label="Manufacturing Date" type="date" />
+          <TextField name="expiryDate" label="Expiry Date" type="date" />
+        </>
+      ) : (
         <TextField name="quantity" label="Quantity" type="number" />
-        <TextField name="locationId" label="Location ID" disabled={!isOpeningStock} />
-        {isOpeningStock && (
-          <>
-            <TextField name="manufacturingDate" label="Manufacturing Date" type="date" />
-            <TextField name="expiryDate" label="Expiry Date" type="date" />
-          </>
-        )}
-      </div>
+      )}
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>

@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown } from 'lucide-react';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
@@ -103,29 +102,7 @@ export const AddStockAdjustmentLineDialog: React.FC<AddStockAdjustmentLineDialog
             label="Storage Location"
             placeholder="Select location"
             fieldKeys={{ valueKey: 'id', labelKey: 'path' }}
-            anchor={({ selectedOption, open, disabled }) => (
-              <button
-                type="button"
-                disabled={disabled}
-                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <span className={selectedOption ? 'truncate text-foreground' : 'truncate text-muted-foreground'}>
-                  {selectedOption ? formatLocationPathLabel(selectedOption.label) : 'Select location'}
-                </span>
-                <ChevronDown className={`ml-2 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
-              </button>
-            )}
-            renderOption={({ option, selected, onSelect }) => (
-              <button
-                type="button"
-                className={`w-full cursor-pointer rounded-sm px-2 py-1.5 text-left text-sm ${
-                  selected ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/60'
-                }`}
-                onClick={onSelect}
-              >
-                {formatLocationPathLabel(option.label)}
-              </button>
-            )}
+            transformLabel={(label) => formatLocationPathLabel(label)}
           />
           <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 50" />
           <TextField name="manufacturingDate" label="Manufacturing Date" type="date" />
