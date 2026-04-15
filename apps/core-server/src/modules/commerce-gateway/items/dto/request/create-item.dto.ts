@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
+
+const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 
 export class CreateItemDto {
   @ApiPropertyOptional({ description: 'Category ID' })
@@ -14,6 +16,9 @@ export class CreateItemDto {
   @ApiPropertyOptional({ description: 'Item code (auto-generated if not provided)' })
   @IsOptional()
   @IsString()
+  @Matches(ITEM_CODE_PATTERN, {
+    message: 'code must contain only uppercase letters, numbers, and hyphen (-).',
+  })
   code?: string;
 
   @ApiProperty({ description: 'Item name' })

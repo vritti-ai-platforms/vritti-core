@@ -1,5 +1,7 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 import type { InventoryItemType } from '@/db/schema';
+
+const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 
 export class CreateInventoryItemDto {
   @IsString()
@@ -10,10 +12,16 @@ export class CreateInventoryItemDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
+  @Matches(ITEM_CODE_PATTERN, {
+    message: 'code must contain only uppercase letters, numbers, and hyphen (-).',
+  })
   code: string;
 
   @IsEnum(['MATERIAL', 'PRODUCT'])
   type: InventoryItemType;
+
+  @IsUUID()
+  categoryId: string;
 
   @IsOptional()
   @IsString()

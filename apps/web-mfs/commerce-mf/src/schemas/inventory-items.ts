@@ -5,8 +5,9 @@ export const createInventoryItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   code: z.string().min(1, 'Code is required').max(100),
   type: z.enum(['MATERIAL', 'PRODUCT']),
+  categoryId: z.string().uuid('Category is required'),
   description: z.string().optional(),
-  uomId: z.string().min(1, 'Unit of measure is required'),
+  uomId: z.string().uuid('Unit of measure is required'),
 });
 
 export const updateInventoryItemSchema = z.object({
@@ -14,7 +15,8 @@ export const updateInventoryItemSchema = z.object({
   code: z.string().min(1).max(100).optional(),
   type: z.enum(['MATERIAL', 'PRODUCT']).optional(),
   description: z.string().nullable().optional(),
-  uomId: z.string().optional(),
+  categoryId: z.uuid('Category is required').optional(),
+  uomId: z.uuid('Unit of measure is required').optional(),
 });
 
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
@@ -28,6 +30,8 @@ export interface InventoryItemData {
   name: string;
   code: string;
   type: InventoryItemType;
+  categoryId: string;
+  categoryName: string | null;
   description: string | null;
   uomId: string;
   uomSymbol: string | null;

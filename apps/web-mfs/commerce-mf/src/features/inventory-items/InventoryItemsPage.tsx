@@ -6,6 +6,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { CategoryFilter } from '@vritti/quantum-ui/selects/category';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus } from 'lucide-react';
@@ -32,6 +33,11 @@ export const InventoryItemsPage = () => {
         accessorKey: 'name',
         header: 'Name',
         enableSorting: true,
+      },
+      {
+        accessorKey: 'categoryName',
+        header: 'Category',
+        cell: ({ row }) => row.original.categoryName ?? '—',
       },
       {
         accessorKey: 'type',
@@ -103,6 +109,7 @@ export const InventoryItemsPage = () => {
               { label: 'Product', value: 'PRODUCT' },
             ]}
           />,
+          <CategoryFilter key="categoryId" />,
           <UomFilter key="uomId" />,
         ]}
         toolbarActions={{

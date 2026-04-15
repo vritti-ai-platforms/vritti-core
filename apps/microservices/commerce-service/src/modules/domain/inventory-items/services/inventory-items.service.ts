@@ -32,6 +32,7 @@ export class InventoryItemsService {
     name: { column: inventoryItems.name, type: 'string' },
     code: { column: inventoryItems.code, type: 'string' },
     type: { column: inventoryItems.type, type: 'string' },
+    categoryId: { column: inventoryItems.categoryId, type: 'string' },
     uomId: { column: inventoryItems.uomId, type: 'string' },
   };
 
@@ -56,7 +57,7 @@ export class InventoryItemsService {
       offset,
     });
 
-    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol));
+    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName));
 
     return { result: dtos, count };
   }
@@ -84,15 +85,19 @@ export class InventoryItemsService {
       name: data.name,
       code: data.code,
       type: data.type,
+      categoryId: data.categoryId,
       description: data.description || null,
       uomId: data.uomId,
     });
-    const uomSymbol = await this.repository.findUomSymbol(entity.uomId);
+    const [uomSymbol, categoryName] = await Promise.all([
+      this.repository.findUomSymbol(entity.uomId),
+      this.repository.findCategoryName(entity.categoryId),
+    ]);
     this.logger.log(`Created inventory item: ${entity.name} (${entity.code})`);
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.code}) created successfully.`,
-      data: InventoryItemDto.from(entity, uomSymbol),
+      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName),
     };
   }
 
@@ -100,11 +105,12 @@ export class InventoryItemsService {
   async findById(id: string): Promise<InventoryItemDto> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    const [uomSymbol, referencedIds] = await Promise.all([
+    const [uomSymbol, categoryName, referencedIds] = await Promise.all([
       this.repository.findUomSymbol(entity.uomId),
+      this.repository.findCategoryName(entity.categoryId),
       this.repository.findReferencedIds([id]),
     ]);
-    return InventoryItemDto.from(entity, uomSymbol, !referencedIds.has(id));
+    return InventoryItemDto.from(entity, uomSymbol, !referencedIds.has(id), categoryName);
   }
 
   // Returns paginated batches for an inventory item

@@ -13,6 +13,12 @@ export class InventoryItemResponseDto {
   @ApiProperty({ enum: ['MATERIAL', 'PRODUCT'] })
   type: string;
 
+  @ApiProperty()
+  categoryId: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  categoryName: string | null;
+
   @ApiPropertyOptional({ nullable: true })
   description: string | null;
 

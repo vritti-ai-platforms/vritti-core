@@ -8858,6 +8858,10 @@
               "PRODUCT"
             ]
           },
+          "categoryId": {
+            "type": "string",
+            "description": "Category ID"
+          },
           "description": {
             "type": "string",
             "description": "Description"
@@ -8871,6 +8875,7 @@
           "name",
           "code",
           "type",
+          "categoryId",
           "uomId"
         ]
       },
@@ -8921,6 +8926,10 @@
               "MATERIAL",
               "PRODUCT"
             ]
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Category ID"
           },
           "description": {
             "type": "object",

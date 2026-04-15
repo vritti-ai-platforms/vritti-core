@@ -30,6 +30,10 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
               </Badge>
             </div>
             <div>
+              <p className="text-sm text-muted-foreground">Category</p>
+              <p className="mt-1 font-medium">{item.categoryName ?? '—'}</p>
+            </div>
+            <div>
               <p className="text-sm text-muted-foreground">Unit of Measure</p>
               <p className="mt-1 font-medium">{item.uomSymbol ?? '—'}</p>
             </div>

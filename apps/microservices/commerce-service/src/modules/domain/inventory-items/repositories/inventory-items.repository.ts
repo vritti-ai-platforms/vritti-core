@@ -8,6 +8,7 @@ import {
 import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   bomLines,
+  categories,
   conversionInputs,
   conversionOutputs,
   inventoryItems,
@@ -34,9 +35,20 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     orderBy?: SQL[];
     limit?: number;
     offset?: number;
-  }): Promise<{ result: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null })[]; count: number }> {
+  }): Promise<{
+    result: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];
+    count: number;
+  }> {
     return this.findAllAndCount({
-      select: { ...inventoryItems, uomSymbol: uom.symbol },
+      select: {
+        ...inventoryItems,
+        uomSymbol: uom.symbol,
+        categoryName: sql<string | null>`(
+          SELECT c.name
+          FROM ${categories} c
+          WHERE c.id = ${inventoryItems.categoryId}
+        )`,
+      },
       leftJoin: { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       where: options?.where,
       orderBy: options?.orderBy,
@@ -49,6 +61,12 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   async findUomSymbol(uomId: string): Promise<string | null> {
     const result = await this.db.select({ symbol: uom.symbol }).from(uom).where(eq(uom.id, uomId));
     return result[0]?.symbol ?? null;
+  }
+
+  // Returns category name for a given category ID
+  async findCategoryName(categoryId: string): Promise<string | null> {
+    const result = await this.db.select({ name: categories.name }).from(categories).where(eq(categories.id, categoryId));
+    return result[0]?.name ?? null;
   }
 
   // Returns a set of inventory item IDs that have at least one non-cascading reference

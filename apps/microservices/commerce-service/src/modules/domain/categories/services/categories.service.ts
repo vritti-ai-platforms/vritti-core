@@ -128,7 +128,7 @@ export class CategoriesService {
     if (!entity) throw new NotFoundException('Category not found.');
 
     const refs = await this.categoriesRepository.countReferences(id);
-    return CategoryDto.from(entity, refs.items === 0 && refs.childCategories === 0);
+    return CategoryDto.from(entity, refs.items === 0 && refs.inventoryItems === 0 && refs.childCategories === 0);
   }
 
   // Updates a category and returns the updated entity DTO
@@ -147,7 +147,7 @@ export class CategoriesService {
 
     this.logger.log(`Updated category: ${entity.name} (${entity.id})`);
     const refs = await this.categoriesRepository.countReferences(id);
-    return CategoryDto.from(entity, refs.items === 0 && refs.childCategories === 0);
+    return CategoryDto.from(entity, refs.items === 0 && refs.inventoryItems === 0 && refs.childCategories === 0);
   }
 
   // Reorders all siblings under a parent category using the provided final ID order
@@ -209,6 +209,7 @@ export class CategoriesService {
     const refs = await this.categoriesRepository.countReferences(id);
     const refLabels: [number, string][] = [
       [refs.items, 'item'],
+      [refs.inventoryItems, 'inventory item'],
       [refs.childCategories, 'child category'],
     ];
     const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);

@@ -1,5 +1,6 @@
 import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { categories } from './categories';
 import { coreSchema } from './core-schema';
 import { inventoryItemTypeEnum } from './enums';
 import { uom } from './uom';
@@ -13,6 +14,7 @@ export const inventoryItems = coreSchema.table(
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     type: inventoryItemTypeEnum('type').notNull(),
+    categoryId: uuid('category_id').notNull().references(() => categories.id),
     description: varchar('description', { length: 500 }),
     uomId: uuid('uom_id').notNull().references(() => uom.id),
     metadata: jsonb('metadata').notNull().default({}),
@@ -25,6 +27,7 @@ export const inventoryItems = coreSchema.table(
   (table) => [
     unique('uq_inventory_items_bu_code').on(table.businessUnitId, table.code),
     index('idx_inventory_items_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_inventory_items_category').on(table.categoryId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

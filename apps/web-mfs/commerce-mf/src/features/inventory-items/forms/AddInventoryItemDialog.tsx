@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -27,8 +28,9 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       name: '',
       code: '',
       type: 'MATERIAL',
+      categoryId: '',
       description: '',
-      uomId: undefined,
+      uomId: '',
     },
   });
 
@@ -39,6 +41,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       <RadioGroup name="type" label="Type" options={typeOptions} orientation="horizontal" />
       <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
       <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
+      <CategorySelector name="categoryId" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
       <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

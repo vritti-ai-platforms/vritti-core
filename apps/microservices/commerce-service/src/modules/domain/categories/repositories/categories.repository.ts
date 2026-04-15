@@ -7,7 +7,7 @@ import {
   type TypedDrizzleClient,
 } from '@vritti/api-sdk';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
-import { categories, items } from '@/db/schema';
+import { categories, inventoryItems, items } from '@/db/schema';
 
 @Injectable()
 export class CategoriesRepository extends PrimaryBaseRepository<typeof categories> {
@@ -164,12 +164,18 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
     }));
   }
 
-  // Returns a set of category IDs that are referenced by items
+  // Returns a set of category IDs that are referenced by catalog or inventory items
   async findReferencedIds(ids: string[]): Promise<Set<string>> {
     if (ids.length === 0) return new Set();
-    const rows = await this.db.select({ id: items.categoryId }).from(items).where(inArray(items.categoryId, ids));
+    const [itemRows, inventoryItemRows] = await Promise.all([
+      this.db.select({ id: items.categoryId }).from(items).where(inArray(items.categoryId, ids)),
+      this.db
+        .select({ id: inventoryItems.categoryId })
+        .from(inventoryItems)
+        .where(inArray(inventoryItems.categoryId, ids)),
+    ]);
     const referenced = new Set<string>();
-    for (const row of rows) {
+    for (const row of [...itemRows, ...inventoryItemRows]) {
       if (row.id) referenced.add(row.id);
     }
     return referenced;
@@ -186,12 +192,17 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
     return parentIds;
   }
 
-  // Counts references to this category across items and child categories
-  async countReferences(id: string): Promise<{ items: number; childCategories: number }> {
+  // Counts references to this category across items, inventory items, and child categories
+  async countReferences(id: string): Promise<{ items: number; inventoryItems: number; childCategories: number }> {
     const [itemRefs] = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(items)
       .where(eq(items.categoryId, id));
+
+    const [inventoryItemRefs] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryItems)
+      .where(eq(inventoryItems.categoryId, id));
 
     const [childRefs] = await this.db
       .select({ count: sql<number>`count(*)` })
@@ -200,6 +211,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
 
     return {
       items: Number(itemRefs?.count ?? 0),
+      inventoryItems: Number(inventoryItemRefs?.count ?? 0),
       childCategories: Number(childRefs?.count ?? 0),
     };
   }
