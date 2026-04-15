@@ -39,6 +39,10 @@ export function getStockAdjustmentLines(id: string): Promise<StockAdjustmentLine
   return axios.get<StockAdjustmentLineData[]>(`commerce-api/stock-adjustments/${id}/lines`).then((r) => r.data);
 }
 
+export function getStockAdjustmentLine(id: string, lineId: string): Promise<StockAdjustmentLineData> {
+  return axios.get<StockAdjustmentLineData>(`commerce-api/stock-adjustments/${id}/lines/${lineId}`).then((r) => r.data);
+}
+
 export function getStockAdjustmentLineItemsTable(
   id: string,
   lineId: string,

@@ -5,7 +5,8 @@ export { useDeleteStockAdjustment } from './useDeleteStockAdjustment';
 export { usePublishStockAdjustment } from './usePublishStockAdjustment';
 export { useRemoveStockAdjustmentLine } from './useRemoveStockAdjustmentLine';
 export { useRemoveStockAdjustmentLineItem } from './useRemoveStockAdjustmentLineItem';
-export { STOCK_ADJUSTMENT_KEY, useStockAdjustment, useSuspenseStockAdjustment } from './useStockAdjustment';
+export { STOCK_ADJUSTMENT_KEY, useStockAdjustment } from './useStockAdjustment';
+export { STOCK_ADJUSTMENT_LINE_KEY, useStockAdjustmentLine } from './useStockAdjustmentLine';
 export {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   useStockAdjustmentLineItemsTable,

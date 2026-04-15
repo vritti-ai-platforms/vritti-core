@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, DataTableStateService, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
+import {
+  type CreateResponseDto,
+  DataTableStateService,
+  NatsClientService,
+  type SuccessResponseDto,
+} from '@vritti/api-sdk';
 import type { AddStockAdjustmentLineDto } from '../dto/request/add-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '../dto/request/add-stock-adjustment-line-item.dto';
 import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjustment.dto';
@@ -7,6 +12,7 @@ import type { UpdateStockAdjustmentLineDto } from '../dto/request/update-stock-a
 import type { UpdateStockAdjustmentLineItemDto } from '../dto/request/update-stock-adjustment-line-item.dto';
 import type { StockAdjustmentLineItemResponseDto } from '../dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from '../dto/response/stock-adjustment-line-item-table-response.dto';
+import type { StockAdjustmentLineResponseDto } from '../dto/response/stock-adjustment-line-response.dto';
 import type { StockAdjustmentResponseDto } from '../dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from '../dto/response/stock-adjustment-table-response.dto';
 
@@ -40,9 +46,14 @@ export class StockAdjustmentsGatewayService {
     return this.nats.send('commerce', 'stockAdjustments.findById', { id });
   }
 
-  async findLines(adjustmentId: string) {
+  async findLines(adjustmentId: string): Promise<StockAdjustmentLineResponseDto[]> {
     this.logger.log(`stockAdjustments.lines — adjustment: ${adjustmentId}`);
     return this.nats.send('commerce', 'stockAdjustments.lines', { adjustmentId });
+  }
+
+  async findLineById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`stockAdjustments.lineById — adjustment: ${adjustmentId}, line: ${lineId}`);
+    return this.nats.send('commerce', 'stockAdjustments.lineById', { adjustmentId, lineId });
   }
 
   async create(dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {

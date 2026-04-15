@@ -1,20 +1,20 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Card, CardContent } from '@vritti/quantum-ui/Card';
+import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ClipboardList, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   useRemoveStockAdjustmentLine,
   useRemoveStockAdjustmentLineItem,
+  useStockAdjustmentLine,
   useStockAdjustmentLineItemsTable,
-  useStockAdjustmentLines,
 } from '@/hooks/stock-adjustments';
 import type { StockAdjustmentData, StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
 import { AddLineItemDialogForm } from '../forms/AddLineItemDialogForm';
@@ -41,16 +41,11 @@ export const StockAdjustmentContent = ({
   const editLineItemDialog = useDialog();
   const [editingItem, setEditingItem] = useState<StockAdjustmentLineItemData | null>(null);
 
-  const { data: lines = [] } = useStockAdjustmentLines(adjustment.id);
-  const selectedLine = useMemo(
-    () => lines.find((line) => line.id === selectedLineId) ?? lines[0] ?? null,
-    [lines, selectedLineId],
-  );
+  const { data: selectedLine } = useStockAdjustmentLine(adjustment.id, selectedLineId);
   const { data: lineItemsResponse, isLoading: isLoadingLineItems } = useStockAdjustmentLineItemsTable(
     adjustment.id,
     selectedLine?.id ?? null,
   );
-  const lineItems = lineItemsResponse?.result ?? [];
 
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
   const removeLineItemMutation = useRemoveStockAdjustmentLineItem(adjustment.id, selectedLine?.id ?? '');
@@ -83,30 +78,28 @@ export const StockAdjustmentContent = ({
         id: 'actions',
         header: '',
         cell: ({ row }) => (
-          <div className="flex items-center gap-2 justify-end">
-            {isDraft && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
+          <RowActions
+            actions={[
+              {
+                id: 'edit',
+                icon: Pencil,
+                label: 'Edit',
+                hidden: !isDraft,
+                onClick: () => {
                   setEditingItem(row.original);
                   editLineItemDialog.open();
-                }}
-              >
-                Edit
-              </Button>
-            )}
-            {isDraft && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => handleRemoveLineItem(row.original.id)}
-              >
-                Delete
-              </Button>
-            )}
-          </div>
+                },
+              },
+              {
+                id: 'delete',
+                icon: Trash2,
+                label: 'Delete',
+                variant: 'destructive',
+                hidden: !isDraft,
+                onClick: () => handleRemoveLineItem(row.original.id),
+              },
+            ]}
+          />
         ),
         enableSorting: false,
         enableHiding: false,
@@ -195,32 +188,25 @@ export const StockAdjustmentContent = ({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <CardTitle>Line Items ({lineItems.length})</CardTitle>
-                {isDraft && (
+          <div>
+            <DataTable
+              table={table}
+              mode="compact"
+              isLoading={isLoadingLineItems}
+              toolbarActions={{
+                actions: isDraft ? (
                   <Button size="sm" onClick={addLineItemDialog.open} startAdornment={<Plus className="size-4" />}>
                     Add Line Item
                   </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoadingLineItems ? (
-                <div className="text-sm text-muted-foreground">Loading line items…</div>
-              ) : lineItems.length === 0 ? (
-                <Empty
-                  icon={<MapPin />}
-                  title="No line items"
-                  description="Add line items. Their sum must match line quantity to publish."
-                  className="py-8"
-                />
-              ) : (
-                <DataTable table={table} mode="compact" isLoading={isLoadingLineItems} />
-              )}
-            </CardContent>
-          </Card>
+                ) : undefined,
+              }}
+              emptyStateConfig={{
+                icon: ClipboardList,
+                title: 'No line items',
+                description: 'Add line items. Their sum must match line quantity to publish.',
+              }}
+            />
+          </div>
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center">

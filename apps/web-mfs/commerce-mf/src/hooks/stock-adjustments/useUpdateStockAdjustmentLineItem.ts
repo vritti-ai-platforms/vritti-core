@@ -6,6 +6,7 @@ import {
   type AddStockAdjustmentLineItemPayload,
   updateStockAdjustmentLineItem,
 } from '@/services/stock-adjustments.service';
+import { STOCK_ADJUSTMENT_LINE_KEY } from './useStockAdjustmentLine';
 import { STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY } from './useStockAdjustmentLineItemsTable';
 import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
 
@@ -23,6 +24,7 @@ export function useUpdateStockAdjustmentLineItem(
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustmentId, lineId) });
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_KEY(adjustmentId) });
+      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_KEY(adjustmentId, lineId) });
       options?.onSuccess?.(...args);
     },
   });

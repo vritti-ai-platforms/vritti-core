@@ -9,6 +9,7 @@ import { UpdateStockAdjustmentLineDto } from './dto/request/update-stock-adjustm
 import { UpdateStockAdjustmentLineItemDto } from './dto/request/update-stock-adjustment-line-item.dto';
 import type { StockAdjustmentLineItemResponseDto } from './dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from './dto/response/stock-adjustment-line-item-table-response.dto';
+import type { StockAdjustmentLineResponseDto } from './dto/response/stock-adjustment-line-response.dto';
 import type { StockAdjustmentResponseDto } from './dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from './dto/response/stock-adjustment-table-response.dto';
 import { StockAdjustmentsGatewayService } from './services/stock-adjustments-gateway.service';
@@ -35,9 +36,15 @@ export class StockAdjustmentsGatewayController {
   }
 
   @Get(':id/lines')
-  getLines(@Param('id') id: string) {
+  getLines(@Param('id') id: string): Promise<StockAdjustmentLineResponseDto[]> {
     this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines`);
     return this.service.findLines(id);
+  }
+
+  @Get(':id/lines/:lineId')
+  getLineById(@Param('id') id: string, @Param('lineId') lineId: string): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/${lineId}`);
+    return this.service.findLineById(id, lineId);
   }
 
   @Post()

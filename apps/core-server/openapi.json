@@ -5904,22 +5904,29 @@
         ]
       }
     },
-    "/commerce-api/stock-adjustments": {
-      "post": {
-        "operationId": "StockAdjustmentsGatewayController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateStockAdjustmentDto"
-              }
+    "/commerce-api/stock-adjustments/{id}/lines/{lineId}": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLineById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
-          "201": {
+          "200": {
             "description": ""
           }
         },
@@ -5931,9 +5938,7 @@
         "tags": [
           "Commerce - Stock Adjustments"
         ]
-      }
-    },
-    "/commerce-api/stock-adjustments/{id}/lines/{lineId}": {
+      },
       "patch": {
         "operationId": "StockAdjustmentsGatewayController_updateLine",
         "parameters": [
@@ -6000,6 +6005,35 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments": {
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStockAdjustmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": ""
           }
         },

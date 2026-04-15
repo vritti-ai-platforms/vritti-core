@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   useDeleteStockAdjustment,
   usePublishStockAdjustment,
-  useSuspenseStockAdjustment,
+  useStockAdjustment,
 } from '@/hooks/stock-adjustments';
 import type {
   StockAdjustmentStatus,
@@ -42,7 +42,7 @@ export const StockAdjustmentDetailPage = () => {
   const confirm = useConfirm();
   const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
 
-  const { data: adjustment } = useSuspenseStockAdjustment(id ?? '');
+  const { data: adjustment } = useStockAdjustment(id ?? '');
   const deleteMutation = useDeleteStockAdjustment();
   const publishMutation = usePublishStockAdjustment();
 

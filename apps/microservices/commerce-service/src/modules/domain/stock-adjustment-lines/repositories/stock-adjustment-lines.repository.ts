@@ -75,6 +75,35 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     return rows[0] as StockAdjustmentLine | undefined;
   }
 
+  async findByAdjustmentIdAndLineId(
+    adjustmentId: string,
+    lineId: string,
+  ): Promise<(StockAdjustmentLine & { locationName: string | null }) | undefined> {
+    const rows = await this.db
+      .select({
+        id: stockAdjustmentLines.id,
+        organizationId: stockAdjustmentLines.organizationId,
+        businessUnitId: stockAdjustmentLines.businessUnitId,
+        stockAdjustmentId: stockAdjustmentLines.stockAdjustmentId,
+        createdById: stockAdjustmentLines.createdById,
+        batchId: stockAdjustmentLines.batchId,
+        locationId: stockAdjustmentLines.locationId,
+        quantity: stockAdjustmentLines.quantity,
+        batchNumber: stockAdjustmentLines.batchNumber,
+        isBalanced: stockAdjustmentLines.isBalanced,
+        manufacturingDate: stockAdjustmentLines.manufacturingDate,
+        expiryDate: stockAdjustmentLines.expiryDate,
+        createdAt: stockAdjustmentLines.createdAt,
+        updatedAt: stockAdjustmentLines.updatedAt,
+        locationName: storageLocations.name,
+      })
+      .from(stockAdjustmentLines)
+      .leftJoin(storageLocations, eq(stockAdjustmentLines.locationId, storageLocations.id))
+      .where(and(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId), eq(stockAdjustmentLines.id, lineId)));
+
+    return rows[0] as (StockAdjustmentLine & { locationName: string | null }) | undefined;
+  }
+
   async deleteLine(lineId: string): Promise<void> {
     await this.db.delete(stockAdjustmentLines).where(eq(stockAdjustmentLines.id, lineId));
   }

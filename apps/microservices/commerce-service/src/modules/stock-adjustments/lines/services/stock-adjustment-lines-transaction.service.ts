@@ -15,6 +15,10 @@ export class StockAdjustmentLinesTransactionService {
     return this.linesService.findByAdjustmentId(adjustmentId);
   }
 
+  lineById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineDto> {
+    return this.linesService.findById(adjustmentId, lineId);
+  }
+
   addLine(
     data: {
       adjustmentId: string;

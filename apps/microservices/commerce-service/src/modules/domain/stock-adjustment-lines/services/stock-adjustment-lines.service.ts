@@ -213,6 +213,25 @@ export class StockAdjustmentLinesService {
     });
   }
 
+  async findById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineDto> {
+    const line = await this.repository.findByAdjustmentIdAndLineId(adjustmentId, lineId);
+    if (!line) throw new NotFoundException('Stock adjustment line not found.');
+
+    const stats = await this.lineItemsRepository.findStatsByLineIds([line.id]);
+    const lineStats = stats.get(line.id);
+    const sum = Number(lineStats?.lineItemsQuantitySum ?? 0);
+    const lineQty = Number(line.quantity);
+
+    return StockAdjustmentLineDto.from({
+      ...line,
+      lineItemsCount: Number(lineStats?.lineItemsCount ?? 0),
+      lineItemsQuantitySum: sum,
+      lineItemsDelta: Number((lineQty - sum).toFixed(3)),
+      isBalanced: line.isBalanced,
+      isLineItemsBalanced: line.isBalanced,
+    });
+  }
+
   private validateLineForType(type: StockAdjustmentType, data: { batchId?: string; locationId?: string }): void {
     if (type === StockAdjustmentTypeValues.OPENING_STOCK) {
       if (!data.locationId) {
