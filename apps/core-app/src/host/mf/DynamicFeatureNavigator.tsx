@@ -10,9 +10,9 @@ import { Text } from '@vritti/quantum-ui-native/Typography';
 // ---------------------------------------------------------------------------
 
 function getContainerName(_remoteEntry: string): string {
-  // All commerce features come from the "commerce" container.
+  // All commerce features come from the "commerce-ma" container.
   // Extend this when adding more native MF remotes.
-  return 'commerce';
+  return 'commerce-ma';
 }
 
 // ---------------------------------------------------------------------------

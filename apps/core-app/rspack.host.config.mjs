@@ -63,9 +63,9 @@ export default (env) => {
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
   const devRemoteHost = platform === 'android' ? '10.0.2.2' : 'localhost';
-  const commerceManifestUrl =
+  const commerceMaManifestUrl =
     mode === 'production'
-      ? `${process.env['MF_COMMERCE_NATIVE_URL'] ?? 'https://mf.vrittiai.com/commerce-native'}/${platform}/mf-manifest.json`
+      ? `${process.env['MF_COMMERCE_MA_NATIVE_URL'] ?? process.env['MF_COMMERCE_NATIVE_URL'] ?? 'https://mf.vrittiai.com/commerce-ma'}/${platform}/mf-manifest.json`
       : `http://${devRemoteHost}:9002/${platform}/mf-manifest.json`;
 
   return {
@@ -179,7 +179,7 @@ export default (env) => {
         filename: 'vritti_core_app.container.js.bundle',
         dts: false,
         remotes: {
-          commerce: `commerce@${commerceManifestUrl}`,
+          'commerce-ma': `commerce_ma@${commerceMaManifestUrl}`,
         },
         shared: {
           react: { singleton: true, eager: true, requiredVersion: '19.2.3' },
@@ -193,7 +193,6 @@ export default (env) => {
           axios: { singleton: true, eager: true },
           'react-native-reanimated': { singleton: true, eager: true },
           'react-native-worklets': { singleton: true, eager: true },
-          'react-native-css': { singleton: true, eager: true },
           'nativewind': { singleton: true, eager: true },
         },
       }),

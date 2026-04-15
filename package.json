@@ -12,7 +12,7 @@
     "dev:app:android": "pnpm --filter vritti-core-app android",
     "dev:app:ios": "pnpm --filter vritti-core-app ios",
     "dev:native:host": "pnpm --filter vritti-core-app start",
-    "dev:native:commerce": "pnpm --filter vritti-core-app start:commerce",
+    "dev:native:commerce": "pnpm --filter commerce-ma start",
     "dev:native:ios": "pnpm --filter vritti-core-app ios",
     "dev:native:android": "pnpm --filter vritti-core-app android",
     "build": "nx run-many --target=build --all",

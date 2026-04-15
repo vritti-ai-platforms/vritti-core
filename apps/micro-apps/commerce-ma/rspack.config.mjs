@@ -7,8 +7,8 @@ import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const workspaceRoot = path.resolve(__dirname, '../../');
-const quantumUiNative = path.resolve(__dirname, '../../..', 'quantum-ui-native');
+const workspaceRoot = path.resolve(__dirname, '../../..');
+const quantumUiNative = path.resolve(__dirname, '../../../..', 'quantum-ui-native');
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)
@@ -35,37 +35,31 @@ const componentDirs = [
 ];
 
 const quantumAliases = {
-  // Non-component subpaths
   '@vritti/quantum-ui-native/utils': path.join(quantumUiNative, 'lib/utils/index.ts'),
   '@vritti/quantum-ui-native/hooks': path.join(quantumUiNative, 'lib/hooks/index.ts'),
   '@vritti/quantum-ui-native/config': path.join(quantumUiNative, 'lib/config/index.ts'),
   '@vritti/quantum-ui-native/context': path.join(quantumUiNative, 'lib/context/index.ts'),
   '@vritti/quantum-ui-native/theme': path.join(quantumUiNative, 'lib/theme/index.ts'),
   '@vritti/quantum-ui-native/types': path.join(quantumUiNative, 'lib/types/index.ts'),
-  // Component subpaths
   ...Object.fromEntries(
     componentDirs.map((dir) => [
       `@vritti/quantum-ui-native/${dir}`,
       path.join(quantumUiNative, `lib/components/${dir}/index.ts`),
     ]),
   ),
-  // Main entry (must come AFTER subpath aliases)
   '@vritti/quantum-ui-native': path.join(quantumUiNative, 'lib/index.tsx'),
 };
-
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
 
 /** @type {(env: import('@callstack/repack').EnvOptions) => import('@rspack/core').Configuration} */
 export default (env) => {
   const { platform, mode } = env;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
+
   return {
     mode,
     context: __dirname,
-    entry: './src/mini-apps/commerce/index.ts',
+    entry: './src/index.ts',
 
     resolve: {
       ...Repack.getResolveOptions(platform),
@@ -93,13 +87,12 @@ export default (env) => {
     },
 
     output: {
-      path: '[context]/build/commerce-ma/[platform]',
-      uniqueName: 'commerce',
+      path: '[context]/build/[platform]',
+      uniqueName: 'commerce_ma',
     },
 
     module: {
       rules: [
-        // lucide-react-native: SWC directly (bypasses hermes parser issue with `const Infinity`)
         {
           test: /\.[cm]?[jt]sx?$/,
           include: [/node_modules[\\/]+lucide-react-native/],
@@ -114,8 +107,6 @@ export default (env) => {
             },
           },
         },
-
-        // All other JS/TS: babel-swc-loader (RN 0.83 compatible)
         {
           test: /\.[cm]?[jt]sx?$/,
           exclude: [/node_modules[\\/]+lucide-react-native/],
@@ -126,11 +117,7 @@ export default (env) => {
             options: {},
           },
         },
-
-        // Assets
         ...Repack.getAssetTransformRules(),
-
-        // CSS: PostCSS (Tailwind v4) -> rn-css-loader (react-native-css compiler)
         ...(isNative
           ? [
               {
@@ -162,20 +149,20 @@ export default (env) => {
           {
             include: /.*/,
             type: 'remote',
-            outputPath: `build/commerce-ma/${platform}/output-remote`,
+            outputPath: `build/${platform}/output-remote`,
           },
         ],
       }),
       new ReanimatedPlugin({ unstable_disableTransform: true }),
 
       new Repack.plugins.ModuleFederationPluginV2({
-        name: 'commerce',
-        filename: 'commerce.container.js.bundle',
+        name: 'commerce_ma',
+        filename: 'commerce-ma.container.js.bundle',
         dts: false,
         exposes: {
-          './Items': './src/mini-apps/commerce/features/items/index.tsx',
-          './Categories': './src/mini-apps/commerce/features/categories/index.tsx',
-          './Modifiers': './src/mini-apps/commerce/features/modifiers/index.tsx',
+          './Items': './src/exposes/ItemsScreen.tsx',
+          './Categories': './src/exposes/CategoriesScreen.tsx',
+          './Modifiers': './src/exposes/ModifiersScreen.tsx',
         },
         shared: {
           react: { singleton: true, eager: false, requiredVersion: '19.2.3' },
@@ -189,12 +176,10 @@ export default (env) => {
           axios: { singleton: true, eager: false },
           'react-native-reanimated': { singleton: true, eager: false },
           'react-native-worklets': { singleton: true, eager: false },
-          'react-native-css': { singleton: true, eager: false },
-          'nativewind': { singleton: true, eager: false },
+          nativewind: { singleton: true, eager: false },
         },
       }),
 
-      // react-native-css component resolution fixes
       ...(isNative
         ? [
             new rspack.NormalModuleReplacementPlugin(
@@ -209,7 +194,6 @@ export default (env) => {
                 resource.request = rnCssComponentsPath;
               },
             ),
-            // Stub out Metro setup check — not needed with Re.Pack
             new rspack.NormalModuleReplacementPlugin(
               /react-native-css-metro-override/,
               require.resolve('./noop.js'),

@@ -6,18 +6,18 @@ const remoteCache = new Map<string, React.LazyExoticComponent<React.ComponentTyp
 
 type RemoteModule = { default: React.ComponentType };
 
-const commerceModules = {
-  './Items': () => import('commerce/Items'),
-  './Categories': () => import('commerce/Categories'),
-  './Modifiers': () => import('commerce/Modifiers'),
+const commerceMaModules = {
+  './Items': () => import('commerce-ma/Items'),
+  './Categories': () => import('commerce-ma/Categories'),
+  './Modifiers': () => import('commerce-ma/Modifiers'),
 } as Record<string, () => Promise<RemoteModule>>;
 
 const remoteModuleLoaders = {
-  commerce: commerceModules,
+  'commerce-ma': commerceMaModules,
 } as Record<string, Record<string, () => Promise<RemoteModule>>>;
 
 interface RemoteScreenProps {
-  /** MF container name (e.g. 'commerce') */
+  /** MF container name (e.g. 'commerce-ma') */
   remoteName: string;
   /** Module path exposed by the remote (e.g. './Items') */
   moduleName: string;

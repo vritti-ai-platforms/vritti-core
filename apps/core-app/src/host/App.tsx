@@ -26,7 +26,7 @@ const commerceRoutes: RouteConfig[] = [
     label: 'Items',
     icon: {},
     component: () => (
-      <RemoteScreen remoteName="commerce" moduleName="./Items" />
+      <RemoteScreen remoteName="commerce-ma" moduleName="./Items" />
     ),
   },
   {
@@ -34,7 +34,7 @@ const commerceRoutes: RouteConfig[] = [
     label: 'Categories',
     icon: {},
     component: () => (
-      <RemoteScreen remoteName="commerce" moduleName="./Categories" />
+      <RemoteScreen remoteName="commerce-ma" moduleName="./Categories" />
     ),
   },
   {
@@ -42,7 +42,7 @@ const commerceRoutes: RouteConfig[] = [
     label: 'Modifiers',
     icon: {},
     component: () => (
-      <RemoteScreen remoteName="commerce" moduleName="./Modifiers" />
+      <RemoteScreen remoteName="commerce-ma" moduleName="./Modifiers" />
     ),
   },
 ];

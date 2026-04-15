@@ -7,7 +7,7 @@ import { PressableCard } from '@vritti/quantum-ui-native/Card';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';
-import mobileAxiosConfig from '../../quantum-ui-native.config';
+import mobileAxiosConfig from '../../../quantum-ui-native.config';
 import { getDeployments } from '../services/deployment.service';
 import type { Deployment, DeploymentStatus } from '../types/deployment';
 import type { RootStackParamList } from '../types/navigation';

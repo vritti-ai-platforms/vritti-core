@@ -1,6 +1,5 @@
-import '../../global.css';
 import { lazy, Suspense } from 'react';
-import { AppRegistry, View } from 'react-native';
+import { AppRegistry } from 'react-native';
 import { ScriptManager, Script } from '@callstack/repack/client';
 
 // Resolve local split chunks (bootstrap, vendors).
@@ -21,7 +20,7 @@ const LazyApp = lazy(() => import('./bootstrap'));
 
 function Root() {
   return (
-    <Suspense fallback={<View style={{ flex: 1 }} />}>
+    <Suspense fallback={null}>
       <LazyApp />
     </Suspense>
   );

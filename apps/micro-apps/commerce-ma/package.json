@@ -1,11 +1,9 @@
 {
-  "name": "vritti-core-app",
+  "name": "commerce-ma",
   "version": "1.0.0",
-  "main": "src/host/index.tsx",
+  "main": "src/index.ts",
   "scripts": {
-    "start": "react-native start --config rspack.host.config.mjs",
-    "android": "react-native run-android",
-    "ios": "react-native run-ios"
+    "start": "react-native start --config rspack.config.mjs --port 9002"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -25,7 +23,6 @@
     "react-hook-form": "^7.71.2",
     "react-native": "0.83.2",
     "react-native-css": "3.0.6",
-    "react-native-keychain": "^10.0.0",
     "react-native-nitro-modules": "^0.35.3",
     "react-native-reanimated": "^4.3.0",
     "react-native-safe-area-context": "^5.7.0",
@@ -39,7 +36,7 @@
   "devDependencies": {
     "@callstack/repack": "5.2.5",
     "@callstack/repack-plugin-reanimated": "^5.2.5",
-"@react-native-community/cli": "20.0.0",
+    "@react-native-community/cli": "20.0.0",
     "@react-native-community/cli-platform-android": "20.0.0",
     "@react-native-community/cli-platform-ios": "20.0.0",
     "@rspack/core": "^1.7.11",

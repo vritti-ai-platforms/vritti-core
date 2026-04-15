@@ -1,3 +1,4 @@
+import '../../global.css';
 // Runs AFTER MF async boundary — shared modules are safe to import here.
 import { enableScreens } from 'react-native-screens';
 import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';

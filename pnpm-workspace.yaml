@@ -1,5 +1,6 @@
 packages:
   - apps/*
+  - apps/micro-apps/*
   - apps/microservices/*
   - apps/web-mfs/*
   - e2e/*
