@@ -140,7 +140,7 @@ export const StockAdjustmentContent = ({
   }
 
   return (
-    <div className="flex-1 overflow-auto p-6 min-w-0 flex flex-col">
+    <div className="flex flex-col">
       {selectedLine ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-3">

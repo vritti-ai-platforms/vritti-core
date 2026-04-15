@@ -1,4 +1,5 @@
 import { Empty } from '@vritti/quantum-ui/Empty';
+import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
 import { SearchBar } from '@vritti/quantum-ui/SearchBar';
 import type { TreeReorderPayload } from '@vritti/quantum-ui/TreeView';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
@@ -30,8 +31,8 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
   );
 
   return (
-    <div className="w-72 border-r flex flex-col shrink-0 overflow-hidden">
-      <div className="p-3 border-b shrink-0 flex flex-col gap-2">
+    <PageContentPanel
+      header={
         <SearchBar
           placeholder="Search locations..."
           value={inputValue}
@@ -39,10 +40,10 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
           onDebouncedChange={setSearchQuery}
           debounceMs={250}
         />
-      </div>
-
-      <div className="flex-1 overflow-auto">
-        {!isFetching && treeData.length === 0 ? (
+      }
+      headerClassName="shrink-0"
+      content={
+        !isFetching && treeData.length === 0 ? (
           <Empty
             icon={<FolderTree />}
             title={searchQuery ? 'No results' : 'No locations'}
@@ -62,8 +63,8 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
             defaultNodeIcon={MapPinCheck}
             defaultLeafIcon={MapPin}
           />
-        )}
-      </div>
-    </div>
+        )
+      }
+    />
   );
 };

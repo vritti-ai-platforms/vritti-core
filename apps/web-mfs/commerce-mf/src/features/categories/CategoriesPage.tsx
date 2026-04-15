@@ -3,7 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { FolderTree, Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -33,7 +33,7 @@ export const CategoriesPage = () => {
       <PageContent>
         <CategoryTreePanel selectedId={selectedId} onSelect={setSelectedId} />
 
-        <div className="flex-1 overflow-auto p-6 min-w-0 flex flex-col">
+        <PageContentDetails className="flex flex-col">
           {selectedCategory ? (
             <CategoryDetailPanel category={selectedCategory} onSelectCategory={setSelectedId} />
           ) : selectedId && isSelectedCategoryLoading ? (
@@ -46,7 +46,7 @@ export const CategoriesPage = () => {
               className="flex-1"
             />
           )}
-        </div>
+        </PageContentDetails>
       </PageContent>
 
       <Dialog

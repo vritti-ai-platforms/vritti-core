@@ -3,7 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { MapPin, Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -32,7 +32,7 @@ export const StorageLocationsPage = () => {
       <PageContent>
         <LocationTreePanel selectedId={selectedId} onSelect={setSelectedId} />
 
-        <div className="flex-1 overflow-auto p-6 min-w-0 flex flex-col">
+        <PageContentDetails className="flex flex-col">
           {selectedId ? (
             <LocationDetailPanel selectedId={selectedId} onSelectLocation={setSelectedId} />
           ) : (
@@ -43,7 +43,7 @@ export const StorageLocationsPage = () => {
               className="h-full"
             />
           )}
-        </div>
+        </PageContentDetails>
       </PageContent>
 
       <Dialog

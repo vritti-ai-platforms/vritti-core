@@ -2,7 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
-import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { CheckCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -110,12 +110,14 @@ export const StockAdjustmentDetailPage = () => {
           isDraft={Boolean(isDraft)}
           onSelectLine={setSelectedLineId}
         />
-        <StockAdjustmentContent
-          adjustment={adjustment}
-          selectedLineId={selectedLineId}
-          isDraft={Boolean(isDraft)}
-          isOpeningStock={isOpeningStock}
-        />
+        <PageContentDetails>
+          <StockAdjustmentContent
+            adjustment={adjustment}
+            selectedLineId={selectedLineId}
+            isDraft={Boolean(isDraft)}
+            isOpeningStock={isOpeningStock}
+          />
+        </PageContentDetails>
       </PageContent>
 
       {isDraft && (
