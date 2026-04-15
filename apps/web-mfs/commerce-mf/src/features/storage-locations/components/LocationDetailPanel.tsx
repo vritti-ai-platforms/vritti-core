@@ -1,30 +1,39 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Empty } from '@vritti/quantum-ui/Empty';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { LOCATION_CHILDREN_TABLE_KEY, useDeleteLocation, useLocationChildrenTable } from '@/hooks/storage-locations';
+import { DetailField } from '@/components/DetailField';
+import {
+  LOCATION_CHILDREN_TABLE_KEY,
+  useDeleteLocation,
+  useLocationById,
+  useLocationChildrenTable,
+} from '@/hooks/storage-locations';
 import type { StorageLocationData } from '@/schemas/storage-locations';
 import { AddLocationDialog } from '../forms/AddLocationDialog';
 import { EditLocationDialog } from '../forms/EditLocationDialog';
 
 interface LocationDetailPanelProps {
-  location: StorageLocationData;
+  selectedId: string | null;
   onSelectLocation: (id: string | null) => void;
 }
 
-export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ location, onSelectLocation }) => {
+export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ selectedId, onSelectLocation }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addChildDialog = useDialog();
   const editDialog = useDialog();
   const deleteMutation = useDeleteLocation();
-  const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(location.id);
+  const { data: location, isLoading: isLocationLoading } = useLocationById(selectedId);
+  const locationId = location?.id ?? null;
+  const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(locationId);
 
   const columns = useMemo<ColumnDef<StorageLocationData>[]>(
     () => [
@@ -63,11 +72,30 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ locati
   const { table } = useDataTable({
     columns,
     serverState: childrenResponse,
-    slug: `storage-location-${location.id}-children`,
+    slug: `storage-location-${selectedId ?? 'none'}-children`,
     label: 'child location',
     enableRowSelection: false,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(location.id) }),
+    onStatePush: () => {
+      if (locationId) {
+        queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(locationId) });
+      }
+    },
   });
+
+  if (selectedId && isLocationLoading) {
+    return <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Loading…</div>;
+  }
+
+  if (!location) {
+    return (
+      <Empty
+        icon={<MapPin />}
+        title="Select a location"
+        description="Pick a location from the tree to view details and child locations."
+        className="h-full"
+      />
+    );
+  }
 
   const handleDelete = async () => {
     const confirmed = await confirm({
@@ -97,8 +125,12 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ locati
           <Badge variant="outline">{location.code}</Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={editDialog.open}>
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={editDialog.open}
+            startAdornment={<Pencil className="size-3.5" />}
+          >
             Edit
           </Button>
           <Button
@@ -107,54 +139,19 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ locati
             onClick={handleDelete}
             disabled={!location.canDelete}
             className="text-destructive hover:text-destructive"
+            startAdornment={<Trash2 className="size-3.5" />}
           >
-            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
             Delete
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Sort Order
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {location.sortOrder}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Child Locations
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {childrenResponse?.count ?? 0}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Parent
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {location.parentId ?? '—'}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Area
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {location.area ?? '—'}
-          </Typography>
-        </div>
-        <div className="col-span-2">
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Address
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {location.address ?? '—'}
-          </Typography>
-        </div>
+        <DetailField label="Sort Order" value={location.sortOrder} />
+        <DetailField label="Child Locations" value={childrenResponse?.count ?? 0} />
+        <DetailField label="Parent" value={location.parentId ?? '—'} />
+        <DetailField label="Area" value={location.area ?? '—'} />
+        <DetailField label="Address" value={location.address ?? '—'} className="col-span-2" />
       </div>
 
       <div>
@@ -188,7 +185,9 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ locati
           <AddLocationDialog
             defaultParentId={location.id}
             onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(location.id) });
+              if (locationId) {
+                queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(locationId) });
+              }
               close();
             }}
             onCancel={close}
@@ -200,13 +199,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ locati
         handle={editDialog}
         title="Edit Location"
         description="Update the details for this location."
-        content={(close) => (
-          <EditLocationDialog
-            location={location}
-            onSuccess={close}
-            onCancel={close}
-          />
-        )}
+        content={(close) => <EditLocationDialog location={location} onSuccess={close} onCancel={close} />}
       />
     </div>
   );

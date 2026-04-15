@@ -2,7 +2,7 @@ import type { SupplierDetailDto, SupplierDto, SupplierItemDto } from '@domain/su
 import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectQueryResult, TableViewState } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk';
 import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import type { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
@@ -14,17 +14,13 @@ export class SuppliersController {
   constructor(private readonly service: SuppliersService) {}
 
   @MessagePattern({ cmd: 'suppliers.table' })
-  async table(
-    @Payload() state: TableViewState,
-  ): Promise<{ result: SupplierDto[]; count: number }> {
+  async table(@Payload() state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
     this.logger.log('suppliers.table');
     return this.service.findForTable(state);
   }
 
   @MessagePattern({ cmd: 'suppliers.select' })
-  async select(
-    @Payload() data: { search?: string; limit?: number; offset?: number; values?: string; excludeIds?: string },
-  ): Promise<SelectQueryResult> {
+  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('suppliers.select');
     return this.service.findForSelect(data);
   }

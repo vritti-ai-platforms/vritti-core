@@ -57,12 +57,15 @@ export const UomDetailPanel: React.FC<UomDetailPanelProps> = ({
             <Badge variant="secondary">Base Unit</Badge>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={editBaseDialog.open}>
-              <Pencil className="h-3.5 w-3.5 mr-1.5" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={editBaseDialog.open}
+              startAdornment={<Pencil className="size-3.5" />}
+            >
               Edit
             </Button>
-            <Button size="sm" onClick={addDerivedDialog.open}>
-              <Plus className="size-3.5 mr-1.5" />
+            <Button size="sm" onClick={addDerivedDialog.open} startAdornment={<Plus className="size-3.5" />}>
               Add Derived Unit
             </Button>
           </div>

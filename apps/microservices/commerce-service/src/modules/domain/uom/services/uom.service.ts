@@ -47,7 +47,8 @@ export class UomService {
       offset: query.offset,
       values: query.values,
       excludeIds: query.excludeIds,
-      orderBy: { name: 'asc' },
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
     });
   }
 

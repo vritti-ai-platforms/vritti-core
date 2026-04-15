@@ -3,6 +3,7 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  type SelectOptionsQueryDto,
   type SelectQueryResult,
   type TableViewState,
 } from '@vritti/api-sdk';
@@ -45,22 +46,19 @@ export class SuppliersService {
   }
 
   // Returns paginated supplier options for select dropdowns
-  findForSelect(params: {
-    search?: string;
-    limit?: number;
-    offset?: number;
-    values?: string;
-    excludeIds?: string;
-  }): Promise<SelectQueryResult> {
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
-      value: 'id',
-      label: 'name',
-      search: params.search,
-      limit: params.limit,
-      offset: params.offset,
-      values: params.values,
-      excludeIds: params.excludeIds,
-      orderBy: { name: 'asc' },
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      groupId: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
     });
   }
 

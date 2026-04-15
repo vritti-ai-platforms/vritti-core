@@ -14,8 +14,8 @@ import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { storageLocations } from '@/db/schema';
 import type { CreateStorageLocationDto } from '@/modules/storage-locations/dto/request/create-storage-location.dto';
 import type { UpdateStorageLocationDto } from '@/modules/storage-locations/dto/request/update-storage-location.dto';
-import type { StorageLocationCountDto } from '../dto/entity/storage-location-count.dto';
 import { StorageLocationDto } from '../dto/entity/storage-location.dto';
+import type { StorageLocationCountDto } from '../dto/entity/storage-location-count.dto';
 import type { StorageLocationTreeDto } from '../dto/entity/storage-location-tree.dto';
 import { StorageLocationsRepository } from '../repositories/storage-locations.repository';
 
@@ -47,7 +47,10 @@ export class StorageLocationsService {
   }
 
   // Returns paginated child locations for a given parent ID
-  async findChildrenForTable(parentId: string, state: TableViewState): Promise<{ result: StorageLocationDto[]; count: number }> {
+  async findChildrenForTable(
+    parentId: string,
+    state: TableViewState,
+  ): Promise<{ result: StorageLocationDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StorageLocationsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StorageLocationsService.FIELD_MAP);
     const where = and(eq(storageLocations.parentId, parentId), filterWhere, searchWhere) || undefined;
@@ -62,7 +65,9 @@ export class StorageLocationsService {
     });
 
     const referencedIds = await this.storageLocationsRepository.findReferencedIds(rows.map((e) => e.id));
-    const parentIdsWithChildren = await this.storageLocationsRepository.findParentIdsWithChildren(rows.map((e) => e.id));
+    const parentIdsWithChildren = await this.storageLocationsRepository.findParentIdsWithChildren(
+      rows.map((e) => e.id),
+    );
 
     return {
       result: rows.map((e) => StorageLocationDto.from(e, !referencedIds.has(e.id) && !parentIdsWithChildren.has(e.id))),
@@ -103,7 +108,8 @@ export class StorageLocationsService {
       offset: query.offset,
       values: query.values,
       excludeIds: query.excludeIds,
-      orderBy: { name: 'asc' },
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
     });
   }
 

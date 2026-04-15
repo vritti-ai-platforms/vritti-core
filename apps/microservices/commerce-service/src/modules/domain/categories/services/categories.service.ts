@@ -5,6 +5,7 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
@@ -13,8 +14,8 @@ import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { categories } from '@/db/schema';
 import type { CreateCategoryDto } from '@/modules/categories/dto/request/create-category.dto';
 import type { UpdateCategoryDto } from '@/modules/categories/dto/request/update-category.dto';
-import type { CategoryCountDto } from '../dto/entity/category-count.dto';
 import { CategoryDto } from '../dto/entity/category.dto';
+import type { CategoryCountDto } from '../dto/entity/category-count.dto';
 import type { CategoryTreeDto } from '../dto/entity/category-tree.dto';
 import { CategoriesRepository } from '../repositories/categories.repository';
 
@@ -30,23 +31,19 @@ export class CategoriesService {
   constructor(private readonly categoriesRepository: CategoriesRepository) {}
 
   // Returns paginated category options for the select component (RLS scopes results)
-  findForSelect(params: {
-    search?: string;
-    limit?: number;
-    offset?: number;
-    values?: string;
-    excludeIds?: string;
-  }): Promise<SelectQueryResult> {
-    const { search, limit, offset, values, excludeIds } = params;
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.categoriesRepository.findForSelect({
-      value: 'id',
-      label: 'name',
-      search,
-      limit,
-      offset,
-      values,
-      excludeIds,
-      orderBy: { name: 'asc' },
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      groupId: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
     });
   }
 
@@ -78,7 +75,10 @@ export class CategoriesService {
   }
 
   // Returns paginated child categories for a given parent ID
-  async findChildrenForTable(parentId: string, state: TableViewState): Promise<{ result: CategoryDto[]; count: number }> {
+  async findChildrenForTable(
+    parentId: string,
+    state: TableViewState,
+  ): Promise<{ result: CategoryDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, CategoriesService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, CategoriesService.FIELD_MAP);
     const where = and(eq(categories.parentId, parentId), filterWhere, searchWhere) || undefined;
@@ -117,7 +117,7 @@ export class CategoriesService {
     this.logger.log(`Created category: ${entity.name} (${entity.id})`);
     return {
       success: true,
-      message: `Category \"${entity.name}\" created successfully.`,
+      message: `Category "${entity.name}" created successfully.`,
       data: CategoryDto.from(entity, true),
     };
   }

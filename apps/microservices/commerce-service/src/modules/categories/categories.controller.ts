@@ -1,10 +1,16 @@
+import type { CategoryDto } from '@domain/categories/dto/entity/category.dto';
 import type { CategoryCountDto } from '@domain/categories/dto/entity/category-count.dto';
 import type { CategoryTreeDto } from '@domain/categories/dto/entity/category-tree.dto';
-import type { CategoryDto } from '@domain/categories/dto/entity/category.dto';
 import { CategoriesService } from '@domain/categories/services/categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type CreateResponseDto, type SelectQueryResult, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import {
+  type CreateResponseDto,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+  type TableViewState,
+} from '@vritti/api-sdk';
 import type { CreateCategoryDto } from './dto/request/create-category.dto';
 import type { ReorderCategoriesDto } from './dto/request/reorder-categories.dto';
 import type { UpdateCategoryDto } from './dto/request/update-category.dto';
@@ -17,9 +23,7 @@ export class CategoriesController {
 
   // Returns paginated category options for the select component (RLS scopes results)
   @MessagePattern({ cmd: 'categories.select' })
-  async select(
-    @Payload() data: { search?: string; limit?: number; offset?: number; values?: string; excludeIds?: string },
-  ): Promise<SelectQueryResult> {
+  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('categories.select');
     return this.categoriesService.findForSelect(data);
   }
@@ -40,7 +44,9 @@ export class CategoriesController {
 
   // Returns paginated child categories for a given parent ID
   @MessagePattern({ cmd: 'categories.childrenTable' })
-  async childrenTable(@Payload() data: { parentId: string } & TableViewState): Promise<{ result: CategoryDto[]; count: number }> {
+  async childrenTable(
+    @Payload() data: { parentId: string } & TableViewState,
+  ): Promise<{ result: CategoryDto[]; count: number }> {
     this.logger.log(`categories.childrenTable — parentId: ${data.parentId}`);
     return this.categoriesService.findChildrenForTable(data.parentId, data);
   }

@@ -8,11 +8,8 @@ import { Typography } from '@vritti/quantum-ui/Typography';
 import { Folder, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import {
-  CATEGORY_CHILDREN_TABLE_KEY,
-  useCategoryChildrenTable,
-  useDeleteCategory,
-} from '@/hooks/categories';
+import { DetailField } from '@/components/DetailField';
+import { CATEGORY_CHILDREN_TABLE_KEY, useCategoryChildrenTable, useDeleteCategory } from '@/hooks/categories';
 import type { CategoryData } from '@/schemas/categories';
 import { AddCategoryDialog } from '../forms/AddCategoryDialog';
 import { EditCategoryDialog } from '../forms/EditCategoryDialog';
@@ -96,8 +93,12 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={editDialog.open}>
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={editDialog.open}
+            startAdornment={<Pencil className="size-3.5" />}
+          >
             Edit
           </Button>
           <Button
@@ -106,38 +107,17 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
             onClick={handleDelete}
             disabled={!category.canDelete}
             className="text-destructive hover:text-destructive"
+            startAdornment={<Trash2 className="size-3.5" />}
           >
-            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
             Delete
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Sort Order
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {category.sortOrder}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Child Categories
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {childrenResponse?.count ?? 0}
-          </Typography>
-        </div>
-        <div>
-          <Typography variant="overline" intent="muted" className="mb-1">
-            Parent
-          </Typography>
-          <Typography variant="body2" className="font-medium">
-            {category.parentId ?? '—'}
-          </Typography>
-        </div>
+        <DetailField label="Sort Order" value={category.sortOrder} />
+        <DetailField label="Child Categories" value={childrenResponse?.count ?? 0} />
+        <DetailField label="Parent" value={category.parentId ?? '—'} />
       </div>
 
       <div>

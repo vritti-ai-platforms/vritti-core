@@ -1,12 +1,11 @@
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { SearchBar } from '@vritti/quantum-ui/SearchBar';
-import type { TreeDataItem, TreeReorderPayload } from '@vritti/quantum-ui/TreeView';
+import type { TreeReorderPayload } from '@vritti/quantum-ui/TreeView';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { FolderTree, MapPin, MapPinCheck } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLocationTree, useReorderLocations } from '@/hooks/storage-locations';
-import type { StorageLocationTreeNode } from '@/schemas/storage-locations';
 import { LocationRow } from './LocationRow';
 
 interface LocationTreePanelProps {
@@ -20,15 +19,6 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
   const { data: treeData = [], isFetching } = useLocationTree(searchQuery);
   const reorderMutation = useReorderLocations();
   const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
-
-  const treeViewData = useMemo(
-    () =>
-      annotateTree(treeData, {
-        draggable: dragEnabled,
-        droppable: dragEnabled,
-      }),
-    [treeData, dragEnabled],
-  );
 
   const handleReorder = useCallback(
     (payload: TreeReorderPayload) => {
@@ -61,11 +51,13 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
           />
         ) : (
           <TreeView
-            data={treeViewData}
+            data={treeData}
             isLoading={isFetching}
             initialSelectedItemId={selectedId ?? undefined}
             onSelectChange={(item) => onSelect(item?.id ?? null)}
             onReorder={handleReorder}
+            defaultDraggable={dragEnabled}
+            defaultDroppable={dragEnabled}
             renderItem={(params) => <LocationRow {...params} />}
             defaultNodeIcon={MapPinCheck}
             defaultLeafIcon={MapPin}
@@ -75,15 +67,3 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
     </div>
   );
 };
-
-function annotateTree(
-  nodes: StorageLocationTreeNode[],
-  dragProps: { draggable: boolean; droppable: boolean },
-): TreeDataItem[] {
-  return nodes.map((node) => ({
-    ...node,
-    draggable: dragProps.draggable,
-    droppable: dragProps.droppable,
-    children: node.children ? annotateTree(node.children, dragProps) : undefined,
-  }));
-}

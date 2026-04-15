@@ -1,12 +1,11 @@
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { SearchBar } from '@vritti/quantum-ui/SearchBar';
-import type { TreeDataItem, TreeReorderPayload } from '@vritti/quantum-ui/TreeView';
+import type { TreeReorderPayload } from '@vritti/quantum-ui/TreeView';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { Folder, FolderOpen, FolderTree } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useCategoryTree, useReorderCategories } from '@/hooks/categories';
-import type { CategoryTreeNode } from '@/schemas/categories';
 import { CategoryRow } from './CategoryRow';
 
 interface CategoryTreePanelProps {
@@ -20,15 +19,6 @@ export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId
   const { data: treeData = [], isFetching } = useCategoryTree(searchQuery);
   const reorderMutation = useReorderCategories();
   const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
-
-  const treeViewData = useMemo(
-    () =>
-      annotateTree(treeData, {
-        draggable: dragEnabled,
-        droppable: dragEnabled,
-      }),
-    [treeData, dragEnabled],
-  );
 
   const handleReorder = useCallback(
     (payload: TreeReorderPayload) => {
@@ -61,11 +51,13 @@ export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId
           />
         ) : (
           <TreeView
-            data={treeViewData}
+            data={treeData}
             isLoading={isFetching}
             initialSelectedItemId={selectedId ?? undefined}
             onSelectChange={(item) => onSelect(item?.id ?? null)}
             onReorder={handleReorder}
+            defaultDraggable={dragEnabled}
+            defaultDroppable={dragEnabled}
             renderItem={(params) => <CategoryRow {...params} />}
             defaultNodeIcon={FolderOpen}
             defaultLeafIcon={Folder}
@@ -75,15 +67,3 @@ export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId
     </div>
   );
 };
-
-function annotateTree(
-  nodes: CategoryTreeNode[],
-  dragProps: { draggable: boolean; droppable: boolean },
-): TreeDataItem[] {
-  return nodes.map((node) => ({
-    ...node,
-    draggable: dragProps.draggable,
-    droppable: dragProps.droppable,
-    children: node.children ? annotateTree(node.children, dragProps) : undefined,
-  }));
-}

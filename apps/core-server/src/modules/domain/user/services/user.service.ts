@@ -1,3 +1,5 @@
+import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
+import { SessionService } from '@domain/session/services/session.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -16,8 +18,6 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
-import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
-import { SessionService } from '@domain/session/services/session.service';
 import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
@@ -46,6 +46,7 @@ export class UserService {
   // Returns paginated user options for the select component
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`Fetched user select options (limit: ${query.limit}, offset: ${query.offset})`);
+
     return this.userRepository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'fullName',
@@ -56,7 +57,8 @@ export class UserService {
       offset: query.offset,
       values: query.values,
       excludeIds: query.excludeIds,
-      orderBy: { fullName: 'asc' },
+      orderByKey: query.orderByKey || 'fullName',
+      orderDirection: query.orderDirection || 'asc',
     });
   }
 
