@@ -49,9 +49,9 @@ export const EditStockAdjustmentLineDialogForm = ({
     resolver: zodResolver(schema),
     defaultValues: {
       quantity: String(line.quantity),
-      locationId: line.locationId || undefined,
-      manufacturingDate: line.manufacturingDate || '',
-      expiryDate: line.expiryDate || '',
+      locationId: line.locationId,
+      manufacturingDate: line.manufacturingDate,
+      expiryDate: line.expiryDate,
     },
   });
 

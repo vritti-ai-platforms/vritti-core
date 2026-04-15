@@ -49,7 +49,7 @@ export const StockAdjustmentContent = ({
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-semibold">Line</h3>
               <Badge variant={selectedLine.isLineItemsBalanced ? 'secondary' : 'destructive'}>
-                {selectedLine.isLineItemsBalanced ? 'Balanced' : 'Unbalanced'}
+                {selectedLine.isLineItemsBalanced ? 'Balanced' : 'Not Balanced'}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -104,21 +104,12 @@ export const StockAdjustmentContent = ({
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          {isDraft ? (
-            <Empty
-              icon={<ClipboardList />}
-              title="No line selected"
-              description="Create or select a line from the left panel."
-              className="py-8"
-            />
-          ) : (
-            <Empty
-              icon={<ClipboardList />}
-              title="No lines"
-              description="This adjustment has no lines."
-              className="py-8"
-            />
-          )}
+          <Empty
+            icon={<ClipboardList />}
+            title="No line selected"
+            description="Create or select a line from the left panel."
+            className="py-8"
+          />
         </div>
       )}
 
