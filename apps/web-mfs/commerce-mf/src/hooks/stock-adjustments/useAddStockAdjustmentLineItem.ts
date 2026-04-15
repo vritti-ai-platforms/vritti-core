@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
 import { addStockAdjustmentLineItem, type AddStockAdjustmentLineItemPayload } from '@/services/stock-adjustments.service';
-import { STOCK_ADJUSTMENT_LINE_ITEMS_KEY } from './useStockAdjustmentLineItems';
+import { STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY } from './useStockAdjustmentLineItemsTable';
 import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
 
 export function useAddStockAdjustmentLineItem(
@@ -17,7 +17,7 @@ export function useAddStockAdjustmentLineItem(
     ...options,
     mutationFn: (data) => addStockAdjustmentLineItem(adjustmentId, lineId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_KEY(adjustmentId, lineId) });
+      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustmentId, lineId) });
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_KEY(adjustmentId) });
       options?.onSuccess?.(...args);
     },

@@ -5840,34 +5840,6 @@
         ]
       }
     },
-    "/commerce-api/stock-adjustments/{id}/lines/table": {
-      "get": {
-        "operationId": "StockAdjustmentsGatewayController_getLinesTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Stock Adjustments"
-        ]
-      }
-    },
     "/commerce-api/stock-adjustments/{id}/lines": {
       "get": {
         "operationId": "StockAdjustmentsGatewayController_getLines",
@@ -6041,9 +6013,9 @@
         ]
       }
     },
-    "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items": {
+    "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items/table": {
       "get": {
-        "operationId": "StockAdjustmentsGatewayController_getLineItems",
+        "operationId": "StockAdjustmentsGatewayController_getLineItemsTable",
         "parameters": [
           {
             "name": "id",
@@ -6075,7 +6047,9 @@
         "tags": [
           "Commerce - Stock Adjustments"
         ]
-      },
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items": {
       "post": {
         "operationId": "StockAdjustmentsGatewayController_addLineItem",
         "parameters": [
@@ -6108,42 +6082,6 @@
         },
         "responses": {
           "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Stock Adjustments"
-        ]
-      }
-    },
-    "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items/table": {
-      "get": {
-        "operationId": "StockAdjustmentsGatewayController_getLineItemsTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "lineId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
             "description": ""
           }
         },

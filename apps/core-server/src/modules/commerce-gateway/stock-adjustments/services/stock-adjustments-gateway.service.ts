@@ -45,19 +45,6 @@ export class StockAdjustmentsGatewayService {
     return this.nats.send('commerce', 'stockAdjustments.lines', { adjustmentId });
   }
 
-  async findLinesTable(adjustmentId: string, userId: string) {
-    this.logger.log(`stockAdjustments.linesTable — adjustment: ${adjustmentId}`);
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `stock-adjustment-${adjustmentId}-lines`);
-
-    const { result, count } = await this.nats.send<{ result: unknown[]; count: number }>(
-      'commerce',
-      'stockAdjustments.linesTable',
-      { adjustmentId, ...state },
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
   async create(dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
     this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
     return this.nats.send('commerce', 'stockAdjustments.create', dto);
@@ -76,11 +63,6 @@ export class StockAdjustmentsGatewayService {
   async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.removeLine — line: ${lineId}`);
     return this.nats.send('commerce', 'stockAdjustments.removeLine', { adjustmentId, lineId });
-  }
-
-  async findLineItems(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineItemResponseDto[]> {
-    this.logger.log(`stockAdjustments.lineItems — line: ${lineId}`);
-    return this.nats.send('commerce', 'stockAdjustments.lineItems', { adjustmentId, lineId });
   }
 
   async findLineItemsTable(

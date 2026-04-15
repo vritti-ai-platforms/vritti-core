@@ -4,7 +4,6 @@ import type { AxiosError } from 'axios';
 import type { StockAdjustmentLineData } from '@/schemas/stock-adjustments';
 import { type AddStockAdjustmentLinePayload, addStockAdjustmentLine } from '@/services/stock-adjustments.service';
 import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
-import { STOCK_ADJUSTMENT_LINES_TABLE_KEY } from './useStockAdjustmentLinesTable';
 
 export function useAddStockAdjustmentLine(
   adjustmentId: string,
@@ -17,7 +16,6 @@ export function useAddStockAdjustmentLine(
     mutationFn: (data) => addStockAdjustmentLine(adjustmentId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_KEY(adjustmentId) });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_TABLE_KEY(adjustmentId) });
       options?.onSuccess?.(...args);
     },
   });

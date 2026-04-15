@@ -34,12 +34,6 @@ export class StockAdjustmentsGatewayController {
     return this.service.findById(id);
   }
 
-  @Get(':id/lines/table')
-  getLinesTable(@Param('id') id: string, @UserId() userId: string) {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/table`);
-    return this.service.findLinesTable(id, userId);
-  }
-
   @Get(':id/lines')
   getLines(@Param('id') id: string) {
     this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines`);
@@ -70,15 +64,6 @@ export class StockAdjustmentsGatewayController {
   removeLine(@Param('id') id: string, @Param('lineId') lineId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}/lines/${lineId}`);
     return this.service.removeLine(id, lineId);
-  }
-
-  @Get(':id/lines/:lineId/items')
-  getLineItems(
-    @Param('id') id: string,
-    @Param('lineId') lineId: string,
-  ): Promise<StockAdjustmentLineItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/${lineId}/items`);
-    return this.service.findLineItems(id, lineId);
   }
 
   @Get(':id/lines/:lineId/items/table')

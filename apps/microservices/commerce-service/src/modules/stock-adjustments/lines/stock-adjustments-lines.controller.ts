@@ -1,13 +1,7 @@
 import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/entity/stock-adjustment-line.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import {
-  BadRequestException,
-  type NatsHeaders,
-  RpcNatsHeaders,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk';
+import { BadRequestException, type NatsHeaders, RpcNatsHeaders, type SuccessResponseDto } from '@vritti/api-sdk';
 import { StockAdjustmentLinesTransactionService } from './services/stock-adjustment-lines-transaction.service';
 
 @Controller()
@@ -15,14 +9,6 @@ export class StockAdjustmentsLinesController {
   private readonly logger = new Logger(StockAdjustmentsLinesController.name);
 
   constructor(private readonly service: StockAdjustmentLinesTransactionService) {}
-
-  @MessagePattern({ cmd: 'stockAdjustments.linesTable' })
-  linesTable(
-    @Payload() data: { adjustmentId: string } & TableViewState,
-  ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
-    this.logger.log(`stockAdjustments.linesTable — adjustment: ${data.adjustmentId}`);
-    return this.service.linesTable(data);
-  }
 
   @MessagePattern({ cmd: 'stockAdjustments.lines' })
   lines(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentLineDto[]> {
