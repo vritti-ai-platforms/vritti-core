@@ -18,10 +18,10 @@ export class LinkSupplierItemDto {
   @Min(0)
   unitPrice?: number;
 
-  @ApiPropertyOptional({ description: 'UOM ID for pricing' })
-  @IsOptional()
+  @ApiProperty({ description: 'UOM ID for pricing' })
   @IsUUID()
-  uomId?: string;
+  @IsNotEmpty()
+  uomId: string;
 
   @ApiPropertyOptional({ description: 'Minimum order quantity', example: 10 })
   @IsOptional()

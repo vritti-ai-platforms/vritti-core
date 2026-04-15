@@ -1,4 +1,4 @@
-import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
+import { type UseQueryOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { getStockAdjustment } from '@/services/stock-adjustments.service';
@@ -14,5 +14,12 @@ export function useStockAdjustment(
     queryFn: () => getStockAdjustment(id as string),
     enabled: !!id,
     ...options,
+  });
+}
+
+export function useSuspenseStockAdjustment(id: string) {
+  return useSuspenseQuery<StockAdjustmentData, AxiosError>({
+    queryKey: [...STOCK_ADJUSTMENT_KEY(id)],
+    queryFn: () => getStockAdjustment(id),
   });
 }

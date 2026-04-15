@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type InventoryItemBatch, inventoryItemBatches, inventoryLevels, storageLocations } from '@/db/schema';
+import {
+  type InventoryItemBatch,
+  inventoryItemBatches,
+  inventoryItems,
+  inventoryLevels,
+  storageLocations,
+} from '@/db/schema';
 
 @Injectable()
 export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof inventoryItemBatches> {
@@ -125,6 +131,71 @@ export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof
     await this.db.delete(inventoryItemBatches).where(eq(inventoryItemBatches.id, id));
   }
 
+  async setBatchItemMirror(data: {
+    inventoryItemBatchId: string;
+    inventoryItemId: string;
+    quantity: string;
+    reservedQuantity: string;
+  }): Promise<void> {
+    await this.db.execute(sql`
+      INSERT INTO vritti_core.inventory_item_batch_items (
+        organization_id,
+        business_unit_id,
+        inventory_item_batch_id,
+        inventory_item_id,
+        quantity,
+        reserved_quantity
+      )
+      VALUES (
+        current_setting('app.org_id')::uuid,
+        current_setting('app.bu_id')::uuid,
+        ${data.inventoryItemBatchId}::uuid,
+        ${data.inventoryItemId}::uuid,
+        ${data.quantity}::numeric,
+        ${data.reservedQuantity}::numeric
+      )
+      ON CONFLICT (inventory_item_batch_id, inventory_item_id)
+      DO UPDATE SET
+        quantity = EXCLUDED.quantity,
+        reserved_quantity = EXCLUDED.reserved_quantity,
+        updated_at = now()
+    `);
+  }
+
+  async setBatchItemMirrorWithTx(
+    tx: TypedDrizzleClient,
+    data: {
+      inventoryItemBatchId: string;
+      inventoryItemId: string;
+      quantity: string;
+      reservedQuantity: string;
+    },
+  ): Promise<void> {
+    await tx.execute(sql`
+      INSERT INTO vritti_core.inventory_item_batch_items (
+        organization_id,
+        business_unit_id,
+        inventory_item_batch_id,
+        inventory_item_id,
+        quantity,
+        reserved_quantity
+      )
+      VALUES (
+        current_setting('app.org_id')::uuid,
+        current_setting('app.bu_id')::uuid,
+        ${data.inventoryItemBatchId}::uuid,
+        ${data.inventoryItemId}::uuid,
+        ${data.quantity}::numeric,
+        ${data.reservedQuantity}::numeric
+      )
+      ON CONFLICT (inventory_item_batch_id, inventory_item_id)
+      DO UPDATE SET
+        quantity = EXCLUDED.quantity,
+        reserved_quantity = EXCLUDED.reserved_quantity,
+        updated_at = now()
+    `);
+  }
+
   async findLocationStockByItemId(itemId: string): Promise<
     {
       locationId: string;
@@ -147,5 +218,35 @@ export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof
       .from(inventoryLevels)
       .leftJoin(storageLocations, eq(inventoryLevels.locationId, storageLocations.id))
       .where(eq(inventoryLevels.inventoryItemId, itemId));
+  }
+
+  // Generates a batch number: {ITEM_CODE}-{YYMMDD}-{NNNN} (org-scoped sequence per item per day)
+  async generateBatchNumber(itemId: string, mfd?: string): Promise<string> {
+    const date = mfd ?? new Date().toISOString().slice(0, 10);
+    const dateCompact = date.replace(/-/g, '').slice(2);
+    const itemCode = await this.findItemCode(itemId);
+    const count = await this.countBatchesForItemOnDate(itemId, date);
+    return `${itemCode}-${dateCompact}-${String(count + 1).padStart(4, '0')}`;
+  }
+
+  private async findItemCode(itemId: string): Promise<string> {
+    const [row] = await this.db
+      .select({ code: inventoryItems.code })
+      .from(inventoryItems)
+      .where(eq(inventoryItems.id, itemId));
+
+    return row?.code ?? '';
+  }
+
+  private async countBatchesForItemOnDate(itemId: string, date: string): Promise<number> {
+    const [result] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryItemBatches)
+      .where(and(
+        eq(inventoryItemBatches.inventoryItemId, itemId),
+        eq(inventoryItemBatches.manufacturingDate, date),
+      ));
+
+    return Number(result?.count ?? 0);
   }
 }

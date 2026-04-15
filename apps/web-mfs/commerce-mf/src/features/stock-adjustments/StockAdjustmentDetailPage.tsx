@@ -1,26 +1,22 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { CheckCircle, ClipboardList, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { CheckCircle } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  STOCK_ADJUSTMENT_LINES_TABLE_KEY,
   useDeleteStockAdjustment,
   usePublishStockAdjustment,
-  useRemoveStockAdjustmentLine,
-  useStockAdjustment,
-  useStockAdjustmentLinesTable,
+  useSuspenseStockAdjustment,
 } from '@/hooks/stock-adjustments';
-import type { StockAdjustmentLineData, StockAdjustmentStatus, StockAdjustmentType } from '@/schemas/stock-adjustments';
-import { AddStockAdjustmentLineDialog } from './forms/AddStockAdjustmentLineDialog';
+import type {
+  StockAdjustmentStatus,
+  StockAdjustmentType,
+} from '@/schemas/stock-adjustments';
+import { StockAdjustmentContent, StockAdjustmentOverviewCard, StockAdjustmentSidePanel } from './components';
 
 const typeConfig: Record<
   StockAdjustmentType,
@@ -43,15 +39,12 @@ const statusConfig: Record<StockAdjustmentStatus, { label: string; variant: 'out
 export const StockAdjustmentDetailPage = () => {
   const { id } = useSlugParams('adjustmentSlug');
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const addLineDialog = useDialog();
+  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
 
-  const { data: adjustment, isLoading } = useStockAdjustment(id ?? null);
-  const { data: linesResponse, isLoading: isLoadingLines } = useStockAdjustmentLinesTable(id ?? null);
+  const { data: adjustment } = useSuspenseStockAdjustment(id ?? '');
   const deleteMutation = useDeleteStockAdjustment();
   const publishMutation = usePublishStockAdjustment();
-  const removeLineMutation = useRemoveStockAdjustmentLine(id ?? '');
 
   const isDraft = adjustment?.status === 'DRAFT';
   const isOpeningStock = adjustment?.type === 'OPENING_STOCK';
@@ -80,118 +73,6 @@ export const StockAdjustmentDetailPage = () => {
     }
   }, [id, confirm, deleteMutation, navigate]);
 
-  const handleRemoveLine = useCallback(
-    async (lineId: string) => {
-      const confirmed = await confirm({
-        title: 'Remove this line?',
-        description: 'This line will be removed from the adjustment.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeLineMutation.mutate(lineId);
-    },
-    [confirm, removeLineMutation],
-  );
-
-  const columns = useMemo<ColumnDef<StockAdjustmentLineData>[]>(
-    () => [
-      {
-        accessorKey: isOpeningStock ? 'locationName' : 'batchNumber',
-        header: isOpeningStock ? 'Location' : 'Batch',
-        cell: ({ row }) =>
-          isOpeningStock
-            ? (row.original.locationName ?? '—')
-            : row.original.batchNumber
-              ? `Batch #${row.original.batchNumber}`
-              : '—',
-      },
-      {
-        accessorKey: 'quantity',
-        header: 'Quantity',
-        cell: ({ row }) => {
-          const qty = row.original.quantity;
-          return (
-            <span className={`font-mono ${qty > 0 ? 'text-success' : 'text-destructive'}`}>
-              {qty > 0 ? '+' : ''}
-              {qty}
-            </span>
-          );
-        },
-      },
-      ...(isOpeningStock
-        ? [
-            {
-              accessorKey: 'manufacturingDate' as const,
-              header: 'Mfg Date',
-              cell: ({ row }: { row: { original: StockAdjustmentLineData } }) =>
-                row.original.manufacturingDate ? new Date(row.original.manufacturingDate).toLocaleDateString() : '—',
-            },
-            {
-              accessorKey: 'expiryDate' as const,
-              header: 'Expiry Date',
-              cell: ({ row }: { row: { original: StockAdjustmentLineData } }) =>
-                row.original.expiryDate ? new Date(row.original.expiryDate).toLocaleDateString() : '—',
-            },
-          ]
-        : []),
-      {
-        accessorKey: 'createdAt',
-        header: 'Date',
-        cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
-      },
-      ...(isDraft
-        ? [
-            {
-              id: 'actions' as const,
-              header: '',
-              cell: ({ row }: { row: { original: StockAdjustmentLineData } }) => (
-                <RowActions
-                  actions={[
-                    {
-                      id: 'delete',
-                      icon: Trash2,
-                      label: 'Remove',
-                      variant: 'destructive' as const,
-                      onClick: () => handleRemoveLine(row.original.id),
-                    },
-                  ]}
-                />
-              ),
-              enableSorting: false,
-              enableHiding: false,
-            },
-          ]
-        : []),
-    ],
-    [isOpeningStock, isDraft, handleRemoveLine],
-  );
-
-  const { table } = useDataTable({
-    columns,
-    serverState: linesResponse,
-    slug: id ? `stock-adjustment-${id}-lines` : '',
-    label: 'line',
-    enableRowSelection: false,
-    enableSorting: false,
-    onStatePush: () => {
-      if (id) queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_TABLE_KEY(id) });
-    },
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (!adjustment) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">Stock adjustment not found.</div>
-    );
-  }
-
   const typeConf = typeConfig[adjustment.type];
   const statusConf = statusConfig[adjustment.status];
 
@@ -207,7 +88,7 @@ export const StockAdjustmentDetailPage = () => {
               startAdornment={<CheckCircle className="size-4" />}
               onClick={handlePublish}
               isLoading={publishMutation.isPending}
-              disabled={(linesResponse?.count ?? 0) === 0}
+              disabled={!adjustment.isPublishable}
             >
               Publish
             </Button>
@@ -217,89 +98,25 @@ export const StockAdjustmentDetailPage = () => {
         }
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-2 gap-6">
-            <div>
-              <dt className="text-sm text-muted-foreground">Inventory Item</dt>
-              <dd className="mt-1 font-medium">{adjustment.inventoryItemName ?? '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">Type</dt>
-              <dd className="mt-1">
-                <Badge variant={typeConf.variant}>{typeConf.label}</Badge>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">Reason</dt>
-              <dd className="mt-1">{adjustment.reason ?? '—'}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">Created</dt>
-              <dd className="mt-1">{new Date(adjustment.createdAt).toLocaleDateString()}</dd>
-            </div>
-            <div>
-              <dt className="text-sm text-muted-foreground">Published</dt>
-              <dd className="mt-1">
-                {adjustment.publishedAt ? new Date(adjustment.publishedAt).toLocaleDateString() : '—'}
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
+      <StockAdjustmentOverviewCard adjustment={adjustment} typeLabel={typeConf.label} typeVariant={typeConf.variant} />
 
-      <DataTable
-        table={table}
-        mode="compact"
-        isLoading={isLoadingLines}
-        toolbarActions={
-          isDraft
-            ? {
-                actions: (
-                  <Button size="sm" onClick={addLineDialog.open}>
-                    <Plus className="mr-2 size-4" />
-                    Add Line
-                  </Button>
-                ),
-              }
-            : undefined
-        }
-        emptyStateConfig={{
-          icon: ClipboardList,
-          title: 'No lines',
-          description: isDraft
-            ? 'Add lines to this adjustment before publishing.'
-            : 'This adjustment has no lines.',
-          action: isDraft ? (
-            <Button onClick={addLineDialog.open}>
-              <Plus className="mr-2 size-4" />
-              Add Line
-            </Button>
-          ) : undefined,
-        }}
-      />
-
-      <Dialog
-        handle={addLineDialog}
-        title="Add Line"
-        description={
-          isOpeningStock
-            ? 'Add a new opening stock entry with location and quantity.'
-            : 'Select a batch and specify the adjustment quantity.'
-        }
-        content={(close) => (
-          <AddStockAdjustmentLineDialog
-            adjustmentId={adjustment.id}
-            adjustmentType={adjustment.type}
-            inventoryItemId={adjustment.inventoryItemId}
-            onSuccess={close}
-            onCancel={close}
-          />
-        )}
-      />
+      <PageContent>
+        <StockAdjustmentSidePanel
+          adjustmentId={adjustment.id}
+          adjustmentType={adjustment.type}
+          inventoryItemId={adjustment.inventoryItemId}
+          selectedLineId={selectedLineId}
+          isOpeningStock={isOpeningStock}
+          isDraft={Boolean(isDraft)}
+          onSelectLine={setSelectedLineId}
+        />
+        <StockAdjustmentContent
+          adjustment={adjustment}
+          selectedLineId={selectedLineId}
+          isDraft={Boolean(isDraft)}
+          isOpeningStock={isOpeningStock}
+        />
+      </PageContent>
 
       {isDraft && (
         <DangerZone

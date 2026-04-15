@@ -1,9 +1,13 @@
-import { date, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, date, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 import { stockAdjustments } from './stock-adjustments';
 import { inventoryItemBatches } from './inventory-item-batches';
 import { storageLocations } from './storage-locations';
+
+const users = coreSchema.table('users', {
+  id: uuid('id').primaryKey(),
+});
 
 export const stockAdjustmentLines = coreSchema.table(
   'stock_adjustment_lines',
@@ -14,10 +18,12 @@ export const stockAdjustmentLines = coreSchema.table(
     stockAdjustmentId: uuid('stock_adjustment_id')
       .notNull()
       .references(() => stockAdjustments.id, { onDelete: 'cascade' }),
+    createdById: uuid('created_by_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
     batchId: uuid('batch_id').references(() => inventoryItemBatches.id, { onDelete: 'set null' }),
     locationId: uuid('location_id').references(() => storageLocations.id),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     batchNumber: varchar('batch_number', { length: 100 }),
+    isBalanced: boolean('is_balanced').notNull().default(false),
     manufacturingDate: date('manufacturing_date'),
     expiryDate: date('expiry_date'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

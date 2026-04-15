@@ -4,18 +4,22 @@ import { stockAdjustmentStatusEnum, stockAdjustmentTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 
+const users = coreSchema.table('users', {
+  id: uuid('id').primaryKey(),
+});
+
 export const stockAdjustments = coreSchema.table(
   'stock_adjustments',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id),
+    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id, { onDelete: 'restrict' }),
     code: varchar('code', { length: 50 }).notNull(),
     type: stockAdjustmentTypeEnum('type').notNull(),
     status: stockAdjustmentStatusEnum('status').notNull().default('DRAFT'),
     reason: text('reason'),
-    createdById: uuid('created_by_id').notNull(),
+    createdById: uuid('created_by_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
     publishedAt: timestamp('published_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

@@ -8,7 +8,13 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { type ConversionStatus, ConversionStatusValues, conversions, InventoryLedgerTypeValues } from '@/db/schema';
+import {
+  type ConversionStatus,
+  ConversionStatusValues,
+  conversions,
+  InventoryLedgerReferenceTypeValues,
+  InventoryLedgerTypeValues,
+} from '@/db/schema';
 import type { CreateConversionDto } from '@/modules/conversions/dto/request/create-conversion.dto';
 import {
   ConversionDetailDto,
@@ -127,7 +133,7 @@ export class ConversionsService {
           batchId,
           quantity: -totalDeduct,
           type: InventoryLedgerTypeValues.CONVERSION_INPUT,
-          referenceType: 'CONVERSION',
+          referenceType: InventoryLedgerReferenceTypeValues.CONVERSION,
           referenceId: id,
           notes: `Conversion input (qty: ${input.quantity}, wastage: ${input.wastageQuantity})`,
         });
@@ -141,7 +147,7 @@ export class ConversionsService {
         locationId,
         quantity: Number(output.quantity),
         type: InventoryLedgerTypeValues.CONVERSION_OUTPUT,
-        referenceType: 'CONVERSION',
+        referenceType: InventoryLedgerReferenceTypeValues.CONVERSION,
         referenceId: id,
         notes: `Conversion output (qty: ${output.quantity})`,
       });

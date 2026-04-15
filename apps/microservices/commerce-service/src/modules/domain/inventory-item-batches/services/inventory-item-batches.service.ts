@@ -9,7 +9,7 @@ import {
   type TypedDrizzleClient,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import type { InventoryItemBatch, InventoryLedgerType } from '@/db/schema';
+import type { InventoryItemBatch, InventoryLedgerReferenceType, InventoryLedgerType } from '@/db/schema';
 import { inventoryItemBatches, storageLocations } from '@/db/schema';
 import { InventoryItemBatchDto, LocationStockDto } from '../dto/entity/inventory-item-batch.dto';
 import { InventoryItemBatchesRepository } from '../repositories/inventory-item-batches.repository';
@@ -39,7 +39,7 @@ export class InventoryItemBatchesService {
     expiryDate?: string;
     goodsReceiptItemId?: string;
     type: InventoryLedgerType;
-    referenceType?: string;
+    referenceType?: InventoryLedgerReferenceType;
     referenceId?: string;
     notes?: string;
   }): Promise<{ batch: InventoryItemBatch }> {
@@ -51,6 +51,12 @@ export class InventoryItemBatchesService {
       manufacturingDate: params.manufacturingDate ?? null,
       expiryDate: params.expiryDate ?? null,
       goodsReceiptItemId: params.goodsReceiptItemId ?? null,
+    });
+    await this.repository.setBatchItemMirror({
+      inventoryItemBatchId: batch.id,
+      inventoryItemId: batch.inventoryItemId,
+      quantity: batch.quantity,
+      reservedQuantity: batch.reservedQuantity,
     });
 
     await this.ledgerService.createEntry({
@@ -76,19 +82,27 @@ export class InventoryItemBatchesService {
       inventoryItemId: string;
       locationId: string;
       quantity: number;
-      batchNumber?: string;
       manufacturingDate?: string;
       expiryDate?: string;
     },
   ): Promise<InventoryItemBatch> {
-    return this.repository.createWithTx(tx, {
+    const batchNumber = await this.repository.generateBatchNumber(params.inventoryItemId, params.manufacturingDate);
+
+    const batch = await this.repository.createWithTx(tx, {
       inventoryItemId: params.inventoryItemId,
       locationId: params.locationId,
       quantity: String(params.quantity),
-      batchNumber: params.batchNumber ?? null,
+      batchNumber,
       manufacturingDate: params.manufacturingDate ?? null,
       expiryDate: params.expiryDate ?? null,
     });
+    await this.repository.setBatchItemMirrorWithTx(tx, {
+      inventoryItemBatchId: batch.id,
+      inventoryItemId: batch.inventoryItemId,
+      quantity: batch.quantity,
+      reservedQuantity: batch.reservedQuantity,
+    });
+    return batch;
   }
 
   // Adjusts an existing batch quantity and writes a ledger entry
@@ -96,11 +110,17 @@ export class InventoryItemBatchesService {
     batchId: string;
     quantity: number;
     type: InventoryLedgerType;
-    referenceType?: string;
+    referenceType?: InventoryLedgerReferenceType;
     referenceId?: string;
     notes?: string;
   }): Promise<{ batch: InventoryItemBatch }> {
     const batch = await this.repository.updateQuantity(params.batchId, String(params.quantity));
+    await this.repository.setBatchItemMirror({
+      inventoryItemBatchId: batch.id,
+      inventoryItemId: batch.inventoryItemId,
+      quantity: batch.quantity,
+      reservedQuantity: batch.reservedQuantity,
+    });
 
     await this.ledgerService.createEntry({
       inventoryItemId: batch.inventoryItemId,
@@ -118,7 +138,14 @@ export class InventoryItemBatchesService {
 
   // Adjusts batch quantity within a transaction (no ledger — caller handles it)
   async adjustBatchInTx(tx: TypedDrizzleClient, batchId: string, delta: number): Promise<InventoryItemBatch> {
-    return this.repository.updateQuantityWithTx(tx, batchId, String(delta));
+    const batch = await this.repository.updateQuantityWithTx(tx, batchId, String(delta));
+    await this.repository.setBatchItemMirrorWithTx(tx, {
+      inventoryItemBatchId: batch.id,
+      inventoryItemId: batch.inventoryItemId,
+      quantity: batch.quantity,
+      reservedQuantity: batch.reservedQuantity,
+    });
+    return batch;
   }
 
   async reserve(batchId: string, quantity: number): Promise<InventoryItemBatch> {
@@ -126,11 +153,25 @@ export class InventoryItemBatchesService {
     if (!batch) throw new NotFoundException('Batch not found.');
     const available = Number(batch.quantity) - Number(batch.reservedQuantity);
     if (available < quantity) throw new BadRequestException('Insufficient available stock to reserve.');
-    return this.repository.updateReservedQuantity(batchId, String(quantity));
+    const updated = await this.repository.updateReservedQuantity(batchId, String(quantity));
+    await this.repository.setBatchItemMirror({
+      inventoryItemBatchId: updated.id,
+      inventoryItemId: updated.inventoryItemId,
+      quantity: updated.quantity,
+      reservedQuantity: updated.reservedQuantity,
+    });
+    return updated;
   }
 
   async releaseReserve(batchId: string, quantity: number): Promise<InventoryItemBatch> {
-    return this.repository.updateReservedQuantity(batchId, String(-quantity));
+    const updated = await this.repository.updateReservedQuantity(batchId, String(-quantity));
+    await this.repository.setBatchItemMirror({
+      inventoryItemBatchId: updated.id,
+      inventoryItemId: updated.inventoryItemId,
+      quantity: updated.quantity,
+      reservedQuantity: updated.reservedQuantity,
+    });
+    return updated;
   }
 
   async findBatchesForTable(

@@ -1,6 +1,6 @@
-import { decimal, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryLedgerTypeEnum } from './enums';
+import { inventoryLedgerReferenceTypeEnum, inventoryLedgerTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 import { inventoryItemBatches } from './inventory-item-batches';
@@ -15,7 +15,7 @@ export const inventoryLedger = coreSchema.table(
     batchId: uuid('batch_id').references(() => inventoryItemBatches.id, { onDelete: 'set null' }),
     type: inventoryLedgerTypeEnum('type').notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    referenceType: varchar('reference_type', { length: 50 }),
+    referenceType: inventoryLedgerReferenceTypeEnum('reference_type'),
     referenceId: uuid('reference_id'),
     notes: text('notes'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

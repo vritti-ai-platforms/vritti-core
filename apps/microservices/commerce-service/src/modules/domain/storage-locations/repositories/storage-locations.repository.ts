@@ -20,7 +20,7 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
 
   // Returns hierarchy rows ordered in tree order using a recursive CTE
   async findHierarchyRows(search?: string): Promise<
-    Array<{ id: string; parentId: string | null; name: string; sortOrder: number; depth: number }>
+    Array<{ id: string; parentId: string | null; name: string; sortOrder: number; depth: number; path: string[] }>
   > {
     if (!search) {
       const result = await this.db.execute<{
@@ -29,6 +29,7 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
         name: string;
         sort_order: number;
         depth: number;
+        path: string[];
       }>(sql`
         WITH RECURSIVE tree AS (
           SELECT
@@ -56,13 +57,15 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
           JOIN tree ON child.parent_id::text = tree.id
           WHERE NOT (child.id::text = ANY(tree.path))
         )
-        SELECT id, parent_id, name, sort_order, depth
+        SELECT id, parent_id, name, sort_order, depth, path
         FROM tree
         ORDER BY ord
       `);
 
       const rows = (
-        result as { rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }> }
+        result as {
+          rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number; path: string[] }>;
+        }
       ).rows ?? [];
       return rows.map((row) => ({
         id: row.id,
@@ -70,6 +73,7 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
         name: row.name,
         sortOrder: Number(row.sort_order),
         depth: Number(row.depth),
+        path: row.path ?? [row.id],
       }));
     }
 
@@ -80,6 +84,7 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
       name: string;
       sort_order: number;
       depth: number;
+      path: string[];
     }>(sql`
       WITH RECURSIVE matched AS (
         SELECT
@@ -141,18 +146,23 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
         JOIN relevant ON relevant.id = child.id::text
         WHERE NOT (child.id::text = ANY(tree.path))
       )
-      SELECT id, parent_id, name, sort_order, depth
+      SELECT id, parent_id, name, sort_order, depth, path
       FROM tree
       ORDER BY ord
     `);
 
-    const rows = (result as { rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }> }).rows ?? [];
+    const rows = (
+      result as {
+        rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number; path: string[] }>;
+      }
+    ).rows ?? [];
     return rows.map((row) => ({
       id: row.id,
       parentId: row.parent_id,
       name: row.name,
       sortOrder: Number(row.sort_order),
       depth: Number(row.depth),
+      path: row.path ?? [row.id],
     }));
   }
 
@@ -213,6 +223,26 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
   // Updates a location sort order within an existing transaction
   async updateSortOrderInTx(tx: TypedDrizzleClient, id: string, sortOrder: number): Promise<void> {
     await tx.update(storageLocations).set({ sortOrder }).where(eq(storageLocations.id, id));
+  }
+
+  // Updates path for a single location within an existing transaction
+  async updatePathInTx(tx: TypedDrizzleClient, id: string, path: string): Promise<void> {
+    await tx
+      .update(storageLocations)
+      .set({ path: sql`cast(${path} as ltree)` })
+      .where(eq(storageLocations.id, id));
+  }
+
+  // Rewrites path prefix for a moved subtree: oldPath -> newPath
+  async rewriteSubtreePathInTx(tx: TypedDrizzleClient, oldPath: string, newPath: string): Promise<void> {
+    await tx.execute(sql`
+      UPDATE ${storageLocations}
+      SET path = CASE
+        WHEN path = cast(${oldPath} as ltree) THEN cast(${newPath} as ltree)
+        ELSE cast(${newPath} as ltree) || subpath(path, nlevel(cast(${oldPath} as ltree)))
+      END
+      WHERE path <@ cast(${oldPath} as ltree)
+    `);
   }
 
 }

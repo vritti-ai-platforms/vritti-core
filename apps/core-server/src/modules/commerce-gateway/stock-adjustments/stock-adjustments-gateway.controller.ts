@@ -3,8 +3,11 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { AddStockAdjustmentLineDto } from './dto/request/add-stock-adjustment-line.dto';
+import { AddStockAdjustmentLineItemDto } from './dto/request/add-stock-adjustment-line-item.dto';
 import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
 import { UpdateStockAdjustmentLineDto } from './dto/request/update-stock-adjustment-line.dto';
+import { UpdateStockAdjustmentLineItemDto } from './dto/request/update-stock-adjustment-line-item.dto';
+import type { StockAdjustmentLineItemResponseDto } from './dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentResponseDto } from './dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from './dto/response/stock-adjustment-table-response.dto';
 import { StockAdjustmentsGatewayService } from './services/stock-adjustments-gateway.service';
@@ -36,6 +39,12 @@ export class StockAdjustmentsGatewayController {
     return this.service.findLinesTable(id, userId);
   }
 
+  @Get(':id/lines')
+  getLines(@Param('id') id: string) {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines`);
+    return this.service.findLines(id);
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
@@ -60,6 +69,47 @@ export class StockAdjustmentsGatewayController {
   removeLine(@Param('id') id: string, @Param('lineId') lineId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}/lines/${lineId}`);
     return this.service.removeLine(id, lineId);
+  }
+
+  @Get(':id/lines/:lineId/items')
+  getLineItems(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+  ): Promise<StockAdjustmentLineItemResponseDto[]> {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/${lineId}/items`);
+    return this.service.findLineItems(id, lineId);
+  }
+
+  @Post(':id/lines/:lineId/items')
+  @HttpCode(HttpStatus.CREATED)
+  addLineItem(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: AddStockAdjustmentLineItemDto,
+  ): Promise<StockAdjustmentLineItemResponseDto> {
+    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/lines/${lineId}/items`);
+    return this.service.addLineItem(id, lineId, dto);
+  }
+
+  @Patch(':id/lines/:lineId/items/:itemId')
+  updateLineItem(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: UpdateStockAdjustmentLineItemDto,
+  ): Promise<StockAdjustmentLineItemResponseDto> {
+    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
+    return this.service.updateLineItem(id, lineId, itemId, dto);
+  }
+
+  @Delete(':id/lines/:lineId/items/:itemId')
+  removeLineItem(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
+    return this.service.removeLineItem(id, lineId, itemId);
   }
 
   @Post(':id/publish')

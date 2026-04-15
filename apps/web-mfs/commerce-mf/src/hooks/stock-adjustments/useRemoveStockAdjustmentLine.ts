@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import { removeStockAdjustmentLine } from '@/services/stock-adjustments.service';
+import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
 import { STOCK_ADJUSTMENT_LINES_TABLE_KEY } from './useStockAdjustmentLinesTable';
 
 export function useRemoveStockAdjustmentLine(
@@ -15,6 +16,7 @@ export function useRemoveStockAdjustmentLine(
     ...options,
     mutationFn: (lineId) => removeStockAdjustmentLine(adjustmentId, lineId),
     onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_KEY(adjustmentId) });
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_TABLE_KEY(adjustmentId) });
       options?.onSuccess?.(...args);
     },

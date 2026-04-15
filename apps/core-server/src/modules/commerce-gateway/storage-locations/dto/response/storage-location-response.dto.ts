@@ -19,6 +19,9 @@ export class StorageLocationResponseDto {
   @ApiPropertyOptional({ description: 'Parent location ID, or null for root-level locations', nullable: true })
   parentId: string | null;
 
+  @ApiProperty({ description: 'Materialized ltree path for hierarchy traversal' })
+  path: string;
+
   @ApiProperty({ description: 'Display sort order' })
   sortOrder: number;
 

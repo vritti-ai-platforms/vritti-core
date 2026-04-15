@@ -15,14 +15,15 @@ export interface StorageLocationConfigData {
 }
 
 export const createStorageLocationConfigSchema = z.object({
-  locationId: z.string().min(1, 'Location is required'),
-  reorderLevel: z.coerce.number().min(0, 'Must be 0 or more'),
+  locationId: z.uuid('Location is required'),
+  reorderLevel: z.coerce.number<number>().min(0, 'Must be 0 or more'),
 });
 
 export const updateStorageLocationConfigSchema = z.object({
-  reorderLevel: z.coerce.number().min(0, 'Must be 0 or more'),
+  reorderLevel: z.coerce.number<number>().min(0, 'Must be 0 or more'),
 });
 
 export type CreateStorageLocationConfigFormData = z.infer<typeof createStorageLocationConfigSchema>;
 export type UpdateStorageLocationConfigFormData = z.infer<typeof updateStorageLocationConfigSchema>;
+
 export type StorageLocationConfigsTableResponse = TableResponse<StorageLocationConfigData>;

@@ -32,7 +32,7 @@ export interface LinkSupplierItemPayload {
   inventoryItemId: string;
   supplierCode?: string;
   unitPrice?: number;
-  uomId?: string;
+  uomId: string;
   minOrderQuantity?: number;
   leadTimeDays?: number;
   isPreferred?: boolean;

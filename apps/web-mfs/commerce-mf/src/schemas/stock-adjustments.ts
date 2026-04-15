@@ -15,13 +15,27 @@ export type StockAdjustmentStatus = 'DRAFT' | 'PUBLISHED';
 export interface StockAdjustmentLineData {
   id: string;
   stockAdjustmentId: string;
+  createdById: string;
   batchId: string | null;
   batchNumber: string | null;
   locationId: string | null;
   locationName: string | null;
   quantity: number;
+  lineItemsCount: number;
+  lineItemsQuantitySum: number;
+  lineItemsDelta: number;
+  isBalanced: boolean;
+  isLineItemsBalanced: boolean;
   manufacturingDate: string | null;
   expiryDate: string | null;
+  createdAt: string;
+}
+
+export interface StockAdjustmentLineItemData {
+  id: string;
+  stockAdjustmentLineId: string;
+  inventoryItemId: string;
+  quantity: number;
   createdAt: string;
 }
 
@@ -29,11 +43,14 @@ export interface StockAdjustmentData {
   id: string;
   code: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
+  inventoryItemUomSymbol: string;
   type: StockAdjustmentType;
   status: StockAdjustmentStatus;
   reason: string | null;
   createdById: string;
+  createdByFullName: string;
+  isPublishable: boolean;
   publishedAt: string | null;
   createdAt: string;
 }

@@ -31,7 +31,7 @@ export const linkSupplierItemSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
   supplierCode: z.string().max(100).optional(),
   unitPrice: z.string().optional(),
-  uomId: z.string().optional(),
+  uomId: z.uuid('Unit of measure is required'),
   minOrderQuantity: z.string().optional(),
   leadTimeDays: z.string().optional(),
   isPreferred: z.boolean().optional(),
@@ -65,8 +65,8 @@ export interface SupplierItemData {
   inventoryItemName: string | null;
   supplierCode: string | null;
   unitPrice: number | null;
-  uomId: string | null;
-  uomSymbol: string | null;
+  uomId: string;
+  uomSymbol: string;
   minOrderQuantity: number | null;
   leadTimeDays: number | null;
   isPreferred: boolean;

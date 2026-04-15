@@ -2,7 +2,7 @@ import { InventoryItemBatchesService } from '@domain/inventory-item-batches/serv
 import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
-import { InventoryLedgerTypeValues } from '@/db/schema';
+import { InventoryLedgerReferenceTypeValues, InventoryLedgerTypeValues } from '@/db/schema';
 import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto, GoodsReceiptItemDto } from '../dto/entity/goods-receipt.dto';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
@@ -65,7 +65,7 @@ export class GoodsReceiptsService {
           expiryDate: item.expiryDate ?? undefined,
           goodsReceiptItemId: grItem.id,
           type: InventoryLedgerTypeValues.GOODS_RECEIPT,
-          referenceType: 'GOODS_RECEIPT',
+          referenceType: InventoryLedgerReferenceTypeValues.GOODS_RECEIPT,
           referenceId: gr.id,
           notes: `Goods receipt for PO ${po.poNumber}`,
         });

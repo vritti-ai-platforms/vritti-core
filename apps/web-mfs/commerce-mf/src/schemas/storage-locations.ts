@@ -35,6 +35,7 @@ export interface StorageLocationData {
 	name: string;
 	code: string;
 	parentId: string | null;
+	path: string;
 	sortOrder: number;
 	area: string | null;
 	managerId: string | null;
@@ -48,6 +49,7 @@ export interface StorageLocationData {
 export interface StorageLocationTreeNode {
 	id: string;
 	name: string;
+	path: string[];
 	children?: StorageLocationTreeNode[];
 }
 

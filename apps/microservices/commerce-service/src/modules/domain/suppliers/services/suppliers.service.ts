@@ -123,7 +123,7 @@ export class SuppliersService {
       inventoryItemId: data.inventoryItemId,
       supplierCode: data.supplierCode ?? null,
       unitPrice: data.unitPrice != null ? String(data.unitPrice) : null,
-      uomId: data.uomId ?? null,
+      uomId: data.uomId,
       minOrderQuantity: data.minOrderQuantity != null ? String(data.minOrderQuantity) : null,
       leadTimeDays: data.leadTimeDays ?? null,
       isPreferred: data.isPreferred ?? false,

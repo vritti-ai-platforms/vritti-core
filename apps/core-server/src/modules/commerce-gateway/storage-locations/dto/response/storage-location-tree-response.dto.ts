@@ -8,6 +8,12 @@ export class StorageLocationTreeResponseDto {
   name: string;
 
   @ApiProperty({
+    description: 'Hierarchy path as location ID chain from root to current node',
+    type: [String],
+  })
+  path: string[];
+
+  @ApiProperty({
     description: 'Child locations',
     type: () => StorageLocationTreeResponseDto,
     isArray: true,

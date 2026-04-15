@@ -6,8 +6,8 @@ export class SupplierItemDto {
   inventoryItemName: string | null;
   supplierCode: string | null;
   unitPrice: number | null;
-  uomId: string | null;
-  uomSymbol: string | null;
+  uomId: string;
+  uomSymbol: string;
   minOrderQuantity: number | null;
   leadTimeDays: number | null;
   isPreferred: boolean;
@@ -20,8 +20,14 @@ export class SupplierItemDto {
     dto.inventoryItemName = itemName ?? null;
     dto.supplierCode = entity.supplierCode ?? null;
     dto.unitPrice = entity.unitPrice ? Number(entity.unitPrice) : null;
-    dto.uomId = entity.uomId ?? null;
-    dto.uomSymbol = uomSymbol ?? null;
+    if (!entity.uomId) {
+      throw new Error(`Supplier item ${entity.id} is missing uomId`);
+    }
+    if (!uomSymbol) {
+      throw new Error(`Supplier item ${entity.id} is missing uomSymbol`);
+    }
+    dto.uomId = entity.uomId;
+    dto.uomSymbol = uomSymbol;
     dto.minOrderQuantity = entity.minOrderQuantity ? Number(entity.minOrderQuantity) : null;
     dto.leadTimeDays = entity.leadTimeDays ?? null;
     dto.isPreferred = entity.isPreferred;

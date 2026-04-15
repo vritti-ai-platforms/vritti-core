@@ -180,6 +180,22 @@ export const InventoryLedgerTypeValues = {
 };
 export type InventoryLedgerType = (typeof inventoryLedgerTypeEnum.enumValues)[number];
 
+export const inventoryLedgerReferenceTypeEnum = coreSchema.enum('inventory_ledger_reference_type', [
+  'GOODS_RECEIPT',
+  'STOCK_ADJUSTMENT',
+  'CONVERSION',
+  'STOCK_TRANSFER',
+  'ORDER',
+]);
+export const InventoryLedgerReferenceTypeValues = {
+  GOODS_RECEIPT: 'GOODS_RECEIPT' as const,
+  STOCK_ADJUSTMENT: 'STOCK_ADJUSTMENT' as const,
+  CONVERSION: 'CONVERSION' as const,
+  STOCK_TRANSFER: 'STOCK_TRANSFER' as const,
+  ORDER: 'ORDER' as const,
+};
+export type InventoryLedgerReferenceType = (typeof inventoryLedgerReferenceTypeEnum.enumValues)[number];
+
 export const purchaseOrderStatusEnum = coreSchema.enum('purchase_order_status', [
   'DRAFT',
   'SENT',

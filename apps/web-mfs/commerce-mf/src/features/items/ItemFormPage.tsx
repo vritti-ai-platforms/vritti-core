@@ -40,23 +40,7 @@ export const ItemFormPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={item.name}
-        description={
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground">{item.code}</span>
-            <Badge
-              variant="secondary"
-              className={item.type === 'PRODUCT' ? 'bg-primary/10 text-primary' : 'bg-accent/50 text-accent-foreground'}
-            >
-              {item.type === 'PRODUCT' ? 'Product' : 'Service'}
-            </Badge>
-            <Badge
-              variant={item.isAvailable ? 'secondary' : 'outline'}
-              className={item.isAvailable ? 'bg-success/15 text-success' : ''}
-            >
-              {item.isAvailable ? 'Active' : 'Inactive'}
-            </Badge>
-          </div>
-        }
+        description={`${item.code} • ${item.type === 'PRODUCT' ? 'Product' : 'Service'} • ${item.isAvailable ? 'Active' : 'Inactive'}`}
         actions={
           <Button variant="outline" size="sm" startAdornment={<Pencil className="size-4" />} onClick={editDialog.open}>
             Edit

@@ -2,6 +2,8 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-res
 import axios from '@vritti/quantum-ui/axios';
 import type {
   StockAdjustmentData,
+  StockAdjustmentLineData,
+  StockAdjustmentLineItemData,
   StockAdjustmentLinesTableResponse,
   StockAdjustmentsTableResponse,
   StockAdjustmentType,
@@ -21,6 +23,10 @@ export interface AddStockAdjustmentLinePayload {
   expiryDate?: string;
 }
 
+export interface AddStockAdjustmentLineItemPayload {
+  quantity: number;
+}
+
 export function getStockAdjustmentsTable(): Promise<StockAdjustmentsTableResponse> {
   return axios.get<StockAdjustmentsTableResponse>('commerce-api/stock-adjustments/table').then((r) => r.data);
 }
@@ -35,14 +41,24 @@ export function getStockAdjustmentLinesTable(id: string): Promise<StockAdjustmen
     .then((r) => r.data);
 }
 
+export function getStockAdjustmentLines(id: string): Promise<StockAdjustmentLineData[]> {
+  return axios.get<StockAdjustmentLineData[]>(`commerce-api/stock-adjustments/${id}/lines`).then((r) => r.data);
+}
+
+export function getStockAdjustmentLineItems(id: string, lineId: string): Promise<StockAdjustmentLineItemData[]> {
+  return axios
+    .get<StockAdjustmentLineItemData[]>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items`)
+    .then((r) => r.data);
+}
+
 export function createStockAdjustment(data: CreateStockAdjustmentPayload): Promise<StockAdjustmentData> {
   return axios
     .post<CreateResponse<StockAdjustmentData>>('commerce-api/stock-adjustments', data)
     .then((r) => r.data.data);
 }
 
-export function addStockAdjustmentLine(id: string, data: AddStockAdjustmentLinePayload): Promise<StockAdjustmentData> {
-  return axios.post<StockAdjustmentData>(`commerce-api/stock-adjustments/${id}/lines`, data).then((r) => r.data);
+export function addStockAdjustmentLine(id: string, data: AddStockAdjustmentLinePayload): Promise<StockAdjustmentLineData> {
+  return axios.post<StockAdjustmentLineData>(`commerce-api/stock-adjustments/${id}/lines`, data).then((r) => r.data);
 }
 
 export function updateStockAdjustmentLine(
@@ -55,6 +71,31 @@ export function updateStockAdjustmentLine(
 
 export function removeStockAdjustmentLine(id: string, lineId: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/stock-adjustments/${id}/lines/${lineId}`).then((r) => r.data);
+}
+
+export function addStockAdjustmentLineItem(
+  id: string,
+  lineId: string,
+  data: AddStockAdjustmentLineItemPayload,
+): Promise<StockAdjustmentLineItemData> {
+  return axios.post<StockAdjustmentLineItemData>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items`, data).then((r) => r.data);
+}
+
+export function updateStockAdjustmentLineItem(
+  id: string,
+  lineId: string,
+  itemId: string,
+  data: AddStockAdjustmentLineItemPayload,
+): Promise<StockAdjustmentLineItemData> {
+  return axios
+    .patch<StockAdjustmentLineItemData>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`, data)
+    .then((r) => r.data);
+}
+
+export function removeStockAdjustmentLineItem(id: string, lineId: string, itemId: string): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`)
+    .then((r) => r.data);
 }
 
 export function publishStockAdjustment(id: string): Promise<StockAdjustmentData> {

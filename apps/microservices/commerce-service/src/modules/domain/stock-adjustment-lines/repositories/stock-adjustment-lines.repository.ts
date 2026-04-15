@@ -16,10 +16,12 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         organizationId: stockAdjustmentLines.organizationId,
         businessUnitId: stockAdjustmentLines.businessUnitId,
         stockAdjustmentId: stockAdjustmentLines.stockAdjustmentId,
+        createdById: stockAdjustmentLines.createdById,
         batchId: stockAdjustmentLines.batchId,
         locationId: stockAdjustmentLines.locationId,
         quantity: stockAdjustmentLines.quantity,
         batchNumber: stockAdjustmentLines.batchNumber,
+        isBalanced: stockAdjustmentLines.isBalanced,
         manufacturingDate: stockAdjustmentLines.manufacturingDate,
         expiryDate: stockAdjustmentLines.expiryDate,
         createdAt: stockAdjustmentLines.createdAt,
@@ -47,10 +49,12 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         organizationId: stockAdjustmentLines.organizationId,
         businessUnitId: stockAdjustmentLines.businessUnitId,
         stockAdjustmentId: stockAdjustmentLines.stockAdjustmentId,
+        createdById: stockAdjustmentLines.createdById,
         batchId: stockAdjustmentLines.batchId,
         locationId: stockAdjustmentLines.locationId,
         quantity: stockAdjustmentLines.quantity,
         batchNumber: stockAdjustmentLines.batchNumber,
+        isBalanced: stockAdjustmentLines.isBalanced,
         manufacturingDate: stockAdjustmentLines.manufacturingDate,
         expiryDate: stockAdjustmentLines.expiryDate,
         createdAt: stockAdjustmentLines.createdAt,
@@ -91,5 +95,25 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
       .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
 
     return Number(result?.total ?? 0);
+  }
+
+  async refreshIsBalanced(lineId: string): Promise<void> {
+    await this.db
+      .update(stockAdjustmentLines)
+      .set({
+        isBalanced: sql<boolean>`(
+          COALESCE((
+            SELECT COUNT(*)
+            FROM vritti_core.stock_adjustment_line_items li
+            WHERE li.stock_adjustment_line_id = ${stockAdjustmentLines.id}
+          ), 0) > 0
+          AND COALESCE((
+            SELECT SUM(li.quantity)
+            FROM vritti_core.stock_adjustment_line_items li
+            WHERE li.stock_adjustment_line_id = ${stockAdjustmentLines.id}
+          ), 0) = ${stockAdjustmentLines.quantity}
+        )`,
+      })
+      .where(eq(stockAdjustmentLines.id, lineId));
   }
 }

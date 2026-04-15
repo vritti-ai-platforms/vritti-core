@@ -1,6 +1,12 @@
-import { boolean, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, customType, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
+
+const ltreeType = customType<{ data: string }>({
+  dataType() {
+    return 'vritti_core.ltree';
+  },
+});
 
 export const storageLocations = coreSchema.table(
   'storage_locations',
@@ -11,6 +17,7 @@ export const storageLocations = coreSchema.table(
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
     parentId: uuid('parent_id'),
+    path: ltreeType('path').notNull(),
     sortOrder: integer('sort_order').notNull().default(1),
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),

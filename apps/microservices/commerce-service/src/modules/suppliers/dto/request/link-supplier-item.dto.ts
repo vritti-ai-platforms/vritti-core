@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class LinkSupplierItemDto {
   @IsUUID()
@@ -14,9 +14,9 @@ export class LinkSupplierItemDto {
   @Min(0)
   unitPrice?: number;
 
-  @IsOptional()
   @IsUUID()
-  uomId?: string;
+  @IsNotEmpty()
+  uomId: string;
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 3 })

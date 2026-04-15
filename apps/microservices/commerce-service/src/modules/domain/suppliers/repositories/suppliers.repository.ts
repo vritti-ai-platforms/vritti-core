@@ -22,7 +22,7 @@ export class SuppliersRepository extends PrimaryBaseRepository<typeof suppliers>
   // Returns all supplier items for a supplier with inventory item names and UOM symbols
   async findItemsBySupplierId(
     supplierId: string,
-  ): Promise<(SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null })[]> {
+  ): Promise<(SupplierItem & { inventoryItemName: string | null; uomSymbol: string })[]> {
     const rows = await this.db
       .select({
         id: supplierItems.id,
@@ -43,10 +43,10 @@ export class SuppliersRepository extends PrimaryBaseRepository<typeof suppliers>
       })
       .from(supplierItems)
       .leftJoin(inventoryItems, eq(supplierItems.inventoryItemId, inventoryItems.id))
-      .leftJoin(uom, eq(supplierItems.uomId, uom.id))
+      .innerJoin(uom, eq(supplierItems.uomId, uom.id))
       .where(eq(supplierItems.supplierId, supplierId));
 
-    return rows as (SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null })[];
+    return rows as (SupplierItem & { inventoryItemName: string | null; uomSymbol: string })[];
   }
 
   // Creates a supplier item link

@@ -7,6 +7,7 @@ export class StorageLocationDto {
   name: string;
   code: string;
   parentId: string | null;
+  path: string;
   sortOrder: number;
   area: string | null;
   managerId: string | null;
@@ -25,6 +26,7 @@ export class StorageLocationDto {
     dto.name = entity.name;
     dto.code = entity.code;
     dto.parentId = entity.parentId ?? null;
+    dto.path = entity.path;
     dto.sortOrder = entity.sortOrder;
     dto.area = entity.area ?? null;
     dto.managerId = entity.managerId ?? null;

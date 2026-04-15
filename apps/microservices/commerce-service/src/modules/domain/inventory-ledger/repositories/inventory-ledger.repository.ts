@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type InventoryLedgerReferenceType,
   type InventoryLedgerEntry,
   inventoryItemBatches,
   inventoryItems,
@@ -88,7 +89,7 @@ export class InventoryLedgerRepository extends PrimaryBaseRepository<typeof inve
     return { result: result as InventoryLedgerEntry[], count: Number(countResult?.count ?? 0) };
   }
 
-  async findByReference(referenceType: string, referenceId: string): Promise<InventoryLedgerEntry[]> {
+  async findByReference(referenceType: InventoryLedgerReferenceType, referenceId: string): Promise<InventoryLedgerEntry[]> {
     return this.db
       .select()
       .from(inventoryLedger)

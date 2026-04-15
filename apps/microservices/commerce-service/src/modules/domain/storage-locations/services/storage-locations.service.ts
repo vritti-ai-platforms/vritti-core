@@ -32,6 +32,19 @@ export class StorageLocationsService {
 
   constructor(private readonly storageLocationsRepository: StorageLocationsRepository) {}
 
+  private static toPathLabel(code: string): string {
+    const normalized = code
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    return normalized || 'loc';
+  }
+
+  private static buildPath(parentPath: string | null, code: string): string {
+    const label = StorageLocationsService.toPathLabel(code);
+    return parentPath ? `${parentPath}.${label}` : label;
+  }
+
   // Returns total storage location count (independent of tree search/filter)
   async count(): Promise<StorageLocationCountDto> {
     const count = await this.storageLocationsRepository.countAll();
@@ -83,7 +96,7 @@ export class StorageLocationsService {
     const childrenMap = new Map<string | null, StorageLocationTreeDto[]>();
     for (const row of rows) {
       const siblings = childrenMap.get(row.parentId) ?? [];
-      siblings.push({ id: row.id, name: row.name });
+      siblings.push({ id: row.id, name: row.name, path: row.path });
       childrenMap.set(row.parentId, siblings);
     }
 
@@ -151,21 +164,35 @@ export class StorageLocationsService {
       await this.assertNoCircularReference(null, data.parentId);
     }
 
+    let parentPath: string | null = null;
+    if (data.parentId) {
+      const parent = await this.storageLocationsRepository.findById(data.parentId);
+      if (!parent) throw new NotFoundException('Parent storage location not found.');
+      parentPath = parent.path;
+    }
+
     const entity = await this.storageLocationsRepository.create({
       name: data.name,
       code: data.code,
       parentId: data.parentId ?? null,
+      path: '__pending__',
       sortOrder: data.sortOrder ?? 1,
       area: data.area || null,
       managerId: data.managerId ?? null,
       address: data.address || null,
       isActive: data.isActive,
     });
+
+    const path = StorageLocationsService.buildPath(parentPath, entity.code);
+    await this.storageLocationsRepository.update(entity.id, { path });
+    const created = await this.storageLocationsRepository.findById(entity.id);
+    if (!created) throw new NotFoundException('Storage location not found.');
+
     this.logger.log(`Created storage location: ${entity.name} (${entity.code})`);
     return {
       success: true,
       message: `Storage location "${entity.name}" (${entity.code}) created successfully.`,
-      data: StorageLocationDto.from(entity),
+      data: StorageLocationDto.from(created),
     };
   }
 
@@ -174,16 +201,36 @@ export class StorageLocationsService {
     const existing = await this.storageLocationsRepository.findById(id);
     if (!existing) throw new NotFoundException('Storage location not found.');
 
-    if (data.parentId) {
+    if (data.parentId !== undefined && data.parentId) {
       await this.assertNoCircularReference(id, data.parentId);
     }
 
-    await this.storageLocationsRepository.update(id, {
-      ...data,
-      parentId: data.parentId === undefined ? undefined : data.parentId || null,
-      area: data.area !== undefined ? data.area || null : undefined,
-      address: data.address !== undefined ? data.address || null : undefined,
+    const nextParentId = data.parentId === undefined ? existing.parentId : data.parentId || null;
+    const parentChanged = nextParentId !== existing.parentId;
+    const nextCode = data.code === undefined ? existing.code : data.code;
+    const codeChanged = nextCode !== existing.code;
+
+    await this.storageLocationsRepository.transaction(async (tx) => {
+      await this.storageLocationsRepository.update(id, {
+        ...data,
+        parentId: nextParentId,
+        area: data.area !== undefined ? data.area || null : undefined,
+        address: data.address !== undefined ? data.address || null : undefined,
+      }, tx);
+
+      if (parentChanged || codeChanged) {
+        let parentPath: string | null = null;
+        if (nextParentId) {
+          const parent = await this.storageLocationsRepository.findById(nextParentId);
+          if (!parent) throw new NotFoundException('Parent storage location not found.');
+          parentPath = parent.path;
+        }
+
+        const nextPath = StorageLocationsService.buildPath(parentPath, nextCode);
+        await this.storageLocationsRepository.rewriteSubtreePathInTx(tx, existing.path, nextPath);
+      }
     });
+
     this.logger.log(`Updated storage location: ${existing.name} (${id})`);
     return { success: true, message: `Storage location "${existing.name}" updated successfully.` };
   }

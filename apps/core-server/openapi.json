@@ -5868,16 +5868,51 @@
         ]
       }
     },
-    "/commerce-api/stock-adjustments": {
+    "/commerce-api/stock-adjustments/{id}/lines": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLines",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
       "post": {
-        "operationId": "StockAdjustmentsGatewayController_create",
-        "parameters": [],
+        "operationId": "StockAdjustmentsGatewayController_addLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateStockAdjustmentDto"
+                "$ref": "#/components/schemas/AddStockAdjustmentLineDto"
               }
             }
           }
@@ -5897,25 +5932,16 @@
         ]
       }
     },
-    "/commerce-api/stock-adjustments/{id}/lines": {
+    "/commerce-api/stock-adjustments": {
       "post": {
-        "operationId": "StockAdjustmentsGatewayController_addLine",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "StockAdjustmentsGatewayController_create",
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddStockAdjustmentLineDto"
+                "$ref": "#/components/schemas/CreateStockAdjustmentDto"
               }
             }
           }
@@ -5993,6 +6019,182 @@
           },
           {
             "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLineItems",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_addLineItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddStockAdjustmentLineItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items/{itemId}": {
+      "patch": {
+        "operationId": "StockAdjustmentsGatewayController_updateLineItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStockAdjustmentLineItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
+      "delete": {
+        "operationId": "StockAdjustmentsGatewayController_removeLineItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
             "required": true,
             "in": "path",
             "schema": {
@@ -10408,6 +10610,30 @@
           }
         }
       },
+      "AddStockAdjustmentLineItemDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Line item quantity"
+          }
+        },
+        "required": [
+          "quantity"
+        ]
+      },
+      "UpdateStockAdjustmentLineItemDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Line item quantity"
+          }
+        },
+        "required": [
+          "quantity"
+        ]
+      },
       "CreateStockTransferDto": {
         "type": "object",
         "properties": {
@@ -10617,7 +10843,8 @@
           }
         },
         "required": [
-          "inventoryItemId"
+          "inventoryItemId",
+          "uomId"
         ]
       },
       "TaxRateResponseDto": {

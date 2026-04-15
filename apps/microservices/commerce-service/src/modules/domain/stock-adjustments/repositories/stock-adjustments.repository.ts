@@ -1,14 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
-import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import {
-  inventoryItemBatches,
+  coreSchema,
   inventoryItems,
   type NewStockAdjustment,
+  stockAdjustmentLines,
   type StockAdjustment,
   type StockAdjustmentStatus,
   stockAdjustments,
+  uom,
 } from '@/db/schema';
+
+const users = coreSchema.table('users', {
+  id: uuid('id').primaryKey(),
+  fullName: varchar('full_name', { length: 255 }).notNull(),
+});
 
 @Injectable()
 export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof stockAdjustments> {
@@ -21,8 +29,20 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     orderBy?: SQL[];
     limit: number;
     offset: number;
-  }): Promise<{ result: (StockAdjustment & { inventoryItemName: string | null })[]; count: number }> {
-    return this.findAllAndCount<StockAdjustment & { inventoryItemName: string | null }>({
+  }): Promise<{
+    result: (StockAdjustment & {
+      inventoryItemName: string;
+      createdByFullName: string;
+    })[];
+    count: number;
+  }> {
+    return this.findAllAndCount<
+      StockAdjustment & {
+        inventoryItemName: string;
+        inventoryItemUomSymbol: string | null;
+        createdByFullName: string;
+      }
+    >({
       select: {
         id: stockAdjustments.id,
         organizationId: stockAdjustments.organizationId,
@@ -36,8 +56,14 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         publishedAt: stockAdjustments.publishedAt,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
+        inventoryItemUomSymbol: uom.symbol,
+        createdByFullName: users.fullName,
       },
-      leftJoin: { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
+      leftJoins: [
+        { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
+        { table: uom, on: eq(inventoryItems.uomId, uom.id) },
+        { table: users, on: eq(stockAdjustments.createdById, users.id) },
+      ],
       where: options.where,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(stockAdjustments.createdAt)],
       limit: options.limit,
@@ -47,7 +73,14 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
 
   async findByIdWithItemName(
     id: string,
-  ): Promise<(StockAdjustment & { inventoryItemName: string | null }) | undefined> {
+  ): Promise<
+      (StockAdjustment & {
+        inventoryItemName: string;
+        inventoryItemUomSymbol: string | null;
+        createdByFullName: string;
+        isPublishable: boolean;
+      }) | undefined
+  > {
     const rows = await this.db
       .select({
         id: stockAdjustments.id,
@@ -62,12 +95,46 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         publishedAt: stockAdjustments.publishedAt,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
+        inventoryItemUomSymbol: uom.symbol,
+        createdByFullName: users.fullName,
+        isPublishable: sql<boolean>`(
+          ${stockAdjustments.status} = 'DRAFT'
+          AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0
+          AND COUNT(DISTINCT ${stockAdjustmentLines.id}) =
+              COUNT(DISTINCT CASE WHEN ${stockAdjustmentLines.isBalanced} THEN ${stockAdjustmentLines.id} END)
+        )`,
       })
       .from(stockAdjustments)
-      .leftJoin(inventoryItems, eq(stockAdjustments.inventoryItemId, inventoryItems.id))
-      .where(eq(stockAdjustments.id, id));
+      .innerJoin(inventoryItems, eq(stockAdjustments.inventoryItemId, inventoryItems.id))
+      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
+      .innerJoin(users, eq(stockAdjustments.createdById, users.id))
+      .leftJoin(stockAdjustmentLines, eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId))
+      .where(eq(stockAdjustments.id, id))
+      .groupBy(
+        stockAdjustments.id,
+        stockAdjustments.organizationId,
+        stockAdjustments.businessUnitId,
+        stockAdjustments.inventoryItemId,
+        stockAdjustments.code,
+        stockAdjustments.type,
+        stockAdjustments.status,
+        stockAdjustments.reason,
+        stockAdjustments.createdById,
+        stockAdjustments.publishedAt,
+        stockAdjustments.createdAt,
+        inventoryItems.name,
+        uom.symbol,
+        users.fullName,
+      );
 
-    return rows[0] as (StockAdjustment & { inventoryItemName: string | null }) | undefined;
+    return rows[0] as
+      | (StockAdjustment & {
+          inventoryItemName: string;
+          inventoryItemUomSymbol: string | null;
+          createdByFullName: string;
+          isPublishable: boolean;
+        })
+      | undefined;
   }
 
   async updateStatusInTx(
@@ -80,29 +147,6 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       .update(stockAdjustments)
       .set({ status, ...(publishedAt ? { publishedAt } : {}) })
       .where(eq(stockAdjustments.id, id));
-  }
-
-  // Returns the item code for batch number generation
-  async findItemCode(itemId: string): Promise<string> {
-    const [row] = await this.db
-      .select({ code: inventoryItems.code })
-      .from(inventoryItems)
-      .where(eq(inventoryItems.id, itemId));
-
-    return row?.code ?? '';
-  }
-
-  // Counts batches for an item on a given date (org-scoped via RLS)
-  async countBatchesForItemOnDate(itemId: string, date: string): Promise<number> {
-    const [result] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryItemBatches)
-      .where(and(
-        eq(inventoryItemBatches.inventoryItemId, itemId),
-        eq(inventoryItemBatches.manufacturingDate, date),
-      ));
-
-    return Number(result?.count ?? 0);
   }
 
   // Generates a unique stock adjustment code (org-scoped via RLS)

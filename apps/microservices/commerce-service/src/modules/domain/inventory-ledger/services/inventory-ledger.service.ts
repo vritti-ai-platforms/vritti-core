@@ -6,7 +6,7 @@ import {
   type TypedDrizzleClient,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import type { InventoryLedgerEntry, NewInventoryLedgerEntry } from '@/db/schema';
+import type { InventoryLedgerEntry, InventoryLedgerReferenceType, NewInventoryLedgerEntry } from '@/db/schema';
 import { inventoryItemBatches, inventoryItems, inventoryLedger } from '@/db/schema';
 import { InventoryLedgerDto } from '../dto/entity/inventory-ledger.dto';
 import { InventoryLedgerRepository } from '../repositories/inventory-ledger.repository';
@@ -75,7 +75,7 @@ export class InventoryLedgerService {
     return { result: result.map((r) => InventoryLedgerDto.from(r)), count };
   }
 
-  async findByReference(referenceType: string, referenceId: string): Promise<InventoryLedgerDto[]> {
+  async findByReference(referenceType: InventoryLedgerReferenceType, referenceId: string): Promise<InventoryLedgerDto[]> {
     const entries = await this.repository.findByReference(referenceType, referenceId);
     return entries.map((r) => InventoryLedgerDto.from(r));
   }
