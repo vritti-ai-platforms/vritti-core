@@ -1,13 +1,12 @@
-import * as React from 'react';
-import { Image, SafeAreaView, View } from 'react-native';
-import type { NativeStackScreenProps } from '@vritti/quantum-ui-native/NativeStack';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
+import type { NativeStackScreenProps } from '@vritti/quantum-ui-native/NativeStack';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { Text } from '@vritti/quantum-ui-native/Typography';
+import { useForm } from 'react-hook-form';
+import { Image, SafeAreaView, View } from 'react-native';
+import { z } from 'zod';
 import { useLogin } from '../hooks/auth';
 import type { RootStackParamList } from '../types/navigation';
 
@@ -52,14 +51,10 @@ export const LoginScreen = ({ route, navigation }: Props) => {
         <View className="h-6" />
 
         {/* Title */}
-        <Text className="text-xl font-semibold text-foreground text-center">
-          Welcome back
-        </Text>
+        <Text className="text-xl font-semibold text-foreground text-center">Welcome back</Text>
 
         {/* Subtitle */}
-        <Text className="text-sm text-muted-foreground text-center mt-2">
-          {organizationName}
-        </Text>
+        <Text className="text-sm text-muted-foreground text-center mt-2">{organizationName}</Text>
 
         {/* Gap */}
         <View className="h-8" />
@@ -76,20 +71,9 @@ export const LoginScreen = ({ route, navigation }: Props) => {
           showRootError
           rootErrorPosition="top"
         >
-          <TextField
-            name="email"
-            label="Email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={false}
-          />
+          <TextField name="email" label="Email" keyboardType="email-address" autoCapitalize="none" editable={false} />
 
-          <TextField
-            name="password"
-            label="Password"
-            secureTextEntry
-            autoComplete="password"
-          />
+          <TextField name="password" label="Password" secureTextEntry autoComplete="password" />
         </Form>
 
         {/* Forgot password placeholder */}

@@ -1,11 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationContainer } from '@react-navigation/native';
-import { StatusBar } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@vritti/quantum-ui-native';
-import {
-  BottomNavigation,
-  type RouteConfig,
-} from '@vritti/quantum-ui-native/BottomNavigation';
+import { BottomNavigation, type RouteConfig } from '@vritti/quantum-ui-native/BottomNavigation';
+import { StatusBar } from 'react-native';
 import { RemoteScreen } from './mf/RemoteScreen';
 
 // import { createNativeStackNavigator } from '@vritti/quantum-ui-native/NativeStack';
@@ -25,25 +22,19 @@ const commerceRoutes: RouteConfig[] = [
     name: 'Items',
     label: 'Items',
     icon: {},
-    component: () => (
-      <RemoteScreen remoteName="commerce-ma" moduleName="./Items" />
-    ),
+    component: () => <RemoteScreen remoteName="commerce-ma" moduleName="./Items" />,
   },
   {
     name: 'Categories',
     label: 'Categories',
     icon: {},
-    component: () => (
-      <RemoteScreen remoteName="commerce-ma" moduleName="./Categories" />
-    ),
+    component: () => <RemoteScreen remoteName="commerce-ma" moduleName="./Categories" />,
   },
   {
     name: 'Modifiers',
     label: 'Modifiers',
     icon: {},
-    component: () => (
-      <RemoteScreen remoteName="commerce-ma" moduleName="./Modifiers" />
-    ),
+    component: () => <RemoteScreen remoteName="commerce-ma" moduleName="./Modifiers" />,
   },
 ];
 
@@ -51,9 +42,10 @@ export default function App() {
   return (
     <ThemeProvider defaultScheme="dark">
       <QueryClientProvider client={queryClient}>
-        <NavigationContainer>
-          <StatusBar barStyle="light-content" />
-          <BottomNavigation routes={commerceRoutes} standalone={false} />
+        {/* <NavigationContainer> */}
+        <StatusBar barStyle="light-content" />
+        <BottomNavigation routes={commerceRoutes} standalone={true} />
+        {/* <LoginScreen navigation={''} route={undefined} /> */}
         {/*
         <Stack.Navigator
           initialRouteName="DeploymentSelection"
@@ -75,7 +67,7 @@ export default function App() {
           </Stack.Screen>
         </Stack.Navigator>
         */}
-        </NavigationContainer>
+        {/* </NavigationContainer> */}
       </QueryClientProvider>
     </ThemeProvider>
   );
