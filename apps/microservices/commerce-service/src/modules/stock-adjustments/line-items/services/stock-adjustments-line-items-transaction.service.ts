@@ -1,7 +1,7 @@
 import type { StockAdjustmentLineItemDto } from '@domain/stock-adjustment-line-items/dto/entity/stock-adjustment-line-item.dto';
 import { StockAdjustmentLineItemsService } from '@domain/stock-adjustment-line-items/services/stock-adjustment-line-items.service';
 import { Injectable } from '@nestjs/common';
-import type { SuccessResponseDto } from '@vritti/api-sdk';
+import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 
 @Injectable()
 export class StockAdjustmentsLineItemsTransactionService {
@@ -9,6 +9,12 @@ export class StockAdjustmentsLineItemsTransactionService {
 
   lineItems(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineItemDto[]> {
     return this.lineItemsService.listByLine(adjustmentId, lineId);
+  }
+
+  lineItemsTable(
+    data: { adjustmentId: string; lineId: string } & TableViewState,
+  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
+    return this.lineItemsService.findForTable(data.adjustmentId, data.lineId, data);
   }
 
   addLineItem(data: { adjustmentId: string; lineId: string; quantity: number }): Promise<StockAdjustmentLineItemDto> {

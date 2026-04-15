@@ -1,8 +1,9 @@
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BadRequestException } from '@vritti/api-sdk';
-import { StockAdjustmentStatusValues, type StockAdjustmentType } from '@/db/schema';
+import { BadRequestException, type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk';
+import { and } from '@vritti/api-sdk/drizzle-orm';
+import { StockAdjustmentStatusValues, type StockAdjustmentType, stockAdjustmentLineItems } from '@/db/schema';
 import { StockAdjustmentLineItemDto } from '../dto/entity/stock-adjustment-line-item.dto';
 import { StockAdjustmentLineItemsRepository } from '../repositories/stock-adjustment-line-items.repository';
 
@@ -15,6 +16,10 @@ interface AdjustmentContext {
 
 @Injectable()
 export class StockAdjustmentLineItemsService {
+  private static readonly FIELD_MAP: FieldMap = {
+    quantity: { column: stockAdjustmentLineItems.quantity, type: 'number' },
+  };
+
   constructor(
     private readonly repository: StockAdjustmentLineItemsRepository,
     private readonly linesRepository: StockAdjustmentLinesRepository,
@@ -25,6 +30,25 @@ export class StockAdjustmentLineItemsService {
     await this.ensureLineBelongsToAdjustment(adjustmentId, lineId);
     const rows = await this.repository.findByLineId(lineId);
     return rows.map(StockAdjustmentLineItemDto.from);
+  }
+
+  async findForTable(
+    adjustmentId: string,
+    lineId: string,
+    state: TableViewState,
+  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
+    await this.ensureLineBelongsToAdjustment(adjustmentId, lineId);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLineItemsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLineItemsService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const { limit = 20, offset = 0 } = state.pagination;
+    const { result, count } = await this.repository.findForTable(lineId, {
+      where,
+      orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentLineItemsService.FIELD_MAP),
+      limit,
+      offset,
+    });
+    return { result: result.map(StockAdjustmentLineItemDto.from), count };
   }
 
   async addLineItem(

@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
@@ -9,7 +10,6 @@ import { Typography } from '@vritti/quantum-ui/Typography';
 import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import { DetailField } from '@/components/DetailField';
 import {
   LOCATION_CHILDREN_TABLE_KEY,
   useDeleteLocation,

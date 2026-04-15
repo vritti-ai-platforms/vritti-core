@@ -4,10 +4,10 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Plus } from 'lucide-react';
-import { useEffect } from 'react';
 import { useStockAdjustmentLines } from '@/hooks/stock-adjustments';
 import type { StockAdjustmentType } from '@/schemas/stock-adjustments';
 import { AddStockAdjustmentLineDialog } from '../forms/AddStockAdjustmentLineDialog';
+
 interface StockAdjustmentSidePanelProps {
   adjustmentId: string;
   adjustmentType: StockAdjustmentType;
@@ -29,17 +29,6 @@ export const StockAdjustmentSidePanel = ({
 }: StockAdjustmentSidePanelProps) => {
   const addLineDialog = useDialog();
   const { data: lines = [], isLoading: isLoadingLines } = useStockAdjustmentLines(adjustmentId);
-  const hasLines = lines.length > 0;
-
-  useEffect(() => {
-    if (!hasLines) {
-      onSelectLine(null);
-      return;
-    }
-    if (!selectedLineId || !lines.some((line) => line.id === selectedLineId)) {
-      onSelectLine(lines[0].id);
-    }
-  }, [hasLines, lines, selectedLineId, onSelectLine]);
 
   return (
     <div className="w-80 border-r shrink-0 flex flex-col overflow-hidden">
@@ -75,7 +64,7 @@ export const StockAdjustmentSidePanel = ({
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-sm font-medium truncate">
                       {isOpeningStock
-                        ? line.locationName ?? 'No location'
+                        ? (line.locationName ?? 'No location')
                         : line.batchNumber
                           ? `Batch #${line.batchNumber}`
                           : 'No batch'}

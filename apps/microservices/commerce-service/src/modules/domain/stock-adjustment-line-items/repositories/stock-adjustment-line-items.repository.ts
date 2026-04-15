@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { stockAdjustmentLineItems, stockAdjustmentLines, type StockAdjustmentLineItem } from '@/db/schema';
 
 @Injectable()
@@ -21,6 +21,20 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
   async findById(id: string): Promise<StockAdjustmentLineItem | undefined> {
     const rows = await this.db.select().from(stockAdjustmentLineItems).where(eq(stockAdjustmentLineItems.id, id));
     return rows[0] as StockAdjustmentLineItem | undefined;
+  }
+
+  async findForTable(
+    lineId: string,
+    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: StockAdjustmentLineItem[]; count: number }> {
+    const baseWhere = eq(stockAdjustmentLineItems.stockAdjustmentLineId, lineId);
+    const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
+    return this.findAllAndCount<StockAdjustmentLineItem>({
+      where: combinedWhere,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(stockAdjustmentLineItems.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
   async findStatsByLineIds(

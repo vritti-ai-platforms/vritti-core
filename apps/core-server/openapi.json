@@ -6121,6 +6121,42 @@
         ]
       }
     },
+    "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items/table": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLineItemsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
     "/commerce-api/stock-adjustments/{id}/lines/{lineId}/items/{itemId}": {
       "patch": {
         "operationId": "StockAdjustmentsGatewayController_updateLineItem",

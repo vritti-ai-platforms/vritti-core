@@ -6,6 +6,7 @@ import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjus
 import type { UpdateStockAdjustmentLineDto } from '../dto/request/update-stock-adjustment-line.dto';
 import type { UpdateStockAdjustmentLineItemDto } from '../dto/request/update-stock-adjustment-line-item.dto';
 import type { StockAdjustmentLineItemResponseDto } from '../dto/response/stock-adjustment-line-item-response.dto';
+import type { StockAdjustmentLineItemTableResponseDto } from '../dto/response/stock-adjustment-line-item-table-response.dto';
 import type { StockAdjustmentResponseDto } from '../dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from '../dto/response/stock-adjustment-table-response.dto';
 
@@ -80,6 +81,24 @@ export class StockAdjustmentsGatewayService {
   async findLineItems(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineItemResponseDto[]> {
     this.logger.log(`stockAdjustments.lineItems — line: ${lineId}`);
     return this.nats.send('commerce', 'stockAdjustments.lineItems', { adjustmentId, lineId });
+  }
+
+  async findLineItemsTable(
+    adjustmentId: string,
+    lineId: string,
+    userId: string,
+  ): Promise<StockAdjustmentLineItemTableResponseDto> {
+    this.logger.log(`stockAdjustments.lineItemsTable — line: ${lineId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `stock-adjustment-${adjustmentId}-line-${lineId}-items`,
+    );
+    const { result, count } = await this.nats.send<{ result: StockAdjustmentLineItemResponseDto[]; count: number }>(
+      'commerce',
+      'stockAdjustments.lineItemsTable',
+      { adjustmentId, lineId, ...state },
+    );
+    return { result, count, state, activeViewId };
   }
 
   async addLineItem(

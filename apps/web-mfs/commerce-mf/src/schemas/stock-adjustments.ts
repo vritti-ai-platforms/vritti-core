@@ -57,6 +57,7 @@ export interface StockAdjustmentData {
 
 export type StockAdjustmentsTableResponse = TableResponse<StockAdjustmentData>;
 export type StockAdjustmentLinesTableResponse = TableResponse<StockAdjustmentLineData>;
+export type StockAdjustmentLineItemsTableResponse = TableResponse<StockAdjustmentLineItemData>;
 
 export const createStockAdjustmentSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),

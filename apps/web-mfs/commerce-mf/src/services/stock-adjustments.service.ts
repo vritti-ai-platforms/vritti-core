@@ -4,6 +4,7 @@ import type {
   StockAdjustmentData,
   StockAdjustmentLineData,
   StockAdjustmentLineItemData,
+  StockAdjustmentLineItemsTableResponse,
   StockAdjustmentLinesTableResponse,
   StockAdjustmentsTableResponse,
   StockAdjustmentType,
@@ -48,6 +49,15 @@ export function getStockAdjustmentLines(id: string): Promise<StockAdjustmentLine
 export function getStockAdjustmentLineItems(id: string, lineId: string): Promise<StockAdjustmentLineItemData[]> {
   return axios
     .get<StockAdjustmentLineItemData[]>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items`)
+    .then((r) => r.data);
+}
+
+export function getStockAdjustmentLineItemsTable(
+  id: string,
+  lineId: string,
+): Promise<StockAdjustmentLineItemsTableResponse> {
+  return axios
+    .get<StockAdjustmentLineItemsTableResponse>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items/table`)
     .then((r) => r.data);
 }
 
