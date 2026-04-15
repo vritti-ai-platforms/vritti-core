@@ -76,6 +76,7 @@ export const BomPage = () => {
                 icon: Trash2,
                 label: 'Delete',
                 variant: 'destructive',
+                disabled: deleteMutation.isPending,
                 onClick: () => handleDelete(row.original.id, row.original.name),
               },
             ]}
@@ -85,7 +86,7 @@ export const BomPage = () => {
         enableHiding: false,
       },
     ],
-    [navigate, handleDelete],
+    [navigate, handleDelete, deleteMutation.isPending],
   );
 
   const { table } = useDataTable({

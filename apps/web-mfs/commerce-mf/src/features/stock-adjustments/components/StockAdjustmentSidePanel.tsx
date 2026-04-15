@@ -57,27 +57,17 @@ export const StockAdjustmentSidePanel = ({
             <div className="p-2 space-y-2">
               {lines.map((line) => {
                 const active = selectedLineId === line.id;
+                const lineLabel = isOpeningStock ? line.locationName : `Batch #${line.batchNumber}`;
                 return (
-                  <SidePanelListItem
-                    key={line.id}
-                    active={active}
-                    onClick={() => onSelectLine(line.id)}
-                  >
+                  <SidePanelListItem key={line.id} active={active} onClick={() => onSelectLine(line.id)}>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="text-sm font-medium truncate">
-                        {isOpeningStock
-                          ? (line.locationName ?? 'No location')
-                          : line.batchNumber
-                            ? `Batch #${line.batchNumber}`
-                            : 'No batch'}
-                      </div>
+                      <div className="text-sm font-medium truncate">{lineLabel}</div>
                       <Badge variant={line.isLineItemsBalanced ? 'secondary' : 'destructive'}>
                         {line.lineItemsQuantitySum}/{line.quantity}
                       </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Items: {line.lineItemsCount}{' '}
-                      {line.isLineItemsBalanced ? '• Balanced' : `• Delta ${line.lineItemsDelta}`}
+                      Items: {line.lineItemsCount} {line.isLineItemsBalanced ? '• Balanced' : `• Not balanced`}
                     </div>
                   </SidePanelListItem>
                 );

@@ -1,25 +1,15 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent } from '@vritti/quantum-ui/Card';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import {
-  STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
-  useRemoveStockAdjustmentLine,
-  useRemoveStockAdjustmentLineItem,
-  useStockAdjustmentLine,
-  useStockAdjustmentLineItemsTable,
-} from '@/hooks/stock-adjustments';
-import type { StockAdjustmentData, StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
-import { AddLineItemDialogForm } from '../forms/AddLineItemDialogForm';
-import { EditLineItemDialogForm } from '../forms/EditLineItemDialogForm';
+import { ClipboardList, Pencil, Trash2 } from 'lucide-react';
+import { useRemoveStockAdjustmentLine, useStockAdjustmentLine } from '@/hooks/stock-adjustments';
+import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { EditStockAdjustmentLineDialogForm } from '../forms/EditStockAdjustmentLineDialogForm';
+import { StockAdjustmentLineItemsTable } from './StockAdjustmentLineItemsTable';
 
 interface StockAdjustmentContentProps {
   adjustment: StockAdjustmentData;
@@ -34,93 +24,12 @@ export const StockAdjustmentContent = ({
   isDraft,
   isOpeningStock,
 }: StockAdjustmentContentProps) => {
-  const queryClient = useQueryClient();
   const confirm = useConfirm();
   const editLineDialog = useDialog();
-  const addLineItemDialog = useDialog();
-  const editLineItemDialog = useDialog();
-  const [editingItem, setEditingItem] = useState<StockAdjustmentLineItemData | null>(null);
 
   const { data: selectedLine } = useStockAdjustmentLine(adjustment.id, selectedLineId);
-  const { data: lineItemsResponse, isLoading: isLoadingLineItems } = useStockAdjustmentLineItemsTable(
-    adjustment.id,
-    selectedLine?.id ?? null,
-  );
 
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
-  const removeLineItemMutation = useRemoveStockAdjustmentLineItem(adjustment.id, selectedLine?.id ?? '');
-
-  const handleRemoveLineItem = useCallback(
-    async (itemId: string) => {
-      const confirmed = await confirm({
-        title: 'Remove this line item?',
-        description: 'This line item will be removed.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeLineItemMutation.mutate(itemId);
-    },
-    [confirm, removeLineItemMutation],
-  );
-
-  const lineItemColumns = useMemo<ColumnDef<StockAdjustmentLineItemData>[]>(
-    () => [
-      {
-        accessorKey: 'quantity',
-        header: 'Quantity',
-      },
-      {
-        accessorKey: 'createdAt',
-        header: 'Created',
-        cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
-      },
-      {
-        id: 'actions',
-        header: '',
-        cell: ({ row }) => (
-          <RowActions
-            actions={[
-              {
-                id: 'edit',
-                icon: Pencil,
-                label: 'Edit',
-                hidden: !isDraft,
-                onClick: () => {
-                  setEditingItem(row.original);
-                  editLineItemDialog.open();
-                },
-              },
-              {
-                id: 'delete',
-                icon: Trash2,
-                label: 'Delete',
-                variant: 'destructive',
-                hidden: !isDraft,
-                onClick: () => handleRemoveLineItem(row.original.id),
-              },
-            ]}
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
-    ],
-    [isDraft, editLineItemDialog, handleRemoveLineItem],
-  );
-
-  const { table } = useDataTable({
-    columns: lineItemColumns,
-    serverState: lineItemsResponse,
-    slug: `stock-adjustment-${adjustment.id}-line-${selectedLine?.id ?? 'none'}-items`,
-    label: 'line item',
-    enableRowSelection: false,
-    onStatePush: () => {
-      if (!selectedLine?.id) return;
-      queryClient.invalidateQueries({
-        queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustment.id, selectedLine.id),
-      });
-    },
-  });
 
   async function handleRemoveLine(lineId: string) {
     const confirmed = await confirm({
@@ -161,6 +70,7 @@ export const StockAdjustmentContent = ({
                   className="text-destructive hover:text-destructive"
                   startAdornment={<Trash2 className="size-3.5" />}
                   onClick={() => handleRemoveLine(selectedLine.id)}
+                  isLoading={removeLineMutation.isPending}
                 >
                   Remove Line
                 </Button>
@@ -189,23 +99,7 @@ export const StockAdjustmentContent = ({
           </Card>
 
           <div>
-            <DataTable
-              table={table}
-              mode="compact"
-              isLoading={isLoadingLineItems}
-              toolbarActions={{
-                actions: isDraft ? (
-                  <Button size="sm" onClick={addLineItemDialog.open} startAdornment={<Plus className="size-4" />}>
-                    Add Line Item
-                  </Button>
-                ) : undefined,
-              }}
-              emptyStateConfig={{
-                icon: ClipboardList,
-                title: 'No line items',
-                description: 'Add line items. Their sum must match line quantity to publish.',
-              }}
-            />
+            <StockAdjustmentLineItemsTable adjustmentId={adjustment.id} lineId={selectedLine.id} isDraft={isDraft} />
           </div>
         </div>
       ) : (
@@ -240,46 +134,6 @@ export const StockAdjustmentContent = ({
               isOpeningStock={isOpeningStock}
               onSuccess={close}
               onCancel={close}
-            />
-          )}
-        />
-      )}
-
-      {selectedLine && (
-        <Dialog
-          handle={addLineItemDialog}
-          title="Add Line Item"
-          description="Add a quantity entry for this line."
-          content={(close) => (
-            <AddLineItemDialogForm
-              adjustmentId={adjustment.id}
-              lineId={selectedLine.id}
-              onSuccess={close}
-              onCancel={close}
-            />
-          )}
-        />
-      )}
-
-      {selectedLine && editingItem && (
-        <Dialog
-          handle={editLineItemDialog}
-          title="Edit Line Item"
-          description="Update this line item quantity."
-          content={(close) => (
-            <EditLineItemDialogForm
-              adjustmentId={adjustment.id}
-              lineId={selectedLine.id}
-              itemId={editingItem.id}
-              defaultQuantity={editingItem.quantity}
-              onSuccess={() => {
-                setEditingItem(null);
-                close();
-              }}
-              onCancel={() => {
-                setEditingItem(null);
-                close();
-              }}
             />
           )}
         />

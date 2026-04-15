@@ -16,18 +16,18 @@ export interface StockAdjustmentLineData {
   id: string;
   stockAdjustmentId: string;
   createdById: string;
-  batchId: string | null;
-  batchNumber: string | null;
-  locationId: string | null;
-  locationName: string | null;
+  batchId: string;
+  batchNumber: string;
+  locationId: string;
+  locationName: string;
   quantity: number;
   lineItemsCount: number;
   lineItemsQuantitySum: number;
   lineItemsDelta: number;
   isBalanced: boolean;
   isLineItemsBalanced: boolean;
-  manufacturingDate: string | null;
-  expiryDate: string | null;
+  manufacturingDate: string;
+  expiryDate: string;
   createdAt: string;
 }
 

@@ -126,6 +126,8 @@ export const StockAdjustmentDetailPage = () => {
           description="This action cannot be undone. The draft adjustment and all its lines will be permanently removed."
           buttonText="Delete Draft"
           onClick={handleDelete}
+          isLoading={deleteMutation.isPending}
+          disabled={deleteMutation.isPending}
         />
       )}
     </div>

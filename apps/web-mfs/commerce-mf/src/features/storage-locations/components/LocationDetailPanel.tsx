@@ -137,7 +137,8 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
             variant="outline"
             size="sm"
             onClick={handleDelete}
-            disabled={!location.canDelete}
+            disabled={!location.canDelete || deleteMutation.isPending}
+            isLoading={deleteMutation.isPending}
             className="text-destructive hover:text-destructive"
             startAdornment={<Trash2 className="size-3.5" />}
           >

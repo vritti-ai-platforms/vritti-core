@@ -105,7 +105,8 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
             variant="outline"
             size="sm"
             onClick={handleDelete}
-            disabled={!category.canDelete}
+            disabled={!category.canDelete || deleteMutation.isPending}
+            isLoading={deleteMutation.isPending}
             className="text-destructive hover:text-destructive"
             startAdornment={<Trash2 className="size-3.5" />}
           >
