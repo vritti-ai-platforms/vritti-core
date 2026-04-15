@@ -1,9 +1,8 @@
-import React from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import { BottomNavigation, type RouteConfig } from '@vritti/quantum-ui-native/BottomNavigation';
+import { Text } from '@vritti/quantum-ui-native/Typography';
+import { ActivityIndicator, View } from 'react-native';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteScreen } from './RemoteScreen';
-import { Text } from '@vritti/quantum-ui-native/Typography';
 import { getCommerceTabIcon } from './tabIcons';
 
 // ---------------------------------------------------------------------------
@@ -25,8 +24,7 @@ function getContainerName(_remoteEntry: string): string {
 // ---------------------------------------------------------------------------
 
 export function DynamicFeatureNavigator() {
-  const { features, isLoadingBUs, isLoadingPermissions } =
-    usePermissionContext();
+  const { features, isLoadingBUs, isLoadingPermissions } = usePermissionContext();
 
   if (isLoadingBUs || isLoadingPermissions) {
     return (
@@ -39,9 +37,7 @@ export function DynamicFeatureNavigator() {
   if (features.length === 0) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text className="text-muted-foreground">
-          No features assigned to this business unit.
-        </Text>
+        <Text className="text-muted-foreground">No features assigned to this business unit.</Text>
       </View>
     );
   }
@@ -49,10 +45,7 @@ export function DynamicFeatureNavigator() {
   const routes: RouteConfig[] = features.map((feature) => ({
     name: feature.route.routePrefix,
     component: () => (
-      <RemoteScreen
-        remoteName={getContainerName(feature.route.remoteEntry)}
-        moduleName={feature.route.exposedModule}
-      />
+      <RemoteScreen remoteName={getContainerName(feature.route.remoteEntry)} moduleName={feature.route.exposedModule} />
     ),
     icon: getCommerceTabIcon(feature.route.exposedModule),
     label: feature.name,
