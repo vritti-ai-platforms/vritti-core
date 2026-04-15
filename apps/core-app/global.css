@@ -1,3 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+@import "nativewind/theme";
+
+/* Quantum UI Native design tokens (HSL CSS variables + theme registration) */
+@import "../../../quantum-ui-native/lib/index.css";
+
+/* Scan sources for className usage */
+@source "../../../quantum-ui-native/lib/**/*.{ts,tsx}";
+@source "./src/**/*.{ts,tsx}";
+@source "./App.tsx";

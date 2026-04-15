@@ -23,7 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
-export const LoginScreen = ({ route }: Props) => {
+export const LoginScreen = ({ route, navigation }: Props) => {
   const { email, organizationId, organizationName } = route.params;
 
   const form = useForm<LoginFormValues>({
@@ -33,8 +33,7 @@ export const LoginScreen = ({ route }: Props) => {
 
   const loginMutation = useLogin({
     onSuccess: () => {
-      // TODO: navigate to main app
-      console.log('Login successful');
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     },
   });
 

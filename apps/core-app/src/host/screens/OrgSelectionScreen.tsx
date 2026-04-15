@@ -39,16 +39,16 @@ export const OrgSelectionScreen = ({ navigation, route }: Props) => {
     const isSelected = item.id === selectedId;
 
     return (
-      <PressableCard
-        onPress={() => setSelectedId(item.id)}
-        selected={isSelected}
-        className={`rounded-2xl p-4 flex-row items-center gap-3 ${isSelected ? '' : 'border border-border bg-card'}`}
-      >
-        {/* Org avatar */}
-        <Avatar className="w-10 h-10">
-          {item.logoUrl ? (
-            <AvatarImage source={{ uri: item.logoUrl }} />
-          ) : null}
+        <PressableCard
+          onPress={() => setSelectedId(item.id)}
+          selected={isSelected}
+          className={`rounded-2xl p-4 flex-row items-center gap-3 ${isSelected ? '' : 'border border-border bg-card'}`}
+        >
+          {/* Org avatar */}
+          <Avatar alt={item.name} className="w-10 h-10">
+            {item.logoUrl ? (
+              <AvatarImage source={{ uri: item.logoUrl }} />
+            ) : null}
           <AvatarFallback>
             <Text className="text-xs font-semibold text-muted-foreground">
               {orgInitials(item.name)}
