@@ -32,7 +32,7 @@ export const LoginScreen = ({ route, navigation }: Props) => {
 
   const loginMutation = useLogin({
     onSuccess: () => {
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      navigation.reset({ routes: [{ name: 'Home' }] });
     },
   });
 

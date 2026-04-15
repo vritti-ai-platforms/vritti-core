@@ -4,6 +4,7 @@ import { BottomNavigation, type RouteConfig } from '@vritti/quantum-ui-native/Bo
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteScreen } from './RemoteScreen';
 import { Text } from '@vritti/quantum-ui-native/Typography';
+import { getCommerceTabIcon } from './tabIcons';
 
 // ---------------------------------------------------------------------------
 // Map a feature's remoteEntry URL to the MF container name.
@@ -53,7 +54,7 @@ export function DynamicFeatureNavigator() {
         moduleName={feature.route.exposedModule}
       />
     ),
-    icon: {},
+    icon: getCommerceTabIcon(feature.route.exposedModule),
     label: feature.name,
   }));
 

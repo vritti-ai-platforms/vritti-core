@@ -1,9 +1,9 @@
-import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@vritti/quantum-ui-native';
 import { BottomNavigation, type RouteConfig } from '@vritti/quantum-ui-native/BottomNavigation';
 import { StatusBar } from 'react-native';
 import { RemoteScreen } from './mf/RemoteScreen';
+import { getCommerceTabIcon } from './mf/tabIcons';
 
 // import { createNativeStackNavigator } from '@vritti/quantum-ui-native/NativeStack';
 // import { DeploymentSelectionScreen } from './src/screens/DeploymentSelectionScreen';
@@ -21,19 +21,19 @@ const commerceRoutes: RouteConfig[] = [
   {
     name: 'Items',
     label: 'Items',
-    icon: {},
+    icon: getCommerceTabIcon('Items'),
     component: () => <RemoteScreen remoteName="commerce-ma" moduleName="./Items" />,
   },
   {
     name: 'Categories',
     label: 'Categories',
-    icon: {},
+    icon: getCommerceTabIcon('Categories'),
     component: () => <RemoteScreen remoteName="commerce-ma" moduleName="./Categories" />,
   },
   {
     name: 'Modifiers',
     label: 'Modifiers',
-    icon: {},
+    icon: getCommerceTabIcon('Modifiers'),
     component: () => <RemoteScreen remoteName="commerce-ma" moduleName="./Modifiers" />,
   },
 ];

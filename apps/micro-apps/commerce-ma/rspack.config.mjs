@@ -75,6 +75,10 @@ export default (env) => {
         ...rnCssAliases,
         'react-native-css/components': path.join(rnCssRoot, 'dist/commonjs/components'),
         'colorjs.io/fn': require.resolve('colorjs.io/fn'),
+        '@react-navigation/elements/internal': path.join(
+          path.dirname(require.resolve('@react-navigation/elements/package.json')),
+          'lib/module/internal.js',
+        ),
       },
     },
 
@@ -167,9 +171,10 @@ export default (env) => {
         shared: {
           react: { singleton: true, eager: false, requiredVersion: '19.2.3' },
           'react-native': { singleton: true, eager: false, requiredVersion: '0.83.2' },
-          '@react-navigation/native': { singleton: true, eager: false, requiredVersion: '^7.2.2' },
+          '@react-navigation/native': { singleton: true, eager: false, requiredVersion: '8.0.0-alpha.17' },
+          '@react-navigation/elements': { singleton: true, eager: false, requiredVersion: '3.0.0-alpha.20' },
           '@react-navigation/native-stack': { singleton: true, eager: false, requiredVersion: '^7.14.10' },
-          '@react-navigation/bottom-tabs': { singleton: true, eager: false, requiredVersion: '^7.0.0' },
+          '@react-navigation/bottom-tabs': { singleton: true, eager: false, requiredVersion: '8.0.0-alpha.22' },
           'react-native-safe-area-context': { singleton: true, eager: false, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: false, requiredVersion: '^4.24.0' },
           '@tanstack/react-query': { singleton: true, eager: false },
