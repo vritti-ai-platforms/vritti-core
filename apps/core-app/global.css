@@ -4,9 +4,9 @@
 @import "nativewind/theme";
 
 /* Quantum UI Native design tokens (HSL CSS variables + theme registration) */
-@import "../../../quantum-ui-native/lib/index.css";
+@import "./node_modules/@vritti/quantum-ui-native/lib/index.css";
 
 /* Scan sources for className usage */
-@source "../../../quantum-ui-native/lib/**/*.{ts,tsx}";
+@source "./node_modules/@vritti/quantum-ui-native/lib/**/*.{ts,tsx}";
 @source "./src/**/*.{ts,tsx}";
 @source "../micro-apps/**/src/**/*.{ts,tsx}";

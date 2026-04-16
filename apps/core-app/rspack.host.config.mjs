@@ -98,6 +98,15 @@ export default (env) => {
       alias: {
         ...quantumAliases,
         ...rnCssAliases,
+        '@module-federation/enhanced/runtime': require.resolve(
+          '@module-federation/enhanced/runtime',
+        ),
+        '@module-federation/runtime-tools/runtime': require.resolve(
+          '@module-federation/runtime-tools/runtime',
+        ),
+        '@module-federation/runtime': require.resolve(
+          '@module-federation/runtime',
+        ),
         'react-native-css/components': path.join(rnCssRoot, 'dist/commonjs/components'),
         'colorjs.io/fn': require.resolve('colorjs.io/fn'),
         '@react-navigation/elements/internal': path.join(
