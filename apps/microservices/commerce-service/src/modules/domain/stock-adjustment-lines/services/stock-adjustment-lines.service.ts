@@ -239,6 +239,11 @@ export class StockAdjustmentLinesService {
     });
   }
 
+  async getPublishValidation(adjustmentId: string): Promise<{ valid: boolean; invalidLinesCount: number }> {
+    const errors = await this.repository.validateLineByAdjustmentId(adjustmentId);
+    return { valid: errors.length === 0, invalidLinesCount: errors.length };
+  }
+
   private validateLineForType(type: StockAdjustmentType, data: { batchId?: string; locationId?: string }): void {
     if (type === StockAdjustmentTypeValues.OPENING_STOCK) {
       if (!data.locationId) {

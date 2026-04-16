@@ -11,7 +11,6 @@ interface AdjustmentContext {
   id: string;
   status: string;
   type: StockAdjustmentType;
-  inventoryItemId: string;
 }
 
 @Injectable()
@@ -65,7 +64,6 @@ export class StockAdjustmentLineItemsService {
 
     const entity = await this.repository.create({
       stockAdjustmentLineId: lineId,
-      inventoryItemId: adjustment.inventoryItemId,
       quantity: String(data.quantity),
     });
     await this.linesRepository.refreshIsBalanced(lineId);
@@ -90,10 +88,6 @@ export class StockAdjustmentLineItemsService {
       throw new NotFoundException('Stock adjustment line item not found.');
     }
 
-    if (existing.inventoryItemId !== adjustment.inventoryItemId) {
-      throw new BadRequestException('Line item inventory item must match parent adjustment inventory item.');
-    }
-
     const updated = await this.repository.update(itemId, { quantity: String(data.quantity) });
     await this.linesRepository.refreshIsBalanced(lineId);
     return StockAdjustmentLineItemDto.from(updated);
@@ -114,21 +108,6 @@ export class StockAdjustmentLineItemsService {
     await this.repository.delete(itemId);
     await this.linesRepository.refreshIsBalanced(lineId);
     return { success: true, message: `Line item "${itemId}" removed successfully.` };
-  }
-
-  async getPublishValidation(adjustmentId: string): Promise<{
-    valid: boolean;
-    errors: { lineId: string; lineQuantity: number; lineItemsCount: number; lineItemsQuantitySum: number; delta: number }[];
-  }> {
-    const rows = await this.repository.findValidationRowsByAdjustmentId(adjustmentId);
-    const errors = rows
-      .map((row) => ({
-        ...row,
-        delta: Number((row.lineQuantity - row.lineItemsQuantitySum).toFixed(3)),
-      }))
-      .filter((row) => row.lineItemsCount < 1 || row.delta !== 0);
-
-    return { valid: errors.length === 0, errors };
   }
 
   private async ensureLineBelongsToAdjustment(adjustmentId: string, lineId: string): Promise<void> {

@@ -34,7 +34,6 @@ export interface StockAdjustmentLineData {
 export interface StockAdjustmentLineItemData {
   id: string;
   stockAdjustmentLineId: string;
-  inventoryItemId: string;
   quantity: number;
   createdAt: string;
 }

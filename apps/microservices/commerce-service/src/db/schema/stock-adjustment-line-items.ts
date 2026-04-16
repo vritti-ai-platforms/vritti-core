@@ -1,7 +1,6 @@
 import { decimal, index, pgPolicy, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
-import { inventoryItems } from './inventory-items';
 import { stockAdjustmentLines } from './stock-adjustment-lines';
 
 export const stockAdjustmentLineItems = coreSchema.table(
@@ -13,7 +12,6 @@ export const stockAdjustmentLineItems = coreSchema.table(
     stockAdjustmentLineId: uuid('stock_adjustment_line_id')
       .notNull()
       .references(() => stockAdjustmentLines.id, { onDelete: 'cascade' }),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id, { onDelete: 'restrict' }),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
@@ -23,7 +21,6 @@ export const stockAdjustmentLineItems = coreSchema.table(
   },
   (table) => [
     index('idx_sa_line_items_line').on(table.stockAdjustmentLineId),
-    index('idx_sa_line_items_item').on(table.inventoryItemId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

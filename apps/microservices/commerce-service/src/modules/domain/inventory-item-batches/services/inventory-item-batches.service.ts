@@ -96,13 +96,24 @@ export class InventoryItemBatchesService {
       manufacturingDate: params.manufacturingDate ?? null,
       expiryDate: params.expiryDate ?? null,
     });
-    await this.repository.setBatchItemMirrorWithTx(tx, {
-      inventoryItemBatchId: batch.id,
-      inventoryItemId: batch.inventoryItemId,
-      quantity: batch.quantity,
-      reservedQuantity: batch.reservedQuantity,
-    });
     return batch;
+  }
+
+  async upsertBatchItemWithTx(
+    tx: TypedDrizzleClient,
+    data: {
+      inventoryItemBatchId: string;
+      inventoryItemId: string;
+      quantity: string;
+      reservedQuantity?: string;
+    },
+  ): Promise<void> {
+    await this.repository.setBatchItemMirrorWithTx(tx, {
+      inventoryItemBatchId: data.inventoryItemBatchId,
+      inventoryItemId: data.inventoryItemId,
+      quantity: data.quantity,
+      reservedQuantity: data.reservedQuantity ?? '0',
+    });
   }
 
   // Adjusts an existing batch quantity and writes a ledger entry

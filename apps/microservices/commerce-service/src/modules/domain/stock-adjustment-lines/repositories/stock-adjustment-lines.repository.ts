@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type StockAdjustmentLine, stockAdjustmentLines, storageLocations } from '@/db/schema';
+import { stockAdjustmentLineItems, type StockAdjustmentLine, stockAdjustmentLines, storageLocations } from '@/db/schema';
 
 @Injectable()
 export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof stockAdjustmentLines> {
@@ -126,6 +126,15 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     return Number(result?.total ?? 0);
   }
 
+  async countByAdjustmentId(adjustmentId: string): Promise<number> {
+    const [result] = await this.db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(stockAdjustmentLines)
+      .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
+
+    return Number(result?.count ?? 0);
+  }
+
   async refreshIsBalanced(lineId: string): Promise<void> {
     await this.db
       .update(stockAdjustmentLines)
@@ -144,5 +153,44 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         )`,
       })
       .where(eq(stockAdjustmentLines.id, lineId));
+  }
+
+  async validateLineByAdjustmentId(
+    adjustmentId: string,
+  ): Promise<
+    {
+      lineId: string;
+      lineQuantity: number;
+      lineItemsCount: number;
+      lineItemsQuantitySum: number;
+      delta: number;
+    }[]
+  > {
+    const rows = await this.db
+      .select({
+        lineId: stockAdjustmentLines.id,
+        lineQuantity: stockAdjustmentLines.quantity,
+        lineItemsCount: sql<number>`COUNT(${stockAdjustmentLineItems.id})`,
+        lineItemsQuantitySum: sql<string>`COALESCE(SUM(${stockAdjustmentLineItems.quantity}), 0)`,
+      })
+      .from(stockAdjustmentLines)
+      .leftJoin(stockAdjustmentLineItems, eq(stockAdjustmentLineItems.stockAdjustmentLineId, stockAdjustmentLines.id))
+      .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId))
+      .groupBy(stockAdjustmentLines.id, stockAdjustmentLines.quantity);
+
+    return rows
+      .map((row) => {
+        const lineQuantity = Number(row.lineQuantity);
+        const lineItemsCount = Number(row.lineItemsCount ?? 0);
+        const lineItemsQuantitySum = Number(row.lineItemsQuantitySum ?? 0);
+        return {
+          lineId: row.lineId,
+          lineQuantity,
+          lineItemsCount,
+          lineItemsQuantitySum,
+          delta: Number((lineQuantity - lineItemsQuantitySum).toFixed(3)),
+        };
+      })
+      .filter((row) => row.lineItemsCount < 1 || row.delta !== 0);
   }
 }

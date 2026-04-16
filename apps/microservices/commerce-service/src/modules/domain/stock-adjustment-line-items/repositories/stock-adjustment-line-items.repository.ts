@@ -18,6 +18,24 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
     return rows as StockAdjustmentLineItem[];
   }
 
+  async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineItem[]> {
+    const rows = await this.db
+      .select({
+        id: stockAdjustmentLineItems.id,
+        organizationId: stockAdjustmentLineItems.organizationId,
+        businessUnitId: stockAdjustmentLineItems.businessUnitId,
+        stockAdjustmentLineId: stockAdjustmentLineItems.stockAdjustmentLineId,
+        quantity: stockAdjustmentLineItems.quantity,
+        createdAt: stockAdjustmentLineItems.createdAt,
+        updatedAt: stockAdjustmentLineItems.updatedAt,
+      })
+      .from(stockAdjustmentLineItems)
+      .innerJoin(stockAdjustmentLines, eq(stockAdjustmentLineItems.stockAdjustmentLineId, stockAdjustmentLines.id))
+      .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
+
+    return rows as StockAdjustmentLineItem[];
+  }
+
   async findById(id: string): Promise<StockAdjustmentLineItem | undefined> {
     const rows = await this.db.select().from(stockAdjustmentLineItems).where(eq(stockAdjustmentLineItems.id, id));
     return rows[0] as StockAdjustmentLineItem | undefined;
@@ -63,33 +81,4 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
     );
   }
 
-  async findValidationRowsByAdjustmentId(
-    adjustmentId: string,
-  ): Promise<
-    {
-      lineId: string;
-      lineQuantity: number;
-      lineItemsCount: number;
-      lineItemsQuantitySum: number;
-    }[]
-  > {
-    const rows = await this.db
-      .select({
-        lineId: stockAdjustmentLines.id,
-        lineQuantity: stockAdjustmentLines.quantity,
-        lineItemsCount: sql<number>`COUNT(${stockAdjustmentLineItems.id})`,
-        lineItemsQuantitySum: sql<string>`COALESCE(SUM(${stockAdjustmentLineItems.quantity}), 0)`,
-      })
-      .from(stockAdjustmentLines)
-      .leftJoin(stockAdjustmentLineItems, eq(stockAdjustmentLineItems.stockAdjustmentLineId, stockAdjustmentLines.id))
-      .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId))
-      .groupBy(stockAdjustmentLines.id, stockAdjustmentLines.quantity);
-
-    return rows.map((row) => ({
-      lineId: row.lineId,
-      lineQuantity: Number(row.lineQuantity),
-      lineItemsCount: Number(row.lineItemsCount ?? 0),
-      lineItemsQuantitySum: Number(row.lineItemsQuantitySum ?? 0),
-    }));
-  }
 }

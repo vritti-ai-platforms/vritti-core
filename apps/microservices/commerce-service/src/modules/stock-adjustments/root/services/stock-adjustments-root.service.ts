@@ -1,7 +1,8 @@
 import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
 import { InventoryLedgerService } from '@domain/inventory-ledger/services/inventory-ledger.service';
-import { StockAdjustmentLineItemsService } from '@domain/stock-adjustment-line-items/services/stock-adjustment-line-items.service';
+import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
+import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { type StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
@@ -14,11 +15,14 @@ import {
   type TableViewState,
   type TypedDrizzleClient,
 } from '@vritti/api-sdk';
+import _ from '@vritti/api-sdk/lodash';
 import {
   InventoryLedgerReferenceTypeValues,
   InventoryLedgerTypeValues,
-  StockAdjustmentStatusValues,
   type StockAdjustment,
+  type StockAdjustmentLine,
+  type StockAdjustmentLineItem,
+  StockAdjustmentStatusValues,
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
 } from '@/db/schema';
@@ -30,7 +34,8 @@ export class StockAdjustmentsRootService {
   constructor(
     private readonly repository: StockAdjustmentsRepository,
     private readonly linesRepository: StockAdjustmentLinesRepository,
-    private readonly lineItemsService: StockAdjustmentLineItemsService,
+    private readonly lineItemsRepository: StockAdjustmentLineItemsRepository,
+    private readonly linesService: StockAdjustmentLinesService,
     private readonly batchesService: InventoryItemBatchesService,
     private readonly ledgerService: InventoryLedgerService,
     private readonly adjustmentsService: StockAdjustmentsService,
@@ -44,9 +49,12 @@ export class StockAdjustmentsRootService {
     return this.adjustmentsService.findById(id);
   }
 
-  create(
-    data: { inventoryItemId: string; type: StockAdjustmentType; reason: string; createdById: string },
-  ): Promise<CreateResponseDto<StockAdjustmentDto>> {
+  create(data: {
+    inventoryItemId: string;
+    type: StockAdjustmentType;
+    reason: string;
+    createdById: string;
+  }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     return this.adjustmentsService.create(data);
   }
 
@@ -61,26 +69,28 @@ export class StockAdjustmentsRootService {
       throw new BadRequestException('Only DRAFT adjustments can be published.');
     }
 
-    const lines = await this.linesRepository.findByAdjustmentId(id);
-    if (lines.length === 0) {
+    const linesCount = await this.linesRepository.countByAdjustmentId(id);
+    if (linesCount === 0) {
       throw new BadRequestException('Cannot publish an adjustment with no lines.');
     }
 
-    const validation = await this.lineItemsService.getPublishValidation(id);
+    const validation = await this.linesService.getPublishValidation(id);
     if (!validation.valid) {
-      const detail = validation.errors
-        .map(
-          (error) =>
-            `[line=${error.lineId}] lineQty=${error.lineQuantity}, itemsCount=${error.lineItemsCount}, itemsSum=${error.lineItemsQuantitySum}, delta=${error.delta}`,
-        )
-        .join('; ');
-      throw new BadRequestException(`Line items mismatch. ${detail}`);
+      throw new BadRequestException(`Line items mismatch in ${validation.invalidLinesCount} line(s).`);
     }
+
+    const lines = await this.linesRepository.findByAdjustmentId(id);
+    const adjustmentLineItems = await this.lineItemsRepository.findByAdjustmentId(id);
+    const lineItemsByLineId = _.groupBy(adjustmentLineItems, (lineItem) => lineItem.stockAdjustmentLineId);
 
     await this.repository.transaction(async (tx) => {
       for (const line of lines) {
         if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
-          await this.publishOpeningLine(tx, id, adjustment, line);
+          const lineItems = lineItemsByLineId[line.id];
+          if (!lineItems) {
+            throw new BadRequestException(`Line ${line.id} has no line items for publish.`);
+          }
+          await this.publishOpeningLine(tx, id, adjustment, line, lineItems);
         } else {
           await this.publishNonOpeningLine(tx, id, adjustment, line);
         }
@@ -89,7 +99,7 @@ export class StockAdjustmentsRootService {
       await this.repository.updateStatusInTx(tx, id, StockAdjustmentStatusValues.PUBLISHED, new Date());
     });
 
-    this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${lines.length} lines)`);
+    this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
     return this.adjustmentsService.findById(id);
   }
 
@@ -97,13 +107,8 @@ export class StockAdjustmentsRootService {
     tx: TypedDrizzleClient,
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string; createdByFullName: string },
-    line: {
-      id: string;
-      locationId: string | null;
-      quantity: string;
-      manufacturingDate: string | null;
-      expiryDate: string | null;
-    },
+    line: StockAdjustmentLine,
+    lineItems: StockAdjustmentLineItem[],
   ): Promise<void> {
     if (!line.locationId) {
       throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK adjustment.`);
@@ -120,6 +125,17 @@ export class StockAdjustmentsRootService {
     if (!batch.batchNumber) {
       throw new BadRequestException(`Batch number generation failed for line ${line.id}.`);
     }
+
+    if (lineItems.length === 0) {
+      throw new BadRequestException('Cannot publish opening stock line with no line items.');
+    }
+
+    const totalLineItemsQuantity = lineItems.reduce((sum, lineItem) => sum + Number(lineItem.quantity), 0);
+    await this.batchesService.upsertBatchItemWithTx(tx, {
+      inventoryItemBatchId: batch.id,
+      inventoryItemId: adjustment.inventoryItemId,
+      quantity: String(totalLineItemsQuantity),
+    });
 
     await this.ledgerService.createEntryInTx(tx, {
       inventoryItemId: adjustment.inventoryItemId,
@@ -138,7 +154,7 @@ export class StockAdjustmentsRootService {
     tx: TypedDrizzleClient,
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string; createdByFullName: string },
-    line: { id: string; batchId: string | null; quantity: string },
+    line: StockAdjustmentLine,
   ): Promise<void> {
     if (!line.batchId) {
       throw new BadRequestException(`Line ${line.id} is missing batchId for ${adjustment.type} adjustment.`);
