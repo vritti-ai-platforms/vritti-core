@@ -7,6 +7,7 @@ export class StockAdjustmentDto {
   inventoryItemName: string;
   inventoryItemUomSymbol: string;
   type: StockAdjustmentType;
+  quantity: number;
   status: StockAdjustmentStatus;
   reason: string | null;
   createdById: string;
@@ -30,6 +31,7 @@ export class StockAdjustmentDto {
     }
     dto.inventoryItemUomSymbol = entity.inventoryItemUomSymbol;
     dto.type = entity.type;
+    dto.quantity = Number(entity.quantity);
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
     dto.createdById = entity.createdById;
@@ -48,6 +50,7 @@ export class StockAdjustmentDto {
     dto.inventoryItemName = '';
     dto.inventoryItemUomSymbol = '';
     dto.type = entity.type;
+    dto.quantity = Number(entity.quantity);
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
     dto.createdById = entity.createdById;

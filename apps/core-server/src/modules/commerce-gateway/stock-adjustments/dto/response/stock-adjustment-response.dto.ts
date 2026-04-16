@@ -7,6 +7,7 @@ export class StockAdjustmentResponseDto {
   @ApiProperty() inventoryItemName: string;
   @ApiProperty() inventoryItemUomSymbol: string;
   @ApiProperty({ example: 'WASTE' }) type: string;
+  @ApiProperty() quantity: number;
   @ApiProperty({ example: 'DRAFT' }) status: string;
   @ApiPropertyOptional({ nullable: true }) reason: string | null;
   @ApiProperty() createdById: string;

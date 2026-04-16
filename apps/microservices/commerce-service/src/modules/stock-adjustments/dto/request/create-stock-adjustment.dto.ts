@@ -1,42 +1,20 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateStockAdjustmentDto {
   @IsUUID()
   @IsNotEmpty()
   inventoryItemId: string;
 
-  @IsOptional()
-  @IsUUID()
-  locationId?: string;
-
-  @IsOptional()
-  @IsUUID()
-  batchId?: string;
-
-  @IsOptional()
-  @IsString()
-  batchNumber?: string;
-
-  @IsOptional()
-  @IsString()
-  manufacturingDate?: string;
-
-  @IsOptional()
-  @IsString()
-  expiryDate?: string;
-
   @IsString()
   @IsNotEmpty()
   type: string;
 
   @IsNumber()
+  @Min(0.001)
   quantity: number;
 
   @IsString()
   @IsNotEmpty()
   reason: string;
 
-  @IsOptional()
-  @IsUUID()
-  adjustedBy?: string;
 }

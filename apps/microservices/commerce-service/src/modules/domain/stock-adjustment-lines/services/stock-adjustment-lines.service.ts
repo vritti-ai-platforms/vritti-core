@@ -25,6 +25,7 @@ interface AdjustmentContext {
   code: string;
   status: StockAdjustmentStatus;
   type: StockAdjustmentType;
+  quantity: string;
 }
 
 import { StockAdjustmentLineDto } from '../dto/entity/stock-adjustment-line.dto';
@@ -97,6 +98,7 @@ export class StockAdjustmentLinesService {
     }
 
     this.validateLineForType(adjustment.type, data);
+    await this.validateQuantityLimit(adjustment, data.quantity);
 
     const line = await this.repository.create({
       stockAdjustmentId: adjustment.id,
@@ -151,6 +153,9 @@ export class StockAdjustmentLinesService {
     if (!line) throw new NotFoundException('Stock adjustment line not found.');
     if (line.stockAdjustmentId !== adjustment.id) {
       throw new BadRequestException('Line does not belong to this adjustment.');
+    }
+    if (data.quantity !== undefined) {
+      await this.validateQuantityLimit(adjustment, data.quantity, line.id, Number(line.quantity));
     }
 
     await this.repository.update(lineId, {
@@ -260,5 +265,24 @@ export class StockAdjustmentLinesService {
     const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return adjustment;
+  }
+
+  private async validateQuantityLimit(
+    adjustment: AdjustmentContext,
+    nextLineQuantity: number,
+    updatingLineId?: string,
+    currentLineQuantity = 0,
+  ): Promise<void> {
+    const totalExisting = await this.repository.totalQuantityForAdjustment(adjustment.id);
+    const nextTotal = updatingLineId
+      ? totalExisting - currentLineQuantity + nextLineQuantity
+      : totalExisting + nextLineQuantity;
+    if (this.toScaled(nextTotal) > this.toScaled(Number(adjustment.quantity))) {
+      throw new BadRequestException('Total line quantity cannot exceed adjustment quantity.');
+    }
+  }
+
+  private toScaled(value: number): number {
+    return Math.round(value * 1000);
   }
 }

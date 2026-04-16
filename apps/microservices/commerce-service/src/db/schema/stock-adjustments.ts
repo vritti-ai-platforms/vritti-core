@@ -1,7 +1,7 @@
-import { index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { stockAdjustmentStatusEnum, stockAdjustmentTypeEnum } from './enums';
+import { decimal, index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { stockAdjustmentStatusEnum, stockAdjustmentTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 
 const users = coreSchema.table('users', {
@@ -14,12 +14,17 @@ export const stockAdjustments = coreSchema.table(
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id, { onDelete: 'restrict' }),
+    inventoryItemId: uuid('inventory_item_id')
+      .notNull()
+      .references(() => inventoryItems.id, { onDelete: 'restrict' }),
     code: varchar('code', { length: 50 }).notNull(),
     type: stockAdjustmentTypeEnum('type').notNull(),
+    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     status: stockAdjustmentStatusEnum('status').notNull().default('DRAFT'),
     reason: text('reason'),
-    createdById: uuid('created_by_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+    createdById: uuid('created_by_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
     publishedAt: timestamp('published_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

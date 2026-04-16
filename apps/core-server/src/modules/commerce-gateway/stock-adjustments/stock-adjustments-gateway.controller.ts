@@ -5,6 +5,7 @@ import { SessionTypeValues } from '@/db/schema';
 import { AddStockAdjustmentLineDto } from './dto/request/add-stock-adjustment-line.dto';
 import { AddStockAdjustmentLineItemDto } from './dto/request/add-stock-adjustment-line-item.dto';
 import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
+import { UpdateStockAdjustmentDto } from './dto/request/update-stock-adjustment.dto';
 import { UpdateStockAdjustmentLineDto } from './dto/request/update-stock-adjustment-line.dto';
 import { UpdateStockAdjustmentLineItemDto } from './dto/request/update-stock-adjustment-line-item.dto';
 import type { StockAdjustmentLineItemResponseDto } from './dto/response/stock-adjustment-line-item-response.dto';
@@ -52,6 +53,12 @@ export class StockAdjustmentsGatewayController {
   async create(@Body() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
     this.logger.log('POST /commerce-api/stock-adjustments');
     return this.service.create(dto);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}`);
+    return this.service.update(id, dto);
   }
 
   @Post(':id/lines')

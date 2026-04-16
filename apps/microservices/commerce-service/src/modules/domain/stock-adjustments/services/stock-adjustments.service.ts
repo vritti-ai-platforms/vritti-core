@@ -11,6 +11,7 @@ import {
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { StockAdjustmentStatusValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
+import { StockAdjustmentLinesRepository } from '../../stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';
 
 @Injectable()
@@ -22,7 +23,10 @@ export class StockAdjustmentsService {
     status: { column: stockAdjustments.status, type: 'string' },
   };
 
-  constructor(private readonly repository: StockAdjustmentsRepository) {}
+  constructor(
+    private readonly repository: StockAdjustmentsRepository,
+    private readonly linesRepository: StockAdjustmentLinesRepository,
+  ) {}
 
   // Returns paginated stock adjustments for the data table
   async findForTable(state: TableViewState): Promise<{ result: StockAdjustmentDto[]; count: number }> {
@@ -52,12 +56,14 @@ export class StockAdjustmentsService {
   async create(data: {
     inventoryItemId: string;
     type: StockAdjustmentType;
+    quantity: number;
     reason: string;
     createdById: string;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
       type: data.type,
+      quantity: String(data.quantity),
       reason: data.reason,
       createdById: data.createdById,
     });
@@ -81,6 +87,28 @@ export class StockAdjustmentsService {
     await this.repository.deleteById(id);
     this.logger.log(`Deleted DRAFT adjustment ${adjustment.code} (${id})`);
     return { success: true, message: `Stock adjustment "${adjustment.code}" deleted successfully.` };
+  }
+
+  async updateQuantity(id: string, quantity: number): Promise<StockAdjustmentDto> {
+    const adjustment = await this.repository.findById(id);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
+      throw new BadRequestException('Only DRAFT adjustments can be edited.');
+    }
+
+    const linesTotal = await this.linesRepository.totalQuantityForAdjustment(id);
+    if (this.toScaled(quantity) < this.toScaled(linesTotal)) {
+      throw new BadRequestException('Adjustment quantity cannot be less than total line quantity.');
+    }
+
+    await this.repository.update(id, { quantity: String(quantity) });
+    const updated = await this.repository.findByIdWithItemName(id);
+    if (!updated) throw new NotFoundException('Stock adjustment not found.');
+    return StockAdjustmentDto.from(updated);
+  }
+
+  private toScaled(value: number): number {
+    return Math.round(value * 1000);
   }
 
 }

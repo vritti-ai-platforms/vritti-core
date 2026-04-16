@@ -8,6 +8,7 @@ import {
 import type { AddStockAdjustmentLineDto } from '../dto/request/add-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '../dto/request/add-stock-adjustment-line-item.dto';
 import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjustment.dto';
+import type { UpdateStockAdjustmentDto } from '../dto/request/update-stock-adjustment.dto';
 import type { UpdateStockAdjustmentLineDto } from '../dto/request/update-stock-adjustment-line.dto';
 import type { UpdateStockAdjustmentLineItemDto } from '../dto/request/update-stock-adjustment-line-item.dto';
 import type { StockAdjustmentLineItemResponseDto } from '../dto/response/stock-adjustment-line-item-response.dto';
@@ -59,6 +60,11 @@ export class StockAdjustmentsGatewayService {
   async create(dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
     this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
     return this.nats.send('commerce', 'stockAdjustments.create', dto);
+  }
+
+  async update(id: string, dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`stockAdjustments.update — id: ${id}`);
+    return this.nats.send('commerce', 'stockAdjustments.update', { id, ...dto });
   }
 
   async addLine(

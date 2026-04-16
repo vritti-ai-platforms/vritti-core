@@ -13,5 +13,6 @@ export {
 } from './useStockAdjustmentLineItemsTable';
 export { STOCK_ADJUSTMENT_LINES_KEY, useStockAdjustmentLines } from './useStockAdjustmentLines';
 export { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from './useStockAdjustmentsTable';
+export { useUpdateStockAdjustment } from './useUpdateStockAdjustment';
 export { useUpdateStockAdjustmentLine } from './useUpdateStockAdjustmentLine';
 export { useUpdateStockAdjustmentLineItem } from './useUpdateStockAdjustmentLineItem';

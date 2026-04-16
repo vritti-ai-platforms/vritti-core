@@ -1,10 +1,11 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Pencil } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -17,6 +18,7 @@ import type {
   StockAdjustmentType,
 } from '@/schemas/stock-adjustments';
 import { StockAdjustmentContent, StockAdjustmentOverviewCard, StockAdjustmentSidePanel } from './components';
+import { EditStockAdjustmentDialog } from './forms/EditStockAdjustmentDialog';
 
 const typeConfig: Record<
   StockAdjustmentType,
@@ -40,6 +42,7 @@ export const StockAdjustmentDetailPage = () => {
   const { id } = useSlugParams('adjustmentSlug');
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const editAdjustmentDialog = useDialog();
   const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
 
   const { data: adjustment } = useStockAdjustment(id ?? '');
@@ -83,15 +86,25 @@ export const StockAdjustmentDetailPage = () => {
         description={`${typeConf.label} — ${adjustment.inventoryItemName ?? 'Stock Adjustment'}`}
         actions={
           isDraft ? (
-            <Button
-              size="sm"
-              startAdornment={<CheckCircle className="size-4" />}
-              onClick={handlePublish}
-              isLoading={publishMutation.isPending}
-              disabled={!adjustment.isPublishable}
-            >
-              Publish
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                startAdornment={<Pencil className="size-4" />}
+                onClick={editAdjustmentDialog.open}
+              >
+                Edit Quantity
+              </Button>
+              <Button
+                size="sm"
+                startAdornment={<CheckCircle className="size-4" />}
+                onClick={handlePublish}
+                isLoading={publishMutation.isPending}
+                disabled={!adjustment.isPublishable}
+              >
+                Publish
+              </Button>
+            </div>
           ) : (
             <Badge variant={statusConf.variant}>{statusConf.label}</Badge>
           )
@@ -131,6 +144,20 @@ export const StockAdjustmentDetailPage = () => {
           disabled={deleteMutation.isPending}
         />
       )}
+
+      <Dialog
+        handle={editAdjustmentDialog}
+        title="Edit Quantity"
+        description="Update adjustment quantity while in draft."
+        content={(close) => (
+          <EditStockAdjustmentDialog
+            adjustmentId={adjustment.id}
+            quantity={adjustment.quantity}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
+      />
     </div>
   );
 };

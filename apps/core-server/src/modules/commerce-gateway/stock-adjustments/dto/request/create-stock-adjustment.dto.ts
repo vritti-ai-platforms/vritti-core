@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreateStockAdjustmentDto {
   @ApiProperty({ description: 'Inventory item ID' })
@@ -11,6 +11,11 @@ export class CreateStockAdjustmentDto {
   @IsString()
   @IsNotEmpty()
   type: string;
+
+  @ApiProperty({ description: 'Adjustment quantity', example: 100 })
+  @IsNumber()
+  @Min(0.001)
+  quantity: number;
 
   @ApiProperty({ description: 'Reason for adjustment' })
   @IsString()

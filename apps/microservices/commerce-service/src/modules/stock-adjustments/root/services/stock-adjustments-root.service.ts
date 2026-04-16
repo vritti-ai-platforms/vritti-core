@@ -52,6 +52,7 @@ export class StockAdjustmentsRootService {
   create(data: {
     inventoryItemId: string;
     type: StockAdjustmentType;
+    quantity: number;
     reason: string;
     createdById: string;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
@@ -60,6 +61,10 @@ export class StockAdjustmentsRootService {
 
   delete(id: string): Promise<SuccessResponseDto> {
     return this.adjustmentsService.delete(id);
+  }
+
+  update(id: string, data: { quantity: number }): Promise<StockAdjustmentDto> {
+    return this.adjustmentsService.updateQuantity(id, data.quantity);
   }
 
   async publish(id: string): Promise<StockAdjustmentDto> {
@@ -72,6 +77,10 @@ export class StockAdjustmentsRootService {
     const linesCount = await this.linesRepository.countByAdjustmentId(id);
     if (linesCount === 0) {
       throw new BadRequestException('Cannot publish an adjustment with no lines.');
+    }
+    const totalLinesQuantity = await this.linesRepository.totalQuantityForAdjustment(id);
+    if (!this.areEqualToScale(totalLinesQuantity, Number(adjustment.quantity))) {
+      throw new BadRequestException('Line quantity total must equal adjustment quantity before publish.');
     }
 
     const validation = await this.linesService.getPublishValidation(id);
@@ -185,5 +194,9 @@ export class StockAdjustmentsRootService {
         StockAdjustmentTypeValues.PRODUCTION,
       ] as readonly StockAdjustmentType[]
     ).includes(type);
+  }
+
+  private areEqualToScale(a: number, b: number): boolean {
+    return Math.round(a * 1000) === Math.round(b * 1000);
   }
 }

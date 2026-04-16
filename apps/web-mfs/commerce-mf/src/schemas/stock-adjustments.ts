@@ -45,6 +45,7 @@ export interface StockAdjustmentData {
   inventoryItemName: string;
   inventoryItemUomSymbol: string;
   type: StockAdjustmentType;
+  quantity: number;
   status: StockAdjustmentStatus;
   reason: string | null;
   createdById: string;
@@ -64,6 +65,7 @@ export const createStockAdjustmentSchema = z.object({
     message: 'Adjustment type is required',
   }),
   reason: z.string().min(1, 'Reason is required'),
+  quantity: z.string().min(1, 'Quantity is required'),
 });
 
 export type CreateStockAdjustmentFormData = z.infer<typeof createStockAdjustmentSchema>;

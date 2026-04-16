@@ -33,6 +33,10 @@ export const StockAdjustmentOverviewCard = ({ adjustment, typeLabel, typeVariant
             <dd className="mt-1">{adjustment.reason ?? '—'}</dd>
           </div>
           <div>
+            <dt className="text-sm text-muted-foreground">Quantity</dt>
+            <dd className="mt-1">{adjustment.quantity}</dd>
+          </div>
+          <div>
             <dt className="text-sm text-muted-foreground">Created</dt>
             <dd className="mt-1">{new Date(adjustment.createdAt).toLocaleDateString()}</dd>
           </div>

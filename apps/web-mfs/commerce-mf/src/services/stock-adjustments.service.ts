@@ -12,7 +12,12 @@ import type {
 export interface CreateStockAdjustmentPayload {
   inventoryItemId: string;
   type: StockAdjustmentType;
+  quantity: number;
   reason: string;
+}
+
+export interface UpdateStockAdjustmentPayload {
+  quantity: number;
 }
 
 export interface AddStockAdjustmentLinePayload {
@@ -56,6 +61,10 @@ export function createStockAdjustment(data: CreateStockAdjustmentPayload): Promi
   return axios
     .post<CreateResponse<StockAdjustmentData>>('commerce-api/stock-adjustments', data)
     .then((r) => r.data.data);
+}
+
+export function updateStockAdjustment(id: string, data: UpdateStockAdjustmentPayload): Promise<StockAdjustmentData> {
+  return axios.patch<StockAdjustmentData>(`commerce-api/stock-adjustments/${id}`, data).then((r) => r.data);
 }
 
 export function addStockAdjustmentLine(id: string, data: AddStockAdjustmentLinePayload): Promise<StockAdjustmentLineData> {

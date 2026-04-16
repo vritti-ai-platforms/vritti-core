@@ -10565,6 +10565,11 @@
             "description": "Adjustment type",
             "example": "WASTE"
           },
+          "quantity": {
+            "type": "number",
+            "description": "Adjustment quantity",
+            "example": 100
+          },
           "reason": {
             "type": "string",
             "description": "Reason for adjustment"
@@ -10573,6 +10578,7 @@
         "required": [
           "inventoryItemId",
           "type",
+          "quantity",
           "reason"
         ]
       },

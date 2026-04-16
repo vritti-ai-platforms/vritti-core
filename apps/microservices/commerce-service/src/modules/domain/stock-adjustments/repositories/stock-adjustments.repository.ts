@@ -50,6 +50,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         inventoryItemId: stockAdjustments.inventoryItemId,
         code: stockAdjustments.code,
         type: stockAdjustments.type,
+        quantity: stockAdjustments.quantity,
         status: stockAdjustments.status,
         reason: stockAdjustments.reason,
         createdById: stockAdjustments.createdById,
@@ -89,6 +90,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         inventoryItemId: stockAdjustments.inventoryItemId,
         code: stockAdjustments.code,
         type: stockAdjustments.type,
+        quantity: stockAdjustments.quantity,
         status: stockAdjustments.status,
         reason: stockAdjustments.reason,
         createdById: stockAdjustments.createdById,
@@ -100,6 +102,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         isPublishable: sql<boolean>`(
           ${stockAdjustments.status} = 'DRAFT'
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0
+          AND COALESCE(SUM(${stockAdjustmentLines.quantity}), 0) = ${stockAdjustments.quantity}
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) =
               COUNT(DISTINCT CASE WHEN ${stockAdjustmentLines.isBalanced} THEN ${stockAdjustmentLines.id} END)
         )`,
@@ -117,6 +120,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         stockAdjustments.inventoryItemId,
         stockAdjustments.code,
         stockAdjustments.type,
+        stockAdjustments.quantity,
         stockAdjustments.status,
         stockAdjustments.reason,
         stockAdjustments.createdById,

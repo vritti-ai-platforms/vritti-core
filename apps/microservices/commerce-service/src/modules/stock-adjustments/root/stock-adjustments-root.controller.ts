@@ -32,7 +32,7 @@ export class StockAdjustmentsRootController {
 
   @MessagePattern({ cmd: 'stockAdjustments.create' })
   create(
-    @Payload() data: { inventoryItemId: string; type: StockAdjustmentType; reason: string },
+    @Payload() data: { inventoryItemId: string; type: StockAdjustmentType; quantity: number; reason: string },
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<StockAdjustmentDto>> {
     this.logger.log(`stockAdjustments.create — item: ${data.inventoryItemId}, type: ${data.type}`);
@@ -46,6 +46,12 @@ export class StockAdjustmentsRootController {
   publish(@Payload() data: { id: string }): Promise<StockAdjustmentDto> {
     this.logger.log(`stockAdjustments.publish — id: ${data.id}`);
     return this.service.publish(data.id);
+  }
+
+  @MessagePattern({ cmd: 'stockAdjustments.update' })
+  update(@Payload() data: { id: string; quantity: number }): Promise<StockAdjustmentDto> {
+    this.logger.log(`stockAdjustments.update — id: ${data.id}`);
+    return this.service.update(data.id, { quantity: data.quantity });
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.delete' })
