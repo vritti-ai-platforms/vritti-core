@@ -4,10 +4,6 @@ import { coreSchema } from './core-schema';
 import { stockAdjustmentStatusEnum, stockAdjustmentTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 
-const users = coreSchema.table('users', {
-  id: uuid('id').primaryKey(),
-});
-
 export const stockAdjustments = coreSchema.table(
   'stock_adjustments',
   {
@@ -22,9 +18,7 @@ export const stockAdjustments = coreSchema.table(
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     status: stockAdjustmentStatusEnum('status').notNull().default('DRAFT'),
     reason: text('reason'),
-    createdById: uuid('created_by_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'restrict' }),
+    createdById: uuid('created_by_id').notNull(),
     publishedAt: timestamp('published_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

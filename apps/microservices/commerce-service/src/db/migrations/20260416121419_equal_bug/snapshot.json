@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "0cefb2d2-cf86-40ad-a030-b168bde61446",
+  "id": "7d62b077-9b29-46bc-b5bc-589d304f1183",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -67,6 +67,18 @@
         "PRODUCT"
       ],
       "name": "inventory_item_type",
+      "entityType": "enums",
+      "schema": "vritti_core"
+    },
+    {
+      "values": [
+        "GOODS_RECEIPT",
+        "STOCK_ADJUSTMENT",
+        "CONVERSION",
+        "STOCK_TRANSFER",
+        "ORDER"
+      ],
+      "name": "inventory_ledger_reference_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
@@ -444,6 +456,12 @@
     },
     {
       "isRlsEnabled": true,
+      "name": "stock_adjustment_line_items",
+      "entityType": "tables",
+      "schema": "vritti_core"
+    },
+    {
+      "isRlsEnabled": true,
       "name": "stock_transfers",
       "entityType": "tables",
       "schema": "vritti_core"
@@ -497,6 +515,12 @@
       "schema": "vritti_core"
     },
     {
+      "isRlsEnabled": true,
+      "name": "inventory_item_batch_items",
+      "entityType": "tables",
+      "schema": "vritti_core"
+    },
+    {
       "type": "uuid",
       "typeSchema": null,
       "notNull": true,
@@ -514,7 +538,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -527,7 +551,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -709,7 +733,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -722,7 +746,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -839,7 +863,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -904,7 +928,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -956,7 +980,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1008,7 +1032,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1177,7 +1201,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1190,7 +1214,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -1294,7 +1318,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1372,7 +1396,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1424,7 +1448,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1437,7 +1461,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -1554,7 +1578,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1671,7 +1695,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1684,7 +1708,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -1853,7 +1877,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1866,7 +1890,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -1957,7 +1981,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -1970,7 +1994,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -2013,6 +2037,19 @@
       "generated": null,
       "identity": null,
       "name": "type",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "category_id",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "inventory_items"
@@ -2100,7 +2137,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -2113,7 +2150,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -2143,6 +2180,45 @@
       "generated": null,
       "identity": null,
       "name": "code",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "parent_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "type": "vritti_core.ltree",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "path",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "name": "sort_order",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "storage_locations"
@@ -2243,7 +2319,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -2256,7 +2332,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -2412,7 +2488,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -2425,7 +2501,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -2516,7 +2592,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -2529,7 +2605,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -2590,8 +2666,8 @@
       "table": "inventory_ledger"
     },
     {
-      "type": "varchar(50)",
-      "typeSchema": null,
+      "type": "inventory_ledger_reference_type",
+      "typeSchema": "vritti_core",
       "notNull": false,
       "dimensions": 0,
       "default": null,
@@ -2659,7 +2735,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -2672,7 +2748,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -2763,7 +2839,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -2828,7 +2904,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -2891,7 +2967,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": false,
+      "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -2997,7 +3073,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3010,7 +3086,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -3205,7 +3281,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3309,7 +3385,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3322,7 +3398,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -3478,7 +3554,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3608,7 +3684,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3621,7 +3697,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -3712,7 +3788,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3790,7 +3866,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3868,7 +3944,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -3881,7 +3957,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -4011,7 +4087,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -4024,7 +4100,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -4072,6 +4148,19 @@
       "table": "stock_adjustments"
     },
     {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustments"
+    },
+    {
       "type": "stock_adjustment_status",
       "typeSchema": "vritti_core",
       "notNull": true,
@@ -4100,7 +4189,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": false,
+      "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -4154,7 +4243,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -4167,7 +4256,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -4184,6 +4273,19 @@
       "generated": null,
       "identity": null,
       "name": "stock_adjustment_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by_id",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "stock_adjustment_lines"
@@ -4236,6 +4338,19 @@
       "generated": null,
       "identity": null,
       "name": "batch_number",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_lines"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_balanced",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "stock_adjustment_lines"
@@ -4303,6 +4418,97 @@
       "name": "id",
       "entityType": "columns",
       "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.org_id')::uuid",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.bu_id')::uuid",
+      "generated": null,
+      "identity": null,
+      "name": "business_unit_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "stock_adjustment_line_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "vritti_core",
       "table": "stock_transfers"
     },
     {
@@ -4310,7 +4516,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -4466,7 +4672,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -4479,7 +4685,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -4765,7 +4971,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -4882,7 +5088,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -5012,7 +5218,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -5090,7 +5296,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -5103,7 +5309,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -5285,7 +5491,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -5376,7 +5582,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -5571,7 +5777,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.org_id')",
+      "default": "current_setting('app.org_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "organization_id",
@@ -5584,7 +5790,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "current_setting('app.bu_id')",
+      "default": "current_setting('app.bu_id')::uuid",
       "generated": null,
       "identity": null,
       "name": "business_unit_id",
@@ -5892,6 +6098,123 @@
       "table": "orders"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.org_id')::uuid",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "current_setting('app.bu_id')::uuid",
+      "generated": null,
+      "identity": null,
+      "name": "business_unit_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "inventory_item_batch_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "inventory_item_id",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "quantity",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "reserved_quantity",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
       "nameExplicit": true,
       "columns": [
         {
@@ -5964,6 +6287,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "idx_categories_bu",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "categories"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "parent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_categories_parent",
       "entityType": "indexes",
       "schema": "vritti_core",
       "table": "categories"
@@ -6182,6 +6526,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "category_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_items_category",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "organization_id",
           "isExpression": false,
           "asc": true,
@@ -6202,6 +6567,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "idx_storage_locations_bu",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "storage_locations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "parent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_storage_locations_parent",
       "entityType": "indexes",
       "schema": "vritti_core",
       "table": "storage_locations"
@@ -6973,6 +7359,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "stock_adjustment_line_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_sa_line_items_line",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "inventory_item_id",
           "isExpression": false,
           "asc": true,
@@ -7292,6 +7699,48 @@
       "table": "orders"
     },
     {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "inventory_item_batch_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_batch_items_batch",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "inventory_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inventory_batch_items_item",
+      "entityType": "indexes",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
       "nameExplicit": false,
       "columns": [
         "bom_id"
@@ -7358,6 +7807,23 @@
       "entityType": "fks",
       "schema": "vritti_core",
       "table": "tax_rates"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "category_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "categories",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "inventory_items_category_id_categories_id_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "inventory_items"
     },
     {
       "nameExplicit": false,
@@ -7574,7 +8040,7 @@
         "id"
       ],
       "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
+      "onDelete": "RESTRICT",
       "name": "supplier_items_uom_id_uom_id_fkey",
       "entityType": "fks",
       "schema": "vritti_core",
@@ -7778,7 +8244,7 @@
         "id"
       ],
       "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
+      "onDelete": "RESTRICT",
       "name": "stock_adjustments_inventory_item_id_inventory_items_id_fkey",
       "entityType": "fks",
       "schema": "vritti_core",
@@ -7834,6 +8300,23 @@
       "entityType": "fks",
       "schema": "vritti_core",
       "table": "stock_adjustment_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "stock_adjustment_line_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "stock_adjustment_lines",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "stock_adjustment_line_items_BAKtyY4jjSIv_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
     },
     {
       "nameExplicit": false,
@@ -7987,6 +8470,40 @@
       "entityType": "fks",
       "schema": "vritti_core",
       "table": "order_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "inventory_item_batch_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "inventory_item_batches",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "inventory_item_batch_items_4lK4wYzHV5eA_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "inventory_item_id"
+      ],
+      "schemaTo": "vritti_core",
+      "tableTo": "inventory_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "inventory_item_batch_items_kVm5wGvCOy0l_fkey",
+      "entityType": "fks",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
     },
     {
       "columns": [
@@ -8315,6 +8832,16 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "stock_adjustment_line_items_pkey",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "stock_transfers_pkey",
       "schema": "vritti_core",
       "table": "stock_transfers",
@@ -8398,6 +8925,16 @@
       "name": "orders_pkey",
       "schema": "vritti_core",
       "table": "orders",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "inventory_item_batch_items_pkey",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items",
       "entityType": "pks"
     },
     {
@@ -8605,6 +9142,18 @@
       "table": "orders"
     },
     {
+      "nameExplicit": true,
+      "columns": [
+        "inventory_item_batch_id",
+        "inventory_item_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_inventory_batch_items_batch_item",
+      "entityType": "uniques",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
       "as": "PERMISSIVE",
       "for": "ALL",
       "roles": [
@@ -9708,6 +10257,71 @@
       "entityType": "policies",
       "schema": "vritti_core",
       "table": "stock_adjustment_lines"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = current_setting('app.org_id', true)::uuid",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])",
+      "withCheck": null,
+      "name": "bu_ancestor_read",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "name": "bu_write",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_update",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_delete",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "stock_adjustment_line_items"
     },
     {
       "as": "PERMISSIVE",
@@ -9916,6 +10530,71 @@
       "entityType": "policies",
       "schema": "vritti_core",
       "table": "orders"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = current_setting('app.org_id', true)::uuid",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])",
+      "withCheck": null,
+      "name": "bu_ancestor_read",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "name": "bu_write",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_update",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "business_unit_id = current_setting('app.bu_id', true)::uuid",
+      "withCheck": null,
+      "name": "bu_delete",
+      "entityType": "policies",
+      "schema": "vritti_core",
+      "table": "inventory_item_batch_items"
     },
     {
       "definition": "select \"vritti_core\".\"inventory_item_batches\".\"inventory_item_id\", \"vritti_core\".\"inventory_item_batches\".\"location_id\", CAST(SUM(\"vritti_core\".\"inventory_item_batches\".\"quantity\") AS TEXT) as \"stocked_quantity\", CAST(SUM(\"vritti_core\".\"inventory_item_batches\".\"reserved_quantity\") AS TEXT) as \"reserved_quantity\", CAST(SUM(\"vritti_core\".\"inventory_item_batches\".\"quantity\" - \"vritti_core\".\"inventory_item_batches\".\"reserved_quantity\") AS TEXT) as \"available_quantity\", \"vritti_core\".\"storage_location_configs\".\"reorder_level\" from \"vritti_core\".\"inventory_item_batches\" left join \"vritti_core\".\"storage_location_configs\" on \"vritti_core\".\"inventory_item_batches\".\"inventory_item_id\" = \"vritti_core\".\"storage_location_configs\".\"inventory_item_id\" AND \"vritti_core\".\"inventory_item_batches\".\"location_id\" = \"vritti_core\".\"storage_location_configs\".\"location_id\" group by \"vritti_core\".\"inventory_item_batches\".\"inventory_item_id\", \"vritti_core\".\"inventory_item_batches\".\"location_id\", \"vritti_core\".\"storage_location_configs\".\"reorder_level\"",

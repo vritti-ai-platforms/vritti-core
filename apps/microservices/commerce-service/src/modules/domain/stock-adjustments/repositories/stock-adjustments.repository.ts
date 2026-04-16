@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import {
-  coreSchema,
   inventoryItems,
   type NewStockAdjustment,
   stockAdjustmentLines,
@@ -12,11 +10,6 @@ import {
   stockAdjustments,
   uom,
 } from '@/db/schema';
-
-const users = coreSchema.table('users', {
-  id: uuid('id').primaryKey(),
-  fullName: varchar('full_name', { length: 255 }).notNull(),
-});
 
 @Injectable()
 export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof stockAdjustments> {
@@ -58,12 +51,11 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
         inventoryItemUomSymbol: uom.symbol,
-        createdByFullName: users.fullName,
+        createdByFullName: sql<string>`''`.as('created_by_full_name'),
       },
       leftJoins: [
         { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(inventoryItems.uomId, uom.id) },
-        { table: users, on: eq(stockAdjustments.createdById, users.id) },
       ],
       where: options.where,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(stockAdjustments.createdAt)],
@@ -98,7 +90,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
         inventoryItemUomSymbol: uom.symbol,
-        createdByFullName: users.fullName,
+        createdByFullName: sql<string>`''`.as('created_by_full_name'),
         isPublishable: sql<boolean>`(
           ${stockAdjustments.status} = 'DRAFT'
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0
@@ -110,7 +102,6 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       .from(stockAdjustments)
       .innerJoin(inventoryItems, eq(stockAdjustments.inventoryItemId, inventoryItems.id))
       .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
-      .innerJoin(users, eq(stockAdjustments.createdById, users.id))
       .leftJoin(stockAdjustmentLines, eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId))
       .where(eq(stockAdjustments.id, id))
       .groupBy(
@@ -128,7 +119,6 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         stockAdjustments.createdAt,
         inventoryItems.name,
         uom.symbol,
-        users.fullName,
       )
       .limit(1);
 

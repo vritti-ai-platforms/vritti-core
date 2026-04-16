@@ -32,6 +32,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.71.2(react@19.2.3))
+      '@module-federation/enhanced':
+        specifier: 0.22.1
+        version: 0.22.1(@rspack/core@1.7.11(@swc/helpers@0.5.19))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.19)))
       '@react-navigation/bottom-tabs':
         specifier: 8.0.0-alpha.22
         version: 8.0.0-alpha.22(aa0f3e7079217e19c019e19e598fda5e)

@@ -5,10 +5,6 @@ import { stockAdjustments } from './stock-adjustments';
 import { inventoryItemBatches } from './inventory-item-batches';
 import { storageLocations } from './storage-locations';
 
-const users = coreSchema.table('users', {
-  id: uuid('id').primaryKey(),
-});
-
 export const stockAdjustmentLines = coreSchema.table(
   'stock_adjustment_lines',
   {
@@ -18,7 +14,7 @@ export const stockAdjustmentLines = coreSchema.table(
     stockAdjustmentId: uuid('stock_adjustment_id')
       .notNull()
       .references(() => stockAdjustments.id, { onDelete: 'cascade' }),
-    createdById: uuid('created_by_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+    createdById: uuid('created_by_id').notNull(),
     batchId: uuid('batch_id').references(() => inventoryItemBatches.id, { onDelete: 'set null' }),
     locationId: uuid('location_id').references(() => storageLocations.id),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
