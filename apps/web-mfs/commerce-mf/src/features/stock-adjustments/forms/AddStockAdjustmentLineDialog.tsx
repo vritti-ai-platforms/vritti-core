@@ -1,12 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { Select } from '@vritti/quantum-ui/Select';
+import { BatchSelector } from '@vritti/quantum-ui/selects/batch';
 import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useInventoryItemBatchesTable } from '@/hooks/inventory-items';
 import { useAddStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import {
   type AddStockAdjustmentLineFormData,
@@ -73,19 +72,6 @@ export const AddStockAdjustmentLineDialog: React.FC<AddStockAdjustmentLineDialog
     },
   });
 
-  const { data: batchesResponse } = useInventoryItemBatchesTable(!isOpeningStock ? inventoryItemId : null);
-
-  const batchOptions = (batchesResponse?.result ?? []).map((b) => ({
-    value: b.id,
-    label: [
-      b.batchNumber ? `Batch #${b.batchNumber}` : 'Auto Batch',
-      b.locationName ? `Location: ${b.locationName}` : null,
-      `Qty: ${b.availableQuantity}`,
-    ]
-      .filter(Boolean)
-      .join(' | '),
-  }));
-
   const addLineMutation = useAddStockAdjustmentLine(adjustmentId, { onSuccess });
 
   return (
@@ -127,13 +113,31 @@ export const AddStockAdjustmentLineDialog: React.FC<AddStockAdjustmentLineDialog
         </>
       ) : (
         <>
-          <Select name="batchId" label="Batch" placeholder="Select batch" options={batchOptions} />
+          <BatchSelector
+            name="batchId"
+            inventoryItemId={inventoryItemId}
+            fieldKeys={{
+              valueKey: 'id',
+              labelKey: 'batchNumber',
+              descriptionKey: 'name',
+              additionalKeys: 'quantity,reservedQuantity',
+              groupIdKey: 'locationId',
+            }}
+            transformDescription={(description, option) => {
+              const quantity = Number(option.additionals?.quantity ?? 0);
+              const reservedQuantity = Number(option.additionals?.reservedQuantity ?? 0);
+              const availableQuantity = quantity - reservedQuantity;
+              return Number.isFinite(availableQuantity)
+                ? `Available: ${availableQuantity} | Reserved: ${reservedQuantity}`
+                : description;
+            }}
+          />
           <TextField
             name="quantity"
             label="Quantity"
             type="number"
             placeholder={adjustmentType === 'CORRECTION' ? 'e.g. 50 or -10' : 'e.g. 50'}
-            endAdornment={<span className="text-xs text-muted-foreground">Max: {maxQuantity}</span>}
+            max={maxQuantity}
           />
         </>
       )}

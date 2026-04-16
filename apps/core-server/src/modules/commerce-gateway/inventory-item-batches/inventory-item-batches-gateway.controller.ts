@@ -1,6 +1,6 @@
-import { Controller, Delete, Get, Logger, Param } from '@nestjs/common';
+import { Controller, Delete, Get, Logger, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import type { InventoryBatchResponseDto } from './dto/response/inventory-batch-response.dto';
 import { InventoryItemBatchesGatewayService } from './services/inventory-item-batches-gateway.service';
@@ -13,6 +13,12 @@ export class InventoryItemBatchesGatewayController {
   private readonly logger = new Logger(InventoryItemBatchesGatewayController.name);
 
   constructor(private readonly service: InventoryItemBatchesGatewayService) {}
+
+  @Get('select')
+  select(@Query() query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
+    this.logger.log('GET /commerce-api/inventory-item-batches/select');
+    return this.service.select(query);
+  }
 
   @Get(':id')
   findById(@Param('id') id: string): Promise<InventoryBatchResponseDto> {

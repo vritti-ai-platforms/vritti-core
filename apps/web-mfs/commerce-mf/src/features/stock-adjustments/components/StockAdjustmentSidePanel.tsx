@@ -70,7 +70,15 @@ export const StockAdjustmentSidePanel = ({
             <div className="p-2 space-y-2">
               {lines.map((line) => {
                 const active = selectedLineId === line.id;
-                const lineLabel = isOpeningStock ? line.locationName : `Batch #${line.batchNumber}`;
+                const normalizedBatchNumber =
+                  typeof line.batchNumber === 'string' ? line.batchNumber.trim() : '';
+                const hasValidBatchNumber =
+                  normalizedBatchNumber.length > 0 && normalizedBatchNumber.toLowerCase() !== 'null';
+                const lineLabel = isOpeningStock
+                  ? line.locationName
+                  : hasValidBatchNumber
+                    ? `Batch #${normalizedBatchNumber}`
+                    : 'Auto Batch';
                 return (
                   <SidePanelListItem key={line.id} active={active} onClick={() => onSelectLine(line.id)}>
                     <div className="flex items-center justify-between gap-2">

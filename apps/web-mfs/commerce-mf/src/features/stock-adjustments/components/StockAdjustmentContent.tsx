@@ -30,6 +30,9 @@ export const StockAdjustmentContent = ({
   const editLineDialog = useDialog();
 
   const { data: selectedLine } = useStockAdjustmentLine(adjustment.id, selectedLineId);
+  const maxLineItemQuantity = selectedLine
+    ? Math.max(0, Number(selectedLine.quantity) - Number(selectedLine.lineItemsQuantitySum))
+    : 0;
 
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
 
@@ -105,7 +108,12 @@ export const StockAdjustmentContent = ({
           </Card>
 
           <div>
-            <StockAdjustmentLineItemsTable adjustmentId={adjustment.id} lineId={selectedLine.id} isDraft={isDraft} />
+            <StockAdjustmentLineItemsTable
+              adjustmentId={adjustment.id}
+              lineId={selectedLine.id}
+              isDraft={isDraft}
+              maxQuantity={maxLineItemQuantity}
+            />
           </div>
         </div>
       ) : (

@@ -18,9 +18,10 @@ interface StockAdjustmentLineItemsTableProps {
   adjustmentId: string;
   lineId: string;
   isDraft: boolean;
+  maxQuantity: number;
 }
 
-export const StockAdjustmentLineItemsTable = ({ adjustmentId, lineId, isDraft }: StockAdjustmentLineItemsTableProps) => {
+export const StockAdjustmentLineItemsTable = ({ adjustmentId, lineId, isDraft, maxQuantity }: StockAdjustmentLineItemsTableProps) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addLineItemDialog = useDialog();
@@ -128,7 +129,13 @@ export const StockAdjustmentLineItemsTable = ({ adjustmentId, lineId, isDraft }:
         title="Add Line Item"
         description="Add a quantity entry for this line."
         content={(close) => (
-          <AddLineItemDialogForm adjustmentId={adjustmentId} lineId={lineId} onSuccess={close} onCancel={close} />
+          <AddLineItemDialogForm
+            adjustmentId={adjustmentId}
+            lineId={lineId}
+            maxQuantity={maxQuantity}
+            onSuccess={close}
+            onCancel={close}
+          />
         )}
       />
 

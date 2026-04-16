@@ -4,7 +4,7 @@ import type { InventoryLedgerDto } from '@domain/inventory-ledger/dto/entity/inv
 import { InventoryLedgerService } from '@domain/inventory-ledger/services/inventory-ledger.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 
 @Controller()
 export class InventoryItemBatchesController {
@@ -34,5 +34,11 @@ export class InventoryItemBatchesController {
   ): Promise<{ result: InventoryLedgerDto[]; count: number }> {
     this.logger.log(`inventoryItemBatches.ledgerTable — batchId: ${data.batchId}`);
     return this.ledgerService.findByBatch(data.batchId, data);
+  }
+
+  @MessagePattern({ cmd: 'inventoryItemBatches.select' })
+  async select(@Payload() data: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
+    this.logger.log(`inventoryItemBatches.select — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findForSelect(data);
   }
 }

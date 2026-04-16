@@ -14,11 +14,18 @@ type FormData = z.infer<typeof schema>;
 interface AddLineItemDialogFormProps {
   adjustmentId: string;
   lineId: string;
+  maxQuantity: number;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddLineItemDialogForm = ({ adjustmentId, lineId, onSuccess, onCancel }: AddLineItemDialogFormProps) => {
+export const AddLineItemDialogForm = ({
+  adjustmentId,
+  lineId,
+  maxQuantity,
+  onSuccess,
+  onCancel,
+}: AddLineItemDialogFormProps) => {
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { quantity: '' },
@@ -34,7 +41,7 @@ export const AddLineItemDialogForm = ({ adjustmentId, lineId, onSuccess, onCance
       onCancel={onCancel}
       transformSubmit={(data) => ({ quantity: Number(data.quantity) })}
     >
-      <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 10" />
+      <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 10" max={maxQuantity} />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
           Cancel

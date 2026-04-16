@@ -50,6 +50,7 @@ export class BomService {
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
       groupId: query.groupIdKey,
       search: query.search,
       limit: query.limit,

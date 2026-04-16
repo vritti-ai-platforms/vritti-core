@@ -51,6 +51,7 @@ export class UserService {
       value: query.valueKey || 'id',
       label: query.labelKey || 'fullName',
       description: query.descriptionKey || 'email',
+      additionalKeys: query.additionalKeys,
       groupId: query.groupIdKey,
       search: query.search,
       limit: query.limit,

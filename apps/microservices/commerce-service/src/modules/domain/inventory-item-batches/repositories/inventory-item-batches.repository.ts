@@ -242,10 +242,7 @@ export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof
     const [result] = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(inventoryItemBatches)
-      .where(and(
-        eq(inventoryItemBatches.inventoryItemId, itemId),
-        eq(inventoryItemBatches.manufacturingDate, date),
-      ));
+      .where(and(eq(inventoryItemBatches.inventoryItemId, itemId), eq(inventoryItemBatches.manufacturingDate, date)));
 
     return Number(result?.count ?? 0);
   }

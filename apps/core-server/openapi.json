@@ -1055,6 +1055,16 @@
             }
           },
           {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
             "name": "groupIdKey",
             "required": false,
             "in": "query",
@@ -2560,6 +2570,16 @@
             }
           },
           {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
             "name": "groupIdKey",
             "required": false,
             "in": "query",
@@ -3080,6 +3100,25 @@
         ]
       }
     },
+    "/commerce-api/inventory-item-batches/select": {
+      "get": {
+        "operationId": "InventoryItemBatchesGatewayController_select",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Item Batches"
+        ]
+      }
+    },
     "/commerce-api/inventory-item-batches/{id}": {
       "get": {
         "operationId": "InventoryItemBatchesGatewayController_findById",
@@ -3532,6 +3571,16 @@
             "description": "Column name for option description",
             "schema": {
               "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
               "type": "string"
             }
           },
@@ -4180,6 +4229,16 @@
             "description": "Column name for option description",
             "schema": {
               "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
               "type": "string"
             }
           },
@@ -6483,6 +6542,16 @@
             }
           },
           {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
             "name": "groupIdKey",
             "required": false,
             "in": "query",
@@ -7080,6 +7149,16 @@
             "description": "Column name for option description",
             "schema": {
               "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
               "type": "string"
             }
           },
