@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  inventoryItemLocations,
-  inventoryItemQuants,
-  type LocationRole,
-  locations,
-} from '@/db/schema';
+import { inventoryItemLocations, inventoryItemQuants, type LocationRole, locations } from '@/db/schema';
 
 @Injectable()
 export class LocationsRepository extends PrimaryBaseRepository<typeof locations> {
@@ -30,7 +25,9 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
   }
 
   // Returns hierarchy rows ordered in tree order using a recursive CTE
-  async findHierarchyRows(search?: string): Promise<
+  async findHierarchyRows(
+    search?: string,
+  ): Promise<
     Array<{ id: string; parentId: string | null; name: string; sortOrder: number; depth: number; path: string[] }>
   > {
     if (!search) {
@@ -73,11 +70,19 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
         ORDER BY ord
       `);
 
-      const rows = (
-        result as {
-          rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number; path: string[] }>;
-        }
-      ).rows ?? [];
+      const rows =
+        (
+          result as {
+            rows?: Array<{
+              id: string;
+              parent_id: string | null;
+              name: string;
+              sort_order: number;
+              depth: number;
+              path: string[];
+            }>;
+          }
+        ).rows ?? [];
       return rows.map((row) => ({
         id: row.id,
         parentId: row.parent_id,
@@ -162,11 +167,19 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
       ORDER BY ord
     `);
 
-    const rows = (
-      result as {
-        rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number; path: string[] }>;
-      }
-    ).rows ?? [];
+    const rows =
+      (
+        result as {
+          rows?: Array<{
+            id: string;
+            parent_id: string | null;
+            name: string;
+            sort_order: number;
+            depth: number;
+            path: string[];
+          }>;
+        }
+      ).rows ?? [];
     return rows.map((row) => ({
       id: row.id,
       parentId: row.parent_id,
@@ -239,9 +252,9 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
   // Updates path for a single location
   async updatePath(id: string, path: string): Promise<void> {
     await this.db
-      .update(locations)
-      .set({ path: sql`cast(${path} as ltree)` })
-      .where(eq(locations.id, id));
+      .update(storageLocations)
+      .set({ path: sql`cast(${path} as vritti_core.ltree)` })
+      .where(eq(storageLocations.id, id));
   }
 
   // Rewrites path prefix for a moved subtree: oldPath -> newPath
@@ -249,10 +262,11 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
     await this.db.execute(sql`
       UPDATE ${locations}
       SET path = CASE
-        WHEN path = cast(${oldPath} as ltree) THEN cast(${newPath} as ltree)
-        ELSE cast(${newPath} as ltree) || subpath(path, nlevel(cast(${oldPath} as ltree)))
+        WHEN path = cast(${oldPath} as vritti_core.ltree) THEN cast(${newPath} as vritti_core.ltree)
+        ELSE cast(${newPath} as vritti_core.ltree) ||
+          vritti_core.subpath(path, vritti_core.nlevel(cast(${oldPath} as vritti_core.ltree)))
       END
-      WHERE path <@ cast(${oldPath} as ltree)
+      WHERE path <@ cast(${oldPath} as vritti_core.ltree)
     `);
   }
 
@@ -264,5 +278,4 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
       WHERE path <@ cast(${rootPath} as ltree)
     `);
   }
-
 }
