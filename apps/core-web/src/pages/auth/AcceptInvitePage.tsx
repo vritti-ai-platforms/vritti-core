@@ -101,7 +101,7 @@ export const AcceptInvitePage: React.FC = () => {
       <Form
         form={form}
         mutation={acceptInviteMutation}
-        showRootError
+       
         transformSubmit={(data) => ({
           token,
           password: data.password,

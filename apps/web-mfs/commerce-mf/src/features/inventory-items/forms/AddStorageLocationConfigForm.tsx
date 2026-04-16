@@ -30,7 +30,7 @@ export const AddStorageLocationConfigForm: React.FC<AddStorageLocationConfigForm
   const createMutation = useCreateStorageLocationConfig(itemId, { onSuccess });
 
   return (
-    <Form form={form} mutation={createMutation} showRootError onCancel={onCancel}>
+    <Form form={form} mutation={createMutation} onCancel={onCancel}>
       <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
       <TextField name="reorderLevel" label="Min. Stock Level" type="number" min={0} step="any" />
       <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">

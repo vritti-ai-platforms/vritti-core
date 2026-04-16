@@ -40,7 +40,7 @@ export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ 
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

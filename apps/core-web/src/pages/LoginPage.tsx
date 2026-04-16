@@ -38,7 +38,7 @@ export const LoginPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
         <p className="text-muted-foreground text-sm">Enter your credentials to access the dashboard</p>
       </div>
-      <Form form={form} mutation={loginMutation} showRootError className="space-y-4">
+      <Form form={form} mutation={loginMutation} className="space-y-4">
         <FieldGroup>
           <TextField name="email" label="Email" type="email" placeholder="you@example.com" />
           <PasswordField name="password" label="Password" placeholder="Enter your password" />

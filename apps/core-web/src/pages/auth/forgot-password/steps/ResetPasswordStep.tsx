@@ -39,7 +39,7 @@ export const ResetPasswordStep: React.FC<ResetPasswordStepProps> = ({ mutation }
         </Typography>
       </div>
 
-      <Form form={form} mutation={mutation} transformSubmit={(data) => data.password} showRootError>
+      <Form form={form} mutation={mutation} transformSubmit={(data) => data.password}>
         <FieldGroup>
           <PasswordField
             name="password"

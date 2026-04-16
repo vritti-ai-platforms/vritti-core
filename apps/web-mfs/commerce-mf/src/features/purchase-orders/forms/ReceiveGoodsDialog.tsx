@@ -73,7 +73,7 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         purchaseOrderId: purchaseOrder.id,

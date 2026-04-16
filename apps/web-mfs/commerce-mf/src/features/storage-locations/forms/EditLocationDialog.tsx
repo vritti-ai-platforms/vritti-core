@@ -38,7 +38,7 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: location.id,

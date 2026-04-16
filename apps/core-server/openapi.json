@@ -5813,6 +5813,42 @@
           "Commerce - Stock Adjustments"
         ]
       },
+      "patch": {
+        "operationId": "StockAdjustmentsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStockAdjustmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
       "delete": {
         "operationId": "StockAdjustmentsGatewayController_delete",
         "parameters": [
@@ -10580,6 +10616,19 @@
           "type",
           "quantity",
           "reason"
+        ]
+      },
+      "UpdateStockAdjustmentDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Adjustment quantity",
+            "example": 100
+          }
+        },
+        "required": [
+          "quantity"
         ]
       },
       "AddStockAdjustmentLineDto": {

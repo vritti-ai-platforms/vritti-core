@@ -56,7 +56,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
   };
 
   return (
-    <Form form={form} onSubmit={handleSubmit} showRootError resetOnSuccess={!isEditing} onCancel={onCancel}>
+    <Form form={form} onSubmit={handleSubmit} resetOnSuccess={!isEditing} onCancel={onCancel}>
       <TextField name="name" label="Name" placeholder="e.g. Electronics" />
       <CategorySelector
         label="Parent Category"

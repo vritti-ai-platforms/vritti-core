@@ -90,7 +90,7 @@ export const EmailLookupScreen = ({ onSingleOrgLogin, onMultipleOrgs }: Props) =
           form={form}
           mutation={lookupMutation}
           transformSubmit={(data) => data.email}
-          showRootError
+         
           rootErrorPosition="top"
         >
           <TextField

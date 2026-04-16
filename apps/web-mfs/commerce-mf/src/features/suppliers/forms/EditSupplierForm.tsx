@@ -37,7 +37,7 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: supplier.id,

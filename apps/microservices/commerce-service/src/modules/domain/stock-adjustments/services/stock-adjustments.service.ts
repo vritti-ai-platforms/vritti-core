@@ -6,12 +6,13 @@ import {
   FilterProcessor,
   NotFoundException,
   type SuccessResponseDto,
-  type TableViewState
+  type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { StockAdjustmentStatusValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
-import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
 import { StockAdjustmentLinesRepository } from '../../stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
+import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';
 
 @Injectable()
@@ -98,7 +99,10 @@ export class StockAdjustmentsService {
 
     const linesTotal = await this.linesRepository.totalQuantityForAdjustment(id);
     if (this.toScaled(quantity) < this.toScaled(linesTotal)) {
-      throw new BadRequestException('Adjustment quantity cannot be less than total line quantity.');
+      throw new ValidationException({
+        detail: 'Adjustment quantity cannot be less than total line quantity.',
+        errors: [{ field: 'quantity', message: 'Adjustment quantity cannot be less than total line quantity.' }],
+      });
     }
 
     await this.repository.update(id, { quantity: String(quantity) });
@@ -110,5 +114,4 @@ export class StockAdjustmentsService {
   private toScaled(value: number): number {
     return Math.round(value * 1000);
   }
-
 }

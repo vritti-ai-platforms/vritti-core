@@ -70,7 +70,7 @@ export const LoginScreen = ({ email, organizationId, organizationName, onAuthent
             password: data.password,
             organizationId,
           })}
-          showRootError
+         
           rootErrorPosition="top"
         >
           <TextField name="email" label="Email" keyboardType="email-address" autoCapitalize="none" editable={false} />

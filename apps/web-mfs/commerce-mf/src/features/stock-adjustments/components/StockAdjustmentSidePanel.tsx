@@ -12,6 +12,7 @@ import { AddStockAdjustmentLineDialog } from '../forms/AddStockAdjustmentLineDia
 
 interface StockAdjustmentSidePanelProps {
   adjustmentId: string;
+  adjustmentQuantity: number;
   adjustmentType: StockAdjustmentType;
   inventoryItemId: string;
   selectedLineId: string | null;
@@ -22,6 +23,7 @@ interface StockAdjustmentSidePanelProps {
 
 export const StockAdjustmentSidePanel = ({
   adjustmentId,
+  adjustmentQuantity,
   adjustmentType,
   inventoryItemId,
   selectedLineId,
@@ -31,6 +33,9 @@ export const StockAdjustmentSidePanel = ({
 }: StockAdjustmentSidePanelProps) => {
   const addLineDialog = useDialog();
   const { data: lines = [], isLoading: isLoadingLines } = useStockAdjustmentLines(adjustmentId);
+  const totalLineQuantity = lines.reduce((sum, line) => sum + Number(line.quantity), 0);
+  const remainingQuantity = Math.max(0, Number((adjustmentQuantity - totalLineQuantity).toFixed(3)));
+  const canAddLine = Math.round(totalLineQuantity * 1000) < Math.round(adjustmentQuantity * 1000);
 
   useEffect(() => {
     if (!selectedLineId) return;
@@ -48,7 +53,7 @@ export const StockAdjustmentSidePanel = ({
         contentClassName={!isLoadingLines && lines.length === 0 ? 'flex items-center justify-center p-3' : undefined}
         actions={
           isDraft ? (
-            <Button size="sm" onClick={addLineDialog.open} startAdornment={<Plus className="size-4" />}>
+            <Button size="sm" onClick={addLineDialog.open} startAdornment={<Plus className="size-4" />} disabled={!canAddLine}>
               Add Line
             </Button>
           ) : null
@@ -95,6 +100,7 @@ export const StockAdjustmentSidePanel = ({
         content={(close) => (
           <AddStockAdjustmentLineDialog
             adjustmentId={adjustmentId}
+            maxQuantity={remainingQuantity}
             adjustmentType={adjustmentType}
             inventoryItemId={inventoryItemId}
             onSuccess={close}

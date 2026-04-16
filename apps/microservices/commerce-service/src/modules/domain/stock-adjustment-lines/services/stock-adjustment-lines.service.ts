@@ -1,5 +1,5 @@
-import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
+import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -9,6 +9,7 @@ import {
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import {
@@ -252,11 +253,17 @@ export class StockAdjustmentLinesService {
   private validateLineForType(type: StockAdjustmentType, data: { batchId?: string; locationId?: string }): void {
     if (type === StockAdjustmentTypeValues.OPENING_STOCK) {
       if (!data.locationId) {
-        throw new BadRequestException('Storage location is required for OPENING_STOCK lines.');
+        throw new ValidationException({
+          detail: 'Storage location is required for OPENING_STOCK lines.',
+          errors: [{ field: 'locationId', message: 'Storage location is required.' }],
+        });
       }
     } else {
       if (!data.batchId) {
-        throw new BadRequestException('Batch is required for non-OPENING_STOCK lines.');
+        throw new ValidationException({
+          detail: 'Batch is required for non-OPENING_STOCK lines.',
+          errors: [{ field: 'batchId', message: 'Batch is required.' }],
+        });
       }
     }
   }
@@ -277,8 +284,14 @@ export class StockAdjustmentLinesService {
     const nextTotal = updatingLineId
       ? totalExisting - currentLineQuantity + nextLineQuantity
       : totalExisting + nextLineQuantity;
-    if (this.toScaled(nextTotal) > this.toScaled(Number(adjustment.quantity))) {
-      throw new BadRequestException('Total line quantity cannot exceed adjustment quantity.');
+    const adjustmentQuantity = Number(adjustment.quantity);
+    if (this.toScaled(nextTotal) > this.toScaled(adjustmentQuantity)) {
+      const maxPermissible = Math.max(0, adjustmentQuantity - (totalExisting - currentLineQuantity));
+      const message = `Total line quantity cannot exceed adjustment quantity (${adjustmentQuantity}). Max permissible quantity for this line is ${maxPermissible}.`;
+      throw new ValidationException({
+        detail: message,
+        errors: [{ field: 'quantity', message }],
+      });
     }
   }
 

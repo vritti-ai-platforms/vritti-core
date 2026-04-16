@@ -39,7 +39,7 @@ export const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

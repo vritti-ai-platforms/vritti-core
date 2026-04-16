@@ -30,7 +30,7 @@ export const AddDerivedUnitDialog: React.FC<AddDerivedUnitDialogProps> = ({
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

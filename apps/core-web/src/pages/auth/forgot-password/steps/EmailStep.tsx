@@ -37,7 +37,7 @@ export const EmailStep: React.FC<EmailStepProps> = ({ mutation }) => {
         </Typography>
       </div>
 
-      <Form form={form} mutation={mutation} transformSubmit={(data) => data.email} showRootError>
+      <Form form={form} mutation={mutation} transformSubmit={(data) => data.email}>
         <FieldGroup>
           <TextField
             name="email"

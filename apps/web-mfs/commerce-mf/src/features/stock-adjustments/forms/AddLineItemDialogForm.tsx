@@ -29,7 +29,7 @@ export const AddLineItemDialogForm = ({ adjustmentId, lineId, onSuccess, onCance
     <Form
       form={form}
       mutation={mutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({ quantity: Number(data.quantity) })}

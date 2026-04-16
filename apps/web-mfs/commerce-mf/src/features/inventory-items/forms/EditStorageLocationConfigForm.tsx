@@ -40,7 +40,7 @@ export const EditStorageLocationConfigForm: React.FC<EditStorageLocationConfigFo
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({ configId, reorderLevel: data.reorderLevel })}
     >

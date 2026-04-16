@@ -38,7 +38,7 @@ export const EditLineItemDialogForm = ({
     <Form
       form={form}
       mutation={mutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({ quantity: Number(data.quantity) })}
     >

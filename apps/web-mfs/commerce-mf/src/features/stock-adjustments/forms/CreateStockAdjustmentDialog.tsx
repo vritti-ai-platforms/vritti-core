@@ -45,7 +45,7 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

@@ -34,7 +34,7 @@ export const ApplyCreditNoteDialog: React.FC<ApplyCreditNoteDialogProps> = ({
     <Form
       form={form}
       mutation={applyMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

@@ -46,7 +46,7 @@ export const AddItemDialog: React.FC<AddItemDialogProps> = ({ businessUnitId, on
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

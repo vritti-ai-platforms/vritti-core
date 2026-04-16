@@ -23,7 +23,7 @@ export const AddBaseUnitDialog: React.FC<AddBaseUnitDialogProps> = ({ onSuccess,
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({ name: data.name, symbol: data.symbol })}

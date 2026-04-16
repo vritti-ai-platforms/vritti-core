@@ -30,7 +30,7 @@ export const EditBomForm: React.FC<EditBomFormProps> = ({ bom, onSuccess, onCanc
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: bom.id,

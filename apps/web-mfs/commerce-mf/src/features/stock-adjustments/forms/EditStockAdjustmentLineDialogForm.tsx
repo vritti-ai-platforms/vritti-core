@@ -45,8 +45,18 @@ export const EditStockAdjustmentLineDialogForm = ({
   onSuccess,
   onCancel,
 }: EditStockAdjustmentLineDialogFormProps) => {
+  const formSchema = schema.superRefine((data, ctx) => {
+    if (isOpeningStock && !data.locationId) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['locationId'],
+        message: 'Storage location is required.',
+      });
+    }
+  });
+
   const form = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       quantity: String(line.quantity),
       locationId: line.locationId,
@@ -70,7 +80,7 @@ export const EditStockAdjustmentLineDialogForm = ({
     <Form
       form={form}
       mutation={mutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         quantity: Number(data.quantity),

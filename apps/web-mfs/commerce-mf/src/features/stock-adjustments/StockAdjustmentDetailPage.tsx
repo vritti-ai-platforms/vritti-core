@@ -116,6 +116,7 @@ export const StockAdjustmentDetailPage = () => {
       <PageContent>
         <StockAdjustmentSidePanel
           adjustmentId={adjustment.id}
+          adjustmentQuantity={adjustment.quantity}
           adjustmentType={adjustment.type}
           inventoryItemId={adjustment.inventoryItemId}
           selectedLineId={selectedLineId}

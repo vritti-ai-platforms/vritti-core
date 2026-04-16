@@ -63,7 +63,7 @@ export const OtpStep: React.FC<OtpStepProps> = ({
         form={form}
         mutation={mutation}
         transformSubmit={(data) => data.code}
-        showRootError
+       
       >
         <FieldGroup>
           <div className="flex justify-center">

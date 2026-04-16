@@ -436,7 +436,7 @@ const CreateGroupForm = ({ businessUnitId, onSuccess, onCancel }: CreateGroupFor
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -490,7 +490,7 @@ const EditGroupForm = ({ group, onSuccess, onCancel }: EditGroupFormProps) => {
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: group.id,
@@ -541,7 +541,7 @@ const AddOptionForm = ({ groupId, onSuccess, onCancel }: AddOptionFormProps) => 
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -589,7 +589,7 @@ const EditOptionForm = ({ groupId, option, onSuccess, onCancel }: EditOptionForm
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         groupId,

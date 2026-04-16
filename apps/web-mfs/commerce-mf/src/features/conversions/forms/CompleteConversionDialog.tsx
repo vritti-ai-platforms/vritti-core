@@ -37,7 +37,7 @@ export const CompleteConversionDialog: React.FC<CompleteConversionDialogProps> =
     <Form
       form={form}
       mutation={completeMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: conversionId,

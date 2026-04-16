@@ -32,7 +32,7 @@ export const AddBomLineDialog: React.FC<AddBomLineDialogProps> = ({ bom, onSucce
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

@@ -37,7 +37,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
   const createMutation = useCreateInventoryItem({ onSuccess });
 
   return (
-    <Form form={form} mutation={createMutation} showRootError resetOnSuccess onCancel={onCancel}>
+    <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
       <RadioGroup name="type" label="Type" options={typeOptions} orientation="horizontal" />
       <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
       <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />

@@ -39,7 +39,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({ su
     <Form
       form={form}
       mutation={linkMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

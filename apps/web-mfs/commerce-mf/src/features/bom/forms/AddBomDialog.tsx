@@ -29,7 +29,7 @@ export const AddBomDialog: React.FC<AddBomDialogProps> = ({ onSuccess, onCancel 
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

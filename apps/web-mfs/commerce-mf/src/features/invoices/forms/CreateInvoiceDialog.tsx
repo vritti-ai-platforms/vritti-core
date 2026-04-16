@@ -35,7 +35,7 @@ export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ onSucc
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

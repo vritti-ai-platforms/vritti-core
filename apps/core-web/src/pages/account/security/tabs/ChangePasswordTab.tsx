@@ -42,7 +42,7 @@ export const ChangePasswordTab: React.FC = () => {
           currentPassword: data.currentPassword,
           newPassword: data.newPassword,
         })}
-        showRootError
+       
       >
         <FieldGroup>
           <PasswordField

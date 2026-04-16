@@ -31,7 +31,7 @@ export const EditStockAdjustmentDialog = ({ adjustmentId, quantity, onSuccess, o
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({ quantity: Number(data.quantity) })}
     >

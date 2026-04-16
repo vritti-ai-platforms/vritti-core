@@ -42,7 +42,7 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: item.id,

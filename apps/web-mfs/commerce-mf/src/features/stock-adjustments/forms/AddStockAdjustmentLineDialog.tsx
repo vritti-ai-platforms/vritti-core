@@ -16,6 +16,7 @@ import {
 
 interface AddStockAdjustmentLineDialogProps {
   adjustmentId: string;
+  maxQuantity: number;
   adjustmentType: StockAdjustmentType;
   inventoryItemId: string;
   onSuccess: () => void;
@@ -37,15 +38,32 @@ function formatLocationPathLabel(path: string): string {
 
 export const AddStockAdjustmentLineDialog: React.FC<AddStockAdjustmentLineDialogProps> = ({
   adjustmentId,
+  maxQuantity,
   adjustmentType,
   inventoryItemId,
   onSuccess,
   onCancel,
 }) => {
   const isOpeningStock = adjustmentType === 'OPENING_STOCK';
+  const schema = addStockAdjustmentLineSchema.superRefine((data, ctx) => {
+    if (isOpeningStock && !data.locationId) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['locationId'],
+        message: 'Storage location is required.',
+      });
+    }
+    if (!isOpeningStock && !data.batchId) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['batchId'],
+        message: 'Batch is required.',
+      });
+    }
+  });
 
   const form = useForm<AddStockAdjustmentLineFormData>({
-    resolver: zodResolver(addStockAdjustmentLineSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       batchId: undefined,
       locationId: undefined,
@@ -74,7 +92,6 @@ export const AddStockAdjustmentLineDialog: React.FC<AddStockAdjustmentLineDialog
     <Form
       form={form}
       mutation={addLineMutation}
-      showRootError
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => {
@@ -104,7 +121,7 @@ export const AddStockAdjustmentLineDialog: React.FC<AddStockAdjustmentLineDialog
             fieldKeys={{ valueKey: 'id', labelKey: 'path' }}
             transformLabel={(label) => formatLocationPathLabel(label)}
           />
-          <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 50" />
+          <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 50" max={maxQuantity} />
           <TextField name="manufacturingDate" label="Manufacturing Date" type="date" />
           <TextField name="expiryDate" label="Expiry Date" type="date" />
         </>
@@ -116,6 +133,7 @@ export const AddStockAdjustmentLineDialog: React.FC<AddStockAdjustmentLineDialog
             label="Quantity"
             type="number"
             placeholder={adjustmentType === 'CORRECTION' ? 'e.g. 50 or -10' : 'e.g. 50'}
+            endAdornment={<span className="text-xs text-muted-foreground">Max: {maxQuantity}</span>}
           />
         </>
       )}

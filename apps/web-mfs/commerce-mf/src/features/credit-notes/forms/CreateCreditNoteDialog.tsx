@@ -33,7 +33,7 @@ export const CreateCreditNoteDialog: React.FC<CreateCreditNoteDialogProps> = ({ 
     <Form
       form={form}
       mutation={createMutation}
-      showRootError
+     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

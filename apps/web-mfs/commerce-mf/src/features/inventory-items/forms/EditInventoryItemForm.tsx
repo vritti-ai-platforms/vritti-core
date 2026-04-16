@@ -45,7 +45,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
     <Form
       form={form}
       mutation={updateMutation}
-      showRootError
+     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: item.id,

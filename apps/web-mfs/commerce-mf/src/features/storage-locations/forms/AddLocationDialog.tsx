@@ -36,7 +36,7 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ defaultPar
   const createMutation = useCreateLocation({ onSuccess });
 
   return (
-    <Form form={form} mutation={createMutation} showRootError resetOnSuccess onCancel={onCancel}>
+    <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
       <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
       <TextField name="code" label="Code" placeholder="e.g. WIF" />
       <StorageLocationSelector
