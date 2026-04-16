@@ -2,24 +2,16 @@ import { BottomNavigation, type RouteConfig } from '@vritti/quantum-ui-native/Bo
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { ActivityIndicator, View } from 'react-native';
 import { usePermissionContext } from '../providers/PermissionProvider';
+import { resolveRemoteName } from '../config/remotes.config';
 import { RemoteScreen } from './RemoteScreen';
 import { getCommerceTabIcon } from './tabIcons';
-
-// ---------------------------------------------------------------------------
-// Map a feature's remoteEntry URL to the MF container name.
-// ---------------------------------------------------------------------------
-
-function getContainerName(_remoteEntry: string): string {
-  // All commerce features come from the "commerce-ma" container.
-  // Extend this when adding more native MF remotes.
-  return 'commerce-ma';
-}
 
 // ---------------------------------------------------------------------------
 // DynamicFeatureNavigator
 //
 // Builds bottom tab screens dynamically from the user's permission features.
-// Each tab lazy-loads its screen from the MF remote via React.lazy(import()).
+// Each tab resolves the remote from permission metadata, then loads the
+// exposed module through the runtime remote registry.
 // Uses standalone={false} since it's embedded inside core-app's NavigationContainer.
 // ---------------------------------------------------------------------------
 
@@ -45,7 +37,11 @@ export function DynamicFeatureNavigator() {
   const routes: RouteConfig[] = features.map((feature) => ({
     name: feature.route.routePrefix,
     component: () => (
-      <RemoteScreen remoteName={getContainerName(feature.route.remoteEntry)} moduleName={feature.route.exposedModule} />
+      <RemoteScreen
+        remoteName={resolveRemoteName(feature.route.remoteEntry)}
+        remoteEntry={feature.route.remoteEntry}
+        moduleName={feature.route.exposedModule}
+      />
     ),
     icon: getCommerceTabIcon(feature.route.exposedModule),
     label: feature.name,

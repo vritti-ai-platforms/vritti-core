@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Image, SafeAreaView, View } from 'react-native';
-import type { NativeStackScreenProps } from '@vritti/quantum-ui-native/NativeStack';
+import { Image, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,10 +9,10 @@ import { Form } from '@vritti/quantum-ui-native/Form';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { useLookupOrganizations } from '../hooks/auth';
-import type { RootStackParamList } from '../types/navigation';
+import type { LookupOrganization } from '../services/auth.service';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const logo = require('../../assets/vritti-logo.png');
+const logo = require('../../../assets/vritti-logo.png');
 
 const emailSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
@@ -20,9 +20,12 @@ const emailSchema = z.object({
 
 type EmailFormValues = z.infer<typeof emailSchema>;
 
-type Props = NativeStackScreenProps<RootStackParamList, 'EmailLookup'>;
+interface Props {
+  onSingleOrgLogin: (args: { email: string; organizationId: string; organizationName: string }) => void;
+  onMultipleOrgs: (args: { email: string; organizations: LookupOrganization[] }) => void;
+}
 
-export const EmailLookupScreen = ({ navigation }: Props) => {
+export const EmailLookupScreen = ({ onSingleOrgLogin, onMultipleOrgs }: Props) => {
   const form = useForm<EmailFormValues>({
     resolver: zodResolver(emailSchema),
     defaultValues: { email: '' },
@@ -40,7 +43,7 @@ export const EmailLookupScreen = ({ navigation }: Props) => {
 
       if (data.organizations.length === 1) {
         const org = data.organizations[0];
-        navigation.navigate('Login', {
+        onSingleOrgLogin({
           email,
           organizationId: org.id,
           organizationName: org.name,
@@ -48,7 +51,7 @@ export const EmailLookupScreen = ({ navigation }: Props) => {
         return;
       }
 
-      navigation.navigate('OrgSelection', {
+      onMultipleOrgs({
         email,
         organizations: data.organizations,
       });

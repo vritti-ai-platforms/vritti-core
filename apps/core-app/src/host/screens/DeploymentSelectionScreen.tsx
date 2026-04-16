@@ -1,21 +1,21 @@
 import * as React from 'react';
-import { FlatList, Image, SafeAreaView, View } from 'react-native';
-import type { NativeStackScreenProps } from '@vritti/quantum-ui-native/NativeStack';
+import { FlatList, Image, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowRight } from 'lucide-react-native';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { PressableCard } from '@vritti/quantum-ui-native/Card';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';
-import mobileAxiosConfig from '../../../quantum-ui-native.config';
+import { setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import { getDeployments } from '../services/deployment.service';
 import type { Deployment, DeploymentStatus } from '../types/deployment';
-import type { RootStackParamList } from '../types/navigation';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const logo = require('../../assets/vritti-logo.png');
+const logo = require('../../../assets/vritti-logo.png');
 
-type Props = NativeStackScreenProps<RootStackParamList, 'DeploymentSelection'>;
+interface Props {
+  onConnected: (deploymentUrl: string) => void;
+}
 
 // Maps deployment status to dot color class
 function dotColorClass(status: DeploymentStatus) {
@@ -30,7 +30,7 @@ function orgText(count: number) {
   return `${count} org${count === 1 ? '' : 's'}`;
 }
 
-export const DeploymentSelectionScreen = ({ navigation }: Props) => {
+export const DeploymentSelectionScreen = ({ onConnected }: Props) => {
   const [deployments, setDeployments] = React.useState<Deployment[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -44,10 +44,10 @@ export const DeploymentSelectionScreen = ({ navigation }: Props) => {
   const selectedDeployment = deployments.find((d) => d.id === selectedId) ?? null;
 
   // Reconfigures axios with deployment URL and navigates to email lookup
-  function handleConnect() {
+  async function handleConnect() {
     if (!selectedDeployment) return;
-    configureMobileAxios({ ...mobileAxiosConfig, baseURL: selectedDeployment.url });
-    navigation.navigate('EmailLookup', { deploymentUrl: selectedDeployment.url });
+    await setMobileBaseURL(selectedDeployment.url);
+    onConnected(selectedDeployment.url);
   }
 
   const renderItem = ({ item }: { item: Deployment }) => {

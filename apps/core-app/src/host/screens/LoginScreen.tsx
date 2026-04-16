@@ -1,17 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
-import type { NativeStackScreenProps } from '@vritti/quantum-ui-native/NativeStack';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { useForm } from 'react-hook-form';
-import { Image, SafeAreaView, View } from 'react-native';
+import { Image, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 import { useLogin } from '../hooks/auth';
-import type { RootStackParamList } from '../types/navigation';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const logo = require('../../assets/vritti-logo.png');
+const logo = require('../../../assets/vritti-logo.png');
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
@@ -20,11 +19,14 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
+interface Props {
+  email: string;
+  organizationId: string;
+  organizationName: string;
+  onAuthenticated: () => void;
+}
 
-export const LoginScreen = ({ route, navigation }: Props) => {
-  const { email, organizationId, organizationName } = route.params;
-
+export const LoginScreen = ({ email, organizationId, organizationName, onAuthenticated }: Props) => {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email, password: '' },
@@ -32,7 +34,7 @@ export const LoginScreen = ({ route, navigation }: Props) => {
 
   const loginMutation = useLogin({
     onSuccess: () => {
-      navigation.reset({ routes: [{ name: 'Home' }] });
+      onAuthenticated();
     },
   });
 

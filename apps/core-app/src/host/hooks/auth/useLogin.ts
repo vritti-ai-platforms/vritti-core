@@ -1,6 +1,6 @@
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { setToken, storeRefreshToken } from '@vritti/quantum-ui-native/utils';
+import { completeMobileLoginSession } from '@vritti/quantum-ui-native/utils';
 import { type LoginDto, type LoginResponse, login } from '../../services/auth.service';
 
 type UseLoginOptions = Omit<UseMutationOptions<LoginResponse, AxiosError, LoginDto>, 'mutationFn'>;
@@ -11,8 +11,7 @@ export function useLogin(options?: UseLoginOptions) {
     ...options,
     mutationFn: login,
     onSuccess: async (...args) => {
-      setToken(args[0].accessToken);
-      await storeRefreshToken(args[0].refreshToken);
+      await completeMobileLoginSession(args[0]);
       options?.onSuccess?.(...args);
     },
   });

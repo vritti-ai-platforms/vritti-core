@@ -1,6 +1,6 @@
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
 import * as Repack from '@callstack/repack';
 import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
 
@@ -28,10 +28,28 @@ const rnCssComponentsPath = path.join(rnCssRoot, 'dist/commonjs/components/index
 // ---------------------------------------------------------------------------
 
 const componentDirs = [
-  'Alert', 'Avatar', 'Badge', 'BottomNavigation', 'Button', 'Card',
-  'Checkbox', 'FlashList', 'Form', 'Icon', 'Input', 'Label',
-  'NativeStack', 'Progress', 'RadioGroup', 'Separator', 'Skeleton',
-  'Spinner', 'Switch', 'TextArea', 'TextField', 'Typography',
+  'Alert',
+  'Avatar',
+  'Badge',
+  'BottomNavigation',
+  'Button',
+  'Card',
+  'Checkbox',
+  'FlashList',
+  'Form',
+  'Icon',
+  'Input',
+  'Label',
+  'NativeStack',
+  'Progress',
+  'RadioGroup',
+  'Separator',
+  'Skeleton',
+  'Spinner',
+  'Switch',
+  'TextArea',
+  'TextField',
+  'Typography',
 ];
 
 const quantumAliases = {
@@ -62,11 +80,6 @@ export default (env) => {
   const { platform, mode } = env;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
-  const devRemoteHost = platform === 'android' ? '10.0.2.2' : 'localhost';
-  const commerceMaManifestUrl =
-    mode === 'production'
-      ? `${process.env['MF_COMMERCE_MA_NATIVE_URL'] ?? process.env['MF_COMMERCE_NATIVE_URL'] ?? 'https://mf.vrittiai.com/commerce-ma'}/${platform}/mf-manifest.json`
-      : `http://${devRemoteHost}:9002/${platform}/mf-manifest.json`;
 
   return {
     mode,
@@ -167,7 +180,6 @@ export default (env) => {
 
     plugins: [
       new Repack.RepackPlugin({
-        output: { bundleFilename: 'index.bundle' },
         extraChunks: [
           {
             include: /.*/,
@@ -182,46 +194,33 @@ export default (env) => {
         name: 'vritti_core_app',
         filename: 'vritti_core_app.container.js.bundle',
         dts: false,
-        remotes: {
-          'commerce-ma': `commerce_ma@${commerceMaManifestUrl}`,
-        },
         shared: {
           react: { singleton: true, eager: true, requiredVersion: '19.2.3' },
           'react-native': { singleton: true, eager: true, requiredVersion: '0.83.2' },
           '@react-navigation/native': { singleton: true, eager: true, requiredVersion: '8.0.0-alpha.17' },
           '@react-navigation/elements': { singleton: true, eager: true, requiredVersion: '3.0.0-alpha.20' },
-          '@react-navigation/native-stack': { singleton: true, eager: true, requiredVersion: '^7.14.10' },
           '@react-navigation/bottom-tabs': { singleton: true, eager: true, requiredVersion: '8.0.0-alpha.22' },
           'react-native-safe-area-context': { singleton: true, eager: true, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: true, requiredVersion: '^4.24.0' },
           '@tanstack/react-query': { singleton: true, eager: true },
           axios: { singleton: true, eager: true },
           'react-native-reanimated': { singleton: true, eager: true },
-          'react-native-worklets': { singleton: true, eager: true },
-          'nativewind': { singleton: true, eager: true },
+          'react-native-worklets': { singleton: true, eager: true, requiredVersion: '0.8.1' },
+          nativewind: { singleton: true, eager: true },
         },
       }),
 
       // react-native-css component resolution fixes
       ...(isNative
         ? [
-            new rspack.NormalModuleReplacementPlugin(
-              /^react-native-css\/components\/.+$/,
-              (resource) => {
-                resource.request = rnCssComponentsPath;
-              },
-            ),
-            new rspack.NormalModuleReplacementPlugin(
-              /^react-native-css\/react-native$/,
-              (resource) => {
-                resource.request = rnCssComponentsPath;
-              },
-            ),
+            new rspack.NormalModuleReplacementPlugin(/^react-native-css\/components\/.+$/, (resource) => {
+              resource.request = rnCssComponentsPath;
+            }),
+            new rspack.NormalModuleReplacementPlugin(/^react-native-css\/react-native$/, (resource) => {
+              resource.request = rnCssComponentsPath;
+            }),
             // Stub out Metro setup check — not needed with Re.Pack
-            new rspack.NormalModuleReplacementPlugin(
-              /react-native-css-metro-override/,
-              require.resolve('./noop.js'),
-            ),
+            new rspack.NormalModuleReplacementPlugin(/react-native-css-metro-override/, require.resolve('./noop.js')),
           ]
         : []),
     ],

@@ -148,7 +148,6 @@ export default (env) => {
 
     plugins: [
       new Repack.RepackPlugin({
-        output: { bundleFilename: 'index.bundle' },
         extraChunks: [
           {
             include: /.*/,
@@ -169,19 +168,18 @@ export default (env) => {
           './Modifiers': './src/exposes/ModifiersScreen.tsx',
         },
         shared: {
-          react: { singleton: true, eager: false, requiredVersion: '19.2.3' },
-          'react-native': { singleton: true, eager: false, requiredVersion: '0.83.2' },
-          '@react-navigation/native': { singleton: true, eager: false, requiredVersion: '8.0.0-alpha.17' },
-          '@react-navigation/elements': { singleton: true, eager: false, requiredVersion: '3.0.0-alpha.20' },
-          '@react-navigation/native-stack': { singleton: true, eager: false, requiredVersion: '^7.14.10' },
-          '@react-navigation/bottom-tabs': { singleton: true, eager: false, requiredVersion: '8.0.0-alpha.22' },
-          'react-native-safe-area-context': { singleton: true, eager: false, requiredVersion: '^5.7.0' },
-          'react-native-screens': { singleton: true, eager: false, requiredVersion: '^4.24.0' },
-          '@tanstack/react-query': { singleton: true, eager: false },
-          axios: { singleton: true, eager: false },
-          'react-native-reanimated': { singleton: true, eager: false },
-          'react-native-worklets': { singleton: true, eager: false },
-          nativewind: { singleton: true, eager: false },
+          react: { singleton: true, eager: false, import: false, requiredVersion: '19.2.3' },
+          'react-native': { singleton: true, eager: false, import: false, requiredVersion: '0.83.2' },
+          '@react-navigation/native': { singleton: true, eager: false, import: false, requiredVersion: '8.0.0-alpha.17' },
+          '@react-navigation/elements': { singleton: true, eager: false, import: false, requiredVersion: '3.0.0-alpha.20' },
+          '@react-navigation/bottom-tabs': { singleton: true, eager: false, import: false, requiredVersion: '8.0.0-alpha.22' },
+          'react-native-safe-area-context': { singleton: true, eager: false, import: false, requiredVersion: '^5.7.0' },
+          'react-native-screens': { singleton: true, eager: false, import: false, requiredVersion: '^4.24.0' },
+          '@tanstack/react-query': { singleton: true, eager: false, import: false },
+          axios: { singleton: true, eager: false, import: false },
+          'react-native-reanimated': { singleton: true, eager: false, import: false },
+          'react-native-worklets': { singleton: true, eager: false, import: false, requiredVersion: '0.8.1' },
+          nativewind: { singleton: true, eager: false, import: false },
         },
       }),
 

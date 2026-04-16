@@ -23,7 +23,6 @@
       "@tanstack/react-query": ["../../../node_modules/@tanstack/react-query"],
       "@tanstack/query-core": ["../../../node_modules/@tanstack/query-core"],
       "@react-navigation/native": ["../../../node_modules/@react-navigation/native"],
-      "@react-navigation/native-stack": ["../../../node_modules/@react-navigation/native-stack"],
       "react-native-reanimated": ["../../../node_modules/react-native-reanimated"],
       "react-native-worklets": ["../../../node_modules/react-native-worklets"],
       "@react-navigation/bottom-tabs": [

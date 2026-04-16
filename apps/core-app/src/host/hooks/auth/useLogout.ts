@@ -1,6 +1,6 @@
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { clearTokens } from '@vritti/quantum-ui-native/utils';
+import { clearTokens, getOnSessionExpired } from '@vritti/quantum-ui-native/utils';
 import { logout } from '../../services/auth.service';
 
 type UseLogoutOptions = Omit<UseMutationOptions<void, AxiosError, void>, 'mutationFn'>;
@@ -12,6 +12,7 @@ export function useLogout(options?: UseLogoutOptions) {
     mutationFn: logout,
     onSuccess: async (...args) => {
       await clearTokens();
+      getOnSessionExpired()?.();
       options?.onSuccess?.(...args);
     },
   });
