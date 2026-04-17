@@ -13,8 +13,14 @@ export class SupplierContactResponseDto {
   @ApiPropertyOptional({ description: 'Contact phone number', nullable: true })
   phone: string | null;
 
+  @ApiPropertyOptional({ description: 'Contact alternate mobile number', nullable: true })
+  alternateMobile: string | null;
+
   @ApiPropertyOptional({ description: 'Contact email address', nullable: true })
   email: string | null;
+
+  @ApiPropertyOptional({ description: 'Contact alternate email address', nullable: true })
+  alternateEmail: string | null;
 
   @ApiPropertyOptional({ description: 'Contact designation', nullable: true })
   designation: string | null;

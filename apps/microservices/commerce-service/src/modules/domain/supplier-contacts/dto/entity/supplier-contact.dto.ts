@@ -5,7 +5,9 @@ export class SupplierContactDto {
   supplierId: string;
   name: string;
   phone: string | null;
+  alternateMobile: string | null;
   email: string | null;
+  alternateEmail: string | null;
   designation: string | null;
   notes: string | null;
   isPrimary: boolean;
@@ -19,7 +21,9 @@ export class SupplierContactDto {
     dto.supplierId = entity.supplierId;
     dto.name = entity.name;
     dto.phone = entity.phone ?? null;
+    dto.alternateMobile = entity.alternateMobile ?? null;
     dto.email = entity.email ?? null;
+    dto.alternateEmail = entity.alternateEmail ?? null;
     dto.designation = entity.designation ?? null;
     dto.notes = entity.notes ?? null;
     dto.isPrimary = entity.isPrimary;

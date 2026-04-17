@@ -14,8 +14,18 @@ export class CreatePrimarySupplierContactDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(20)
+  alternateMobile?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(255)
   email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  alternateEmail?: string;
 
   @IsOptional()
   @IsString()
@@ -42,6 +52,11 @@ export class CreateSupplierDto {
   @IsString()
   @MaxLength(500)
   address?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  website?: string;
 
   @IsOptional()
   @IsString()

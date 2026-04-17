@@ -195,6 +195,10 @@ export const SupplierDetailPage = () => {
                       <p className="mt-1">{supplier.email ?? '—'}</p>
                     </div>
                     <div>
+                      <p className="text-sm text-muted-foreground">Website</p>
+                      <p className="mt-1">{supplier.website ?? '—'}</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-muted-foreground">Address</p>
                       <p className="mt-1">{supplier.address ?? '—'}</p>
                     </div>

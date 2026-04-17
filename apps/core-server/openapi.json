@@ -11230,9 +11230,17 @@
             "type": "string",
             "description": "Primary contact phone number"
           },
+          "alternateMobile": {
+            "type": "string",
+            "description": "Primary contact alternate mobile number"
+          },
           "email": {
             "type": "string",
             "description": "Primary contact email address"
+          },
+          "alternateEmail": {
+            "type": "string",
+            "description": "Primary contact alternate email address"
           },
           "designation": {
             "type": "string",
@@ -11267,6 +11275,10 @@
           "address": {
             "type": "string",
             "description": "Mailing address"
+          },
+          "website": {
+            "type": "string",
+            "description": "Supplier website URL"
           },
           "gstin": {
             "type": "string",
@@ -11308,6 +11320,10 @@
           "address": {
             "type": "string",
             "description": "Updated mailing address"
+          },
+          "website": {
+            "type": "string",
+            "description": "Updated supplier website URL"
           },
           "gstin": {
             "type": "string",
@@ -11383,9 +11399,17 @@
             "type": "string",
             "description": "Contact phone number"
           },
+          "alternateMobile": {
+            "type": "string",
+            "description": "Contact alternate mobile number"
+          },
           "email": {
             "type": "string",
             "description": "Contact email address"
+          },
+          "alternateEmail": {
+            "type": "string",
+            "description": "Contact alternate email address"
           },
           "designation": {
             "type": "string",
@@ -11417,9 +11441,19 @@
             "description": "Contact phone number",
             "nullable": true
           },
+          "alternateMobile": {
+            "type": "object",
+            "description": "Contact alternate mobile number",
+            "nullable": true
+          },
           "email": {
             "type": "object",
             "description": "Contact email address",
+            "nullable": true
+          },
+          "alternateEmail": {
+            "type": "object",
+            "description": "Contact alternate email address",
             "nullable": true
           },
           "designation": {

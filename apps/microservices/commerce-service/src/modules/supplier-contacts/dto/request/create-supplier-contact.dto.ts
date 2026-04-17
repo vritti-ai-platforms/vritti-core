@@ -11,9 +11,19 @@ export class CreateSupplierContactDto {
   phone?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  alternateMobile?: string;
+
+  @IsOptional()
   @IsEmail()
   @MaxLength(255)
   email?: string;
+
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  alternateEmail?: string;
 
   @IsOptional()
   @IsString()

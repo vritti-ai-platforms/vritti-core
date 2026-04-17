@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
+import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -23,7 +24,9 @@ export const EditSupplierContactDialog: React.FC<EditSupplierContactDialogProps>
     defaultValues: {
       name: contact.name,
       phone: contact.phone ?? '',
+      alternateMobile: contact.alternateMobile ?? '',
       email: contact.email ?? '',
+      alternateEmail: contact.alternateEmail ?? '',
       designation: contact.designation ?? '',
       notes: contact.notes ?? '',
       isActive: contact.isActive,
@@ -40,15 +43,19 @@ export const EditSupplierContactDialog: React.FC<EditSupplierContactDialogProps>
       transformSubmit={(data) => ({
         name: data.name,
         phone: data.phone || null,
+        alternateMobile: data.alternateMobile || null,
         email: data.email || null,
+        alternateEmail: data.alternateEmail || null,
         designation: data.designation || null,
         notes: data.notes || null,
         isActive: data.isActive,
       })}
     >
       <TextField name="name" label="Name" placeholder="e.g. John Smith" />
-      <TextField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />
+      <PhoneField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />
+      <PhoneField name="alternateMobile" label="Alternate Mobile" placeholder="e.g. +91 98765 00000" />
       <TextField name="email" label="Email" type="email" placeholder="e.g. john@supplier.com" />
+      <TextField name="alternateEmail" label="Alternate Email" type="email" placeholder="e.g. john.alt@supplier.com" />
       <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <Switch name="isActive" label="Active" />

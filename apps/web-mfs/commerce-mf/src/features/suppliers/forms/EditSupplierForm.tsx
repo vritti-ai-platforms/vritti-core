@@ -20,6 +20,7 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
     defaultValues: {
       name: supplier.name,
       code: supplier.code,
+      website: supplier.website ?? '',
       address: supplier.address ?? '',
       gstin: supplier.gstin ?? '',
       paymentTerms: supplier.paymentTerms ?? '',
@@ -45,6 +46,7 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
     >
       <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />
       <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
+      <TextField name="website" label="Website" placeholder="e.g. https://freshfarms.com" />
       <TextArea name="address" label="Address" placeholder="Full postal address" />
       <div className="grid grid-cols-2 gap-4">
         <TextField name="gstin" label="GSTIN" placeholder="e.g. 29AABCT1332L1ZP" />

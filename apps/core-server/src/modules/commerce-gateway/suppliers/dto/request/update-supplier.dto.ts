@@ -17,6 +17,12 @@ export class UpdateSupplierDto {
   @IsString()
   address?: string;
 
+  @ApiPropertyOptional({ description: 'Updated supplier website URL' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  website?: string;
+
   @ApiPropertyOptional({ description: 'Updated GSTIN' })
   @IsOptional()
   @IsString()

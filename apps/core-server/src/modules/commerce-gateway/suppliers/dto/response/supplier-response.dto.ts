@@ -19,6 +19,9 @@ export class SupplierResponseDto {
   @ApiPropertyOptional({ description: 'Email address', nullable: true })
   email: string | null;
 
+  @ApiPropertyOptional({ description: 'Supplier website URL', nullable: true })
+  website: string | null;
+
   @ApiPropertyOptional({ description: 'Mailing address', nullable: true })
   address: string | null;
 

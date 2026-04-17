@@ -12,9 +12,19 @@ export class UpdateSupplierContactDto {
   phone?: string | null;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  alternateMobile?: string | null;
+
+  @IsOptional()
   @IsEmail()
   @MaxLength(255)
   email?: string | null;
+
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  alternateEmail?: string | null;
 
   @IsOptional()
   @IsString()

@@ -18,6 +18,11 @@ export class UpdateSupplierDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(255)
+  website?: string | null;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(15)
   gstin?: string | null;
 

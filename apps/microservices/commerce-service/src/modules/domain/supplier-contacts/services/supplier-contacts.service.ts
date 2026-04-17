@@ -6,7 +6,9 @@ import { SupplierContactsRepository } from '../repositories/supplier-contacts.re
 interface UpsertSupplierContactInput {
   name: string;
   phone?: string | null;
+  alternateMobile?: string | null;
   email?: string | null;
+  alternateEmail?: string | null;
   designation?: string | null;
   notes?: string | null;
   isPrimary?: boolean;
@@ -48,7 +50,9 @@ export class SupplierContactsService {
           supplierId,
           name: data.name,
           phone: data.phone ?? null,
+          alternateMobile: data.alternateMobile ?? null,
           email: data.email ?? null,
+          alternateEmail: data.alternateEmail ?? null,
           designation: data.designation ?? null,
           notes: data.notes ?? null,
           isPrimary: makePrimary,
@@ -90,7 +94,9 @@ export class SupplierContactsService {
         {
           ...(data.name !== undefined ? { name: data.name } : {}),
           ...(data.phone !== undefined ? { phone: data.phone } : {}),
+          ...(data.alternateMobile !== undefined ? { alternateMobile: data.alternateMobile } : {}),
           ...(data.email !== undefined ? { email: data.email } : {}),
+          ...(data.alternateEmail !== undefined ? { alternateEmail: data.alternateEmail } : {}),
           ...(data.designation !== undefined ? { designation: data.designation } : {}),
           ...(data.notes !== undefined ? { notes: data.notes } : {}),
           ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),

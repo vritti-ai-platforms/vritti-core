@@ -14,11 +14,23 @@ export class UpdateSupplierContactDto {
   @MaxLength(20)
   phone?: string | null;
 
+  @ApiPropertyOptional({ description: 'Contact alternate mobile number', nullable: true })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  alternateMobile?: string | null;
+
   @ApiPropertyOptional({ description: 'Contact email address', nullable: true })
   @IsOptional()
   @IsEmail()
   @MaxLength(255)
   email?: string | null;
+
+  @ApiPropertyOptional({ description: 'Contact alternate email address', nullable: true })
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  alternateEmail?: string | null;
 
   @ApiPropertyOptional({ description: 'Contact designation', nullable: true })
   @IsOptional()

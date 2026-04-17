@@ -13,10 +13,20 @@ export class CreatePrimarySupplierContactDto {
   @IsString()
   phone?: string;
 
+  @ApiPropertyOptional({ description: 'Primary contact alternate mobile number' })
+  @IsOptional()
+  @IsString()
+  alternateMobile?: string;
+
   @ApiPropertyOptional({ description: 'Primary contact email address' })
   @IsOptional()
   @IsString()
   email?: string;
+
+  @ApiPropertyOptional({ description: 'Primary contact alternate email address' })
+  @IsOptional()
+  @IsString()
+  alternateEmail?: string;
 
   @ApiPropertyOptional({ description: 'Primary contact designation' })
   @IsOptional()
@@ -44,6 +54,12 @@ export class CreateSupplierDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @ApiPropertyOptional({ description: 'Supplier website URL' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  website?: string;
 
   @ApiPropertyOptional({ description: 'GST identification number', example: '22AAAAA0000A1Z5' })
   @IsOptional()

@@ -89,7 +89,7 @@ export class SuppliersGatewayService {
   }
 
   // Updates a supplier by ID
-  async update(id: string, dto: UpdateSupplierDto): Promise<SupplierResponseDto> {
+  async update(id: string, dto: UpdateSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.update — id: ${id}`);
     return this.nats.send('commerce', 'suppliers.update', { id, ...dto });
   }

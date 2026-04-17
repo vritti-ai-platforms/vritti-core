@@ -6,6 +6,7 @@ import {
   NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
+  type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
@@ -77,6 +78,7 @@ export class SuppliersService {
           contactName: data.primaryContact.name,
           phone: data.primaryContact.phone ?? null,
           email: data.primaryContact.email ?? null,
+          website: data.website ?? null,
           address: data.address ?? null,
           gstin: data.gstin ?? null,
           paymentTerms: data.paymentTerms ?? null,
@@ -91,7 +93,9 @@ export class SuppliersService {
           supplierId: supplier.id,
           name: data.primaryContact.name,
           phone: data.primaryContact.phone ?? null,
+          alternateMobile: data.primaryContact.alternateMobile ?? null,
           email: data.primaryContact.email ?? null,
+          alternateEmail: data.primaryContact.alternateEmail ?? null,
           designation: data.primaryContact.designation ?? null,
           isPrimary: true,
           isActive: true,
@@ -113,13 +117,14 @@ export class SuppliersService {
   }
 
   // Updates a supplier
-  async update(id: string, data: UpdateSupplierDto): Promise<SupplierDto> {
+  async update(id: string, data: UpdateSupplierDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Supplier not found.');
 
     const updatePayload: Record<string, unknown> = {};
     if (data.name !== undefined) updatePayload.name = data.name;
     if (data.code !== undefined) updatePayload.code = data.code;
+    if (data.website !== undefined) updatePayload.website = data.website;
     if (data.address !== undefined) updatePayload.address = data.address;
     if (data.gstin !== undefined) updatePayload.gstin = data.gstin;
     if (data.paymentTerms !== undefined) updatePayload.paymentTerms = data.paymentTerms;
@@ -130,7 +135,7 @@ export class SuppliersService {
     const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
 
     this.logger.log(`Updated supplier: ${entity.name} (${entity.id})`);
-    return SupplierDto.from(entity);
+    return { success: true, message: `Supplier "${entity.name}" updated successfully.` };
   }
 
   // Deletes a supplier

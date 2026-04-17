@@ -1,13 +1,21 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import { isValidPhoneNumber } from '@vritti/quantum-ui/PhoneField';
 import { z } from 'zod';
+
+export const zPhoneNumber = z.string().refine((value) => value === '' || isValidPhoneNumber(value), {
+  message: 'Invalid phone number',
+});
 
 export const createSupplierSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   code: z.string().min(1, 'Code is required').max(100),
   contactName: z.string().min(1, 'Primary contact name is required').max(255),
-  phone: z.string().max(50).optional(),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  phone: zPhoneNumber.optional(),
+  alternateMobile: zPhoneNumber.optional(),
+  email: z.email('Invalid email').optional().or(z.literal('')),
+  alternateEmail: z.email('Invalid email').optional().or(z.literal('')),
   designation: z.string().max(100).optional(),
+  website: z.string().max(255).optional(),
   address: z.string().max(500).optional(),
   gstin: z.string().max(15, 'GSTIN must be at most 15 characters').optional(),
   paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
@@ -18,6 +26,7 @@ export const createSupplierSchema = z.object({
 export const updateSupplierSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   code: z.string().min(1).max(100).optional(),
+  website: z.string().max(255).nullable().optional(),
   address: z.string().max(500).nullable().optional(),
   gstin: z.string().max(15).nullable().optional(),
   paymentTerms: z.string().max(50).nullable().optional(),
@@ -28,8 +37,10 @@ export const updateSupplierSchema = z.object({
 
 export const createSupplierContactSchema = z.object({
   name: z.string().min(1, 'Contact name is required').max(255),
-  phone: z.string().max(50).optional(),
+  phone: zPhoneNumber.optional(),
+  alternateMobile: zPhoneNumber.optional(),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
+  alternateEmail: z.string().email('Invalid email').optional().or(z.literal('')),
   designation: z.string().max(100).optional(),
   notes: z.string().max(500).optional(),
   isPrimary: z.boolean().optional(),
@@ -37,8 +48,10 @@ export const createSupplierContactSchema = z.object({
 
 export const updateSupplierContactSchema = z.object({
   name: z.string().min(1).max(255).optional(),
-  phone: z.string().max(50).nullable().optional(),
+  phone: z.union([zPhoneNumber, z.null()]).optional(),
+  alternateMobile: z.union([zPhoneNumber, z.null()]).optional(),
   email: z.string().email('Invalid email').nullable().optional().or(z.literal('')),
+  alternateEmail: z.string().email('Invalid email').nullable().optional().or(z.literal('')),
   designation: z.string().max(100).nullable().optional(),
   notes: z.string().max(500).nullable().optional(),
   isPrimary: z.boolean().optional(),
@@ -70,6 +83,7 @@ export interface SupplierData {
   contactName: string | null;
   phone: string | null;
   email: string | null;
+  website: string | null;
   address: string | null;
   gstin: string | null;
   paymentTerms: string | null;
@@ -101,7 +115,9 @@ export interface SupplierContactData {
   supplierId: string;
   name: string;
   phone: string | null;
+  alternateMobile: string | null;
   email: string | null;
+  alternateEmail: string | null;
   designation: string | null;
   notes: string | null;
   isPrimary: boolean;

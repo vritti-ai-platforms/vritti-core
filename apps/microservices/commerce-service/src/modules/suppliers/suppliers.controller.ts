@@ -37,7 +37,7 @@ export class SuppliersController {
   }
 
   @MessagePattern({ cmd: 'suppliers.update' })
-  async update(@Payload() data: { id: string } & UpdateSupplierDto): Promise<SupplierDto> {
+  async update(@Payload() data: { id: string } & UpdateSupplierDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`suppliers.update — id: ${id}`);
     return this.service.update(id, updateData);

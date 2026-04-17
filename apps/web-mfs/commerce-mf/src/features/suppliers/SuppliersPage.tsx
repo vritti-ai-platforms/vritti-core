@@ -130,6 +130,7 @@ export const SuppliersPage = () => {
         handle={addDialog}
         title="Add Supplier"
         description="Create a new supplier in your directory."
+        className="max-w-3xl"
         content={(close) => <AddSupplierDialog onSuccess={close} onCancel={close} />}
       />
     </div>

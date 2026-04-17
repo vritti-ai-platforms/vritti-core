@@ -80,7 +80,7 @@ export class SuppliersGatewayController {
 
   // Updates a supplier by ID
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateSupplierDto): Promise<SupplierResponseDto> {
+  update(@Param('id') id: string, @Body() dto: UpdateSupplierDto): Promise<SuccessResponseDto> {
     return this.suppliersGatewayService.update(id, dto);
   }
 
