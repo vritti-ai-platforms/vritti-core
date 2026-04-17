@@ -113,6 +113,8 @@ export class PurchaseOrdersService {
           purchaseOrderId: id,
           inventoryItemId: item.inventoryItemId,
           orderedQuantity: String(item.orderedQuantity),
+          unitPrice: item.unitPrice != null ? String(item.unitPrice) : null,
+          totalPrice: item.unitPrice != null ? String(Number(item.unitPrice) * item.orderedQuantity) : null,
         })),
       );
     }

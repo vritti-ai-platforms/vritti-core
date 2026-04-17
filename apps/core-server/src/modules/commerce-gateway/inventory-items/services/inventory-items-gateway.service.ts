@@ -32,8 +32,12 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns paginated inventory item options for select dropdowns
-  async select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  // Returns paginated inventory item options for select dropdowns; filters by supplier when supplierId is provided
+  async select(params: SelectOptionsQueryDto, supplierId?: string): Promise<SelectQueryResult> {
+    if (supplierId) {
+      this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${supplierId}`);
+      return this.nats.send('commerce', 'inventoryItems.selectBySupplier', { ...params, supplierId });
+    }
     this.logger.log('inventoryItems.select');
     return this.nats.send('commerce', 'inventoryItems.select', params);
   }

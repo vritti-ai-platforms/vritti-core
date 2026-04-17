@@ -15,6 +15,7 @@ import {
   purchaseOrderItems,
   stockAdjustments,
   stockTransfers,
+  supplierItems,
   uom,
 } from '@/db/schema';
 
@@ -27,6 +28,15 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   // Returns paginated inventory item options for the select component
   findForSelect(config: FindForSelectConfig): Promise<SelectQueryResult> {
     return super.findForSelect(config);
+  }
+
+  // Returns paginated inventory item options filtered by supplier via inner join on supplier_items
+  findForSelectBySupplier(supplierId: string, config: FindForSelectConfig): Promise<SelectQueryResult> {
+    return super.findForSelect({
+      ...config,
+      joins: [{ table: supplierItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id), type: 'inner' }],
+      conditions: [eq(supplierItems.supplierId, supplierId), eq(supplierItems.isActive, true)],
+    });
   }
 
   // Returns paginated inventory items with UOM symbol via LEFT JOIN

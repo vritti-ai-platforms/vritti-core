@@ -9,6 +9,11 @@ export class UpdatePurchaseOrderItemDto {
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
   orderedQuantity: number;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  unitPrice?: number | null;
 }
 
 export class UpdatePurchaseOrderDto {

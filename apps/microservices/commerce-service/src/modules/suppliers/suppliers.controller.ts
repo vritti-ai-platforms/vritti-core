@@ -62,4 +62,10 @@ export class SuppliersController {
     this.logger.log(`suppliers.unlinkItem — id: ${data.supplierItemId}`);
     return this.service.unlinkItem(data.supplierItemId);
   }
+
+  @MessagePattern({ cmd: 'suppliers.findItemPrice' })
+  async findItemPrice(@Payload() data: { supplierId: string; inventoryItemId: string }): Promise<{ unitPrice: number | null }> {
+    this.logger.log(`suppliers.findItemPrice — supplierId: ${data.supplierId}, itemId: ${data.inventoryItemId}`);
+    return this.service.findItemPrice(data.supplierId, data.inventoryItemId);
+  }
 }

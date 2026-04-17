@@ -80,6 +80,22 @@ export class InventoryItemsService {
     });
   }
 
+  // Returns inventory items linked to a specific supplier for select dropdowns
+  findForSelectBySupplier(supplierId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelectBySupplier(supplierId, {
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
+  }
+
   // Creates a new inventory item
   async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     const entity = await this.repository.create({

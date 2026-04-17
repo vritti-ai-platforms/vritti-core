@@ -13,7 +13,7 @@ export interface CreatePurchaseOrderPayload {
 export interface UpdatePurchaseOrderPayload {
   expectedDate?: string | null;
   notes?: string | null;
-  items?: { inventoryItemId: string; orderedQuantity: number }[];
+  items?: { inventoryItemId: string; orderedQuantity: number; unitPrice?: number | null }[];
 }
 
 export interface CreateGoodsReceiptPayload {
@@ -26,6 +26,11 @@ export interface CreateGoodsReceiptPayload {
     rejectedQuantity: number;
     rejectionReason?: string;
   }[];
+}
+
+export interface SendPurchaseOrderEmailPayload {
+  id: string;
+  email?: string;
 }
 
 // Fetches purchase orders for the data table
@@ -46,6 +51,16 @@ export function createPurchaseOrder(data: CreatePurchaseOrderPayload): Promise<P
 export function getPurchaseOrder(id: string): Promise<PurchaseOrderDetail> {
   return axios
     .get<PurchaseOrderDetail>(`commerce-api/purchase-orders/${id}`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Downloads the purchase order as a PDF blob for opening in the browser
+export function downloadPurchaseOrderPdf(id: string): Promise<Blob> {
+  return axios
+    .get<Blob>(`commerce-api/purchase-orders/${id}/pdf`, {
+      responseType: 'blob',
+      showSuccessToast: false,
+    } as Parameters<typeof axios.get>[1])
     .then((r) => r.data);
 }
 
@@ -81,5 +96,22 @@ export function createGoodsReceipt(data: CreateGoodsReceiptPayload): Promise<Goo
 export function getGoodsReceipts(poId: string): Promise<GoodsReceiptData[]> {
   return axios
     .get<GoodsReceiptData[]>(`commerce-api/goods-receipts/by-po/${poId}`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches the unit price for an inventory item from a supplier's pricelist
+export function getSupplierItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: number | null }> {
+  return axios
+    .get<{ unitPrice: number | null }>('commerce-api/suppliers/items/price', {
+      params: { supplierId, inventoryItemId },
+      showSuccessToast: false,
+    } as Parameters<typeof axios.get>[1])
+    .then((r) => r.data);
+}
+
+// Sends a purchase order email with PDF attachment
+export function sendPurchaseOrderEmail({ id, email }: SendPurchaseOrderEmailPayload): Promise<SuccessResponse> {
+  return axios
+    .post<SuccessResponse>(`commerce-api/purchase-orders/${id}/send-email`, { email })
     .then((r) => r.data);
 }

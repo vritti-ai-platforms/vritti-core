@@ -3619,6 +3619,15 @@
                 "desc"
               ]
             }
+          },
+          {
+            "name": "supplierId",
+            "required": false,
+            "in": "query",
+            "description": "Optional supplier ID to filter linked inventory items",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5708,6 +5717,34 @@
         ]
       }
     },
+    "/commerce-api/purchase-orders/{id}/pdf": {
+      "get": {
+        "operationId": "PurchaseOrdersGatewayController_downloadPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
     "/commerce-api/purchase-orders/{id}": {
       "get": {
         "operationId": "PurchaseOrdersGatewayController_findById",
@@ -5799,7 +5836,7 @@
       }
     },
     "/commerce-api/purchase-orders/{id}/status": {
-      "post": {
+      "patch": {
         "operationId": "PurchaseOrdersGatewayController_updateStatus",
         "parameters": [
           {
@@ -5811,6 +5848,44 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}/send-email": {
+      "post": {
+        "operationId": "PurchaseOrdersGatewayController_sendEmail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendPurchaseOrderEmailDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -6619,6 +6694,42 @@
         },
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/items/price": {
+      "get": {
+        "operationId": "SuppliersGatewayController_getItemPrice",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "inventoryItemId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -10625,6 +10736,11 @@
             "type": "number",
             "description": "Ordered quantity",
             "example": 100
+          },
+          "unitPrice": {
+            "type": "object",
+            "description": "Unit price",
+            "example": 99.99
           }
         }
       },
@@ -10665,6 +10781,15 @@
             "items": {
               "$ref": "#/components/schemas/UpdatePurchaseOrderItemDto"
             }
+          }
+        }
+      },
+      "SendPurchaseOrderEmailDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Override recipient email; defaults to supplier email"
           }
         }
       },

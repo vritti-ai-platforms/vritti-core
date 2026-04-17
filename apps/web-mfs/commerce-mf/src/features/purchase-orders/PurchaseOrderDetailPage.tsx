@@ -6,15 +6,16 @@ import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { PackageCheck, Plus, Send, Trash2 } from 'lucide-react';
+import { Mail, PackageCheck, Plus, Printer, Send, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useGoodsReceipts } from '@/hooks/useGoodsReceipts';
 import { usePurchaseOrder } from '@/hooks/usePurchaseOrder';
 import { useUpdatePurchaseOrder } from '@/hooks/useUpdatePurchaseOrder';
 import type { PurchaseOrderStatus } from '@/schemas/purchase-orders';
-import { updatePurchaseOrderStatus } from '@/services/purchase-orders.service';
+import { downloadPurchaseOrderPdf, updatePurchaseOrderStatus } from '@/services/purchase-orders.service';
 import { AddPurchaseOrderItemDialog } from './forms/AddPurchaseOrderItemDialog';
 import { ReceiveGoodsDialog } from './forms/ReceiveGoodsDialog';
+import { SendPurchaseOrderEmailDialog } from './forms/SendPurchaseOrderEmailDialog';
 
 const statusConfig: Record<
   PurchaseOrderStatus,
@@ -38,8 +39,10 @@ export const PurchaseOrderDetailPage = () => {
   const { data: po, isLoading, refetch } = usePurchaseOrder(id ?? null);
   const { data: goodsReceipts, isLoading: isLoadingReceipts } = useGoodsReceipts(id ?? null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const addItemDialog = useDialog();
   const receiveDialog = useDialog();
+  const sendEmailDialog = useDialog();
   const confirm = useConfirm();
   const removeMutation = useUpdatePurchaseOrder();
 
@@ -99,6 +102,20 @@ export const PurchaseOrderDetailPage = () => {
     [po, confirm, removeMutation],
   );
 
+  // Opens the server-generated PDF in a new browser tab
+  const handleDownloadPdf = useCallback(async () => {
+    if (!id) return;
+    setIsDownloadingPdf(true);
+    try {
+      const blob = await downloadPurchaseOrderPdf(id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  }, [id]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -118,6 +135,7 @@ export const PurchaseOrderDetailPage = () => {
   const canModifyItems = po.status === 'DRAFT';
   const canReceive = po.status === 'CONFIRMED' || po.status === 'PARTIALLY_RECEIVED';
   const canCancel = po.status !== 'CANCELLED' && po.status !== 'RECEIVED';
+  const canSendEmail = po.status !== 'CANCELLED';
 
   return (
     <div className="flex flex-col gap-6">
@@ -129,6 +147,20 @@ export const PurchaseOrderDetailPage = () => {
             <Badge variant={statusBadgeConfig.variant} className={statusBadgeConfig.className}>
               {statusBadgeConfig.label}
             </Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              startAdornment={isDownloadingPdf ? <Spinner className="size-4" /> : <Printer className="size-4" />}
+              disabled={isDownloadingPdf}
+              onClick={handleDownloadPdf}
+            >
+              {isDownloadingPdf ? 'Generating...' : 'Print / PDF'}
+            </Button>
+            {canSendEmail && (
+              <Button size="sm" variant="outline" startAdornment={<Mail className="size-4" />} onClick={sendEmailDialog.open}>
+                Send Email
+              </Button>
+            )}
             {nextAction && (
               <Button
                 size="sm"
@@ -358,6 +390,13 @@ export const PurchaseOrderDetailPage = () => {
         description="Record accepted and rejected quantities for this delivery."
         className="sm:max-w-2xl"
         content={(close) => <ReceiveGoodsDialog purchaseOrder={po} onSuccess={close} onCancel={close} />}
+      />
+
+      <Dialog
+        handle={sendEmailDialog}
+        title="Send Purchase Order Email"
+        description="Send this purchase order to the supplier. Leave recipient empty to use supplier email."
+        content={(close) => <SendPurchaseOrderEmailDialog purchaseOrder={po} onSuccess={close} onCancel={close} />}
       />
     </div>
   );

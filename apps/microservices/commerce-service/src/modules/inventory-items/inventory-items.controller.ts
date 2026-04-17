@@ -30,6 +30,14 @@ export class InventoryItemsController {
     return this.service.findForSelect(data);
   }
 
+  // Returns inventory items linked to a specific supplier for select dropdowns
+  @MessagePattern({ cmd: 'inventoryItems.selectBySupplier' })
+  async selectBySupplier(@Payload() data: SelectOptionsQueryDto & { supplierId: string }): Promise<SelectQueryResult> {
+    const { supplierId, ...query } = data;
+    this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${supplierId}`);
+    return this.service.findForSelectBySupplier(supplierId, query);
+  }
+
   // Creates a new inventory item
   @MessagePattern({ cmd: 'inventoryItems.create' })
   async create(@Payload() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {

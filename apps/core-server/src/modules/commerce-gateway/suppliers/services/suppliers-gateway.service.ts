@@ -70,4 +70,10 @@ export class SuppliersGatewayService {
     this.logger.log(`suppliers.unlinkItem — supplierItemId: ${supplierItemId}`);
     return this.nats.send('commerce', 'suppliers.unlinkItem', { id: supplierItemId });
   }
+
+  // Returns the unit price for a supplier-item pair
+  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: number | null }> {
+    this.logger.log(`suppliers.findItemPrice — supplierId: ${supplierId}, itemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'suppliers.findItemPrice', { supplierId, inventoryItemId });
+  }
 }

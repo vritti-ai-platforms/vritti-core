@@ -5,7 +5,7 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, type NewSupplierItem, type SupplierItem, supplierItems, suppliers, uom } from '@/db/schema';
 
 @Injectable()
@@ -58,5 +58,15 @@ export class SuppliersRepository extends PrimaryBaseRepository<typeof suppliers>
   // Deletes a supplier item link by ID
   async deleteSupplierItem(id: string): Promise<void> {
     await this.db.delete(supplierItems).where(eq(supplierItems.id, id));
+  }
+
+  // Finds a supplier item by supplier ID and inventory item ID
+  async findItemBySupplierAndInventoryItem(supplierId: string, inventoryItemId: string): Promise<SupplierItem | undefined> {
+    const result = await this.db
+      .select()
+      .from(supplierItems)
+      .where(and(eq(supplierItems.supplierId, supplierId), eq(supplierItems.inventoryItemId, inventoryItemId)))
+      .limit(1);
+    return result[0] as SupplierItem | undefined;
   }
 }

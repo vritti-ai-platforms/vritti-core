@@ -1,8 +1,9 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { type CreateResponseDto, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { type CreateResponseDto, RequireSession, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
+import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { CreateStorageLocationConfigDto } from './dto/request/create-storage-location-config.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { UpdateStorageLocationConfigDto } from './dto/request/update-storage-location-config.dto';
@@ -28,11 +29,12 @@ export class InventoryItemsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Returns paginated inventory item options for select dropdowns
+  // Returns paginated inventory item options for select dropdowns; optionally filtered by supplier
   @Get('select')
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  @ApiQuery({ name: 'supplierId', required: false, type: String, description: 'Optional supplier ID to filter linked inventory items' })
+  select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-items/select');
-    return this.service.select(query);
+    return this.service.select(query, query.supplierId);
   }
 
   // Creates a new inventory item

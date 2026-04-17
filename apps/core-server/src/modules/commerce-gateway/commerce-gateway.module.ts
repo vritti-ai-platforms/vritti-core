@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BusinessUnitDomainModule } from '@/modules/domain/business-unit/business-unit.module';
 import { BomGatewayController } from './bom/bom-gateway.controller';
 import { BomGatewayService } from './bom/services/bom-gateway.service';
 import { InventoryItemBatchesGatewayController } from './inventory-item-batches/inventory-item-batches-gateway.controller';
@@ -39,6 +40,7 @@ import { UomGatewayController } from './uom/uom-gateway.controller';
 import { UomGatewayService } from './uom/services/uom-gateway.service';
 
 @Module({
+  imports: [BusinessUnitDomainModule],
   controllers: [
     BomGatewayController,
     CategoriesGatewayController,

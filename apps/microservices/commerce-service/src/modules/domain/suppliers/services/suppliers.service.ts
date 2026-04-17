@@ -141,6 +141,12 @@ export class SuppliersService {
     return { success: true, message: `Supplier item link "${supplierItemId}" removed successfully.` };
   }
 
+  // Returns the unit price for a supplier-item pair
+  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: number | null }> {
+    const item = await this.repository.findItemBySupplierAndInventoryItem(supplierId, inventoryItemId);
+    return { unitPrice: item?.unitPrice != null ? Number(item.unitPrice) : null };
+  }
+
   // Deletes a supplier
   async delete(id: string): Promise<{ success: boolean; message: string }> {
     const existing = await this.repository.findById(id);
