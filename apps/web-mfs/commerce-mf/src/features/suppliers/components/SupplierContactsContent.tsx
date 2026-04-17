@@ -61,14 +61,12 @@ export const SupplierContactsContent = ({
 
   if (!selectedContact) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Empty
-          icon={<UserCircle2 />}
-          title="No contact selected"
-          description="Select a contact from the left panel."
-          className="py-8"
-        />
-      </div>
+      <Empty
+        icon={<UserCircle2 />}
+        title="No contact selected"
+        description="Select a contact from the left panel."
+        className="h-full"
+      />
     );
   }
 
