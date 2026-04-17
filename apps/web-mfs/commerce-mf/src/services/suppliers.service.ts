@@ -1,13 +1,23 @@
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { SupplierData, SupplierDetail, SupplierItemData, SuppliersTableResponse } from '@/schemas/suppliers';
+import type {
+  SupplierData,
+  SupplierContactData,
+  SupplierDetail,
+  SupplierItemData,
+  SupplierItemsTableResponse,
+  SuppliersTableResponse,
+} from '@/schemas/suppliers';
 
 export interface CreateSupplierPayload {
   name: string;
   code: string;
-  contactName?: string;
-  phone?: string;
-  email?: string;
+  primaryContact: {
+    name: string;
+    phone?: string;
+    email?: string;
+    designation?: string;
+  };
   address?: string;
   gstin?: string;
   paymentTerms?: string;
@@ -18,14 +28,12 @@ export interface CreateSupplierPayload {
 export interface UpdateSupplierPayload {
   name?: string;
   code?: string;
-  contactName?: string | null;
-  phone?: string | null;
-  email?: string | null;
   address?: string | null;
   gstin?: string | null;
   paymentTerms?: string | null;
   leadTimeDays?: number | null;
   notes?: string | null;
+  isActive?: boolean;
 }
 
 export interface LinkSupplierItemPayload {
@@ -36,6 +44,25 @@ export interface LinkSupplierItemPayload {
   minOrderQuantity?: number;
   leadTimeDays?: number;
   isPreferred?: boolean;
+}
+
+export interface CreateSupplierContactPayload {
+  name: string;
+  phone?: string;
+  email?: string;
+  designation?: string;
+  notes?: string;
+  isPrimary?: boolean;
+}
+
+export interface UpdateSupplierContactPayload {
+  name?: string;
+  phone?: string | null;
+  email?: string | null;
+  designation?: string | null;
+  notes?: string | null;
+  isPrimary?: boolean;
+  isActive?: boolean;
 }
 
 // Fetches suppliers for the data table
@@ -59,6 +86,27 @@ export function getSupplier(id: string): Promise<SupplierDetail> {
     .then((r) => r.data);
 }
 
+// Fetches linked supplier items for the table
+export function getSupplierItemsTable(supplierId: string): Promise<SupplierItemsTableResponse> {
+  return axios
+    .get<SupplierItemsTableResponse>(`commerce-api/suppliers/${supplierId}/items/table`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches linked inventory item IDs for exclusion
+export function getSupplierItemIds(supplierId: string): Promise<string[]> {
+  return axios
+    .get<string[]>(`commerce-api/suppliers/${supplierId}/items/ids`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches contacts for a supplier
+export function getSupplierContacts(supplierId: string): Promise<SupplierContactData[]> {
+  return axios
+    .get<SupplierContactData[]>(`commerce-api/suppliers/${supplierId}/contacts`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
 // Updates a supplier
 export function updateSupplier({ id, data }: { id: string; data: UpdateSupplierPayload }): Promise<SupplierData> {
   return axios
@@ -76,13 +124,67 @@ export function deleteSupplier(id: string): Promise<SuccessResponse> {
 // Links an inventory item to a supplier
 export function linkSupplierItem({ supplierId, data }: { supplierId: string; data: LinkSupplierItemPayload }): Promise<SupplierItemData> {
   return axios
-    .post<SupplierItemData>(`commerce-api/suppliers/${supplierId}/items`, data)
-    .then((r) => r.data);
+    .post<CreateResponse<SupplierItemData>>(`commerce-api/suppliers/${supplierId}/items`, data)
+    .then((r) => r.data.data);
 }
 
 // Unlinks an inventory item from a supplier
-export function unlinkSupplierItem(itemId: string): Promise<SuccessResponse> {
+export function unlinkSupplierItem({ supplierId, itemId }: { supplierId: string; itemId: string }): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/supplier-items/${itemId}`)
+    .delete<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/${itemId}`)
+    .then((r) => r.data);
+}
+
+// Adds a contact to a supplier
+export function addSupplierContact({
+  supplierId,
+  data,
+}: {
+  supplierId: string;
+  data: CreateSupplierContactPayload;
+}): Promise<SupplierContactData> {
+  return axios
+    .post<SupplierContactData>(`commerce-api/suppliers/${supplierId}/contacts`, data)
+    .then((r) => r.data);
+}
+
+// Updates a supplier contact
+export function updateSupplierContact({
+  supplierId,
+  contactId,
+  data,
+}: {
+  supplierId: string;
+  contactId: string;
+  data: UpdateSupplierContactPayload;
+}): Promise<SupplierContactData> {
+  return axios
+    .patch<SupplierContactData>(`commerce-api/suppliers/${supplierId}/contacts/${contactId}`, data)
+    .then((r) => r.data);
+}
+
+// Deletes a supplier contact
+export function deleteSupplierContact({
+  supplierId,
+  contactId,
+}: {
+  supplierId: string;
+  contactId: string;
+}): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/suppliers/${supplierId}/contacts/${contactId}`)
+    .then((r) => r.data);
+}
+
+// Marks a supplier contact as primary
+export function markPrimarySupplierContact({
+  supplierId,
+  contactId,
+}: {
+  supplierId: string;
+  contactId: string;
+}): Promise<SupplierContactData> {
+  return axios
+    .post<SupplierContactData>(`commerce-api/suppliers/${supplierId}/contacts/${contactId}/mark-primary`)
     .then((r) => r.data);
 }

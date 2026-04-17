@@ -20,9 +20,6 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
     defaultValues: {
       name: supplier.name,
       code: supplier.code,
-      contactName: supplier.contactName ?? '',
-      phone: supplier.phone ?? '',
-      email: supplier.email ?? '',
       address: supplier.address ?? '',
       gstin: supplier.gstin ?? '',
       paymentTerms: supplier.paymentTerms ?? '',
@@ -37,22 +34,17 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: supplier.id,
         data: {
           ...data,
           leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : null,
-          email: data.email || null,
         },
       })}
     >
       <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />
       <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
-      <TextField name="contactName" label="Contact Name" placeholder="e.g. John Smith" />
-      <TextField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />
-      <TextField name="email" label="Email" type="email" placeholder="e.g. john@freshfarms.com" />
       <TextArea name="address" label="Address" placeholder="Full postal address" />
       <div className="grid grid-cols-2 gap-4">
         <TextField name="gstin" label="GSTIN" placeholder="e.g. 29AABCT1332L1ZP" />

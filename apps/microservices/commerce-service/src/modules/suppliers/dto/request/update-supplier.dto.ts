@@ -13,21 +13,6 @@ export class UpdateSupplierDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
-  contactName?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(20)
-  phone?: string | null;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  email?: string | null;
-
-  @IsOptional()
-  @IsString()
   @MaxLength(500)
   address?: string | null;
 

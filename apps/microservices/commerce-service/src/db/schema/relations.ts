@@ -24,6 +24,7 @@ export const relations = defineRelations(schema, (_r) => ({
   bom: {},
   bomLines: {},
   suppliers: {},
+  supplierContacts: {},
   supplierItems: {},
   purchaseOrders: {},
   purchaseOrderItems: {},

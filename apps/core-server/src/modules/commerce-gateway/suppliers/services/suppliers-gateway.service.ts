@@ -1,8 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import {
+  type CreateResponseDto,
+  DataTableStateService,
+  NatsClientService,
+  SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+} from '@vritti/api-sdk';
+import type { CreateSupplierContactDto } from '../dto/request/create-supplier-contact.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { LinkSupplierItemDto } from '../dto/request/link-supplier-item.dto';
+import type { UpdateSupplierContactDto } from '../dto/request/update-supplier-contact.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
+import type { SupplierContactResponseDto } from '../dto/response/supplier-contact-response.dto';
+import type { SupplierItemResponseDto } from '../dto/response/supplier-item-response.dto';
+import type { SupplierItemTableResponseDto } from '../dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from '../dto/response/supplier-response.dto';
 import type { SupplierTableResponseDto } from '../dto/response/supplier-table-response.dto';
 
@@ -47,6 +59,35 @@ export class SuppliersGatewayService {
     return this.nats.send('commerce', 'suppliers.findById', { id });
   }
 
+  // Returns linked supplier items for the table
+  async findItemsTable(supplierId: string, userId: string): Promise<SupplierItemTableResponseDto> {
+    this.logger.log(`suppliers.itemsTable — supplierId: ${supplierId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-supplier-${supplierId}-items`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: SupplierItemResponseDto[]; count: number }>(
+      'commerce',
+      'suppliers.itemsTable',
+      { supplierId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns linked inventory item IDs for a supplier
+  async findItemIds(supplierId: string): Promise<string[]> {
+    this.logger.log(`suppliers.itemIds — supplierId: ${supplierId}`);
+    return this.nats.send('commerce', 'suppliers.itemIds', { supplierId });
+  }
+
+  // Returns supplier contacts
+  async findContacts(supplierId: string): Promise<SupplierContactResponseDto[]> {
+    this.logger.log(`suppliers.contacts — supplierId: ${supplierId}`);
+    return this.nats.send('commerce', 'suppliers.contacts', { supplierId });
+  }
+
   // Updates a supplier by ID
   async update(id: string, dto: UpdateSupplierDto): Promise<SupplierResponseDto> {
     this.logger.log(`suppliers.update — id: ${id}`);
@@ -60,15 +101,39 @@ export class SuppliersGatewayService {
   }
 
   // Links an inventory item to a supplier
-  async linkItem(supplierId: string, dto: LinkSupplierItemDto): Promise<{ success: boolean; message: string }> {
+  async linkItem(supplierId: string, dto: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemResponseDto>> {
     this.logger.log(`suppliers.linkItem — supplierId: ${supplierId}, itemId: ${dto.inventoryItemId}`);
     return this.nats.send('commerce', 'suppliers.linkItem', { supplierId, ...dto });
   }
 
   // Unlinks an inventory item from a supplier
-  async unlinkItem(supplierItemId: string): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`suppliers.unlinkItem — supplierItemId: ${supplierItemId}`);
-    return this.nats.send('commerce', 'suppliers.unlinkItem', { id: supplierItemId });
+  async unlinkItem(supplierId: string, supplierItemId: string): Promise<{ success: boolean; message: string }> {
+    this.logger.log(`suppliers.unlinkItem — supplierId: ${supplierId}, supplierItemId: ${supplierItemId}`);
+    return this.nats.send('commerce', 'suppliers.unlinkItem', { supplierId, supplierItemId });
+  }
+
+  // Adds a contact to a supplier
+  async addContact(supplierId: string, dto: CreateSupplierContactDto): Promise<SupplierContactResponseDto> {
+    this.logger.log(`suppliers.addContact — supplierId: ${supplierId}`);
+    return this.nats.send('commerce', 'suppliers.addContact', { supplierId, ...dto });
+  }
+
+  // Updates a supplier contact
+  async updateContact(supplierId: string, contactId: string, dto: UpdateSupplierContactDto): Promise<SupplierContactResponseDto> {
+    this.logger.log(`suppliers.updateContact — supplierId: ${supplierId}, contactId: ${contactId}`);
+    return this.nats.send('commerce', 'suppliers.updateContact', { supplierId, contactId, ...dto });
+  }
+
+  // Deletes a supplier contact
+  async deleteContact(supplierId: string, contactId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`suppliers.deleteContact — supplierId: ${supplierId}, contactId: ${contactId}`);
+    return this.nats.send('commerce', 'suppliers.deleteContact', { supplierId, contactId });
+  }
+
+  // Marks a supplier contact as primary
+  async markPrimaryContact(supplierId: string, contactId: string): Promise<SupplierContactResponseDto> {
+    this.logger.log(`suppliers.markPrimaryContact — supplierId: ${supplierId}, contactId: ${contactId}`);
+    return this.nats.send('commerce', 'suppliers.markPrimaryContact', { supplierId, contactId });
   }
 
   // Returns the unit price for a supplier-item pair

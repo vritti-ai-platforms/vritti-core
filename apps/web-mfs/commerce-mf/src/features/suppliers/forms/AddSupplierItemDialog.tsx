@@ -7,16 +7,17 @@ import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
+import { useSupplierItemIds } from '@/hooks/useSupplierItemIds';
 import { useLinkSupplierItem } from '@/hooks/useLinkSupplierItem';
-import { type LinkSupplierItemFormData, linkSupplierItemSchema, type SupplierDetail } from '@/schemas/suppliers';
+import { type LinkSupplierItemFormData, linkSupplierItemSchema } from '@/schemas/suppliers';
 
 interface AddSupplierItemDialogProps {
-  supplier: SupplierDetail;
+  supplierId: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({ supplier, onSuccess, onCancel }) => {
+export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({ supplierId, onSuccess, onCancel }) => {
   const form = useForm<LinkSupplierItemFormData>({
     resolver: zodResolver(linkSupplierItemSchema),
     defaultValues: {
@@ -30,10 +31,11 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({ su
     },
   });
 
-  const linkMutation = useLinkSupplierItem(supplier.id, { onSuccess });
+  const linkMutation = useLinkSupplierItem(supplierId, { onSuccess });
+  const { data: existingItemIdsList } = useSupplierItemIds(supplierId);
 
   // Exclude already linked items
-  const existingItemIds = supplier.items.map((i) => i.inventoryItemId).join(',');
+  const existingItemIds = (existingItemIdsList ?? []).join(',');
 
   return (
     <Form

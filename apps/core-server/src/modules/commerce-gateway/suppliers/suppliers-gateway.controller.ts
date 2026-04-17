@@ -1,10 +1,15 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import { type CreateResponseDto, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
+import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
+import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
+import type { SupplierContactResponseDto } from './dto/response/supplier-contact-response.dto';
+import type { SupplierItemResponseDto } from './dto/response/supplier-item-response.dto';
+import type { SupplierItemTableResponseDto } from './dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from './dto/response/supplier-response.dto';
 import type { SupplierTableResponseDto } from './dto/response/supplier-table-response.dto';
 import { SuppliersGatewayService } from './services/suppliers-gateway.service';
@@ -49,6 +54,24 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.findItemPrice(supplierId, inventoryItemId);
   }
 
+  // Returns linked items for a supplier table
+  @Get(':id/items/table')
+  getSupplierItemsTable(@Param('id') supplierId: string, @UserId() userId: string): Promise<SupplierItemTableResponseDto> {
+    return this.suppliersGatewayService.findItemsTable(supplierId, userId);
+  }
+
+  // Returns linked inventory item IDs for a supplier
+  @Get(':id/items/ids')
+  getSupplierItemIds(@Param('id') supplierId: string): Promise<string[]> {
+    return this.suppliersGatewayService.findItemIds(supplierId);
+  }
+
+  // Returns contacts for a supplier
+  @Get(':id/contacts')
+  getSupplierContacts(@Param('id') supplierId: string): Promise<SupplierContactResponseDto[]> {
+    return this.suppliersGatewayService.findContacts(supplierId);
+  }
+
   // Returns a single supplier by ID
   @Get(':id')
   findById(@Param('id') id: string): Promise<SupplierResponseDto> {
@@ -70,13 +93,42 @@ export class SuppliersGatewayController {
   // Links an inventory item to a supplier
   @Post(':id/items')
   @HttpCode(HttpStatus.CREATED)
-  linkItem(@Param('id') supplierId: string, @Body() dto: LinkSupplierItemDto): Promise<{ success: boolean; message: string }> {
+  linkItem(@Param('id') supplierId: string, @Body() dto: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemResponseDto>> {
     return this.suppliersGatewayService.linkItem(supplierId, dto);
   }
 
   // Unlinks an inventory item from a supplier
-  @Delete('items/:itemId')
-  unlinkItem(@Param('itemId') itemId: string): Promise<SuccessResponseDto> {
-    return this.suppliersGatewayService.unlinkItem(itemId);
+  @Delete(':id/items/:itemId')
+  unlinkItem(@Param('id') supplierId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
+    return this.suppliersGatewayService.unlinkItem(supplierId, itemId);
+  }
+
+  // Adds a contact to a supplier
+  @Post(':id/contacts')
+  @HttpCode(HttpStatus.CREATED)
+  addContact(@Param('id') supplierId: string, @Body() dto: CreateSupplierContactDto): Promise<SupplierContactResponseDto> {
+    return this.suppliersGatewayService.addContact(supplierId, dto);
+  }
+
+  // Updates a supplier contact
+  @Patch(':id/contacts/:contactId')
+  updateContact(
+    @Param('id') supplierId: string,
+    @Param('contactId') contactId: string,
+    @Body() dto: UpdateSupplierContactDto,
+  ): Promise<SupplierContactResponseDto> {
+    return this.suppliersGatewayService.updateContact(supplierId, contactId, dto);
+  }
+
+  // Deletes a supplier contact
+  @Delete(':id/contacts/:contactId')
+  deleteContact(@Param('id') supplierId: string, @Param('contactId') contactId: string): Promise<SuccessResponseDto> {
+    return this.suppliersGatewayService.deleteContact(supplierId, contactId);
+  }
+
+  // Marks a supplier contact as primary
+  @Post(':id/contacts/:contactId/mark-primary')
+  markPrimaryContact(@Param('id') supplierId: string, @Param('contactId') contactId: string): Promise<SupplierContactResponseDto> {
+    return this.suppliersGatewayService.markPrimaryContact(supplierId, contactId);
   }
 }

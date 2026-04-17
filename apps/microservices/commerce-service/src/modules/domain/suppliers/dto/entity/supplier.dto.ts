@@ -20,14 +20,8 @@ export class SupplierItemDto {
     dto.inventoryItemName = itemName ?? null;
     dto.supplierCode = entity.supplierCode ?? null;
     dto.unitPrice = entity.unitPrice ? Number(entity.unitPrice) : null;
-    if (!entity.uomId) {
-      throw new Error(`Supplier item ${entity.id} is missing uomId`);
-    }
-    if (!uomSymbol) {
-      throw new Error(`Supplier item ${entity.id} is missing uomSymbol`);
-    }
     dto.uomId = entity.uomId;
-    dto.uomSymbol = uomSymbol;
+    dto.uomSymbol = uomSymbol ?? '';
     dto.minOrderQuantity = entity.minOrderQuantity ? Number(entity.minOrderQuantity) : null;
     dto.leadTimeDays = entity.leadTimeDays ?? null;
     dto.isPreferred = entity.isPreferred;
@@ -73,12 +67,9 @@ export class SupplierDto {
 }
 
 export class SupplierDetailDto extends SupplierDto {
-  items: SupplierItemDto[];
-
-  static fromDetail(entity: Supplier, items: SupplierItemDto[]): SupplierDetailDto {
+  static fromDetail(entity: Supplier): SupplierDetailDto {
     const dto = new SupplierDetailDto();
     Object.assign(dto, SupplierDto.from(entity));
-    dto.items = items;
     return dto;
   }
 }

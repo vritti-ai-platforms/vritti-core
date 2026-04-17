@@ -10,9 +10,9 @@ import {
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { suppliers } from '@/db/schema';
 import type { CreateSupplierDto } from '@/modules/suppliers/dto/request/create-supplier.dto';
-import type { LinkSupplierItemDto } from '@/modules/suppliers/dto/request/link-supplier-item.dto';
 import type { UpdateSupplierDto } from '@/modules/suppliers/dto/request/update-supplier.dto';
-import { SupplierDetailDto, SupplierDto, SupplierItemDto } from '../dto/entity/supplier.dto';
+import { SupplierContactsRepository } from '@domain/supplier-contacts/repositories/supplier-contacts.repository';
+import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
 import { SuppliersRepository } from '../repositories/suppliers.repository';
 
 @Injectable()
@@ -25,7 +25,10 @@ export class SuppliersService {
     isActive: { column: suppliers.isActive, type: 'boolean' },
   };
 
-  constructor(private readonly repository: SuppliersRepository) {}
+  constructor(
+    private readonly repository: SuppliersRepository,
+    private readonly supplierContactsRepository: SupplierContactsRepository,
+  ) {}
 
   // Returns paginated suppliers for the data table
   async findForTable(state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
@@ -65,29 +68,47 @@ export class SuppliersService {
 
   // Creates a new supplier
   async create(data: CreateSupplierDto): Promise<SupplierDto> {
-    const entity = await this.repository.create({
-      name: data.name,
-      code: data.code,
-      contactName: data.contactName ?? null,
-      phone: data.phone ?? null,
-      email: data.email ?? null,
-      address: data.address ?? null,
-      gstin: data.gstin ?? null,
-      paymentTerms: data.paymentTerms ?? null,
-      leadTimeDays: data.leadTimeDays ?? null,
-      notes: data.notes ?? null,
+    const entity = await this.repository.transaction(async (tx) => {
+      const supplier = await this.repository.create(
+        {
+          name: data.name,
+          code: data.code,
+          contactName: data.primaryContact.name,
+          phone: data.primaryContact.phone ?? null,
+          email: data.primaryContact.email ?? null,
+          address: data.address ?? null,
+          gstin: data.gstin ?? null,
+          paymentTerms: data.paymentTerms ?? null,
+          leadTimeDays: data.leadTimeDays ?? null,
+          notes: data.notes ?? null,
+        },
+        tx,
+      );
+
+      await this.supplierContactsRepository.createContact(
+        {
+          supplierId: supplier.id,
+          name: data.primaryContact.name,
+          phone: data.primaryContact.phone ?? null,
+          email: data.primaryContact.email ?? null,
+          designation: data.primaryContact.designation ?? null,
+          isPrimary: true,
+          isActive: true,
+        },
+        tx,
+      );
+
+      return supplier;
     });
     this.logger.log(`Created supplier: ${entity.name} (${entity.code})`);
     return SupplierDto.from(entity);
   }
 
-  // Returns supplier detail with linked items
+  // Returns supplier detail
   async findById(id: string): Promise<SupplierDetailDto> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Supplier not found.');
-    const itemRows = await this.repository.findItemsBySupplierId(id);
-    const itemDtos = itemRows.map((row) => SupplierItemDto.from(row, row.inventoryItemName, row.uomSymbol));
-    return SupplierDetailDto.fromDetail(entity, itemDtos);
+    return SupplierDetailDto.fromDetail(entity);
   }
 
   // Updates a supplier
@@ -98,9 +119,6 @@ export class SuppliersService {
     const updatePayload: Record<string, unknown> = {};
     if (data.name !== undefined) updatePayload.name = data.name;
     if (data.code !== undefined) updatePayload.code = data.code;
-    if (data.contactName !== undefined) updatePayload.contactName = data.contactName;
-    if (data.phone !== undefined) updatePayload.phone = data.phone;
-    if (data.email !== undefined) updatePayload.email = data.email;
     if (data.address !== undefined) updatePayload.address = data.address;
     if (data.gstin !== undefined) updatePayload.gstin = data.gstin;
     if (data.paymentTerms !== undefined) updatePayload.paymentTerms = data.paymentTerms;
@@ -112,39 +130,6 @@ export class SuppliersService {
 
     this.logger.log(`Updated supplier: ${entity.name} (${entity.id})`);
     return SupplierDto.from(entity);
-  }
-
-  // Links an inventory item to a supplier
-  async linkItem(supplierId: string, data: LinkSupplierItemDto): Promise<SupplierItemDto> {
-    const existing = await this.repository.findById(supplierId);
-    if (!existing) throw new NotFoundException('Supplier not found.');
-
-    const entity = await this.repository.createSupplierItem({
-      supplierId,
-      inventoryItemId: data.inventoryItemId,
-      supplierCode: data.supplierCode ?? null,
-      unitPrice: data.unitPrice != null ? String(data.unitPrice) : null,
-      uomId: data.uomId,
-      minOrderQuantity: data.minOrderQuantity != null ? String(data.minOrderQuantity) : null,
-      leadTimeDays: data.leadTimeDays ?? null,
-      isPreferred: data.isPreferred ?? false,
-    });
-
-    this.logger.log(`Linked item ${data.inventoryItemId} to supplier ${supplierId}`);
-    return SupplierItemDto.from(entity);
-  }
-
-  // Unlinks an inventory item from a supplier
-  async unlinkItem(supplierItemId: string): Promise<{ success: boolean; message: string }> {
-    await this.repository.deleteSupplierItem(supplierItemId);
-    this.logger.log(`Unlinked supplier item: ${supplierItemId}`);
-    return { success: true, message: `Supplier item link "${supplierItemId}" removed successfully.` };
-  }
-
-  // Returns the unit price for a supplier-item pair
-  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: number | null }> {
-    const item = await this.repository.findItemBySupplierAndInventoryItem(supplierId, inventoryItemId);
-    return { unitPrice: item?.unitPrice != null ? Number(item.unitPrice) : null };
   }
 
   // Deletes a supplier

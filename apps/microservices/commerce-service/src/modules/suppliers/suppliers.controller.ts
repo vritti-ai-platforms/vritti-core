@@ -1,10 +1,9 @@
-import type { SupplierDetailDto, SupplierDto, SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
+import type { SupplierDetailDto, SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
-import type { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 
 @Controller()
@@ -48,24 +47,5 @@ export class SuppliersController {
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.delete — id: ${data.id}`);
     return this.service.delete(data.id);
-  }
-
-  @MessagePattern({ cmd: 'suppliers.linkItem' })
-  async linkItem(@Payload() data: { supplierId: string } & LinkSupplierItemDto): Promise<SupplierItemDto> {
-    const { supplierId, ...itemData } = data;
-    this.logger.log(`suppliers.linkItem — supplierId: ${supplierId}`);
-    return this.service.linkItem(supplierId, itemData);
-  }
-
-  @MessagePattern({ cmd: 'suppliers.unlinkItem' })
-  async unlinkItem(@Payload() data: { supplierItemId: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`suppliers.unlinkItem — id: ${data.supplierItemId}`);
-    return this.service.unlinkItem(data.supplierItemId);
-  }
-
-  @MessagePattern({ cmd: 'suppliers.findItemPrice' })
-  async findItemPrice(@Payload() data: { supplierId: string; inventoryItemId: string }): Promise<{ unitPrice: number | null }> {
-    this.logger.log(`suppliers.findItemPrice — supplierId: ${data.supplierId}, itemId: ${data.inventoryItemId}`);
-    return this.service.findItemPrice(data.supplierId, data.inventoryItemId);
   }
 }

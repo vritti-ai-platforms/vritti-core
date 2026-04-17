@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class UpdateSupplierDto {
   @ApiPropertyOptional({ description: 'Updated supplier name' })
@@ -11,21 +11,6 @@ export class UpdateSupplierDto {
   @IsOptional()
   @IsString()
   code?: string;
-
-  @ApiPropertyOptional({ description: 'Updated contact person name' })
-  @IsOptional()
-  @IsString()
-  contactName?: string;
-
-  @ApiPropertyOptional({ description: 'Updated phone number' })
-  @IsOptional()
-  @IsString()
-  phone?: string;
-
-  @ApiPropertyOptional({ description: 'Updated email address' })
-  @IsOptional()
-  @IsString()
-  email?: string;
 
   @ApiPropertyOptional({ description: 'Updated mailing address' })
   @IsOptional()
@@ -54,4 +39,9 @@ export class UpdateSupplierDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({ description: 'Whether supplier is active' })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

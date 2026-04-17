@@ -1,22 +1,32 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { SUPPLIER_ITEMS_TABLE_KEY, useSupplierItemsTable } from '@/hooks/useSupplierItemsTable';
 import { useSupplier } from '@/hooks/useSupplier';
 import { useUnlinkSupplierItem } from '@/hooks/useUnlinkSupplierItem';
+import type { SupplierItemData } from '@/schemas/suppliers';
+import { SupplierContactsContent } from './components/SupplierContactsContent';
+import { SupplierContactsSidePanel } from './components/SupplierContactsSidePanel';
 import { AddSupplierItemDialog } from './forms/AddSupplierItemDialog';
 import { EditSupplierForm } from './forms/EditSupplierForm';
 
 export const SupplierDetailPage = () => {
   const { id } = useSlugParams('supplierSlug');
+  const queryClient = useQueryClient();
   const { data: supplier, isLoading } = useSupplier(id ?? null);
+  const { data: linkedItemsResponse, isLoading: isLoadingLinkedItems } = useSupplierItemsTable(id ?? null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const editDialog = useDialog();
   const addItemDialog = useDialog();
   const confirm = useConfirm();
@@ -34,6 +44,81 @@ export const SupplierDetailPage = () => {
     },
     [confirm, unlinkMutation],
   );
+
+  const linkedItemColumns = useMemo<ColumnDef<SupplierItemData>[]>(
+    () => [
+      {
+        accessorKey: 'inventoryItemName',
+        header: 'Inventory Item',
+        cell: ({ row }) => row.original.inventoryItemName ?? row.original.inventoryItemId,
+      },
+      {
+        accessorKey: 'supplierCode',
+        header: 'Supplier Code',
+        cell: ({ row }) => row.original.supplierCode ?? '—',
+      },
+      {
+        accessorKey: 'uomSymbol',
+        header: 'UOM',
+        cell: ({ row }) => row.original.uomSymbol || '—',
+      },
+      {
+        accessorKey: 'unitPrice',
+        header: 'Unit Price',
+        cell: ({ row }) => (row.original.unitPrice != null ? row.original.unitPrice.toFixed(2) : '—'),
+      },
+      {
+        accessorKey: 'minOrderQuantity',
+        header: 'Min Order',
+        cell: ({ row }) => (row.original.minOrderQuantity != null ? row.original.minOrderQuantity : '—'),
+      },
+      {
+        accessorKey: 'isPreferred',
+        header: 'Preferred',
+        cell: ({ row }) =>
+          row.original.isPreferred ? (
+            <Badge variant="secondary" className="bg-success/15 text-success">
+              Yes
+            </Badge>
+          ) : (
+            '—'
+          ),
+      },
+      {
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <RowActions
+            disabledAll={unlinkMutation.isPending}
+            actions={[
+              {
+                id: 'unlink',
+                icon: Trash2,
+                label: 'Unlink',
+                variant: 'destructive',
+                onClick: () => handleUnlinkItem(row.original.id, row.original.inventoryItemName ?? 'item'),
+              },
+            ]}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [handleUnlinkItem, unlinkMutation.isPending],
+  );
+
+  const { table: linkedItemsTable } = useDataTable({
+    columns: linkedItemColumns,
+    slug: `commerce-supplier-${id ?? ''}-items`,
+    label: 'linked item',
+    serverState: linkedItemsResponse,
+    enableRowSelection: false,
+    onStatePush: () => {
+      if (!id) return;
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(id) });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -127,71 +212,45 @@ export const SupplierDetailPage = () => {
           },
           {
             value: 'items',
-            label: `Items (${supplier.items.length})`,
+            label: `Items (${linkedItemsResponse?.count ?? 0})`,
             content: (
-              <Card>
-                <CardHeader className="flex-row items-center justify-between">
-                  <CardTitle>Linked Items</CardTitle>
-                  <Button size="sm" onClick={addItemDialog.open}>
-                    <Plus className="mr-2 size-4" />
-                    Link Item
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {supplier.items.length === 0 ? (
-                    <p className="py-4 text-center text-muted-foreground">
-                      No items linked yet. Click "Link Item" to associate inventory items with this supplier.
-                    </p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b text-left text-muted-foreground">
-                            <th className="pb-2 font-medium">Inventory Item</th>
-                            <th className="pb-2 font-medium">Supplier Code</th>
-                            <th className="pb-2 font-medium">UOM</th>
-                            <th className="pb-2 font-medium text-right">Unit Price</th>
-                            <th className="pb-2 font-medium text-right">Min Order</th>
-                            <th className="pb-2 font-medium text-center">Preferred</th>
-                            <th className="pb-2 font-medium text-right">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {supplier.items.map((item) => (
-                            <tr key={item.id} className="border-b last:border-0">
-                              <td className="py-3 font-medium">{item.inventoryItemName ?? item.inventoryItemId}</td>
-                              <td className="py-3 font-mono">{item.supplierCode ?? '—'}</td>
-                              <td className="py-3">{item.uomSymbol ?? '—'}</td>
-                              <td className="py-3 text-right font-mono">
-                                {item.unitPrice != null ? item.unitPrice.toFixed(2) : '—'}
-                              </td>
-                              <td className="py-3 text-right font-mono">{item.minOrderQuantity ?? '—'}</td>
-                              <td className="py-3 text-center">
-                                {item.isPreferred ? (
-                                  <Badge variant="secondary" className="bg-success/15 text-success">
-                                    Yes
-                                  </Badge>
-                                ) : (
-                                  <span className="text-muted-foreground">—</span>
-                                )}
-                              </td>
-                              <td className="py-3 text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  onClick={() => handleUnlinkItem(item.id, item.inventoryItemName ?? 'item')}
-                                >
-                                  <Trash2 className="size-4 text-destructive" />
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <DataTable
+                table={linkedItemsTable}
+                isLoading={isLoadingLinkedItems}
+                toolbarActions={{
+                  actions: (
+                    <Button size="sm" onClick={addItemDialog.open}>
+                      <Plus className="mr-2 size-4" />
+                      Link Item
+                    </Button>
+                  ),
+                }}
+                emptyStateConfig={{
+                  icon: ClipboardList,
+                  title: 'No linked items',
+                  description: 'Link an inventory item to start tracking supplier-specific terms and pricing.',
+                }}
+              />
+            ),
+          },
+          {
+            value: 'contacts',
+            label: 'Contacts',
+            content: (
+              <PageContent>
+                <SupplierContactsSidePanel
+                  supplierId={supplier.id}
+                  selectedContactId={selectedContactId}
+                  onSelectContact={setSelectedContactId}
+                />
+                <PageContentDetails>
+                  <SupplierContactsContent
+                    supplierId={supplier.id}
+                    selectedContactId={selectedContactId}
+                    onSelectContact={setSelectedContactId}
+                  />
+                </PageContentDetails>
+              </PageContent>
             ),
           },
         ]}
@@ -210,7 +269,7 @@ export const SupplierDetailPage = () => {
         handle={addItemDialog}
         title="Link Inventory Item"
         description="Associate an inventory item with this supplier."
-        content={(close) => <AddSupplierItemDialog supplier={supplier} onSuccess={close} onCancel={close} />}
+        content={(close) => <AddSupplierItemDialog supplierId={supplier.id} onSuccess={close} onCancel={close} />}
       />
     </div>
   );

@@ -22,6 +22,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       contactName: '',
       phone: '',
       email: '',
+      designation: '',
       address: '',
       gstin: '',
       paymentTerms: '',
@@ -42,9 +43,19 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        ...data,
+        name: data.name,
+        code: data.code,
+        primaryContact: {
+          name: data.contactName,
+          phone: data.phone || undefined,
+          email: data.email || undefined,
+          designation: data.designation || undefined,
+        },
+        address: data.address || undefined,
+        gstin: data.gstin || undefined,
+        paymentTerms: data.paymentTerms || undefined,
         leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : undefined,
-        email: data.email || undefined,
+        notes: data.notes || undefined,
       })}
     >
       <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />
@@ -52,6 +63,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       <TextField name="contactName" label="Contact Name" placeholder="e.g. John Smith" />
       <TextField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />
       <TextField name="email" label="Email" type="email" placeholder="e.g. john@freshfarms.com" />
+      <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />
       <TextArea name="address" label="Address" placeholder="Full postal address" />
       <div className="grid grid-cols-2 gap-4">
         <TextField name="gstin" label="GSTIN" placeholder="e.g. 29AABCT1332L1ZP" />

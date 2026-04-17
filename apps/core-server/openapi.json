@@ -6743,6 +6743,126 @@
         ]
       }
     },
+    "/commerce-api/suppliers/{id}/items/table": {
+      "get": {
+        "operationId": "SuppliersGatewayController_getSupplierItemsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/{id}/items/ids": {
+      "get": {
+        "operationId": "SuppliersGatewayController_getSupplierItemIds",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/{id}/contacts": {
+      "get": {
+        "operationId": "SuppliersGatewayController_getSupplierContacts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      },
+      "post": {
+        "operationId": "SuppliersGatewayController_addContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplierContactDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
     "/commerce-api/suppliers/{id}": {
       "get": {
         "operationId": "SuppliersGatewayController_findById",
@@ -6871,10 +6991,18 @@
         ]
       }
     },
-    "/commerce-api/suppliers/items/{itemId}": {
+    "/commerce-api/suppliers/{id}/items/{itemId}": {
       "delete": {
         "operationId": "SuppliersGatewayController_unlinkItem",
         "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "itemId",
             "required": true,
@@ -6886,6 +7014,122 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/{id}/contacts/{contactId}": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_updateContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contactId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierContactDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      },
+      "delete": {
+        "operationId": "SuppliersGatewayController_deleteContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contactId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/{id}/contacts/{contactId}/mark-primary": {
+      "post": {
+        "operationId": "SuppliersGatewayController_markPrimaryContact",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "contactId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -10974,6 +11218,31 @@
           "toLocationId"
         ]
       },
+      "CreatePrimarySupplierContactDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Primary contact person name",
+            "example": "John Smith"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Primary contact phone number"
+          },
+          "email": {
+            "type": "string",
+            "description": "Primary contact email address"
+          },
+          "designation": {
+            "type": "string",
+            "description": "Primary contact designation"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "CreateSupplierDto": {
         "type": "object",
         "properties": {
@@ -10987,17 +11256,13 @@
             "description": "Unique supplier code",
             "example": "SUP-001"
           },
-          "contactName": {
-            "type": "string",
-            "description": "Primary contact person name"
-          },
-          "phone": {
-            "type": "string",
-            "description": "Phone number"
-          },
-          "email": {
-            "type": "string",
-            "description": "Email address"
+          "primaryContact": {
+            "description": "Primary contact details",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreatePrimarySupplierContactDto"
+              }
+            ]
           },
           "address": {
             "type": "string",
@@ -11025,7 +11290,8 @@
         },
         "required": [
           "name",
-          "code"
+          "code",
+          "primaryContact"
         ]
       },
       "UpdateSupplierDto": {
@@ -11038,18 +11304,6 @@
           "code": {
             "type": "string",
             "description": "Updated supplier code"
-          },
-          "contactName": {
-            "type": "string",
-            "description": "Updated contact person name"
-          },
-          "phone": {
-            "type": "string",
-            "description": "Updated phone number"
-          },
-          "email": {
-            "type": "string",
-            "description": "Updated email address"
           },
           "address": {
             "type": "string",
@@ -11070,6 +11324,10 @@
           "notes": {
             "type": "string",
             "description": "Updated notes"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether supplier is active"
           }
         }
       },
@@ -11113,6 +11371,76 @@
           "inventoryItemId",
           "uomId"
         ]
+      },
+      "CreateSupplierContactDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Contact name"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Contact phone number"
+          },
+          "email": {
+            "type": "string",
+            "description": "Contact email address"
+          },
+          "designation": {
+            "type": "string",
+            "description": "Contact designation"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Contact notes"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Set as primary contact",
+            "default": false
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSupplierContactDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Contact name"
+          },
+          "phone": {
+            "type": "object",
+            "description": "Contact phone number",
+            "nullable": true
+          },
+          "email": {
+            "type": "object",
+            "description": "Contact email address",
+            "nullable": true
+          },
+          "designation": {
+            "type": "object",
+            "description": "Contact designation",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "description": "Contact notes",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Set this as primary contact"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Set contact active status"
+          }
+        }
       },
       "TaxRateResponseDto": {
         "type": "object",

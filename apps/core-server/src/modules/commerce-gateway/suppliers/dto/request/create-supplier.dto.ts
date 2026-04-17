@@ -1,5 +1,28 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+
+export class CreatePrimarySupplierContactDto {
+  @ApiProperty({ description: 'Primary contact person name', example: 'John Smith' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiPropertyOptional({ description: 'Primary contact phone number' })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiPropertyOptional({ description: 'Primary contact email address' })
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @ApiPropertyOptional({ description: 'Primary contact designation' })
+  @IsOptional()
+  @IsString()
+  designation?: string;
+}
 
 export class CreateSupplierDto {
   @ApiProperty({ description: 'Supplier name', example: 'Acme Foods Pvt Ltd' })
@@ -12,20 +35,10 @@ export class CreateSupplierDto {
   @IsNotEmpty()
   code: string;
 
-  @ApiPropertyOptional({ description: 'Primary contact person name' })
-  @IsOptional()
-  @IsString()
-  contactName?: string;
-
-  @ApiPropertyOptional({ description: 'Phone number' })
-  @IsOptional()
-  @IsString()
-  phone?: string;
-
-  @ApiPropertyOptional({ description: 'Email address' })
-  @IsOptional()
-  @IsString()
-  email?: string;
+  @ApiProperty({ description: 'Primary contact details', type: CreatePrimarySupplierContactDto })
+  @ValidateNested()
+  @Type(() => CreatePrimarySupplierContactDto)
+  primaryContact: CreatePrimarySupplierContactDto;
 
   @ApiPropertyOptional({ description: 'Mailing address' })
   @IsOptional()

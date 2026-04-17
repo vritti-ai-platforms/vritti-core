@@ -26,6 +26,8 @@ import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjust
 import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
 import { StorageLocationsModule } from './modules/storage-locations/storage-locations.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
+import { SupplierItemsModule } from './modules/supplier-items/supplier-items.module';
+import { SupplierContactsModule } from './modules/supplier-contacts/supplier-contacts.module';
 import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
 import { UomModule } from './modules/uom/uom.module';
 
@@ -64,6 +66,8 @@ import { UomModule } from './modules/uom/uom.module';
     InventoryItemsModule,
     BomModule,
     SuppliersModule,
+    SupplierItemsModule,
+    SupplierContactsModule,
     PurchaseOrdersModule,
     GoodsReceiptsModule,
     StorageLocationsModule,
