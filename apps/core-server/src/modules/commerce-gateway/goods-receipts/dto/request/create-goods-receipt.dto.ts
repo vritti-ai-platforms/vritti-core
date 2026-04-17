@@ -22,6 +22,21 @@ export class CreateGoodsReceiptItemDto {
   @IsOptional()
   @IsString()
   rejectionReason?: string;
+
+  @ApiPropertyOptional({ description: 'Supplier batch / lot number' })
+  @IsOptional()
+  @IsString()
+  batchNumber?: string;
+
+  @ApiPropertyOptional({ description: 'Manufacturing date (ISO)', example: '2026-04-01' })
+  @IsOptional()
+  @IsString()
+  manufacturingDate?: string;
+
+  @ApiPropertyOptional({ description: 'Expiry date (ISO)', example: '2027-04-01' })
+  @IsOptional()
+  @IsString()
+  expiryDate?: string;
 }
 
 export class CreateGoodsReceiptDto {

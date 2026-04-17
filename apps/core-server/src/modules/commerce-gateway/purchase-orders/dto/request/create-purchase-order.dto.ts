@@ -18,11 +18,6 @@ export class CreatePurchaseOrderDto {
   @IsUUID()
   supplierId: string;
 
-  @ApiPropertyOptional({ description: 'PO number (auto-generated if omitted)' })
-  @IsOptional()
-  @IsString()
-  poNumber?: string;
-
   @ApiProperty({ description: 'Order date (ISO string)', example: '2026-04-10' })
   @IsString()
   @IsNotEmpty()

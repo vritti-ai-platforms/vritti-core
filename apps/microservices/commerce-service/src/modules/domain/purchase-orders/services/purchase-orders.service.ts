@@ -23,6 +23,22 @@ export class PurchaseOrdersService {
     supplierId: { column: purchaseOrders.supplierId, type: 'string' },
   };
 
+  private static readonly STATUS_TRANSITIONS: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
+    [PurchaseOrderStatusValues.DRAFT]: [PurchaseOrderStatusValues.SENT, PurchaseOrderStatusValues.CANCELLED],
+    [PurchaseOrderStatusValues.SENT]: [PurchaseOrderStatusValues.CONFIRMED, PurchaseOrderStatusValues.CANCELLED],
+    [PurchaseOrderStatusValues.CONFIRMED]: [
+      PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
+      PurchaseOrderStatusValues.RECEIVED,
+      PurchaseOrderStatusValues.CANCELLED,
+    ],
+    [PurchaseOrderStatusValues.PARTIALLY_RECEIVED]: [
+      PurchaseOrderStatusValues.RECEIVED,
+      PurchaseOrderStatusValues.CANCELLED,
+    ],
+    [PurchaseOrderStatusValues.RECEIVED]: [],
+    [PurchaseOrderStatusValues.CANCELLED]: [],
+  };
+
   constructor(private readonly repository: PurchaseOrdersRepository) {}
 
   // Returns paginated POs for the data table
@@ -51,26 +67,34 @@ export class PurchaseOrdersService {
 
   // Creates a new PO with line items
   async create(data: CreatePurchaseOrderDto): Promise<PurchaseOrderDetailDto> {
-    const poNumber = data.poNumber || (await this.repository.generatePoNumber());
-    const entity = await this.repository.create({
-      supplierId: data.supplierId,
-      poNumber,
-      orderDate: data.orderDate,
-      expectedDate: data.expectedDate ?? null,
-      notes: data.notes ?? null,
-    });
+    const poNumber = await this.repository.generatePoNumber();
+    const entity = await this.repository.transaction(async (tx) => {
+      const created = await this.repository.create(
+        {
+          supplierId: data.supplierId,
+          poNumber,
+          orderDate: data.orderDate,
+          expectedDate: data.expectedDate ?? null,
+          notes: data.notes ?? null,
+        },
+        tx,
+      );
 
-    const items = await this.repository.createItems(
-      (data.items ?? []).map((item) => ({
-        purchaseOrderId: entity.id,
-        inventoryItemId: item.inventoryItemId,
-        orderedQuantity: String(item.orderedQuantity),
-      })),
-    );
+      await this.repository.createItemsWithTx(
+        tx,
+        (data.items ?? []).map((item) => ({
+          purchaseOrderId: created.id,
+          inventoryItemId: item.inventoryItemId,
+          orderedQuantity: String(item.orderedQuantity),
+        })),
+      );
+
+      return created;
+    });
 
     const itemsWithNames = await this.repository.findItemsByPoId(entity.id);
     const supplierName = await this.repository.findSupplierName(entity.supplierId);
-    this.logger.log(`Created PO: ${entity.poNumber} with ${items.length} items`);
+    this.logger.log(`Created PO: ${entity.poNumber} with ${itemsWithNames.length} items`);
     return PurchaseOrderDetailDto.fromDetail(
       entity,
       supplierName,
@@ -104,20 +128,26 @@ export class PurchaseOrdersService {
     if (data.totalAmount !== undefined)
       updatePayload.totalAmount = data.totalAmount != null ? String(data.totalAmount) : null;
 
-    const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
+    const entity = await this.repository.transaction(async (tx) => {
+      const updated =
+        Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload, tx) : existing;
 
-    if (data.items !== undefined) {
-      await this.repository.deleteItemsByPoId(id);
-      await this.repository.createItems(
-        data.items.map((item) => ({
-          purchaseOrderId: id,
-          inventoryItemId: item.inventoryItemId,
-          orderedQuantity: String(item.orderedQuantity),
-          unitPrice: item.unitPrice != null ? String(item.unitPrice) : null,
-          totalPrice: item.unitPrice != null ? String(Number(item.unitPrice) * item.orderedQuantity) : null,
-        })),
-      );
-    }
+      if (data.items !== undefined) {
+        await this.repository.deleteItemsByPoIdWithTx(tx, id);
+        await this.repository.createItemsWithTx(
+          tx,
+          data.items.map((item) => ({
+            purchaseOrderId: id,
+            inventoryItemId: item.inventoryItemId,
+            orderedQuantity: String(item.orderedQuantity),
+            unitPrice: item.unitPrice != null ? String(item.unitPrice) : null,
+            totalPrice: item.unitPrice != null ? String(Number(item.unitPrice) * item.orderedQuantity) : null,
+          })),
+        );
+      }
+
+      return updated;
+    });
 
     const supplierName = await this.repository.findSupplierName(entity.supplierId);
     const itemsWithNames = await this.repository.findItemsByPoId(id);
@@ -133,6 +163,10 @@ export class PurchaseOrdersService {
   async updateStatus(id: string, status: PurchaseOrderStatus): Promise<PurchaseOrderDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
+    const allowedNext = PurchaseOrdersService.STATUS_TRANSITIONS[existing.status] ?? [];
+    if (!allowedNext.includes(status)) {
+      throw new BadRequestException(`Cannot transition purchase order status from ${existing.status} to ${status}.`);
+    }
     const entity = await this.repository.update(id, { status });
     const supplierName = await this.repository.findSupplierName(entity.supplierId);
     this.logger.log(`PO ${entity.poNumber} status → ${status}`);

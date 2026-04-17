@@ -69,4 +69,25 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       .where(eq(purchaseOrderItems.id, poItemId));
     return result[0]?.inventoryItemId ?? null;
   }
+
+  // Returns PO item with quantities for receipt validation
+  async findPoItemForReceipt(poItemId: string): Promise<{
+    id: string;
+    purchaseOrderId: string;
+    inventoryItemId: string;
+    orderedQuantity: string;
+    receivedQuantity: string;
+  } | null> {
+    const result = await this.db
+      .select({
+        id: purchaseOrderItems.id,
+        purchaseOrderId: purchaseOrderItems.purchaseOrderId,
+        inventoryItemId: purchaseOrderItems.inventoryItemId,
+        orderedQuantity: purchaseOrderItems.orderedQuantity,
+        receivedQuantity: purchaseOrderItems.receivedQuantity,
+      })
+      .from(purchaseOrderItems)
+      .where(eq(purchaseOrderItems.id, poItemId));
+    return result[0] ?? null;
+  }
 }

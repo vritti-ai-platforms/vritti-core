@@ -18,6 +18,7 @@ interface ReceiveGoodsDialogProps {
 
 const receiveGoodsSchema = z.object({
   locationId: z.string().min(1, 'Location is required'),
+  receivedDate: z.string().min(1, 'Received date is required'),
   notes: z.string().optional(),
   items: z.array(
     z.object({
@@ -30,7 +31,10 @@ const receiveGoodsSchema = z.object({
       expiryDate: z.string().optional(),
     }),
   ),
-});
+}).refine(
+  (data) => data.items.some((item) => Number(item.acceptedQuantity) > 0 || Number(item.rejectedQuantity) > 0),
+  { message: 'Enter accepted or rejected quantity for at least one line item.', path: ['items'] },
+);
 
 type ReceiveGoodsFormData = z.infer<typeof receiveGoodsSchema>;
 
@@ -41,6 +45,7 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
     resolver: zodResolver(receiveGoodsSchema),
     defaultValues: {
       locationId: undefined,
+      receivedDate: new Date().toISOString().split('T')[0],
       notes: '',
       items: receivableItems.map((item) => ({
         purchaseOrderItemId: item.id,
@@ -78,6 +83,7 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
       transformSubmit={(data) => ({
         purchaseOrderId: purchaseOrder.id,
         locationId: data.locationId,
+        receivedDate: data.receivedDate,
         notes: data.notes || undefined,
         items: data.items
           .filter((item) => Number(item.acceptedQuantity) > 0 || Number(item.rejectedQuantity) > 0)
@@ -93,6 +99,7 @@ export const ReceiveGoodsDialog: React.FC<ReceiveGoodsDialogProps> = ({ purchase
       })}
     >
       <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
+      <TextField name="receivedDate" label="Received Date" type="date" />
       <div className="space-y-6">
         {receivableItems.map((item, index) => (
           <div key={item.id} className="rounded-lg border p-4 space-y-3">

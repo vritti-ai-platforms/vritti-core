@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 
 export class CreatePurchaseOrderItemDto {
   @IsUUID()
@@ -13,11 +13,6 @@ export class CreatePurchaseOrderItemDto {
 export class CreatePurchaseOrderDto {
   @IsUUID()
   supplierId: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  poNumber?: string;
 
   @IsString()
   @IsNotEmpty()

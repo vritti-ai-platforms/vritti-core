@@ -13,7 +13,10 @@ export class PurchaseOrderResponseDto {
   @ApiPropertyOptional({ description: 'PO number', nullable: true })
   poNumber: string | null;
 
-  @ApiProperty({ description: 'PO status', enum: ['DRAFT', 'SENT', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'] })
+  @ApiProperty({
+    description: 'PO status',
+    enum: ['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'],
+  })
   status: string;
 
   @ApiProperty({ description: 'Order date (ISO string)' })

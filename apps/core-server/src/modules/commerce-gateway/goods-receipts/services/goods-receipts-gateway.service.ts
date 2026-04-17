@@ -17,6 +17,6 @@ export class GoodsReceiptsGatewayService {
   // Returns goods receipts for a given purchase order
   async findByPoId(poId: string): Promise<unknown> {
     this.logger.log(`goodsReceipts.findByPoId — poId: ${poId}`);
-    return this.nats.send('commerce', 'goodsReceipts.findByPoId', { poId });
+    return this.nats.send('commerce', 'goodsReceipts.findByPoId', { purchaseOrderId: poId });
   }
 }

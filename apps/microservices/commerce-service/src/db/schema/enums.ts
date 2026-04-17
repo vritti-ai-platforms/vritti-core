@@ -207,6 +207,7 @@ export type InventoryLedgerReferenceType = (typeof inventoryLedgerReferenceTypeE
 export const purchaseOrderStatusEnum = coreSchema.enum('purchase_order_status', [
   'DRAFT',
   'SENT',
+  'CONFIRMED',
   'PARTIALLY_RECEIVED',
   'RECEIVED',
   'CANCELLED',
@@ -214,6 +215,7 @@ export const purchaseOrderStatusEnum = coreSchema.enum('purchase_order_status', 
 export const PurchaseOrderStatusValues = {
   DRAFT: 'DRAFT' as const,
   SENT: 'SENT' as const,
+  CONFIRMED: 'CONFIRMED' as const,
   PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED' as const,
   RECEIVED: 'RECEIVED' as const,
   CANCELLED: 'CANCELLED' as const,

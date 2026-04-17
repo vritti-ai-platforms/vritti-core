@@ -4,9 +4,10 @@ import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItems,
   type NewStockAdjustment,
-  stockAdjustmentLines,
   type StockAdjustment,
   type StockAdjustmentStatus,
+  stockAdjustmentCodeSeq,
+  stockAdjustmentLines,
   stockAdjustments,
   uom,
 } from '@/db/schema';
@@ -14,15 +15,10 @@ import {
 @Injectable()
 export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof stockAdjustments> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, stockAdjustments);
+    super(database, stockAdjustments, { sequence: stockAdjustmentCodeSeq });
   }
 
-  async findAllForTable(options: {
-    where?: SQL;
-    orderBy?: SQL[];
-    limit: number;
-    offset: number;
-  }): Promise<{
+  async findAllForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
     result: (StockAdjustment & {
       inventoryItemName: string;
       createdByFullName: string;
@@ -64,15 +60,14 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     });
   }
 
-  async findByIdWithItemName(
-    id: string,
-  ): Promise<
-      (StockAdjustment & {
+  async findByIdWithItemName(id: string): Promise<
+    | (StockAdjustment & {
         inventoryItemName: string;
         inventoryItemUomSymbol: string | null;
         createdByFullName: string;
         isPublishable: boolean;
-      }) | undefined
+      })
+    | undefined
   > {
     const rows = await this.db
       .select({
@@ -148,11 +143,10 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
 
   // Generates a unique stock adjustment code (org-scoped via RLS)
   async generateCode(): Promise<string> {
-    const result = await this.db.select({ count: sql<number>`count(*)` }).from(stockAdjustments);
-    const count = Number(result[0]?.count ?? 0);
     const now = new Date();
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-    return `SA-${yearMonth}-${String(count + 1).padStart(4, '0')}`;
+    const nextNumber = await this.nextSequenceValue();
+    return `SA-${yearMonth}-${String(nextNumber).padStart(4, '0')}`;
   }
 
   // Creates a stock adjustment with an auto-generated code

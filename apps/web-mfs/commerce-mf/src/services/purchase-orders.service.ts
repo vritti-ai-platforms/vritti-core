@@ -19,12 +19,17 @@ export interface UpdatePurchaseOrderPayload {
 export interface CreateGoodsReceiptPayload {
   purchaseOrderId: string;
   locationId: string;
+  receivedDate: string;
+  receivedBy?: string;
   notes?: string;
   items: {
     purchaseOrderItemId: string;
     acceptedQuantity: number;
     rejectedQuantity: number;
     rejectionReason?: string;
+    batchNumber?: string;
+    manufacturingDate?: string;
+    expiryDate?: string;
   }[];
 }
 

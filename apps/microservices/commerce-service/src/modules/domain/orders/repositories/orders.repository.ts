@@ -10,6 +10,7 @@ import {
   type OrderItemModifier,
   orderItemModifiers,
   orderItems,
+  orderNumberSeq,
   orders,
   taxRates,
 } from '@/db/schema';
@@ -17,7 +18,7 @@ import {
 @Injectable()
 export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, orders);
+    super(database, orders, { sequence: orderNumberSeq });
   }
 
   // Returns all line items for an order
@@ -50,9 +51,8 @@ export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
 
   // Generates a sequential order number (RLS scopes the count to current BU)
   async generateOrderNumber(): Promise<string> {
-    const result = await this.db.select({ count: sql<number>`count(*)` }).from(orders);
-    const count = Number(result[0]?.count ?? 0);
-    return `ORD-${String(count + 1).padStart(5, '0')}`;
+    const nextNumber = await this.nextSequenceValue();
+    return `ORD-${String(nextNumber).padStart(5, '0')}`;
   }
 
   // Looks up variant details with item info for denormalization during order creation

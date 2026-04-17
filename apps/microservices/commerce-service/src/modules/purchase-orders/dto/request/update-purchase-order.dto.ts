@@ -18,7 +18,7 @@ export class UpdatePurchaseOrderItemDto {
 
 export class UpdatePurchaseOrderDto {
   @IsOptional()
-  @IsEnum(['DRAFT', 'SENT', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'])
+  @IsEnum(['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'])
   status?: PurchaseOrderStatus;
 
   @IsOptional()

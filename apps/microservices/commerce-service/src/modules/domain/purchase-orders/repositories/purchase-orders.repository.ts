@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItems,
   type NewPurchaseOrderItem,
-  type PurchaseOrder,
   type PurchaseOrderItem,
   purchaseOrderItems,
+  purchaseOrderNumberSeq,
   purchaseOrders,
   suppliers,
 } from '@/db/schema';
@@ -14,7 +14,7 @@ import {
 @Injectable()
 export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, purchaseOrders);
+    super(database, purchaseOrders, { sequence: purchaseOrderNumberSeq });
   }
 
   // Returns supplier name for a given supplier ID
@@ -50,9 +50,20 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
     return this.db.insert(purchaseOrderItems).values(items).returning() as Promise<PurchaseOrderItem[]>;
   }
 
+  // Creates PO line items within an existing transaction
+  async createItemsWithTx(tx: TypedDrizzleClient, items: NewPurchaseOrderItem[]): Promise<PurchaseOrderItem[]> {
+    if (items.length === 0) return [];
+    return tx.insert(purchaseOrderItems).values(items).returning() as Promise<PurchaseOrderItem[]>;
+  }
+
   // Deletes all line items for a PO
   async deleteItemsByPoId(poId: string): Promise<void> {
     await this.db.delete(purchaseOrderItems).where(eq(purchaseOrderItems.purchaseOrderId, poId));
+  }
+
+  // Deletes all line items for a PO within an existing transaction
+  async deleteItemsByPoIdWithTx(tx: TypedDrizzleClient, poId: string): Promise<void> {
+    await tx.delete(purchaseOrderItems).where(eq(purchaseOrderItems.purchaseOrderId, poId));
   }
 
   // Updates received quantity on a PO line item
@@ -67,8 +78,9 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
 
   // Generates a sequential PO number
   async generatePoNumber(): Promise<string> {
-    const result = await this.db.select({ count: sql<number>`count(*)` }).from(purchaseOrders);
-    const count = Number(result[0]?.count ?? 0);
-    return `PO-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    const now = new Date();
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const nextNumber = await this.nextSequenceValue();
+    return `PO-${yearMonth}-${String(nextNumber).padStart(4, '0')}`;
   }
 }

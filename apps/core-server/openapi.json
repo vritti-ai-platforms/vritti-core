@@ -9471,6 +9471,20 @@
           "rejectionReason": {
             "type": "string",
             "description": "Reason for rejection"
+          },
+          "batchNumber": {
+            "type": "string",
+            "description": "Supplier batch / lot number"
+          },
+          "manufacturingDate": {
+            "type": "string",
+            "description": "Manufacturing date (ISO)",
+            "example": "2026-04-01"
+          },
+          "expiryDate": {
+            "type": "string",
+            "description": "Expiry date (ISO)",
+            "example": "2027-04-01"
           }
         },
         "required": [
@@ -9677,6 +9691,16 @@
             "type": "string",
             "description": "Location address"
           },
+          "locationRole": {
+            "type": "string",
+            "description": "Location role",
+            "enum": [
+              "STORAGE",
+              "POS",
+              "ZONE"
+            ],
+            "default": "STORAGE"
+          },
           "isActive": {
             "type": "boolean",
             "description": "Whether the location is active",
@@ -9685,7 +9709,8 @@
         },
         "required": [
           "name",
-          "code"
+          "code",
+          "locationRole"
         ]
       },
       "UpdateStorageLocationDto": {
@@ -9719,6 +9744,15 @@
           "address": {
             "type": "string",
             "description": "Updated location address"
+          },
+          "locationRole": {
+            "type": "string",
+            "description": "Updated location role",
+            "enum": [
+              "STORAGE",
+              "POS",
+              "ZONE"
+            ]
           },
           "isActive": {
             "type": "boolean",
@@ -10939,10 +10973,6 @@
             "type": "string",
             "description": "Supplier ID"
           },
-          "poNumber": {
-            "type": "string",
-            "description": "PO number (auto-generated if omitted)"
-          },
           "orderDate": {
             "type": "string",
             "description": "Order date (ISO string)",
@@ -10997,6 +11027,7 @@
             "enum": [
               "DRAFT",
               "SENT",
+              "CONFIRMED",
               "PARTIALLY_RECEIVED",
               "RECEIVED",
               "CANCELLED"
@@ -11248,7 +11279,8 @@
           }
         },
         "required": [
-          "name"
+          "name",
+          "phone"
         ]
       },
       "CreateSupplierDto": {
@@ -11426,7 +11458,8 @@
           }
         },
         "required": [
-          "name"
+          "name",
+          "phone"
         ]
       },
       "UpdateSupplierContactDto": {
@@ -11437,9 +11470,8 @@
             "description": "Contact name"
           },
           "phone": {
-            "type": "object",
-            "description": "Contact phone number",
-            "nullable": true
+            "type": "string",
+            "description": "Contact phone number"
           },
           "alternatePhone": {
             "type": "object",
@@ -11474,7 +11506,10 @@
             "type": "boolean",
             "description": "Set contact active status"
           }
-        }
+        },
+        "required": [
+          "phone"
+        ]
       },
       "TaxRateResponseDto": {
         "type": "object",

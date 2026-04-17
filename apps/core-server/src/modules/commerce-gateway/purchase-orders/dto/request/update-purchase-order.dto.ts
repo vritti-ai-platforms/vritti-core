@@ -20,9 +20,12 @@ export class UpdatePurchaseOrderItemDto {
 }
 
 export class UpdatePurchaseOrderDto {
-  @ApiPropertyOptional({ description: 'PO status', enum: ['DRAFT', 'SENT', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'] })
+  @ApiPropertyOptional({
+    description: 'PO status',
+    enum: ['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'],
+  })
   @IsOptional()
-  @IsEnum(['DRAFT', 'SENT', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'])
+  @IsEnum(['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CANCELLED'])
   status?: string;
 
   @ApiPropertyOptional({ description: 'Order date (ISO string)' })

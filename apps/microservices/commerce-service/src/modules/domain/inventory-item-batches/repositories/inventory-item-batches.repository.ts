@@ -4,6 +4,7 @@ import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemBatch,
   inventoryItemBatches,
+  inventoryItemBatchNumberSeq,
   inventoryItems,
   inventoryLevels,
   storageLocations,
@@ -12,7 +13,7 @@ import {
 @Injectable()
 export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof inventoryItemBatches> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, inventoryItemBatches);
+    super(database, inventoryItemBatches, { sequence: inventoryItemBatchNumberSeq });
   }
 
   async findBatchesForTable(
@@ -225,8 +226,8 @@ export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof
     const date = mfd ?? new Date().toISOString().slice(0, 10);
     const dateCompact = date.replace(/-/g, '').slice(2);
     const itemCode = await this.findItemCode(itemId);
-    const count = await this.countBatchesForItemOnDate(itemId, date);
-    return `${itemCode}-${dateCompact}-${String(count + 1).padStart(4, '0')}`;
+    const nextNumber = await this.nextSequenceValue();
+    return `${itemCode}-${dateCompact}-${String(nextNumber).padStart(4, '0')}`;
   }
 
   private async findItemCode(itemId: string): Promise<string> {
@@ -236,14 +237,5 @@ export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof
       .where(eq(inventoryItems.id, itemId));
 
     return row?.code ?? '';
-  }
-
-  private async countBatchesForItemOnDate(itemId: string, date: string): Promise<number> {
-    const [result] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryItemBatches)
-      .where(and(eq(inventoryItemBatches.inventoryItemId, itemId), eq(inventoryItemBatches.manufacturingDate, date)));
-
-    return Number(result?.count ?? 0);
   }
 }
