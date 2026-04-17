@@ -1,5 +1,5 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class UpdateSupplierContactDto {
   @ApiPropertyOptional({ description: 'Contact name' })
@@ -8,17 +8,18 @@ export class UpdateSupplierContactDto {
   @MaxLength(255)
   name?: string;
 
-  @ApiPropertyOptional({ description: 'Contact phone number', nullable: true })
-  @IsOptional()
+  @ApiProperty({ description: 'Contact phone number' })
   @IsString()
+  @IsNotEmpty()
+  @Matches(/^\+[1-9]\d{5,14}$/, { message: 'Phone must be a valid international number (e.g. +919876543210).' })
   @MaxLength(20)
-  phone?: string | null;
+  phone: string;
 
-  @ApiPropertyOptional({ description: 'Contact alternate mobile number', nullable: true })
+  @ApiPropertyOptional({ description: 'Contact alternate phone number', nullable: true })
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  alternateMobile?: string | null;
+  alternatePhone?: string | null;
 
   @ApiPropertyOptional({ description: 'Contact email address', nullable: true })
   @IsOptional()

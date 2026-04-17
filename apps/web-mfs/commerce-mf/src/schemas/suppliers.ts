@@ -2,7 +2,11 @@ import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { isValidPhoneNumber } from '@vritti/quantum-ui/PhoneField';
 import { z } from 'zod';
 
-export const zPhoneNumber = z.string().refine((value) => value === '' || isValidPhoneNumber(value), {
+export const zPhoneNumber = z.string().refine((value) => isValidPhoneNumber(value), {
+  message: 'Invalid phone number',
+});
+
+const zOptionalPhoneNumber = z.string().refine((value) => value === '' || isValidPhoneNumber(value), {
   message: 'Invalid phone number',
 });
 
@@ -10,8 +14,8 @@ export const createSupplierSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   code: z.string().min(1, 'Code is required').max(100),
   contactName: z.string().min(1, 'Primary contact name is required').max(255),
-  phone: zPhoneNumber.optional(),
-  alternateMobile: zPhoneNumber.optional(),
+  phone: zPhoneNumber,
+  alternatePhone: zOptionalPhoneNumber.optional(),
   email: z.email('Invalid email').optional().or(z.literal('')),
   alternateEmail: z.email('Invalid email').optional().or(z.literal('')),
   designation: z.string().max(100).optional(),
@@ -37,8 +41,8 @@ export const updateSupplierSchema = z.object({
 
 export const createSupplierContactSchema = z.object({
   name: z.string().min(1, 'Contact name is required').max(255),
-  phone: zPhoneNumber.optional(),
-  alternateMobile: zPhoneNumber.optional(),
+  phone: zPhoneNumber,
+  alternatePhone: zOptionalPhoneNumber.optional(),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   alternateEmail: z.string().email('Invalid email').optional().or(z.literal('')),
   designation: z.string().max(100).optional(),
@@ -48,8 +52,8 @@ export const createSupplierContactSchema = z.object({
 
 export const updateSupplierContactSchema = z.object({
   name: z.string().min(1).max(255).optional(),
-  phone: z.union([zPhoneNumber, z.null()]).optional(),
-  alternateMobile: z.union([zPhoneNumber, z.null()]).optional(),
+  phone: zPhoneNumber,
+  alternatePhone: z.union([zOptionalPhoneNumber, z.null()]).optional(),
   email: z.string().email('Invalid email').nullable().optional().or(z.literal('')),
   alternateEmail: z.string().email('Invalid email').nullable().optional().or(z.literal('')),
   designation: z.string().max(100).nullable().optional(),
@@ -81,7 +85,7 @@ export interface SupplierData {
   name: string;
   code: string;
   contactName: string | null;
-  phone: string | null;
+  phone: string;
   email: string | null;
   website: string | null;
   address: string | null;
@@ -114,8 +118,8 @@ export interface SupplierContactData {
   id: string;
   supplierId: string;
   name: string;
-  phone: string | null;
-  alternateMobile: string | null;
+  phone: string;
+  alternatePhone: string | null;
   email: string | null;
   alternateEmail: string | null;
   designation: string | null;

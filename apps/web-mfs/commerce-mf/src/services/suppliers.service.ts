@@ -14,8 +14,8 @@ export interface CreateSupplierPayload {
   code: string;
   primaryContact: {
     name: string;
-    phone?: string;
-    alternateMobile?: string;
+    phone: string;
+    alternatePhone?: string;
     email?: string;
     alternateEmail?: string;
     designation?: string;
@@ -52,8 +52,8 @@ export interface LinkSupplierItemPayload {
 
 export interface CreateSupplierContactPayload {
   name: string;
-  phone?: string;
-  alternateMobile?: string;
+  phone: string;
+  alternatePhone?: string;
   email?: string;
   alternateEmail?: string;
   designation?: string;
@@ -63,8 +63,8 @@ export interface CreateSupplierContactPayload {
 
 export interface UpdateSupplierContactPayload {
   name?: string;
-  phone?: string | null;
-  alternateMobile?: string | null;
+  phone: string;
+  alternatePhone?: string | null;
   email?: string | null;
   alternateEmail?: string | null;
   designation?: string | null;

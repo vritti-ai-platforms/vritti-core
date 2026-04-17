@@ -63,7 +63,7 @@ export const SupplierContactsSidePanel = ({
                     {contact.isPrimary ? <Badge variant="secondary">Primary</Badge> : null}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1 truncate">
-                    {contact.designation ?? contact.email ?? contact.alternateEmail ?? contact.phone ?? contact.alternateMobile ?? 'No additional details'}
+                    {contact.designation ?? contact.email ?? contact.alternateEmail ?? contact.phone ?? contact.alternatePhone ?? 'No additional details'}
                   </div>
                 </SidePanelListItem>
               ))}

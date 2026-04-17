@@ -35,7 +35,7 @@ export class SupplierDto {
   name: string;
   code: string;
   contactName: string | null;
-  phone: string | null;
+  phone: string;
   email: string | null;
   website: string | null;
   address: string | null;
@@ -53,7 +53,7 @@ export class SupplierDto {
     dto.name = entity.name;
     dto.code = entity.code;
     dto.contactName = entity.contactName ?? null;
-    dto.phone = entity.phone ?? null;
+    dto.phone = entity.phone;
     dto.email = entity.email ?? null;
     dto.website = entity.website ?? null;
     dto.address = entity.address ?? null;

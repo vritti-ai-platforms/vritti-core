@@ -89,7 +89,7 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
 
   async syncSupplierPrimaryContact(
     supplierId: string,
-    data: { name: string | null; phone: string | null; email: string | null },
+    data: { name: string | null; phone: string; email: string | null },
     tx?: TypedDrizzleClient,
   ): Promise<void> {
     const db = tx ?? this.db;

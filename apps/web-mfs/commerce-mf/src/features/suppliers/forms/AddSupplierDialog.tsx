@@ -22,7 +22,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       code: '',
       contactName: '',
       phone: '',
-      alternateMobile: '',
+      alternatePhone: '',
       email: '',
       alternateEmail: '',
       designation: '',
@@ -50,8 +50,8 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
         code: data.code,
         primaryContact: {
           name: data.contactName,
-          phone: data.phone || undefined,
-          alternateMobile: data.alternateMobile || undefined,
+          phone: data.phone,
+          alternatePhone: data.alternatePhone || undefined,
           email: data.email || undefined,
           alternateEmail: data.alternateEmail || undefined,
           designation: data.designation || undefined,
@@ -87,7 +87,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
             <TextField name="contactName" label="Contact Name" placeholder="e.g. John Smith" />
             <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />
             <PhoneField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />
-            <PhoneField name="alternateMobile" label="Alternate Mobile" placeholder="e.g. +91 98765 00000" />
+            <PhoneField name="alternatePhone" label="Alternate Phone" placeholder="e.g. +91 98765 00000" />
             <TextField name="email" label="Email" type="email" placeholder="e.g. john@freshfarms.com" />
             <TextField
               name="alternateEmail"

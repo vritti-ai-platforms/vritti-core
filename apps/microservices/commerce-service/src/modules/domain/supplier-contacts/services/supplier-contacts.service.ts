@@ -3,10 +3,22 @@ import { BadRequestException, NotFoundException, type SuccessResponseDto } from 
 import { SupplierContactDto } from '../dto/entity/supplier-contact.dto';
 import { SupplierContactsRepository } from '../repositories/supplier-contacts.repository';
 
-interface UpsertSupplierContactInput {
+interface CreateSupplierContactInput {
   name: string;
-  phone?: string | null;
-  alternateMobile?: string | null;
+  phone: string;
+  alternatePhone?: string | null;
+  email?: string | null;
+  alternateEmail?: string | null;
+  designation?: string | null;
+  notes?: string | null;
+  isPrimary?: boolean;
+  isActive?: boolean;
+}
+
+interface UpdateSupplierContactInput {
+  name?: string;
+  phone: string;
+  alternatePhone?: string | null;
   email?: string | null;
   alternateEmail?: string | null;
   designation?: string | null;
@@ -26,7 +38,7 @@ export class SupplierContactsService {
     return rows.map(SupplierContactDto.from);
   }
 
-  async createContact(supplierId: string, data: UpsertSupplierContactInput): Promise<SupplierContactDto> {
+  async createContact(supplierId: string, data: CreateSupplierContactInput): Promise<SupplierContactDto> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
@@ -49,8 +61,8 @@ export class SupplierContactsService {
         {
           supplierId,
           name: data.name,
-          phone: data.phone ?? null,
-          alternateMobile: data.alternateMobile ?? null,
+          phone: data.phone,
+          alternatePhone: data.alternatePhone ?? null,
           email: data.email ?? null,
           alternateEmail: data.alternateEmail ?? null,
           designation: data.designation ?? null,
@@ -63,7 +75,7 @@ export class SupplierContactsService {
       if (makePrimary) {
         await this.repository.syncSupplierPrimaryContact(
           supplierId,
-          { name: row.name, phone: row.phone ?? null, email: row.email ?? null },
+          { name: row.name, phone: row.phone, email: row.email ?? null },
           tx,
         );
       }
@@ -76,7 +88,7 @@ export class SupplierContactsService {
   async updateContact(
     supplierId: string,
     contactId: string,
-    data: Partial<UpsertSupplierContactInput>,
+    data: UpdateSupplierContactInput,
   ): Promise<SupplierContactDto> {
     const existing = await this.repository.findBySupplierAndContactId(supplierId, contactId);
     if (!existing) throw new NotFoundException('Supplier contact not found.');
@@ -92,9 +104,9 @@ export class SupplierContactsService {
       const row = await this.repository.updateContact(
         contactId,
         {
+          phone: data.phone,
           ...(data.name !== undefined ? { name: data.name } : {}),
-          ...(data.phone !== undefined ? { phone: data.phone } : {}),
-          ...(data.alternateMobile !== undefined ? { alternateMobile: data.alternateMobile } : {}),
+          ...(data.alternatePhone !== undefined ? { alternatePhone: data.alternatePhone } : {}),
           ...(data.email !== undefined ? { email: data.email } : {}),
           ...(data.alternateEmail !== undefined ? { alternateEmail: data.alternateEmail } : {}),
           ...(data.designation !== undefined ? { designation: data.designation } : {}),
@@ -108,7 +120,7 @@ export class SupplierContactsService {
       if (row.isPrimary) {
         await this.repository.syncSupplierPrimaryContact(
           supplierId,
-          { name: row.name, phone: row.phone ?? null, email: row.email ?? null },
+          { name: row.name, phone: row.phone, email: row.email ?? null },
           tx,
         );
       }
@@ -127,7 +139,7 @@ export class SupplierContactsService {
       const row = await this.repository.updateContact(contactId, { isPrimary: true }, tx);
       await this.repository.syncSupplierPrimaryContact(
         supplierId,
-        { name: row.name, phone: row.phone ?? null, email: row.email ?? null },
+        { name: row.name, phone: row.phone, email: row.email ?? null },
         tx,
       );
       return row;

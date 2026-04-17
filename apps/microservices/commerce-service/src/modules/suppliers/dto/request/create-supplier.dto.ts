@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateNested } from 'class-validator';
 
 export class CreatePrimarySupplierContactDto {
   @IsString()
@@ -7,15 +7,16 @@ export class CreatePrimarySupplierContactDto {
   @MaxLength(255)
   name: string;
 
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
+  @Matches(/^\+[1-9]\d{5,14}$/, { message: 'Phone must be a valid international number (e.g. +919876543210).' })
   @MaxLength(20)
-  phone?: string;
+  phone: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  alternateMobile?: string;
+  alternatePhone?: string;
 
   @IsOptional()
   @IsString()

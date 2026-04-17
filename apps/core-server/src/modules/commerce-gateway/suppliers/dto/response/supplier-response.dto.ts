@@ -13,8 +13,8 @@ export class SupplierResponseDto {
   @ApiPropertyOptional({ description: 'Primary contact person name', nullable: true })
   contactName: string | null;
 
-  @ApiPropertyOptional({ description: 'Phone number', nullable: true })
-  phone: string | null;
+  @ApiProperty({ description: 'Phone number' })
+  phone: string;
 
   @ApiPropertyOptional({ description: 'Email address', nullable: true })
   email: string | null;

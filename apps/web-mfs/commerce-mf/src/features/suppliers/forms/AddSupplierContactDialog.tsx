@@ -26,7 +26,7 @@ export const AddSupplierContactDialog: React.FC<AddSupplierContactDialogProps> =
     defaultValues: {
       name: '',
       phone: '',
-      alternateMobile: '',
+      alternatePhone: '',
       email: '',
       alternateEmail: '',
       designation: '',
@@ -45,8 +45,8 @@ export const AddSupplierContactDialog: React.FC<AddSupplierContactDialogProps> =
       onCancel={onCancel}
       transformSubmit={(data) => ({
         name: data.name,
-        phone: data.phone || undefined,
-        alternateMobile: data.alternateMobile || undefined,
+        phone: data.phone,
+        alternatePhone: data.alternatePhone || undefined,
         email: data.email || undefined,
         alternateEmail: data.alternateEmail || undefined,
         designation: data.designation || undefined,
@@ -56,7 +56,7 @@ export const AddSupplierContactDialog: React.FC<AddSupplierContactDialogProps> =
     >
       <TextField name="name" label="Name" placeholder="e.g. John Smith" />
       <PhoneField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />
-      <PhoneField name="alternateMobile" label="Alternate Mobile" placeholder="e.g. +91 98765 00000" />
+      <PhoneField name="alternatePhone" label="Alternate Phone" placeholder="e.g. +91 98765 00000" />
       <TextField name="email" label="Email" type="email" placeholder="e.g. john@supplier.com" />
       <TextField name="alternateEmail" label="Alternate Email" type="email" placeholder="e.g. john.alt@supplier.com" />
       <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />

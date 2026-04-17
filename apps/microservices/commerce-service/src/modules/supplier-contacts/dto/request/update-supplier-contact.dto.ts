@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class UpdateSupplierContactDto {
   @IsOptional()
@@ -6,15 +6,16 @@ export class UpdateSupplierContactDto {
   @MaxLength(255)
   name?: string;
 
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
+  @Matches(/^\+[1-9]\d{5,14}$/, { message: 'Phone must be a valid international number (e.g. +919876543210).' })
   @MaxLength(20)
-  phone?: string | null;
+  phone: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(20)
-  alternateMobile?: string | null;
+  alternatePhone?: string | null;
 
   @IsOptional()
   @IsEmail()

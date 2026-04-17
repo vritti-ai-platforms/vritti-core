@@ -10,11 +10,11 @@ export class SupplierContactResponseDto {
   @ApiProperty({ description: 'Contact name' })
   name: string;
 
-  @ApiPropertyOptional({ description: 'Contact phone number', nullable: true })
-  phone: string | null;
+  @ApiProperty({ description: 'Contact phone number' })
+  phone: string;
 
-  @ApiPropertyOptional({ description: 'Contact alternate mobile number', nullable: true })
-  alternateMobile: string | null;
+  @ApiPropertyOptional({ description: 'Contact alternate phone number', nullable: true })
+  alternatePhone: string | null;
 
   @ApiPropertyOptional({ description: 'Contact email address', nullable: true })
   email: string | null;

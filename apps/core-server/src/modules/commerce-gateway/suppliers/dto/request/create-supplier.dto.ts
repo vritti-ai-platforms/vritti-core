@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateNested } from 'class-validator';
 
 export class CreatePrimarySupplierContactDto {
   @ApiProperty({ description: 'Primary contact person name', example: 'John Smith' })
@@ -8,15 +8,16 @@ export class CreatePrimarySupplierContactDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ description: 'Primary contact phone number' })
-  @IsOptional()
+  @ApiProperty({ description: 'Primary contact phone number' })
   @IsString()
-  phone?: string;
+  @IsNotEmpty()
+  @Matches(/^\+[1-9]\d{5,14}$/, { message: 'Phone must be a valid international number (e.g. +919876543210).' })
+  phone: string;
 
-  @ApiPropertyOptional({ description: 'Primary contact alternate mobile number' })
+  @ApiPropertyOptional({ description: 'Primary contact alternate phone number' })
   @IsOptional()
   @IsString()
-  alternateMobile?: string;
+  alternatePhone?: string;
 
   @ApiPropertyOptional({ description: 'Primary contact email address' })
   @IsOptional()

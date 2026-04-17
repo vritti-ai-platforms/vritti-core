@@ -113,7 +113,7 @@ export const SupplierContactsContent = ({
             <DetailField label="Name" value={selectedContact.name} />
             <DetailField label="Designation" value={selectedContact.designation ?? '—'} />
             <DetailField label="Phone" value={selectedContact.phone ?? '—'} />
-            <DetailField label="Alternate Mobile" value={selectedContact.alternateMobile ?? '—'} />
+            <DetailField label="Alternate Phone" value={selectedContact.alternatePhone ?? '—'} />
             <DetailField label="Email" value={selectedContact.email ?? '—'} />
             <DetailField label="Alternate Email" value={selectedContact.alternateEmail ?? '—'} />
             <DetailField label="Status" value={selectedContact.isActive ? 'Active' : 'Inactive'} />

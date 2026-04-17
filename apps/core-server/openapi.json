@@ -11230,9 +11230,9 @@
             "type": "string",
             "description": "Primary contact phone number"
           },
-          "alternateMobile": {
+          "alternatePhone": {
             "type": "string",
-            "description": "Primary contact alternate mobile number"
+            "description": "Primary contact alternate phone number"
           },
           "email": {
             "type": "string",
@@ -11399,9 +11399,9 @@
             "type": "string",
             "description": "Contact phone number"
           },
-          "alternateMobile": {
+          "alternatePhone": {
             "type": "string",
-            "description": "Contact alternate mobile number"
+            "description": "Contact alternate phone number"
           },
           "email": {
             "type": "string",
@@ -11441,9 +11441,9 @@
             "description": "Contact phone number",
             "nullable": true
           },
-          "alternateMobile": {
+          "alternatePhone": {
             "type": "object",
-            "description": "Contact alternate mobile number",
+            "description": "Contact alternate phone number",
             "nullable": true
           },
           "email": {
