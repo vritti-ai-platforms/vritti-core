@@ -97,7 +97,11 @@ export const SupplierContactsContent = ({
             variant="outline"
             className="text-destructive hover:text-destructive"
             startAdornment={<Trash2 className="size-3.5" />}
-            onClick={() => handleDelete(selectedContact.id, selectedContact.name)}
+            onClick={() => {
+              if (selectedContact.isPrimary) return;
+              handleDelete(selectedContact.id, selectedContact.name);
+            }}
+            disabled={selectedContact.isPrimary}
             isLoading={deleteContactMutation.isPending}
           >
             Delete
