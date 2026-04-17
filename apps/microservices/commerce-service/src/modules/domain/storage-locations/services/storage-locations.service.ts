@@ -11,7 +11,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
-import { storageLocations } from '@/db/schema';
+import { storageLocations, StorageLocationRoleValues } from '@/db/schema';
 import type { CreateStorageLocationDto } from '@/modules/storage-locations/dto/request/create-storage-location.dto';
 import type { UpdateStorageLocationDto } from '@/modules/storage-locations/dto/request/update-storage-location.dto';
 import { StorageLocationDto } from '../dto/entity/storage-location.dto';
@@ -25,6 +25,7 @@ export class StorageLocationsService {
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: storageLocations.name, type: 'string' },
     code: { column: storageLocations.code, type: 'string' },
+    locationRole: { column: storageLocations.locationRole, type: 'string' },
     isActive: { column: storageLocations.isActive, type: 'boolean' },
     sortOrder: { column: storageLocations.sortOrder, type: 'number' },
     area: { column: storageLocations.area, type: 'string' },
@@ -166,10 +167,16 @@ export class StorageLocationsService {
     }
 
     let parentPath: string | null = null;
+    let parentRole: string | null = null;
     if (data.parentId) {
       const parent = await this.storageLocationsRepository.findById(data.parentId);
       if (!parent) throw new NotFoundException('Parent storage location not found.');
       parentPath = parent.path;
+      parentRole = parent.locationRole;
+    }
+
+    if (parentRole !== null && parentRole !== StorageLocationRoleValues.ZONE) {
+      throw new BadRequestException('Only ZONE locations can have child locations.');
     }
 
     const entity = await this.storageLocationsRepository.create({
@@ -181,6 +188,7 @@ export class StorageLocationsService {
       area: data.area || null,
       managerId: data.managerId ?? null,
       address: data.address || null,
+      locationRole: data.locationRole,
       isActive: data.isActive,
     });
 
@@ -210,6 +218,24 @@ export class StorageLocationsService {
     const parentChanged = nextParentId !== existing.parentId;
     const nextCode = data.code === undefined ? existing.code : data.code;
     const codeChanged = nextCode !== existing.code;
+    const nextLocationRole = data.locationRole ?? existing.locationRole;
+
+    let nextParentPath: string | null = null;
+    if (nextParentId) {
+      const nextParent = await this.storageLocationsRepository.findById(nextParentId);
+      if (!nextParent) throw new NotFoundException('Parent storage location not found.');
+      if (nextParent.locationRole !== StorageLocationRoleValues.ZONE) {
+        throw new BadRequestException('Only ZONE locations can have child locations.');
+      }
+      nextParentPath = nextParent.path;
+    }
+
+    if (nextLocationRole !== StorageLocationRoleValues.ZONE) {
+      const refs = await this.storageLocationsRepository.countReferences(id);
+      if (refs.childLocations > 0) {
+        throw new BadRequestException('Only ZONE locations can have child locations.');
+      }
+    }
 
     await this.storageLocationsRepository.transaction(async (tx) => {
       await this.storageLocationsRepository.update(id, {
@@ -220,14 +246,7 @@ export class StorageLocationsService {
       }, tx);
 
       if (parentChanged || codeChanged) {
-        let parentPath: string | null = null;
-        if (nextParentId) {
-          const parent = await this.storageLocationsRepository.findById(nextParentId);
-          if (!parent) throw new NotFoundException('Parent storage location not found.');
-          parentPath = parent.path;
-        }
-
-        const nextPath = StorageLocationsService.buildPath(parentPath, nextCode);
+        const nextPath = StorageLocationsService.buildPath(nextParentPath, nextCode);
         await this.storageLocationsRepository.rewriteSubtreePathInTx(tx, existing.path, nextPath);
       }
     });

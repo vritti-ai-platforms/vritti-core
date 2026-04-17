@@ -1,4 +1,4 @@
-import type { StorageLocation } from '@/db/schema';
+import type { StorageLocation, StorageLocationRole } from '@/db/schema';
 
 export class StorageLocationDto {
   id: string;
@@ -12,6 +12,7 @@ export class StorageLocationDto {
   area: string | null;
   managerId: string | null;
   address: string | null;
+  locationRole: StorageLocationRole;
   isActive: boolean;
   canDelete: boolean;
   createdAt: string;
@@ -31,6 +32,7 @@ export class StorageLocationDto {
     dto.area = entity.area ?? null;
     dto.managerId = entity.managerId ?? null;
     dto.address = entity.address ?? null;
+    dto.locationRole = entity.locationRole;
     dto.isActive = entity.isActive;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();

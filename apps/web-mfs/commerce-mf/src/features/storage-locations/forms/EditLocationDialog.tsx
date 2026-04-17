@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
+import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
@@ -9,7 +10,7 @@ import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateLocation } from '@/hooks/storage-locations';
 import type { StorageLocationData } from '@/schemas/storage-locations';
-import { type LocationFormData, locationFormResolver } from '@/schemas/storage-locations';
+import { locationRoleValues, type LocationFormData, locationFormResolver } from '@/schemas/storage-locations';
 
 interface EditLocationDialogProps {
   location: StorageLocationData;
@@ -18,6 +19,7 @@ interface EditLocationDialogProps {
 }
 
 export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location, onSuccess, onCancel }) => {
+  const roleOptions = locationRoleValues.map((value) => ({ value, label: value }));
   const form = useForm<LocationFormData>({
     resolver: locationFormResolver,
     defaultValues: {
@@ -25,6 +27,7 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
       code: location.code,
       parentId: location.parentId ?? null,
       sortOrder: location.sortOrder,
+      locationRole: location.locationRole,
       isActive: location.isActive,
       area: location.area ?? '',
       managerId: location.managerId ?? undefined,
@@ -47,6 +50,7 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
           code: data.code,
           parentId: data.parentId || null,
           sortOrder: Number(data.sortOrder),
+          locationRole: data.locationRole,
           isActive: data.isActive,
           area: data.area,
           managerId: data.managerId,
@@ -58,6 +62,7 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
       <TextField name="code" label="Code" placeholder="e.g. WIF" />
       <StorageLocationSelector name="parentId" label="Parent Location" placeholder="None (root location)" clearable />
       <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
+      <Select name="locationRole" label="Role" options={roleOptions} />
       <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
       <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
       <TextArea name="address" label="Address" placeholder="Location address" />

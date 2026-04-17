@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { StorageLocationRoleValues, type StorageLocationRole } from '../../constants/storage-location-role.constants';
 
 export class StorageLocationResponseDto {
   @ApiProperty({ description: 'Location ID' })
@@ -33,6 +34,9 @@ export class StorageLocationResponseDto {
 
   @ApiPropertyOptional({ description: 'Location address', nullable: true })
   address: string | null;
+
+  @ApiProperty({ description: 'Location role', enum: Object.values(StorageLocationRoleValues) })
+  locationRole: StorageLocationRole;
 
   @ApiProperty({ description: 'Whether the location is active' })
   isActive: boolean;

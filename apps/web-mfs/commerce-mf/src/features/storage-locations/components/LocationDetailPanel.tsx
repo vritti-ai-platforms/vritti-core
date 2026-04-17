@@ -34,6 +34,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
   const { data: location, isLoading: isLocationLoading } = useLocationById(selectedId);
   const locationId = location?.id ?? null;
   const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(locationId);
+  const canAddChild = location?.locationRole === 'ZONE';
 
   const columns = useMemo<ColumnDef<StorageLocationData>[]>(
     () => [
@@ -48,6 +49,11 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
       {
         accessorKey: 'sortOrder',
         header: 'Sort Order',
+      },
+      {
+        accessorKey: 'locationRole',
+        header: 'Role',
+        cell: ({ row }) => row.original.locationRole,
       },
       {
         accessorKey: 'isActive',
@@ -122,6 +128,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
           >
             {location.isActive ? 'Active' : 'Inactive'}
           </Badge>
+          <Badge variant="outline">{location.locationRole}</Badge>
           <Badge variant="outline">{location.code}</Badge>
         </div>
         <div className="flex items-center gap-2">
@@ -149,6 +156,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
         <DetailField label="Sort Order" value={location.sortOrder} />
+        <DetailField label="Role" value={location.locationRole} />
         <DetailField label="Child Locations" value={childrenResponse?.count ?? 0} />
         <DetailField label="Parent" value={location.parentId ?? '—'} />
         <DetailField label="Area" value={location.area ?? '—'} />
@@ -165,7 +173,13 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
           isLoading={isChildrenLoading}
           toolbarActions={{
             actions: (
-              <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
+              <Button
+                size="sm"
+                startAdornment={<Plus className="size-4" />}
+                onClick={addChildDialog.open}
+                disabled={!canAddChild}
+                title={!canAddChild ? 'Only ZONE locations can have child locations.' : undefined}
+              >
                 Add Child Location
               </Button>
             ),

@@ -146,6 +146,14 @@ export const fieldTypeEnum = coreSchema.enum('field_type', ['text', 'number', 'b
 export const FieldTypeValues = { TEXT: 'text', NUMBER: 'number', BOOLEAN: 'boolean', SELECT: 'select' } as const;
 export type FieldType = (typeof fieldTypeEnum.enumValues)[number];
 
+export const storageLocationRoleEnum = coreSchema.enum('storage_location_role', ['STORAGE', 'POS', 'ZONE']);
+export const StorageLocationRoleValues = {
+  STORAGE: 'STORAGE' as const,
+  POS: 'POS' as const,
+  ZONE: 'ZONE' as const,
+};
+export type StorageLocationRole = (typeof storageLocationRoleEnum.enumValues)[number];
+
 export const taxRateTypeEnum = coreSchema.enum('tax_rate_type', ['inclusive', 'exclusive']);
 export const TaxRateTypeValues = { INCLUSIVE: 'inclusive', EXCLUSIVE: 'exclusive' } as const;
 export type TaxRateType = (typeof taxRateTypeEnum.enumValues)[number];

@@ -1,4 +1,5 @@
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { StorageLocationRoleValues, type StorageLocationRole } from '@/db/schema';
+import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateStorageLocationDto {
   @IsString()
@@ -32,6 +33,9 @@ export class CreateStorageLocationDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsIn(Object.values(StorageLocationRoleValues))
+  locationRole: StorageLocationRole;
 
   @IsOptional()
   @IsBoolean()

@@ -4,11 +4,15 @@ import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import type { Resolver } from 'react-hook-form';
 import { z } from 'zod';
 
+export const locationRoleValues = ['ZONE', 'STORAGE', 'POS'] as const;
+export type LocationRole = (typeof locationRoleValues)[number];
+
 const _locationSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(100),
 	code: z.string().min(1, 'Code is required').max(50),
 	parentId: z.string().optional().nullable(),
 	sortOrder: z.coerce.number().int().min(1, 'Sort order must be at least 1'),
+	locationRole: z.enum(locationRoleValues),
 	isActive: z.boolean(),
 	area: z.string().max(100).optional().or(z.literal('')),
 	managerId: z.string().max(100).optional().or(z.literal('')),
@@ -20,6 +24,7 @@ export type LocationFormData = {
 	code: string;
 	parentId?: string | null;
 	sortOrder: number;
+	locationRole: LocationRole;
 	isActive: boolean;
 	area: string;
 	managerId: string;
@@ -37,6 +42,7 @@ export interface StorageLocationData {
 	parentId: string | null;
 	path: string;
 	sortOrder: number;
+	locationRole: LocationRole;
 	area: string | null;
 	managerId: string | null;
 	address: string | null;
@@ -65,5 +71,5 @@ export interface ReorderLocationsData {
 }
 
 export type UpdateLocationData = Partial<
-	Pick<LocationFormData, 'name' | 'code' | 'parentId' | 'sortOrder' | 'isActive' | 'area' | 'managerId' | 'address'>
+	Pick<LocationFormData, 'name' | 'code' | 'parentId' | 'sortOrder' | 'locationRole' | 'isActive' | 'area' | 'managerId' | 'address'>
 >;

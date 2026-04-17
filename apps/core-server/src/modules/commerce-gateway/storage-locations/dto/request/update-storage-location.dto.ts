@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { StorageLocationRoleValues, type StorageLocationRole } from '../../constants/storage-location-role.constants';
 
 export class UpdateStorageLocationDto {
   @ApiPropertyOptional({ description: 'Updated location name' })
@@ -44,6 +45,11 @@ export class UpdateStorageLocationDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @ApiPropertyOptional({ description: 'Updated location role', enum: Object.values(StorageLocationRoleValues) })
+  @IsOptional()
+  @IsIn(Object.values(StorageLocationRoleValues))
+  locationRole?: StorageLocationRole;
 
   @ApiPropertyOptional({ description: 'Updated active status' })
   @IsOptional()

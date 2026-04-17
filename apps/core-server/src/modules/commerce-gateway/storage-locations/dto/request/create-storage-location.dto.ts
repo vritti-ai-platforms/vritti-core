@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { type StorageLocationRole, StorageLocationRoleValues } from '../../constants/storage-location-role.constants';
 
 export class CreateStorageLocationDto {
   @ApiProperty({ description: 'Location name', example: 'Walk-in Fridge' })
@@ -42,6 +43,14 @@ export class CreateStorageLocationDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @ApiProperty({
+    description: 'Location role',
+    enum: Object.values(StorageLocationRoleValues),
+    default: StorageLocationRoleValues.STORAGE,
+  })
+  @IsIn(Object.values(StorageLocationRoleValues))
+  locationRole: StorageLocationRole;
 
   @ApiPropertyOptional({ description: 'Whether the location is active', default: true })
   @IsOptional()

@@ -3,6 +3,7 @@ import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient 
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemBatches,
+  type StorageLocationRole,
   storageLocations,
 } from '@/db/schema';
 
@@ -242,6 +243,15 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
         ELSE cast(${newPath} as ltree) || subpath(path, nlevel(cast(${oldPath} as ltree)))
       END
       WHERE path <@ cast(${oldPath} as ltree)
+    `);
+  }
+
+  // Applies location role to a subtree root and all descendants
+  async updateLocationRoleForSubtreeInTx(tx: TypedDrizzleClient, rootPath: string, locationRole: StorageLocationRole): Promise<void> {
+    await tx.execute(sql`
+      UPDATE ${storageLocations}
+      SET location_role = cast(${locationRole} as vritti_core.storage_location_role)
+      WHERE path <@ cast(${rootPath} as ltree)
     `);
   }
 

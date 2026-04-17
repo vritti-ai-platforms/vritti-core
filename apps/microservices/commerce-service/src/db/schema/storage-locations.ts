@@ -1,6 +1,7 @@
 import { boolean, customType, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
+import { storageLocationRoleEnum, StorageLocationRoleValues } from './enums';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
@@ -22,6 +23,7 @@ export const storageLocations = coreSchema.table(
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),
     address: text('address'),
+    locationRole: storageLocationRoleEnum('location_role').notNull().default(StorageLocationRoleValues.STORAGE),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')

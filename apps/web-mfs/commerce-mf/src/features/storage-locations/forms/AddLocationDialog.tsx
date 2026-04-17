@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
+import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
@@ -8,7 +9,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateLocation } from '@/hooks/storage-locations';
-import { type LocationFormData, locationFormResolver } from '@/schemas/storage-locations';
+import { locationRoleValues, type LocationFormData, locationFormResolver } from '@/schemas/storage-locations';
 
 interface AddLocationDialogProps {
   defaultParentId?: string | null;
@@ -18,6 +19,7 @@ interface AddLocationDialogProps {
 
 export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ defaultParentId = null, onSuccess, onCancel }) => {
   const isParentLocked = !!defaultParentId;
+  const roleOptions = locationRoleValues.map((value) => ({ value, label: value }));
 
   const form = useForm<LocationFormData>({
     resolver: locationFormResolver,
@@ -26,6 +28,7 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ defaultPar
       code: '',
       parentId: defaultParentId,
       sortOrder: 1,
+      locationRole: 'STORAGE',
       isActive: true,
       area: '',
       managerId: undefined,
@@ -47,6 +50,7 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ defaultPar
         disabled={isParentLocked}
       />
       <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
+      <Select name="locationRole" label="Role" options={roleOptions} />
       <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
       <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
       <TextArea name="address" label="Address" placeholder="Location address" />
