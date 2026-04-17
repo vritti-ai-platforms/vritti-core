@@ -23,7 +23,6 @@ const typeConfig: Record<
   THEFT: { label: 'Theft', variant: 'destructive' },
   EXPIRED: { label: 'Expired', variant: 'secondary' },
   CORRECTION: { label: 'Correction', variant: 'outline' },
-  PRODUCTION: { label: 'Production', variant: 'secondary' },
 };
 
 const statusConfig: Record<StockAdjustmentStatus, { label: string; variant: 'outline' | 'default' }> = {

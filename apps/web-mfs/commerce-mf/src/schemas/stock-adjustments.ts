@@ -7,7 +7,6 @@ export type StockAdjustmentType =
   | 'THEFT'
   | 'EXPIRED'
   | 'CORRECTION'
-  | 'PRODUCTION'
   | 'OPENING_STOCK';
 
 export type StockAdjustmentStatus = 'DRAFT' | 'PUBLISHED';
@@ -61,7 +60,7 @@ export type StockAdjustmentLineItemsTableResponse = TableResponse<StockAdjustmen
 
 export const createStockAdjustmentSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
-  type: z.enum(['OPENING_STOCK', 'WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'CORRECTION', 'PRODUCTION'], {
+  type: z.enum(['OPENING_STOCK', 'WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'CORRECTION'], {
     message: 'Adjustment type is required',
   }),
   reason: z.string().min(1, 'Reason is required'),

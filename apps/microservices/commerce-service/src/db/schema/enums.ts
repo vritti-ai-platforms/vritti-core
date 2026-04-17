@@ -232,7 +232,6 @@ export const stockAdjustmentTypeEnum = coreSchema.enum('stock_adjustment_type', 
   'THEFT',
   'EXPIRED',
   'CORRECTION',
-  'PRODUCTION',
   'OPENING_STOCK',
 ]);
 export const StockAdjustmentTypeValues = {
@@ -241,7 +240,6 @@ export const StockAdjustmentTypeValues = {
   THEFT: 'THEFT' as const,
   EXPIRED: 'EXPIRED' as const,
   CORRECTION: 'CORRECTION' as const,
-  PRODUCTION: 'PRODUCTION' as const,
   OPENING_STOCK: 'OPENING_STOCK' as const,
 };
 export type StockAdjustmentType = (typeof stockAdjustmentTypeEnum.enumValues)[number];

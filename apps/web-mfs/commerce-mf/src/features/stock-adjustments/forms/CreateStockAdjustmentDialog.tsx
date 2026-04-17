@@ -23,7 +23,6 @@ const adjustmentTypeOptions = [
   { value: 'THEFT', label: 'Theft' },
   { value: 'EXPIRED', label: 'Expired' },
   { value: 'CORRECTION', label: 'Correction' },
-  { value: 'PRODUCTION', label: 'Production' },
 ];
 
 export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogProps> = ({ onSuccess, onCancel }) => {

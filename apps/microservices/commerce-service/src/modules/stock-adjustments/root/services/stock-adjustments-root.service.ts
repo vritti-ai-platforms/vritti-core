@@ -191,7 +191,6 @@ export class StockAdjustmentsRootService {
         StockAdjustmentTypeValues.DAMAGE,
         StockAdjustmentTypeValues.THEFT,
         StockAdjustmentTypeValues.EXPIRED,
-        StockAdjustmentTypeValues.PRODUCTION,
       ] as readonly StockAdjustmentType[]
     ).includes(type);
   }
