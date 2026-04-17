@@ -35,6 +35,7 @@
     "dotenv": "^16.4.7",
     "drizzle-orm": "^1.0.0-beta.3-36e9b9e",
     "nats": "^2.29.3",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

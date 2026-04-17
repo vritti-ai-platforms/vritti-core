@@ -14,9 +14,7 @@ export class PurchaseOrdersController {
   constructor(private readonly service: PurchaseOrdersService) {}
 
   @MessagePattern({ cmd: 'purchaseOrders.table' })
-  async table(
-    @Payload() state: TableViewState,
-  ): Promise<{ result: PurchaseOrderDto[]; count: number }> {
+  async table(@Payload() state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
     this.logger.log('purchaseOrders.table');
     return this.service.findForTable(state);
   }
