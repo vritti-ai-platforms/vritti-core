@@ -3,6 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
@@ -11,6 +12,8 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDeleteSupplier } from '@/hooks/useDeleteSupplier';
 import { SUPPLIER_ITEMS_TABLE_KEY, useSupplierItemsTable } from '@/hooks/useSupplierItemsTable';
 import { useSupplier } from '@/hooks/useSupplier';
 import { useUnlinkSupplierItem } from '@/hooks/useUnlinkSupplierItem';
@@ -22,6 +25,7 @@ import { EditSupplierForm } from './forms/EditSupplierForm';
 
 export const SupplierDetailPage = () => {
   const { id } = useSlugParams('supplierSlug');
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: supplier, isLoading } = useSupplier(id ?? null);
   const { data: linkedItemsResponse, isLoading: isLoadingLinkedItems } = useSupplierItemsTable(id ?? null);
@@ -30,6 +34,7 @@ export const SupplierDetailPage = () => {
   const editDialog = useDialog();
   const addItemDialog = useDialog();
   const confirm = useConfirm();
+  const deleteMutation = useDeleteSupplier();
   const unlinkMutation = useUnlinkSupplierItem(id ?? '');
 
   const handleUnlinkItem = useCallback(
@@ -44,6 +49,19 @@ export const SupplierDetailPage = () => {
     },
     [confirm, unlinkMutation],
   );
+
+  const handleDelete = useCallback(async () => {
+    if (!supplier) return;
+    const confirmed = await confirm({
+      title: `Delete "${supplier.name}"?`,
+      description: 'This supplier and all linked supplier items and contacts will be permanently removed.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (confirmed) {
+      deleteMutation.mutate(supplier.id, { onSuccess: () => navigate('..') });
+    }
+  }, [supplier, confirm, deleteMutation, navigate]);
 
   const linkedItemColumns = useMemo<ColumnDef<SupplierItemData>[]>(
     () => [
@@ -270,6 +288,15 @@ export const SupplierDetailPage = () => {
         title="Link Inventory Item"
         description="Associate an inventory item with this supplier."
         content={(close) => <AddSupplierItemDialog supplierId={supplier.id} onSuccess={close} onCancel={close} />}
+      />
+
+      <DangerZone
+        title="Delete this supplier"
+        description="This action cannot be undone. The supplier and its linked supplier items and contacts will be permanently removed."
+        buttonText="Delete Supplier"
+        onClick={handleDelete}
+        isLoading={deleteMutation.isPending}
+        disabled={deleteMutation.isPending}
       />
     </div>
   );

@@ -3,13 +3,12 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { Eye, Plus, Trash2, Truck } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { Eye, Plus, Truck } from 'lucide-react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteSupplier } from '@/hooks/useDeleteSupplier';
 import { SUPPLIERS_TABLE_KEY, useSuppliersTable } from '@/hooks/useSuppliersTable';
 import type { SupplierData } from '@/schemas/suppliers';
 import { AddSupplierDialog } from './forms/AddSupplierDialog';
@@ -18,22 +17,7 @@ export const SuppliersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useSuppliersTable();
-  const deleteMutation = useDeleteSupplier();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-
-  const handleDelete = useCallback(
-    async (id: string, name: string) => {
-      const confirmed = await confirm({
-        title: `Delete "${name}"?`,
-        description: 'This supplier and all its linked items will be permanently removed.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<SupplierData>[]>(
     () => [
@@ -86,14 +70,6 @@ export const SuppliersPage = () => {
                 label: 'View',
                 onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
               },
-              {
-                id: 'delete',
-                icon: Trash2,
-                label: 'Delete',
-                variant: 'destructive',
-                disabled: deleteMutation.isPending,
-                onClick: () => handleDelete(row.original.id, row.original.name),
-              },
             ]}
           />
         ),
@@ -101,7 +77,7 @@ export const SuppliersPage = () => {
         enableHiding: false,
       },
     ],
-    [navigate, handleDelete, deleteMutation.isPending],
+    [navigate],
   );
 
   const { table } = useDataTable({

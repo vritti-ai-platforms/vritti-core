@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  ConflictException,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -136,6 +137,17 @@ export class SuppliersService {
   async delete(id: string): Promise<{ success: boolean; message: string }> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Supplier not found.');
+    const refs = await this.repository.countReferences(id);
+    const refLabels: [number, string][] = [[refs.purchaseOrders, 'purchase order']];
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
+
+    if (parts.length > 0) {
+      throw new ConflictException({
+        label: 'Supplier In Use',
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
+      });
+    }
+
     await this.repository.delete(id);
     this.logger.log(`Deleted supplier: ${existing.name} (${id})`);
     return { success: true, message: `Supplier "${existing.name}" deleted successfully.` };
