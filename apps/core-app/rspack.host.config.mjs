@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
@@ -9,6 +10,72 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const workspaceRoot = path.resolve(__dirname, '../../');
 const quantumUiNative = path.resolve(__dirname, '../../..', 'quantum-ui-native');
+const envFilePath = path.join(__dirname, '.env');
+
+function loadCoreAppEnv() {
+  if (!fs.existsSync(envFilePath)) {
+    return;
+  }
+
+  const envFile = fs.readFileSync(envFilePath, 'utf8');
+
+  for (const rawLine of envFile.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    const separatorIndex = line.indexOf('=');
+    if (separatorIndex === -1) continue;
+
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, '');
+
+    if (key && process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+function validateDeploymentsApiBaseUrl() {
+  const rawValue = process.env.DEPLOYMENTS_API_BASE_URL?.trim();
+
+  if (!rawValue) {
+    throw new Error(
+      `DEPLOYMENTS_API_BASE_URL is required. Set it in ${envFilePath} to the cloud server origin, for example https://local.vrittiai.com:3000`,
+    );
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(rawValue);
+  } catch {
+    throw new Error(
+      `DEPLOYMENTS_API_BASE_URL must be a valid absolute http/https URL. Received: ${rawValue}`,
+    );
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(
+      `DEPLOYMENTS_API_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`,
+    );
+  }
+
+  if (parsed.pathname && parsed.pathname !== '/') {
+    throw new Error(
+      `DEPLOYMENTS_API_BASE_URL must be an origin only and must not include a path like "${parsed.pathname}". Use something like https://local.vrittiai.com:3000`,
+    );
+  }
+
+  if (parsed.search || parsed.hash) {
+    throw new Error(
+      'DEPLOYMENTS_API_BASE_URL must not include query params or a hash fragment.',
+    );
+  }
+
+  return parsed.origin;
+}
+
+loadCoreAppEnv();
+const deploymentsApiBaseUrl = validateDeploymentsApiBaseUrl();
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)
@@ -188,6 +255,9 @@ export default (env) => {
     },
 
     plugins: [
+      new rspack.DefinePlugin({
+        __DEPLOYMENTS_API_BASE_URL__: JSON.stringify(deploymentsApiBaseUrl),
+      }),
       new Repack.RepackPlugin({
         extraChunks: [
           {

@@ -1,9 +1,22 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
+import { MobileLookupResponseDto } from '../../auth/mobile/dto/response/mobile-lookup-response.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
 import { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
+
+export function ApiGetOrganizationsByEmail() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Lookup organizations by email',
+      description: 'Returns all organizations associated with the given email address. Public endpoint used by the mobile app before login.',
+    }),
+    ApiQuery({ name: 'email', description: 'User email address', required: true }),
+    ApiResponse({ status: 200, description: 'Organizations retrieved successfully.', type: MobileLookupResponseDto }),
+    ApiResponse({ status: 400, description: 'Invalid email address.' }),
+  );
+}
 
 export function ApiCreateUserWebhook() {
   return applyDecorators(

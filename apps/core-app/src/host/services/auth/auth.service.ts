@@ -1,4 +1,5 @@
 import { axios } from '@vritti/quantum-ui-native/utils';
+import { buildPublicApiBaseURL } from './deployment.service';
 
 export interface LoginResponse {
   accessToken: string;
@@ -24,21 +25,25 @@ export interface LookupResponse {
   organizations: LookupOrganization[];
 }
 
-// Authenticates with email/password via the mobile auth endpoint
+export interface LookupOrganizationsDto {
+  email: string;
+  deploymentBaseURL: string;
+}
+
 export function login(dto: LoginDto): Promise<LoginResponse> {
+  return axios.post<LoginResponse>('auth/mobile/login', dto, { public: true }).then((r) => r.data);
+}
+
+export function lookupOrganizations({ email, deploymentBaseURL }: LookupOrganizationsDto): Promise<LookupResponse> {
   return axios
-    .post<LoginResponse>('auth/mobile/login', dto, { public: true })
+    .get<LookupResponse>('users/organizations-by-email', {
+      baseURL: buildPublicApiBaseURL(deploymentBaseURL),
+      params: { email },
+      public: true,
+    })
     .then((r) => r.data);
 }
 
-// Looks up organizations for an email address
-export function lookupOrganizations(email: string): Promise<LookupResponse> {
-  return axios
-    .post<LookupResponse>('auth/mobile/lookup', { email }, { public: true })
-    .then((r) => r.data);
-}
-
-// Invalidates the current mobile session
 export function logout(): Promise<void> {
   return axios.post('auth/mobile/logout').then(() => undefined);
 }

@@ -47,6 +47,8 @@ const CORS_ORIGINS = [
   'http://localhost:5174', // Other possible ports
   `http://${ENV.host}:3012`,
   `https://${ENV.host}:3012`,
+  'http://api.local.vrittiai.com:3001',
+  'https://api.local.vrittiai.com:3001',
 ];
 
 const CORS_CONFIG = {

@@ -26,16 +26,7 @@ export class AuthService {
 
   // Looks up all organizations a user belongs to by email
   async lookupOrganizationsByEmail(email: string): Promise<MobileLookupResponseDto> {
-    const usersWithOrg = await this.userService.findAllByEmailWithOrg(email);
-
-    return {
-      organizations: usersWithOrg.map((u) => ({
-        id: u.organization.id,
-        name: u.organization.name,
-        subdomain: u.organization.subdomain,
-        logoUrl: u.organization.logoUrl,
-      })),
-    };
+    return this.userService.lookupOrganizationsByEmail(email);
   }
 
   // Validates credentials and creates a session for the given type

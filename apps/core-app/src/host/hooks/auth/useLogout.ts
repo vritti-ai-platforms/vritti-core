@@ -1,7 +1,7 @@
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import { clearTokens, getOnSessionExpired } from '@vritti/quantum-ui-native/utils';
-import { logout } from '../../services/auth.service';
+import { logout } from '../../services/auth/auth.service';
 
 type UseLogoutOptions = Omit<UseMutationOptions<void, AxiosError, void>, 'mutationFn'>;
 

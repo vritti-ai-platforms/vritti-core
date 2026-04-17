@@ -24,6 +24,17 @@ import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
 import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 import { UserRepository } from '../repositories/user.repository';
 
+export interface LookupOrganizationSummary {
+  id: string;
+  name: string;
+  subdomain: string;
+  logoUrl: string | null;
+}
+
+export interface LookupOrganizationsResult {
+  organizations: LookupOrganizationSummary[];
+}
+
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
@@ -111,6 +122,20 @@ export class UserService {
   // Finds all users with the given email across all orgs, with organization data
   async findAllByEmailWithOrg(email: string) {
     return this.userRepository.findAllByEmailWithOrg(email);
+  }
+
+  // Looks up all organizations a user belongs to by email
+  async lookupOrganizationsByEmail(email: string): Promise<LookupOrganizationsResult> {
+    const usersWithOrg = await this.userRepository.findAllByEmailWithOrg(email);
+
+    return {
+      organizations: usersWithOrg.map((u) => ({
+        id: u.organization.id,
+        name: u.organization.name,
+        subdomain: u.organization.subdomain,
+        logoUrl: u.organization.logoUrl,
+      })),
+    };
   }
 
   // Finds a user by ID — returns entity (not DTO)

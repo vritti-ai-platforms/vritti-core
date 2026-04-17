@@ -2,7 +2,7 @@ import { NAV_THEME, useTheme } from '@vritti/quantum-ui-native';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { AuthFlowShell } from './AuthFlowShell';
+import { AuthFlowShell } from '../screens/auth/AuthFlowShell';
 import { DynamicFeatureNavigator } from '../mf/DynamicFeatureNavigator';
 import { PermissionProvider } from '../providers/PermissionProvider';
 import { useAuth } from '../providers/AuthProvider';

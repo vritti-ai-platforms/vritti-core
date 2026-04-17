@@ -17,10 +17,13 @@ import { SessionTypeValues } from '@/db/schema';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
 import {
   ApiCreateUserWebhook,
+  ApiGetOrganizationsByEmail,
   ApiGetUsersWebhook,
   ApiResendInviteWebhook,
   ApiUpdateUserWebhook,
 } from '../docs/user.docs';
+import { MobileLookupDto } from '../../auth/mobile/dto/request/mobile-lookup.dto';
+import { MobileLookupResponseDto } from '../../auth/mobile/dto/response/mobile-lookup-response.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { GetUsersWebhookDto } from '../dto/request/get-users-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
@@ -34,6 +37,14 @@ export class UserController {
   private readonly logger = new Logger(UserController.name);
 
   constructor(private readonly userService: UserService) {}
+
+  @Get('organizations-by-email')
+  @Public()
+  @ApiGetOrganizationsByEmail()
+  async getOrganizationsByEmail(@Query() dto: MobileLookupDto): Promise<MobileLookupResponseDto> {
+    this.logger.log(`GET /users/organizations-by-email?email=${dto.email}`);
+    return this.userService.lookupOrganizationsByEmail(dto.email);
+  }
 
   // Returns paginated user options for the select component
   @Get('select')

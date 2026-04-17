@@ -10,7 +10,7 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
+      <ThemeProvider defaultScheme="dark">
         <QueryClientProvider client={queryClient}>
           <StatusBar barStyle="light-content" />
           <AuthProvider>

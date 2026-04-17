@@ -966,6 +966,44 @@
         ]
       }
     },
+    "/users/organizations-by-email": {
+      "get": {
+        "description": "Returns all organizations associated with the given email address. Public endpoint used by the mobile app before login.",
+        "operationId": "UserController_getOrganizationsByEmail",
+        "parameters": [
+          {
+            "name": "email",
+            "required": true,
+            "in": "query",
+            "description": "User email address",
+            "schema": {
+              "format": "email",
+              "example": "user@example.com",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organizations retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileLookupResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid email address."
+          }
+        },
+        "summary": "Lookup organizations by email",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
     "/users/select": {
       "get": {
         "operationId": "UserController_findForSelect",
