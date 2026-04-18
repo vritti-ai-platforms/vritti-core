@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
-import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItems,
   type NewPurchaseOrderItem,
@@ -11,10 +11,19 @@ import {
   suppliers,
 } from '@/db/schema';
 
+class PurchaseOrderItemsBaseRepository extends PrimaryBaseRepository<typeof purchaseOrderItems> {
+  constructor(database: PrimaryDatabaseService) {
+    super(database, purchaseOrderItems);
+  }
+}
+
 @Injectable()
 export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
+  private readonly itemsRepository: PurchaseOrderItemsBaseRepository;
+
   constructor(database: PrimaryDatabaseService) {
     super(database, purchaseOrders, { sequence: purchaseOrderNumberSeq });
+    this.itemsRepository = new PurchaseOrderItemsBaseRepository(database);
   }
 
   // Returns supplier name for a given supplier ID
@@ -42,6 +51,32 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
       .where(eq(purchaseOrderItems.purchaseOrderId, poId));
 
     return rows as (PurchaseOrderItem & { inventoryItemName: string | null })[];
+  }
+
+  // Returns paginated PO line items for table view
+  async findItemsForTable(
+    poId: string,
+    options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: PurchaseOrderItem[]; count: number }> {
+    const baseWhere = eq(purchaseOrderItems.purchaseOrderId, poId);
+    const where = options.where ? and(baseWhere, options.where) : baseWhere;
+
+    return this.itemsRepository.findAllAndCount<PurchaseOrderItem>({
+      where,
+      orderBy: options.orderBy,
+      limit: options.limit,
+      offset: options.offset,
+    });
+  }
+
+  // Returns inventory item names keyed by inventory item ID
+  async findInventoryItemNames(ids: string[]): Promise<Map<string, string | null>> {
+    if (ids.length === 0) return new Map();
+    const rows = await this.db
+      .select({ id: inventoryItems.id, name: inventoryItems.name })
+      .from(inventoryItems)
+      .where(inArray(inventoryItems.id, ids));
+    return new Map(rows.map((row) => [row.id, row.name]));
   }
 
   // Creates PO line items

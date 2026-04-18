@@ -3,13 +3,12 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { ClipboardList, Eye, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { ClipboardList, Eye, Plus } from 'lucide-react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeletePurchaseOrder } from '@/hooks/useDeletePurchaseOrder';
 import { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from '@/hooks/usePurchaseOrdersTable';
 import type { PurchaseOrderData, PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { CreatePurchaseOrderDialog } from './forms/CreatePurchaseOrderDialog';
@@ -30,22 +29,7 @@ export const PurchaseOrdersPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = usePurchaseOrdersTable();
-  const deleteMutation = useDeletePurchaseOrder();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-
-  const handleDelete = useCallback(
-    async (id: string, poNumber: string) => {
-      const confirmed = await confirm({
-        title: `Delete "${poNumber}"?`,
-        description: 'This purchase order and all its line items will be permanently removed.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<PurchaseOrderData>[]>(
     () => [
@@ -95,14 +79,6 @@ export const PurchaseOrdersPage = () => {
                 label: 'View',
                 onClick: () => navigate(buildSlug(row.original.poNumber, row.original.id)),
               },
-              {
-                id: 'delete',
-                icon: Trash2,
-                label: 'Delete',
-                variant: 'destructive',
-                hidden: row.original.status !== 'DRAFT',
-                onClick: () => handleDelete(row.original.id, row.original.poNumber),
-              },
             ]}
           />
         ),
@@ -110,7 +86,7 @@ export const PurchaseOrdersPage = () => {
         enableHiding: false,
       },
     ],
-    [navigate, handleDelete],
+    [navigate],
   );
 
   const { table } = useDataTable({

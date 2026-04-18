@@ -18,6 +18,7 @@ export const createPurchaseOrderSchema = z.object({
 
 export type CreatePurchaseOrderFormData = z.infer<typeof createPurchaseOrderSchema>;
 export type PurchaseOrdersTableResponse = TableResponse<PurchaseOrderData>;
+export type PurchaseOrderItemsTableResponse = TableResponse<PurchaseOrderItemData>;
 
 export type PurchaseOrderStatus = 'DRAFT' | 'SENT' | 'CONFIRMED' | 'PARTIALLY_RECEIVED' | 'RECEIVED' | 'CANCELLED';
 
@@ -47,7 +48,8 @@ export interface PurchaseOrderItemData {
 
 export interface GoodsReceiptItemData {
   id: string;
-  purchaseOrderItemId: string;
+  purchaseOrderItemId: string | null;
+  inventoryItemId: string;
   inventoryItemName: string | null;
   acceptedQuantity: number;
   rejectedQuantity: number;
@@ -56,7 +58,12 @@ export interface GoodsReceiptItemData {
 
 export interface GoodsReceiptData {
   id: string;
-  purchaseOrderId: string;
+  grNumber: string;
+  supplierId: string;
+  status: 'DRAFT' | 'POSTED';
+  supplierName: string | null;
+  purchaseOrderId: string | null;
+  poNumber: string | null;
   receivedBy: string | null;
   receivedDate: string;
   notes: string | null;
@@ -64,6 +71,4 @@ export interface GoodsReceiptData {
   items: GoodsReceiptItemData[];
 }
 
-export interface PurchaseOrderDetail extends PurchaseOrderData {
-  items: PurchaseOrderItemData[];
-}
+export type PurchaseOrderDetail = PurchaseOrderData;

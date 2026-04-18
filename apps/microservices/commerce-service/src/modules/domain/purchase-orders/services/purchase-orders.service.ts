@@ -4,13 +4,15 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrders } from '@/db/schema';
+import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems, purchaseOrders } from '@/db/schema';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/update-purchase-order.dto';
-import { PurchaseOrderDetailDto, PurchaseOrderDto, PurchaseOrderItemDto } from '../dto/entity/purchase-order.dto';
+import { PurchaseOrderDto, PurchaseOrderItemDto } from '../dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
 
 @Injectable()
@@ -39,7 +41,35 @@ export class PurchaseOrdersService {
     [PurchaseOrderStatusValues.CANCELLED]: [],
   };
 
+  private static readonly ITEM_FIELD_MAP: FieldMap = {
+    inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
+    orderedQuantity: { column: purchaseOrderItems.orderedQuantity, type: 'number' },
+    receivedQuantity: { column: purchaseOrderItems.receivedQuantity, type: 'number' },
+    unitPrice: { column: purchaseOrderItems.unitPrice, type: 'number' },
+    totalPrice: { column: purchaseOrderItems.totalPrice, type: 'number' },
+  };
+
   constructor(private readonly repository: PurchaseOrdersRepository) {}
+
+  // Returns paginated purchase order options for select dropdowns
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    const status = (query as SelectOptionsQueryDto & { status?: string }).status;
+    return this.repository.findForSelect({
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'poNumber',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupId: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      where: status ? { status } : undefined,
+      orderByKey: query.orderByKey || 'poNumber',
+      orderDirection: query.orderDirection || 'desc',
+    });
+  }
 
   // Returns paginated POs for the data table
   async findForTable(state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
@@ -66,7 +96,7 @@ export class PurchaseOrdersService {
   }
 
   // Creates a new PO with line items
-  async create(data: CreatePurchaseOrderDto): Promise<PurchaseOrderDetailDto> {
+  async create(data: CreatePurchaseOrderDto): Promise<PurchaseOrderDto> {
     const poNumber = await this.repository.generatePoNumber();
     const entity = await this.repository.transaction(async (tx) => {
       const created = await this.repository.create(
@@ -92,31 +122,21 @@ export class PurchaseOrdersService {
       return created;
     });
 
-    const itemsWithNames = await this.repository.findItemsByPoId(entity.id);
     const supplierName = await this.repository.findSupplierName(entity.supplierId);
-    this.logger.log(`Created PO: ${entity.poNumber} with ${itemsWithNames.length} items`);
-    return PurchaseOrderDetailDto.fromDetail(
-      entity,
-      supplierName,
-      itemsWithNames.map((i) => PurchaseOrderItemDto.from(i, i.inventoryItemName)),
-    );
+    this.logger.log(`Created PO: ${entity.poNumber}`);
+    return PurchaseOrderDto.from(entity, supplierName);
   }
 
-  // Returns PO detail with line items
-  async findById(id: string): Promise<PurchaseOrderDetailDto> {
+  // Returns PO header/detail without line items
+  async findById(id: string): Promise<PurchaseOrderDto> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Purchase order not found.');
     const supplierName = await this.repository.findSupplierName(entity.supplierId);
-    const itemsWithNames = await this.repository.findItemsByPoId(id);
-    return PurchaseOrderDetailDto.fromDetail(
-      entity,
-      supplierName,
-      itemsWithNames.map((i) => PurchaseOrderItemDto.from(i, i.inventoryItemName)),
-    );
+    return PurchaseOrderDto.from(entity, supplierName);
   }
 
   // Updates a PO (scalar fields + optionally replaces items)
-  async update(id: string, data: UpdatePurchaseOrderDto): Promise<PurchaseOrderDetailDto> {
+  async update(id: string, data: UpdatePurchaseOrderDto): Promise<PurchaseOrderDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
 
@@ -150,13 +170,45 @@ export class PurchaseOrdersService {
     });
 
     const supplierName = await this.repository.findSupplierName(entity.supplierId);
-    const itemsWithNames = await this.repository.findItemsByPoId(id);
     this.logger.log(`Updated PO: ${entity.poNumber} (${entity.id})`);
-    return PurchaseOrderDetailDto.fromDetail(
-      entity,
-      supplierName,
-      itemsWithNames.map((i) => PurchaseOrderItemDto.from(i, i.inventoryItemName)),
-    );
+    return PurchaseOrderDto.from(entity, supplierName);
+  }
+
+  // Returns all line items for a PO
+  async findItems(id: string): Promise<PurchaseOrderItemDto[]> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Purchase order not found.');
+    const itemsWithNames = await this.repository.findItemsByPoId(id);
+    return itemsWithNames.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName));
+  }
+
+  // Returns paginated line items for a PO table
+  async findItemsForTable(
+    id: string,
+    state: TableViewState,
+  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Purchase order not found.');
+
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrdersService.ITEM_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrdersService.ITEM_FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersService.ITEM_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findItemsForTable(id, {
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(purchaseOrderItems.inventoryItemId)],
+      limit,
+      offset,
+    });
+
+    const nameById = await this.repository.findInventoryItemNames(result.map((item) => item.inventoryItemId));
+
+    return {
+      result: result.map((item) => PurchaseOrderItemDto.from(item, nameById.get(item.inventoryItemId) ?? null)),
+      count,
+    };
   }
 
   // Transitions PO status

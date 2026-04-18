@@ -1,8 +1,19 @@
-import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
 import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { BadRequestException, NotFoundException } from '@vritti/api-sdk';
-import { InventoryLedgerReferenceTypeValues, InventoryLedgerTypeValues, PurchaseOrderStatusValues } from '@/db/schema';
+import {
+  BadRequestException,
+  type FieldMap,
+  FilterProcessor,
+  NotFoundException,
+  type TableViewState,
+} from '@vritti/api-sdk';
+import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import {
+  GoodsReceiptStatusValues,
+  goodsReceipts,
+  purchaseOrders,
+  suppliers,
+} from '@/db/schema';
 import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto, GoodsReceiptItemDto } from '../dto/entity/goods-receipt.dto';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
@@ -10,123 +21,39 @@ import { GoodsReceiptsRepository } from '../repositories/goods-receipts.reposito
 @Injectable()
 export class GoodsReceiptsService {
   private readonly logger = new Logger(GoodsReceiptsService.name);
+  private static readonly FIELD_MAP: FieldMap = {
+    grNumber: { column: goodsReceipts.grNumber, type: 'string' },
+    supplierName: { column: suppliers.name, type: 'string' },
+    poNumber: { column: purchaseOrders.poNumber, type: 'string' },
+    receivedDate: { column: goodsReceipts.receivedDate, type: 'string' },
+  };
 
   constructor(
     private readonly repository: GoodsReceiptsRepository,
     private readonly poRepository: PurchaseOrdersRepository,
-    private readonly batchesService: InventoryItemBatchesService,
   ) {}
 
-  // Creates a goods receipt, updates PO received quantities, and creates inventory batches + ledger entries
+  // Creates a DRAFT goods receipt header
   async create(data: CreateGoodsReceiptDto): Promise<GoodsReceiptDto> {
-    const po = await this.poRepository.findById(data.purchaseOrderId);
-    if (!po) throw new NotFoundException('Purchase order not found.');
-    if (![PurchaseOrderStatusValues.CONFIRMED, PurchaseOrderStatusValues.PARTIALLY_RECEIVED].includes(po.status)) {
-      throw new BadRequestException('Goods can only be received for CONFIRMED or PARTIALLY_RECEIVED purchase orders.');
+    const supplier = await this.repository.findSupplierById(data.supplierId);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+
+    const po = data.purchaseOrderId ? await this.poRepository.findById(data.purchaseOrderId) : null;
+    if (data.purchaseOrderId && !po) throw new NotFoundException('Purchase order not found.');
+    if (po && po.supplierId !== data.supplierId) {
+      throw new BadRequestException('Purchase order does not belong to the provided supplier.');
     }
-    if (!data.items?.length) {
-      throw new BadRequestException('At least one receipt line item is required.');
-    }
-
-    const duplicatePoItemIds = new Set<string>();
-    for (const item of data.items) {
-      if (duplicatePoItemIds.has(item.purchaseOrderItemId)) {
-        throw new BadRequestException(`Duplicate receipt line for PO item ${item.purchaseOrderItemId}.`);
-      }
-      duplicatePoItemIds.add(item.purchaseOrderItemId);
-
-      const acceptedQty = Number(item.acceptedQuantity ?? 0);
-      const rejectedQty = Number(item.rejectedQuantity ?? 0);
-      if (acceptedQty <= 0 && rejectedQty <= 0) {
-        throw new BadRequestException('Each receipt line must have acceptedQuantity or rejectedQuantity greater than zero.');
-      }
-      if (rejectedQty > 0 && !item.rejectionReason?.trim()) {
-        throw new BadRequestException('Rejection reason is required when rejected quantity is greater than zero.');
-      }
-
-      const poItem = await this.repository.findPoItemForReceipt(item.purchaseOrderItemId);
-      if (!poItem || poItem.purchaseOrderId !== po.id) {
-        throw new BadRequestException(`PO item ${item.purchaseOrderItemId} does not belong to purchase order ${po.poNumber}.`);
-      }
-
-      const remainingQty = Number(poItem.orderedQuantity) - Number(poItem.receivedQuantity);
-      if (remainingQty <= 0) {
-        throw new BadRequestException(`PO item ${item.purchaseOrderItemId} is already fully received.`);
-      }
-      if (acceptedQty + rejectedQty > remainingQty) {
-        throw new BadRequestException(
-          `Accepted + rejected quantity cannot exceed remaining quantity (${remainingQty}) for PO item ${item.purchaseOrderItemId}.`,
-        );
-      }
-    }
-
-    // Create the GR header
-    const gr = await this.repository.create({
-      purchaseOrderId: data.purchaseOrderId,
+    const entity = await this.repository.create({
+      supplierId: data.supplierId,
+      status: GoodsReceiptStatusValues.DRAFT,
+      purchaseOrderId: data.purchaseOrderId ?? null,
       receivedBy: data.receivedBy ?? null,
-      receivedDate: data.receivedDate,
+      receivedDate: data.receivedDate ?? new Date().toISOString().split('T')[0],
       notes: data.notes ?? null,
     });
 
-    // Create GR items and update PO + inventory for each
-    const grItems = await this.repository.createItems(
-      data.items.map((item) => ({
-        goodsReceiptId: gr.id,
-        purchaseOrderItemId: item.purchaseOrderItemId,
-        acceptedQuantity: String(item.acceptedQuantity),
-        rejectedQuantity: String(item.rejectedQuantity ?? 0),
-        rejectionReason: item.rejectionReason ?? null,
-        batchNumber: item.batchNumber ?? null,
-        manufacturingDate: item.manufacturingDate ?? null,
-        expiryDate: item.expiryDate ?? null,
-      })),
-    );
-
-    // Update PO item received quantities and create inventory batches
-    for (let i = 0; i < data.items.length; i++) {
-      const item = data.items[i];
-      const grItem = grItems[i];
-      const acceptedQty = item.acceptedQuantity;
-
-      // Update PO item received_quantity
-      await this.repository.updatePoItemReceivedQty(item.purchaseOrderItemId, acceptedQty);
-
-      // Create inventory batch via InventoryItemBatchesService
-      const inventoryItemId = await this.repository.findInventoryItemIdFromPoItem(item.purchaseOrderItemId);
-      if (inventoryItemId && acceptedQty > 0) {
-        await this.batchesService.createBatch({
-          inventoryItemId,
-          locationId: data.locationId,
-          quantity: acceptedQty,
-          batchNumber: item.batchNumber ?? undefined,
-          manufacturingDate: item.manufacturingDate ?? undefined,
-          expiryDate: item.expiryDate ?? undefined,
-          goodsReceiptItemId: grItem.id,
-          type: InventoryLedgerTypeValues.GOODS_RECEIPT,
-          referenceType: InventoryLedgerReferenceTypeValues.GOODS_RECEIPT,
-          referenceId: gr.id,
-          notes: `Goods receipt for PO ${po.poNumber}`,
-        });
-      }
-    }
-
-    // Check if PO is fully received and update status
-    const poItems = await this.poRepository.findItemsByPoId(po.id);
-    const allReceived = poItems.every((item) => Number(item.receivedQuantity) >= Number(item.orderedQuantity));
-    const someReceived = poItems.some((item) => Number(item.receivedQuantity) > 0);
-
-    if (allReceived) {
-      await this.poRepository.update(po.id, { status: 'RECEIVED' });
-    } else if (someReceived) {
-      await this.poRepository.update(po.id, { status: 'PARTIALLY_RECEIVED' });
-    }
-
-    const itemsWithNames = await this.repository.findItemsByGrId(gr.id);
-    this.logger.log(`Created GR for PO ${po.poNumber} with ${grItems.length} items`);
-    return GoodsReceiptDto.from(
-      gr,
-      itemsWithNames.map((i) => GoodsReceiptItemDto.from(i, i.inventoryItemName)),
-    );
+    this.logger.log(`Created DRAFT GR ${entity.id}`);
+    return GoodsReceiptDto.from(entity, [], { supplierName: supplier.name, poNumber: po?.poNumber ?? null });
   }
 
   // Returns all GRs for a PO
@@ -134,14 +61,57 @@ export class GoodsReceiptsService {
     const grs = await this.repository.findByPoId(poId);
     const result: GoodsReceiptDto[] = [];
     for (const gr of grs) {
+      const refs = await this.repository.findByIdWithRefs(gr.id);
       const itemsWithNames = await this.repository.findItemsByGrId(gr.id);
       result.push(
         GoodsReceiptDto.from(
           gr,
           itemsWithNames.map((i) => GoodsReceiptItemDto.from(i, i.inventoryItemName)),
+          { supplierName: refs?.supplierName ?? null, poNumber: refs?.poNumber ?? null },
         ),
       );
     }
     return result;
+  }
+
+  // Returns paginated goods receipts for table
+  async findForTable(state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptsService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(goodsReceipts.createdAt)],
+      limit,
+      offset,
+    });
+
+    return {
+      result: rows.map((row) =>
+        GoodsReceiptDto.from(row, [], {
+          supplierName: row.supplierName,
+          poNumber: row.poNumber,
+        }),
+      ),
+      count,
+    };
+  }
+
+  // Returns goods receipt detail by ID
+  async findById(id: string): Promise<GoodsReceiptDto> {
+    const gr = await this.repository.findByIdWithRefs(id);
+    if (!gr) throw new NotFoundException('Goods receipt not found.');
+    const itemsWithNames = await this.repository.findItemsByGrId(id);
+    return GoodsReceiptDto.from(
+      gr,
+      itemsWithNames.map((item) => GoodsReceiptItemDto.from(item, item.inventoryItemName)),
+      {
+        supplierName: gr.supplierName,
+        poNumber: gr.poNumber,
+      },
+    );
   }
 }

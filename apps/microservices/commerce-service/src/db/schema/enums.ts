@@ -222,6 +222,13 @@ export const PurchaseOrderStatusValues = {
 };
 export type PurchaseOrderStatus = (typeof purchaseOrderStatusEnum.enumValues)[number];
 
+export const goodsReceiptStatusEnum = coreSchema.enum('goods_receipt_status', ['DRAFT', 'POSTED']);
+export const GoodsReceiptStatusValues = {
+  DRAFT: 'DRAFT' as const,
+  POSTED: 'POSTED' as const,
+};
+export type GoodsReceiptStatus = (typeof goodsReceiptStatusEnum.enumValues)[number];
+
 export const conversionStatusEnum = coreSchema.enum('conversion_status', [
   'DRAFT',
   'IN_PROGRESS',

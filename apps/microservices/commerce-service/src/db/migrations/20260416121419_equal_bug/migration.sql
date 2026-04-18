@@ -1,4 +1,4 @@
-CREATE SCHEMA "vritti_core";
+CREATE SCHEMA IF NOT EXISTS "vritti_core";
 --> statement-breakpoint
 CREATE EXTENSION IF NOT EXISTS ltree WITH SCHEMA vritti_core;
 --> statement-breakpoint

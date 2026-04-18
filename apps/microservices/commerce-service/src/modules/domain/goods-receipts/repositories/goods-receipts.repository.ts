@@ -1,19 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  goodsReceiptNumberSeq,
   type GoodsReceiptItem,
   goodsReceiptItems,
+  type NewGoodsReceipt,
   goodsReceipts,
   inventoryItems,
   type NewGoodsReceiptItem,
   purchaseOrderItems,
+  purchaseOrders,
+  suppliers,
 } from '@/db/schema';
 
 @Injectable()
 export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsReceipts> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, goodsReceipts);
+    super(database, goodsReceipts, { sequence: goodsReceiptNumberSeq });
+  }
+
+  // Generates a sequential goods receipt number
+  async generateGrNumber(): Promise<string> {
+    const now = new Date();
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const nextNumber = await this.nextSequenceValue();
+    return `GR-${yearMonth}-${String(nextNumber).padStart(4, '0')}`;
+  }
+
+  // Creates goods receipt header with auto-generated number
+  async create(data: Omit<NewGoodsReceipt, 'grNumber'>): Promise<typeof goodsReceipts.$inferSelect> {
+    const grNumber = await this.generateGrNumber();
+    return super.create({ ...data, grNumber });
   }
 
   // Returns GR items for a goods receipt with inventory item names and batch fields
@@ -24,6 +42,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         organizationId: goodsReceiptItems.organizationId,
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         purchaseOrderItemId: goodsReceiptItems.purchaseOrderItemId,
+        inventoryItemId: goodsReceiptItems.inventoryItemId,
         acceptedQuantity: goodsReceiptItems.acceptedQuantity,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         rejectionReason: goodsReceiptItems.rejectionReason,
@@ -33,8 +52,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         inventoryItemName: inventoryItems.name,
       })
       .from(goodsReceiptItems)
-      .leftJoin(purchaseOrderItems, eq(goodsReceiptItems.purchaseOrderItemId, purchaseOrderItems.id))
-      .leftJoin(inventoryItems, eq(purchaseOrderItems.inventoryItemId, inventoryItems.id))
+      .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
       .where(eq(goodsReceiptItems.goodsReceiptId, grId));
 
     return rows as (GoodsReceiptItem & { inventoryItemName: string | null })[];
@@ -43,6 +61,54 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
   // Returns all GRs for a PO
   async findByPoId(poId: string) {
     return this.db.select().from(goodsReceipts).where(eq(goodsReceipts.purchaseOrderId, poId));
+  }
+
+  // Returns paginated goods receipts for table view
+  async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
+    result: (typeof goodsReceipts.$inferSelect & { supplierName: string | null; poNumber: string | null })[];
+    count: number;
+  }> {
+    const where = options.where;
+
+    const [resultRows, countRows] = await Promise.all([
+      this.db
+        .select({
+          id: goodsReceipts.id,
+          organizationId: goodsReceipts.organizationId,
+          businessUnitId: goodsReceipts.businessUnitId,
+          supplierId: goodsReceipts.supplierId,
+          grNumber: goodsReceipts.grNumber,
+          status: goodsReceipts.status,
+          purchaseOrderId: goodsReceipts.purchaseOrderId,
+          receivedBy: goodsReceipts.receivedBy,
+          receivedDate: goodsReceipts.receivedDate,
+          notes: goodsReceipts.notes,
+          createdAt: goodsReceipts.createdAt,
+          supplierName: suppliers.name,
+          poNumber: purchaseOrders.poNumber,
+        })
+        .from(goodsReceipts)
+        .leftJoin(suppliers, eq(goodsReceipts.supplierId, suppliers.id))
+        .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
+        .where(where)
+        .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(goodsReceipts.createdAt)]))
+        .limit(options.limit)
+        .offset(options.offset),
+      this.db
+        .select({ count: sql<number>`count(distinct ${goodsReceipts.id})::int` })
+        .from(goodsReceipts)
+        .leftJoin(suppliers, eq(goodsReceipts.supplierId, suppliers.id))
+        .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
+        .where(where),
+    ]);
+
+    return {
+      result: resultRows as (typeof goodsReceipts.$inferSelect & {
+        supplierName: string | null;
+        poNumber: string | null;
+      })[],
+      count: Number(countRows[0]?.count ?? 0),
+    };
   }
 
   // Creates GR line items with batch fields
@@ -59,15 +125,6 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         receivedQuantity: sql`${purchaseOrderItems.receivedQuantity} + ${String(addQty)}`,
       })
       .where(eq(purchaseOrderItems.id, poItemId));
-  }
-
-  // Returns inventory item ID from a PO item
-  async findInventoryItemIdFromPoItem(poItemId: string): Promise<string | null> {
-    const result = await this.db
-      .select({ inventoryItemId: purchaseOrderItems.inventoryItemId })
-      .from(purchaseOrderItems)
-      .where(eq(purchaseOrderItems.id, poItemId));
-    return result[0]?.inventoryItemId ?? null;
   }
 
   // Returns PO item with quantities for receipt validation
@@ -89,5 +146,39 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       .from(purchaseOrderItems)
       .where(eq(purchaseOrderItems.id, poItemId));
     return result[0] ?? null;
+  }
+
+  // Finds supplier by ID
+  async findSupplierById(id: string): Promise<typeof suppliers.$inferSelect | null> {
+    const rows = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
+    return rows[0] ?? null;
+  }
+
+  // Finds receipt by ID with supplier + PO references
+  async findByIdWithRefs(
+    id: string,
+  ): Promise<(typeof goodsReceipts.$inferSelect & { supplierName: string | null; poNumber: string | null }) | null> {
+    const rows = await this.db
+      .select({
+        id: goodsReceipts.id,
+        organizationId: goodsReceipts.organizationId,
+        businessUnitId: goodsReceipts.businessUnitId,
+        supplierId: goodsReceipts.supplierId,
+        grNumber: goodsReceipts.grNumber,
+        status: goodsReceipts.status,
+        purchaseOrderId: goodsReceipts.purchaseOrderId,
+        receivedBy: goodsReceipts.receivedBy,
+        receivedDate: goodsReceipts.receivedDate,
+        notes: goodsReceipts.notes,
+        createdAt: goodsReceipts.createdAt,
+        supplierName: suppliers.name,
+        poNumber: purchaseOrders.poNumber,
+      })
+      .from(goodsReceipts)
+      .leftJoin(suppliers, eq(goodsReceipts.supplierId, suppliers.id))
+      .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
+      .where(eq(goodsReceipts.id, id))
+      .limit(1);
+    return rows[0] ?? null;
   }
 }

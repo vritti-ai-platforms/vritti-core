@@ -1,17 +1,14 @@
-import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 import { getPurchaseOrder } from '@/services/purchase-orders.service';
 
-// Fetches purchase order detail with line items
-export function usePurchaseOrder(
-  id: string | null,
-  options?: Omit<UseQueryOptions<PurchaseOrderDetail, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
-) {
-  return useQuery<PurchaseOrderDetail, AxiosError>({
-    queryKey: ['commerce', 'purchase-orders', id],
-    queryFn: () => getPurchaseOrder(id as string),
-    enabled: !!id,
-    ...options,
+export const PURCHASE_ORDER_KEY = (id: string) => ['commerce', 'purchase-orders', id] as const;
+
+// Fetches purchase order header/detail
+export function usePurchaseOrder(id: string) {
+  return useSuspenseQuery<PurchaseOrderDetail, AxiosError>({
+    queryKey: PURCHASE_ORDER_KEY(id),
+    queryFn: () => getPurchaseOrder(id),
   });
 }

@@ -1,8 +1,8 @@
-import type { PurchaseOrderDetailDto, PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
+import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
 import type { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderDto } from './dto/request/update-purchase-order.dto';
@@ -19,23 +19,44 @@ export class PurchaseOrdersController {
     return this.service.findForTable(state);
   }
 
+  @MessagePattern({ cmd: 'purchaseOrders.select' })
+  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('purchaseOrders.select');
+    return this.service.findForSelect(data);
+  }
+
   @MessagePattern({ cmd: 'purchaseOrders.create' })
-  async create(@Payload() dto: CreatePurchaseOrderDto): Promise<PurchaseOrderDetailDto> {
+  async create(@Payload() dto: CreatePurchaseOrderDto): Promise<PurchaseOrderDto> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
     return this.service.create(dto);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.findById' })
-  async findById(@Payload() data: { id: string }): Promise<PurchaseOrderDetailDto> {
+  async findById(@Payload() data: { id: string }): Promise<PurchaseOrderDto> {
     this.logger.log(`purchaseOrders.findById — id: ${data.id}`);
     return this.service.findById(data.id);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.update' })
-  async update(@Payload() data: { id: string } & UpdatePurchaseOrderDto): Promise<PurchaseOrderDetailDto> {
+  async update(@Payload() data: { id: string } & UpdatePurchaseOrderDto): Promise<PurchaseOrderDto> {
     const { id, ...updateData } = data;
     this.logger.log(`purchaseOrders.update — id: ${id}`);
     return this.service.update(id, updateData);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.items' })
+  async items(@Payload() data: { id: string }): Promise<PurchaseOrderItemDto[]> {
+    this.logger.log(`purchaseOrders.items — id: ${data.id}`);
+    return this.service.findItems(data.id);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.itemsTable' })
+  async itemsTable(
+    @Payload() data: { id: string } & TableViewState,
+  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+    this.logger.log(`purchaseOrders.itemsTable — id: ${data.id}`);
+    const { id, ...state } = data;
+    return this.service.findItemsForTable(id, state);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.updateStatus' })

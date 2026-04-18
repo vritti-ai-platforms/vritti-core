@@ -1,52 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
-
-export class CreateGoodsReceiptItemDto {
-  @ApiProperty({ description: 'Purchase order item ID' })
-  @IsUUID()
-  purchaseOrderItemId: string;
-
-  @ApiProperty({ description: 'Accepted quantity', example: 90 })
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  acceptedQuantity: number;
-
-  @ApiPropertyOptional({ description: 'Rejected quantity', example: 10 })
-  @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  rejectedQuantity?: number;
-
-  @ApiPropertyOptional({ description: 'Reason for rejection' })
-  @IsOptional()
-  @IsString()
-  rejectionReason?: string;
-
-  @ApiPropertyOptional({ description: 'Supplier batch / lot number' })
-  @IsOptional()
-  @IsString()
-  batchNumber?: string;
-
-  @ApiPropertyOptional({ description: 'Manufacturing date (ISO)', example: '2026-04-01' })
-  @IsOptional()
-  @IsString()
-  manufacturingDate?: string;
-
-  @ApiPropertyOptional({ description: 'Expiry date (ISO)', example: '2027-04-01' })
-  @IsOptional()
-  @IsString()
-  expiryDate?: string;
-}
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateGoodsReceiptDto {
-  @ApiProperty({ description: 'Purchase order ID' })
+  @ApiProperty({ description: 'Supplier ID' })
   @IsUUID()
-  purchaseOrderId: string;
+  supplierId: string;
 
-  @ApiProperty({ description: 'Inventory location ID where goods are received' })
+  @ApiPropertyOptional({ description: 'Purchase order ID (optional)' })
+  @IsOptional()
   @IsUUID()
-  locationId: string;
+  purchaseOrderId?: string;
 
   @ApiPropertyOptional({ description: 'User ID of the person who received the goods' })
   @IsOptional()
@@ -62,10 +25,4 @@ export class CreateGoodsReceiptDto {
   @IsOptional()
   @IsString()
   notes?: string;
-
-  @ApiProperty({ description: 'Receipt line items', type: [CreateGoodsReceiptItemDto] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreateGoodsReceiptItemDto)
-  items: CreateGoodsReceiptItemDto[];
 }

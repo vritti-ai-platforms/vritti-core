@@ -1,21 +1,26 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Mail, PackageCheck, Plus, Printer, Send, Trash2 } from 'lucide-react';
+import { Mail, PackageCheck, Printer, Send } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useGoodsReceipts } from '@/hooks/useGoodsReceipts';
+import { useNavigate } from 'react-router-dom';
+import { useDeletePurchaseOrder } from '@/hooks/useDeletePurchaseOrder';
 import { usePurchaseOrder } from '@/hooks/usePurchaseOrder';
+import { usePurchaseOrderItems } from '@/hooks/usePurchaseOrderItems';
 import { useUpdatePurchaseOrder } from '@/hooks/useUpdatePurchaseOrder';
 import type { PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { downloadPurchaseOrderPdf, updatePurchaseOrderStatus } from '@/services/purchase-orders.service';
 import { AddPurchaseOrderItemDialog } from './forms/AddPurchaseOrderItemDialog';
 import { ReceiveGoodsDialog } from './forms/ReceiveGoodsDialog';
 import { SendPurchaseOrderEmailDialog } from './forms/SendPurchaseOrderEmailDialog';
+import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
+import { LineItemsTab } from './tabs/LineItemsTab';
+import { OverviewTab } from './tabs/OverviewTab';
 
 const statusConfig: Record<
   PurchaseOrderStatus,
@@ -36,8 +41,9 @@ const nextStatusAction: Partial<Record<PurchaseOrderStatus, { label: string; sta
 
 export const PurchaseOrderDetailPage = () => {
   const { id } = useSlugParams('poSlug');
-  const { data: po, isLoading, refetch } = usePurchaseOrder(id ?? null);
-  const { data: goodsReceipts, isLoading: isLoadingReceipts } = useGoodsReceipts(id ?? null);
+  const navigate = useNavigate();
+  const { data: po, refetch } = usePurchaseOrder(id);
+  const { data: poItems = [] } = usePurchaseOrderItems(id);
   const [activeTab, setActiveTab] = useState('overview');
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const addItemDialog = useDialog();
@@ -45,6 +51,7 @@ export const PurchaseOrderDetailPage = () => {
   const sendEmailDialog = useDialog();
   const confirm = useConfirm();
   const removeMutation = useUpdatePurchaseOrder();
+  const deleteMutation = useDeletePurchaseOrder();
 
   const handleStatusChange = useCallback(
     async (nextStatus: PurchaseOrderStatus, label: string) => {
@@ -76,6 +83,19 @@ export const PurchaseOrderDetailPage = () => {
     }
   }, [id, confirm, refetch]);
 
+  const handleDelete = useCallback(async () => {
+    if (!id || !po) return;
+    const confirmed = await confirm({
+      title: `Delete "${po.poNumber}"?`,
+      description: 'This purchase order and all its line items will be permanently removed.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    });
+    if (confirmed) {
+      deleteMutation.mutate(id, { onSuccess: () => navigate('..') });
+    }
+  }, [id, po, confirm, deleteMutation, navigate]);
+
   const handleRemoveItem = useCallback(
     async (inventoryItemId: string, itemName: string) => {
       if (!po) return;
@@ -89,17 +109,18 @@ export const PurchaseOrderDetailPage = () => {
         removeMutation.mutate({
           id: po.id,
           data: {
-            items: po.items
+            items: poItems
               .filter((i) => i.inventoryItemId !== inventoryItemId)
               .map((i) => ({
                 inventoryItemId: i.inventoryItemId,
                 orderedQuantity: i.orderedQuantity,
+                unitPrice: i.unitPrice ?? undefined,
               })),
           },
         });
       }
     },
-    [po, confirm, removeMutation],
+    [po, poItems, confirm, removeMutation],
   );
 
   // Opens the server-generated PDF in a new browser tab
@@ -115,14 +136,6 @@ export const PurchaseOrderDetailPage = () => {
       setIsDownloadingPdf(false);
     }
   }, [id]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner />
-      </div>
-    );
-  }
 
   if (!po) {
     return (
@@ -157,7 +170,12 @@ export const PurchaseOrderDetailPage = () => {
               {isDownloadingPdf ? 'Generating...' : 'Print / PDF'}
             </Button>
             {canSendEmail && (
-              <Button size="sm" variant="outline" startAdornment={<Mail className="size-4" />} onClick={sendEmailDialog.open}>
+              <Button
+                size="sm"
+                variant="outline"
+                startAdornment={<Mail className="size-4" />}
+                onClick={sendEmailDialog.open}
+              >
                 Send Email
               </Button>
             )}
@@ -189,187 +207,30 @@ export const PurchaseOrderDetailPage = () => {
           {
             value: 'overview',
             label: 'Overview',
-            content: (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">PO Number</p>
-                      <p className="mt-1 font-mono font-medium">{po.poNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Supplier</p>
-                      <p className="mt-1 font-medium">{po.supplierName ?? '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Order Date</p>
-                      <p className="mt-1">{new Date(po.orderDate).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Expected Date</p>
-                      <p className="mt-1">{po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge
-                        variant={statusBadgeConfig.variant}
-                        className={`mt-1 ${statusBadgeConfig.className ?? ''}`}
-                      >
-                        {statusBadgeConfig.label}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Amount</p>
-                      <p className="mt-1 font-mono font-medium">
-                        {po.totalAmount != null ? po.totalAmount.toFixed(2) : '—'}
-                      </p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground">Notes</p>
-                      <p className="mt-1">{po.notes ?? '—'}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ),
+            content: <OverviewTab po={po} status={statusBadgeConfig} />,
           },
           {
             value: 'items',
-            label: `Line Items (${po.items.length})`,
+            label: `Line Items (${poItems.length})`,
             content: (
-              <Card>
-                <CardHeader className="flex-row items-center justify-between">
-                  <CardTitle>Line Items</CardTitle>
-                  {canModifyItems && (
-                    <Button size="sm" onClick={addItemDialog.open}>
-                      <Plus className="mr-2 size-4" />
-                      Add Line Item
-                    </Button>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {po.items.length === 0 ? (
-                    <p className="py-4 text-center text-muted-foreground">
-                      No line items added yet.{canModifyItems ? ' Click "Add Line Item" to get started.' : ''}
-                    </p>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b text-left text-muted-foreground">
-                            <th className="pb-2 font-medium">#</th>
-                            <th className="pb-2 font-medium">Inventory Item</th>
-                            <th className="pb-2 font-medium text-right">Ordered</th>
-                            <th className="pb-2 font-medium text-right">Received</th>
-                            <th className="pb-2 font-medium text-right">Unit Price</th>
-                            <th className="pb-2 font-medium text-right">Total</th>
-                            {canModifyItems && <th className="pb-2 font-medium text-right">Actions</th>}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {po.items.map((item, index) => (
-                            <tr key={item.id} className="border-b last:border-0">
-                              <td className="py-3 text-muted-foreground">{index + 1}</td>
-                              <td className="py-3 font-medium">{item.inventoryItemName ?? item.inventoryItemId}</td>
-                              <td className="py-3 text-right font-mono">{item.orderedQuantity}</td>
-                              <td className="py-3 text-right font-mono">{item.receivedQuantity}</td>
-                              <td className="py-3 text-right font-mono">
-                                {item.unitPrice != null ? item.unitPrice.toFixed(2) : '—'}
-                              </td>
-                              <td className="py-3 text-right font-mono">
-                                {item.totalPrice != null ? item.totalPrice.toFixed(2) : '—'}
-                              </td>
-                              {canModifyItems && (
-                                <td className="py-3 text-right">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    onClick={() =>
-                                      handleRemoveItem(item.inventoryItemId, item.inventoryItemName ?? 'item')
-                                    }
-                                  >
-                                    <Trash2 className="size-4 text-destructive" />
-                                  </Button>
-                                </td>
-                              )}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <LineItemsTab
+                purchaseOrderId={po.id}
+                canModifyItems={canModifyItems}
+                onOpenAddItemDialog={addItemDialog.open}
+                onRemoveItem={handleRemoveItem}
+              />
             ),
           },
           {
             value: 'receipts',
-            label: `Goods Receipts (${goodsReceipts?.length ?? 0})`,
+            label: 'Goods Receipts',
             content: (
-              <Card>
-                <CardHeader className="flex-row items-center justify-between">
-                  <CardTitle>Goods Receipts</CardTitle>
-                  {canReceive && (
-                    <Button size="sm" onClick={receiveDialog.open}>
-                      <PackageCheck className="mr-2 size-4" />
-                      Receive Goods
-                    </Button>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {isLoadingReceipts ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Spinner />
-                    </div>
-                  ) : !goodsReceipts || goodsReceipts.length === 0 ? (
-                    <p className="py-4 text-center text-muted-foreground">
-                      No goods receipts recorded yet.{canReceive ? ' Click "Receive Goods" to record a delivery.' : ''}
-                    </p>
-                  ) : (
-                    <div className="space-y-4">
-                      {goodsReceipts.map((gr) => (
-                        <div key={gr.id} className="rounded-lg border p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <p className="font-medium">
-                                Received on {new Date(gr.receivedDate).toLocaleDateString()}
-                              </p>
-                              {gr.receivedBy && <p className="text-sm text-muted-foreground">By: {gr.receivedBy}</p>}
-                            </div>
-                            <Badge variant="outline">{gr.items.length} items</Badge>
-                          </div>
-                          {gr.notes && <p className="text-sm text-muted-foreground mb-3">{gr.notes}</p>}
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                              <thead>
-                                <tr className="border-b text-left text-muted-foreground">
-                                  <th className="pb-2 font-medium">Item</th>
-                                  <th className="pb-2 font-medium text-right">Accepted</th>
-                                  <th className="pb-2 font-medium text-right">Rejected</th>
-                                  <th className="pb-2 font-medium">Reason</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {gr.items.map((grItem) => (
-                                  <tr key={grItem.id} className="border-b last:border-0">
-                                    <td className="py-2">{grItem.inventoryItemName ?? grItem.purchaseOrderItemId}</td>
-                                    <td className="py-2 text-right font-mono">{grItem.acceptedQuantity}</td>
-                                    <td className="py-2 text-right font-mono">{grItem.rejectedQuantity}</td>
-                                    <td className="py-2 text-muted-foreground">{grItem.rejectionReason ?? '—'}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <GoodsReceiptsTab
+                poId={po.id}
+                canReceive={canReceive}
+                isActive={activeTab === 'receipts'}
+                onOpenReceiveDialog={receiveDialog.open}
+              />
             ),
           },
         ]}
@@ -381,13 +242,15 @@ export const PurchaseOrderDetailPage = () => {
         handle={addItemDialog}
         title="Add Line Item"
         description="Add an inventory item to this purchase order."
-        content={(close) => <AddPurchaseOrderItemDialog purchaseOrder={po} onSuccess={close} onCancel={close} />}
+        content={(close) => (
+          <AddPurchaseOrderItemDialog purchaseOrder={po} items={poItems} onSuccess={close} onCancel={close} />
+        )}
       />
 
       <Dialog
         handle={receiveDialog}
-        title="Receive Goods"
-        description="Record accepted and rejected quantities for this delivery."
+        title="Create Goods Receipt"
+        description="Create a draft goods receipt linked to this purchase order."
         className="sm:max-w-2xl"
         content={(close) => <ReceiveGoodsDialog purchaseOrder={po} onSuccess={close} onCancel={close} />}
       />
@@ -398,6 +261,17 @@ export const PurchaseOrderDetailPage = () => {
         description="Send this purchase order to the supplier. Leave recipient empty to use supplier email."
         content={(close) => <SendPurchaseOrderEmailDialog purchaseOrder={po} onSuccess={close} onCancel={close} />}
       />
+
+      {po.status === 'DRAFT' && (
+        <DangerZone
+          title="Delete this draft purchase order"
+          description="This action cannot be undone. The purchase order and all its line items will be permanently removed."
+          buttonText="Delete Draft"
+          onClick={handleDelete}
+          isLoading={deleteMutation.isPending}
+          disabled={deleteMutation.isPending}
+        />
+      )}
     </div>
   );
 };

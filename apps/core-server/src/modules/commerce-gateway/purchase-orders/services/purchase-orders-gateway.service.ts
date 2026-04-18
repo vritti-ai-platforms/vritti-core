@@ -5,13 +5,19 @@ import {
   BadRequestException,
   DataTableStateService,
   NatsClientService,
+  type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-response.dto';
+import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import { BusinessUnitService } from '@/modules/domain/business-unit/services/business-unit.service';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
+import type { PurchaseOrderSelectQueryDto } from '../dto/request/purchase-order-select-query.dto';
 import type { SendPurchaseOrderEmailDto } from '../dto/request/send-purchase-order-email.dto';
 import type { UpdatePurchaseOrderDto } from '../dto/request/update-purchase-order.dto';
+import type { PurchaseOrderItemResponseDto } from '../dto/response/purchase-order-item-response.dto';
+import type { PurchaseOrderItemTableResponseDto } from '../dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderResponseDto } from '../dto/response/purchase-order-response.dto';
 import type { PurchaseOrderTableResponseDto } from '../dto/response/purchase-order-table-response.dto';
 import {
@@ -20,16 +26,6 @@ import {
   type PurchaseOrderEmailData,
   type SupplierEmailData,
 } from '../templates/purchase-order.email';
-
-interface PurchaseOrderDetailResponseDto extends PurchaseOrderResponseDto {
-  items: Array<{
-    inventoryItemId: string;
-    inventoryItemName: string | null;
-    orderedQuantity: number;
-    unitPrice: number | null;
-    totalPrice: number | null;
-  }>;
-}
 
 @Injectable()
 export class PurchaseOrdersGatewayService {
@@ -74,6 +70,12 @@ export class PurchaseOrdersGatewayService {
     return { result, count, state, activeViewId };
   }
 
+  // Returns purchase order options for select dropdowns
+  async select(params: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('purchaseOrders.select');
+    return this.nats.send('commerce', 'purchaseOrders.select', params);
+  }
+
   // Creates a new purchase order
   async create(dto: CreatePurchaseOrderDto): Promise<PurchaseOrderResponseDto> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
@@ -84,6 +86,40 @@ export class PurchaseOrdersGatewayService {
   async findById(id: string): Promise<PurchaseOrderResponseDto> {
     this.logger.log(`purchaseOrders.findById — id: ${id}`);
     return this.nats.send('commerce', 'purchaseOrders.findById', { id });
+  }
+
+  // Returns all line items for a purchase order
+  async findItems(id: string): Promise<PurchaseOrderItemResponseDto[]> {
+    this.logger.log(`purchaseOrders.items — id: ${id}`);
+    return this.nats.send('commerce', 'purchaseOrders.items', { id });
+  }
+
+  // Returns line items table for a purchase order using persisted table state
+  async findItemsTable(id: string, userId: string): Promise<PurchaseOrderItemTableResponseDto> {
+    this.logger.log(`purchaseOrders.itemsTable — id: ${id}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-purchase-order-${id}-items`,
+    );
+    const { result, count } = await this.nats.send<{ result: PurchaseOrderItemResponseDto[]; count: number }>(
+      'commerce',
+      'purchaseOrders.itemsTable',
+      { id, ...state },
+    );
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns goods receipts table linked to a purchase order
+  async findGoodsReceiptTable(id: string, userId: string): Promise<GoodsReceiptTableResponseDto> {
+    this.logger.log(`purchaseOrders.goodsReceiptTable — id: ${id}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-purchase-order-${id}-goods-receipts`,
+    );
+    const result = await this.nats.send<GoodsReceiptResponseDto[]>('commerce', 'goodsReceipts.findByPoId', {
+      purchaseOrderId: id,
+    });
+    return { result, count: result.length, state, activeViewId };
   }
 
   // Updates a purchase order by ID
@@ -100,7 +136,10 @@ export class PurchaseOrdersGatewayService {
 
   // Sends a purchase order email with PDF attachment and marks draft POs as sent
   async sendEmail(id: string, dto: SendPurchaseOrderEmailDto): Promise<SuccessResponseDto> {
-    const po = await this.nats.send<PurchaseOrderDetailResponseDto>('commerce', 'purchaseOrders.findById', { id });
+    const [po, items] = await Promise.all([
+      this.nats.send<PurchaseOrderResponseDto>('commerce', 'purchaseOrders.findById', { id }),
+      this.nats.send<PurchaseOrderItemResponseDto[]>('commerce', 'purchaseOrders.items', { id }),
+    ]);
     const supplier = await this.nats.send<SupplierEmailData>('commerce', 'suppliers.findById', { id: po.supplierId });
     const recipientEmail = dto.email?.trim() || supplier.email || null;
 
@@ -118,7 +157,7 @@ export class PurchaseOrdersGatewayService {
       expectedDate: po.expectedDate,
       notes: po.notes,
       totalAmount: po.totalAmount,
-      items: po.items,
+      items,
     };
 
     const htmlContent = buildPurchaseOrderEmailHtml(poEmailData, supplier);
@@ -161,7 +200,10 @@ export class PurchaseOrdersGatewayService {
 
   // Generates and returns a PDF buffer + filename for streaming to the client
   async downloadPdf(id: string, buId: string): Promise<{ buffer: Buffer; filename: string }> {
-    const po = await this.nats.send<PurchaseOrderDetailResponseDto>('commerce', 'purchaseOrders.findById', { id });
+    const [po, items] = await Promise.all([
+      this.nats.send<PurchaseOrderResponseDto>('commerce', 'purchaseOrders.findById', { id }),
+      this.nats.send<PurchaseOrderItemResponseDto[]>('commerce', 'purchaseOrders.items', { id }),
+    ]);
     const [supplier, bu] = await Promise.all([
       this.nats.send<SupplierEmailData>('commerce', 'suppliers.findById', { id: po.supplierId }),
       buId ? this.businessUnitService.findById(buId).catch(() => null) : Promise.resolve(null),
@@ -174,7 +216,7 @@ export class PurchaseOrdersGatewayService {
         expectedDate: po.expectedDate,
         notes: po.notes,
         totalAmount: po.totalAmount,
-        items: po.items,
+        items,
       },
       supplier,
       bu?.name ?? null,

@@ -8,11 +8,12 @@ import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { useUpdatePurchaseOrder } from '@/hooks/useUpdatePurchaseOrder';
-import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
+import type { PurchaseOrderDetail, PurchaseOrderItemData } from '@/schemas/purchase-orders';
 import { getSupplierItemPrice } from '@/services/purchase-orders.service';
 
 interface AddPurchaseOrderItemDialogProps {
   purchaseOrder: PurchaseOrderDetail;
+  items: PurchaseOrderItemData[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -27,6 +28,7 @@ type AddLineItemFormData = z.infer<typeof addLineItemSchema>;
 
 export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({
   purchaseOrder,
+  items,
   onSuccess,
   onCancel,
 }) => {
@@ -44,7 +46,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 
   const updateMutation = useUpdatePurchaseOrder({ onSuccess });
 
-  const existingItemIds = purchaseOrder.items.map((i) => i.inventoryItemId).join(',');
+  const existingItemIds = items.map((i) => i.inventoryItemId).join(',');
 
   // Pre-fill unit price from supplier pricelist when item is selected
   const watchedItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
@@ -86,14 +88,13 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     <Form
       form={form}
       mutation={updateMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
         data: {
           items: [
-            ...purchaseOrder.items.map((i) => ({
+            ...items.map((i) => ({
               inventoryItemId: i.inventoryItemId,
               orderedQuantity: i.orderedQuantity,
               unitPrice: i.unitPrice ?? undefined,
