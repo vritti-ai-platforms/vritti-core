@@ -1,5 +1,5 @@
-import { decimal, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { decimal, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { paymentMethodEnum, paymentStatusEnum } from './enums';
 import { invoices } from './invoices';
@@ -9,18 +9,18 @@ export const payments = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => invoices.id, { onDelete: 'cascade' }),
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
     method: paymentMethodEnum('method').notNull(),
     reference: varchar('reference', { length: 255 }),
     status: paymentStatusEnum('status').notNull().default('COMPLETED'),
-    paidAt: timestamp('paid_at').defaultNow().notNull(),
+    paidAt: timestamp('paid_at', { withTimezone: true }).defaultNow().notNull(),
     notes: text('notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [
-    index('idx_payments_invoice').on(table.invoiceId),
-  ],
+  (table) => [index('idx_payments_invoice').on(table.invoiceId)],
 );
 
 export type Payment = typeof payments.$inferSelect;

@@ -12,8 +12,8 @@ export const itemFieldValues = coreSchema.table(
     itemId: uuid('item_id').notNull().references(() => items.id, { onDelete: 'cascade' }),
     fieldDefinitionId: uuid('field_definition_id').notNull().references(() => itemFieldDefinitions.id, { onDelete: 'cascade' }),
     value: text('value'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),

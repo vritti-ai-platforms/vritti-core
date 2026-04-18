@@ -6,6 +6,7 @@ import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateGoodsReceipt } from '@/hooks/useCreateGoodsReceipt';
 import {
@@ -33,6 +34,11 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
   const createMutation = useCreateGoodsReceipt(null, {
     onSuccess: (data) => onSuccess(data),
   });
+  const supplierId = form.watch('supplierId');
+
+  useEffect(() => {
+    form.setValue('purchaseOrderId', '');
+  }, [form]);
 
   return (
     <Form
@@ -52,7 +58,8 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
         name="purchaseOrderId"
         label="Purchase Order (Optional)"
         placeholder="Select purchase order"
-        params={{ status: 'CONFIRMED' }}
+        disabled={!supplierId}
+        params={supplierId ? { status: 'CONFIRMED', supplierId } : { status: 'CONFIRMED' }}
       />
       <TextField name="receivedDate" label="Received Date" type="date" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />

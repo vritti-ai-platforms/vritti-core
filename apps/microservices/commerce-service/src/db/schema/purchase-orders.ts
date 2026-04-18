@@ -1,9 +1,9 @@
-import { date, decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { purchaseOrderStatusEnum } from './enums';
+import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { suppliers } from './suppliers';
+import { purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
+import { suppliers } from './suppliers';
 
 export const purchaseOrders = coreSchema.table(
   'purchase_orders',
@@ -11,16 +11,18 @@ export const purchaseOrders = coreSchema.table(
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
-    supplierId: uuid('supplier_id').notNull().references(() => suppliers.id),
+    supplierId: uuid('supplier_id')
+      .notNull()
+      .references(() => suppliers.id),
     poNumber: varchar('po_number', { length: 50 }).notNull(),
     status: purchaseOrderStatusEnum('status').notNull().default('DRAFT'),
-    orderDate: date('order_date').notNull(),
-    expectedDate: date('expected_date'),
+    orderDate: timestamp('order_date', { withTimezone: true, mode: 'string' }).notNull(),
+    expectedDate: timestamp('expected_date', { withTimezone: true, mode: 'string' }),
     notes: text('notes'),
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }),
     createdBy: uuid('created_by'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
@@ -60,8 +62,12 @@ export const purchaseOrderItems = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    purchaseOrderId: uuid('purchase_order_id').notNull().references(() => purchaseOrders.id, { onDelete: 'cascade' }),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id),
+    purchaseOrderId: uuid('purchase_order_id')
+      .notNull()
+      .references(() => purchaseOrders.id, { onDelete: 'cascade' }),
+    inventoryItemId: uuid('inventory_item_id')
+      .notNull()
+      .references(() => inventoryItems.id),
     orderedQuantity: decimal('ordered_quantity', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     unitPrice: decimal('unit_price', { precision: 12, scale: 2 }),

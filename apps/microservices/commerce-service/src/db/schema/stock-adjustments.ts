@@ -19,8 +19,8 @@ export const stockAdjustments = coreSchema.table(
     status: stockAdjustmentStatusEnum('status').notNull().default('DRAFT'),
     reason: text('reason'),
     createdById: uuid('created_by_id').notNull(),
-    publishedAt: timestamp('published_at'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index('idx_stock_adjustments_bu').on(table.organizationId, table.businessUnitId),

@@ -1,7 +1,18 @@
-import { boolean, decimal, index, integer, jsonb, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { catalogItemTypeEnum } from './enums';
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgPolicy,
+  text,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { catalogItemTypeEnum } from './enums';
 
 export const items = coreSchema.table(
   'items',
@@ -19,8 +30,8 @@ export const items = coreSchema.table(
     sortOrder: integer('sort_order').notNull().default(0),
     attributes: jsonb('attributes').notNull().default({}),
     metadata: jsonb('metadata').notNull().default({}),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
@@ -54,4 +65,3 @@ export const items = coreSchema.table(
 
 export type Item = typeof items.$inferSelect;
 export type NewItem = typeof items.$inferInsert;
-

@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { date, decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceiptStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
@@ -19,9 +19,9 @@ export const goodsReceipts = coreSchema.table(
     status: goodsReceiptStatusEnum('status').notNull().default('DRAFT'),
     purchaseOrderId: uuid('purchase_order_id').references(() => purchaseOrders.id),
     receivedBy: uuid('received_by'),
-    receivedDate: date('received_date').notNull(),
+    receivedDate: timestamp('received_date', { withTimezone: true, mode: 'string' }).notNull(),
     notes: text('notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     unique('uq_goods_receipts_bu_gr_number').on(table.businessUnitId, table.grNumber),
@@ -70,8 +70,8 @@ export const goodsReceiptItems = coreSchema.table(
     rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     rejectionReason: text('rejection_reason'),
     batchNumber: varchar('batch_number', { length: 100 }),
-    manufacturingDate: date('manufacturing_date'),
-    expiryDate: date('expiry_date'),
+    manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
+    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }),
   },
   (table) => [
     index('idx_goods_receipt_items_gr').on(table.goodsReceiptId),

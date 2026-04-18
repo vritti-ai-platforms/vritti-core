@@ -48,8 +48,8 @@ export const itemVariants = coreSchema.table(
     manageInventory: boolean('manage_inventory').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
     attributes: jsonb('attributes').notNull().default({}),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),

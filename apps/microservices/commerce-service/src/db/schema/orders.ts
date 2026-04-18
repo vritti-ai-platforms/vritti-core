@@ -26,14 +26,14 @@ export const orders = coreSchema.table(
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull().default('0'),
     notes: text('notes'),
     externalOrderId: varchar('external_order_id', { length: 100 }),
-    placedAt: timestamp('placed_at').defaultNow().notNull(),
-    confirmedAt: timestamp('confirmed_at'),
-    readyAt: timestamp('ready_at'),
-    completedAt: timestamp('completed_at'),
-    cancelledAt: timestamp('cancelled_at'),
+    placedAt: timestamp('placed_at', { withTimezone: true }).defaultNow().notNull(),
+    confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+    readyAt: timestamp('ready_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
     cancellationReason: text('cancellation_reason'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
@@ -91,7 +91,7 @@ export const orderItems = coreSchema.table(
     subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull(),
     total: decimal('total', { precision: 12, scale: 2 }).notNull(),
     notes: text('notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index('idx_order_items_order').on(table.orderId),

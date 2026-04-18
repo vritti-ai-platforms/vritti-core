@@ -31,7 +31,6 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -50,7 +49,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
-          Create Order
+          Create Purchase Order
         </Button>
       </div>
     </Form>

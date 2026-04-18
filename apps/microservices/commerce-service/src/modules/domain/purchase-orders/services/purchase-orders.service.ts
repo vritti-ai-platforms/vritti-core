@@ -53,7 +53,11 @@ export class PurchaseOrdersService {
 
   // Returns paginated purchase order options for select dropdowns
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    const status = (query as SelectOptionsQueryDto & { status?: string }).status;
+    const { status, supplierId } = query as SelectOptionsQueryDto & { status?: string; supplierId?: string };
+    const where: Record<string, string> = {};
+    if (status) where.status = status;
+    if (supplierId) where.supplierId = supplierId;
+
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'poNumber',
@@ -65,7 +69,7 @@ export class PurchaseOrdersService {
       offset: query.offset,
       values: query.values,
       excludeIds: query.excludeIds,
-      where: status ? { status } : undefined,
+      where: Object.keys(where).length > 0 ? where : undefined,
       orderByKey: query.orderByKey || 'poNumber',
       orderDirection: query.orderDirection || 'desc',
     });

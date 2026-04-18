@@ -1,3 +1,4 @@
+import { IsZonedIsoDateString } from '@vritti/api-sdk';
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateGoodsReceiptDto {
@@ -12,8 +13,8 @@ export class CreateGoodsReceiptDto {
   @IsUUID()
   receivedBy?: string;
 
-  @IsString()
   @IsNotEmpty()
+  @IsZonedIsoDateString()
   receivedDate: string;
 
   @IsOptional()

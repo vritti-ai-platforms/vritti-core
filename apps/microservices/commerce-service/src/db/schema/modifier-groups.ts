@@ -15,7 +15,7 @@ export const modifierGroups = coreSchema.table(
     maxSelections: integer('max_selections'),
     sortOrder: integer('sort_order').notNull().default(0),
     isActive: boolean('is_active').notNull().default(true),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     unique('uq_modifier_groups_bu_name').on(table.businessUnitId, table.name),

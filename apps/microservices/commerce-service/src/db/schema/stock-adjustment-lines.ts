@@ -1,8 +1,8 @@
-import { boolean, date, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { boolean, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { stockAdjustments } from './stock-adjustments';
 import { inventoryItemBatches } from './inventory-item-batches';
+import { stockAdjustments } from './stock-adjustments';
 import { storageLocations } from './storage-locations';
 
 export const stockAdjustmentLines = coreSchema.table(
@@ -20,10 +20,10 @@ export const stockAdjustmentLines = coreSchema.table(
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     batchNumber: varchar('batch_number', { length: 100 }),
     isBalanced: boolean('is_balanced').notNull().default(false),
-    manufacturingDate: date('manufacturing_date'),
-    expiryDate: date('expiry_date'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
+    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),

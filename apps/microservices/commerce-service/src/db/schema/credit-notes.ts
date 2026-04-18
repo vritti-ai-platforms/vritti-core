@@ -21,7 +21,7 @@ export const creditNotes = coreSchema.table(
     reason: text('reason'),
     status: creditNoteStatusEnum('status').notNull().default('DRAFT'),
     issuedBy: uuid('issued_by'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     unique('uq_credit_notes_bu_number').on(table.businessUnitId, table.creditNoteNumber),
@@ -60,7 +60,7 @@ export const creditNoteApplications = coreSchema.table(
     creditNoteId: uuid('credit_note_id').notNull().references(() => creditNotes.id, { onDelete: 'cascade' }),
     invoiceId: uuid('invoice_id').notNull().references(() => invoices.id),
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-    appliedAt: timestamp('applied_at').defaultNow().notNull(),
+    appliedAt: timestamp('applied_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index('idx_credit_note_applications_cn').on(table.creditNoteId),

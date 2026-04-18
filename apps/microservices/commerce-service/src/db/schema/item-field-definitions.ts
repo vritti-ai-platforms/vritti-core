@@ -1,5 +1,5 @@
-import { boolean, integer, jsonb, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { boolean, integer, jsonb, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { fieldTypeEnum } from './enums';
 
@@ -14,9 +14,9 @@ export const itemFieldDefinitions = coreSchema.table(
     options: jsonb('options').$type<string[]>().notNull().default([]),
     isRequired: boolean('is_required').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
+  (_) => [
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

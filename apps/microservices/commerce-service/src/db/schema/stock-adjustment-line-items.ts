@@ -13,8 +13,8 @@ export const stockAdjustmentLineItems = coreSchema.table(
       .notNull()
       .references(() => stockAdjustmentLines.id, { onDelete: 'cascade' }),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),

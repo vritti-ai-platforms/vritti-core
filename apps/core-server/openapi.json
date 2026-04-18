@@ -5878,6 +5878,16 @@
               "example": "CONFIRMED",
               "type": "string"
             }
+          },
+          {
+            "name": "supplierId",
+            "required": false,
+            "in": "query",
+            "description": "Optional supplier filter",
+            "schema": {
+              "example": "86dc66cf-d1a0-4016-8f5e-1c1fd889c384",
+              "type": "string"
+            }
           }
         ],
         "responses": {

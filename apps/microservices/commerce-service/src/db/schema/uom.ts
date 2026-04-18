@@ -12,7 +12,7 @@ export const uom = coreSchema.table(
     symbol: varchar('symbol', { length: 10 }).notNull(),
     baseUnitId: uuid('base_unit_id'),
     conversionFactor: doublePrecision('conversion_factor').notNull().default(1),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex('uq_uom_bu_symbol').on(table.businessUnitId, table.symbol),

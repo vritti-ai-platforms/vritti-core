@@ -18,7 +18,7 @@ export const inventoryLedger = coreSchema.table(
     referenceType: inventoryLedgerReferenceTypeEnum('reference_type'),
     referenceId: uuid('reference_id'),
     notes: text('notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index('idx_inventory_ledger_item').on(table.inventoryItemId),

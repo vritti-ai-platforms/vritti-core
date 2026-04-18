@@ -18,8 +18,8 @@ export const inventoryItems = coreSchema.table(
     description: varchar('description', { length: 500 }),
     uomId: uuid('uom_id').notNull().references(() => uom.id),
     metadata: jsonb('metadata').notNull().default({}),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),

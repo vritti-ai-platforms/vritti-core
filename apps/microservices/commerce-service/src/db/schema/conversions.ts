@@ -14,11 +14,11 @@ export const conversions = coreSchema.table(
     bomId: uuid('bom_id').references(() => bom.id),
     status: conversionStatusEnum('status').notNull().default('DRAFT'),
     producedBy: uuid('produced_by'),
-    startedAt: timestamp('started_at'),
-    completedAt: timestamp('completed_at'),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
     notes: text('notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),

@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
+import { IsZonedIsoDateString } from '@vritti/api-sdk';
 
 export class CreatePurchaseOrderItemDto {
   @IsUUID()
@@ -14,12 +15,12 @@ export class CreatePurchaseOrderDto {
   @IsUUID()
   supplierId: string;
 
-  @IsString()
   @IsNotEmpty()
+  @IsZonedIsoDateString()
   orderDate: string;
 
   @IsOptional()
-  @IsString()
+  @IsZonedIsoDateString()
   expectedDate?: string;
 
   @IsOptional()

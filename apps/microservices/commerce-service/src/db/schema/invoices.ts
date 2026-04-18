@@ -1,4 +1,4 @@
-import { date, decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 import { invoiceTypeEnum, invoicePartyTypeEnum, invoiceStatusEnum } from './enums';
@@ -24,11 +24,11 @@ export const invoices = coreSchema.table(
     balance: decimal('balance', { precision: 12, scale: 2 }).notNull(),
     status: invoiceStatusEnum('status').notNull().default('DRAFT'),
     paymentTerms: varchar('payment_terms', { length: 50 }),
-    issuedDate: date('issued_date'),
-    dueDate: date('due_date'),
+    issuedDate: timestamp('issued_date', { withTimezone: true, mode: 'string' }),
+    dueDate: timestamp('due_date', { withTimezone: true, mode: 'string' }),
     notes: text('notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
       .$onUpdate(() => new Date()),
