@@ -1,6 +1,7 @@
 import { OrganizationDomainModule } from '@domain/organization/organization.module';
 import { SessionDomainModule } from '@domain/session/session.module';
 import { UserDomainModule } from '@domain/user/user.module';
+import { UserPermissionsDomainModule } from '@domain/user-permissions/user-permissions.module';
 import { VerificationDomainModule } from '@domain/verification/verification.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -27,6 +28,7 @@ import { AuthStatusSseService } from './root/services/auth-status-sse.service';
     EmailModule,
     SessionDomainModule,
     UserDomainModule,
+    UserPermissionsDomainModule,
     OrganizationDomainModule,
     VerificationDomainModule,
   ],

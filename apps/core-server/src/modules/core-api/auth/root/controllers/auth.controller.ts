@@ -1,9 +1,31 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, type MessageEvent, Post, Req, Res, Sse } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Ip,
+  Logger,
+  type MessageEvent,
+  Post,
+  Req,
+  Res,
+  Sse,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
-import { AccessToken, CookieName, type CookieSerializeOptions, Public, RefreshCookieOptions, RefreshTokenCookie, SkipCsrf, UserId } from '@vritti/api-sdk';
+import {
+  AccessToken,
+  CookieName,
+  type CookieSerializeOptions,
+  Public,
+  RefreshCookieOptions,
+  RefreshTokenCookie,
+  SkipCsrf,
+  UserId,
+} from '@vritti/api-sdk';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { NEVER, type Observable, concat, merge, of } from 'rxjs';
+import { concat, merge, NEVER, type Observable, of } from 'rxjs';
 import {
   ApiAcceptInvite,
   ApiGetAccessToken,
@@ -23,7 +45,7 @@ import { AuthService } from '../services/auth.service';
 import { AuthStatusSseService } from '../services/auth-status-sse.service';
 
 @ApiTags('Auth')
-@Controller('auth')
+@Controller(["auth", "api/auth"])
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
@@ -105,7 +127,9 @@ export class AuthController {
   @ApiGetAuthStatus()
   async getStatus(
     @RefreshTokenCookie() refreshToken: string | undefined,
-    @Req() request: FastifyRequest,
+    @AccessToken() accessToken: string,
+    @Req()
+    request: FastifyRequest,
   ): Promise<Observable<MessageEvent>> {
     const host = request.hostname ?? '';
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
@@ -113,7 +137,7 @@ export class AuthController {
 
     this.logger.log(`SSE /api/auth/status — subdomain: ${subdomain ?? 'none'}`);
 
-    const authResponse = await this.authService.getStatus(refreshToken, subdomain);
+    const authResponse = await this.authService.getStatus(refreshToken, subdomain, accessToken);
     const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
 
     // Not authenticated — send initial state and hold open to prevent rapid reconnect loop

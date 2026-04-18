@@ -1,11 +1,28 @@
 import { lazy, Suspense } from 'react';
 import { AppRegistry } from 'react-native';
 import { ScriptManager, Script } from '@callstack/repack/client';
+import { getRemoteAssetBase, getRemoteConfigByRuntimeName } from './config/remotes.config';
 
-// Resolve local split chunks (bootstrap, vendors).
-// Remote MF containers are handled by V2 resolver-plugin automatically.
+// Resolve host-local split chunks from the host dev server/filesystem and remote
+// containers/chunks from the registered remote asset base.
 ScriptManager.shared.addResolver(async (scriptId, caller) => {
-  if (!caller || caller === 'main' || caller === 'vritti_core_app') {
+  const remoteContainer = getRemoteConfigByRuntimeName(scriptId);
+  if (remoteContainer) {
+    return {
+      url: `${getRemoteAssetBase(remoteContainer)}${remoteContainer.containerFilename}`,
+      cache: false,
+    };
+  }
+
+  const remoteCaller = getRemoteConfigByRuntimeName(caller);
+  if (remoteCaller) {
+    return {
+      url: `${getRemoteAssetBase(remoteCaller)}${scriptId}.chunk.bundle`,
+      cache: false,
+    };
+  }
+
+  if (caller === 'main' || caller === 'vritti_core_app' || !caller) {
     if (__DEV__) {
       return { url: Script.getDevServerURL(scriptId), cache: false };
     }

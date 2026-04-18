@@ -1,8 +1,9 @@
 import { BottomNavigation, type RouteConfig } from '@vritti/quantum-ui-native/BottomNavigation';
 import { Text } from '@vritti/quantum-ui-native/Typography';
+import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { usePermissionContext } from '../providers/PermissionProvider';
 import { resolveRemoteName } from '../config/remotes.config';
+import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteScreen } from './RemoteScreen';
 import { getCommerceTabIcon } from './tabIcons';
 
@@ -17,6 +18,23 @@ import { getCommerceTabIcon } from './tabIcons';
 
 export function DynamicFeatureNavigator() {
   const { features, isLoadingBUs, isLoadingPermissions } = usePermissionContext();
+
+  const routes = useMemo<RouteConfig[]>(
+    () =>
+      features.map((feature) => ({
+        name: feature.route.routePrefix,
+        render: () => (
+          <RemoteScreen
+            remoteName={resolveRemoteName(feature.route.remoteEntry)}
+            remoteEntry={feature.route.remoteEntry}
+            moduleName={feature.route.exposedModule}
+          />
+        ),
+        icon: getCommerceTabIcon(feature.route.exposedModule),
+        label: feature.name,
+      })),
+    [features],
+  );
 
   if (isLoadingBUs || isLoadingPermissions) {
     return (
@@ -33,19 +51,6 @@ export function DynamicFeatureNavigator() {
       </View>
     );
   }
-
-  const routes: RouteConfig[] = features.map((feature) => ({
-    name: feature.route.routePrefix,
-    component: () => (
-      <RemoteScreen
-        remoteName={resolveRemoteName(feature.route.remoteEntry)}
-        remoteEntry={feature.route.remoteEntry}
-        moduleName={feature.route.exposedModule}
-      />
-    ),
-    icon: getCommerceTabIcon(feature.route.exposedModule),
-    label: feature.name,
-  }));
 
   return <BottomNavigation routes={routes} standalone={false} />;
 }

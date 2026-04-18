@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { PermissionFeature, AssignedBU } from '../services/permissions.service';
-import { useAssignedBusinessUnits, useUserPermissions } from '../hooks/usePermissions';
+import { useAuth } from './AuthProvider';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -32,29 +32,29 @@ interface PermissionProviderProps {
 }
 
 export function PermissionProvider({ children }: PermissionProviderProps) {
+  const { businessUnits, featuresByBuId, isLoading: isLoadingAuth } = useAuth();
   const [selectedBuId, setSelectedBuId] = useState<string | null>(null);
 
-  const {
-    data: businessUnits = [],
-    isLoading: isLoadingBUs,
-  } = useAssignedBusinessUnits();
-
-  const {
-    data: permissionsData,
-    isLoading: isLoadingPermissions,
-  } = useUserPermissions(selectedBuId);
-
-  // Auto-select first BU when loaded
   useEffect(() => {
-    if (!selectedBuId && businessUnits.length > 0) {
-      setSelectedBuId(businessUnits[0]!.id);
+    if (businessUnits.length === 0) {
+      setSelectedBuId(null);
+      return;
     }
+
+    if (selectedBuId && businessUnits.some((bu) => bu.id === selectedBuId)) {
+      return;
+    }
+
+    setSelectedBuId(businessUnits[0]!.id);
   }, [businessUnits, selectedBuId]);
 
   const features = useMemo(
-    () => permissionsData?.features ?? [],
-    [permissionsData],
+    () => (selectedBuId ? featuresByBuId[selectedBuId] ?? [] : []),
+    [featuresByBuId, selectedBuId],
   );
+
+  const isLoadingBUs = isLoadingAuth;
+  const isLoadingPermissions = isLoadingAuth;
 
   const value = useMemo<PermissionContextValue>(
     () => ({

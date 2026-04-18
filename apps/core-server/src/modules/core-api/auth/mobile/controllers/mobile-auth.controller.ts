@@ -1,10 +1,10 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Logger, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Ip, Logger, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AccessToken, Public, RequireSession, SkipCsrf, UserId } from '@vritti/api-sdk';
+import { AccessToken, Public, RequireSession, SkipCsrf } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
 import { AuthService } from '../../root/services/auth.service';
-import { ApiMobileGetStatus, ApiMobileLogin, ApiMobileLookup, ApiMobileLogout, ApiMobileRefreshTokens } from '../docs/mobile-auth.docs';
+import { ApiMobileLogin, ApiMobileLogout, ApiMobileLookup, ApiMobileRefreshTokens } from '../docs/mobile-auth.docs';
 import { MobileLoginDto } from '../dto/request/mobile-login.dto';
 import { MobileLookupDto } from '../dto/request/mobile-lookup.dto';
 import { MobileRefreshDto } from '../dto/request/mobile-refresh.dto';
@@ -13,7 +13,7 @@ import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.
 import { MobileTokenResponseDto } from '../dto/response/mobile-token-response.dto';
 
 @ApiTags('Auth - Mobile')
-@Controller('auth/mobile')
+@Controller(['auth/mobile', 'api/auth/mobile'])
 @SkipCsrf()
 export class MobileAuthController {
   private readonly logger = new Logger(MobileAuthController.name);
@@ -68,6 +68,4 @@ export class MobileAuthController {
     this.logger.log('POST /api/auth/mobile/logout');
     return this.authService.logout(accessToken);
   }
-
-
 }

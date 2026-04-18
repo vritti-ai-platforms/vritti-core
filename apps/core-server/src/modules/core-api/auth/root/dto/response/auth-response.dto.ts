@@ -1,4 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { AssignedBuResponseDto } from '../../../../user-permissions/dto/response/assigned-bu-response.dto';
+import { PermissionFeatureDto } from '../../../../user-permissions/dto/response/permissions-response.dto';
 
 export class AuthUserDto {
   @ApiProperty() id: string;
@@ -27,6 +29,15 @@ export class AuthResponseDto {
   @ApiPropertyOptional() sessionId?: string;
   @ApiPropertyOptional({ type: AuthUserDto }) user?: AuthUserDto;
   @ApiPropertyOptional({ type: AuthOrgDto }) org?: AuthOrgDto;
+  @ApiPropertyOptional({ type: [AssignedBuResponseDto] }) businessUnits?: AssignedBuResponseDto[];
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: {
+      type: 'array',
+      items: { $ref: '#/components/schemas/PermissionFeatureDto' },
+    },
+  })
+  featuresByBuId?: Record<string, PermissionFeatureDto[]>;
 
   constructor(partial: Partial<AuthResponseDto>) {
     Object.assign(this, partial);

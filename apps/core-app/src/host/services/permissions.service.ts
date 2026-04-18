@@ -7,7 +7,8 @@ import { axios } from '@vritti/quantum-ui-native/utils';
 export interface AssignedBU {
   id: string;
   name: string;
-  slug: string;
+  code: string | null;
+  type: string;
 }
 
 export interface PermissionFeature {
@@ -33,13 +34,13 @@ export interface PermissionsResponse {
 /** Fetch business units assigned to the authenticated user */
 export function getAssignedBusinessUnits(): Promise<AssignedBU[]> {
   return axios
-    .get<{ businessUnits: AssignedBU[] }>('permissions/business-units')
-    .then((r) => r.data.businessUnits);
+    .get<AssignedBU[]>('user-permissions/business-units')
+    .then((r) => r.data);
 }
 
 /** Fetch resolved permission features for a specific business unit */
 export function getPermissions(buId: string): Promise<PermissionsResponse> {
   return axios
-    .get<PermissionsResponse>('permissions', { params: { buId } })
+    .get<PermissionsResponse>('user-permissions', { params: { buId } })
     .then((r) => r.data);
 }

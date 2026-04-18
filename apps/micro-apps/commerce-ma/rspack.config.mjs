@@ -1,6 +1,6 @@
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
 import * as Repack from '@callstack/repack';
 import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
 
@@ -28,10 +28,28 @@ const rnCssComponentsPath = path.join(rnCssRoot, 'dist/commonjs/components/index
 // ---------------------------------------------------------------------------
 
 const componentDirs = [
-  'Alert', 'Avatar', 'Badge', 'BottomNavigation', 'Button', 'Card',
-  'Checkbox', 'FlashList', 'Form', 'Icon', 'Input', 'Label',
-  'NativeStack', 'Progress', 'RadioGroup', 'Separator', 'Skeleton',
-  'Spinner', 'Switch', 'TextArea', 'TextField', 'Typography',
+  'Alert',
+  'Avatar',
+  'Badge',
+  'BottomNavigation',
+  'Button',
+  'Card',
+  'Checkbox',
+  'FlashList',
+  'Form',
+  'Icon',
+  'Input',
+  'Label',
+  'NativeStack',
+  'Progress',
+  'RadioGroup',
+  'Separator',
+  'Skeleton',
+  'Spinner',
+  'Switch',
+  'TextArea',
+  'TextField',
+  'Typography',
 ];
 
 const quantumAliases = {
@@ -166,13 +184,29 @@ export default (env) => {
           './Items': './src/exposes/ItemsScreen.tsx',
           './Categories': './src/exposes/CategoriesScreen.tsx',
           './Modifiers': './src/exposes/ModifiersScreen.tsx',
+          './StockAdjustments': './src/exposes/CategoriesScreen.tsx',
         },
         shared: {
           react: { singleton: true, eager: false, import: false, requiredVersion: '19.2.3' },
           'react-native': { singleton: true, eager: false, import: false, requiredVersion: '0.83.2' },
-          '@react-navigation/native': { singleton: true, eager: false, import: false, requiredVersion: '8.0.0-alpha.17' },
-          '@react-navigation/elements': { singleton: true, eager: false, import: false, requiredVersion: '3.0.0-alpha.20' },
-          '@react-navigation/bottom-tabs': { singleton: true, eager: false, import: false, requiredVersion: '8.0.0-alpha.22' },
+          '@react-navigation/native': {
+            singleton: true,
+            eager: false,
+            import: false,
+            requiredVersion: '8.0.0-alpha.17',
+          },
+          '@react-navigation/elements': {
+            singleton: true,
+            eager: false,
+            import: false,
+            requiredVersion: '3.0.0-alpha.20',
+          },
+          '@react-navigation/bottom-tabs': {
+            singleton: true,
+            eager: false,
+            import: false,
+            requiredVersion: '8.0.0-alpha.22',
+          },
           'react-native-safe-area-context': { singleton: true, eager: false, import: false, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: false, import: false, requiredVersion: '^4.24.0' },
           '@tanstack/react-query': { singleton: true, eager: false, import: false },
@@ -185,22 +219,13 @@ export default (env) => {
 
       ...(isNative
         ? [
-            new rspack.NormalModuleReplacementPlugin(
-              /^react-native-css\/components\/.+$/,
-              (resource) => {
-                resource.request = rnCssComponentsPath;
-              },
-            ),
-            new rspack.NormalModuleReplacementPlugin(
-              /^react-native-css\/react-native$/,
-              (resource) => {
-                resource.request = rnCssComponentsPath;
-              },
-            ),
-            new rspack.NormalModuleReplacementPlugin(
-              /react-native-css-metro-override/,
-              require.resolve('./noop.js'),
-            ),
+            new rspack.NormalModuleReplacementPlugin(/^react-native-css\/components\/.+$/, (resource) => {
+              resource.request = rnCssComponentsPath;
+            }),
+            new rspack.NormalModuleReplacementPlugin(/^react-native-css\/react-native$/, (resource) => {
+              resource.request = rnCssComponentsPath;
+            }),
+            new rspack.NormalModuleReplacementPlugin(/react-native-css-metro-override/, require.resolve('./noop.js')),
           ]
         : []),
     ],
