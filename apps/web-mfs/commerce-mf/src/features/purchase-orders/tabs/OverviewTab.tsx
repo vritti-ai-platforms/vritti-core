@@ -35,6 +35,10 @@ export const OverviewTab = ({ po, status }: OverviewTabProps) => (
           <p className="mt-1">{po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '—'}</p>
         </div>
         <div>
+          <p className="text-sm text-muted-foreground">Created At</p>
+          <p className="mt-1">{new Date(po.createdAt).toLocaleString()}</p>
+        </div>
+        <div>
           <p className="text-sm text-muted-foreground">Status</p>
           <Badge variant={status.variant} className={`mt-1 ${status.className ?? ''}`}>
             {status.label}
