@@ -1,63 +1,23 @@
 import { getAxios, getToken } from '@vritti/quantum-ui-native/utils';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import EventSource from 'react-native-sse';
-import type { AssignedBU, PermissionFeature } from '../../services/permissions.service';
-
-interface AuthStatusUser {
-  id: string;
-  email: string;
-  fullName: string;
-  status: string;
-  hasPassword: boolean;
-  createdAt: string;
-  lastLoginAt: string | null;
-}
-
-interface AuthStatusOrg {
-  id: string;
-  name: string;
-  subdomain: string;
-  logoUrl: string | null;
-}
-
-export interface AuthStatusResponse {
-  isAuthenticated?: boolean;
-  sessionId?: string;
-  user?: AuthStatusUser;
-  org?: AuthStatusOrg;
-  businessUnits?: AssignedBU[];
-  featuresByBuId?: Record<string, PermissionFeature[]>;
-}
-
-interface UseAuthStatusStreamOptions {
-  enabled: boolean;
-  onAuthState: (response: AuthStatusResponse) => void;
-  onSignedOut: () => void | Promise<void>;
-}
-
-type AuthStatusEvent = {
-  data?: string | null;
-};
+import type { AuthStatusResponse } from '../../types/auth-status';
 
 function buildAuthStatusUrl(baseURL: string): string {
   return `${baseURL.replace(/\/$/, '')}/auth/status`;
 }
 
-export function useAuthStatusStream({ enabled, onAuthState, onSignedOut }: UseAuthStatusStreamOptions) {
-  const onAuthStateRef = useRef(onAuthState);
-  const onSignedOutRef = useRef(onSignedOut);
+export function useAuthStatusStream(enabled: boolean) {
+  const [authState, setAuthState] = useState<AuthStatusResponse | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   const token = getToken();
   const baseURL = getAxios().defaults.baseURL;
 
   useEffect(() => {
-    onAuthStateRef.current = onAuthState;
-    onSignedOutRef.current = onSignedOut;
-  }, [onAuthState, onSignedOut]);
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    if (!token || !baseURL) return;
+    if (!enabled || !token || !baseURL) {
+      setIsConnected(false);
+      return;
+    }
 
     const eventSource = new EventSource<'auth-state'>(buildAuthStatusUrl(baseURL), {
       headers: {
@@ -66,26 +26,23 @@ export function useAuthStatusStream({ enabled, onAuthState, onSignedOut }: UseAu
       pollingInterval: 0,
     });
 
-    const handleAuthState = async (event: AuthStatusEvent) => {
+    const handleAuthState = (event: { data?: string | null }) => {
       if (!event.data) return;
 
       try {
-        const response = JSON.parse(event.data) as AuthStatusResponse;
-        onAuthStateRef.current(response);
-
-        if (response.isAuthenticated === false) {
-          await onSignedOutRef.current();
-        }
+        setAuthState(JSON.parse(event.data) as AuthStatusResponse);
       } catch {
         // Ignore malformed SSE payloads and keep the stream alive.
       }
     };
 
     const handleOpen = () => {
+      setIsConnected(true);
       console.log('[auth-status] SSE connected');
     };
 
     const handleError = (event: { type?: string; message?: string | null }) => {
+      setIsConnected(false);
       console.warn('[auth-status] SSE error', event?.type, event?.message ?? '');
     };
 
@@ -94,8 +51,11 @@ export function useAuthStatusStream({ enabled, onAuthState, onSignedOut }: UseAu
     eventSource.addEventListener('error', handleError);
 
     return () => {
+      setIsConnected(false);
       eventSource.removeAllEventListeners();
       eventSource.close();
     };
   }, [baseURL, enabled, token]);
+
+  return { authState, isConnected };
 }

@@ -402,46 +402,7 @@
     "/auth/login": {
       "post": {
         "description": "Authenticates a nexus user with email and password. Returns an access token and sets a refresh token in an httpOnly cookie.",
-        "operationId": "AuthController_login[0]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Login successful.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data or validation error."
-          },
-          "401": {
-            "description": "Invalid credentials or account not active."
-          }
-        },
-        "summary": "User login",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/api/auth/login": {
-      "post": {
-        "description": "Authenticates a nexus user with email and password. Returns an access token and sets a refresh token in an httpOnly cookie.",
-        "operationId": "AuthController_login[1]",
+        "operationId": "AuthController_login",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -480,38 +441,7 @@
     "/auth/logout": {
       "post": {
         "description": "Invalidates the current session and clears the refresh token cookie.",
-        "operationId": "AuthController_logout[0]",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successfully logged out.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Logout current session",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/api/auth/logout": {
-      "post": {
-        "description": "Invalidates the current session and clears the refresh token cookie.",
-        "operationId": "AuthController_logout[1]",
+        "operationId": "AuthController_logout",
         "parameters": [],
         "responses": {
           "200": {
@@ -542,51 +472,7 @@
     "/auth/set-password": {
       "post": {
         "description": "Sets a password for a nexus user who was created via webhook. Requires a SET_PASSWORD session token. Invalidates the session on success — user must log in again.",
-        "operationId": "AuthController_setPassword[0]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetPasswordDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password set successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Password mismatch or password already set."
-          },
-          "401": {
-            "description": "Invalid or expired set-password session."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Set password for first login",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/api/auth/set-password": {
-      "post": {
-        "description": "Sets a password for a nexus user who was created via webhook. Requires a SET_PASSWORD session token. Invalidates the session on success — user must log in again.",
-        "operationId": "AuthController_setPassword[1]",
+        "operationId": "AuthController_setPassword",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -630,46 +516,7 @@
     "/auth/accept-invite": {
       "post": {
         "description": "Validates a SET_PASSWORD invitation token, sets the user password, and invalidates all sessions. The user must log in again after setting their password.",
-        "operationId": "AuthController_acceptInvite[0]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AcceptInviteDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password set successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Password mismatch or password already set."
-          },
-          "401": {
-            "description": "Invalid or expired invitation token."
-          }
-        },
-        "summary": "Accept organization invitation",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/api/auth/accept-invite": {
-      "post": {
-        "description": "Validates a SET_PASSWORD invitation token, sets the user password, and invalidates all sessions. The user must log in again after setting their password.",
-        "operationId": "AuthController_acceptInvite[1]",
+        "operationId": "AuthController_acceptInvite",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -708,30 +555,7 @@
     "/auth/status": {
       "get": {
         "description": "Checks whether the user has an active session using the httpOnly refresh cookie. Never returns 401 — returns isAuthenticated: false instead.",
-        "operationId": "AuthController_getStatus[0]",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Authentication status returned.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get authentication status",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/api/auth/status": {
-      "get": {
-        "description": "Checks whether the user has an active session using the httpOnly refresh cookie. Never returns 401 — returns isAuthenticated: false instead.",
-        "operationId": "AuthController_getStatus[1]",
+        "operationId": "AuthController_getStatus",
         "parameters": [],
         "responses": {
           "200": {
@@ -754,33 +578,7 @@
     "/auth/refresh-tokens": {
       "post": {
         "description": "Generates a new access token and rotates the refresh token using the httpOnly cookie. Sets the new refresh token in the cookie.",
-        "operationId": "AuthController_refreshTokens[0]",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": "Token refreshed successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or expired refresh token."
-          }
-        },
-        "summary": "Refresh access token",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/api/auth/refresh-tokens": {
-      "post": {
-        "description": "Generates a new access token and rotates the refresh token using the httpOnly cookie. Sets the new refresh token in the cookie.",
-        "operationId": "AuthController_refreshTokens[1]",
+        "operationId": "AuthController_refreshTokens",
         "parameters": [],
         "responses": {
           "201": {
@@ -806,33 +604,7 @@
     "/auth/access-token": {
       "get": {
         "description": "Recovers the session by reading the refresh token from the httpOnly cookie and returns a new access token. Does not rotate the refresh token.",
-        "operationId": "AuthController_getAccessToken[0]",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Session recovered successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TokenResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or expired refresh token."
-          }
-        },
-        "summary": "Recover session token",
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/api/auth/access-token": {
-      "get": {
-        "description": "Recovers the session by reading the refresh token from the httpOnly cookie and returns a new access token. Does not rotate the refresh token.",
-        "operationId": "AuthController_getAccessToken[1]",
+        "operationId": "AuthController_getAccessToken",
         "parameters": [],
         "responses": {
           "200": {
@@ -1013,43 +785,7 @@
     "/auth/mobile/lookup": {
       "post": {
         "description": "Returns all organizations the user belongs to. Used by the mobile app to present an organization picker before login.",
-        "operationId": "MobileAuthController_lookup[0]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MobileLookupDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Organizations returned (may be empty).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MobileLookupResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid email format."
-          }
-        },
-        "summary": "Lookup organizations by email",
-        "tags": [
-          "Auth - Mobile"
-        ]
-      }
-    },
-    "/api/auth/mobile/lookup": {
-      "post": {
-        "description": "Returns all organizations the user belongs to. Used by the mobile app to present an organization picker before login.",
-        "operationId": "MobileAuthController_lookup[1]",
+        "operationId": "MobileAuthController_lookup",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1085,46 +821,7 @@
     "/auth/mobile/login": {
       "post": {
         "description": "Authenticates a user with email and password. Returns access token and refresh token in the response body. No cookies are used.",
-        "operationId": "MobileAuthController_login[0]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MobileLoginDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Login successful.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MobileAuthResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data or validation error."
-          },
-          "401": {
-            "description": "Invalid credentials or account not active."
-          }
-        },
-        "summary": "Mobile login",
-        "tags": [
-          "Auth - Mobile"
-        ]
-      }
-    },
-    "/api/auth/mobile/login": {
-      "post": {
-        "description": "Authenticates a user with email and password. Returns access token and refresh token in the response body. No cookies are used.",
-        "operationId": "MobileAuthController_login[1]",
+        "operationId": "MobileAuthController_login",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1163,48 +860,7 @@
     "/auth/mobile/refresh-tokens": {
       "post": {
         "description": "Rotates both access and refresh tokens. Requires the current refresh token in the request body. Returns new tokens in the response body.",
-        "operationId": "MobileAuthController_refreshTokens[0]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MobileRefreshDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Tokens refreshed successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MobileTokenResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or expired refresh token."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mobile refresh tokens",
-        "tags": [
-          "Auth - Mobile"
-        ]
-      }
-    },
-    "/api/auth/mobile/refresh-tokens": {
-      "post": {
-        "description": "Rotates both access and refresh tokens. Requires the current refresh token in the request body. Returns new tokens in the response body.",
-        "operationId": "MobileAuthController_refreshTokens[1]",
+        "operationId": "MobileAuthController_refreshTokens",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -1245,38 +901,7 @@
     "/auth/mobile/logout": {
       "post": {
         "description": "Invalidates the current session. The client should clear stored tokens.",
-        "operationId": "MobileAuthController_logout[0]",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successfully logged out.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mobile logout",
-        "tags": [
-          "Auth - Mobile"
-        ]
-      }
-    },
-    "/api/auth/mobile/logout": {
-      "post": {
-        "description": "Invalidates the current session. The client should clear stored tokens.",
-        "operationId": "MobileAuthController_logout[1]",
+        "operationId": "MobileAuthController_logout",
         "parameters": [],
         "responses": {
           "200": {

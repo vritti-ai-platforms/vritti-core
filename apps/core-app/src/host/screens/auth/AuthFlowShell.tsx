@@ -21,7 +21,7 @@ type AuthFlowState =
     };
 
 export function AuthFlowShell() {
-  const { markAuthenticated } = useAuth();
+  const { beginStatusConfirmation } = useAuth();
   const [flow, setFlow] = useState<AuthFlowState>({ step: 'deployment' });
 
   if (flow.step === 'deployment') {
@@ -102,7 +102,7 @@ export function AuthFlowShell() {
           deploymentBaseURL: flow.deploymentBaseURL,
         });
       }}
-      onAuthenticated={markAuthenticated}
+      onAuthenticated={beginStatusConfirmation}
     />
   );
 }

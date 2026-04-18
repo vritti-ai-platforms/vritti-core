@@ -112,6 +112,7 @@ const componentDirs = [
   'RadioGroup',
   'Separator',
   'Skeleton',
+  'SplashScreen',
   'Spinner',
   'Switch',
   'TextArea',

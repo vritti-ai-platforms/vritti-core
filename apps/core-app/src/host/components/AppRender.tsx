@@ -1,11 +1,11 @@
-import { NAV_THEME, useTheme } from '@vritti/quantum-ui-native';
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { NAV_THEME, useTheme } from '@vritti/quantum-ui-native';
 import { useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import { AuthFlowShell } from '../screens/auth/AuthFlowShell';
 import { DynamicFeatureNavigator } from '../mf/DynamicFeatureNavigator';
+import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';
 import { PermissionProvider } from '../providers/PermissionProvider';
-import { useAuth } from '../providers/AuthProvider';
+import { AuthFlowShell } from '../screens/auth/AuthFlowShell';
+import { StartupSplashScreen } from './StartupSplashScreen';
 
 function HomeScreen() {
   return (
@@ -18,6 +18,7 @@ function HomeScreen() {
 export function AppRender() {
   const { isDark } = useTheme();
   const { isAuthenticated, isLoading } = useAuth();
+  const { phase } = useAuthSessionSnapshot();
 
   const navTheme = useMemo(
     () => ({
@@ -30,12 +31,14 @@ export function AppRender() {
     [isDark],
   );
 
+  const splashStatusText = useMemo(() => {
+    if (phase === 'bootstrapping') return 'Checking your session';
+    if (phase === 'awaitingStatus') return 'Loading your workspace';
+    return 'Starting Vritti';
+  }, [phase]);
+
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <StartupSplashScreen statusText={splashStatusText} />;
   }
 
   if (!isAuthenticated) {

@@ -45,7 +45,7 @@ import { AuthService } from '../services/auth.service';
 import { AuthStatusSseService } from '../services/auth-status-sse.service';
 
 @ApiTags('Auth')
-@Controller(["auth", "api/auth"])
+@Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
@@ -66,7 +66,7 @@ export class AuthController {
     @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
     @CookieName() cookieName: string,
   ): Promise<AuthResponseDto> {
-    this.logger.log(`POST /api/auth/login - Email: ${dto.email}`);
+    this.logger.log(`POST /auth/login - Email: ${dto.email}`);
 
     const { refreshToken, ...response } = await this.authService.login(dto, ipAddress);
 
@@ -87,7 +87,7 @@ export class AuthController {
     @CookieName() cookieName: string,
     @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
   ): Promise<MessageResponseDto> {
-    this.logger.log('POST /api/auth/logout');
+    this.logger.log('POST /auth/logout');
     const result = await this.authService.logout(accessToken);
     reply.clearCookie(cookieName, { path: cookieOptions.path, domain: cookieOptions.domain });
     return result;
@@ -104,7 +104,7 @@ export class AuthController {
     @CookieName() cookieName: string,
     @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
   ): Promise<MessageResponseDto> {
-    this.logger.log(`POST /api/auth/set-password - User: ${userId}`);
+    this.logger.log(`POST /auth/set-password - User: ${userId}`);
     const result = await this.authService.setPassword(dto, userId);
     reply.clearCookie(cookieName, { path: cookieOptions.path, domain: cookieOptions.domain });
     return result;
@@ -117,7 +117,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiAcceptInvite()
   async acceptInvite(@Body() dto: AcceptInviteDto): Promise<MessageResponseDto> {
-    this.logger.log('POST /api/auth/accept-invite');
+    this.logger.log('POST /auth/accept-invite');
     return this.authService.acceptInvite(dto);
   }
 
@@ -135,7 +135,7 @@ export class AuthController {
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
 
-    this.logger.log(`SSE /api/auth/status — subdomain: ${subdomain ?? 'none'}`);
+    this.logger.log(`SSE /auth/status — subdomain: ${subdomain ?? 'none'}`);
 
     const authResponse = await this.authService.getStatus(refreshToken, subdomain, accessToken);
     const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
@@ -160,7 +160,7 @@ export class AuthController {
     @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
     @CookieName() cookieName: string,
   ): Promise<TokenResponseDto> {
-    this.logger.log('POST /api/auth/refresh-tokens');
+    this.logger.log('POST /auth/refresh-tokens');
 
     const result = await this.authService.refreshTokens(refreshToken);
 
@@ -174,7 +174,7 @@ export class AuthController {
   @Public()
   @ApiGetAccessToken()
   async getAccessToken(@RefreshTokenCookie() refreshToken: string | undefined): Promise<TokenResponseDto> {
-    this.logger.log('GET /api/auth/access-token');
+    this.logger.log('GET /auth/access-token');
     return this.authService.getAccessToken(refreshToken);
   }
 }

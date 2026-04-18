@@ -23,7 +23,7 @@ export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain
   const parsed = tryParseApiBaseURL(deploymentBaseURL);
 
   if (!normalizedSubdomain || !parsed) {
-    return ensureApiBase(deploymentBaseURL);
+    return ensureOrigin(deploymentBaseURL);
   }
 
   const baseHostname = parsed.hostname.startsWith('api.') ? parsed.hostname.slice(4) : parsed.hostname;
@@ -31,7 +31,7 @@ export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain
     ? baseHostname
     : `${normalizedSubdomain}.${baseHostname}`;
 
-  return ensureApiBase(formatOrigin(parsed.protocol, tenantHostname, parsed.port));
+  return formatOrigin(parsed.protocol, tenantHostname, parsed.port);
 }
 
 export function buildPublicApiBaseURL(deploymentBaseURL: string): string {
@@ -48,7 +48,7 @@ export function buildPublicApiBaseURL(deploymentBaseURL: string): string {
 function mapDeployment(deployment: CloudDeploymentDto): Deployment {
   return {
     ...deployment,
-    url: ensureApiBase(deployment.url),
+    url: ensureOrigin(deployment.url),
     status: deployment.status === 'Provisioning' ? 'provisioning' : deployment.status,
   };
 }
@@ -60,11 +60,6 @@ function ensureOrigin(url: string): string {
   }
 
   return formatOrigin(parsed.protocol, parsed.hostname, parsed.port);
-}
-
-function ensureApiBase(url: string): string {
-  const origin = ensureOrigin(url).replace(/\/$/, '');
-  return origin.endsWith('/api') ? origin : `${origin}/api`;
 }
 
 function formatOrigin(protocol: string, hostname: string, port: string): string {

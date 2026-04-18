@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import type { PermissionFeature, AssignedBU } from '../services/permissions.service';
-import { useAuth } from './AuthProvider';
+import type { PermissionFeature, AssignedBU } from '../types/permissions';
+import { useAuthSessionSnapshot } from './AuthProvider';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -32,8 +32,22 @@ interface PermissionProviderProps {
 }
 
 export function PermissionProvider({ children }: PermissionProviderProps) {
-  const { businessUnits, featuresByBuId, isLoading: isLoadingAuth } = useAuth();
+  const { authState, phase } = useAuthSessionSnapshot();
+  const [businessUnits, setBusinessUnits] = useState<AssignedBU[]>([]);
+  const [featuresByBuId, setFeaturesByBuId] = useState<Record<string, PermissionFeature[]>>({});
   const [selectedBuId, setSelectedBuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (phase !== 'authenticated' || !authState?.isAuthenticated) {
+      setBusinessUnits([]);
+      setFeaturesByBuId({});
+      setSelectedBuId(null);
+      return;
+    }
+
+    setBusinessUnits(authState.businessUnits ?? []);
+    setFeaturesByBuId(authState.featuresByBuId ?? {});
+  }, [authState, phase]);
 
   useEffect(() => {
     if (businessUnits.length === 0) {
@@ -53,8 +67,8 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
     [featuresByBuId, selectedBuId],
   );
 
-  const isLoadingBUs = isLoadingAuth;
-  const isLoadingPermissions = isLoadingAuth;
+  const isLoadingBUs = phase === 'bootstrapping' || phase === 'awaitingStatus';
+  const isLoadingPermissions = phase === 'bootstrapping' || phase === 'awaitingStatus';
 
   const value = useMemo<PermissionContextValue>(
     () => ({

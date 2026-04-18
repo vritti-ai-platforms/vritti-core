@@ -13,7 +13,7 @@ import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.
 import { MobileTokenResponseDto } from '../dto/response/mobile-token-response.dto';
 
 @ApiTags('Auth - Mobile')
-@Controller(['auth/mobile', 'api/auth/mobile'])
+@Controller('auth/mobile')
 @SkipCsrf()
 export class MobileAuthController {
   private readonly logger = new Logger(MobileAuthController.name);
@@ -26,7 +26,7 @@ export class MobileAuthController {
   @Public()
   @ApiMobileLookup()
   async lookup(@Body() dto: MobileLookupDto): Promise<MobileLookupResponseDto> {
-    this.logger.log(`POST /api/auth/mobile/lookup - Email: ${dto.email}`);
+    this.logger.log(`POST /auth/mobile/lookup - Email: ${dto.email}`);
     return this.authService.lookupOrganizationsByEmail(dto.email);
   }
 
@@ -35,7 +35,7 @@ export class MobileAuthController {
   @Public()
   @ApiMobileLogin()
   async login(@Body() dto: MobileLoginDto, @Ip() ipAddress: string): Promise<MobileAuthResponseDto> {
-    this.logger.log(`POST /api/auth/mobile/login - Email: ${dto.email}`);
+    this.logger.log(`POST /auth/mobile/login - Email: ${dto.email}`);
     const result = await this.authService.login(
       { email: dto.email, password: dto.password, organizationId: dto.organizationId },
       ipAddress,
@@ -55,7 +55,7 @@ export class MobileAuthController {
   @RequireSession(SessionTypeValues.MOBILE)
   @ApiMobileRefreshTokens()
   async refreshTokens(@Body() dto: MobileRefreshDto): Promise<MobileTokenResponseDto> {
-    this.logger.log('POST /api/auth/mobile/refresh-tokens');
+    this.logger.log('POST /auth/mobile/refresh-tokens');
     return this.authService.refreshTokens(dto.refreshToken);
   }
 
@@ -65,7 +65,7 @@ export class MobileAuthController {
   @RequireSession(SessionTypeValues.MOBILE)
   @ApiMobileLogout()
   async logout(@AccessToken() accessToken: string): Promise<MessageResponseDto> {
-    this.logger.log('POST /api/auth/mobile/logout');
+    this.logger.log('POST /auth/mobile/logout');
     return this.authService.logout(accessToken);
   }
 }
