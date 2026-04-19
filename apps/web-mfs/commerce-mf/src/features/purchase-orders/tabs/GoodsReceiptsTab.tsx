@@ -1,5 +1,4 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck } from 'lucide-react';
@@ -10,12 +9,10 @@ import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 
 interface GoodsReceiptsTabProps {
   poId: string;
-  canReceive: boolean;
   isActive: boolean;
-  onOpenReceiveDialog: () => void;
 }
 
-export const GoodsReceiptsTab = ({ poId, canReceive, isActive, onOpenReceiveDialog }: GoodsReceiptsTabProps) => {
+export const GoodsReceiptsTab = ({ poId, isActive }: GoodsReceiptsTabProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useGoodsReceipts(poId, {
@@ -90,18 +87,10 @@ export const GoodsReceiptsTab = ({ poId, canReceive, isActive, onOpenReceiveDial
       table={table}
       mode="compact"
       isLoading={isLoading}
-      toolbarActions={{
-        actions: canReceive ? (
-          <Button size="sm" onClick={onOpenReceiveDialog}>
-            <PackageCheck className="mr-2 size-4" />
-            Receive Goods
-          </Button>
-        ) : undefined,
-      }}
       emptyStateConfig={{
         icon: PackageCheck,
         title: 'No goods receipts',
-        description: canReceive ? 'Click "Receive Goods" to record a delivery.' : 'No goods receipts recorded yet.',
+        description: 'Goods receipts linked to this purchase order will appear here.',
       }}
     />
   );

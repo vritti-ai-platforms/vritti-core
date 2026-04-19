@@ -5,7 +5,7 @@ import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Mail, MoreVertical, PackageCheck, Printer, Send, Trash2 } from 'lucide-react';
+import { Mail, MoreVertical, Printer, Send, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeletePurchaseOrder } from '@/hooks/useDeletePurchaseOrder';
@@ -15,7 +15,6 @@ import { useUpdatePurchaseOrder } from '@/hooks/useUpdatePurchaseOrder';
 import type { PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { downloadPurchaseOrderPdf, updatePurchaseOrderStatus } from '@/services/purchase-orders.service';
 import { AddPurchaseOrderItemDialog } from './forms/AddPurchaseOrderItemDialog';
-import { ReceiveGoodsDialog } from './forms/ReceiveGoodsDialog';
 import { SendPurchaseOrderEmailDialog } from './forms/SendPurchaseOrderEmailDialog';
 import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
 import { LineItemsTab } from './tabs/LineItemsTab';
@@ -53,8 +52,6 @@ export const PurchaseOrderDetailPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const addItemDialog = useDialog();
-  const receiveDialog = useDialog();
-  const sendEmailDialog = useDialog();
   const confirm = useConfirm();
   const removeMutation = useUpdatePurchaseOrder();
   const deleteMutation = useDeletePurchaseOrder();
@@ -143,16 +140,14 @@ export const PurchaseOrderDetailPage = () => {
     }
   }, [id]);
 
-  if (!po) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">Purchase order not found.</div>
-    );
-  }
+  const renderSendEmailDialog = useCallback(
+    (close: () => void) => <SendPurchaseOrderEmailDialog purchaseOrder={po} onSuccess={close} onCancel={close} />,
+    [po],
+  );
 
   const statusBadgeConfig = statusConfig[po.status];
   const nextAction = nextStatusAction[po.status];
   const canModifyItems = po.status === 'DRAFT';
-  const canReceive = po.status === 'CONFIRMED' || po.status === 'PARTIALLY_RECEIVED';
   const canCancel = po.status !== 'DRAFT' && po.status !== 'CANCELLED' && po.status !== 'RECEIVED';
   const canSendEmail = po.status !== 'CANCELLED';
   const primaryAction: PrimaryAction | undefined =
@@ -182,11 +177,15 @@ export const PurchaseOrderDetailPage = () => {
 
   if (canSendEmail) {
     actionMenuItems.push({
-      type: 'item',
+      type: 'dialog',
       id: 'send-email',
       label: 'Send Email',
       icon: Mail,
-      onClick: sendEmailDialog.open,
+      dialog: {
+        title: 'Send Purchase Order Email',
+        description: 'Send this purchase order to the supplier. Leave recipient empty to use supplier email.',
+        content: renderSendEmailDialog,
+      },
     });
   }
 
@@ -197,16 +196,6 @@ export const PurchaseOrderDetailPage = () => {
       label: nextAction.label,
       icon: Send,
       onClick: () => handleStatusChange(nextAction.status, nextAction.label),
-    });
-  }
-
-  if (canReceive) {
-    actionMenuItems.push({
-      type: 'item',
-      id: 'receive-goods',
-      label: 'Receive Goods',
-      icon: PackageCheck,
-      onClick: receiveDialog.open,
     });
   }
 
@@ -294,14 +283,7 @@ export const PurchaseOrderDetailPage = () => {
           {
             value: 'receipts',
             label: 'Goods Receipts',
-            content: (
-              <GoodsReceiptsTab
-                poId={po.id}
-                canReceive={canReceive}
-                isActive={activeTab === 'receipts'}
-                onOpenReceiveDialog={receiveDialog.open}
-              />
-            ),
+            content: <GoodsReceiptsTab poId={po.id} isActive={activeTab === 'receipts'} />,
           },
         ]}
         value={activeTab}
@@ -315,21 +297,6 @@ export const PurchaseOrderDetailPage = () => {
         content={(close) => (
           <AddPurchaseOrderItemDialog purchaseOrder={po} items={poItems} onSuccess={close} onCancel={close} />
         )}
-      />
-
-      <Dialog
-        handle={receiveDialog}
-        title="Create Goods Receipt"
-        description="Create a draft goods receipt linked to this purchase order."
-        className="sm:max-w-2xl"
-        content={(close) => <ReceiveGoodsDialog purchaseOrder={po} onSuccess={close} onCancel={close} />}
-      />
-
-      <Dialog
-        handle={sendEmailDialog}
-        title="Send Purchase Order Email"
-        description="Send this purchase order to the supplier. Leave recipient empty to use supplier email."
-        content={(close) => <SendPurchaseOrderEmailDialog purchaseOrder={po} onSuccess={close} onCancel={close} />}
       />
     </div>
   );

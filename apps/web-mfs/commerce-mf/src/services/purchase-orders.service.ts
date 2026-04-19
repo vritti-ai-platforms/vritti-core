@@ -1,6 +1,6 @@
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { GoodsReceiptData, GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
+import type { GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
 import type {
   PurchaseOrderData,
   PurchaseOrderDetail,
@@ -21,14 +21,6 @@ export interface UpdatePurchaseOrderPayload {
   expectedBy?: string | null;
   notes?: string | null;
   items?: { inventoryItemId: string; orderedQuantity: number; unitPrice?: number | null }[];
-}
-
-export interface CreateGoodsReceiptPayload {
-  supplierId: string;
-  purchaseOrderId?: string;
-  receivedDate: string;
-  receivedBy?: string;
-  notes?: string;
 }
 
 export interface SendPurchaseOrderEmailPayload {
@@ -98,18 +90,6 @@ export function updatePurchaseOrderStatus({ id, status }: { id: string; status: 
 // Deletes a purchase order
 export function deletePurchaseOrder(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/purchase-orders/${id}`).then((r) => r.data);
-}
-
-// Creates a goods receipt for a purchase order
-export function createGoodsReceipt(data: CreateGoodsReceiptPayload): Promise<GoodsReceiptData> {
-  return axios.post<GoodsReceiptData>('commerce-api/goods-receipts', data).then((r) => r.data);
-}
-
-// Fetches goods receipts for a purchase order
-export function getGoodsReceipts(poId: string): Promise<GoodsReceiptData[]> {
-  return axios
-    .get<GoodsReceiptData[]>(`commerce-api/goods-receipts/by-po/${poId}`, { showSuccessToast: false })
-    .then((r) => r.data);
 }
 
 // Fetches goods receipt table for a purchase order

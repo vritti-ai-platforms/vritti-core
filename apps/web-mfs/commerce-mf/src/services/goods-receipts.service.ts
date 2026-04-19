@@ -1,8 +1,13 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { GoodsReceiptData, GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
-import type { CreateGoodsReceiptPayload } from './purchase-orders.service';
 
-export type { CreateGoodsReceiptPayload };
+export interface CreateGoodsReceiptPayload {
+  supplierId: string;
+  purchaseOrderId?: string;
+  receivedDate: string;
+  receivedBy?: string;
+  notes?: string;
+}
 
 export function getGoodsReceiptsTable(): Promise<GoodsReceiptsTableResponse> {
   return axios
