@@ -31,8 +31,8 @@ export const OverviewTab = ({ po, status }: OverviewTabProps) => (
           <p className="mt-1">{new Date(po.orderDate).toLocaleDateString()}</p>
         </div>
         <div>
-          <p className="text-sm text-muted-foreground">Expected Date</p>
-          <p className="mt-1">{po.expectedDate ? new Date(po.expectedDate).toLocaleDateString() : '—'}</p>
+          <p className="text-sm text-muted-foreground">Expected By</p>
+          <p className="mt-1">{po.expectedBy ? new Date(po.expectedBy).toLocaleDateString() : '—'}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Created At</p>

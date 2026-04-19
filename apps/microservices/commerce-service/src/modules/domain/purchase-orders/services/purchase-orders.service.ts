@@ -108,7 +108,7 @@ export class PurchaseOrdersService {
           supplierId: data.supplierId,
           poNumber,
           orderDate: data.orderDate,
-          expectedDate: data.expectedDate ?? null,
+          expectedBy: data.expectedBy ?? null,
           notes: data.notes ?? null,
         },
         tx,
@@ -147,7 +147,7 @@ export class PurchaseOrdersService {
     const updatePayload: Record<string, unknown> = {};
     if (data.status !== undefined) updatePayload.status = data.status;
     if (data.orderDate !== undefined) updatePayload.orderDate = data.orderDate;
-    if (data.expectedDate !== undefined) updatePayload.expectedDate = data.expectedDate;
+    if (data.expectedBy !== undefined) updatePayload.expectedBy = data.expectedBy;
     if (data.notes !== undefined) updatePayload.notes = data.notes;
     if (data.totalAmount !== undefined)
       updatePayload.totalAmount = data.totalAmount != null ? String(data.totalAmount) : null;

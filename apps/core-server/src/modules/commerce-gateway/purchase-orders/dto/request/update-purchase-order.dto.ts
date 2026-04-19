@@ -33,10 +33,10 @@ export class UpdatePurchaseOrderDto {
   @IsString()
   orderDate?: string;
 
-  @ApiPropertyOptional({ description: 'Expected delivery date (ISO string)' })
+  @ApiPropertyOptional({ description: 'Expected-by date/time (ISO string with timezone)' })
   @IsOptional()
   @IsString()
-  expectedDate?: string;
+  expectedBy?: string;
 
   @ApiPropertyOptional({ description: 'Notes' })
   @IsOptional()

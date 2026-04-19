@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const createPurchaseOrderSchema = z.object({
   supplierId: z.string().min(1, 'Supplier is required'),
   orderDate: z.string().min(1, 'Order date is required'),
-  expectedDate: z.string().optional(),
+  expectedBy: z.string().optional(),
   notes: z.string().optional(),
   items: z
     .array(
@@ -29,7 +29,7 @@ export interface PurchaseOrderData {
   poNumber: string;
   status: PurchaseOrderStatus;
   orderDate: string;
-  expectedDate: string | null;
+  expectedBy: string | null;
   notes: string | null;
   totalAmount: number | null;
   createdAt: string;

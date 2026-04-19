@@ -16,12 +16,12 @@ export class CreatePurchaseOrderDto {
   supplierId: string;
 
   @IsNotEmpty()
-  @IsZonedIsoDateString()
+  @IsString()
   orderDate: string;
 
   @IsOptional()
   @IsZonedIsoDateString()
-  expectedDate?: string;
+  expectedBy?: string;
 
   @IsOptional()
   @IsString()

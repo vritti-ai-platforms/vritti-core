@@ -23,12 +23,12 @@ export class UpdatePurchaseOrderDto {
   status?: PurchaseOrderStatus;
 
   @IsOptional()
-  @IsZonedIsoDateString()
+  @IsString()
   orderDate?: string;
 
   @IsOptional()
   @IsZonedIsoDateString()
-  expectedDate?: string | null;
+  expectedBy?: string | null;
 
   @IsOptional()
   @IsString()

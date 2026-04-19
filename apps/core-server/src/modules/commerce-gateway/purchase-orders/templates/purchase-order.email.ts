@@ -10,7 +10,7 @@ export interface PurchaseOrderEmailData {
   poNumber: string | null;
   status: string;
   orderDate: string;
-  expectedDate: string | null;
+  expectedBy: string | null;
   notes: string | null;
   totalAmount: number | null;
   items: PurchaseOrderEmailItem[];
@@ -87,8 +87,8 @@ export function buildPurchaseOrderEmailHtml(po: PurchaseOrderEmailData, supplier
           <td style="padding: 6px 0;">${formatDate(po.orderDate)}</td>
         </tr>
         <tr>
-          <td style="padding: 6px 0;"><strong>Expected Date</strong></td>
-          <td style="padding: 6px 0;">${formatDate(po.expectedDate)}</td>
+          <td style="padding: 6px 0;"><strong>Expected By</strong></td>
+          <td style="padding: 6px 0;">${formatDate(po.expectedBy)}</td>
         </tr>
         <tr>
           <td style="padding: 6px 0;"><strong>Notes</strong></td>
@@ -131,7 +131,7 @@ export function buildPurchaseOrderEmailText(po: PurchaseOrderEmailData, supplier
     `Supplier: ${supplier.name ?? '-'}`,
     `Status: ${po.status}`,
     `Order Date: ${formatDate(po.orderDate)}`,
-    `Expected Date: ${formatDate(po.expectedDate)}`,
+    `Expected By: ${formatDate(po.expectedBy)}`,
     `Notes: ${po.notes ?? '-'}`,
     '',
     'Line Items:',

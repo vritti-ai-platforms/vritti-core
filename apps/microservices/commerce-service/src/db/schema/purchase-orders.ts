@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { date, decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
@@ -16,8 +16,8 @@ export const purchaseOrders = coreSchema.table(
       .references(() => suppliers.id),
     poNumber: varchar('po_number', { length: 50 }).notNull(),
     status: purchaseOrderStatusEnum('status').notNull().default('DRAFT'),
-    orderDate: timestamp('order_date', { withTimezone: true, mode: 'string' }).notNull(),
-    expectedDate: timestamp('expected_date', { withTimezone: true, mode: 'string' }),
+    orderDate: date('order_date', { mode: 'string' }).notNull(),
+    expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
     notes: text('notes'),
     totalAmount: decimal('total_amount', { precision: 12, scale: 2 }),
     createdBy: uuid('created_by'),

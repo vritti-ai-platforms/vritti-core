@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
+import { DatePicker } from '@vritti/quantum-ui/DatePicker';
+import { DateTimePicker } from '@vritti/quantum-ui/DateTimePicker';
+import { parse } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreatePurchaseOrder } from '@/hooks/useCreatePurchaseOrder';
@@ -20,10 +22,13 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
     defaultValues: {
       supplierId: '',
       orderDate: new Date().toISOString().split('T')[0],
-      expectedDate: '',
+      expectedBy: '',
       notes: '',
     },
   });
+
+  const orderDate = form.watch('orderDate');
+  const minExpectedDate = orderDate ? parse(orderDate, 'yyyy-MM-dd', new Date()) : undefined;
 
   const createMutation = useCreatePurchaseOrder({ onSuccess });
 
@@ -36,13 +41,19 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
       transformSubmit={(data) => ({
         supplierId: data.supplierId,
         orderDate: data.orderDate,
-        expectedDate: data.expectedDate || undefined,
+        expectedBy: data.expectedBy || undefined,
         notes: data.notes || undefined,
       })}
     >
       <SupplierSelector name="supplierId" label="Supplier" placeholder="Select supplier" />
-      <TextField name="orderDate" label="Order Date" type="date" />
-      <TextField name="expectedDate" label="Expected Delivery Date" type="date" />
+      <DatePicker name="orderDate" label="Order Date" />
+      <DateTimePicker
+        name="expectedBy"
+        label="Expected By"
+        disabled={!orderDate}
+        minDate={minExpectedDate}
+        calendarProps={minExpectedDate ? { disabled: { before: minExpectedDate } } : undefined}
+      />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

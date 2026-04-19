@@ -11229,9 +11229,9 @@
             "description": "Order date (ISO string)",
             "example": "2026-04-10"
           },
-          "expectedDate": {
+          "expectedBy": {
             "type": "string",
-            "description": "Expected delivery date (ISO string)"
+            "description": "Expected-by date/time (ISO string with timezone)"
           },
           "notes": {
             "type": "string",
@@ -11288,9 +11288,9 @@
             "type": "string",
             "description": "Order date (ISO string)"
           },
-          "expectedDate": {
+          "expectedBy": {
             "type": "string",
-            "description": "Expected delivery date (ISO string)"
+            "description": "Expected-by date/time (ISO string with timezone)"
           },
           "notes": {
             "type": "string",

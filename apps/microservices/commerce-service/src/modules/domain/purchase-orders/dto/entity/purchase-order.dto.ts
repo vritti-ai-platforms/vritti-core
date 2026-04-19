@@ -29,7 +29,7 @@ export class PurchaseOrderDto {
   poNumber: string;
   status: PurchaseOrderStatus;
   orderDate: string;
-  expectedDate: string | null;
+  expectedBy: string | null;
   notes: string | null;
   totalAmount: number | null;
   createdAt: string;
@@ -43,7 +43,7 @@ export class PurchaseOrderDto {
     dto.poNumber = entity.poNumber;
     dto.status = entity.status;
     dto.orderDate = entity.orderDate;
-    dto.expectedDate = entity.expectedDate ?? null;
+    dto.expectedBy = entity.expectedBy ?? null;
     dto.notes = entity.notes ?? null;
     dto.totalAmount = entity.totalAmount ? Number(entity.totalAmount) : null;
     dto.createdAt = entity.createdAt.toISOString();

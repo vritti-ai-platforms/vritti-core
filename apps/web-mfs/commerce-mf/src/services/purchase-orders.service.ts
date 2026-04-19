@@ -12,13 +12,13 @@ import type {
 export interface CreatePurchaseOrderPayload {
   supplierId: string;
   orderDate: string;
-  expectedDate?: string;
+  expectedBy?: string;
   notes?: string;
   items?: { inventoryItemId: string; orderedQuantity: number }[];
 }
 
 export interface UpdatePurchaseOrderPayload {
-  expectedDate?: string | null;
+  expectedBy?: string | null;
   notes?: string | null;
   items?: { inventoryItemId: string; orderedQuantity: number; unitPrice?: number | null }[];
 }

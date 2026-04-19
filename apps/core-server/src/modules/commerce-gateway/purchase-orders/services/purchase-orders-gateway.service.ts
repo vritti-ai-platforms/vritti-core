@@ -154,7 +154,7 @@ export class PurchaseOrdersGatewayService {
       poNumber: po.poNumber,
       status: po.status,
       orderDate: po.orderDate,
-      expectedDate: po.expectedDate,
+      expectedBy: po.expectedBy,
       notes: po.notes,
       totalAmount: po.totalAmount,
       items,
@@ -213,7 +213,7 @@ export class PurchaseOrdersGatewayService {
         poNumber: po.poNumber,
         status: po.status,
         orderDate: po.orderDate,
-        expectedDate: po.expectedDate,
+        expectedBy: po.expectedBy,
         notes: po.notes,
         totalAmount: po.totalAmount,
         items,
@@ -335,7 +335,7 @@ export class PurchaseOrdersGatewayService {
     const detailRows = [
       { label: 'PO Number', value: po.poNumber ?? '-' },
       { label: 'Order Date', value: formatDate(po.orderDate) },
-      { label: 'Expected', value: formatDate(po.expectedDate) },
+      { label: 'Expected By', value: formatDate(po.expectedBy) },
       { label: 'Status', value: po.status },
     ];
     const detailRowHeight = 13;

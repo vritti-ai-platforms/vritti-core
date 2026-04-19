@@ -22,8 +22,8 @@ export class PurchaseOrderResponseDto {
   @ApiProperty({ description: 'Order date (ISO string)' })
   orderDate: string;
 
-  @ApiPropertyOptional({ description: 'Expected delivery date', nullable: true })
-  expectedDate: string | null;
+  @ApiPropertyOptional({ description: 'Expected-by date/time', nullable: true })
+  expectedBy: string | null;
 
   @ApiPropertyOptional({ description: 'Notes', nullable: true })
   notes: string | null;
