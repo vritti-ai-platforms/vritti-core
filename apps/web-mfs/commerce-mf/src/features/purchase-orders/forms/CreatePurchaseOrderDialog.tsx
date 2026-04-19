@@ -8,7 +8,7 @@ import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreatePurchaseOrder } from '@/hooks/useCreatePurchaseOrder';
+import { useCreatePurchaseOrder } from '@/hooks/purchase-orders';
 import { type CreatePurchaseOrderFormData, createPurchaseOrderSchema } from '@/schemas/purchase-orders';
 
 interface CreatePurchaseOrderDialogProps {

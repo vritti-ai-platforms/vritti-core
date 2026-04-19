@@ -7,7 +7,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import { useUpdatePurchaseOrder } from '@/hooks/useUpdatePurchaseOrder';
+import { useUpdatePurchaseOrder } from '@/hooks/purchase-orders';
 import type { PurchaseOrderDetail, PurchaseOrderItemData } from '@/schemas/purchase-orders';
 import { getSupplierItemPrice } from '@/services/purchase-orders.service';
 

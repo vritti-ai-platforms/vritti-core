@@ -3,12 +3,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import { type CreateGoodsReceiptPayload, createGoodsReceipt } from '@/services/goods-receipts.service';
+import {
+  PURCHASE_ORDER_ITEMS_KEY,
+  PURCHASE_ORDER_ITEMS_TABLE_KEY,
+  PURCHASE_ORDER_KEY,
+  PURCHASE_ORDERS_TABLE_KEY,
+} from './purchase-orders';
 import { GOODS_RECEIPTS_KEY } from './useGoodsReceipts';
 import { GOODS_RECEIPTS_TABLE_KEY } from './useGoodsReceiptsTable';
-import { PURCHASE_ORDER_KEY } from './usePurchaseOrder';
-import { PURCHASE_ORDER_ITEMS_KEY } from './usePurchaseOrderItems';
-import { PURCHASE_ORDER_ITEMS_TABLE_KEY } from './usePurchaseOrderItemsTable';
-import { PURCHASE_ORDERS_TABLE_KEY } from './usePurchaseOrdersTable';
 
 // Creates a goods receipt and invalidates PO detail + table
 export function useCreateGoodsReceipt(

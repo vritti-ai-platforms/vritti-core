@@ -5,7 +5,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useSendPurchaseOrderEmail } from '@/hooks/useSendPurchaseOrderEmail';
+import { useSendPurchaseOrderEmail } from '@/hooks/purchase-orders';
 import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 
 interface SendPurchaseOrderEmailDialogProps {

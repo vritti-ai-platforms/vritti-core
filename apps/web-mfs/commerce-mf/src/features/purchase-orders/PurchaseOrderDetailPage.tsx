@@ -8,12 +8,15 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Mail, MoreVertical, Printer, Send, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeletePurchaseOrder } from '@/hooks/useDeletePurchaseOrder';
-import { usePurchaseOrder } from '@/hooks/usePurchaseOrder';
-import { usePurchaseOrderItems } from '@/hooks/usePurchaseOrderItems';
-import { useUpdatePurchaseOrder } from '@/hooks/useUpdatePurchaseOrder';
+import {
+  useDeletePurchaseOrder,
+  usePurchaseOrder,
+  usePurchaseOrderItems,
+  useUpdatePurchaseOrder,
+  useUpdatePurchaseOrderStatus,
+} from '@/hooks/purchase-orders';
 import type { PurchaseOrderStatus } from '@/schemas/purchase-orders';
-import { downloadPurchaseOrderPdf, updatePurchaseOrderStatus } from '@/services/purchase-orders.service';
+import { downloadPurchaseOrderPdf } from '@/services/purchase-orders.service';
 import { AddPurchaseOrderItemDialog } from './forms/AddPurchaseOrderItemDialog';
 import { SendPurchaseOrderEmailDialog } from './forms/SendPurchaseOrderEmailDialog';
 import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
@@ -47,13 +50,14 @@ type PrimaryAction = {
 export const PurchaseOrderDetailPage = () => {
   const { id } = useSlugParams('poSlug');
   const navigate = useNavigate();
-  const { data: po, refetch } = usePurchaseOrder(id);
+  const { data: po } = usePurchaseOrder(id);
   const { data: poItems = [] } = usePurchaseOrderItems(id);
   const [activeTab, setActiveTab] = useState('overview');
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const addItemDialog = useDialog();
   const confirm = useConfirm();
   const removeMutation = useUpdatePurchaseOrder();
+  const updateStatusMutation = useUpdatePurchaseOrderStatus();
   const deleteMutation = useDeletePurchaseOrder();
 
   const handleStatusChange = useCallback(
@@ -65,11 +69,10 @@ export const PurchaseOrderDetailPage = () => {
         confirmLabel: label,
       });
       if (confirmed) {
-        await updatePurchaseOrderStatus({ id, status: nextStatus });
-        refetch();
+        await updateStatusMutation.mutateAsync({ id, status: nextStatus });
       }
     },
-    [id, confirm, refetch],
+    [id, confirm, updateStatusMutation],
   );
 
   const handleCancelOrder = useCallback(async () => {
@@ -81,10 +84,9 @@ export const PurchaseOrderDetailPage = () => {
       variant: 'destructive',
     });
     if (confirmed) {
-      await updatePurchaseOrderStatus({ id, status: 'CANCELLED' });
-      refetch();
+      await updateStatusMutation.mutateAsync({ id, status: 'CANCELLED' });
     }
-  }, [id, confirm, refetch]);
+  }, [id, confirm, updateStatusMutation]);
 
   const handleDelete = useCallback(async () => {
     if (!id || !po) return;

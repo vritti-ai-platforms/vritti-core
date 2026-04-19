@@ -3,7 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Boxes, Plus, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
-import { PURCHASE_ORDER_ITEMS_TABLE_KEY, usePurchaseOrderItemsTable } from '@/hooks/usePurchaseOrderItemsTable';
+import { PURCHASE_ORDER_ITEMS_TABLE_KEY, usePurchaseOrderItemsTable } from '@/hooks/purchase-orders';
 import type { PurchaseOrderItemData } from '@/schemas/purchase-orders';
 
 interface LineItemsTabProps {
