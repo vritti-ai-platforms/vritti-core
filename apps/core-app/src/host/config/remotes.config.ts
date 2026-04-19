@@ -9,13 +9,9 @@ export interface RemoteConfig {
   matchers?: string[];
 }
 
-function getDevRemoteHost() {
-  return Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-}
-
 function buildRemoteEntry(devPort: number, prodPath: string) {
   if (__DEV__) {
-    return `http://${getDevRemoteHost()}:${devPort}/${Platform.OS}/mf-manifest.json`;
+    return `http://${__DEV_MF_HOST__}:${devPort}/${Platform.OS}/mf-manifest.json`;
   }
 
   return `https://mf.vrittiai.com/${prodPath}/${Platform.OS}/mf-manifest.json`;

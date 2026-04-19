@@ -1,16 +1,16 @@
 import '../../global.css';
 // Runs AFTER MF async boundary — shared modules are safe to import here.
 import { registerRemotes } from '@module-federation/enhanced/runtime';
-import { Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
+import { ALL_REMOTES } from './config/remotes.config';
 
 enableScreens();
 
-registerRemotes([
-  {
-    name: 'commerce-ma',
-    entry: `http://${Platform.OS === 'android' ? '10.0.2.2' : 'localhost'}:9002/${Platform.OS}/mf-manifest.json`,
-  },
-]);
+registerRemotes(
+  ALL_REMOTES.filter((remote) => remote.registerAtStartup !== false).map((remote) => ({
+    name: remote.name,
+    entry: remote.entry,
+  })),
+);
 
 export { default } from './App';

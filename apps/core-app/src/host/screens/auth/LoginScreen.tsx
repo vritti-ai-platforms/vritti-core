@@ -1,36 +1,23 @@
 import { setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
+import { useAuth } from '../../providers/AuthProvider';
 import type { LoginFormValues } from '../../schemas/auth/login';
 import { useLogin } from '../../hooks/auth';
 import { buildOrganizationApiBaseURL } from '../../services/auth/deployment.service';
+import { useLoginStep } from './AuthFlowContext';
 import { AuthScreenLayout } from './components/AuthScreenLayout';
 import { LoginForm } from './form/LoginForm';
 
-interface Props {
-  deploymentBaseURL: string;
-  email: string;
-  organizationId: string;
-  organizationName: string;
-  organizationSubdomain: string;
-  onBack: () => void;
-  onAuthenticated: () => void;
-}
-
-export const LoginScreen = ({
-  deploymentBaseURL,
-  email,
-  organizationId,
-  organizationName,
-  organizationSubdomain,
-  onBack,
-  onAuthenticated,
-}: Props) => {
+export const LoginScreen = () => {
+  const { beginStatusConfirmation } = useAuth();
+  const { deploymentBaseURL, email, organizationId, organizationName, organizationSubdomain, goBack } =
+    useLoginStep();
   const [isPreparingTenantURL, setIsPreparingTenantURL] = React.useState(true);
   const [formError, setFormError] = React.useState<string | undefined>();
 
   const loginMutation = useLogin({
     onSuccess: () => {
-      onAuthenticated();
+      beginStatusConfirmation();
     },
   });
 
@@ -63,7 +50,7 @@ export const LoginScreen = ({
   }, [deploymentBaseURL, organizationSubdomain]);
 
   return (
-    <AuthScreenLayout title="Welcome back" subtitle={organizationName} onBack={onBack}>
+    <AuthScreenLayout title="Welcome back" subtitle={organizationName} onBack={goBack}>
       <LoginForm
         email={email}
         formError={formError}

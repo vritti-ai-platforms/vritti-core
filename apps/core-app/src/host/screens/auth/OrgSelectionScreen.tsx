@@ -6,33 +6,23 @@ import { ArrowRight } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 import type { LookupOrganization } from '../../services/auth/auth.service';
+import { useOrgSelectionStep } from './AuthFlowContext';
 import { AuthScreenLayout } from './components/AuthScreenLayout';
 import { SelectableCard } from './components/SelectableCard';
-
-interface Props {
-  organizations: LookupOrganization[];
-  email: string;
-  onBack: () => void;
-  onSelectOrg: (args: {
-    email: string;
-    organizationId: string;
-    organizationName: string;
-    organizationSubdomain: string;
-  }) => void;
-}
 
 function orgInitials(name: string) {
   return name.slice(0, 2).toUpperCase();
 }
 
-export const OrgSelectionScreen = ({ email, organizations, onBack, onSelectOrg }: Props) => {
+export const OrgSelectionScreen = () => {
+  const { email, organizations, goBack, selectOrganization } = useOrgSelectionStep();
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
   const selectedOrg = organizations.find((o: LookupOrganization) => o.id === selectedId) ?? null;
 
   function handleContinue() {
     if (!selectedOrg) return;
-    onSelectOrg({
+    selectOrganization({
       email,
       organizationId: selectedOrg.id,
       organizationName: selectedOrg.name,
@@ -41,7 +31,7 @@ export const OrgSelectionScreen = ({ email, organizations, onBack, onSelectOrg }
   }
 
   return (
-    <AuthScreenLayout title="Select your organization" subtitle={email} onBack={onBack}>
+    <AuthScreenLayout title="Select your organization" subtitle={email} onBack={goBack}>
       <View className="flex-1">
         <FlashList
           style={{ flex: 1 }}

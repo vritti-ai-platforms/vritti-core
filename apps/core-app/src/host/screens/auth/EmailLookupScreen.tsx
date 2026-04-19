@@ -1,16 +1,11 @@
 import * as React from 'react';
 import { useLookupOrganizations } from '../../hooks/auth';
-import type { LookupOrganization } from '../../services/auth/auth.service';
+import { useEmailLookupStep } from './AuthFlowContext';
 import { AuthScreenLayout } from './components/AuthScreenLayout';
 import { EmailLookupForm } from './form/EmailLookupForm';
 
-interface Props {
-  deploymentBaseURL: string;
-  onBack: () => void;
-  onOrganizationsResolved: (args: { email: string; organizations: LookupOrganization[] }) => void;
-}
-
-export const EmailLookupScreen = ({ deploymentBaseURL, onBack, onOrganizationsResolved }: Props) => {
+export const EmailLookupScreen = () => {
+  const { deploymentBaseURL, goBack, resolveOrganizations } = useEmailLookupStep();
   const [formError, setFormError] = React.useState<string | undefined>();
 
   const lookupMutation = useLookupOrganizations({
@@ -23,7 +18,7 @@ export const EmailLookupScreen = ({ deploymentBaseURL, onBack, onOrganizationsRe
         return;
       }
 
-      onOrganizationsResolved({
+      resolveOrganizations({
         email,
         organizations: data.organizations,
       });
@@ -31,7 +26,7 @@ export const EmailLookupScreen = ({ deploymentBaseURL, onBack, onOrganizationsRe
   });
 
   return (
-    <AuthScreenLayout title="Enter your email" subtitle="We'll find your organizations" onBack={onBack}>
+    <AuthScreenLayout title="Enter your email" subtitle="We'll find your organizations" onBack={goBack}>
       <EmailLookupForm
         isSubmitting={lookupMutation.isPending}
         formError={formError}

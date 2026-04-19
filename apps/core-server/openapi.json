@@ -438,6 +438,148 @@
         ]
       }
     },
+    "/auth/mobile/lookup": {
+      "post": {
+        "description": "Returns all organizations the user belongs to. Used by the mobile app to present an organization picker before login.",
+        "operationId": "AuthController_lookup",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileLookupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Organizations returned (may be empty).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileLookupResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid email format."
+          }
+        },
+        "summary": "Lookup organizations by email",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/mobile/login": {
+      "post": {
+        "description": "Authenticates a user with email and password. Returns access token and refresh token in the response body. No cookies are used.",
+        "operationId": "AuthController_mobileLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Login successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileAuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          },
+          "401": {
+            "description": "Invalid credentials or account not active."
+          }
+        },
+        "summary": "Mobile login",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/mobile/refresh-tokens": {
+      "post": {
+        "description": "Rotates both access and refresh tokens using the current mobile refresh token in the request body. No access token or cookie is required.",
+        "operationId": "AuthController_refreshMobileTokens",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileRefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileTokenResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token."
+          }
+        },
+        "summary": "Mobile refresh tokens",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/mobile/logout": {
+      "post": {
+        "description": "Invalidates the current session. The client should clear stored tokens.",
+        "operationId": "AuthController_mobileLogout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successfully logged out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mobile logout",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/auth/logout": {
       "post": {
         "description": "Invalidates the current session and clears the refresh token cookie.",
@@ -779,148 +921,6 @@
         "summary": "Reset password",
         "tags": [
           "Auth"
-        ]
-      }
-    },
-    "/auth/mobile/lookup": {
-      "post": {
-        "description": "Returns all organizations the user belongs to. Used by the mobile app to present an organization picker before login.",
-        "operationId": "MobileAuthController_lookup",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MobileLookupDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Organizations returned (may be empty).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MobileLookupResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid email format."
-          }
-        },
-        "summary": "Lookup organizations by email",
-        "tags": [
-          "Auth - Mobile"
-        ]
-      }
-    },
-    "/auth/mobile/login": {
-      "post": {
-        "description": "Authenticates a user with email and password. Returns access token and refresh token in the response body. No cookies are used.",
-        "operationId": "MobileAuthController_login",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MobileLoginDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Login successful.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MobileAuthResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data or validation error."
-          },
-          "401": {
-            "description": "Invalid credentials or account not active."
-          }
-        },
-        "summary": "Mobile login",
-        "tags": [
-          "Auth - Mobile"
-        ]
-      }
-    },
-    "/auth/mobile/refresh-tokens": {
-      "post": {
-        "description": "Rotates both access and refresh tokens using the current mobile refresh token in the request body. No access token or cookie is required.",
-        "operationId": "MobileAuthController_refreshTokens",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MobileRefreshDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Tokens refreshed successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MobileTokenResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or expired refresh token."
-          }
-        },
-        "summary": "Mobile refresh tokens",
-        "tags": [
-          "Auth - Mobile"
-        ]
-      }
-    },
-    "/auth/mobile/logout": {
-      "post": {
-        "description": "Invalidates the current session. The client should clear stored tokens.",
-        "operationId": "MobileAuthController_logout",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successfully logged out.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mobile logout",
-        "tags": [
-          "Auth - Mobile"
         ]
       }
     },
@@ -11889,163 +11889,6 @@
           }
         }
       },
-      "MessageResponseDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "example": "Successfully logged out"
-          }
-        },
-        "required": [
-          "message"
-        ]
-      },
-      "SetPasswordDto": {
-        "type": "object",
-        "properties": {
-          "password": {
-            "type": "string",
-            "description": "New password (minimum 8 characters)",
-            "example": "SecureP@ss123",
-            "minLength": 8
-          },
-          "confirmPassword": {
-            "type": "string",
-            "description": "Confirm password — must match password",
-            "example": "SecureP@ss123",
-            "minLength": 8
-          }
-        },
-        "required": [
-          "password",
-          "confirmPassword"
-        ]
-      },
-      "AcceptInviteDto": {
-        "type": "object",
-        "properties": {
-          "token": {
-            "type": "string",
-            "description": "SET_PASSWORD session token from the invitation email",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "password": {
-            "type": "string",
-            "description": "New password (minimum 8 characters)",
-            "example": "SecureP@ss123",
-            "minLength": 8
-          },
-          "confirmPassword": {
-            "type": "string",
-            "description": "Confirm password — must match password",
-            "example": "SecureP@ss123",
-            "minLength": 8
-          }
-        },
-        "required": [
-          "token",
-          "password",
-          "confirmPassword"
-        ]
-      },
-      "TokenResponseDto": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "expiresIn": {
-            "type": "number",
-            "example": 900
-          }
-        },
-        "required": [
-          "accessToken",
-          "expiresIn"
-        ]
-      },
-      "ForgotPasswordDto": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "user@example.com"
-          }
-        },
-        "required": [
-          "email"
-        ]
-      },
-      "ForgotPasswordResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "accessToken": {
-            "type": "string"
-          },
-          "expiresIn": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "success",
-          "message"
-        ]
-      },
-      "VerifyResetOtpDto": {
-        "type": "object",
-        "properties": {
-          "otp": {
-            "type": "string",
-            "example": "123456"
-          }
-        },
-        "required": [
-          "otp"
-        ]
-      },
-      "ResetPasswordDto": {
-        "type": "object",
-        "properties": {
-          "newPassword": {
-            "type": "string",
-            "minLength": 8
-          }
-        },
-        "required": [
-          "newPassword"
-        ]
-      },
-      "ResetPasswordResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "message": {
-            "type": "string"
-          },
-          "accessToken": {
-            "type": "string"
-          },
-          "expiresIn": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "success",
-          "message",
-          "accessToken",
-          "expiresIn"
-        ]
-      },
       "MobileLookupDto": {
         "type": "object",
         "properties": {
@@ -12212,6 +12055,163 @@
         "required": [
           "accessToken",
           "refreshToken",
+          "expiresIn"
+        ]
+      },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Successfully logged out"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "SetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "New password (minimum 8 characters)",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "Confirm password — must match password",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "password",
+          "confirmPassword"
+        ]
+      },
+      "AcceptInviteDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "SET_PASSWORD session token from the invitation email",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "password": {
+            "type": "string",
+            "description": "New password (minimum 8 characters)",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          },
+          "confirmPassword": {
+            "type": "string",
+            "description": "Confirm password — must match password",
+            "example": "SecureP@ss123",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "token",
+          "password",
+          "confirmPassword"
+        ]
+      },
+      "TokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "expiresIn": {
+            "type": "number",
+            "example": 900
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresIn"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ForgotPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "VerifyResetOtpDto": {
+        "type": "object",
+        "properties": {
+          "otp": {
+            "type": "string",
+            "example": "123456"
+          }
+        },
+        "required": [
+          "otp"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "newPassword"
+        ]
+      },
+      "ResetPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "accessToken",
           "expiresIn"
         ]
       },

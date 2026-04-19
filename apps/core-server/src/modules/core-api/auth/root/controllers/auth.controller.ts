@@ -26,6 +26,7 @@ import {
 } from '@vritti/api-sdk';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { concat, merge, NEVER, type Observable, of } from 'rxjs';
+import { SessionTypeValues } from '@/db/schema';
 import {
   ApiAcceptInvite,
   ApiGetAccessToken,
@@ -53,7 +54,6 @@ import { MobileTokenResponseDto } from '../dto/response/mobile-token-response.dt
 import { TokenResponseDto } from '../dto/response/token-response.dto';
 import { AuthService } from '../services/auth.service';
 import { AuthStatusSseService } from '../services/auth-status-sse.service';
-import { SessionTypeValues } from '@/db/schema';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -101,6 +101,7 @@ export class AuthController {
   // Authenticates user credentials and creates a MOBILE session
   @Post('mobile/login')
   @Public()
+  @SkipCsrf()
   @ApiMobileLogin()
   async mobileLogin(@Body() dto: MobileLoginDto, @Ip() ipAddress: string): Promise<MobileAuthResponseDto> {
     this.logger.log(`POST /auth/mobile/login - Email: ${dto.email}`);
@@ -121,6 +122,7 @@ export class AuthController {
   @Post('mobile/refresh-tokens')
   @HttpCode(HttpStatus.OK)
   @Public()
+  @SkipCsrf()
   @ApiMobileRefreshTokens()
   async refreshMobileTokens(@Body() dto: MobileRefreshDto): Promise<MobileTokenResponseDto> {
     this.logger.log('POST /auth/mobile/refresh-tokens');

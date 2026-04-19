@@ -74,6 +74,45 @@ function validateDeploymentsApiBaseUrl() {
   return parsed.origin;
 }
 
+function validateDevMfHost(rawValue) {
+  const value = rawValue?.trim();
+
+  if (!value) {
+    throw new Error(
+      `DEV_MF_HOST is required in development. Set it in ${envFilePath} to your laptop LAN IP or hostname, for example 192.168.1.23`,
+    );
+  }
+
+  if (value.includes('://')) {
+    throw new Error(
+      `DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`,
+    );
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(`http://${value}`);
+  } catch {
+    throw new Error(`DEV_MF_HOST must be a valid host or IP. Received: ${value}`);
+  }
+
+  if (parsed.pathname && parsed.pathname !== '/') {
+    throw new Error(
+      `DEV_MF_HOST must not include a path like "${parsed.pathname}". Use only the host or IP, for example 192.168.1.23`,
+    );
+  }
+
+  if (parsed.search || parsed.hash) {
+    throw new Error('DEV_MF_HOST must not include query params or a hash fragment.');
+  }
+
+  if (parsed.port) {
+    throw new Error('DEV_MF_HOST must not include a port. The dev remote ports are configured separately.');
+  }
+
+  return parsed.hostname;
+}
+
 loadCoreAppEnv();
 const deploymentsApiBaseUrl = validateDeploymentsApiBaseUrl();
 
@@ -148,6 +187,9 @@ export default (env) => {
   const { platform, mode } = env;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
+  const devMfHost = mode === 'development'
+    ? validateDevMfHost(process.env.DEV_MF_HOST)
+    : (process.env.DEV_MF_HOST?.trim() ?? '');
 
   return {
     mode,
@@ -258,6 +300,7 @@ export default (env) => {
     plugins: [
       new rspack.DefinePlugin({
         __DEPLOYMENTS_API_BASE_URL__: JSON.stringify(deploymentsApiBaseUrl),
+        __DEV_MF_HOST__: JSON.stringify(devMfHost),
       }),
       new Repack.RepackPlugin({
         extraChunks: [

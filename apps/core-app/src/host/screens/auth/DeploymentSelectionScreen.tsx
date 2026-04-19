@@ -8,12 +8,9 @@ import * as React from 'react';
 import { View } from 'react-native';
 import { useDeployments } from '../../hooks/auth';
 import type { Deployment, DeploymentStatus } from '../../types/deployment';
+import { useAuthFlow } from './AuthFlowContext';
 import { AuthScreenLayout } from './components/AuthScreenLayout';
 import { SelectableCard } from './components/SelectableCard';
-
-interface Props {
-  onConnected: (deploymentUrl: string) => void;
-}
 
 function dotColorClass(status: DeploymentStatus) {
   if (status === 'active') return 'bg-success';
@@ -26,7 +23,8 @@ function orgText(count: number) {
   return `${count} org${count === 1 ? '' : 's'}`;
 }
 
-export const DeploymentSelectionScreen = ({ onConnected }: Props) => {
+export const DeploymentSelectionScreen = () => {
+  const { connectDeployment } = useAuthFlow();
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const deploymentsQuery = useDeployments();
   const deployments = deploymentsQuery.data ?? [];
@@ -36,7 +34,7 @@ export const DeploymentSelectionScreen = ({ onConnected }: Props) => {
   async function handleConnect() {
     if (!selectedDeployment) return;
     await setSelectedDeploymentBaseURL(selectedDeployment.url);
-    onConnected(selectedDeployment.url);
+    connectDeployment(selectedDeployment.url);
   }
 
   return (
