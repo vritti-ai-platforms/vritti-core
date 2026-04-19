@@ -22,8 +22,8 @@ import {
   ApiResendInviteWebhook,
   ApiUpdateUserWebhook,
 } from '../docs/user.docs';
-import { MobileLookupDto } from '../../auth/mobile/dto/request/mobile-lookup.dto';
-import { MobileLookupResponseDto } from '../../auth/mobile/dto/response/mobile-lookup-response.dto';
+import { MobileLookupDto } from '../../auth/root/dto/request/mobile-lookup.dto';
+import { MobileLookupResponseDto } from '../../auth/root/dto/response/mobile-lookup-response.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { GetUsersWebhookDto } from '../dto/request/get-users-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';

@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
-import { MobileLookupResponseDto } from '../../auth/mobile/dto/response/mobile-lookup-response.dto';
+import { MobileLookupResponseDto } from '../../auth/root/dto/response/mobile-lookup-response.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
 import { UsersTableResponseDto } from '../dto/response/users-table-response.dto';

@@ -859,7 +859,7 @@
     },
     "/auth/mobile/refresh-tokens": {
       "post": {
-        "description": "Rotates both access and refresh tokens. Requires the current refresh token in the request body. Returns new tokens in the response body.",
+        "description": "Rotates both access and refresh tokens using the current mobile refresh token in the request body. No access token or cookie is required.",
         "operationId": "MobileAuthController_refreshTokens",
         "parameters": [],
         "requestBody": {
@@ -887,11 +887,6 @@
             "description": "Invalid or expired refresh token."
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "summary": "Mobile refresh tokens",
         "tags": [
           "Auth - Mobile"

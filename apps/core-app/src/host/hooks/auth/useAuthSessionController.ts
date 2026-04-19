@@ -48,11 +48,11 @@ export function useAuthSessionController() {
       setPhase('bootstrapping');
 
       try {
-        const storedBaseURL = await getStoredMobileBaseURL();
         const restored = await initializeMobileSession({
           ...mobileAxiosConfig,
           onSessionExpired: resetSignedOutState,
         });
+        const storedBaseURL = await getStoredMobileBaseURL();
 
         if (!active) return;
 

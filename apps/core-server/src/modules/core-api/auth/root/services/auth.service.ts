@@ -7,7 +7,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, TokenService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
-import { MobileLookupResponseDto } from '../../mobile/dto/response/mobile-lookup-response.dto';
+import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.dto';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
@@ -280,6 +280,22 @@ export class AuthService {
   async refreshTokens(
     refreshToken: string | undefined,
   ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
+    return this.sessionService.refreshTokens(refreshToken);
+  }
+
+  // Rotates tokens for mobile restore/login flows using the body-provided refresh token.
+  async refreshMobileTokens(
+    refreshToken: string | undefined,
+  ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
+    const session = await this.sessionService.validateRefreshToken(refreshToken);
+
+    if (session.type !== SessionTypeValues.MOBILE) {
+      throw new UnauthorizedException({
+        label: 'Invalid Session',
+        detail: 'This refresh token does not belong to a mobile session. Please log in again.',
+      });
+    }
+
     return this.sessionService.refreshTokens(refreshToken);
   }
 

@@ -118,7 +118,10 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           refreshCookieSameSite: 'strict' as const,
           refreshCookieDomain: config.get('REFRESH_COOKIE_DOMAIN'),
         },
+
         guard: {
+          csrfExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
+          refreshTokenBindingExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           onAuthenticated: (requestService, sessionInfo) => {
             // Extract subdomain from request host
             const hostname = requestService.getHostname();

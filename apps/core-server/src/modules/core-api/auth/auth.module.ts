@@ -9,7 +9,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { EmailModule } from '@vritti/api-sdk';
 import { ForgotPasswordController } from './forgot-password/controllers/forgot-password.controller';
 import { PasswordResetService } from './forgot-password/services/password-reset.service';
-import { MobileAuthController } from './mobile/controllers/mobile-auth.controller';
 import { AuthController } from './root/controllers/auth.controller';
 import { AuthStatusEventListener } from './root/listeners/auth-status-event.listener';
 import { AuthService } from './root/services/auth.service';
@@ -32,7 +31,7 @@ import { AuthStatusSseService } from './root/services/auth-status-sse.service';
     OrganizationDomainModule,
     VerificationDomainModule,
   ],
-  controllers: [AuthController, ForgotPasswordController, MobileAuthController],
+  controllers: [AuthController, ForgotPasswordController],
   providers: [
     // Root
     AuthService,

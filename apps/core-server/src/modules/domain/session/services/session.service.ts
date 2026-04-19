@@ -104,7 +104,7 @@ export class SessionService {
   }
 
   // Validates refresh token and returns the active non-expired session
-  private async validateRefreshToken(refreshToken: string | undefined): Promise<Session> {
+  async validateRefreshToken(refreshToken: string | undefined): Promise<Session> {
     if (!refreshToken) {
       throw new UnauthorizedException({
         label: 'No Session Found',

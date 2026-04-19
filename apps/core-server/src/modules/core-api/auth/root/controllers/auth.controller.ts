@@ -32,17 +32,28 @@ import {
   ApiGetAuthStatus,
   ApiLogin,
   ApiLogout,
+  ApiMobileLogin,
+  ApiMobileLogout,
+  ApiMobileLookup,
+  ApiMobileRefreshTokens,
   ApiRefreshTokens,
   ApiSetPassword,
 } from '../docs/auth.docs';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
+import { MobileLoginDto } from '../dto/request/mobile-login.dto';
+import { MobileLookupDto } from '../dto/request/mobile-lookup.dto';
+import { MobileRefreshDto } from '../dto/request/mobile-refresh.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
 import { AuthResponseDto } from '../dto/response/auth-response.dto';
 import { MessageResponseDto } from '../dto/response/message-response.dto';
+import { MobileAuthResponseDto } from '../dto/response/mobile-auth-response.dto';
+import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.dto';
+import { MobileTokenResponseDto } from '../dto/response/mobile-token-response.dto';
 import { TokenResponseDto } from '../dto/response/token-response.dto';
 import { AuthService } from '../services/auth.service';
 import { AuthStatusSseService } from '../services/auth-status-sse.service';
+import { SessionTypeValues } from '@/db/schema';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -75,6 +86,54 @@ export class AuthController {
     }
 
     return response;
+  }
+
+  // Looks up all organizations associated with the given email
+  @Post('mobile/lookup')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @ApiMobileLookup()
+  async lookup(@Body() dto: MobileLookupDto): Promise<MobileLookupResponseDto> {
+    this.logger.log(`POST /auth/mobile/lookup - Email: ${dto.email}`);
+    return this.authService.lookupOrganizationsByEmail(dto.email);
+  }
+
+  // Authenticates user credentials and creates a MOBILE session
+  @Post('mobile/login')
+  @Public()
+  @ApiMobileLogin()
+  async mobileLogin(@Body() dto: MobileLoginDto, @Ip() ipAddress: string): Promise<MobileAuthResponseDto> {
+    this.logger.log(`POST /auth/mobile/login - Email: ${dto.email}`);
+    const result = await this.authService.login(
+      { email: dto.email, password: dto.password, organizationId: dto.organizationId },
+      ipAddress,
+      SessionTypeValues.MOBILE,
+    );
+    return new MobileAuthResponseDto({
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      expiresIn: result.expiresIn,
+      isAuthenticated: true,
+    });
+  }
+
+  // Rotates tokens using refresh token from request body
+  @Post('mobile/refresh-tokens')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @ApiMobileRefreshTokens()
+  async refreshMobileTokens(@Body() dto: MobileRefreshDto): Promise<MobileTokenResponseDto> {
+    this.logger.log('POST /auth/mobile/refresh-tokens');
+    return this.authService.refreshMobileTokens(dto.refreshToken);
+  }
+
+  // Invalidates the current mobile session
+  @Post('mobile/logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiMobileLogout()
+  async mobileLogout(@AccessToken() accessToken: string): Promise<MessageResponseDto> {
+    this.logger.log('POST /auth/mobile/logout');
+    return this.authService.logout(accessToken);
   }
 
   // Invalidates the current session and clears the refresh cookie
