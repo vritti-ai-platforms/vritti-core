@@ -28,7 +28,7 @@ export const purchaseOrders = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_purchase_orders_bu_po_number').on(table.businessUnitId, table.poNumber),
+    unique('uq_purchase_orders_org_po_number').on(table.organizationId, table.poNumber),
     index('idx_purchase_orders_bu').on(table.organizationId, table.businessUnitId),
     index('idx_purchase_orders_supplier').on(table.supplierId),
     pgPolicy('org_isolation', {

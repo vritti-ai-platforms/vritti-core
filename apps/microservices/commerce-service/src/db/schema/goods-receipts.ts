@@ -24,7 +24,7 @@ export const goodsReceipts = coreSchema.table(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    unique('uq_goods_receipts_bu_gr_number').on(table.businessUnitId, table.grNumber),
+    unique('uq_goods_receipts_org_gr_number').on(table.organizationId, table.grNumber),
     index('idx_goods_receipts_supplier').on(table.supplierId),
     index('idx_goods_receipts_po').on(table.purchaseOrderId),
     index('idx_goods_receipts_bu').on(table.organizationId, table.businessUnitId),

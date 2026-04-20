@@ -39,7 +39,7 @@ export const orders = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_orders_bu_number').on(table.businessUnitId, table.orderNumber),
+    unique('uq_orders_org_number').on(table.organizationId, table.orderNumber),
     index('idx_orders_bu').on(table.organizationId, table.businessUnitId),
     index('idx_orders_status').on(table.status),
     pgPolicy('org_isolation', {

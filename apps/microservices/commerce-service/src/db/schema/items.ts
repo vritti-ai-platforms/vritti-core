@@ -37,7 +37,7 @@ export const items = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_items_bu_code').on(table.businessUnitId, table.code),
+    unique('uq_items_org_code').on(table.organizationId, table.code),
     index('idx_items_bu').on(table.organizationId, table.businessUnitId),
     index('idx_items_category').on(table.categoryId),
     pgPolicy('org_isolation', {

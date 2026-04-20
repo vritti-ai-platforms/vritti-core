@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { stockAdjustmentStatusEnum, stockAdjustmentTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
@@ -23,6 +23,7 @@ export const stockAdjustments = coreSchema.table(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
+    unique('uq_stock_adjustments_org_code').on(table.organizationId, table.code),
     index('idx_stock_adjustments_bu').on(table.organizationId, table.businessUnitId),
     index('idx_stock_adjustments_item').on(table.inventoryItemId),
     index('idx_stock_adjustments_status').on(table.status),

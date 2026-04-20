@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceiptItems } from './goods-receipts';
 import { inventoryItems } from './inventory-items';
@@ -30,6 +30,7 @@ export const inventoryItemBatches = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    unique('uq_inventory_item_batches_org_batch_number').on(table.organizationId, table.batchNumber),
     index('idx_inventory_item_batches_item').on(table.inventoryItemId),
     index('idx_inventory_item_batches_location').on(table.locationId),
     index('idx_inventory_item_batches_item_location').on(table.inventoryItemId, table.locationId),
