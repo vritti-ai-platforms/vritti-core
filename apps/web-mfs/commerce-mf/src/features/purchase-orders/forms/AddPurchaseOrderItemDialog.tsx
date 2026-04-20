@@ -1,22 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { UseMutationResult } from '@tanstack/react-query';
+import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import type { CreateResponse } from '@vritti/quantum-ui/api-response';
-import type { UseMutationResult } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import type { PurchaseOrderDetail, PurchaseOrderItemData } from '@/schemas/purchase-orders';
-import type { PurchaseOrderData } from '@/schemas/purchase-orders';
+import type { PurchaseOrderData, PurchaseOrderDetail } from '@/schemas/purchase-orders';
 import { type AddPurchaseOrderItemPayload, getSupplierItemPrice } from '@/services/purchase-orders.service';
 
 interface AddPurchaseOrderItemDialogProps {
   purchaseOrder: PurchaseOrderDetail;
-  items: PurchaseOrderItemData[];
+  existingItemIds: string[];
   mutation: UseMutationResult<CreateResponse<PurchaseOrderData>, AxiosError, AddPurchaseOrderItemPayload>;
   onCancel: () => void;
 }
@@ -31,7 +30,7 @@ type AddLineItemFormData = z.infer<typeof addLineItemSchema>;
 
 export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({
   purchaseOrder,
-  items,
+  existingItemIds,
   mutation,
   onCancel,
 }) => {
@@ -47,7 +46,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     },
   });
 
-  const existingItemIds = items.map((i) => i.inventoryItemId).join(',');
+  const excludeIds = existingItemIds.join(',');
 
   // Pre-fill unit price from supplier pricelist when item is selected
   const watchedItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
@@ -102,7 +101,13 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         name="inventoryItemId"
         label="Inventory Item"
         placeholder="Select item"
-        params={{ excludeIds: existingItemIds, supplierId: purchaseOrder.supplierId }}
+        fieldKeys={{ valueKey: 'id', labelKey: 'name', additionalKeys: 'symbol', groupIdKey: 'categoryId' }}
+        transformLabel={(label, option) => {
+          const baseLabel = label.replace(/\s-\s[^-]+$/, '');
+          const uom = option.additionals?.symbol;
+          return typeof uom === 'string' && uom.trim() ? `${baseLabel} (${uom})` : baseLabel;
+        }}
+        params={{ excludeIds, supplierId: purchaseOrder.supplierId }}
       />
       <TextField name="orderedQuantity" label="Ordered Quantity" type="number" placeholder="e.g. 500" />
       <TextField

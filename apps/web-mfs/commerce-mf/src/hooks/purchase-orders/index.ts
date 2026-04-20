@@ -4,7 +4,7 @@ export { useChangePurchaseOrderSupplier } from './useChangePurchaseOrderSupplier
 export { useCreatePurchaseOrder } from './useCreatePurchaseOrder';
 export { useDeletePurchaseOrder } from './useDeletePurchaseOrder';
 export { PURCHASE_ORDER_KEY, usePurchaseOrder } from './usePurchaseOrder';
-export { PURCHASE_ORDER_ITEMS_KEY, usePurchaseOrderItems } from './usePurchaseOrderItems';
+export { PURCHASE_ORDER_ITEMS_IDS_KEY, usePurchaseOrderItemsIds } from './usePurchaseOrderItemsIds';
 export { PURCHASE_ORDER_ITEMS_TABLE_KEY, usePurchaseOrderItemsTable } from './usePurchaseOrderItemsTable';
 export { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from './usePurchaseOrdersTable';
 export { useRemovePurchaseOrderItem } from './useRemovePurchaseOrderItem';

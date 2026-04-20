@@ -4,7 +4,6 @@ import type { GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
 import type {
   PurchaseOrderData,
   PurchaseOrderDetail,
-  PurchaseOrderItemData,
   PurchaseOrderItemsTableResponse,
   PurchaseOrdersTableResponse,
 } from '@/schemas/purchase-orders';
@@ -65,10 +64,10 @@ export function getPurchaseOrder(id: string): Promise<PurchaseOrderDetail> {
     .then((r) => r.data);
 }
 
-// Fetches all line items for a purchase order
-export function getPurchaseOrderItems(id: string): Promise<PurchaseOrderItemData[]> {
+// Fetches inventory item IDs for a purchase order
+export function getPurchaseOrderItemIds(id: string): Promise<string[]> {
   return axios
-    .get<PurchaseOrderItemData[]>(`commerce-api/purchase-orders/${id}/items`, { showSuccessToast: false })
+    .get<string[]>(`commerce-api/purchase-orders/${id}/items/ids`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 

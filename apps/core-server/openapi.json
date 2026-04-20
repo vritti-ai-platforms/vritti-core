@@ -6016,9 +6016,9 @@
         ]
       }
     },
-    "/commerce-api/purchase-orders/{id}/items": {
+    "/commerce-api/purchase-orders/{id}/items/ids": {
       "get": {
-        "operationId": "PurchaseOrdersGatewayController_findItems",
+        "operationId": "PurchaseOrdersGatewayController_findItemIds",
         "parameters": [
           {
             "name": "id",
@@ -6031,42 +6031,6 @@
         ],
         "responses": {
           "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Purchase Orders"
-        ]
-      },
-      "post": {
-        "operationId": "PurchaseOrdersGatewayController_addItem",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AddPurchaseOrderItemDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
             "description": ""
           }
         },
@@ -6123,6 +6087,44 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}/items": {
+      "post": {
+        "operationId": "PurchaseOrdersGatewayController_addItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPurchaseOrderItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -11355,24 +11357,6 @@
           "method"
         ]
       },
-      "CreatePurchaseOrderItemDto": {
-        "type": "object",
-        "properties": {
-          "inventoryItemId": {
-            "type": "string",
-            "description": "Inventory item ID"
-          },
-          "orderedQuantity": {
-            "type": "number",
-            "description": "Ordered quantity",
-            "example": 100
-          }
-        },
-        "required": [
-          "inventoryItemId",
-          "orderedQuantity"
-        ]
-      },
       "CreatePurchaseOrderDto": {
         "type": "object",
         "properties": {
@@ -11392,13 +11376,6 @@
           "notes": {
             "type": "string",
             "description": "Notes"
-          },
-          "items": {
-            "description": "Line items",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CreatePurchaseOrderItemDto"
-            }
           }
         },
         "required": [

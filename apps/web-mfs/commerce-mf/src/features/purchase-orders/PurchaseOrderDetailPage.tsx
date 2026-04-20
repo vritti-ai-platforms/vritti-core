@@ -4,13 +4,13 @@ import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Mail, MoreVertical, Printer, Send, Trash2 } from 'lucide-react';
+import { Mail, MoreVertical, Pencil, Printer, Send, Trash2, Truck } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useDeletePurchaseOrder,
   usePurchaseOrder,
-  usePurchaseOrderItems,
+  usePurchaseOrderItemsIds,
   useUpdatePurchaseOrderStatus,
 } from '@/hooks/purchase-orders';
 import type { PurchaseOrderStatus } from '@/schemas/purchase-orders';
@@ -50,7 +50,7 @@ export const PurchaseOrderDetailPage = () => {
   const { id } = useSlugParams('poSlug');
   const navigate = useNavigate();
   const { data: po } = usePurchaseOrder(id);
-  const { data: poItems = [] } = usePurchaseOrderItems(id);
+  const { data: poItemIds = [] } = usePurchaseOrderItemsIds(id);
   const [activeTab, setActiveTab] = useState('overview');
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const confirm = useConfirm();
@@ -124,12 +124,12 @@ export const PurchaseOrderDetailPage = () => {
     (close: () => void) => (
       <ChangePurchaseOrderSupplierDialog
         purchaseOrder={po}
-        hasLines={poItems.length > 0}
+        hasLines={poItemIds.length > 0}
         onSuccess={close}
         onCancel={close}
       />
     ),
-    [po, poItems.length],
+    [po, poItemIds.length],
   );
 
   const statusBadgeConfig = statusConfig[po.status];
@@ -164,6 +164,7 @@ export const PurchaseOrderDetailPage = () => {
       type: 'dialog',
       id: 'update-notes',
       label: 'Update Notes',
+      icon: Pencil,
       dialog: {
         title: 'Update Notes',
         description: 'Edit purchase order notes.',
@@ -177,10 +178,11 @@ export const PurchaseOrderDetailPage = () => {
       type: 'dialog',
       id: 'change-supplier',
       label: 'Change Supplier',
+      icon: Truck,
       dialog: {
         title: 'Change Supplier',
         description:
-          poItems.length > 0
+          poItemIds.length > 0
             ? 'Remove all line items before changing supplier.'
             : 'Select a new supplier for this purchase order.',
         content: renderChangeSupplierDialog,
@@ -283,12 +285,12 @@ export const PurchaseOrderDetailPage = () => {
           },
           {
             value: 'items',
-            label: `Line Items (${poItems.length})`,
+            label: `Line Items (${poItemIds.length})`,
             content: (
               <LineItemsTab
                 purchaseOrder={po}
-                items={poItems}
                 canModifyItems={canModifyItems}
+                existingItemIds={poItemIds}
               />
             ),
           },

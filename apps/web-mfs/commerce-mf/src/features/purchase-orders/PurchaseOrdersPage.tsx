@@ -5,6 +5,7 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { SupplierFilter } from '@vritti/quantum-ui/selects/supplier';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ClipboardList, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
@@ -114,6 +115,7 @@ export const PurchaseOrdersPage = () => {
           ],
           searchAll: true,
         }}
+        filters={[<SupplierFilter key="supplierId" name="supplierId" />]}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={addDialog.open}>

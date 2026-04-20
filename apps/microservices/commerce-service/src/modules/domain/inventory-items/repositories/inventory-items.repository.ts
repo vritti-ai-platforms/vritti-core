@@ -25,27 +25,22 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     super(database, inventoryItems);
   }
 
-  // Returns paginated inventory item options for the select component
-  findForSelect(config: FindForSelectConfig): Promise<SelectQueryResult> {
-    return super.findForSelect(config);
-  }
-
   // Returns paginated inventory item options filtered by supplier via inner join on supplier_items
   findForSelectBySupplier(supplierId: string, config: FindForSelectConfig): Promise<SelectQueryResult> {
     return super.findForSelect({
       ...config,
-      joins: [{ table: supplierItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id), type: 'inner' }],
+      joins: [
+        { table: supplierItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id), type: 'inner' },
+        { table: categories, on: eq(inventoryItems.categoryId, categories.id), type: 'left' },
+        { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' },
+      ],
+      groupTable: (config.groupId ?? config.groupIdKey) === 'categoryId' ? categories : undefined,
       conditions: [eq(supplierItems.supplierId, supplierId), eq(supplierItems.isActive, true)],
     });
   }
 
   // Returns paginated inventory items with UOM symbol via LEFT JOIN
-  async findAllWithUom(options?: {
-    where?: SQL;
-    orderBy?: SQL[];
-    limit?: number;
-    offset?: number;
-  }): Promise<{
+  async findAllWithUom(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];
     count: number;
   }> {
@@ -67,6 +62,36 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     });
   }
 
+  // Returns a single inventory item with UOM symbol and category name via LEFT JOINs
+  async findByIdWithUomAndCategory(
+    id: string,
+  ): Promise<(typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null }) | null> {
+    const [row] = await this.db
+      .select({
+        id: inventoryItems.id,
+        organizationId: inventoryItems.organizationId,
+        businessUnitId: inventoryItems.businessUnitId,
+        name: inventoryItems.name,
+        code: inventoryItems.code,
+        type: inventoryItems.type,
+        categoryId: inventoryItems.categoryId,
+        description: inventoryItems.description,
+        uomId: inventoryItems.uomId,
+        metadata: inventoryItems.metadata,
+        createdAt: inventoryItems.createdAt,
+        updatedAt: inventoryItems.updatedAt,
+        uomSymbol: uom.symbol,
+        categoryName: categories.name,
+      })
+      .from(inventoryItems)
+      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
+      .leftJoin(categories, eq(inventoryItems.categoryId, categories.id))
+      .where(eq(inventoryItems.id, id))
+      .limit(1);
+
+    return row ?? null;
+  }
+
   // Returns the UOM symbol for a given UOM ID
   async findUomSymbol(uomId: string): Promise<string | null> {
     const result = await this.db.select({ symbol: uom.symbol }).from(uom).where(eq(uom.id, uomId));
@@ -75,7 +100,10 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
 
   // Returns category name for a given category ID
   async findCategoryName(categoryId: string): Promise<string | null> {
-    const result = await this.db.select({ name: categories.name }).from(categories).where(eq(categories.id, categoryId));
+    const result = await this.db
+      .select({ name: categories.name })
+      .from(categories)
+      .where(eq(categories.id, categoryId));
     return result[0]?.name ?? null;
   }
 

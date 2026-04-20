@@ -78,6 +78,12 @@ export class PurchaseOrdersController {
     return this.service.findItems(data.id);
   }
 
+  @MessagePattern({ cmd: 'purchaseOrders.itemIds' })
+  async itemIds(@Payload() data: { id: string }): Promise<string[]> {
+    this.logger.log(`purchaseOrders.itemIds — id: ${data.id}`);
+    return this.service.findItemIds(data.id);
+  }
+
   @MessagePattern({ cmd: 'purchaseOrders.itemsTable' })
   async itemsTable(
     @Payload() data: { id: string } & TableViewState,

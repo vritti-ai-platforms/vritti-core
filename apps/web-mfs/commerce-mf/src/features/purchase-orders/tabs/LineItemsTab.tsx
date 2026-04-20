@@ -17,14 +17,14 @@ import { UpdatePurchaseOrderItemDialog } from '../forms/UpdatePurchaseOrderItemD
 
 interface LineItemsTabProps {
   purchaseOrder: PurchaseOrderDetail;
-  items: PurchaseOrderItemData[];
   canModifyItems: boolean;
+  existingItemIds: string[];
 }
 
 export const LineItemsTab = ({
   purchaseOrder,
-  items,
   canModifyItems,
+  existingItemIds,
 }: LineItemsTabProps) => {
   const purchaseOrderId = purchaseOrder.id;
   const queryClient = useQueryClient();
@@ -173,7 +173,7 @@ export const LineItemsTab = ({
         content={(close) => (
           <AddPurchaseOrderItemDialog
             purchaseOrder={purchaseOrder}
-            items={items}
+            existingItemIds={existingItemIds}
             mutation={addItemMutation}
             onCancel={close}
           />

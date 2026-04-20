@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import {
-  purchaseOrderNumberSeq,
-  purchaseOrders,
-} from '@/db/schema';
+import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 
 @Injectable()
 export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
@@ -17,5 +15,64 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
     const nextNumber = await this.nextSequenceValue();
     return `PO-${yearMonth}-${String(nextNumber).padStart(4, '0')}`;
+  }
+
+  // Returns PO with supplier name for detail endpoint
+  async findByIdWithSupplierName(
+    id: string,
+  ): Promise<(typeof purchaseOrders.$inferSelect & { supplierName: string | null }) | null> {
+    const [row] = await this.db
+      .select({
+        id: purchaseOrders.id,
+        organizationId: purchaseOrders.organizationId,
+        businessUnitId: purchaseOrders.businessUnitId,
+        supplierId: purchaseOrders.supplierId,
+        poNumber: purchaseOrders.poNumber,
+        status: purchaseOrders.status,
+        orderDate: purchaseOrders.orderDate,
+        expectedBy: purchaseOrders.expectedBy,
+        notes: purchaseOrders.notes,
+        totalAmount: purchaseOrders.totalAmount,
+        createdBy: purchaseOrders.createdBy,
+        createdAt: purchaseOrders.createdAt,
+        updatedAt: purchaseOrders.updatedAt,
+        supplierName: suppliers.name,
+      })
+      .from(purchaseOrders)
+      .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
+      .where(eq(purchaseOrders.id, id))
+      .limit(1);
+
+    return row ?? null;
+  }
+
+  // Returns paginated POs with supplier name for table view
+  async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
+    result: (typeof purchaseOrders.$inferSelect & { supplierName: string | null })[];
+    count: number;
+  }> {
+    return this.findAllAndCount<typeof purchaseOrders.$inferSelect & { supplierName: string | null }>({
+      select: {
+        id: purchaseOrders.id,
+        organizationId: purchaseOrders.organizationId,
+        businessUnitId: purchaseOrders.businessUnitId,
+        supplierId: purchaseOrders.supplierId,
+        poNumber: purchaseOrders.poNumber,
+        status: purchaseOrders.status,
+        orderDate: purchaseOrders.orderDate,
+        expectedBy: purchaseOrders.expectedBy,
+        notes: purchaseOrders.notes,
+        totalAmount: purchaseOrders.totalAmount,
+        createdBy: purchaseOrders.createdBy,
+        createdAt: purchaseOrders.createdAt,
+        updatedAt: purchaseOrders.updatedAt,
+        supplierName: suppliers.name,
+      },
+      leftJoins: [{ table: suppliers, on: eq(purchaseOrders.supplierId, suppliers.id) }],
+      where: options.where,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(purchaseOrders.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 }

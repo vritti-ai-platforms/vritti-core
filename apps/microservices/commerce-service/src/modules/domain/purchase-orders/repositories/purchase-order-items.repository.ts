@@ -34,6 +34,16 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
     return rows as (PurchaseOrderItem & { inventoryItemName: string | null })[];
   }
 
+  // Returns inventory item IDs linked to a PO
+  async findItemIdsByPoId(poId: string): Promise<string[]> {
+    const rows = await this.db
+      .select({ inventoryItemId: purchaseOrderItems.inventoryItemId })
+      .from(purchaseOrderItems)
+      .where(eq(purchaseOrderItems.purchaseOrderId, poId));
+
+    return rows.map((row) => row.inventoryItemId);
+  }
+
   // Returns paginated PO line items for table view
   async findItemsForTable(
     poId: string,

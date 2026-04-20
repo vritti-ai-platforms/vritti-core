@@ -25,7 +25,6 @@ import { PurchaseOrderSelectQueryDto } from './dto/request/purchase-order-select
 import { SendPurchaseOrderEmailDto } from './dto/request/send-purchase-order-email.dto';
 import { UpdatePurchaseOrderItemDto } from './dto/request/update-purchase-order-item.dto';
 import { UpdatePurchaseOrderNotesDto } from './dto/request/update-purchase-order-notes.dto';
-import type { PurchaseOrderItemResponseDto } from './dto/response/purchase-order-item-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from './dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderResponseDto } from './dto/response/purchase-order-response.dto';
 import type { PurchaseOrderTableResponseDto } from './dto/response/purchase-order-table-response.dto';
@@ -76,10 +75,10 @@ export class PurchaseOrdersGatewayController {
     return this.service.findById(id);
   }
 
-  // Returns line items for a purchase order
-  @Get(':id/items')
-  findItems(@Param('id') id: string): Promise<PurchaseOrderItemResponseDto[]> {
-    return this.service.findItems(id);
+  // Returns inventory item IDs for a purchase order
+  @Get(':id/items/ids')
+  findItemIds(@Param('id') id: string): Promise<string[]> {
+    return this.service.findItemIds(id);
   }
 
   // Returns line items table for a purchase order

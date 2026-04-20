@@ -69,7 +69,7 @@ export class InventoryItemsService {
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      groupId: query.groupIdKey,
+      groupIdKey: query.groupIdKey,
       search: query.search,
       limit: query.limit,
       offset: query.offset,
@@ -86,6 +86,8 @@ export class InventoryItemsService {
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupId: query.groupIdKey || 'categoryId',
       search: query.search,
       limit: query.limit,
       offset: query.offset,
@@ -120,14 +122,10 @@ export class InventoryItemsService {
 
   // Returns a single inventory item with UOM symbol and canDelete
   async findById(id: string): Promise<InventoryItemDto> {
-    const entity = await this.repository.findById(id);
+    const entity = await this.repository.findByIdWithUomAndCategory(id);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    const [uomSymbol, categoryName, referencedIds] = await Promise.all([
-      this.repository.findUomSymbol(entity.uomId),
-      this.repository.findCategoryName(entity.categoryId),
-      this.repository.findReferencedIds([id]),
-    ]);
-    return InventoryItemDto.from(entity, uomSymbol, !referencedIds.has(id), categoryName);
+    const referencedIds = await this.repository.findReferencedIds([id]);
+    return InventoryItemDto.from(entity, entity.uomSymbol, !referencedIds.has(id), entity.categoryName);
   }
 
   // Returns paginated batches for an inventory item

@@ -4,7 +4,7 @@ import type { AxiosError } from 'axios';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import { type CreateGoodsReceiptPayload, createGoodsReceipt } from '@/services/goods-receipts.service';
 import {
-  PURCHASE_ORDER_ITEMS_KEY,
+  PURCHASE_ORDER_ITEMS_IDS_KEY,
   PURCHASE_ORDER_ITEMS_TABLE_KEY,
   PURCHASE_ORDER_KEY,
   PURCHASE_ORDERS_TABLE_KEY,
@@ -26,7 +26,7 @@ export function useCreateGoodsReceipt(
       queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_TABLE_KEY });
       if (purchaseOrderId) {
         queryClient.invalidateQueries({ queryKey: PURCHASE_ORDER_KEY(purchaseOrderId) });
-        queryClient.invalidateQueries({ queryKey: PURCHASE_ORDER_ITEMS_KEY(purchaseOrderId) });
+        queryClient.invalidateQueries({ queryKey: PURCHASE_ORDER_ITEMS_IDS_KEY(purchaseOrderId) });
         queryClient.invalidateQueries({ queryKey: PURCHASE_ORDER_ITEMS_TABLE_KEY(purchaseOrderId) });
         queryClient.invalidateQueries({ queryKey: GOODS_RECEIPTS_KEY(purchaseOrderId) });
       }

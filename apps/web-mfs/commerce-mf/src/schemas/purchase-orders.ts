@@ -17,7 +17,7 @@ export type PurchaseOrderStatus = 'DRAFT' | 'SENT' | 'CONFIRMED' | 'PARTIALLY_RE
 export interface PurchaseOrderData {
   id: string;
   supplierId: string;
-  supplierName: string | null;
+  supplierName: string;
   poNumber: string;
   status: PurchaseOrderStatus;
   orderDate: string;

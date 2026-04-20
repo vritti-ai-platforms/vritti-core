@@ -92,10 +92,10 @@ export class PurchaseOrdersGatewayService {
     return this.nats.send('commerce', 'purchaseOrders.findById', { id });
   }
 
-  // Returns all line items for a purchase order
-  async findItems(id: string): Promise<PurchaseOrderItemResponseDto[]> {
-    this.logger.log(`purchaseOrders.items — id: ${id}`);
-    return this.nats.send('commerce', 'purchaseOrders.items', { id });
+  // Returns inventory item IDs for a purchase order
+  async findItemIds(id: string): Promise<string[]> {
+    this.logger.log(`purchaseOrders.itemIds — id: ${id}`);
+    return this.nats.send('commerce', 'purchaseOrders.itemIds', { id });
   }
 
   // Returns line items table for a purchase order using persisted table state

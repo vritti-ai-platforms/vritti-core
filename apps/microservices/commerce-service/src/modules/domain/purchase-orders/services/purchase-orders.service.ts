@@ -72,7 +72,7 @@ export class PurchaseOrdersService {
       label: query.labelKey || 'poNumber',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      groupId: query.groupIdKey,
+      groupIdKey: query.groupIdKey,
       search: query.search,
       limit: query.limit,
       offset: query.offset,
@@ -92,14 +92,14 @@ export class PurchaseOrdersService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result: rows, count } = await this.repository.findAllAndCount({
+    const { result: rows, count } = await this.repository.findForTable({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(purchaseOrders.createdAt)],
       limit,
       offset,
     });
 
-    return { result: rows.map((entity) => PurchaseOrderDto.from(entity)), count };
+    return { result: rows.map((entity) => PurchaseOrderDto.from(entity, entity.supplierName)), count };
   }
 
   // Creates a new PO with line items
@@ -120,24 +120,27 @@ export class PurchaseOrdersService {
       return created;
     });
 
+    const detailed = await this.repository.findByIdWithSupplierName(entity.id);
+    if (!detailed) throw new NotFoundException('Purchase order not found.');
+
     this.logger.log(`Created PO: ${entity.poNumber}`);
     return {
       success: true,
       message: `Purchase order "${entity.poNumber}" created successfully.`,
-      data: PurchaseOrderDto.from(entity),
+      data: PurchaseOrderDto.from(detailed, detailed.supplierName),
     };
   }
 
   // Returns PO header/detail without line items
   async findById(id: string): Promise<PurchaseOrderDto> {
-    const entity = await this.repository.findById(id);
+    const entity = await this.repository.findByIdWithSupplierName(id);
     if (!entity) throw new NotFoundException('Purchase order not found.');
-    return PurchaseOrderDto.from(entity);
+    return PurchaseOrderDto.from(entity, entity.supplierName);
   }
 
   // Adds a line item to a draft PO
   async addItem(id: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    const existing = await this.repository.findById(id);
+    const existing = await this.repository.findByIdWithSupplierName(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
     if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
@@ -163,7 +166,7 @@ export class PurchaseOrdersService {
     return {
       success: true,
       message: `Line item added to purchase order "${existing.poNumber}".`,
-      data: PurchaseOrderDto.from(existing),
+      data: PurchaseOrderDto.from(existing, existing.supplierName),
     };
   }
 
@@ -262,6 +265,13 @@ export class PurchaseOrdersService {
     if (!entity) throw new NotFoundException('Purchase order not found.');
     const itemsWithNames = await this.poItemsRepository.findItemsByPoId(id);
     return itemsWithNames.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName));
+  }
+
+  // Returns inventory item IDs for a PO
+  async findItemIds(id: string): Promise<string[]> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Purchase order not found.');
+    return this.poItemsRepository.findItemIdsByPoId(id);
   }
 
   // Returns paginated line items for a PO table
