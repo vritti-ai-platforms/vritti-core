@@ -35,6 +35,7 @@ const componentDirs = [
   'Button',
   'Card',
   'Checkbox',
+  'DynamicIcon',
   'FlashList',
   'Form',
   'Icon',
@@ -118,21 +119,6 @@ export default (env) => {
       rules: [
         {
           test: /\.[cm]?[jt]sx?$/,
-          include: [/node_modules[\\/]+lucide-react-native/],
-          type: 'javascript/auto',
-          use: {
-            loader: 'builtin:swc-loader',
-            options: {
-              jsc: {
-                parser: { syntax: 'ecmascript', jsx: true },
-                transform: { react: { runtime: 'automatic' } },
-              },
-            },
-          },
-        },
-        {
-          test: /\.[cm]?[jt]sx?$/,
-          exclude: [/node_modules[\\/]+lucide-react-native/],
           type: 'javascript/auto',
           use: {
             loader: '@callstack/repack/babel-swc-loader',
@@ -185,7 +171,7 @@ export default (env) => {
           './Items': './src/exposes/ItemsScreen.tsx',
           './Categories': './src/exposes/CategoriesScreen.tsx',
           './Modifiers': './src/exposes/ModifiersScreen.tsx',
-          './StockAdjustments': './src/exposes/CategoriesScreen.tsx',
+          './StockAdjustments': './src/exposes/ItemsScreen.tsx',
         },
         shared: {
           react: { singleton: true, eager: false, import: false, requiredVersion: '19.2.3' },

@@ -1,8 +1,7 @@
 import { Button } from '@vritti/quantum-ui-native/Button';
-import { Icon } from '@vritti/quantum-ui-native/Icon';
+import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { NAV_THEME, useTheme } from '@vritti/quantum-ui-native';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { ChevronLeft } from 'lucide-react-native';
 import * as React from 'react';
 import { Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,7 +36,7 @@ export function AuthScreenLayout({ title, subtitle, children, onBack }: AuthScre
                 onPress={onBack}
                 className="h-10 w-10 rounded-full bg-muted/60"
               >
-                <Icon as={ChevronLeft} size={20} className="text-foreground" />
+                <DynamicIcon icon={COMMON_ICONS.chevronLeft} size={20} className="text-foreground" />
               </Button>
             ) : null}
           </View>

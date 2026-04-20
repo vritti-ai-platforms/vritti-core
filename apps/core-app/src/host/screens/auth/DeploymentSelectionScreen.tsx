@@ -1,9 +1,9 @@
 import { Button } from '@vritti/quantum-ui-native/Button';
+import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { setSelectedDeploymentBaseURL } from '@vritti/quantum-ui-native/utils';
-import { ArrowRight } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useDeployments } from '../../hooks/auth';
@@ -98,7 +98,7 @@ export const DeploymentSelectionScreen = () => {
         <Button disabled={!selectedId} onPress={handleConnect} className="h-[52px] rounded-xl">
           <View className="flex-row items-center gap-2">
             <Text className="text-[15px] font-medium text-primary-foreground">Connect</Text>
-            <ArrowRight size={16} color="#FFFFFF" />
+            <DynamicIcon icon={COMMON_ICONS.arrowForward} size={16} color="#FFFFFF" />
           </View>
         </Button>
       </View>

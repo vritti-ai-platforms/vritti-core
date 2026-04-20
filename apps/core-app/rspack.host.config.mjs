@@ -141,6 +141,7 @@ const componentDirs = [
   'Button',
   'Card',
   'Checkbox',
+  'DynamicIcon',
   'FlashList',
   'Form',
   'Icon',
@@ -241,26 +242,8 @@ export default (env) => {
 
     module: {
       rules: [
-        // lucide-react-native: SWC directly (bypasses hermes parser issue with `const Infinity`)
         {
           test: /\.[cm]?[jt]sx?$/,
-          include: [/node_modules[\\/]+lucide-react-native/],
-          type: 'javascript/auto',
-          use: {
-            loader: 'builtin:swc-loader',
-            options: {
-              jsc: {
-                parser: { syntax: 'ecmascript', jsx: true },
-                transform: { react: { runtime: 'automatic' } },
-              },
-            },
-          },
-        },
-
-        // All other JS/TS: babel-swc-loader (RN 0.83 compatible)
-        {
-          test: /\.[cm]?[jt]sx?$/,
-          exclude: [/node_modules[\\/]+lucide-react-native/],
           type: 'javascript/auto',
           use: {
             loader: '@callstack/repack/babel-swc-loader',

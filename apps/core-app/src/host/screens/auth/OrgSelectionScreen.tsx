@@ -1,8 +1,8 @@
 import { Button } from '@vritti/quantum-ui-native/Button';
+import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 import { Avatar, AvatarFallback, AvatarImage } from '@vritti/quantum-ui-native/Avatar';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { ArrowRight } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 import type { LookupOrganization } from '../../services/auth/auth.service';
@@ -65,7 +65,7 @@ export const OrgSelectionScreen = () => {
         <Button disabled={!selectedId} onPress={handleContinue} className="h-[52px] rounded-xl">
           <View className="flex-row items-center gap-2">
             <Text className="text-[15px] font-medium text-primary-foreground">Continue</Text>
-            <ArrowRight size={16} color="#FFFFFF" />
+            <DynamicIcon icon={COMMON_ICONS.arrowForward} size={16} color="#FFFFFF" />
           </View>
         </Button>
       </View>
