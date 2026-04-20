@@ -1,8 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Mail, MoreVertical, Printer, Send, Trash2 } from 'lucide-react';
@@ -12,13 +11,13 @@ import {
   useDeletePurchaseOrder,
   usePurchaseOrder,
   usePurchaseOrderItems,
-  useUpdatePurchaseOrder,
   useUpdatePurchaseOrderStatus,
 } from '@/hooks/purchase-orders';
 import type { PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { downloadPurchaseOrderPdf } from '@/services/purchase-orders.service';
-import { AddPurchaseOrderItemDialog } from './forms/AddPurchaseOrderItemDialog';
+import { ChangePurchaseOrderSupplierDialog } from './forms/ChangePurchaseOrderSupplierDialog';
 import { SendPurchaseOrderEmailDialog } from './forms/SendPurchaseOrderEmailDialog';
+import { UpdatePurchaseOrderNotesDialog } from './forms/UpdatePurchaseOrderNotesDialog';
 import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
 import { LineItemsTab } from './tabs/LineItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
@@ -54,9 +53,7 @@ export const PurchaseOrderDetailPage = () => {
   const { data: poItems = [] } = usePurchaseOrderItems(id);
   const [activeTab, setActiveTab] = useState('overview');
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
-  const addItemDialog = useDialog();
   const confirm = useConfirm();
-  const removeMutation = useUpdatePurchaseOrder();
   const updateStatusMutation = useUpdatePurchaseOrderStatus();
   const deleteMutation = useDeletePurchaseOrder();
 
@@ -101,33 +98,6 @@ export const PurchaseOrderDetailPage = () => {
     }
   }, [id, po, confirm, deleteMutation, navigate]);
 
-  const handleRemoveItem = useCallback(
-    async (inventoryItemId: string, itemName: string) => {
-      if (!po) return;
-      const confirmed = await confirm({
-        title: `Remove "${itemName}"?`,
-        description: 'This line item will be removed from the purchase order.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) {
-        removeMutation.mutate({
-          id: po.id,
-          data: {
-            items: poItems
-              .filter((i) => i.inventoryItemId !== inventoryItemId)
-              .map((i) => ({
-                inventoryItemId: i.inventoryItemId,
-                orderedQuantity: i.orderedQuantity,
-                unitPrice: i.unitPrice ?? undefined,
-              })),
-          },
-        });
-      }
-    },
-    [po, poItems, confirm, removeMutation],
-  );
-
   // Opens the server-generated PDF in a new browser tab
   const handleDownloadPdf = useCallback(async () => {
     if (!id) return;
@@ -145,6 +115,21 @@ export const PurchaseOrderDetailPage = () => {
   const renderSendEmailDialog = useCallback(
     (close: () => void) => <SendPurchaseOrderEmailDialog purchaseOrder={po} onSuccess={close} onCancel={close} />,
     [po],
+  );
+  const renderUpdateNotesDialog = useCallback(
+    (close: () => void) => <UpdatePurchaseOrderNotesDialog purchaseOrder={po} onSuccess={close} onCancel={close} />,
+    [po],
+  );
+  const renderChangeSupplierDialog = useCallback(
+    (close: () => void) => (
+      <ChangePurchaseOrderSupplierDialog
+        purchaseOrder={po}
+        hasLines={poItems.length > 0}
+        onSuccess={close}
+        onCancel={close}
+      />
+    ),
+    [po, poItems.length],
   );
 
   const statusBadgeConfig = statusConfig[po.status];
@@ -175,7 +160,33 @@ export const PurchaseOrderDetailPage = () => {
       onClick: handleDownloadPdf,
       disabled: isDownloadingPdf,
     },
+    {
+      type: 'dialog',
+      id: 'update-notes',
+      label: 'Update Notes',
+      dialog: {
+        title: 'Update Notes',
+        description: 'Edit purchase order notes.',
+        content: renderUpdateNotesDialog,
+      },
+    },
   ];
+
+  if (po.status === 'DRAFT') {
+    actionMenuItems.push({
+      type: 'dialog',
+      id: 'change-supplier',
+      label: 'Change Supplier',
+      dialog: {
+        title: 'Change Supplier',
+        description:
+          poItems.length > 0
+            ? 'Remove all line items before changing supplier.'
+            : 'Select a new supplier for this purchase order.',
+        content: renderChangeSupplierDialog,
+      },
+    });
+  }
 
   if (canSendEmail) {
     actionMenuItems.push({
@@ -275,10 +286,9 @@ export const PurchaseOrderDetailPage = () => {
             label: `Line Items (${poItems.length})`,
             content: (
               <LineItemsTab
-                purchaseOrderId={po.id}
+                purchaseOrder={po}
+                items={poItems}
                 canModifyItems={canModifyItems}
-                onOpenAddItemDialog={addItemDialog.open}
-                onRemoveItem={handleRemoveItem}
               />
             ),
           },
@@ -290,15 +300,6 @@ export const PurchaseOrderDetailPage = () => {
         ]}
         value={activeTab}
         onValueChange={setActiveTab}
-      />
-
-      <Dialog
-        handle={addItemDialog}
-        title="Add Line Item"
-        description="Add an inventory item to this purchase order."
-        content={(close) => (
-          <AddPurchaseOrderItemDialog purchaseOrder={po} items={poItems} onSuccess={close} onCancel={close} />
-        )}
       />
     </div>
   );

@@ -1,26 +1,58 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { Boxes, Plus, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
-import { PURCHASE_ORDER_ITEMS_TABLE_KEY, usePurchaseOrderItemsTable } from '@/hooks/purchase-orders';
-import type { PurchaseOrderItemData } from '@/schemas/purchase-orders';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
+import {
+  PURCHASE_ORDER_ITEMS_TABLE_KEY,
+  useAddPurchaseOrderItem,
+  usePurchaseOrderItemsTable,
+  useRemovePurchaseOrderItem,
+} from '@/hooks/purchase-orders';
+import type { PurchaseOrderDetail, PurchaseOrderItemData } from '@/schemas/purchase-orders';
+import { AddPurchaseOrderItemDialog } from '../forms/AddPurchaseOrderItemDialog';
+import { UpdatePurchaseOrderItemDialog } from '../forms/UpdatePurchaseOrderItemDialog';
 
 interface LineItemsTabProps {
-  purchaseOrderId: string;
+  purchaseOrder: PurchaseOrderDetail;
+  items: PurchaseOrderItemData[];
   canModifyItems: boolean;
-  onOpenAddItemDialog: () => void;
-  onRemoveItem: (inventoryItemId: string, itemName: string) => void;
 }
 
 export const LineItemsTab = ({
-  purchaseOrderId,
+  purchaseOrder,
+  items,
   canModifyItems,
-  onOpenAddItemDialog,
-  onRemoveItem,
 }: LineItemsTabProps) => {
+  const purchaseOrderId = purchaseOrder.id;
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
+  const addItemDialog = useDialog();
   const { data: response, isLoading } = usePurchaseOrderItemsTable(purchaseOrderId);
+  const addItemMutation = useAddPurchaseOrderItem({
+    onSuccess: () => addItemDialog.close(),
+  });
+  const removeItemMutation = useRemovePurchaseOrderItem();
+
+  const handleRemoveItem = useCallback(
+    async (itemId: string, itemName: string) => {
+      const confirmed = await confirm({
+        title: `Remove "${itemName}"?`,
+        description: 'This line item will be removed from the purchase order.',
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (!confirmed) return;
+
+      removeItemMutation.mutate({
+        id: purchaseOrderId,
+        itemId,
+      });
+    },
+    [confirm, purchaseOrderId, removeItemMutation],
+  );
 
   const columns = useMemo<ColumnDef<PurchaseOrderItemData>[]>(
     () => [
@@ -66,11 +98,28 @@ export const LineItemsTab = ({
                 <RowActions
                   actions={[
                     {
+                      id: 'edit',
+                      icon: Pencil,
+                      label: 'Edit',
+                      dialog: {
+                        title: 'Update Line Item',
+                        description: 'Change the quantity for this line item.',
+                        content: (close) => (
+                          <UpdatePurchaseOrderItemDialog
+                            purchaseOrderId={purchaseOrderId}
+                            item={row.original}
+                            onSuccess={close}
+                            onCancel={close}
+                          />
+                        ),
+                      },
+                    },
+                    {
                       id: 'remove',
                       icon: Trash2,
                       label: 'Remove',
-                      onClick: () =>
-                        onRemoveItem(row.original.inventoryItemId, row.original.inventoryItemName ?? 'item'),
+                      variant: 'destructive',
+                      onClick: () => handleRemoveItem(row.original.id, row.original.inventoryItemName ?? 'item'),
                     },
                   ]}
                 />
@@ -81,7 +130,7 @@ export const LineItemsTab = ({
           ]
         : []),
     ],
-    [canModifyItems, onRemoveItem],
+    [canModifyItems, handleRemoveItem, purchaseOrderId],
   );
 
   const { table } = useDataTable({
@@ -95,25 +144,41 @@ export const LineItemsTab = ({
   });
 
   return (
-    <DataTable
-      table={table}
-      mode="compact"
-      isLoading={isLoading}
-      toolbarActions={{
-        actions: canModifyItems ? (
-          <Button size="sm" onClick={onOpenAddItemDialog}>
-            <Plus className="mr-2 size-4" />
-            Add Line Item
-          </Button>
-        ) : undefined,
-      }}
-      emptyStateConfig={{
-        icon: Boxes,
-        title: 'No line items',
-        description: canModifyItems
-          ? 'No line items added yet. Use "Add Line Item" to get started.'
-          : 'No line items found for this purchase order.',
-      }}
-    />
+    <>
+      <DataTable
+        table={table}
+        mode="compact"
+        isLoading={isLoading}
+        toolbarActions={{
+          actions: canModifyItems ? (
+            <Button size="sm" onClick={addItemDialog.open}>
+              <Plus className="mr-2 size-4" />
+              Add Line Item
+            </Button>
+          ) : undefined,
+        }}
+        emptyStateConfig={{
+          icon: Boxes,
+          title: 'No line items',
+          description: canModifyItems
+            ? 'No line items added yet. Use "Add Line Item" to get started.'
+            : 'No line items found for this purchase order.',
+        }}
+      />
+
+      <Dialog
+        handle={addItemDialog}
+        title="Add Line Item"
+        description="Add an inventory item to this purchase order."
+        content={(close) => (
+          <AddPurchaseOrderItemDialog
+            purchaseOrder={purchaseOrder}
+            items={items}
+            mutation={addItemMutation}
+            onCancel={close}
+          />
+        )}
+      />
+    </>
   );
 };

@@ -1,4 +1,4 @@
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
 import type { GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
 import type {
@@ -14,13 +14,31 @@ export interface CreatePurchaseOrderPayload {
   orderDate: string;
   expectedBy?: string;
   notes?: string;
-  items?: { inventoryItemId: string; orderedQuantity: number }[];
 }
 
-export interface UpdatePurchaseOrderPayload {
-  expectedBy?: string | null;
+export interface AddPurchaseOrderItemPayload {
+  id: string;
+  inventoryItemId: string;
+  orderedQuantity: number;
+  unitPrice?: number | null;
+}
+
+export interface UpdatePurchaseOrderItemPayload {
+  id: string;
+  itemId: string;
+  inventoryItemId?: string;
+  orderedQuantity?: number;
+  unitPrice?: number | null;
+}
+
+export interface UpdatePurchaseOrderNotesPayload {
+  id: string;
   notes?: string | null;
-  items?: { inventoryItemId: string; orderedQuantity: number; unitPrice?: number | null }[];
+}
+
+export interface ChangePurchaseOrderSupplierPayload {
+  id: string;
+  supplierId: string;
 }
 
 export interface SendPurchaseOrderEmailPayload {
@@ -36,8 +54,8 @@ export function getPurchaseOrdersTable(): Promise<PurchaseOrdersTableResponse> {
 }
 
 // Creates a new purchase order
-export function createPurchaseOrder(data: CreatePurchaseOrderPayload): Promise<PurchaseOrderData> {
-  return axios.post<PurchaseOrderData>('commerce-api/purchase-orders', data).then((r) => r.data);
+export function createPurchaseOrder(data: CreatePurchaseOrderPayload): Promise<CreateResponse<PurchaseOrderData>> {
+  return axios.post<CreateResponse<PurchaseOrderData>>('commerce-api/purchase-orders', data).then((r) => r.data);
 }
 
 // Fetches purchase order header/detail
@@ -71,15 +89,59 @@ export function downloadPurchaseOrderPdf(id: string): Promise<Blob> {
     .then((r) => r.data);
 }
 
-// Updates a purchase order
-export function updatePurchaseOrder({
+// Adds a line item to a purchase order
+export function addPurchaseOrderItem({
   id,
-  data,
-}: {
-  id: string;
-  data: UpdatePurchaseOrderPayload;
-}): Promise<PurchaseOrderData> {
-  return axios.patch<PurchaseOrderData>(`commerce-api/purchase-orders/${id}`, data).then((r) => r.data);
+  inventoryItemId,
+  orderedQuantity,
+  unitPrice,
+}: AddPurchaseOrderItemPayload): Promise<CreateResponse<PurchaseOrderData>> {
+  return axios
+    .post<CreateResponse<PurchaseOrderData>>(`commerce-api/purchase-orders/${id}/items`, {
+      inventoryItemId,
+      orderedQuantity,
+      unitPrice,
+    })
+    .then((r) => r.data);
+}
+
+// Updates a line item on a purchase order
+export function updatePurchaseOrderItem({
+  id,
+  itemId,
+  inventoryItemId,
+  orderedQuantity,
+  unitPrice,
+}: UpdatePurchaseOrderItemPayload): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/items/${itemId}`, {
+      inventoryItemId,
+      orderedQuantity,
+      unitPrice,
+    })
+    .then((r) => r.data);
+}
+
+// Removes a line item from a purchase order
+export function removePurchaseOrderItem({ id, itemId }: { id: string; itemId: string }): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`commerce-api/purchase-orders/${id}/items/${itemId}`).then((r) => r.data);
+}
+
+// Updates purchase order notes
+export function updatePurchaseOrderNotes({ id, notes }: UpdatePurchaseOrderNotesPayload): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/notes`, { notes: notes ?? null })
+    .then((r) => r.data);
+}
+
+// Changes purchase order supplier
+export function changePurchaseOrderSupplier({
+  id,
+  supplierId,
+}: ChangePurchaseOrderSupplierPayload): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/supplier`, { supplierId })
+    .then((r) => r.data);
 }
 
 // Updates a purchase order status

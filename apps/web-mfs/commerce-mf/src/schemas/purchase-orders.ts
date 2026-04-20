@@ -6,14 +6,6 @@ export const createPurchaseOrderSchema = z.object({
   orderDate: z.string().min(1, 'Order date is required'),
   expectedBy: z.string().optional(),
   notes: z.string().optional(),
-  items: z
-    .array(
-      z.object({
-        inventoryItemId: z.string().min(1, 'Item is required'),
-        orderedQuantity: z.string().min(1, 'Quantity is required'),
-      }),
-    )
-    .optional(),
 });
 
 export type CreatePurchaseOrderFormData = z.infer<typeof createPurchaseOrderSchema>;

@@ -2,10 +2,13 @@ import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@domain/purchase-or
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
+import type { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
+import type { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
-import type { UpdatePurchaseOrderDto } from './dto/request/update-purchase-order.dto';
+import type { UpdatePurchaseOrderItemDto } from './dto/request/update-purchase-order-item.dto';
+import type { UpdatePurchaseOrderNotesDto } from './dto/request/update-purchase-order-notes.dto';
 
 @Controller()
 export class PurchaseOrdersController {
@@ -26,7 +29,7 @@ export class PurchaseOrdersController {
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.create' })
-  async create(@Payload() dto: CreatePurchaseOrderDto): Promise<PurchaseOrderDto> {
+  async create(@Payload() dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
     return this.service.create(dto);
   }
@@ -37,11 +40,36 @@ export class PurchaseOrdersController {
     return this.service.findById(data.id);
   }
 
-  @MessagePattern({ cmd: 'purchaseOrders.update' })
-  async update(@Payload() data: { id: string } & UpdatePurchaseOrderDto): Promise<PurchaseOrderDto> {
-    const { id, ...updateData } = data;
-    this.logger.log(`purchaseOrders.update — id: ${id}`);
-    return this.service.update(id, updateData);
+  @MessagePattern({ cmd: 'purchaseOrders.addItem' })
+  async addItem(@Payload() data: { id: string } & AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+    this.logger.log(`purchaseOrders.addItem — id: ${data.id}, inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.addItem(data.id, data);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.updateItem' })
+  async updateItem(
+    @Payload() data: { id: string; itemId: string } & UpdatePurchaseOrderItemDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.updateItem — id: ${data.id}, itemId: ${data.itemId}`);
+    return this.service.updateItem(data.id, data.itemId, data);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.removeItem' })
+  async removeItem(@Payload() data: { id: string; itemId: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.removeItem — id: ${data.id}, itemId: ${data.itemId}`);
+    return this.service.removeItem(data.id, data.itemId);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.updateNotes' })
+  async updateNotes(@Payload() data: { id: string } & UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.updateNotes — id: ${data.id}`);
+    return this.service.updateNotes(data.id, data.notes ?? null);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.changeSupplier' })
+  async changeSupplier(@Payload() data: { id: string } & ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.changeSupplier — id: ${data.id}, supplier: ${data.supplierId}`);
+    return this.service.changeSupplier(data.id, data.supplierId);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.items' })
@@ -60,7 +88,7 @@ export class PurchaseOrdersController {
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.updateStatus' })
-  async updateStatus(@Payload() data: { id: string; status: string }): Promise<PurchaseOrderDto> {
+  async updateStatus(@Payload() data: { id: string; status: string }): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.updateStatus — id: ${data.id}, status: ${data.status}`);
     return this.service.updateStatus(data.id, data.status as PurchaseOrderStatus);
   }

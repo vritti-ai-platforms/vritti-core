@@ -5989,42 +5989,6 @@
           "Commerce - Purchase Orders"
         ]
       },
-      "patch": {
-        "operationId": "PurchaseOrdersGatewayController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePurchaseOrderDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Purchase Orders"
-        ]
-      },
       "delete": {
         "operationId": "PurchaseOrdersGatewayController_delete",
         "parameters": [
@@ -6067,6 +6031,42 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      },
+      "post": {
+        "operationId": "PurchaseOrdersGatewayController_addItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPurchaseOrderItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -6121,6 +6121,162 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}/items/{itemId}": {
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_updateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePurchaseOrderItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      },
+      "delete": {
+        "operationId": "PurchaseOrdersGatewayController_removeItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}/notes": {
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_updateNotes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePurchaseOrderNotesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}/supplier": {
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_changeSupplier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePurchaseOrderSupplierDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -11250,6 +11406,29 @@
           "orderDate"
         ]
       },
+      "AddPurchaseOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "orderedQuantity": {
+            "type": "number",
+            "description": "Ordered quantity",
+            "example": 100
+          },
+          "unitPrice": {
+            "type": "object",
+            "description": "Unit price",
+            "example": 99.99
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "orderedQuantity"
+        ]
+      },
       "UpdatePurchaseOrderItemDto": {
         "type": "object",
         "properties": {
@@ -11269,46 +11448,27 @@
           }
         }
       },
-      "UpdatePurchaseOrderDto": {
+      "UpdatePurchaseOrderNotesDto": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "string",
-            "description": "PO status",
-            "enum": [
-              "DRAFT",
-              "SENT",
-              "CONFIRMED",
-              "PARTIALLY_RECEIVED",
-              "RECEIVED",
-              "CANCELLED"
-            ]
-          },
-          "orderDate": {
-            "type": "string",
-            "description": "Order date (ISO string)"
-          },
-          "expectedBy": {
-            "type": "string",
-            "description": "Expected-by date/time (ISO string with timezone)"
-          },
           "notes": {
-            "type": "string",
-            "description": "Notes"
-          },
-          "totalAmount": {
             "type": "object",
-            "description": "Total amount (null to clear)",
+            "description": "Notes",
             "nullable": true
-          },
-          "items": {
-            "description": "Replace all line items",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UpdatePurchaseOrderItemDto"
-            }
           }
         }
+      },
+      "ChangePurchaseOrderSupplierDto": {
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "string",
+            "description": "Supplier ID"
+          }
+        },
+        "required": [
+          "supplierId"
+        ]
       },
       "SendPurchaseOrderEmailDto": {
         "type": "object",

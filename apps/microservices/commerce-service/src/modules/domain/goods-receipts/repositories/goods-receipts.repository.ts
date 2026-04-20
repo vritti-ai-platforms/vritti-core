@@ -68,47 +68,31 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     result: (typeof goodsReceipts.$inferSelect & { supplierName: string | null; poNumber: string | null })[];
     count: number;
   }> {
-    const where = options.where;
-
-    const [resultRows, countRows] = await Promise.all([
-      this.db
-        .select({
-          id: goodsReceipts.id,
-          organizationId: goodsReceipts.organizationId,
-          businessUnitId: goodsReceipts.businessUnitId,
-          supplierId: goodsReceipts.supplierId,
-          grNumber: goodsReceipts.grNumber,
-          status: goodsReceipts.status,
-          purchaseOrderId: goodsReceipts.purchaseOrderId,
-          receivedBy: goodsReceipts.receivedBy,
-          receivedDate: goodsReceipts.receivedDate,
-          notes: goodsReceipts.notes,
-          createdAt: goodsReceipts.createdAt,
-          supplierName: suppliers.name,
-          poNumber: purchaseOrders.poNumber,
-        })
-        .from(goodsReceipts)
-        .leftJoin(suppliers, eq(goodsReceipts.supplierId, suppliers.id))
-        .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
-        .where(where)
-        .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(goodsReceipts.createdAt)]))
-        .limit(options.limit)
-        .offset(options.offset),
-      this.db
-        .select({ count: sql<number>`count(distinct ${goodsReceipts.id})::int` })
-        .from(goodsReceipts)
-        .leftJoin(suppliers, eq(goodsReceipts.supplierId, suppliers.id))
-        .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
-        .where(where),
-    ]);
-
-    return {
-      result: resultRows as (typeof goodsReceipts.$inferSelect & {
-        supplierName: string | null;
-        poNumber: string | null;
-      })[],
-      count: Number(countRows[0]?.count ?? 0),
-    };
+    return this.findAllAndCount<typeof goodsReceipts.$inferSelect & { supplierName: string | null; poNumber: string | null }>({
+      select: {
+        id: goodsReceipts.id,
+        organizationId: goodsReceipts.organizationId,
+        businessUnitId: goodsReceipts.businessUnitId,
+        supplierId: goodsReceipts.supplierId,
+        grNumber: goodsReceipts.grNumber,
+        status: goodsReceipts.status,
+        purchaseOrderId: goodsReceipts.purchaseOrderId,
+        receivedBy: goodsReceipts.receivedBy,
+        receivedDate: goodsReceipts.receivedDate,
+        notes: goodsReceipts.notes,
+        createdAt: goodsReceipts.createdAt,
+        supplierName: suppliers.name,
+        poNumber: purchaseOrders.poNumber,
+      },
+      leftJoins: [
+        { table: suppliers, on: eq(goodsReceipts.supplierId, suppliers.id) },
+        { table: purchaseOrders, on: eq(goodsReceipts.purchaseOrderId, purchaseOrders.id) },
+      ],
+      where: options.where,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(goodsReceipts.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
   // Creates GR line items with batch fields

@@ -3,6 +3,7 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import { ConfigService } from '@nestjs/config';
 import {
   BadRequestException,
+  type CreateResponseDto,
   DataTableStateService,
   NatsClientService,
   type SelectQueryResult,
@@ -12,10 +13,13 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import { BusinessUnitService } from '@/modules/domain/business-unit/services/business-unit.service';
+import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
+import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
 import type { PurchaseOrderSelectQueryDto } from '../dto/request/purchase-order-select-query.dto';
 import type { SendPurchaseOrderEmailDto } from '../dto/request/send-purchase-order-email.dto';
-import type { UpdatePurchaseOrderDto } from '../dto/request/update-purchase-order.dto';
+import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
+import type { UpdatePurchaseOrderNotesDto } from '../dto/request/update-purchase-order-notes.dto';
 import type { PurchaseOrderItemResponseDto } from '../dto/response/purchase-order-item-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from '../dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderResponseDto } from '../dto/response/purchase-order-response.dto';
@@ -77,7 +81,7 @@ export class PurchaseOrdersGatewayService {
   }
 
   // Creates a new purchase order
-  async create(dto: CreatePurchaseOrderDto): Promise<PurchaseOrderResponseDto> {
+  async create(dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
     return this.nats.send('commerce', 'purchaseOrders.create', dto);
   }
@@ -122,14 +126,38 @@ export class PurchaseOrdersGatewayService {
     return { result, count: result.length, state, activeViewId };
   }
 
-  // Updates a purchase order by ID
-  async update(id: string, dto: UpdatePurchaseOrderDto): Promise<PurchaseOrderResponseDto> {
-    this.logger.log(`purchaseOrders.update — id: ${id}`);
-    return this.nats.send('commerce', 'purchaseOrders.update', { id, ...dto });
+  // Adds a line item to a purchase order
+  async addItem(id: string, dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+    this.logger.log(`purchaseOrders.addItem — id: ${id}, inventoryItemId: ${dto.inventoryItemId}`);
+    return this.nats.send('commerce', 'purchaseOrders.addItem', { id, ...dto });
+  }
+
+  // Updates a line item on a purchase order
+  async updateItem(id: string, itemId: string, dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.updateItem — id: ${id}, itemId: ${itemId}`);
+    return this.nats.send('commerce', 'purchaseOrders.updateItem', { id, itemId, ...dto });
+  }
+
+  // Removes a line item from a purchase order
+  async removeItem(id: string, itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.removeItem — id: ${id}, itemId: ${itemId}`);
+    return this.nats.send('commerce', 'purchaseOrders.removeItem', { id, itemId });
+  }
+
+  // Updates purchase order notes
+  async updateNotes(id: string, dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.updateNotes — id: ${id}`);
+    return this.nats.send('commerce', 'purchaseOrders.updateNotes', { id, notes: dto.notes ?? null });
+  }
+
+  // Changes purchase order supplier
+  async changeSupplier(id: string, dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.changeSupplier — id: ${id}, supplier: ${dto.supplierId}`);
+    return this.nats.send('commerce', 'purchaseOrders.changeSupplier', { id, supplierId: dto.supplierId });
   }
 
   // Updates a purchase order status
-  async updateStatus(id: string, status: string): Promise<{ success: boolean; message: string }> {
+  async updateStatus(id: string, status: string): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.updateStatus — id: ${id}, status: ${status}`);
     return this.nats.send('commerce', 'purchaseOrders.updateStatus', { id, status });
   }
@@ -193,7 +221,7 @@ export class PurchaseOrdersGatewayService {
   }
 
   // Deletes a purchase order by ID
-  async delete(id: string): Promise<{ success: boolean; message: string }> {
+  async delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.delete — id: ${id}`);
     return this.nats.send('commerce', 'purchaseOrders.delete', { id });
   }

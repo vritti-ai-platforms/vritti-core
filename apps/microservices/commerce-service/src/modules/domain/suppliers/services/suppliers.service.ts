@@ -1,3 +1,4 @@
+import { SupplierContactsRepository } from '@domain/supplier-contacts/repositories/supplier-contacts.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
@@ -13,7 +14,6 @@ import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { suppliers } from '@/db/schema';
 import type { CreateSupplierDto } from '@/modules/suppliers/dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '@/modules/suppliers/dto/request/update-supplier.dto';
-import { SupplierContactsRepository } from '@domain/supplier-contacts/repositories/supplier-contacts.repository';
 import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
 import { SuppliersRepository } from '../repositories/suppliers.repository';
 

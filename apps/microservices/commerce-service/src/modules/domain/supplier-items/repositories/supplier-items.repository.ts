@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, type NewSupplierItem, type SupplierItem, supplierItems, suppliers, uom } from '@/db/schema';
 
 @Injectable()
@@ -21,45 +21,33 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   ): Promise<{ result: (SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null })[]; count: number }> {
     const baseWhere = eq(supplierItems.supplierId, supplierId);
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
-
-    const [resultRows, countRows] = await Promise.all([
-      this.db
-        .select({
-          id: supplierItems.id,
-          organizationId: supplierItems.organizationId,
-          supplierId: supplierItems.supplierId,
-          inventoryItemId: supplierItems.inventoryItemId,
-          supplierCode: supplierItems.supplierCode,
-          unitPrice: supplierItems.unitPrice,
-          uomId: supplierItems.uomId,
-          minOrderQuantity: supplierItems.minOrderQuantity,
-          leadTimeDays: supplierItems.leadTimeDays,
-          isPreferred: supplierItems.isPreferred,
-          isActive: supplierItems.isActive,
-          createdAt: supplierItems.createdAt,
-          updatedAt: supplierItems.updatedAt,
-          inventoryItemName: inventoryItems.name,
-          uomSymbol: uom.symbol,
-        })
-        .from(supplierItems)
-        .leftJoin(inventoryItems, eq(supplierItems.inventoryItemId, inventoryItems.id))
-        .leftJoin(uom, eq(supplierItems.uomId, uom.id))
-        .where(where)
-        .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(supplierItems.createdAt)]))
-        .limit(options.limit)
-        .offset(options.offset),
-      this.db
-        .select({ count: sql<number>`count(distinct ${supplierItems.id})::int` })
-        .from(supplierItems)
-        .leftJoin(inventoryItems, eq(supplierItems.inventoryItemId, inventoryItems.id))
-        .leftJoin(uom, eq(supplierItems.uomId, uom.id))
-        .where(where),
-    ]);
-
-    return {
-      result: resultRows as (SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null })[],
-      count: Number(countRows[0]?.count ?? 0),
-    };
+    return this.findAllAndCount<SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null }>({
+      select: {
+        id: supplierItems.id,
+        organizationId: supplierItems.organizationId,
+        supplierId: supplierItems.supplierId,
+        inventoryItemId: supplierItems.inventoryItemId,
+        supplierCode: supplierItems.supplierCode,
+        unitPrice: supplierItems.unitPrice,
+        uomId: supplierItems.uomId,
+        minOrderQuantity: supplierItems.minOrderQuantity,
+        leadTimeDays: supplierItems.leadTimeDays,
+        isPreferred: supplierItems.isPreferred,
+        isActive: supplierItems.isActive,
+        createdAt: supplierItems.createdAt,
+        updatedAt: supplierItems.updatedAt,
+        inventoryItemName: inventoryItems.name,
+        uomSymbol: uom.symbol,
+      },
+      leftJoins: [
+        { table: inventoryItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id) },
+        { table: uom, on: eq(supplierItems.uomId, uom.id) },
+      ],
+      where,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierItems.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
   // Returns linked inventory item IDs for a supplier

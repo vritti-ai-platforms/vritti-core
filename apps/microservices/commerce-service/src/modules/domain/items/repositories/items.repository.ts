@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { desc, eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
   type Item,
@@ -52,47 +52,35 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
   // Returns paginated items with category name for table display
   async findForTable(params: {
     where: SQL | undefined;
-    orderBy: SQL;
+    orderBy: SQL[];
     limit: number;
     offset: number;
-  }): Promise<{ rows: (Item & { categoryName: string | null })[]; total: number }> {
-    const [countResult, rows] = await Promise.all([
-      this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(items)
-        .leftJoin(categories, eq(items.categoryId, categories.id))
-        .where(params.where),
-      this.db
-        .select({
-          id: items.id,
-          organizationId: items.organizationId,
-          businessUnitId: items.businessUnitId,
-          categoryId: items.categoryId,
-          type: items.type,
-          code: items.code,
-          name: items.name,
-          description: items.description,
-          taxGroupId: items.taxGroupId,
-          isAvailable: items.isAvailable,
-          sortOrder: items.sortOrder,
-          attributes: items.attributes,
-          metadata: items.metadata,
-          createdAt: items.createdAt,
-          updatedAt: items.updatedAt,
-          categoryName: categories.name,
-        })
-        .from(items)
-        .leftJoin(categories, eq(items.categoryId, categories.id))
-        .where(params.where)
-        .orderBy(params.orderBy)
-        .limit(params.limit)
-        .offset(params.offset),
-    ]);
-
-    return {
-      rows: rows as (Item & { categoryName: string | null })[],
-      total: Number(countResult[0]?.count ?? 0),
-    };
+  }): Promise<{ result: (Item & { categoryName: string | null })[]; count: number }> {
+    return this.findAllAndCount<Item & { categoryName: string | null }>({
+      select: {
+        id: items.id,
+        organizationId: items.organizationId,
+        businessUnitId: items.businessUnitId,
+        categoryId: items.categoryId,
+        type: items.type,
+        code: items.code,
+        name: items.name,
+        description: items.description,
+        taxGroupId: items.taxGroupId,
+        isAvailable: items.isAvailable,
+        sortOrder: items.sortOrder,
+        attributes: items.attributes,
+        metadata: items.metadata,
+        createdAt: items.createdAt,
+        updatedAt: items.updatedAt,
+        categoryName: categories.name,
+      },
+      leftJoins: [{ table: categories, on: eq(items.categoryId, categories.id) }],
+      where: params.where,
+      orderBy: params.orderBy.length > 0 ? params.orderBy : [desc(items.createdAt)],
+      limit: params.limit,
+      offset: params.offset,
+    });
   }
 
   // Returns options for an item ordered by sortOrder

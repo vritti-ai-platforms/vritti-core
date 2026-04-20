@@ -22,15 +22,8 @@ export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof
   ): Promise<{ result: (InventoryItemBatch & { locationName: string | null })[]; count: number }> {
     const baseWhere = eq(inventoryItemBatches.inventoryItemId, itemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
-
-    const [countResult] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryItemBatches)
-      .leftJoin(storageLocations, eq(inventoryItemBatches.locationId, storageLocations.id))
-      .where(combinedWhere);
-
-    const result = await this.db
-      .select({
+    return this.findAllAndCount<InventoryItemBatch & { locationName: string | null }>({
+      select: {
         id: inventoryItemBatches.id,
         organizationId: inventoryItemBatches.organizationId,
         businessUnitId: inventoryItemBatches.businessUnitId,
@@ -45,18 +38,13 @@ export class InventoryItemBatchesRepository extends PrimaryBaseRepository<typeof
         createdAt: inventoryItemBatches.createdAt,
         updatedAt: inventoryItemBatches.updatedAt,
         locationName: storageLocations.name,
-      })
-      .from(inventoryItemBatches)
-      .leftJoin(storageLocations, eq(inventoryItemBatches.locationId, storageLocations.id))
-      .where(combinedWhere)
-      .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(inventoryItemBatches.createdAt)]))
-      .limit(options.limit)
-      .offset(options.offset);
-
-    return {
-      result: result as (InventoryItemBatch & { locationName: string | null })[],
-      count: Number(countResult?.count ?? 0),
-    };
+      },
+      leftJoins: [{ table: storageLocations, on: eq(inventoryItemBatches.locationId, storageLocations.id) }],
+      where: combinedWhere,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(inventoryItemBatches.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
   async findById(id: string): Promise<(InventoryItemBatch & { locationName: string | null }) | undefined> {

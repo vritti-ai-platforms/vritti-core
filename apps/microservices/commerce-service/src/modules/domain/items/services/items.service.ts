@@ -37,14 +37,14 @@ export class ItemsService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, ItemsService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { rows, total } = await this.itemsRepository.findForTable({
+    const { result, count } = await this.itemsRepository.findForTable({
       where,
-      orderBy: orderBy[0] ?? desc(items.createdAt),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(items.createdAt)],
       limit,
       offset,
     });
 
-    return { result: rows.map((row) => ItemDto.from(row, row.categoryName)), count: total };
+    return { result: result.map((row) => ItemDto.from(row, row.categoryName)), count };
   }
 
   // Creates a new catalog item, auto-generating code if not provided

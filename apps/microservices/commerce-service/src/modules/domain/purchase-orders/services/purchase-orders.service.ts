@@ -1,18 +1,23 @@
+import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
+  type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems, purchaseOrders } from '@/db/schema';
+import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
-import type { UpdatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/update-purchase-order.dto';
+import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
 import { PurchaseOrderDto, PurchaseOrderItemDto } from '../dto/entity/purchase-order.dto';
+import { PurchaseOrderItemsRepository } from '../repositories/purchase-order-items.repository';
 import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
 
 @Injectable()
@@ -26,7 +31,7 @@ export class PurchaseOrdersService {
   };
 
   private static readonly STATUS_TRANSITIONS: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
-    [PurchaseOrderStatusValues.DRAFT]: [PurchaseOrderStatusValues.SENT, PurchaseOrderStatusValues.CANCELLED],
+    [PurchaseOrderStatusValues.DRAFT]: [PurchaseOrderStatusValues.SENT],
     [PurchaseOrderStatusValues.SENT]: [PurchaseOrderStatusValues.CONFIRMED, PurchaseOrderStatusValues.CANCELLED],
     [PurchaseOrderStatusValues.CONFIRMED]: [
       PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
@@ -49,7 +54,11 @@ export class PurchaseOrdersService {
     totalPrice: { column: purchaseOrderItems.totalPrice, type: 'number' },
   };
 
-  constructor(private readonly repository: PurchaseOrdersRepository) {}
+  constructor(
+    private readonly repository: PurchaseOrdersRepository,
+    private readonly poItemsRepository: PurchaseOrderItemsRepository,
+    private readonly suppliersService: SuppliersService,
+  ) {}
 
   // Returns paginated purchase order options for select dropdowns
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
@@ -90,17 +99,11 @@ export class PurchaseOrdersService {
       offset,
     });
 
-    const dtos: PurchaseOrderDto[] = [];
-    for (const entity of rows) {
-      const supplierName = await this.repository.findSupplierName(entity.supplierId);
-      dtos.push(PurchaseOrderDto.from(entity, supplierName));
-    }
-
-    return { result: dtos, count };
+    return { result: rows.map((entity) => PurchaseOrderDto.from(entity)), count };
   }
 
   // Creates a new PO with line items
-  async create(data: CreatePurchaseOrderDto): Promise<PurchaseOrderDto> {
+  async create(data: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const poNumber = await this.repository.generatePoNumber();
     const entity = await this.repository.transaction(async (tx) => {
       const created = await this.repository.create(
@@ -114,75 +117,150 @@ export class PurchaseOrdersService {
         tx,
       );
 
-      await this.repository.createItemsWithTx(
-        tx,
-        (data.items ?? []).map((item) => ({
-          purchaseOrderId: created.id,
-          inventoryItemId: item.inventoryItemId,
-          orderedQuantity: String(item.orderedQuantity),
-        })),
-      );
-
       return created;
     });
 
-    const supplierName = await this.repository.findSupplierName(entity.supplierId);
     this.logger.log(`Created PO: ${entity.poNumber}`);
-    return PurchaseOrderDto.from(entity, supplierName);
+    return {
+      success: true,
+      message: `Purchase order "${entity.poNumber}" created successfully.`,
+      data: PurchaseOrderDto.from(entity),
+    };
   }
 
   // Returns PO header/detail without line items
   async findById(id: string): Promise<PurchaseOrderDto> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Purchase order not found.');
-    const supplierName = await this.repository.findSupplierName(entity.supplierId);
-    return PurchaseOrderDto.from(entity, supplierName);
+    return PurchaseOrderDto.from(entity);
   }
 
-  // Updates a PO (scalar fields + optionally replaces items)
-  async update(id: string, data: UpdatePurchaseOrderDto): Promise<PurchaseOrderDto> {
+  // Adds a line item to a draft PO
+  async addItem(id: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
+    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
+      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
+    }
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.status !== undefined) updatePayload.status = data.status;
-    if (data.orderDate !== undefined) updatePayload.orderDate = data.orderDate;
-    if (data.expectedBy !== undefined) updatePayload.expectedBy = data.expectedBy;
-    if (data.notes !== undefined) updatePayload.notes = data.notes;
-    if (data.totalAmount !== undefined)
-      updatePayload.totalAmount = data.totalAmount != null ? String(data.totalAmount) : null;
+    const duplicate = await this.poItemsRepository.findItemByInventoryItemId(id, data.inventoryItemId);
+    if (duplicate) {
+      throw new BadRequestException({
+        label: 'Duplicate Item',
+        detail: 'This inventory item is already added to the purchase order.',
+      });
+    }
 
-    const entity = await this.repository.transaction(async (tx) => {
-      const updated =
-        Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload, tx) : existing;
-
-      if (data.items !== undefined) {
-        await this.repository.deleteItemsByPoIdWithTx(tx, id);
-        await this.repository.createItemsWithTx(
-          tx,
-          data.items.map((item) => ({
-            purchaseOrderId: id,
-            inventoryItemId: item.inventoryItemId,
-            orderedQuantity: String(item.orderedQuantity),
-            unitPrice: item.unitPrice != null ? String(item.unitPrice) : null,
-            totalPrice: item.unitPrice != null ? String(Number(item.unitPrice) * item.orderedQuantity) : null,
-          })),
-        );
-      }
-
-      return updated;
+    await this.poItemsRepository.create({
+      purchaseOrderId: id,
+      inventoryItemId: data.inventoryItemId,
+      orderedQuantity: String(data.orderedQuantity),
+      unitPrice: data.unitPrice != null ? String(data.unitPrice) : null,
+      totalPrice: data.unitPrice != null ? String(Number(data.unitPrice) * data.orderedQuantity) : null,
     });
 
-    const supplierName = await this.repository.findSupplierName(entity.supplierId);
-    this.logger.log(`Updated PO: ${entity.poNumber} (${entity.id})`);
-    return PurchaseOrderDto.from(entity, supplierName);
+    this.logger.log(`Added PO item: ${existing.poNumber} (${existing.id})`);
+    return {
+      success: true,
+      message: `Line item added to purchase order "${existing.poNumber}".`,
+      data: PurchaseOrderDto.from(existing),
+    };
+  }
+
+  // Updates a line item on a draft PO
+  async updateItem(id: string, itemId: string, data: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
+      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
+    }
+
+    const item = await this.poItemsRepository.findItemById(id, itemId);
+    if (!item) throw new NotFoundException('Purchase order line item not found.');
+
+    if (data.inventoryItemId && data.inventoryItemId !== item.inventoryItemId) {
+      const duplicate = await this.poItemsRepository.findItemByInventoryItemId(id, data.inventoryItemId);
+      if (duplicate) {
+        throw new BadRequestException({
+          label: 'Duplicate Item',
+          detail: 'This inventory item is already added to the purchase order.',
+        });
+      }
+    }
+
+    const orderedQuantity = data.orderedQuantity ?? Number(item.orderedQuantity);
+    const unitPrice = data.unitPrice !== undefined ? data.unitPrice : item.unitPrice ? Number(item.unitPrice) : null;
+
+    await this.poItemsRepository.update(itemId, {
+      inventoryItemId: data.inventoryItemId,
+      orderedQuantity: String(orderedQuantity),
+      unitPrice: unitPrice != null ? String(unitPrice) : null,
+      totalPrice: unitPrice != null ? String(unitPrice * orderedQuantity) : null,
+    });
+
+    this.logger.log(`Updated PO item: ${existing.poNumber} (${itemId})`);
+    return { success: true, message: `Line item updated for purchase order "${existing.poNumber}".` };
+  }
+
+  // Removes a line item from a draft PO
+  async removeItem(id: string, itemId: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
+      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
+    }
+
+    const item = await this.poItemsRepository.findItemById(id, itemId);
+    if (!item) throw new NotFoundException('Purchase order line item not found.');
+
+    await this.poItemsRepository.delete(itemId);
+    this.logger.log(`Removed PO item: ${existing.poNumber} (${itemId})`);
+    return { success: true, message: `Line item removed from purchase order "${existing.poNumber}".` };
+  }
+
+  // Updates notes on a purchase order
+  async updateNotes(id: string, notes: string | null): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+    const entity = await this.repository.update(id, { notes: notes ?? null });
+    this.logger.log(`Updated PO notes: ${entity.poNumber} (${entity.id})`);
+    return { success: true, message: `Notes updated for purchase order "${entity.poNumber}".` };
+  }
+
+  // Changes supplier on a draft PO with no line items
+  async changeSupplier(id: string, supplierId: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+    const supplier = await this.suppliersService.findById(supplierId);
+    const supplierName = supplier.name;
+    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
+      throw new BadRequestException({
+        label: 'Cannot Change Supplier',
+        detail: 'Supplier can only be changed while the purchase order is in draft.',
+      });
+    }
+
+    const currentItems = await this.poItemsRepository.findItemsByPoId(id);
+    if (currentItems.length > 0) {
+      throw new BadRequestException({
+        label: 'Cannot Change Supplier',
+        detail: 'Remove all line items before changing the supplier.',
+      });
+    }
+
+    const entity = await this.repository.update(id, { supplierId });
+    this.logger.log(`Changed PO supplier: ${entity.poNumber} (${entity.id})`);
+    return {
+      success: true,
+      message: `Supplier changed to "${supplierName}" for purchase order "${entity.poNumber}".`,
+    };
   }
 
   // Returns all line items for a PO
   async findItems(id: string): Promise<PurchaseOrderItemDto[]> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Purchase order not found.');
-    const itemsWithNames = await this.repository.findItemsByPoId(id);
+    const itemsWithNames = await this.poItemsRepository.findItemsByPoId(id);
     return itemsWithNames.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName));
   }
 
@@ -200,23 +278,21 @@ export class PurchaseOrdersService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersService.ITEM_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findItemsForTable(id, {
+    const { result, count } = await this.poItemsRepository.findItemsForTable(id, {
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(purchaseOrderItems.inventoryItemId)],
       limit,
       offset,
     });
 
-    const nameById = await this.repository.findInventoryItemNames(result.map((item) => item.inventoryItemId));
-
     return {
-      result: result.map((item) => PurchaseOrderItemDto.from(item, nameById.get(item.inventoryItemId) ?? null)),
+      result: result.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName)),
       count,
     };
   }
 
   // Transitions PO status
-  async updateStatus(id: string, status: PurchaseOrderStatus): Promise<PurchaseOrderDto> {
+  async updateStatus(id: string, status: PurchaseOrderStatus): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
     const allowedNext = PurchaseOrdersService.STATUS_TRANSITIONS[existing.status] ?? [];
@@ -224,9 +300,8 @@ export class PurchaseOrdersService {
       throw new BadRequestException(`Cannot transition purchase order status from ${existing.status} to ${status}.`);
     }
     const entity = await this.repository.update(id, { status });
-    const supplierName = await this.repository.findSupplierName(entity.supplierId);
     this.logger.log(`PO ${entity.poNumber} status → ${status}`);
-    return PurchaseOrderDto.from(entity, supplierName);
+    return { success: true, message: `Purchase order "${entity.poNumber}" status updated to ${status}.` };
   }
 
   // Deletes a PO (only if DRAFT)
@@ -236,7 +311,6 @@ export class PurchaseOrdersService {
     if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({ label: 'Cannot Delete', detail: 'Only draft purchase orders can be deleted.' });
     }
-    await this.repository.deleteItemsByPoId(id);
     await this.repository.delete(id);
     this.logger.log(`Deleted PO: ${existing.poNumber} (${id})`);
     return { success: true, message: `Purchase order "${existing.poNumber}" deleted successfully.` };

@@ -14,14 +14,17 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import { type CreateResponseDto, RequireSession, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
+import { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
+import { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
 import { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import { PurchaseOrderSelectQueryDto } from './dto/request/purchase-order-select-query.dto';
 import { SendPurchaseOrderEmailDto } from './dto/request/send-purchase-order-email.dto';
-import { UpdatePurchaseOrderDto } from './dto/request/update-purchase-order.dto';
+import { UpdatePurchaseOrderItemDto } from './dto/request/update-purchase-order-item.dto';
+import { UpdatePurchaseOrderNotesDto } from './dto/request/update-purchase-order-notes.dto';
 import type { PurchaseOrderItemResponseDto } from './dto/response/purchase-order-item-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from './dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderResponseDto } from './dto/response/purchase-order-response.dto';
@@ -52,7 +55,7 @@ export class PurchaseOrdersGatewayController {
   // Creates a new purchase order
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() dto: CreatePurchaseOrderDto): Promise<PurchaseOrderResponseDto> {
+  create(@Body() dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
     return this.service.create(dto);
   }
 
@@ -91,10 +94,42 @@ export class PurchaseOrdersGatewayController {
     return this.service.findGoodsReceiptTable(id, userId);
   }
 
-  // Updates a purchase order by ID
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderDto): Promise<PurchaseOrderResponseDto> {
-    return this.service.update(id, dto);
+  // Adds a line item to a purchase order
+  @Post(':id/items')
+  @HttpCode(HttpStatus.CREATED)
+  addItem(@Param('id') id: string, @Body() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+    return this.service.addItem(id, dto);
+  }
+
+  // Updates a line item on a purchase order
+  @Patch(':id/items/:itemId')
+  updateItem(
+    @Param('id') id: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: UpdatePurchaseOrderItemDto,
+  ): Promise<SuccessResponseDto> {
+    return this.service.updateItem(id, itemId, dto);
+  }
+
+  // Removes a line item from a purchase order
+  @Delete(':id/items/:itemId')
+  removeItem(@Param('id') id: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
+    return this.service.removeItem(id, itemId);
+  }
+
+  // Updates purchase order notes
+  @Patch(':id/notes')
+  updateNotes(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
+    return this.service.updateNotes(id, dto);
+  }
+
+  // Changes purchase order supplier
+  @Patch(':id/supplier')
+  changeSupplier(
+    @Param('id') id: string,
+    @Body() dto: ChangePurchaseOrderSupplierDto,
+  ): Promise<SuccessResponseDto> {
+    return this.service.changeSupplier(id, dto);
   }
 
   // Updates the status of a purchase order
@@ -103,7 +138,7 @@ export class PurchaseOrdersGatewayController {
   updateStatus(
     @Param('id') id: string,
     @Body('status') status: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<SuccessResponseDto> {
     return this.service.updateStatus(id, status);
   }
 

@@ -3,18 +3,21 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import type { CreateResponse } from '@vritti/quantum-ui/api-response';
+import type { UseMutationResult } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import { useUpdatePurchaseOrder } from '@/hooks/purchase-orders';
 import type { PurchaseOrderDetail, PurchaseOrderItemData } from '@/schemas/purchase-orders';
-import { getSupplierItemPrice } from '@/services/purchase-orders.service';
+import type { PurchaseOrderData } from '@/schemas/purchase-orders';
+import { type AddPurchaseOrderItemPayload, getSupplierItemPrice } from '@/services/purchase-orders.service';
 
 interface AddPurchaseOrderItemDialogProps {
   purchaseOrder: PurchaseOrderDetail;
   items: PurchaseOrderItemData[];
-  onSuccess: () => void;
+  mutation: UseMutationResult<CreateResponse<PurchaseOrderData>, AxiosError, AddPurchaseOrderItemPayload>;
   onCancel: () => void;
 }
 
@@ -29,7 +32,7 @@ type AddLineItemFormData = z.infer<typeof addLineItemSchema>;
 export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({
   purchaseOrder,
   items,
-  onSuccess,
+  mutation,
   onCancel,
 }) => {
   const [isPriceLooking, setIsPriceLooking] = useState(false);
@@ -43,8 +46,6 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       unitPrice: '',
     },
   });
-
-  const updateMutation = useUpdatePurchaseOrder({ onSuccess });
 
   const existingItemIds = items.map((i) => i.inventoryItemId).join(',');
 
@@ -87,25 +88,14 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   return (
     <Form
       form={form}
-      mutation={updateMutation}
+      mutation={mutation}
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
-        data: {
-          items: [
-            ...items.map((i) => ({
-              inventoryItemId: i.inventoryItemId,
-              orderedQuantity: i.orderedQuantity,
-              unitPrice: i.unitPrice ?? undefined,
-            })),
-            {
-              inventoryItemId: data.inventoryItemId,
-              orderedQuantity: Number(data.orderedQuantity),
-              unitPrice: resolvedUnitPrice ?? undefined,
-            },
-          ],
-        },
+        inventoryItemId: data.inventoryItemId,
+        orderedQuantity: Number(data.orderedQuantity),
+        unitPrice: resolvedUnitPrice ?? undefined,
       })}
     >
       <InventoryItemSelector

@@ -1,17 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
-
-export class CreatePurchaseOrderItemDto {
-  @ApiProperty({ description: 'Inventory item ID' })
-  @IsUUID()
-  inventoryItemId: string;
-
-  @ApiProperty({ description: 'Ordered quantity', example: 100 })
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  orderedQuantity: number;
-}
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreatePurchaseOrderDto {
   @ApiProperty({ description: 'Supplier ID' })
@@ -32,11 +20,4 @@ export class CreatePurchaseOrderDto {
   @IsOptional()
   @IsString()
   notes?: string;
-
-  @ApiPropertyOptional({ description: 'Line items', type: [CreatePurchaseOrderItemDto] })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CreatePurchaseOrderItemDto)
-  items?: CreatePurchaseOrderItemDto[];
 }

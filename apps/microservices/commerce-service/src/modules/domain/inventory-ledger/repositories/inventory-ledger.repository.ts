@@ -30,14 +30,8 @@ export class InventoryLedgerRepository extends PrimaryBaseRepository<typeof inve
     result: (InventoryLedgerEntry & { inventoryItemName: string | null; batchNumber: string | null })[];
     count: number;
   }> {
-    const [countResult] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryLedger)
-      .leftJoin(inventoryItems, eq(inventoryLedger.inventoryItemId, inventoryItems.id))
-      .where(options.where);
-
-    const result = await this.db
-      .select({
+    return this.findAllAndCount<InventoryLedgerEntry & { inventoryItemName: string | null; batchNumber: string | null }>({
+      select: {
         id: inventoryLedger.id,
         organizationId: inventoryLedger.organizationId,
         businessUnitId: inventoryLedger.businessUnitId,
@@ -51,19 +45,16 @@ export class InventoryLedgerRepository extends PrimaryBaseRepository<typeof inve
         createdAt: inventoryLedger.createdAt,
         inventoryItemName: inventoryItems.name,
         batchNumber: inventoryItemBatches.batchNumber,
-      })
-      .from(inventoryLedger)
-      .leftJoin(inventoryItems, eq(inventoryLedger.inventoryItemId, inventoryItems.id))
-      .leftJoin(inventoryItemBatches, eq(inventoryLedger.batchId, inventoryItemBatches.id))
-      .where(options.where)
-      .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(inventoryLedger.createdAt)]))
-      .limit(options.limit)
-      .offset(options.offset);
-
-    return {
-      result: result as (InventoryLedgerEntry & { inventoryItemName: string | null; batchNumber: string | null })[],
-      count: Number(countResult?.count ?? 0),
-    };
+      },
+      leftJoins: [
+        { table: inventoryItems, on: eq(inventoryLedger.inventoryItemId, inventoryItems.id) },
+        { table: inventoryItemBatches, on: eq(inventoryLedger.batchId, inventoryItemBatches.id) },
+      ],
+      where: options.where,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(inventoryLedger.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
   async findByBatchId(
@@ -72,21 +63,12 @@ export class InventoryLedgerRepository extends PrimaryBaseRepository<typeof inve
   ): Promise<{ result: InventoryLedgerEntry[]; count: number }> {
     const baseWhere = eq(inventoryLedger.batchId, batchId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
-
-    const [countResult] = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryLedger)
-      .where(combinedWhere);
-
-    const result = await this.db
-      .select()
-      .from(inventoryLedger)
-      .where(combinedWhere)
-      .orderBy(...(options.orderBy?.length ? options.orderBy : [desc(inventoryLedger.createdAt)]))
-      .limit(options.limit)
-      .offset(options.offset);
-
-    return { result: result as InventoryLedgerEntry[], count: Number(countResult?.count ?? 0) };
+    return this.findAllAndCount<InventoryLedgerEntry>({
+      where: combinedWhere,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(inventoryLedger.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
   }
 
   async findByReference(referenceType: InventoryLedgerReferenceType, referenceId: string): Promise<InventoryLedgerEntry[]> {

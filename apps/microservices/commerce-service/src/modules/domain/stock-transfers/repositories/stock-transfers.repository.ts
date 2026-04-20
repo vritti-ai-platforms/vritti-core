@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, type StockTransfer, stockTransfers } from '@/db/schema';
 
 @Injectable()
@@ -11,23 +11,32 @@ export class StockTransfersRepository extends PrimaryBaseRepository<typeof stock
 
   // Returns all stock transfers with inventory item names
   async findAllWithItemNames(params: {
-    where?: any;
-    orderBy?: any;
+    where?: SQL;
+    orderBy?: SQL[];
     limit?: number;
     offset?: number;
   }): Promise<{ result: (StockTransfer & { inventoryItemName: string | null })[]; count: number }> {
-    const baseResult = await this.findAllAndCount(params);
-    const enriched: (StockTransfer & { inventoryItemName: string | null })[] = [];
-
-    for (const row of baseResult.result) {
-      const itemRow = await this.db
-        .select({ name: inventoryItems.name })
-        .from(inventoryItems)
-        .where(eq(inventoryItems.id, row.inventoryItemId))
-        .then((rows) => rows[0]);
-      enriched.push({ ...row, inventoryItemName: itemRow?.name ?? null });
-    }
-
-    return { result: enriched, count: baseResult.count };
+    return this.findAllAndCount<StockTransfer & { inventoryItemName: string | null }>({
+      select: {
+        id: stockTransfers.id,
+        organizationId: stockTransfers.organizationId,
+        inventoryItemId: stockTransfers.inventoryItemId,
+        fromBuId: stockTransfers.fromBuId,
+        toBuId: stockTransfers.toBuId,
+        quantity: stockTransfers.quantity,
+        status: stockTransfers.status,
+        requestedBy: stockTransfers.requestedBy,
+        receivedBy: stockTransfers.receivedBy,
+        notes: stockTransfers.notes,
+        createdAt: stockTransfers.createdAt,
+        updatedAt: stockTransfers.updatedAt,
+        inventoryItemName: inventoryItems.name,
+      },
+      leftJoins: [{ table: inventoryItems, on: eq(stockTransfers.inventoryItemId, inventoryItems.id) }],
+      where: params.where,
+      orderBy: params.orderBy?.length ? params.orderBy : [desc(stockTransfers.createdAt)],
+      limit: params.limit,
+      offset: params.offset,
+    });
   }
 }
