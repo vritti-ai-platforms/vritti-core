@@ -70,6 +70,7 @@ export const purchaseOrderItems = coreSchema.table(
       .references(() => inventoryItems.id),
     orderedQuantity: decimal('ordered_quantity', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
+    supplierUnitPrice: decimal('supplier_unit_price', { precision: 12, scale: 2 }).notNull(),
     unitPrice: decimal('unit_price', { precision: 12, scale: 2 }),
     totalPrice: decimal('total_price', { precision: 12, scale: 2 }),
   },

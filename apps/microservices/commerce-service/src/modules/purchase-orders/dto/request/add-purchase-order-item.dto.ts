@@ -11,5 +11,10 @@ export class AddPurchaseOrderItemDto {
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0)
+  supplierUnitPrice: number;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
   unitPrice?: number | null;
 }

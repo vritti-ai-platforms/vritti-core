@@ -19,6 +19,7 @@ export interface AddPurchaseOrderItemPayload {
   id: string;
   inventoryItemId: string;
   orderedQuantity: number;
+  supplierUnitPrice: number;
   unitPrice?: number | null;
 }
 
@@ -27,6 +28,7 @@ export interface UpdatePurchaseOrderItemPayload {
   itemId: string;
   inventoryItemId?: string;
   orderedQuantity?: number;
+  supplierUnitPrice?: number;
   unitPrice?: number | null;
 }
 
@@ -93,12 +95,14 @@ export function addPurchaseOrderItem({
   id,
   inventoryItemId,
   orderedQuantity,
+  supplierUnitPrice,
   unitPrice,
 }: AddPurchaseOrderItemPayload): Promise<CreateResponse<PurchaseOrderData>> {
   return axios
     .post<CreateResponse<PurchaseOrderData>>(`commerce-api/purchase-orders/${id}/items`, {
       inventoryItemId,
       orderedQuantity,
+      supplierUnitPrice,
       unitPrice,
     })
     .then((r) => r.data);
@@ -110,12 +114,14 @@ export function updatePurchaseOrderItem({
   itemId,
   inventoryItemId,
   orderedQuantity,
+  supplierUnitPrice,
   unitPrice,
 }: UpdatePurchaseOrderItemPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/items/${itemId}`, {
       inventoryItemId,
       orderedQuantity,
+      supplierUnitPrice,
       unitPrice,
     })
     .then((r) => r.data);

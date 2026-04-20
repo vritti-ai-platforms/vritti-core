@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { useUpdatePurchaseOrderItem } from '@/hooks/purchase-orders';
 import type { PurchaseOrderItemData } from '@/schemas/purchase-orders';
@@ -15,11 +17,25 @@ interface UpdatePurchaseOrderItemDialogProps {
   onCancel: () => void;
 }
 
-const updateLineItemSchema = z.object({
-  orderedQuantity: z.string().min(1, 'Quantity is required'),
-});
+type UpdateLineItemFormData = {
+  orderedQuantity: string;
+  overridePrice: boolean;
+  unitPrice?: string;
+};
 
-type UpdateLineItemFormData = z.infer<typeof updateLineItemSchema>;
+const baseUpdateLineItemSchema = z.object({
+  orderedQuantity: z.string().min(1, 'Quantity is required'),
+  overridePrice: z.boolean(),
+  unitPrice: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.unitPrice) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['unitPrice'],
+      message: 'Unit price is required.',
+    });
+  }
+});
 
 export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDialogProps> = ({
   purchaseOrderId,
@@ -27,13 +43,39 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
   onSuccess,
   onCancel,
 }) => {
+  const updateLineItemSchema = useMemo(
+    () =>
+      baseUpdateLineItemSchema.superRefine((data, ctx) => {
+        if (!data.overridePrice) return;
+        const unitPrice = Number(data.unitPrice);
+        if (Number.isFinite(unitPrice) && unitPrice === item.supplierUnitPrice) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['unitPrice'],
+            message: 'Override price must be different from supplier price.',
+          });
+        }
+      }),
+    [item.supplierUnitPrice],
+  );
+
   const form = useForm<UpdateLineItemFormData>({
     resolver: zodResolver(updateLineItemSchema),
     defaultValues: {
       orderedQuantity: String(item.orderedQuantity),
+      overridePrice: item.unitPrice != null && item.unitPrice !== item.supplierUnitPrice,
+      unitPrice: item.unitPrice != null ? String(item.unitPrice) : String(item.supplierUnitPrice),
     },
   });
+  const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
   const mutation = useUpdatePurchaseOrderItem({ onSuccess });
+
+  useEffect(() => {
+    form.clearErrors('unitPrice');
+    if (!watchedOverridePrice) {
+      form.setValue('unitPrice', String(item.supplierUnitPrice));
+    }
+  }, [watchedOverridePrice, item.supplierUnitPrice, form]);
 
   return (
     <Form
@@ -45,9 +87,23 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
         id: purchaseOrderId,
         itemId: item.id,
         orderedQuantity: Number(data.orderedQuantity),
+        supplierUnitPrice: item.supplierUnitPrice,
+        unitPrice: data.overridePrice ? Number(data.unitPrice) : item.supplierUnitPrice,
       })}
     >
       <TextField name="orderedQuantity" label="Ordered Quantity" type="number" placeholder="e.g. 500" />
+      <Switch
+        name="overridePrice"
+        label="Override Price"
+        description="Enable to set a custom unit price for this PO line."
+      />
+      <TextField
+        name="unitPrice"
+        label="Unit Price"
+        type="number"
+        placeholder={watchedOverridePrice ? 'Enter custom unit price' : 'Matches supplier price'}
+        disabled={!watchedOverridePrice}
+      />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

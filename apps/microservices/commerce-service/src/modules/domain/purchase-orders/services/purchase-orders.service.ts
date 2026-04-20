@@ -50,6 +50,7 @@ export class PurchaseOrdersService {
     inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
     orderedQuantity: { column: purchaseOrderItems.orderedQuantity, type: 'number' },
     receivedQuantity: { column: purchaseOrderItems.receivedQuantity, type: 'number' },
+    supplierUnitPrice: { column: purchaseOrderItems.supplierUnitPrice, type: 'number' },
     unitPrice: { column: purchaseOrderItems.unitPrice, type: 'number' },
     totalPrice: { column: purchaseOrderItems.totalPrice, type: 'number' },
   };
@@ -158,6 +159,7 @@ export class PurchaseOrdersService {
       purchaseOrderId: id,
       inventoryItemId: data.inventoryItemId,
       orderedQuantity: String(data.orderedQuantity),
+      supplierUnitPrice: String(data.supplierUnitPrice),
       unitPrice: data.unitPrice != null ? String(data.unitPrice) : null,
       totalPrice: data.unitPrice != null ? String(Number(data.unitPrice) * data.orderedQuantity) : null,
     });
@@ -192,11 +194,13 @@ export class PurchaseOrdersService {
     }
 
     const orderedQuantity = data.orderedQuantity ?? Number(item.orderedQuantity);
+    const supplierUnitPrice = data.supplierUnitPrice !== undefined ? data.supplierUnitPrice : Number(item.supplierUnitPrice);
     const unitPrice = data.unitPrice !== undefined ? data.unitPrice : item.unitPrice ? Number(item.unitPrice) : null;
 
     await this.poItemsRepository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
       orderedQuantity: String(orderedQuantity),
+      supplierUnitPrice: String(supplierUnitPrice),
       unitPrice: unitPrice != null ? String(unitPrice) : null,
       totalPrice: unitPrice != null ? String(unitPrice * orderedQuantity) : null,
     });

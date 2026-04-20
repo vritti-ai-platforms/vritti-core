@@ -16,6 +16,9 @@ export class PurchaseOrderItemResponseDto {
   @ApiProperty({ description: 'Received quantity' })
   receivedQuantity: number;
 
+  @ApiProperty({ description: 'Supplier unit price' })
+  supplierUnitPrice: number;
+
   @ApiPropertyOptional({ description: 'Unit price', nullable: true })
   unitPrice: number | null;
 

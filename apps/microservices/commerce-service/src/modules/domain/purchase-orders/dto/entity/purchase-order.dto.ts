@@ -6,6 +6,7 @@ export class PurchaseOrderItemDto {
   inventoryItemName: string | null;
   orderedQuantity: number;
   receivedQuantity: number;
+  supplierUnitPrice: number;
   unitPrice: number | null;
   totalPrice: number | null;
 
@@ -16,6 +17,7 @@ export class PurchaseOrderItemDto {
     dto.inventoryItemName = itemName ?? null;
     dto.orderedQuantity = Number(entity.orderedQuantity);
     dto.receivedQuantity = Number(entity.receivedQuantity);
+    dto.supplierUnitPrice = Number(entity.supplierUnitPrice);
     dto.unitPrice = entity.unitPrice ? Number(entity.unitPrice) : null;
     dto.totalPrice = entity.totalPrice ? Number(entity.totalPrice) : null;
     return dto;

@@ -34,6 +34,7 @@ export interface PurchaseOrderItemData {
   inventoryItemName: string | null;
   orderedQuantity: number;
   receivedQuantity: number;
+  supplierUnitPrice: number;
   unitPrice: number | null;
   totalPrice: number | null;
 }

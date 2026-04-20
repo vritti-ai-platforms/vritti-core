@@ -11,6 +11,11 @@ export class AddPurchaseOrderItemDto {
   @Min(0)
   orderedQuantity: number;
 
+  @ApiProperty({ description: 'Supplier unit price', example: 99.99 })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  supplierUnitPrice: number;
+
   @ApiPropertyOptional({ description: 'Unit price', example: 99.99 })
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })

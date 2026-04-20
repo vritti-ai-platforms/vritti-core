@@ -11395,6 +11395,11 @@
             "description": "Ordered quantity",
             "example": 100
           },
+          "supplierUnitPrice": {
+            "type": "number",
+            "description": "Supplier unit price",
+            "example": 99.99
+          },
           "unitPrice": {
             "type": "object",
             "description": "Unit price",
@@ -11403,7 +11408,8 @@
         },
         "required": [
           "inventoryItemId",
-          "orderedQuantity"
+          "orderedQuantity",
+          "supplierUnitPrice"
         ]
       },
       "UpdatePurchaseOrderItemDto": {
@@ -11417,6 +11423,11 @@
             "type": "number",
             "description": "Ordered quantity",
             "example": 100
+          },
+          "supplierUnitPrice": {
+            "type": "number",
+            "description": "Supplier unit price",
+            "example": 99.99
           },
           "unitPrice": {
             "type": "object",

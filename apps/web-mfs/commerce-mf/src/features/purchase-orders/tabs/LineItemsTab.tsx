@@ -103,7 +103,7 @@ export const LineItemsTab = ({
                       label: 'Edit',
                       dialog: {
                         title: 'Update Line Item',
-                        description: 'Change the quantity for this line item.',
+                        description: 'Change quantity and pricing for this line item.',
                         content: (close) => (
                           <UpdatePurchaseOrderItemDialog
                             purchaseOrderId={purchaseOrderId}
