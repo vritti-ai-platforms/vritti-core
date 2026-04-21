@@ -183,6 +183,10 @@ export const SupplierDetailPage = () => {
                       <p className="mt-1 font-mono font-medium">{supplier.code}</p>
                     </div>
                     <div>
+                      <p className="text-sm text-muted-foreground">Currency</p>
+                      <p className="mt-1 font-mono">{supplier.currencyCode}</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-muted-foreground">Contact Name</p>
                       <p className="mt-1">{supplier.contactName ?? '—'}</p>
                     </div>
@@ -203,8 +207,12 @@ export const SupplierDetailPage = () => {
                       <p className="mt-1">{supplier.address ?? '—'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">GSTIN</p>
-                      <p className="mt-1 font-mono">{supplier.gstin ?? '—'}</p>
+                      <p className="text-sm text-muted-foreground">Tax ID</p>
+                      <p className="mt-1 font-mono">{supplier.taxId ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Tax ID Type</p>
+                      <p className="mt-1">{supplier.taxIdType ? supplier.taxIdType.replace('_', ' ') : '—'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Payment Terms</p>

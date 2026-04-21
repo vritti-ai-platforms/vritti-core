@@ -10,6 +10,9 @@ export class SupplierResponseDto {
   @ApiProperty({ description: 'Unique supplier code', example: 'SUP-001' })
   code: string;
 
+  @ApiProperty({ description: 'Default supplier currency code (ISO 4217)', example: 'INR' })
+  currencyCode: string;
+
   @ApiPropertyOptional({ description: 'Primary contact person name', nullable: true })
   contactName: string | null;
 
@@ -25,8 +28,11 @@ export class SupplierResponseDto {
   @ApiPropertyOptional({ description: 'Mailing address', nullable: true })
   address: string | null;
 
-  @ApiPropertyOptional({ description: 'GST identification number', nullable: true })
-  gstin: string | null;
+  @ApiPropertyOptional({ description: 'Supplier tax ID', nullable: true })
+  taxId: string | null;
+
+  @ApiPropertyOptional({ description: 'Tax ID type', nullable: true, enum: ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'] })
+  taxIdType: string | null;
 
   @ApiPropertyOptional({ description: 'Payment terms', nullable: true })
   paymentTerms: string | null;

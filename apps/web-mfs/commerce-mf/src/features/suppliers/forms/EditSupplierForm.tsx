@@ -1,12 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
+import { Select } from '@vritti/quantum-ui/Select';
+import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplier } from '@/hooks/useUpdateSupplier';
-import { type SupplierDetail, type UpdateSupplierFormData, updateSupplierSchema } from '@/schemas/suppliers';
+import { type SupplierDetail, TAX_ID_TYPE_OPTIONS, type UpdateSupplierFormData, updateSupplierSchema } from '@/schemas/suppliers';
 
 interface EditSupplierFormProps {
   supplier: SupplierDetail;
@@ -20,9 +22,11 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
     defaultValues: {
       name: supplier.name,
       code: supplier.code,
+      currencyCode: supplier.currencyCode,
       website: supplier.website ?? '',
       address: supplier.address ?? '',
-      gstin: supplier.gstin ?? '',
+      taxId: supplier.taxId ?? '',
+      taxIdType: supplier.taxIdType ?? null,
       paymentTerms: supplier.paymentTerms ?? '',
       leadTimeDays: supplier.leadTimeDays != null ? String(supplier.leadTimeDays) : '',
       notes: supplier.notes ?? '',
@@ -40,20 +44,35 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
         id: supplier.id,
         data: {
           ...data,
+          taxId: data.taxId?.trim() ? data.taxId.trim() : null,
+          taxIdType:
+            data.taxId?.trim()
+              ? typeof data.taxIdType === 'string' && data.taxIdType.length > 0
+                ? data.taxIdType
+                : null
+              : null,
           leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : null,
         },
       })}
     >
-      <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />
-      <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
-      <TextField name="website" label="Website" placeholder="e.g. https://freshfarms.com" />
-      <TextArea name="address" label="Address" placeholder="Full postal address" />
-      <div className="grid grid-cols-2 gap-4">
-        <TextField name="gstin" label="GSTIN" placeholder="e.g. 29AABCT1332L1ZP" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />
+        <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
+        <CurrencySelector name="currencyCode" label="Currency" placeholder="Select currency" />
+        <TextField name="website" label="Website" placeholder="e.g. https://freshfarms.com" />
+        <TextField name="taxId" label="Tax ID" placeholder="e.g. 29AABCT1332L1ZP" />
+        <Select
+          name="taxIdType"
+          label="Tax ID Type"
+          placeholder="Select type"
+          options={TAX_ID_TYPE_OPTIONS}
+          clearable
+        />
         <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
+        <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" />
+        <TextArea name="address" label="Address" placeholder="Full postal address" rows={3} className="w-full" />
+        <TextArea name="notes" label="Notes" placeholder="Optional notes" rows={3} className="w-full" />
       </div>
-      <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" />
-      <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

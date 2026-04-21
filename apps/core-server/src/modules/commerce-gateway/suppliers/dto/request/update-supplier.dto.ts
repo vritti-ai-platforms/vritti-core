@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateIf } from 'class-validator';
 
 export class UpdateSupplierDto {
   @ApiPropertyOptional({ description: 'Updated supplier name' })
@@ -12,6 +12,12 @@ export class UpdateSupplierDto {
   @IsString()
   code?: string;
 
+  @ApiPropertyOptional({ description: 'Updated supplier currency code (ISO 4217)' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  currencyCode?: string;
+
   @ApiPropertyOptional({ description: 'Updated mailing address' })
   @IsOptional()
   @IsString()
@@ -23,11 +29,17 @@ export class UpdateSupplierDto {
   @MaxLength(255)
   website?: string;
 
-  @ApiPropertyOptional({ description: 'Updated GSTIN' })
-  @IsOptional()
+  @ApiPropertyOptional({ description: 'Updated Tax ID' })
+  @ValidateIf((o: UpdateSupplierDto) => o.taxId !== null || o.taxIdType != null)
   @IsString()
+  @IsNotEmpty()
   @MaxLength(15)
-  gstin?: string;
+  taxId?: string;
+
+  @ApiPropertyOptional({ description: 'Updated tax ID type', enum: ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'] })
+  @ValidateIf((o: UpdateSupplierDto) => o.taxId != null && String(o.taxId).trim().length > 0)
+  @IsEnum(['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'])
+  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER';
 
   @ApiPropertyOptional({ description: 'Updated payment terms' })
   @IsOptional()

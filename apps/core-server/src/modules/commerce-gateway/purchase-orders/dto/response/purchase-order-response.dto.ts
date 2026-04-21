@@ -19,6 +19,12 @@ export class PurchaseOrderResponseDto {
   })
   status: string;
 
+  @ApiProperty({ description: 'PO currency code (ISO 4217)', example: 'INR' })
+  currencyCode: string;
+
+  @ApiProperty({ description: 'FX conversion rate from supplier currency to PO currency', example: 1 })
+  conversionRate: number;
+
   @ApiProperty({ description: 'Order date (ISO string)' })
   orderDate: string;
 

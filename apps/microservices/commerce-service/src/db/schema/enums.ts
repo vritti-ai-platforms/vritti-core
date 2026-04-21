@@ -158,6 +158,16 @@ export const taxRateTypeEnum = coreSchema.enum('tax_rate_type', ['inclusive', 'e
 export const TaxRateTypeValues = { INCLUSIVE: 'inclusive', EXCLUSIVE: 'exclusive' } as const;
 export type TaxRateType = (typeof taxRateTypeEnum.enumValues)[number];
 
+export const taxIdTypeEnum = coreSchema.enum('tax_id_type', ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
+export const TaxIdTypeValues = {
+  GST: 'GST' as const,
+  VAT: 'VAT' as const,
+  EIN: 'EIN' as const,
+  SALES_TAX: 'SALES_TAX' as const,
+  OTHER: 'OTHER' as const,
+};
+export type TaxIdType = (typeof taxIdTypeEnum.enumValues)[number];
+
 export const inventoryItemTypeEnum = coreSchema.enum('inventory_item_type', ['MATERIAL', 'PRODUCT']);
 export const InventoryItemTypeValues = { MATERIAL: 'MATERIAL' as const, PRODUCT: 'PRODUCT' as const };
 export type InventoryItemType = (typeof inventoryItemTypeEnum.enumValues)[number];

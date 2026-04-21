@@ -11364,6 +11364,11 @@
             "type": "string",
             "description": "Supplier ID"
           },
+          "currencyCode": {
+            "type": "string",
+            "description": "PO currency code (ISO 4217)",
+            "example": "INR"
+          },
           "orderDate": {
             "type": "string",
             "description": "Order date (ISO string)",
@@ -11376,10 +11381,16 @@
           "notes": {
             "type": "string",
             "description": "Notes"
+          },
+          "conversionRate": {
+            "type": "number",
+            "description": "FX conversion rate from supplier currency to PO currency",
+            "example": 1
           }
         },
         "required": [
           "supplierId",
+          "currencyCode",
           "orderDate"
         ]
       },
@@ -11695,6 +11706,11 @@
             "description": "Unique supplier code",
             "example": "SUP-001"
           },
+          "currencyCode": {
+            "type": "string",
+            "description": "Default supplier currency code (ISO 4217)",
+            "example": "INR"
+          },
           "primaryContact": {
             "description": "Primary contact details",
             "allOf": [
@@ -11711,10 +11727,21 @@
             "type": "string",
             "description": "Supplier website URL"
           },
-          "gstin": {
+          "taxId": {
             "type": "string",
-            "description": "GST identification number",
+            "description": "Supplier tax ID",
             "example": "22AAAAA0000A1Z5"
+          },
+          "taxIdType": {
+            "type": "string",
+            "description": "Tax ID type",
+            "enum": [
+              "GST",
+              "VAT",
+              "EIN",
+              "SALES_TAX",
+              "OTHER"
+            ]
           },
           "paymentTerms": {
             "type": "string",
@@ -11734,6 +11761,7 @@
         "required": [
           "name",
           "code",
+          "currencyCode",
           "primaryContact"
         ]
       },
@@ -11748,6 +11776,10 @@
             "type": "string",
             "description": "Updated supplier code"
           },
+          "currencyCode": {
+            "type": "string",
+            "description": "Updated supplier currency code (ISO 4217)"
+          },
           "address": {
             "type": "string",
             "description": "Updated mailing address"
@@ -11756,9 +11788,20 @@
             "type": "string",
             "description": "Updated supplier website URL"
           },
-          "gstin": {
+          "taxId": {
             "type": "string",
-            "description": "Updated GSTIN"
+            "description": "Updated Tax ID"
+          },
+          "taxIdType": {
+            "type": "string",
+            "description": "Updated tax ID type",
+            "enum": [
+              "GST",
+              "VAT",
+              "EIN",
+              "SALES_TAX",
+              "OTHER"
+            ]
           },
           "paymentTerms": {
             "type": "string",

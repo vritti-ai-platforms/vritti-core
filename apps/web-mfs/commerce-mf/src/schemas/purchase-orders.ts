@@ -3,9 +3,34 @@ import { z } from 'zod';
 
 export const createPurchaseOrderSchema = z.object({
   supplierId: z.string().min(1, 'Supplier is required'),
+  supplierCurrencyCode: z.string().optional(),
+  currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
+  conversionRate: z.string().optional(),
   orderDate: z.string().min(1, 'Order date is required'),
   expectedBy: z.string().optional(),
   notes: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.supplierCurrencyCode) return;
+
+  if (data.currencyCode === data.supplierCurrencyCode) return;
+
+  if (!data.conversionRate) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['conversionRate'],
+      message: 'Conversion rate is required when PO currency differs from supplier currency.',
+    });
+    return;
+  }
+
+  const parsed = Number(data.conversionRate);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['conversionRate'],
+      message: 'Conversion rate must be greater than 0.',
+    });
+  }
 });
 
 export type CreatePurchaseOrderFormData = z.infer<typeof createPurchaseOrderSchema>;
@@ -20,6 +45,8 @@ export interface PurchaseOrderData {
   supplierName: string;
   poNumber: string;
   status: PurchaseOrderStatus;
+  currencyCode: string;
+  conversionRate: number;
   orderDate: string;
   expectedBy: string | null;
   notes: string | null;

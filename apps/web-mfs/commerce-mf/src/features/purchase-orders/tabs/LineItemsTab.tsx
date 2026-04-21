@@ -21,11 +21,7 @@ interface LineItemsTabProps {
   existingItemIds: string[];
 }
 
-export const LineItemsTab = ({
-  purchaseOrder,
-  canModifyItems,
-  existingItemIds,
-}: LineItemsTabProps) => {
+export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }: LineItemsTabProps) => {
   const purchaseOrderId = purchaseOrder.id;
   const queryClient = useQueryClient();
   const confirm = useConfirm();
@@ -107,6 +103,7 @@ export const LineItemsTab = ({
                         content: (close) => (
                           <UpdatePurchaseOrderItemDialog
                             purchaseOrderId={purchaseOrderId}
+                            conversionRate={purchaseOrder.conversionRate}
                             item={row.original}
                             onSuccess={close}
                             onCancel={close}
@@ -130,7 +127,7 @@ export const LineItemsTab = ({
           ]
         : []),
     ],
-    [canModifyItems, handleRemoveItem, purchaseOrderId],
+    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.conversionRate],
   );
 
   const { table } = useDataTable({

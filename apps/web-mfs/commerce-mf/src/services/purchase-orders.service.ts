@@ -10,6 +10,8 @@ import type {
 
 export interface CreatePurchaseOrderPayload {
   supplierId: string;
+  currencyCode: string;
+  conversionRate: number;
   orderDate: string;
   expectedBy?: string;
   notes?: string;

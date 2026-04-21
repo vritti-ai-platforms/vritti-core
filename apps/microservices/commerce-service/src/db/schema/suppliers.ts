@@ -11,6 +11,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { taxIdTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 import { uom } from './uom';
 
@@ -22,12 +23,14 @@ export const suppliers = coreSchema.table(
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
+    currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     contactName: varchar('contact_name', { length: 255 }),
     phone: varchar('phone', { length: 20 }).notNull(),
     email: varchar('email', { length: 255 }),
     website: varchar('website', { length: 255 }),
     address: varchar('address', { length: 500 }),
-    gstin: varchar('gstin', { length: 15 }),
+    taxId: varchar('tax_id', { length: 15 }),
+    taxIdType: taxIdTypeEnum('tax_id_type'),
     paymentTerms: varchar('payment_terms', { length: 50 }),
     leadTimeDays: integer('lead_time_days'),
     notes: varchar('notes', { length: 500 }),

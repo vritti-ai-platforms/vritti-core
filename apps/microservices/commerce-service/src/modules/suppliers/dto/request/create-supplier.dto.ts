@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateIf, ValidateNested } from 'class-validator';
 
 export class CreatePrimarySupplierContactDto {
   @IsString()
@@ -45,6 +45,11 @@ export class CreateSupplierDto {
   @MaxLength(100)
   code: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  currencyCode: string;
+
   @ValidateNested()
   @Type(() => CreatePrimarySupplierContactDto)
   primaryContact: CreatePrimarySupplierContactDto;
@@ -59,10 +64,15 @@ export class CreateSupplierDto {
   @MaxLength(255)
   website?: string;
 
-  @IsOptional()
+  @ValidateIf((o: CreateSupplierDto) => o.taxIdType != null)
   @IsString()
+  @IsNotEmpty()
   @MaxLength(15)
-  gstin?: string;
+  taxId?: string;
+
+  @ValidateIf((o: CreateSupplierDto) => o.taxId != null && String(o.taxId).trim().length > 0)
+  @IsEnum(['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'])
+  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER';
 
   @IsOptional()
   @IsString()

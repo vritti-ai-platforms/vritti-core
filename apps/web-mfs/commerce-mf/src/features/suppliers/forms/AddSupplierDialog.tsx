@@ -2,12 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
+import { Select } from '@vritti/quantum-ui/Select';
+import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateSupplier } from '@/hooks/useCreateSupplier';
-import { type CreateSupplierFormData, createSupplierSchema } from '@/schemas/suppliers';
+import { type CreateSupplierFormData, createSupplierSchema, TAX_ID_TYPE_OPTIONS } from '@/schemas/suppliers';
 
 interface AddSupplierDialogProps {
   onSuccess: () => void;
@@ -20,6 +22,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
     defaultValues: {
       name: '',
       code: '',
+      currencyCode: 'INR',
       contactName: '',
       phone: '',
       alternatePhone: '',
@@ -28,7 +31,8 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       designation: '',
       website: '',
       address: '',
-      gstin: '',
+      taxId: '',
+      taxIdType: undefined,
       paymentTerms: '',
       leadTimeDays: '',
       notes: '',
@@ -48,6 +52,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       transformSubmit={(data) => ({
         name: data.name,
         code: data.code,
+        currencyCode: data.currencyCode,
         primaryContact: {
           name: data.contactName,
           phone: data.phone,
@@ -58,7 +63,8 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
         },
         website: data.website || undefined,
         address: data.address || undefined,
-        gstin: data.gstin || undefined,
+        taxId: data.taxId?.trim() ? data.taxId.trim() : undefined,
+        taxIdType: data.taxId?.trim() ? data.taxIdType || undefined : undefined,
         paymentTerms: data.paymentTerms || undefined,
         leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : undefined,
         notes: data.notes || undefined,
@@ -69,8 +75,16 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />
             <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
+            <CurrencySelector name="currencyCode" label="Currency" placeholder="Select currency" />
             <TextField name="website" label="Website" placeholder="e.g. https://freshfarms.com" />
-            <TextField name="gstin" label="GSTIN" placeholder="e.g. 29AABCT1332L1ZP" />
+            <TextField name="taxId" label="Tax ID" placeholder="e.g. 29AABCT1332L1ZP" />
+            <Select
+              name="taxIdType"
+              label="Tax ID Type"
+              placeholder="Select type"
+              options={TAX_ID_TYPE_OPTIONS}
+              clearable
+            />
             <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
             <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" />
             <div className="sm:col-span-2">

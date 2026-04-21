@@ -12,6 +12,7 @@ import type { PurchaseOrderItemData } from '@/schemas/purchase-orders';
 
 interface UpdatePurchaseOrderItemDialogProps {
   purchaseOrderId: string;
+  conversionRate: number;
   item: PurchaseOrderItemData;
   onSuccess: () => void;
   onCancel: () => void;
@@ -39,10 +40,13 @@ const baseUpdateLineItemSchema = z.object({
 
 export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDialogProps> = ({
   purchaseOrderId,
+  conversionRate,
   item,
   onSuccess,
   onCancel,
 }) => {
+  const supplierConvertedUnitPrice = item.supplierUnitPrice * conversionRate;
+  const unitPriceLabel = `Unit Price (Supplier: ${item.supplierUnitPrice.toFixed(2)})`;
   const updateLineItemSchema = useMemo(
     () =>
       baseUpdateLineItemSchema.superRefine((data, ctx) => {
@@ -63,8 +67,8 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
     resolver: zodResolver(updateLineItemSchema),
     defaultValues: {
       orderedQuantity: String(item.orderedQuantity),
-      overridePrice: item.unitPrice != null && item.unitPrice !== item.supplierUnitPrice,
-      unitPrice: item.unitPrice != null ? String(item.unitPrice) : String(item.supplierUnitPrice),
+      overridePrice: item.unitPrice != null && item.unitPrice !== supplierConvertedUnitPrice,
+      unitPrice: item.unitPrice != null ? String(item.unitPrice) : String(supplierConvertedUnitPrice),
     },
   });
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
@@ -73,9 +77,9 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
   useEffect(() => {
     form.clearErrors('unitPrice');
     if (!watchedOverridePrice) {
-      form.setValue('unitPrice', String(item.supplierUnitPrice));
+      form.setValue('unitPrice', String(supplierConvertedUnitPrice));
     }
-  }, [watchedOverridePrice, item.supplierUnitPrice, form]);
+  }, [watchedOverridePrice, supplierConvertedUnitPrice, form]);
 
   return (
     <Form
@@ -88,7 +92,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
         itemId: item.id,
         orderedQuantity: Number(data.orderedQuantity),
         supplierUnitPrice: item.supplierUnitPrice,
-        unitPrice: data.overridePrice ? Number(data.unitPrice) : item.supplierUnitPrice,
+        unitPrice: data.overridePrice ? Number(data.unitPrice) : supplierConvertedUnitPrice,
       })}
     >
       <TextField name="orderedQuantity" label="Ordered Quantity" type="number" placeholder="e.g. 500" />
@@ -99,7 +103,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
       />
       <TextField
         name="unitPrice"
-        label="Unit Price"
+        label={unitPriceLabel}
         type="number"
         placeholder={watchedOverridePrice ? 'Enter custom unit price' : 'Matches supplier price'}
         disabled={!watchedOverridePrice}

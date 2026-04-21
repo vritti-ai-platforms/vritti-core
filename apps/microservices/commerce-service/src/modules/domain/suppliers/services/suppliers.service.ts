@@ -70,17 +70,28 @@ export class SuppliersService {
 
   // Creates a new supplier
   async create(data: CreateSupplierDto): Promise<SupplierDto> {
+    const normalizedTaxId = data.taxId?.trim() ? data.taxId.trim() : null;
+    const normalizedTaxIdType = data.taxIdType ?? null;
+    if ((normalizedTaxId != null) !== (normalizedTaxIdType != null)) {
+      throw new ConflictException({
+        label: 'Invalid Tax Details',
+        detail: 'Tax ID and Tax ID Type must be provided together.',
+      });
+    }
+
     const entity = await this.repository.transaction(async (tx) => {
       const supplier = await this.repository.create(
         {
           name: data.name,
           code: data.code,
+          currencyCode: data.currencyCode,
           contactName: data.primaryContact.name,
           phone: data.primaryContact.phone,
           email: data.primaryContact.email ?? null,
           website: data.website ?? null,
           address: data.address ?? null,
-          gstin: data.gstin ?? null,
+          taxId: normalizedTaxId,
+          taxIdType: normalizedTaxIdType,
           paymentTerms: data.paymentTerms ?? null,
           leadTimeDays: data.leadTimeDays ?? null,
           notes: data.notes ?? null,
@@ -121,12 +132,24 @@ export class SuppliersService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Supplier not found.');
 
+    const normalizedTaxIdInput = data.taxId !== undefined ? (data.taxId?.trim() ? data.taxId.trim() : null) : undefined;
+    const nextTaxId = normalizedTaxIdInput !== undefined ? normalizedTaxIdInput : existing.taxId;
+    const nextTaxIdType = data.taxIdType !== undefined ? data.taxIdType : existing.taxIdType;
+    if ((nextTaxId != null) !== (nextTaxIdType != null)) {
+      throw new ConflictException({
+        label: 'Invalid Tax Details',
+        detail: 'Tax ID and Tax ID Type must be provided together.',
+      });
+    }
+
     const updatePayload: Record<string, unknown> = {};
     if (data.name !== undefined) updatePayload.name = data.name;
     if (data.code !== undefined) updatePayload.code = data.code;
+    if (data.currencyCode !== undefined) updatePayload.currencyCode = data.currencyCode;
     if (data.website !== undefined) updatePayload.website = data.website;
     if (data.address !== undefined) updatePayload.address = data.address;
-    if (data.gstin !== undefined) updatePayload.gstin = data.gstin;
+    if (normalizedTaxIdInput !== undefined) updatePayload.taxId = normalizedTaxIdInput;
+    if (data.taxIdType !== undefined) updatePayload.taxIdType = data.taxIdType;
     if (data.paymentTerms !== undefined) updatePayload.paymentTerms = data.paymentTerms;
     if (data.leadTimeDays !== undefined) updatePayload.leadTimeDays = data.leadTimeDays;
     if (data.notes !== undefined) updatePayload.notes = data.notes;

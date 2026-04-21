@@ -16,6 +16,8 @@ export const purchaseOrders = coreSchema.table(
       .references(() => suppliers.id),
     poNumber: varchar('po_number', { length: 50 }).notNull(),
     status: purchaseOrderStatusEnum('status').notNull().default('DRAFT'),
+    currencyCode: varchar('currency_code', { length: 3 }).notNull(),
+    conversionRate: decimal('conversion_rate', { precision: 18, scale: 6 }).notNull().default('1'),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
     notes: text('notes'),

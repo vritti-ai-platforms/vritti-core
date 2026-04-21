@@ -12,6 +12,7 @@ import type {
 export interface CreateSupplierPayload {
   name: string;
   code: string;
+  currencyCode: string;
   primaryContact: {
     name: string;
     phone: string;
@@ -22,7 +23,8 @@ export interface CreateSupplierPayload {
   };
   website?: string;
   address?: string;
-  gstin?: string;
+  taxId?: string;
+  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER';
   paymentTerms?: string;
   leadTimeDays?: number;
   notes?: string;
@@ -31,9 +33,11 @@ export interface CreateSupplierPayload {
 export interface UpdateSupplierPayload {
   name?: string;
   code?: string;
+  currencyCode?: string;
   website?: string | null;
   address?: string | null;
-  gstin?: string | null;
+  taxId?: string | null;
+  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | null;
   paymentTerms?: string | null;
   leadTimeDays?: number | null;
   notes?: string | null;

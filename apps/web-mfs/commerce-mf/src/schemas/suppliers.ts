@@ -2,6 +2,17 @@ import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { isValidPhoneNumber } from '@vritti/quantum-ui/PhoneField';
 import { z } from 'zod';
 
+export const TAX_ID_TYPE_OPTIONS = [
+  { value: 'GST', label: 'GST' },
+  { value: 'VAT', label: 'VAT' },
+  { value: 'EIN', label: 'EIN' },
+  { value: 'SALES_TAX', label: 'Sales Tax' },
+  { value: 'OTHER', label: 'Other' },
+] as const;
+
+const taxIdTypeSchema = z.enum(['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
+const taxIdTypeFieldSchema = z.union([taxIdTypeSchema, z.literal('')]);
+
 export const zPhoneNumber = z.string().refine((value) => isValidPhoneNumber(value), {
   message: 'Invalid phone number',
 });
@@ -10,34 +21,69 @@ const zOptionalPhoneNumber = z.string().refine((value) => value === '' || isVali
   message: 'Invalid phone number',
 });
 
-export const createSupplierSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255),
-  code: z.string().min(1, 'Code is required').max(100),
-  contactName: z.string().min(1, 'Primary contact name is required').max(255),
-  phone: zPhoneNumber,
-  alternatePhone: zOptionalPhoneNumber.optional(),
-  email: z.email('Invalid email').optional().or(z.literal('')),
-  alternateEmail: z.email('Invalid email').optional().or(z.literal('')),
-  designation: z.string().max(100).optional(),
-  website: z.string().max(255).optional(),
-  address: z.string().max(500).optional(),
-  gstin: z.string().max(15, 'GSTIN must be at most 15 characters').optional(),
-  paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
-  leadTimeDays: z.string().optional(),
-  notes: z.string().optional(),
-});
+const enforceTaxIdPair = (
+  taxId: string | null | undefined,
+  taxIdType: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | '' | null | undefined,
+  ctx: z.RefinementCtx,
+) => {
+  const hasTaxId = typeof taxId === 'string' && taxId.trim().length > 0;
+  const hasTaxIdType = typeof taxIdType === 'string' && taxIdType.length > 0;
 
-export const updateSupplierSchema = z.object({
-  name: z.string().min(1).max(255).optional(),
-  code: z.string().min(1).max(100).optional(),
-  website: z.string().max(255).nullable().optional(),
-  address: z.string().max(500).nullable().optional(),
-  gstin: z.string().max(15).nullable().optional(),
-  paymentTerms: z.string().max(50).nullable().optional(),
-  leadTimeDays: z.string().nullable().optional(),
-  notes: z.string().nullable().optional(),
-  isActive: z.boolean().optional(),
-});
+  if (hasTaxId === hasTaxIdType) return;
+
+  if (hasTaxIdType && !hasTaxId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['taxId'],
+      message: 'Tax ID is required when Tax ID Type is selected.',
+    });
+  }
+
+  if (hasTaxId && !hasTaxIdType) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['taxIdType'],
+      message: 'Tax ID Type is required when Tax ID is provided.',
+    });
+  }
+};
+
+export const createSupplierSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required').max(255),
+    code: z.string().min(1, 'Code is required').max(100),
+    currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
+    contactName: z.string().min(1, 'Primary contact name is required').max(255),
+    phone: zPhoneNumber,
+    alternatePhone: zOptionalPhoneNumber.optional(),
+    email: z.email('Invalid email').optional().or(z.literal('')),
+    alternateEmail: z.email('Invalid email').optional().or(z.literal('')),
+    designation: z.string().max(100).optional(),
+    website: z.string().max(255).optional(),
+    address: z.string().max(500).optional(),
+    taxId: z.string().max(15, 'Tax ID must be at most 15 characters').optional(),
+    taxIdType: taxIdTypeFieldSchema.optional(),
+    paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
+    leadTimeDays: z.string().optional(),
+    notes: z.string().optional(),
+  })
+  .superRefine((data, ctx) => enforceTaxIdPair(data.taxId, data.taxIdType, ctx));
+
+export const updateSupplierSchema = z
+  .object({
+    name: z.string().min(1).max(255).optional(),
+    code: z.string().min(1).max(100).optional(),
+    currencyCode: z.string().regex(/^[A-Z]{3}$/).optional(),
+    website: z.string().max(255).nullable().optional(),
+    address: z.string().max(500).nullable().optional(),
+    taxId: z.string().max(15).nullable().optional(),
+    taxIdType: taxIdTypeFieldSchema.nullable().optional(),
+    paymentTerms: z.string().max(50).nullable().optional(),
+    leadTimeDays: z.string().nullable().optional(),
+    notes: z.string().nullable().optional(),
+    isActive: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => enforceTaxIdPair(data.taxId, data.taxIdType, ctx));
 
 export const createSupplierContactSchema = z.object({
   name: z.string().min(1, 'Contact name is required').max(255),
@@ -84,12 +130,14 @@ export interface SupplierData {
   id: string;
   name: string;
   code: string;
+  currencyCode: string;
   contactName: string | null;
   phone: string;
   email: string | null;
   website: string | null;
   address: string | null;
-  gstin: string | null;
+  taxId: string | null;
+  taxIdType: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | null;
   paymentTerms: string | null;
   leadTimeDays: number | null;
   notes: string | null;

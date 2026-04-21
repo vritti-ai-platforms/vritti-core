@@ -30,6 +30,8 @@ export class PurchaseOrderDto {
   supplierName: string | null;
   poNumber: string;
   status: PurchaseOrderStatus;
+  currencyCode: string;
+  conversionRate: number;
   orderDate: string;
   expectedBy: string | null;
   notes: string | null;
@@ -44,6 +46,8 @@ export class PurchaseOrderDto {
     dto.supplierName = supplierName ?? null;
     dto.poNumber = entity.poNumber;
     dto.status = entity.status;
+    dto.currencyCode = entity.currencyCode;
+    dto.conversionRate = Number(entity.conversionRate);
     dto.orderDate = entity.orderDate;
     dto.expectedBy = entity.expectedBy ?? null;
     dto.notes = entity.notes ?? null;

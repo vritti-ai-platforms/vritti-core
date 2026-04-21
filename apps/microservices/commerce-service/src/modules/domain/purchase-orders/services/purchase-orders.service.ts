@@ -105,12 +105,26 @@ export class PurchaseOrdersService {
 
   // Creates a new PO with line items
   async create(data: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+    const supplier = await this.suppliersService.findById(data.supplierId);
+    const supplierCurrencyCode = supplier.currencyCode;
+    const isSameCurrency = supplierCurrencyCode === data.currencyCode;
+    const conversionRate = isSameCurrency ? 1 : data.conversionRate;
+
+    if (!isSameCurrency && (conversionRate == null || conversionRate <= 0)) {
+      throw new BadRequestException({
+        label: 'Invalid Conversion Rate',
+        detail: `Conversion rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from PO currency (${data.currencyCode}).`,
+      });
+    }
+
     const poNumber = await this.repository.generatePoNumber();
     const entity = await this.repository.transaction(async (tx) => {
       const created = await this.repository.create(
         {
           supplierId: data.supplierId,
           poNumber,
+          currencyCode: data.currencyCode,
+          conversionRate: String(conversionRate ?? 1),
           orderDate: data.orderDate,
           expectedBy: data.expectedBy ?? null,
           notes: data.notes ?? null,
@@ -155,13 +169,16 @@ export class PurchaseOrdersService {
       });
     }
 
+    const resolvedUnitPrice =
+      data.unitPrice != null ? data.unitPrice : data.supplierUnitPrice * Number(existing.conversionRate);
+
     await this.poItemsRepository.create({
       purchaseOrderId: id,
       inventoryItemId: data.inventoryItemId,
       orderedQuantity: String(data.orderedQuantity),
       supplierUnitPrice: String(data.supplierUnitPrice),
-      unitPrice: data.unitPrice != null ? String(data.unitPrice) : null,
-      totalPrice: data.unitPrice != null ? String(Number(data.unitPrice) * data.orderedQuantity) : null,
+      unitPrice: String(resolvedUnitPrice),
+      totalPrice: String(resolvedUnitPrice * data.orderedQuantity),
     });
 
     this.logger.log(`Added PO item: ${existing.poNumber} (${existing.id})`);
@@ -195,14 +212,19 @@ export class PurchaseOrdersService {
 
     const orderedQuantity = data.orderedQuantity ?? Number(item.orderedQuantity);
     const supplierUnitPrice = data.supplierUnitPrice !== undefined ? data.supplierUnitPrice : Number(item.supplierUnitPrice);
-    const unitPrice = data.unitPrice !== undefined ? data.unitPrice : item.unitPrice ? Number(item.unitPrice) : null;
+    const unitPrice =
+      data.unitPrice !== undefined
+        ? data.unitPrice
+        : item.unitPrice
+          ? Number(item.unitPrice)
+          : supplierUnitPrice * Number(existing.conversionRate);
 
     await this.poItemsRepository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
       orderedQuantity: String(orderedQuantity),
       supplierUnitPrice: String(supplierUnitPrice),
-      unitPrice: unitPrice != null ? String(unitPrice) : null,
-      totalPrice: unitPrice != null ? String(unitPrice * orderedQuantity) : null,
+      unitPrice: String(unitPrice),
+      totalPrice: String(unitPrice * orderedQuantity),
     });
 
     this.logger.log(`Updated PO item: ${existing.poNumber} (${itemId})`);

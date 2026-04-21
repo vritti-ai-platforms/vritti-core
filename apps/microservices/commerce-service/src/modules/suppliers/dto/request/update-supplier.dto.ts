@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateIf } from 'class-validator';
 
 export class UpdateSupplierDto {
   @IsOptional()
@@ -13,6 +13,11 @@ export class UpdateSupplierDto {
 
   @IsOptional()
   @IsString()
+  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  currencyCode?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(500)
   address?: string | null;
 
@@ -21,10 +26,15 @@ export class UpdateSupplierDto {
   @MaxLength(255)
   website?: string | null;
 
-  @IsOptional()
+  @ValidateIf((o: UpdateSupplierDto) => o.taxId !== null || o.taxIdType != null)
   @IsString()
+  @IsNotEmpty()
   @MaxLength(15)
-  gstin?: string | null;
+  taxId?: string | null;
+
+  @ValidateIf((o: UpdateSupplierDto) => o.taxId != null && String(o.taxId).trim().length > 0)
+  @IsEnum(['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'])
+  taxIdType?: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | null;
 
   @IsOptional()
   @IsString()

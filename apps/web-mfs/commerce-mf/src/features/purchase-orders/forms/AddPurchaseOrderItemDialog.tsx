@@ -73,6 +73,8 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   onCancel,
 }) => {
   const [supplierUnitPrice, setSupplierUnitPrice] = useState<number | null>(null);
+  const convertedSupplierUnitPrice =
+    supplierUnitPrice != null ? supplierUnitPrice * purchaseOrder.conversionRate : null;
   const addLineItemSchema = useMemo(
     () =>
       baseAddLineItemSchema.superRefine((data, ctx) => {
@@ -100,15 +102,17 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   });
 
   const excludeIds = existingItemIds.join(',');
+  const unitPriceLabel =
+    supplierUnitPrice != null ? `Unit Price (Supplier: ${supplierUnitPrice.toFixed(2)})` : 'Unit Price';
 
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
 
   useEffect(() => {
     form.clearErrors('unitPrice');
     if (!watchedOverridePrice) {
-      form.setValue('unitPrice', supplierUnitPrice != null ? String(supplierUnitPrice) : '');
+      form.setValue('unitPrice', convertedSupplierUnitPrice != null ? String(convertedSupplierUnitPrice) : '');
     }
-  }, [watchedOverridePrice, supplierUnitPrice, form]);
+  }, [watchedOverridePrice, convertedSupplierUnitPrice, form]);
 
   const handleItemSelect = (option: SelectOption | null) => {
     const nextPrice = option?.additionals?.unitPrice;
@@ -118,7 +122,10 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 
     setSupplierUnitPrice(unitPrice);
     form.setValue('overridePrice', false);
-    form.setValue('unitPrice', unitPrice != null ? String(unitPrice) : '');
+    form.setValue(
+      'unitPrice',
+      unitPrice != null ? String(unitPrice * purchaseOrder.conversionRate) : '',
+    );
 
     if (unitPrice == null) {
       form.setValue('overridePrice', false);
@@ -138,8 +145,8 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         supplierUnitPrice: supplierUnitPrice != null ? supplierUnitPrice : Number(data.unitPrice),
         unitPrice: data.overridePrice
           ? Number(data.unitPrice)
-          : supplierUnitPrice != null
-            ? supplierUnitPrice
+          : convertedSupplierUnitPrice != null
+            ? convertedSupplierUnitPrice
             : Number(data.unitPrice),
       })}
     >
@@ -150,8 +157,13 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         fieldKeys={{ valueKey: 'id', labelKey: 'name', additionalKeys: 'symbol,unitPrice', groupIdKey: 'categoryId' }}
         transformLabel={(label, option) => {
           const baseLabel = label.replace(/\s-\s[^-]+$/, '');
-          const uom = option.additionals?.symbol;
-          return typeof uom === 'string' && uom.trim() ? `${baseLabel} (${uom})` : baseLabel;
+          const uom = typeof option.additionals?.symbol === 'string' ? option.additionals.symbol.trim() : '';
+          const unitPrice = option.additionals?.unitPrice;
+
+          if (unitPrice && uom) return `${baseLabel} - ${unitPrice}/${uom}`;
+          if (unitPrice) return `${baseLabel} - ${unitPrice}`;
+          if (uom) return `${baseLabel} (${uom})`;
+          return baseLabel;
         }}
         onOptionSelect={handleItemSelect}
         params={{ excludeIds, supplierId: purchaseOrder.supplierId }}
@@ -165,7 +177,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       />
       <TextField
         name="unitPrice"
-        label="Unit Price"
+        label={unitPriceLabel}
         type="number"
         placeholder={watchedOverridePrice ? 'Enter custom unit price' : 'Supplier price'}
         disabled={!watchedOverridePrice || supplierUnitPrice == null}
