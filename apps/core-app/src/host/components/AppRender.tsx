@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
-import { NAV_THEME, useTheme } from '@vritti/quantum-ui-native';
+import { getTheme, useTheme } from '@vritti/quantum-ui-native';
 import { useMemo } from 'react';
 import { DynamicFeatureNavigator } from '../mf/DynamicFeatureNavigator';
 import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';
@@ -25,7 +25,7 @@ export function AppRender() {
       ...(isDark ? DarkTheme : DefaultTheme),
       colors: {
         ...(isDark ? DarkTheme : DefaultTheme).colors,
-        ...NAV_THEME[isDark ? 'dark' : 'light'],
+        ...getTheme(isDark ? 'dark' : 'light'),
       },
     }),
     [isDark],

@@ -3,7 +3,7 @@ import * as Keychain from 'react-native-keychain';
 
 const KEYCHAIN_SERVICE_PREFIX = 'com.anonymous.coreapp.secure';
 
-const storage: MobileAxiosConfig['storage'] = {
+export const storage: MobileAxiosConfig['storage'] = {
   async getItem(key) {
     const credentials = await Keychain.getGenericPassword({
       service: `${KEYCHAIN_SERVICE_PREFIX}.${key}`,

@@ -1,6 +1,6 @@
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
-import { NAV_THEME, useTheme } from '@vritti/quantum-ui-native';
+import { getTheme, useTheme } from '@vritti/quantum-ui-native';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import * as React from 'react';
 import { Image, View } from 'react-native';
@@ -23,7 +23,7 @@ export function AuthScreenLayout({ title, subtitle, children, onBack }: AuthScre
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: NAV_THEME[isDark ? 'dark' : 'light'].background,
+        backgroundColor: getTheme(isDark ? 'dark' : 'light').background,
       }}
     >
       <View className="flex-1 bg-background px-5">
