@@ -39,6 +39,7 @@ export default defineConfig({
         './StockAdjustments': './src/features/stock-adjustments/index.tsx',
         './StockTransfers': './src/features/stock-transfers/index.tsx',
         './Suppliers': './src/features/suppliers/index.tsx',
+        './TaxGroups': './src/features/tax-groups/index.tsx',
         './UOM': './src/features/uom/index.tsx',
       },
       shared: {
