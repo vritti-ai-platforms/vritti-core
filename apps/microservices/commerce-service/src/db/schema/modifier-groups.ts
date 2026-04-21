@@ -1,7 +1,19 @@
-import { bigint, boolean, decimal, index, integer, jsonb, pgPolicy, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { modifierSelectionTypeEnum } from './enums';
+import {
+  bigint,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgPolicy,
+  primaryKey,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { modifierSelectionTypeEnum } from './enums';
 
 export const modifierGroups = coreSchema.table(
   'modifier_groups',

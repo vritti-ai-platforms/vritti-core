@@ -1,5 +1,16 @@
-import { bigint, boolean, decimal, index, integer, jsonb, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  bigint,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  primaryKey,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 
 import { bom } from './bom';
 import { coreSchema } from './core-schema';
