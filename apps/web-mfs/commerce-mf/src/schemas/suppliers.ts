@@ -22,7 +22,7 @@ const zOptionalPhoneNumber = z.string().refine((value) => value === '' || isVali
 
 const enforceTaxIdPair = (
   taxId: string | null | undefined,
-  taxIdType: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | '' | null | undefined,
+  taxIdType: 'GST' | 'VAT' | 'EIN' | 'SALES_TAX' | 'OTHER' | null | undefined,
   ctx: z.RefinementCtx,
 ) => {
   const hasTaxId = typeof taxId === 'string' && taxId.trim().length > 0;

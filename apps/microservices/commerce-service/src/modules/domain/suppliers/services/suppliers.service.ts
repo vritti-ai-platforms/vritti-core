@@ -1,6 +1,7 @@
 import { SupplierContactsRepository } from '@domain/supplier-contacts/repositories/supplier-contacts.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  BadRequestException,
   ConflictException,
   type FieldMap,
   FilterProcessor,
@@ -31,6 +32,22 @@ export class SuppliersService {
     private readonly repository: SuppliersRepository,
     private readonly supplierContactsRepository: SupplierContactsRepository,
   ) {}
+
+  private static throwInvalidTaxDetailsError(nextTaxId: string | null, nextTaxIdType: string | null): never {
+    if (nextTaxIdType != null && nextTaxId == null) {
+      throw new BadRequestException({
+        label: 'Invalid Tax Details',
+        detail: 'Tax ID is required when Tax ID Type is selected.',
+        errors: [{ field: 'taxId', message: 'Tax ID is required when Tax ID Type is selected.' }],
+      });
+    }
+
+    throw new BadRequestException({
+      label: 'Invalid Tax Details',
+      detail: 'Tax ID Type is required when Tax ID is provided.',
+      errors: [{ field: 'taxIdType', message: 'Tax ID Type is required when Tax ID is provided.' }],
+    });
+  }
 
   // Returns paginated suppliers for the data table
   async findForTable(state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
@@ -73,10 +90,7 @@ export class SuppliersService {
     const normalizedTaxId = data.taxId?.trim() ? data.taxId.trim() : null;
     const normalizedTaxIdType = data.taxIdType ?? null;
     if ((normalizedTaxId != null) !== (normalizedTaxIdType != null)) {
-      throw new ConflictException({
-        label: 'Invalid Tax Details',
-        detail: 'Tax ID and Tax ID Type must be provided together.',
-      });
+      SuppliersService.throwInvalidTaxDetailsError(normalizedTaxId, normalizedTaxIdType);
     }
 
     const entity = await this.repository.transaction(async (tx) => {
@@ -136,10 +150,7 @@ export class SuppliersService {
     const nextTaxId = normalizedTaxIdInput !== undefined ? normalizedTaxIdInput : existing.taxId;
     const nextTaxIdType = data.taxIdType !== undefined ? data.taxIdType : existing.taxIdType;
     if ((nextTaxId != null) !== (nextTaxIdType != null)) {
-      throw new ConflictException({
-        label: 'Invalid Tax Details',
-        detail: 'Tax ID and Tax ID Type must be provided together.',
-      });
+      SuppliersService.throwInvalidTaxDetailsError(nextTaxId, nextTaxIdType);
     }
 
     const updatePayload: Record<string, unknown> = {};
