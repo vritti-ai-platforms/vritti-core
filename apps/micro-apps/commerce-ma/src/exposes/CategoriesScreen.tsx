@@ -6,8 +6,7 @@ import { View } from 'react-native';
  */
 export default function CategoriesScreen() {
   return (
-    // <SafeAreaView style={{ flex: 1, backgroundColor: '#2563eb', padding: 16 }}>
-    <>
+    <View className="flex-1 bg-background">
       <Text className="text-2xl font-bold text-foreground">Categories</Text>
       <Text className="text-sm text-muted-foreground mt-1">Organize items by category</Text>
       <View className="mt-6 p-4 rounded-xl bg-card border border-border">
@@ -16,7 +15,6 @@ export default function CategoriesScreen() {
           This screen is served from the commerce micro app via Module Federation.
         </Text>
       </View>
-    </>
-    // </SafeAreaView>
+    </View>
   );
 }
