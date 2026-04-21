@@ -4,7 +4,7 @@ export class SupplierItemDto {
   id: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
-  supplierCode: string | null;
+  supplierItemCode: string | null;
   unitPrice: number | null;
   uomId: string;
   uomSymbol: string;
@@ -18,7 +18,7 @@ export class SupplierItemDto {
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? null;
-    dto.supplierCode = entity.supplierCode ?? null;
+    dto.supplierItemCode = entity.supplierItemCode ?? null;
     dto.unitPrice = entity.unitPrice ? Number(entity.unitPrice) : null;
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? '';

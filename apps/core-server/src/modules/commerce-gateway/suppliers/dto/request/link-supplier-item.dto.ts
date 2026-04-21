@@ -10,7 +10,7 @@ export class LinkSupplierItemDto {
   @ApiPropertyOptional({ description: 'Supplier-specific item code' })
   @IsOptional()
   @IsString()
-  supplierCode?: string;
+  supplierItemCode?: string;
 
   @ApiPropertyOptional({ description: 'Unit price from this supplier', example: 12.5 })
   @IsOptional()

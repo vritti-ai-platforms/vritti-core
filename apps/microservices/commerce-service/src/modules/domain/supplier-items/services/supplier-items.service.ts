@@ -17,7 +17,7 @@ import { SupplierItemsRepository } from '../repositories/supplier-items.reposito
 export class SupplierItemsService {
   private static readonly FIELD_MAP: FieldMap = {
     inventoryItemName: { column: inventoryItems.name, type: 'string' },
-    supplierCode: { column: supplierItems.supplierCode, type: 'string' },
+    supplierItemCode: { column: supplierItems.supplierItemCode, type: 'string' },
     uomSymbol: { column: uom.symbol, type: 'string' },
     unitPrice: { column: supplierItems.unitPrice, type: 'number' },
     minOrderQuantity: { column: supplierItems.minOrderQuantity, type: 'number' },
@@ -67,7 +67,7 @@ export class SupplierItemsService {
     const created = await this.repository.createSupplierItem({
       supplierId,
       inventoryItemId: data.inventoryItemId,
-      supplierCode: data.supplierCode ?? null,
+      supplierItemCode: data.supplierItemCode ?? null,
       unitPrice: data.unitPrice != null ? String(data.unitPrice) : null,
       uomId: data.uomId,
       minOrderQuantity: data.minOrderQuantity != null ? String(data.minOrderQuantity) : null,

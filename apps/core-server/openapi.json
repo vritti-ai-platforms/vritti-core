@@ -11828,7 +11828,7 @@
             "type": "string",
             "description": "Inventory item ID to link"
           },
-          "supplierCode": {
+          "supplierItemCode": {
             "type": "string",
             "description": "Supplier-specific item code"
           },

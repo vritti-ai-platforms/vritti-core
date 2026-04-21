@@ -11,7 +11,7 @@ export class SupplierItemResponseDto {
   inventoryItemName: string | null;
 
   @ApiPropertyOptional({ description: 'Supplier-specific item code', nullable: true })
-  supplierCode: string | null;
+  supplierItemCode: string | null;
 
   @ApiPropertyOptional({ description: 'Unit price', nullable: true })
   unitPrice: number | null;

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SupplierData } from '@/schemas/suppliers';
 import { type CreateSupplierPayload, createSupplier } from '@/services/suppliers.service';
-import { SUPPLIERS_TABLE_KEY } from './useSuppliersTable';
+import { SUPPLIERS_TABLE_KEY } from './keys';
 
 // Creates a new supplier and invalidates the table
 export function useCreateSupplier(

@@ -2,8 +2,7 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SuppliersTableResponse } from '@/schemas/suppliers';
 import { getSuppliersTable } from '@/services/suppliers.service';
-
-export const SUPPLIERS_TABLE_KEY = ['commerce', 'suppliers', 'table'] as const;
+import { SUPPLIERS_TABLE_KEY } from './keys';
 
 // Fetches suppliers table data
 export function useSuppliersTable(

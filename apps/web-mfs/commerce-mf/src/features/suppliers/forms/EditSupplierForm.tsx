@@ -7,7 +7,7 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useUpdateSupplier } from '@/hooks/useUpdateSupplier';
+import { useUpdateSupplier } from '@/hooks/suppliers';
 import {
   type SupplierDetail,
   TAX_ID_TYPE_OPTIONS,

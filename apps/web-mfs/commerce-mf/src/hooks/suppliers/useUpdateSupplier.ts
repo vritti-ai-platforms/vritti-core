@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import { type UpdateSupplierPayload, updateSupplier } from '@/services/suppliers.service';
-import { SUPPLIERS_TABLE_KEY } from './useSuppliersTable';
+import { SUPPLIER_KEY, SUPPLIERS_TABLE_KEY } from './keys';
 
 // Updates a supplier and invalidates table + detail
 export function useUpdateSupplier(
@@ -17,7 +17,7 @@ export function useUpdateSupplier(
     onSuccess: (...args) => {
       const [, variables] = args;
       queryClient.invalidateQueries({ queryKey: SUPPLIERS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: ['commerce', 'suppliers', variables.id] });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(variables.id) });
       options?.onSuccess?.(...args);
     },
   });

@@ -9,7 +9,7 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, Truck } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SUPPLIERS_TABLE_KEY, useSuppliersTable } from '@/hooks/useSuppliersTable';
+import { SUPPLIERS_TABLE_KEY, useSuppliersTable } from '@/hooks/suppliers';
 import type { SupplierData } from '@/schemas/suppliers';
 import { AddSupplierDialog } from './forms/AddSupplierDialog';
 

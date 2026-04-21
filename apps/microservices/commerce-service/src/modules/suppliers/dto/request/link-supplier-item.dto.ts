@@ -7,7 +7,7 @@ export class LinkSupplierItemDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  supplierCode?: string;
+  supplierItemCode?: string;
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })

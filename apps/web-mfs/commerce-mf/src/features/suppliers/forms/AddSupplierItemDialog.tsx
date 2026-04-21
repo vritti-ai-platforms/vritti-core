@@ -7,22 +7,27 @@ import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useSupplierItemIds } from '@/hooks/useSupplierItemIds';
-import { useLinkSupplierItem } from '@/hooks/useLinkSupplierItem';
+import { useLinkSupplierItem } from '@/hooks/suppliers';
 import { type LinkSupplierItemFormData, linkSupplierItemSchema } from '@/schemas/suppliers';
 
 interface AddSupplierItemDialogProps {
   supplierId: string;
+  existingInventoryItemIds: string[];
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({ supplierId, onSuccess, onCancel }) => {
+export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
+  supplierId,
+  existingInventoryItemIds,
+  onSuccess,
+  onCancel,
+}) => {
   const form = useForm<LinkSupplierItemFormData>({
     resolver: zodResolver(linkSupplierItemSchema),
     defaultValues: {
       inventoryItemId: '',
-      supplierCode: '',
+      supplierItemCode: '',
       unitPrice: '',
       uomId: '',
       minOrderQuantity: '',
@@ -32,21 +37,19 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({ su
   });
 
   const linkMutation = useLinkSupplierItem(supplierId, { onSuccess });
-  const { data: existingItemIdsList } = useSupplierItemIds(supplierId);
 
   // Exclude already linked items
-  const existingItemIds = (existingItemIdsList ?? []).join(',');
+  const existingItemIds = existingInventoryItemIds.join(',');
 
   return (
     <Form
       form={form}
       mutation={linkMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
-        supplierCode: data.supplierCode || undefined,
+        supplierItemCode: data.supplierItemCode || undefined,
         unitPrice: data.unitPrice ? Number(data.unitPrice) : undefined,
         uomId: data.uomId,
         minOrderQuantity: data.minOrderQuantity ? Number(data.minOrderQuantity) : undefined,
@@ -60,7 +63,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({ su
         placeholder="Select item"
         params={{ excludeIds: existingItemIds }}
       />
-      <TextField name="supplierCode" label="Supplier Code" placeholder="Supplier's code for this item" />
+      <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
       <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
       <div className="grid grid-cols-2 gap-4">
         <TextField name="unitPrice" label="Unit Price" type="number" placeholder="e.g. 150.00" />

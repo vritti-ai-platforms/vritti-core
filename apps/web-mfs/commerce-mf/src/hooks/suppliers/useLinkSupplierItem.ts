@@ -3,8 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SupplierItemData } from '@/schemas/suppliers';
 import { type LinkSupplierItemPayload, linkSupplierItem } from '@/services/suppliers.service';
-import { SUPPLIER_ITEM_IDS_KEY } from './useSupplierItemIds';
-import { SUPPLIER_ITEMS_TABLE_KEY } from './useSupplierItemsTable';
+import { SUPPLIER_ITEM_IDS_KEY, SUPPLIER_ITEMS_TABLE_KEY, SUPPLIER_KEY } from './keys';
 
 // Links an inventory item to a supplier and invalidates the detail
 export function useLinkSupplierItem(
@@ -17,7 +16,7 @@ export function useLinkSupplierItem(
     ...options,
     mutationFn: (data) => linkSupplierItem({ supplierId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ['commerce', 'suppliers', supplierId] });
+      queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(supplierId) });
       queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
       queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_IDS_KEY(supplierId) });
       options?.onSuccess?.(...args);

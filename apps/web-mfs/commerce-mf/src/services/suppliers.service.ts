@@ -46,7 +46,7 @@ export interface UpdateSupplierPayload {
 
 export interface LinkSupplierItemPayload {
   inventoryItemId: string;
-  supplierCode?: string;
+  supplierItemCode?: string;
   unitPrice?: number;
   uomId: string;
   minOrderQuantity?: number;

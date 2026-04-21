@@ -359,7 +359,7 @@ SELECT
 FROM ins i;
 
 INSERT INTO vritti_core.supplier_items (
-  id, organization_id, supplier_id, inventory_item_id, supplier_code, unit_price, uom_id, min_order_quantity, lead_time_days, is_preferred, is_active, created_at, updated_at
+  id, organization_id, supplier_id, inventory_item_id, supplier_item_code, unit_price, uom_id, min_order_quantity, lead_time_days, is_preferred, is_active, created_at, updated_at
 )
 SELECT
   gen_random_uuid(),
