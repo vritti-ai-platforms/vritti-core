@@ -184,6 +184,8 @@ export class UserService {
       ...(dto.email && { email: dto.email }),
       ...(dto.fullName && { fullName: dto.fullName }),
       ...(dto.status && { status: dto.status as (typeof UserStatusValues)[keyof typeof UserStatusValues] }),
+      ...(dto.locale && { locale: dto.locale }),
+      ...(dto.timezone && { timezone: dto.timezone }),
       updatedAt: new Date(),
     });
 

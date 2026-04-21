@@ -8,6 +8,8 @@ export interface User {
   displayName?: string | null;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   hasPassword: boolean;
+  locale?: string;
+  timezone?: string;
   createdAt: string;
   lastLoginAt?: string | null;
 }
@@ -36,7 +38,5 @@ export function getAuthStatus(): Promise<AuthStatusResponse> {
 
 // Logs out the current user
 export function logout(): Promise<void> {
-  return axios
-    .post('auth/logout', {}, { successMessage: 'Logged out successfully' })
-    .then(() => undefined);
+  return axios.post('auth/logout', {}, { successMessage: 'Logged out successfully' }).then(() => undefined);
 }

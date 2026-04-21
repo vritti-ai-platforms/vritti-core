@@ -79,6 +79,7 @@ export const SupplierDetailPage = () => {
         handle={editDialog}
         title="Edit Supplier"
         description="Update the supplier details."
+        className="max-w-3xl"
         content={(close) => <EditSupplierForm supplier={supplier} onSuccess={close} onCancel={close} />}
       />
 

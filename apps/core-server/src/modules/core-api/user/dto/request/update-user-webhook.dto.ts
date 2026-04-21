@@ -18,4 +18,16 @@ export class UpdateUserWebhookDto {
   @IsOptional()
   @IsEnum(UserStatusValues)
   status?: string;
+
+  @ApiPropertyOptional({ example: 'en-US' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  locale?: string;
+
+  @ApiPropertyOptional({ example: 'America/New_York' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  timezone?: string;
 }

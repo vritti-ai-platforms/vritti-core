@@ -17,6 +17,12 @@ export class UserDto {
   @ApiProperty({ description: 'Account status', example: 'ACTIVE', enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] })
   status: string;
 
+  @ApiProperty({ description: 'User locale', example: 'en-US' })
+  locale: string;
+
+  @ApiProperty({ description: 'User timezone', example: 'America/New_York' })
+  timezone: string;
+
   @ApiProperty({ description: 'Whether user has set a password', example: true })
   hasPassword: boolean;
 
@@ -37,6 +43,8 @@ export class UserDto {
     dto.email = user.email;
     dto.fullName = user.fullName;
     dto.status = user.status;
+    dto.locale = user.locale;
+    dto.timezone = user.timezone;
     dto.hasPassword = user.passwordHash !== null;
     dto.phone = user.phone ?? null;
     dto.phoneCountry = user.phoneCountry ?? null;

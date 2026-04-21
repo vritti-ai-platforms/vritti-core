@@ -8848,6 +8848,16 @@
               "SUSPENDED"
             ]
           },
+          "locale": {
+            "type": "string",
+            "description": "User locale",
+            "example": "en-US"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "User timezone",
+            "example": "America/New_York"
+          },
           "hasPassword": {
             "type": "boolean",
             "description": "Whether user has set a password",
@@ -8865,6 +8875,8 @@
           "email",
           "fullName",
           "status",
+          "locale",
+          "timezone",
           "hasPassword",
           "createdAt"
         ]
@@ -8905,6 +8917,14 @@
               "ACTIVE",
               "SUSPENDED"
             ]
+          },
+          "locale": {
+            "type": "string",
+            "example": "en-US"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/New_York"
           }
         }
       },

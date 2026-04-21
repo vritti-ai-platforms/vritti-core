@@ -2,7 +2,9 @@ import { useAuthStatusStream } from '@hooks/auth/useAuthStatusStream';
 import type { AuthOrg, User } from '@services/user.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearToken } from '@vritti/quantum-ui/axios';
-import { createContext, useCallback, useContext, useMemo } from 'react';
+import { getLocale, setLocale } from '@vritti/quantum-ui/locale';
+import { getTimeZone, setTimeZone } from '@vritti/quantum-ui/timezone';
+import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 
 interface AuthContextValue {
   user: User | undefined;
@@ -36,6 +38,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = authResponse?.isAuthenticated ?? false;
   const user = authResponse?.user;
   const org = authResponse?.org;
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const userTimezone = user?.timezone;
+    if (userTimezone) {
+      setTimeZone(userTimezone);
+      return;
+    }
+
+    if (!getTimeZone()) {
+      const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC';
+      setTimeZone(browserTimezone);
+    }
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const userLocale = user?.locale;
+    if (userLocale) {
+      setLocale(userLocale);
+      return;
+    }
+
+    const browserLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
+    const storedLocale = getLocale() ?? browserLocale;
+    if (!getLocale()) {
+      setLocale(storedLocale);
+    }
+  }, [isAuthenticated, user?.locale]);
 
   // Org not found = status loaded, no org returned, but subdomain exists in URL
   const hasSubdomain = typeof window !== 'undefined' && window.location.hostname.split('.').length > 2;
