@@ -1,4 +1,4 @@
-import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 import { invoiceTypeEnum, invoicePartyTypeEnum, invoiceStatusEnum } from './enums';
@@ -16,12 +16,12 @@ export const invoices = coreSchema.table(
     partyName: varchar('party_name', { length: 255 }).notNull(),
     referenceType: varchar('reference_type', { length: 50 }),
     referenceId: uuid('reference_id'),
-    subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull(),
-    taxAmount: decimal('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'),
-    discountAmount: decimal('discount_amount', { precision: 12, scale: 2 }).notNull().default('0'),
-    totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
-    paidAmount: decimal('paid_amount', { precision: 12, scale: 2 }).notNull().default('0'),
-    balance: decimal('balance', { precision: 12, scale: 2 }).notNull(),
+    subtotal: bigint('subtotal', { mode: 'number' }).notNull(),
+    taxAmount: bigint('tax_amount', { mode: 'number' }).notNull().default(0),
+    discountAmount: bigint('discount_amount', { mode: 'number' }).notNull().default(0),
+    totalAmount: bigint('total_amount', { mode: 'number' }).notNull(),
+    paidAmount: bigint('paid_amount', { mode: 'number' }).notNull().default(0),
+    balance: bigint('balance', { mode: 'number' }).notNull(),
     status: invoiceStatusEnum('status').notNull().default('DRAFT'),
     paymentTerms: varchar('payment_terms', { length: 50 }),
     issuedDate: timestamp('issued_date', { withTimezone: true, mode: 'string' }),

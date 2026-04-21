@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, index, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { paymentMethodEnum, paymentStatusEnum } from './enums';
 import { invoices } from './invoices';
@@ -12,7 +12,7 @@ export const payments = coreSchema.table(
     invoiceId: uuid('invoice_id')
       .notNull()
       .references(() => invoices.id, { onDelete: 'cascade' }),
-    amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
     method: paymentMethodEnum('method').notNull(),
     reference: varchar('reference', { length: 255 }),
     status: paymentStatusEnum('status').notNull().default('COMPLETED'),

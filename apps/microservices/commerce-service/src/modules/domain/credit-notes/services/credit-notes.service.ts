@@ -30,9 +30,9 @@ export class CreditNotesService {
       partyId: data.partyId ?? null,
       partyName: data.partyName,
       creditNoteNumber: data.creditNoteNumber,
-      amount: String(data.amount),
-      appliedAmount: '0',
-      remaining: String(data.amount),
+      amount: data.amount,
+      appliedAmount: 0,
+      remaining: data.amount,
       reason: data.reason ?? null,
       status: (data.status as CreditNoteStatus) ?? CreditNoteStatusValues.DRAFT,
       issuedBy: data.issuedBy ?? null,
@@ -80,7 +80,7 @@ export class CreditNotesService {
     await this.repository.createApplication({
       creditNoteId: id,
       invoiceId: data.invoiceId,
-      amount: String(data.amount),
+      amount: data.amount,
     });
 
     const newAppliedAmount = Number(creditNote.appliedAmount) + data.amount;
@@ -89,8 +89,8 @@ export class CreditNotesService {
       newRemaining <= 0 ? CreditNoteStatusValues.FULLY_APPLIED : CreditNoteStatusValues.PARTIALLY_APPLIED;
 
     await this.repository.update(id, {
-      appliedAmount: String(newAppliedAmount),
-      remaining: String(newRemaining),
+      appliedAmount: newAppliedAmount,
+      remaining: newRemaining,
       status: newCnStatus,
     });
 
@@ -99,8 +99,8 @@ export class CreditNotesService {
     const newInvoiceStatus = newInvoiceBalance <= 0 ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
 
     await this.invoicesRepository.update(invoice.id, {
-      paidAmount: String(newPaidAmount),
-      balance: String(newInvoiceBalance),
+      paidAmount: newPaidAmount,
+      balance: newInvoiceBalance,
       status: newInvoiceStatus,
     });
 

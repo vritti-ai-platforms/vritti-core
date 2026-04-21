@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import {
-  inventoryItems,
-  type PurchaseOrderItem,
-  purchaseOrderItems,
-} from '@/db/schema';
+import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { inventoryItems, type PurchaseOrderItem, purchaseOrderItems } from '@/db/schema';
 
 @Injectable()
 export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof purchaseOrderItems> {
@@ -92,12 +88,36 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
       .select()
       .from(purchaseOrderItems)
       .where(
-        and(
-          eq(purchaseOrderItems.purchaseOrderId, poId),
-          eq(purchaseOrderItems.inventoryItemId, inventoryItemId),
-        ),
+        and(eq(purchaseOrderItems.purchaseOrderId, poId), eq(purchaseOrderItems.inventoryItemId, inventoryItemId)),
       );
     return (item as PurchaseOrderItem | undefined) ?? null;
   }
 
+  // Updates pricing fields for a PO line item
+  async updateLinePricing(
+    itemId: string,
+    data: { unitPrice: number; totalPrice: number },
+    tx?: TypedDrizzleClient,
+  ): Promise<void> {
+    const db = tx ?? this.db;
+    await db
+      .update(purchaseOrderItems)
+      .set({
+        unitPrice: data.unitPrice,
+        totalPrice: data.totalPrice,
+      })
+      .where(eq(purchaseOrderItems.id, itemId));
+  }
+
+  // Recalculates all line prices for a purchase order using supplier price * conversion rate
+  async recalculateLinePricingByPoId(poId: string, conversionRate: number, tx?: TypedDrizzleClient): Promise<void> {
+    const db = tx ?? this.db;
+    await db
+      .update(purchaseOrderItems)
+      .set({
+        unitPrice: sql`(${purchaseOrderItems.supplierUnitPrice} * ${conversionRate})::bigint`,
+        totalPrice: sql`(${purchaseOrderItems.orderedQuantity} * (${purchaseOrderItems.supplierUnitPrice} * ${conversionRate}))::bigint`,
+      })
+      .where(eq(purchaseOrderItems.purchaseOrderId, poId));
+  }
 }

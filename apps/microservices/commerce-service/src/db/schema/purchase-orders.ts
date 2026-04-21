@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { date, decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, date, decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
@@ -21,7 +21,7 @@ export const purchaseOrders = coreSchema.table(
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
     notes: text('notes'),
-    totalAmount: decimal('total_amount', { precision: 12, scale: 2 }),
+    totalAmount: bigint('total_amount', { mode: 'number' }),
     createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -72,9 +72,9 @@ export const purchaseOrderItems = coreSchema.table(
       .references(() => inventoryItems.id),
     orderedQuantity: decimal('ordered_quantity', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
-    supplierUnitPrice: decimal('supplier_unit_price', { precision: 12, scale: 2 }).notNull(),
-    unitPrice: decimal('unit_price', { precision: 12, scale: 2 }),
-    totalPrice: decimal('total_price', { precision: 12, scale: 2 }),
+    supplierUnitPrice: bigint('supplier_unit_price', { mode: 'number' }).notNull(),
+    unitPrice: bigint('unit_price', { mode: 'number' }),
+    totalPrice: bigint('total_price', { mode: 'number' }),
   },
   (table) => [
     unique('uq_purchase_order_items_po_item').on(table.purchaseOrderId, table.inventoryItemId),

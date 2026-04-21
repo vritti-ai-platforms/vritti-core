@@ -82,7 +82,7 @@ export class ModifierGroupsService {
     const entity = await this.modifierGroupsRepository.createOption({
       groupId: data.groupId,
       name: data.name,
-      additionalPrice: data.additionalPrice != null ? String(data.additionalPrice) : '0',
+      additionalPrice: data.additionalPrice ?? 0,
       isDefault: data.isDefault ?? false,
       isAvailable: data.isAvailable ?? true,
       sortOrder: data.sortOrder ?? 0,
@@ -98,7 +98,7 @@ export class ModifierGroupsService {
 
     const updatePayload: Record<string, unknown> = {};
     if (dto.name !== undefined) updatePayload.name = dto.name;
-    if (dto.additionalPrice !== undefined) updatePayload.additionalPrice = String(dto.additionalPrice);
+    if (dto.additionalPrice !== undefined) updatePayload.additionalPrice = dto.additionalPrice;
     if (dto.isDefault !== undefined) updatePayload.isDefault = dto.isDefault;
     if (dto.isAvailable !== undefined) updatePayload.isAvailable = dto.isAvailable;
     if (dto.sortOrder !== undefined) updatePayload.sortOrder = dto.sortOrder;

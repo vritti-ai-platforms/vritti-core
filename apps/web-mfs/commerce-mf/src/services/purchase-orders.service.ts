@@ -44,6 +44,12 @@ export interface ChangePurchaseOrderSupplierPayload {
   supplierId: string;
 }
 
+export interface ChangePurchaseOrderCurrencyPayload {
+  id: string;
+  currencyCode: string;
+  conversionRate: number;
+}
+
 export interface SendPurchaseOrderEmailPayload {
   id: string;
   email?: string;
@@ -148,6 +154,17 @@ export function changePurchaseOrderSupplier({
 }: ChangePurchaseOrderSupplierPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/supplier`, { supplierId })
+    .then((r) => r.data);
+}
+
+// Changes purchase order currency and conversion rate
+export function changePurchaseOrderCurrency({
+  id,
+  currencyCode,
+  conversionRate,
+}: ChangePurchaseOrderCurrencyPayload): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/currency`, { currencyCode, conversionRate })
     .then((r) => r.data);
 }
 

@@ -1,4 +1,4 @@
-import { boolean, decimal, index, integer, jsonb, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, boolean, decimal, index, integer, jsonb, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 
 import { bom } from './bom';
@@ -43,7 +43,7 @@ export const itemVariants = coreSchema.table(
     bomId: uuid('bom_id').references(() => bom.id, { onDelete: 'set null' }),
     sku: varchar('sku', { length: 100 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
-    price: decimal('price', { precision: 12, scale: 2 }).notNull(),
+    price: bigint('price', { mode: 'number' }).notNull(),
     isAvailable: boolean('is_available').notNull().default(true),
     manageInventory: boolean('manage_inventory').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),

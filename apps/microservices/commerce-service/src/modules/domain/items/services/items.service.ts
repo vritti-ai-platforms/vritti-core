@@ -189,7 +189,7 @@ export class ItemsService {
         itemId,
         sku,
         name: variantName,
-        price: '0',
+        price: 0,
         sortOrder: i,
       });
 

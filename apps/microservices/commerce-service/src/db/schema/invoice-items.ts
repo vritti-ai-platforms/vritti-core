@@ -1,4 +1,4 @@
-import { decimal, index, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, decimal, index, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 import { invoices } from './invoices';
@@ -11,9 +11,9 @@ export const invoiceItems = coreSchema.table(
     invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
     description: varchar('description', { length: 255 }).notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    unitPrice: decimal('unit_price', { precision: 12, scale: 2 }).notNull(),
-    taxAmount: decimal('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'),
-    total: decimal('total', { precision: 12, scale: 2 }).notNull(),
+    unitPrice: bigint('unit_price', { mode: 'number' }).notNull(),
+    taxAmount: bigint('tax_amount', { mode: 'number' }).notNull().default(0),
+    total: bigint('total', { mode: 'number' }).notNull(),
     referenceItemId: uuid('reference_item_id'),
   },
   (table) => [

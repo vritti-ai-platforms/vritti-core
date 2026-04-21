@@ -160,7 +160,7 @@ export class ItemsRepository extends PrimaryBaseRepository<typeof items> {
     itemId: string;
     sku: string;
     name: string;
-    price: string;
+    price: number;
     sortOrder: number;
   }): Promise<ItemVariant> {
     const results = await this.db.insert(itemVariants).values(data).returning();

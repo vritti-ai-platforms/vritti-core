@@ -32,6 +32,11 @@ export const SuppliersPage = () => {
         enableSorting: true,
       },
       {
+        accessorKey: 'currencyCode',
+        header: 'Currency',
+        enableSorting: true,
+      },
+      {
         accessorKey: 'contactName',
         header: 'Contact',
         cell: ({ row }) => row.original.contactName ?? '—',

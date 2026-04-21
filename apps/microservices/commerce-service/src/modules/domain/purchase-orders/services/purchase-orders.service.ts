@@ -100,7 +100,10 @@ export class PurchaseOrdersService {
       offset,
     });
 
-    return { result: rows.map((entity) => PurchaseOrderDto.from(entity, entity.supplierName)), count };
+    return {
+      result: rows.map((entity) => PurchaseOrderDto.from(entity, entity.supplierName, entity.supplierCurrencyCode)),
+      count,
+    };
   }
 
   // Creates a new PO with line items
@@ -114,6 +117,7 @@ export class PurchaseOrdersService {
       throw new BadRequestException({
         label: 'Invalid Conversion Rate',
         detail: `Conversion rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from PO currency (${data.currencyCode}).`,
+        errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
       });
     }
 
@@ -142,7 +146,7 @@ export class PurchaseOrdersService {
     return {
       success: true,
       message: `Purchase order "${entity.poNumber}" created successfully.`,
-      data: PurchaseOrderDto.from(detailed, detailed.supplierName),
+      data: PurchaseOrderDto.from(detailed, detailed.supplierName, detailed.supplierCurrencyCode),
     };
   }
 
@@ -150,7 +154,7 @@ export class PurchaseOrdersService {
   async findById(id: string): Promise<PurchaseOrderDto> {
     const entity = await this.repository.findByIdWithSupplierName(id);
     if (!entity) throw new NotFoundException('Purchase order not found.');
-    return PurchaseOrderDto.from(entity, entity.supplierName);
+    return PurchaseOrderDto.from(entity, entity.supplierName, entity.supplierCurrencyCode);
   }
 
   // Adds a line item to a draft PO
@@ -176,16 +180,16 @@ export class PurchaseOrdersService {
       purchaseOrderId: id,
       inventoryItemId: data.inventoryItemId,
       orderedQuantity: String(data.orderedQuantity),
-      supplierUnitPrice: String(data.supplierUnitPrice),
-      unitPrice: String(resolvedUnitPrice),
-      totalPrice: String(resolvedUnitPrice * data.orderedQuantity),
+      supplierUnitPrice: data.supplierUnitPrice,
+      unitPrice: resolvedUnitPrice,
+      totalPrice: resolvedUnitPrice * data.orderedQuantity,
     });
 
     this.logger.log(`Added PO item: ${existing.poNumber} (${existing.id})`);
     return {
       success: true,
       message: `Line item added to purchase order "${existing.poNumber}".`,
-      data: PurchaseOrderDto.from(existing, existing.supplierName),
+      data: PurchaseOrderDto.from(existing, existing.supplierName, existing.supplierCurrencyCode),
     };
   }
 
@@ -213,7 +217,7 @@ export class PurchaseOrdersService {
     const orderedQuantity = data.orderedQuantity ?? Number(item.orderedQuantity);
     const supplierUnitPrice = data.supplierUnitPrice !== undefined ? data.supplierUnitPrice : Number(item.supplierUnitPrice);
     const unitPrice =
-      data.unitPrice !== undefined
+      data.unitPrice != null
         ? data.unitPrice
         : item.unitPrice
           ? Number(item.unitPrice)
@@ -222,9 +226,9 @@ export class PurchaseOrdersService {
     await this.poItemsRepository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
       orderedQuantity: String(orderedQuantity),
-      supplierUnitPrice: String(supplierUnitPrice),
-      unitPrice: String(unitPrice),
-      totalPrice: String(unitPrice * orderedQuantity),
+      supplierUnitPrice,
+      unitPrice,
+      totalPrice: unitPrice * orderedQuantity,
     });
 
     this.logger.log(`Updated PO item: ${existing.poNumber} (${itemId})`);
@@ -282,6 +286,50 @@ export class PurchaseOrdersService {
     return {
       success: true,
       message: `Supplier changed to "${supplierName}" for purchase order "${entity.poNumber}".`,
+    };
+  }
+
+  // Changes currency on a draft PO and recalculates line prices from supplier price
+  async changeCurrency(id: string, currencyCode: string, conversionRate?: number): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
+      throw new BadRequestException({
+        label: 'Cannot Change Currency',
+        detail: 'Currency can only be changed while the purchase order is in draft.',
+      });
+    }
+
+    const supplier = await this.suppliersService.findById(existing.supplierId);
+    const isSameCurrency = supplier.currencyCode === currencyCode;
+    const nextConversionRate = isSameCurrency ? 1 : conversionRate;
+
+    if (!isSameCurrency && (nextConversionRate == null || nextConversionRate <= 0)) {
+      throw new BadRequestException({
+        label: 'Invalid Conversion Rate',
+        detail: `Conversion rate is required and must be greater than 0 when supplier currency (${supplier.currencyCode}) differs from PO currency (${currencyCode}).`,
+        errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
+      });
+    }
+
+    await this.repository.transaction(async (tx) => {
+      const resolvedConversionRate = Number(nextConversionRate ?? 1);
+      await this.repository.updateCurrency(
+        id,
+        {
+          currencyCode,
+          conversionRate: String(resolvedConversionRate),
+        },
+        tx,
+      );
+
+      await this.poItemsRepository.recalculateLinePricingByPoId(id, resolvedConversionRate, tx);
+    });
+
+    this.logger.log(`Changed PO currency: ${existing.poNumber} (${id}) -> ${currencyCode}`);
+    return {
+      success: true,
+      message: `Currency changed to "${currencyCode}" for purchase order "${existing.poNumber}".`,
     };
   }
 

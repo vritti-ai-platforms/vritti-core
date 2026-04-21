@@ -61,7 +61,7 @@ export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
         itemId: string;
         itemName: string;
         variantName: string;
-        price: string;
+        price: number;
         taxGroupId: string | null;
       }
     | undefined

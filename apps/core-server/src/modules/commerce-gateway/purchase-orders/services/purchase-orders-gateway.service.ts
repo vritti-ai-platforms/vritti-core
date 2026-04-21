@@ -14,6 +14,7 @@ import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/goods-r
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import { BusinessUnitService } from '@/modules/domain/business-unit/services/business-unit.service';
 import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
+import type { ChangePurchaseOrderCurrencyDto } from '../dto/request/change-purchase-order-currency.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
 import type { PurchaseOrderSelectQueryDto } from '../dto/request/purchase-order-select-query.dto';
@@ -154,6 +155,16 @@ export class PurchaseOrdersGatewayService {
   async changeSupplier(id: string, dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeSupplier — id: ${id}, supplier: ${dto.supplierId}`);
     return this.nats.send('commerce', 'purchaseOrders.changeSupplier', { id, supplierId: dto.supplierId });
+  }
+
+  // Changes purchase order currency and conversion rate
+  async changeCurrency(id: string, dto: ChangePurchaseOrderCurrencyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.changeCurrency — id: ${id}, currency: ${dto.currencyCode}`);
+    return this.nats.send('commerce', 'purchaseOrders.changeCurrency', {
+      id,
+      currencyCode: dto.currencyCode,
+      conversionRate: dto.conversionRate,
+    });
   }
 
   // Updates a purchase order status

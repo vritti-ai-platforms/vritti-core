@@ -38,7 +38,6 @@ export const SendPurchaseOrderEmailDialog: React.FC<SendPurchaseOrderEmailDialog
     <Form
       form={form}
       mutation={sendEmailMutation}
-      showRootError
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

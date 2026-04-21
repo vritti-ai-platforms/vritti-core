@@ -6294,6 +6294,44 @@
         ]
       }
     },
+    "/commerce-api/purchase-orders/{id}/currency": {
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_changeCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePurchaseOrderCurrencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
     "/commerce-api/purchase-orders/{id}/status": {
       "patch": {
         "operationId": "PurchaseOrdersGatewayController_updateStatus",
@@ -11467,6 +11505,24 @@
         },
         "required": [
           "supplierId"
+        ]
+      },
+      "ChangePurchaseOrderCurrencyDto": {
+        "type": "object",
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "description": "PO currency code (ISO 4217)",
+            "example": "INR"
+          },
+          "conversionRate": {
+            "type": "number",
+            "description": "FX conversion rate from supplier currency to PO currency",
+            "example": 1
+          }
+        },
+        "required": [
+          "currencyCode"
         ]
       },
       "SendPurchaseOrderEmailDto": {

@@ -5,6 +5,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
 import type { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
+import type { ChangePurchaseOrderCurrencyDto } from './dto/request/change-purchase-order-currency.dto';
 import type { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderItemDto } from './dto/request/update-purchase-order-item.dto';
@@ -70,6 +71,12 @@ export class PurchaseOrdersController {
   async changeSupplier(@Payload() data: { id: string } & ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeSupplier — id: ${data.id}, supplier: ${data.supplierId}`);
     return this.service.changeSupplier(data.id, data.supplierId);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.changeCurrency' })
+  async changeCurrency(@Payload() data: { id: string } & ChangePurchaseOrderCurrencyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.changeCurrency — id: ${data.id}, currency: ${data.currencyCode}`);
+    return this.service.changeCurrency(data.id, data.currencyCode, data.conversionRate);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.items' })

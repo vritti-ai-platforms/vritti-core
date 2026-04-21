@@ -68,12 +68,12 @@ export class InvoicesService {
       partyName: data.partyName,
       referenceType: data.referenceType ?? null,
       referenceId: data.referenceId ?? null,
-      subtotal: String(subtotal),
-      taxAmount: String(taxAmount),
-      discountAmount: String(discountAmount),
-      totalAmount: String(totalAmount),
-      paidAmount: '0',
-      balance: String(totalAmount),
+      subtotal,
+      taxAmount,
+      discountAmount,
+      totalAmount,
+      paidAmount: 0,
+      balance: totalAmount,
       status: (data.status as InvoiceStatus) ?? InvoiceStatusValues.DRAFT,
       paymentTerms: data.paymentTerms ?? null,
       issuedDate: data.issuedDate ?? null,
@@ -84,14 +84,14 @@ export class InvoicesService {
     if (data.items?.length) {
       await this.repository.createItems(
         data.items.map((item) => ({
-          invoiceId: entity.id,
-          description: item.description,
-          quantity: String(item.quantity),
-          unitPrice: String(item.unitPrice),
-          taxAmount: String(item.taxAmount ?? 0),
-          total: String(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),
-          referenceItemId: item.referenceItemId ?? null,
-        })),
+            invoiceId: entity.id,
+            description: item.description,
+            quantity: String(item.quantity),
+            unitPrice: item.unitPrice,
+            taxAmount: item.taxAmount ?? 0,
+            total: item.quantity * item.unitPrice + (item.taxAmount ?? 0),
+            referenceItemId: item.referenceItemId ?? null,
+          })),
       );
     }
 
@@ -137,9 +137,9 @@ export class InvoicesService {
             invoiceId: id,
             description: item.description,
             quantity: String(item.quantity),
-            unitPrice: String(item.unitPrice),
-            taxAmount: String(item.taxAmount ?? 0),
-            total: String(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),
+            unitPrice: item.unitPrice,
+            taxAmount: item.taxAmount ?? 0,
+            total: item.quantity * item.unitPrice + (item.taxAmount ?? 0),
             referenceItemId: item.referenceItemId ?? null,
           })),
         );
@@ -150,18 +150,18 @@ export class InvoicesService {
       const discountAmount = data.discountAmount ?? Number(existing.discountAmount);
       const totalAmount = subtotal + taxAmount - discountAmount;
 
-      updatePayload.subtotal = String(subtotal);
-      updatePayload.taxAmount = String(taxAmount);
-      updatePayload.discountAmount = String(discountAmount);
-      updatePayload.totalAmount = String(totalAmount);
-      updatePayload.balance = String(totalAmount - Number(existing.paidAmount));
+      updatePayload.subtotal = subtotal;
+      updatePayload.taxAmount = taxAmount;
+      updatePayload.discountAmount = discountAmount;
+      updatePayload.totalAmount = totalAmount;
+      updatePayload.balance = totalAmount - Number(existing.paidAmount);
     } else if (data.discountAmount !== undefined) {
       const subtotal = Number(existing.subtotal);
       const taxAmount = Number(existing.taxAmount);
       const totalAmount = subtotal + taxAmount - data.discountAmount;
-      updatePayload.discountAmount = String(data.discountAmount);
-      updatePayload.totalAmount = String(totalAmount);
-      updatePayload.balance = String(totalAmount - Number(existing.paidAmount));
+      updatePayload.discountAmount = data.discountAmount;
+      updatePayload.totalAmount = totalAmount;
+      updatePayload.balance = totalAmount - Number(existing.paidAmount);
     }
 
     const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;

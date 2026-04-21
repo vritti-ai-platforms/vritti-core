@@ -43,6 +43,7 @@ export interface PurchaseOrderData {
   id: string;
   supplierId: string;
   supplierName: string;
+  supplierCurrencyCode: string | null;
   poNumber: string;
   status: PurchaseOrderStatus;
   currencyCode: string;

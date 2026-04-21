@@ -10,6 +10,9 @@ export class PurchaseOrderResponseDto {
   @ApiPropertyOptional({ description: 'Supplier name', nullable: true })
   supplierName: string | null;
 
+  @ApiPropertyOptional({ description: 'Supplier currency code (ISO 4217)', nullable: true, example: 'INR' })
+  supplierCurrencyCode: string | null;
+
   @ApiPropertyOptional({ description: 'PO number', nullable: true })
   poNumber: string | null;
 

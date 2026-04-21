@@ -1,6 +1,6 @@
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { BomData, BomDetail, BomTableResponse } from '@/schemas/bom';
+import type { BomDetail, BomTableResponse } from '@/schemas/bom';
 
 export interface CreateBomPayload {
   name: string;

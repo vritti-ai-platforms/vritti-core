@@ -36,7 +36,7 @@ export class ItemVariantDto {
   id: string;
   sku: string;
   name: string;
-  price: string;
+  price: number;
   isAvailable: boolean;
   manageInventory: boolean;
   sortOrder: number;

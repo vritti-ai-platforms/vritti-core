@@ -4,7 +4,7 @@ export class ModifierOptionDto {
   id: string;
   groupId: string;
   name: string;
-  additionalPrice: string;
+  additionalPrice: number;
   isDefault: boolean;
   isAvailable: boolean;
   sortOrder: number;

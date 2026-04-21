@@ -28,6 +28,7 @@ export class PurchaseOrderDto {
   id: string;
   supplierId: string;
   supplierName: string | null;
+  supplierCurrencyCode: string | null;
   poNumber: string;
   status: PurchaseOrderStatus;
   currencyCode: string;
@@ -39,11 +40,12 @@ export class PurchaseOrderDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(entity: PurchaseOrder, supplierName?: string | null): PurchaseOrderDto {
+  static from(entity: PurchaseOrder, supplierName?: string | null, supplierCurrencyCode?: string | null): PurchaseOrderDto {
     const dto = new PurchaseOrderDto();
     dto.id = entity.id;
     dto.supplierId = entity.supplierId;
     dto.supplierName = supplierName ?? null;
+    dto.supplierCurrencyCode = supplierCurrencyCode ?? null;
     dto.poNumber = entity.poNumber;
     dto.status = entity.status;
     dto.currencyCode = entity.currencyCode;

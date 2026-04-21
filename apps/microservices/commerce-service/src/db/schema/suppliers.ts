@@ -1,5 +1,6 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  bigint,
   boolean,
   decimal,
   index,
@@ -136,7 +137,7 @@ export const supplierItems = coreSchema.table(
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     supplierItemCode: varchar('supplier_item_code', { length: 100 }),
-    unitPrice: decimal('unit_price', { precision: 12, scale: 2 }),
+    unitPrice: bigint('unit_price', { mode: 'number' }),
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),

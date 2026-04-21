@@ -1,4 +1,4 @@
-import { decimal, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, decimal, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
@@ -18,12 +18,12 @@ export const orders = coreSchema.table(
     customerName: varchar('customer_name', { length: 255 }),
     customerPhone: varchar('customer_phone', { length: 20 }),
     deliveryAddress: text('delivery_address'),
-    subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull().default('0'),
-    taxAmount: decimal('tax_amount', { precision: 12, scale: 2 }).notNull().default('0'),
-    serviceCharge: decimal('service_charge', { precision: 12, scale: 2 }).notNull().default('0'),
-    deliveryCharge: decimal('delivery_charge', { precision: 12, scale: 2 }).notNull().default('0'),
-    discountAmount: decimal('discount_amount', { precision: 12, scale: 2 }).notNull().default('0'),
-    totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull().default('0'),
+    subtotal: bigint('subtotal', { mode: 'number' }).notNull().default(0),
+    taxAmount: bigint('tax_amount', { mode: 'number' }).notNull().default(0),
+    serviceCharge: bigint('service_charge', { mode: 'number' }).notNull().default(0),
+    deliveryCharge: bigint('delivery_charge', { mode: 'number' }).notNull().default(0),
+    discountAmount: bigint('discount_amount', { mode: 'number' }).notNull().default(0),
+    totalAmount: bigint('total_amount', { mode: 'number' }).notNull().default(0),
     notes: text('notes'),
     externalOrderId: varchar('external_order_id', { length: 100 }),
     placedAt: timestamp('placed_at', { withTimezone: true }).defaultNow().notNull(),
@@ -85,11 +85,11 @@ export const orderItems = coreSchema.table(
     itemName: varchar('item_name', { length: 255 }).notNull(),
     variantName: varchar('variant_name', { length: 255 }),
     quantity: integer('quantity').notNull().default(1),
-    unitPrice: decimal('unit_price', { precision: 12, scale: 2 }).notNull(),
+    unitPrice: bigint('unit_price', { mode: 'number' }).notNull(),
     taxRate: decimal('tax_rate', { precision: 5, scale: 2 }).notNull(),
-    taxAmount: decimal('tax_amount', { precision: 12, scale: 2 }).notNull(),
-    subtotal: decimal('subtotal', { precision: 12, scale: 2 }).notNull(),
-    total: decimal('total', { precision: 12, scale: 2 }).notNull(),
+    taxAmount: bigint('tax_amount', { mode: 'number' }).notNull(),
+    subtotal: bigint('subtotal', { mode: 'number' }).notNull(),
+    total: bigint('total', { mode: 'number' }).notNull(),
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -112,7 +112,7 @@ export const orderItemModifiers = coreSchema.table(
     modifierGroupId: uuid('modifier_group_id').notNull(),
     modifierOptionId: uuid('modifier_option_id').notNull(),
     name: varchar('name', { length: 255 }).notNull(),
-    additionalPrice: decimal('additional_price', { precision: 12, scale: 2 }).notNull(),
+    additionalPrice: bigint('additional_price', { mode: 'number' }).notNull(),
   },
   (table) => [
     index('idx_order_item_modifiers_item').on(table.orderItemId),

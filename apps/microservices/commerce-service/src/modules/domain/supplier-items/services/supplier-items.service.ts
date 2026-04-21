@@ -68,7 +68,7 @@ export class SupplierItemsService {
       supplierId,
       inventoryItemId: data.inventoryItemId,
       supplierItemCode: data.supplierItemCode ?? null,
-      unitPrice: data.unitPrice != null ? String(data.unitPrice) : null,
+      unitPrice: data.unitPrice ?? null,
       uomId: data.uomId,
       minOrderQuantity: data.minOrderQuantity != null ? String(data.minOrderQuantity) : null,
       leadTimeDays: data.leadTimeDays ?? null,

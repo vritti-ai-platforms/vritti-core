@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 
@@ -7,6 +7,25 @@ import { purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
   constructor(database: PrimaryDatabaseService) {
     super(database, purchaseOrders, { sequence: purchaseOrderNumberSeq });
+  }
+
+  // Updates PO currency and conversion rate
+  async updateCurrency(
+    id: string,
+    data: { currencyCode: string; conversionRate: string },
+    tx?: TypedDrizzleClient,
+  ): Promise<(typeof purchaseOrders.$inferSelect) | null> {
+    const db = tx ?? this.db;
+    const [row] = await db
+      .update(purchaseOrders)
+      .set({
+        currencyCode: data.currencyCode,
+        conversionRate: data.conversionRate,
+      })
+      .where(eq(purchaseOrders.id, id))
+      .returning();
+
+    return row ?? null;
   }
 
   // Generates a sequential PO number
@@ -20,7 +39,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
   // Returns PO with supplier name for detail endpoint
   async findByIdWithSupplierName(
     id: string,
-  ): Promise<(typeof purchaseOrders.$inferSelect & { supplierName: string | null }) | null> {
+  ): Promise<(typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }) | null> {
     const [row] = await this.db
       .select({
         id: purchaseOrders.id,
@@ -39,6 +58,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         createdAt: purchaseOrders.createdAt,
         updatedAt: purchaseOrders.updatedAt,
         supplierName: suppliers.name,
+        supplierCurrencyCode: suppliers.currencyCode,
       })
       .from(purchaseOrders)
       .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
@@ -50,10 +70,10 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
 
   // Returns paginated POs with supplier name for table view
   async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (typeof purchaseOrders.$inferSelect & { supplierName: string | null })[];
+    result: (typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null })[];
     count: number;
   }> {
-    return this.findAllAndCount<typeof purchaseOrders.$inferSelect & { supplierName: string | null }>({
+    return this.findAllAndCount<typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }>({
       select: {
         id: purchaseOrders.id,
         organizationId: purchaseOrders.organizationId,
@@ -71,6 +91,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         createdAt: purchaseOrders.createdAt,
         updatedAt: purchaseOrders.updatedAt,
         supplierName: suppliers.name,
+        supplierCurrencyCode: suppliers.currencyCode,
       },
       leftJoins: [{ table: suppliers, on: eq(purchaseOrders.supplierId, suppliers.id) }],
       where: options.where,

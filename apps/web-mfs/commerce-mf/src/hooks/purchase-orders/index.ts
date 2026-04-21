@@ -1,6 +1,7 @@
 export { PURCHASE_ORDERS_KEY } from './keys';
 export { useAddPurchaseOrderItem } from './useAddPurchaseOrderItem';
 export { useChangePurchaseOrderSupplier } from './useChangePurchaseOrderSupplier';
+export { useChangePurchaseOrderCurrency } from './useChangePurchaseOrderCurrency';
 export { useCreatePurchaseOrder } from './useCreatePurchaseOrder';
 export { useDeletePurchaseOrder } from './useDeletePurchaseOrder';
 export { PURCHASE_ORDER_KEY, usePurchaseOrder } from './usePurchaseOrder';

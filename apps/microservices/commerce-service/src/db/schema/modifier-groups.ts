@@ -1,4 +1,4 @@
-import { boolean, decimal, index, integer, jsonb, pgPolicy, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, boolean, decimal, index, integer, jsonb, pgPolicy, primaryKey, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { modifierSelectionTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
@@ -53,7 +53,7 @@ export const modifierOptions = coreSchema.table(
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     groupId: uuid('group_id').notNull(),
     name: varchar('name', { length: 255 }).notNull(),
-    additionalPrice: decimal('additional_price', { precision: 12, scale: 2 }).notNull().default('0'),
+    additionalPrice: bigint('additional_price', { mode: 'number' }).notNull().default(0),
     isDefault: boolean('is_default').notNull().default(false),
     isAvailable: boolean('is_available').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),

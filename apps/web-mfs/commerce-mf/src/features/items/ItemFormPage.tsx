@@ -1,4 +1,3 @@
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
