@@ -8,7 +8,12 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplier } from '@/hooks/useUpdateSupplier';
-import { type SupplierDetail, TAX_ID_TYPE_OPTIONS, type UpdateSupplierFormData, updateSupplierSchema } from '@/schemas/suppliers';
+import {
+  type SupplierDetail,
+  TAX_ID_TYPE_OPTIONS,
+  type UpdateSupplierFormData,
+  updateSupplierSchema,
+} from '@/schemas/suppliers';
 
 interface EditSupplierFormProps {
   supplier: SupplierDetail;
@@ -40,20 +45,15 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
       form={form}
       mutation={updateMutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({
-        id: supplier.id,
-        data: {
-          ...data,
-          taxId: data.taxId?.trim() ? data.taxId.trim() : null,
-          taxIdType:
-            data.taxId?.trim()
-              ? typeof data.taxIdType === 'string' && data.taxIdType.length > 0
-                ? data.taxIdType
-                : null
-              : null,
-          leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : null,
-        },
-      })}
+      transformSubmit={(data) => {
+        return {
+          id: supplier.id,
+          data: {
+            ...data,
+            leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : null,
+          },
+        };
+      }}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />

@@ -8,10 +8,9 @@ export const TAX_ID_TYPE_OPTIONS = [
   { value: 'EIN', label: 'EIN' },
   { value: 'SALES_TAX', label: 'Sales Tax' },
   { value: 'OTHER', label: 'Other' },
-] as const;
+];
 
 const taxIdTypeSchema = z.enum(['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
-const taxIdTypeFieldSchema = z.union([taxIdTypeSchema, z.literal('')]);
 
 export const zPhoneNumber = z.string().refine((value) => isValidPhoneNumber(value), {
   message: 'Invalid phone number',
@@ -62,7 +61,7 @@ export const createSupplierSchema = z
     website: z.string().max(255).optional(),
     address: z.string().max(500).optional(),
     taxId: z.string().max(15, 'Tax ID must be at most 15 characters').optional(),
-    taxIdType: taxIdTypeFieldSchema.optional(),
+    taxIdType: taxIdTypeSchema.optional(),
     paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
     leadTimeDays: z.string().optional(),
     notes: z.string().optional(),
@@ -73,11 +72,14 @@ export const updateSupplierSchema = z
   .object({
     name: z.string().min(1).max(255).optional(),
     code: z.string().min(1).max(100).optional(),
-    currencyCode: z.string().regex(/^[A-Z]{3}$/).optional(),
+    currencyCode: z
+      .string()
+      .regex(/^[A-Z]{3}$/)
+      .optional(),
     website: z.string().max(255).nullable().optional(),
     address: z.string().max(500).nullable().optional(),
     taxId: z.string().max(15).nullable().optional(),
-    taxIdType: taxIdTypeFieldSchema.nullable().optional(),
+    taxIdType: taxIdTypeSchema.nullable().optional(),
     paymentTerms: z.string().max(50).nullable().optional(),
     leadTimeDays: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
