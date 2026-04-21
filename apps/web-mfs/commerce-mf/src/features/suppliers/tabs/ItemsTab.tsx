@@ -12,10 +12,11 @@ import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
 
 interface ItemsTabProps {
   supplierId: string;
+  supplierCurrencyCode?: string;
   existingInventoryItemIds: string[];
 }
 
-export const ItemsTab = ({ supplierId, existingInventoryItemIds }: ItemsTabProps) => {
+export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryItemIds }: ItemsTabProps) => {
   const queryClient = useQueryClient();
   const addItemDialog = useDialog();
   const confirm = useConfirm();
@@ -54,7 +55,7 @@ export const ItemsTab = ({ supplierId, existingInventoryItemIds }: ItemsTabProps
       },
       {
         accessorKey: 'unitPrice',
-        header: 'Unit Price',
+        header: supplierCurrencyCode ? `Unit Price (${supplierCurrencyCode})` : 'Unit Price',
         cell: ({ row }) => (row.original.unitPrice != null ? row.original.unitPrice.toFixed(2) : '—'),
       },
       {
@@ -95,7 +96,7 @@ export const ItemsTab = ({ supplierId, existingInventoryItemIds }: ItemsTabProps
         enableHiding: false,
       },
     ],
-    [handleUnlinkItem, unlinkMutation.isPending],
+    [handleUnlinkItem, unlinkMutation.isPending, supplierCurrencyCode],
   );
 
   const { table: linkedItemsTable } = useDataTable({

@@ -57,7 +57,13 @@ export const SupplierDetailPage = () => {
           {
             value: 'items',
             label: `Items (${supplierInventoryItemIds.length})`,
-            content: <ItemsTab supplierId={supplier.id} existingInventoryItemIds={supplierInventoryItemIds} />,
+            content: (
+              <ItemsTab
+                supplierId={supplier.id}
+                supplierCurrencyCode={supplier.currencyCode}
+                existingInventoryItemIds={supplierInventoryItemIds}
+              />
+            ),
           },
           {
             value: 'contacts',
