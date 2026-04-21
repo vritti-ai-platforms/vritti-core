@@ -131,6 +131,11 @@ class EnvironmentVariables {
   @IsString()
   BASE_DOMAIN: string;
 
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  @IsOptional()
+  ALLOW_RAW_IP_HOST_ROUTING?: boolean;
+
   // R2 Storage
   @IsString()
   R2_ACCOUNT_ID: string;
@@ -191,6 +196,7 @@ export function validate(config: Record<string, unknown>): Record<string, unknow
       ? parseInt(config.MEDIA_SIGNED_URL_EXPIRY as string, 10)
       : undefined,
     MASK_PII: config.MASK_PII ?? 'false',
+    ALLOW_RAW_IP_HOST_ROUTING: config.ALLOW_RAW_IP_HOST_ROUTING ?? 'false',
   };
 
   const validatedConfig = plainToInstance(EnvironmentVariables, processedConfig, {

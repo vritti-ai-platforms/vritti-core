@@ -193,6 +193,7 @@ export class AuthService {
     refreshToken: string | undefined,
     subdomain?: string,
     bearerAccessToken?: string,
+    allowRawIpOrgResolution = false,
   ): Promise<AuthResponseDto> {
     // Resolve org regardless of auth state
     const org = subdomain ? await this.organizationService.getBySubdomain(subdomain) : null;
@@ -207,24 +208,46 @@ export class AuthService {
         const decoded = this.tokenService.validateAccessToken(bearerAccessToken);
         const session = await this.sessionService.validateAccessTokenSession(bearerAccessToken);
         const user = await this.userService.findById(decoded.userId);
+        const sessionMetadata = (session.metadata ?? {}) as Record<string, unknown>;
+
+        const resolvedOrg =
+          org ??
+          (allowRawIpOrgResolution
+            ? await this.resolveOrganizationFromSessionContext(
+                sessionMetadata,
+                decoded as unknown as Record<string, unknown>,
+              )
+            : null);
+        const resolvedOrgData = resolvedOrg
+          ? {
+              id: resolvedOrg.id,
+              name: resolvedOrg.name,
+              subdomain: resolvedOrg.subdomain,
+              logoUrl: resolvedOrg.logoUrl,
+            }
+          : orgData;
 
         let businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>> = [];
         let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> = {};
 
-        if (org) {
+        if (resolvedOrg) {
           try {
-            businessUnits = await this.userPermissionsService.getAssignedBusinessUnits(decoded.userId, org.id);
+            businessUnits = await this.userPermissionsService.getAssignedBusinessUnits(decoded.userId, resolvedOrg.id);
             featuresByBuId = Object.fromEntries(
               await Promise.all(
                 businessUnits.map(async (bu) => {
-                  const { features } = await this.userPermissionsService.getPermissions(decoded.userId, bu.id, org.id);
+                  const { features } = await this.userPermissionsService.getPermissions(
+                    decoded.userId,
+                    bu.id,
+                    resolvedOrg.id,
+                  );
                   return [bu.id, features];
                 }),
               ),
             );
           } catch (error) {
             this.logger.error(
-              `Failed to enrich auth status permissions for user ${decoded.userId} in org ${org.id}: ${error}`,
+              `Failed to enrich auth status permissions for user ${decoded.userId} in org ${resolvedOrg.id}: ${error}`,
             );
           }
         }
@@ -243,7 +266,7 @@ export class AuthService {
                 lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
               }
             : undefined,
-          org: orgData,
+          org: resolvedOrgData,
           businessUnits,
           featuresByBuId,
         });
@@ -274,6 +297,29 @@ export class AuthService {
     } catch {
       return new AuthResponseDto({ isAuthenticated: false, org: orgData });
     }
+  }
+
+  private async resolveOrganizationFromSessionContext(
+    sessionMetadata: Record<string, unknown>,
+    decodedToken: Record<string, unknown>,
+  ) {
+    const organizationId =
+      this.getStringValue(sessionMetadata.organizationId) ?? this.getStringValue(decodedToken.organizationId);
+    if (organizationId) {
+      return this.organizationService.getById(organizationId);
+    }
+
+    const organizationSubdomain =
+      this.getStringValue(sessionMetadata.subdomain) ?? this.getStringValue(decodedToken.subdomain);
+    if (organizationSubdomain) {
+      return this.organizationService.getBySubdomain(organizationSubdomain);
+    }
+
+    return null;
+  }
+
+  private getStringValue(value: unknown): string | undefined {
+    return typeof value === 'string' && value.trim() ? value : undefined;
   }
 
   // Rotates both tokens and returns new access token — sets new refresh cookie in controller

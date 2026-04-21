@@ -11578,7 +11578,7 @@
   ],
   "servers": [
     {
-      "url": "https://local.vrittiai.com:3001",
+      "url": "http://local.vrittiai.com:3001",
       "description": "Local Development"
     }
   ],

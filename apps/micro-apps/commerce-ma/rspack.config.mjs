@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
@@ -9,6 +10,71 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const workspaceRoot = path.resolve(__dirname, '../../..');
 const quantumUiNative = path.resolve(__dirname, '../../../..', 'quantum-ui-native');
+const coreAppEnvFilePath = path.resolve(workspaceRoot, 'apps/core-app/.env');
+
+function loadCoreAppEnv() {
+  if (!fs.existsSync(coreAppEnvFilePath)) {
+    return;
+  }
+
+  const envFile = fs.readFileSync(coreAppEnvFilePath, 'utf8');
+
+  for (const rawLine of envFile.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+
+    const separatorIndex = line.indexOf('=');
+    if (separatorIndex === -1) continue;
+
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, '');
+
+    if (key && process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+function validateDevMfHost(rawValue) {
+  const value = rawValue?.trim();
+
+  if (!value) {
+    throw new Error(
+      `DEV_MF_HOST is required in development. Set it in ${coreAppEnvFilePath} or the shell to your laptop LAN IP or hostname, for example 192.168.1.23`,
+    );
+  }
+
+  if (value.includes('://')) {
+    throw new Error(
+      `DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`,
+    );
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(`http://${value}`);
+  } catch {
+    throw new Error(`DEV_MF_HOST must be a valid host or IP. Received: ${value}`);
+  }
+
+  if (parsed.pathname && parsed.pathname !== '/') {
+    throw new Error(
+      `DEV_MF_HOST must not include a path like "${parsed.pathname}". Use only the host or IP, for example 192.168.1.23`,
+    );
+  }
+
+  if (parsed.search || parsed.hash) {
+    throw new Error('DEV_MF_HOST must not include query params or a hash fragment.');
+  }
+
+  if (parsed.port) {
+    throw new Error('DEV_MF_HOST must not include a port. The dev remote ports are configured separately.');
+  }
+
+  return parsed.hostname;
+}
+
+loadCoreAppEnv();
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)
@@ -38,7 +104,6 @@ const componentDirs = [
   'DynamicIcon',
   'FlashList',
   'Form',
-  'Icon',
   'Input',
   'Label',
   'NativeStack',
@@ -49,7 +114,6 @@ const componentDirs = [
   'SplashScreen',
   'Spinner',
   'Switch',
-  'TextArea',
   'TextField',
   'Typography',
 ];
@@ -75,6 +139,9 @@ export default (env) => {
   const { platform, mode } = env;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
+  const devMfHost = mode === 'development'
+    ? validateDevMfHost(process.env.DEV_MF_HOST)
+    : (process.env.DEV_MF_HOST?.trim() ?? '');
 
   return {
     mode,
@@ -113,6 +180,9 @@ export default (env) => {
     output: {
       path: '[context]/build/[platform]',
       uniqueName: 'commerce_ma',
+      ...(mode === 'development'
+        ? { publicPath: `http://${devMfHost}:9002/[platform]/` }
+        : {}),
     },
 
     module: {

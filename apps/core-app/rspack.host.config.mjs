@@ -74,6 +74,43 @@ function validateDeploymentsApiBaseUrl() {
   return parsed.origin;
 }
 
+function validateDevRawCoreBaseUrl(rawValue) {
+  const value = rawValue?.trim();
+
+  if (!value) {
+    return '';
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(
+      `DEV_RAW_CORE_BASE_URL must be a valid absolute http/https URL. Received: ${value}`,
+    );
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(
+      `DEV_RAW_CORE_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`,
+    );
+  }
+
+  if (parsed.pathname && parsed.pathname !== '/') {
+    throw new Error(
+      `DEV_RAW_CORE_BASE_URL must be an origin only and must not include a path like "${parsed.pathname}". Use something like https://192.168.1.36:3001`,
+    );
+  }
+
+  if (parsed.search || parsed.hash) {
+    throw new Error(
+      'DEV_RAW_CORE_BASE_URL must not include query params or a hash fragment.',
+    );
+  }
+
+  return parsed.origin;
+}
+
 function validateDevMfHost(rawValue) {
   const value = rawValue?.trim();
 
@@ -113,8 +150,46 @@ function validateDevMfHost(rawValue) {
   return parsed.hostname;
 }
 
+function validateDevHostPublicHost(rawValue, fallbackHost) {
+  const value = rawValue?.trim();
+
+  if (!value) {
+    return fallbackHost;
+  }
+
+  if (value.includes('://')) {
+    throw new Error(
+      `DEV_HOST_PUBLIC_HOST must be a host or IP only, without a protocol. Received: ${value}`,
+    );
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(`http://${value}`);
+  } catch {
+    throw new Error(`DEV_HOST_PUBLIC_HOST must be a valid host or IP. Received: ${value}`);
+  }
+
+  if (parsed.pathname && parsed.pathname !== '/') {
+    throw new Error(
+      `DEV_HOST_PUBLIC_HOST must not include a path like "${parsed.pathname}". Use only the host or IP, for example 192.168.1.23`,
+    );
+  }
+
+  if (parsed.search || parsed.hash) {
+    throw new Error('DEV_HOST_PUBLIC_HOST must not include query params or a hash fragment.');
+  }
+
+  if (parsed.port) {
+    throw new Error('DEV_HOST_PUBLIC_HOST must not include a port. The host dev server port is configured separately.');
+  }
+
+  return parsed.hostname;
+}
+
 loadCoreAppEnv();
 const deploymentsApiBaseUrl = validateDeploymentsApiBaseUrl();
+const devRawCoreBaseUrl = validateDevRawCoreBaseUrl(process.env.DEV_RAW_CORE_BASE_URL);
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)
@@ -144,7 +219,6 @@ const componentDirs = [
   'DynamicIcon',
   'FlashList',
   'Form',
-  'Icon',
   'Input',
   'Label',
   'NativeStack',
@@ -155,7 +229,6 @@ const componentDirs = [
   'SplashScreen',
   'Spinner',
   'Switch',
-  'TextArea',
   'TextField',
   'Typography',
 ];
@@ -191,6 +264,9 @@ export default (env) => {
   const devMfHost = mode === 'development'
     ? validateDevMfHost(process.env.DEV_MF_HOST)
     : (process.env.DEV_MF_HOST?.trim() ?? '');
+  const devHostPublicHost = mode === 'development'
+    ? validateDevHostPublicHost(process.env.DEV_HOST_PUBLIC_HOST, devMfHost)
+    : (process.env.DEV_HOST_PUBLIC_HOST?.trim() ?? process.env.DEV_MF_HOST?.trim() ?? '');
 
   return {
     mode,
@@ -238,6 +314,9 @@ export default (env) => {
     output: {
       path: '[context]/build/host-app/[platform]',
       uniqueName: 'vritti-core-app',
+      ...(mode === 'development'
+        ? { publicPath: `http://${devHostPublicHost}:8081/[platform]/` }
+        : {}),
     },
 
     module: {
@@ -284,6 +363,7 @@ export default (env) => {
       new rspack.DefinePlugin({
         __DEPLOYMENTS_API_BASE_URL__: JSON.stringify(deploymentsApiBaseUrl),
         __DEV_MF_HOST__: JSON.stringify(devMfHost),
+        __DEV_RAW_CORE_BASE_URL__: JSON.stringify(devRawCoreBaseUrl),
       }),
       new Repack.RepackPlugin({
         extraChunks: [

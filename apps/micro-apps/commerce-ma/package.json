@@ -4,6 +4,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "react-native start --config rspack.config.mjs --port 9002",
+    "start:device": "react-native start --config rspack.config.mjs --port 9002 --host 0.0.0.0",
     "build:ios": "react-native bundle --config rspack.config.mjs --platform ios --dev false",
     "build:android": "react-native bundle --config rspack.config.mjs --platform android --dev false",
     "build": "pnpm run build:ios && pnpm run build:android"
@@ -27,7 +28,6 @@
     "react-native-css": "3.0.6",
     "react-native-nitro-modules": "^0.35.3",
     "react-native-reanimated": "^4.3.0",
-    "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "^4.24.0",
     "react-native-svg": "^15.11.2",
     "react-native-worklets": "0.8.1",
@@ -41,6 +41,7 @@
     "@react-native-community/cli": "20.0.0",
     "@react-native-community/cli-platform-android": "20.0.0",
     "@react-native-community/cli-platform-ios": "20.0.0",
+    "react-native-safe-area-context": "^5.7.0",
     "@rspack/core": "^1.7.11",
     "@swc/helpers": "^0.5.17",
     "@tailwindcss/postcss": "4.2.2",

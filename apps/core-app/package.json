@@ -4,6 +4,7 @@
   "main": "src/host/index.tsx",
   "scripts": {
     "start": "react-native start --config rspack.host.config.mjs",
+    "start:device": "react-native start --config rspack.host.config.mjs --host 0.0.0.0",
     "android": "react-native run-android",
     "ios": "react-native run-ios"
   },
@@ -30,7 +31,6 @@
     "react-native-keychain": "^10.0.0",
     "react-native-nitro-modules": "^0.35.3",
     "react-native-reanimated": "^4.3.0",
-    "react-native-safe-area-context": "^5.7.0",
     "react-native-sfsymbols": "^1.2.2",
     "react-native-screens": "^4.24.0",
     "react-native-sse": "^1.2.1",
@@ -44,6 +44,7 @@
     "@callstack/repack": "5.2.5",
     "@callstack/repack-plugin-reanimated": "^5.2.5",
     "@react-native-community/cli": "20.0.0",
+    "react-native-safe-area-context": "^5.7.0",
     "@react-native-community/cli-platform-android": "20.0.0",
     "@react-native-community/cli-platform-ios": "20.0.0",
     "@rspack/core": "^1.7.11",

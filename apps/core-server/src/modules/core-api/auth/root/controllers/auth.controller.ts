@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
+import { isIP } from 'node:net';
 import {
   AccessToken,
   CookieName,
@@ -195,10 +196,17 @@ export class AuthController {
     const host = request.hostname ?? '';
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
+    const allowRawIpOrgResolution =
+      this.config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false) && isIP(host) > 0;
 
     this.logger.log(`SSE /auth/status — subdomain: ${subdomain ?? 'none'}`);
 
-    const authResponse = await this.authService.getStatus(refreshToken, subdomain, accessToken);
+    const authResponse = await this.authService.getStatus(
+      refreshToken,
+      subdomain,
+      accessToken,
+      allowRawIpOrgResolution,
+    );
     const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
 
     // Not authenticated — send initial state and hold open to prevent rapid reconnect loop

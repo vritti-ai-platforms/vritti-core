@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RouterModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { isIP } from 'node:net';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
 
@@ -123,8 +124,19 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           csrfExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           refreshTokenBindingExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           onAuthenticated: (requestService, sessionInfo) => {
-            // Extract subdomain from request host
             const hostname = requestService.getHostname();
+            const allowRawIpHostRouting = config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false);
+
+            if (allowRawIpHostRouting && isIP(hostname)) {
+              const buHeader = requestService.getHeader('x-bu-id');
+              const buId = Array.isArray(buHeader) ? buHeader[0] : buHeader;
+              if (buId) {
+                sessionInfo.buId = buId;
+              }
+              return;
+            }
+
+            // Extract subdomain from request host
             const requestSubdomain = hostname.split('.')[0];
             if (!requestSubdomain) {
               throw new UnauthorizedException('Invalid request host');

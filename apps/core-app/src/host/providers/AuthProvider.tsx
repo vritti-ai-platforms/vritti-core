@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { useAuthSessionController, type AuthSessionPhase } from '../hooks/auth/useAuthSessionController';
+import { type AuthSessionPhase, useAuthSessionController } from '../hooks/auth/useAuthSessionController';
 import type { AuthStatusResponse } from '../types/auth-status';
 
 interface AuthContextValue {
@@ -13,9 +13,10 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const AuthSessionSnapshotContext = createContext<{ phase: AuthSessionPhase; authState: AuthStatusResponse | null } | null>(
-  null,
-);
+const AuthSessionSnapshotContext = createContext<{
+  phase: AuthSessionPhase;
+  authState: AuthStatusResponse | null;
+} | null>(null);
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
@@ -35,6 +36,8 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { phase, authState, beginStatusConfirmation, logout } = useAuthSessionController();
+
+  console.log(authState, 'kk');
   const isLoading = phase === 'bootstrapping' || phase === 'awaitingStatus';
   const isAuthenticated = phase === 'authenticated';
 

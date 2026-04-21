@@ -2,6 +2,7 @@ import { axios } from '@vritti/quantum-ui-native/utils';
 import type { CloudDeploymentDto, CloudDeploymentsResponse, Deployment } from '../../types/deployment';
 
 const DEPLOYMENTS_API_BASE_URL = __DEPLOYMENTS_API_BASE_URL__;
+const DEV_RAW_CORE_BASE_URL = __DEV_RAW_CORE_BASE_URL__;
 const DEPLOYMENTS_ENDPOINT = 'cloud-api/deployments/all';
 
 interface ParsedApiBaseURL {
@@ -19,6 +20,11 @@ export async function getDeployments(): Promise<Deployment[]> {
 }
 
 export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain: string): string {
+  const rawDevBaseURL = getRawDevCoreBaseURL();
+  if (rawDevBaseURL) {
+    return rawDevBaseURL;
+  }
+
   const normalizedSubdomain = subdomain.trim().toLowerCase();
   const parsed = tryParseApiBaseURL(deploymentBaseURL);
 
@@ -35,6 +41,11 @@ export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain
 }
 
 export function buildPublicApiBaseURL(deploymentBaseURL: string): string {
+  const rawDevBaseURL = getRawDevCoreBaseURL();
+  if (rawDevBaseURL) {
+    return rawDevBaseURL;
+  }
+
   const parsed = tryParseApiBaseURL(deploymentBaseURL);
   if (!parsed) {
     return deploymentBaseURL;
@@ -77,4 +88,9 @@ function tryParseApiBaseURL(url: string): ParsedApiBaseURL | null {
   } catch {
     return null;
   }
+}
+
+function getRawDevCoreBaseURL(): string | null {
+  const value = DEV_RAW_CORE_BASE_URL?.trim();
+  return __DEV__ && value ? value : null;
 }
