@@ -8383,6 +8383,12 @@
           "hasPassword": {
             "type": "boolean"
           },
+          "locale": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string"
           },
@@ -8396,6 +8402,8 @@
           "fullName",
           "status",
           "hasPassword",
+          "locale",
+          "timezone",
           "createdAt"
         ]
       },

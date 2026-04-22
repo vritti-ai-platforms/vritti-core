@@ -6,6 +6,8 @@ export class AuthUserDto {
   @ApiProperty() fullName: string;
   @ApiProperty() status: string;
   @ApiProperty() hasPassword: boolean;
+  @ApiProperty() locale: string;
+  @ApiProperty() timezone: string;
   @ApiProperty() createdAt: string;
   @ApiPropertyOptional() lastLoginAt: string | null;
 }

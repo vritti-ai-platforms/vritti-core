@@ -215,6 +215,8 @@ export class AuthService {
               fullName: user.fullName,
               status: user.status,
               hasPassword: user.passwordHash !== null,
+              locale: user.locale,
+              timezone: user.timezone,
               createdAt: user.createdAt.toISOString(),
               lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
             }
