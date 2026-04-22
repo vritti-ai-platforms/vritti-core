@@ -2,6 +2,7 @@ import type { TabIcon } from '@vritti/quantum-ui-native/BottomNavigation';
 
 const defaultIcon: TabIcon = {
   sfSymbol: 'square.stack.3d.up',
+  materialSymbol: 'layers',
 };
 
 const commerceTabIcons: Record<string, TabIcon> = {
@@ -19,6 +20,6 @@ const commerceTabIcons: Record<string, TabIcon> = {
   './POSBilling': { sfSymbol: 'cart' },
 };
 
-export function getCommerceTabIcon(key: string): TabIcon {
+export const getCommerceTabIcon = (key: string): TabIcon => {
   return commerceTabIcons[key] ?? defaultIcon;
-}
+};

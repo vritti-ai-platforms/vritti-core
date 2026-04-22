@@ -6,7 +6,7 @@ import { type LoginDto, type LoginResponse, login } from '../../services/auth/au
 type UseLoginOptions = Omit<UseMutationOptions<LoginResponse, AxiosError, LoginDto>, 'mutationFn'>;
 
 // Authenticates and stores tokens on success
-export function useLogin(options?: UseLoginOptions) {
+export const useLogin = (options?: UseLoginOptions) => {
   return useMutation<LoginResponse, AxiosError, LoginDto>({
     ...options,
     mutationFn: login,
@@ -15,4 +15,4 @@ export function useLogin(options?: UseLoginOptions) {
       options?.onSuccess?.(...args);
     },
   });
-}
+};

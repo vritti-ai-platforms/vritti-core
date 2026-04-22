@@ -22,10 +22,10 @@ function AuthFlowContent() {
   return <LoginScreen />;
 }
 
-export function AuthFlowShell() {
+export const AuthFlowShell = () => {
   return (
     <AuthFlowProvider>
       <AuthFlowContent />
     </AuthFlowProvider>
   );
-}
+};

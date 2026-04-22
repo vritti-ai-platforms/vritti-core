@@ -5,9 +5,9 @@ import { type LookupOrganizationsDto, type LookupResponse, lookupOrganizations }
 type UseLookupOrganizationsOptions = Omit<UseMutationOptions<LookupResponse, AxiosError, LookupOrganizationsDto>, 'mutationFn'>;
 
 // Looks up organizations for an email address
-export function useLookupOrganizations(options?: UseLookupOrganizationsOptions) {
+export const useLookupOrganizations = (options?: UseLookupOrganizationsOptions) => {
   return useMutation<LookupResponse, AxiosError, LookupOrganizationsDto>({
     ...options,
     mutationFn: lookupOrganizations,
   });
-}
+};

@@ -11,15 +11,15 @@ interface ParsedApiBaseURL {
   port: string;
 }
 
-export async function getDeployments(): Promise<Deployment[]> {
+export const getDeployments = async (): Promise<Deployment[]> => {
   const response = await axios.get<CloudDeploymentsResponse>(DEPLOYMENTS_ENDPOINT, {
     baseURL: DEPLOYMENTS_API_BASE_URL,
     public: true,
   });
   return response.data.result.map(mapDeployment);
-}
+};
 
-export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain: string): string {
+export const buildOrganizationApiBaseURL = (deploymentBaseURL: string, subdomain: string): string => {
   const rawDevBaseURL = getRawDevCoreBaseURL();
   if (rawDevBaseURL) {
     return rawDevBaseURL;
@@ -38,9 +38,9 @@ export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain
     : `${normalizedSubdomain}.${baseHostname}`;
 
   return formatOrigin(parsed.protocol, tenantHostname, parsed.port);
-}
+};
 
-export function buildPublicApiBaseURL(deploymentBaseURL: string): string {
+export const buildPublicApiBaseURL = (deploymentBaseURL: string): string => {
   const rawDevBaseURL = getRawDevCoreBaseURL();
   if (rawDevBaseURL) {
     return rawDevBaseURL;
@@ -54,7 +54,7 @@ export function buildPublicApiBaseURL(deploymentBaseURL: string): string {
   const hostname = parsed.hostname.startsWith('api.') ? parsed.hostname : `api.${parsed.hostname}`;
 
   return formatOrigin(parsed.protocol, hostname, parsed.port);
-}
+};
 
 function mapDeployment(deployment: CloudDeploymentDto): Deployment {
   return {

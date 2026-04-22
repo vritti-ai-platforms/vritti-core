@@ -18,23 +18,23 @@ const AuthSessionSnapshotContext = createContext<{
   authState: AuthStatusResponse | null;
 } | null>(null);
 
-export function useAuth(): AuthContextValue {
+export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
-}
+};
 
-export function useAuthSessionSnapshot() {
+export const useAuthSessionSnapshot = () => {
   const ctx = useContext(AuthSessionSnapshotContext);
   if (!ctx) throw new Error('useAuthSessionSnapshot must be used within AuthProvider');
   return ctx;
-}
+};
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { phase, authState, beginStatusConfirmation, logout } = useAuthSessionController();
 
   console.log(authState, 'kk');
@@ -67,4 +67,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
       <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     </AuthSessionSnapshotContext.Provider>
   );
-}
+};

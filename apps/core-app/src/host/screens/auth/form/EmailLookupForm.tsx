@@ -15,7 +15,7 @@ interface EmailLookupFormProps {
   onSubmit: (email: string) => void;
 }
 
-export function EmailLookupForm({ isSubmitting, formError, onSubmit }: EmailLookupFormProps) {
+export const EmailLookupForm = ({ isSubmitting, formError, onSubmit }: EmailLookupFormProps) => {
   const form = useForm<EmailLookupFormValues>({
     resolver: zodResolver(emailLookupSchema),
     defaultValues: { email: '' },
@@ -59,4 +59,4 @@ export function EmailLookupForm({ isSubmitting, formError, onSubmit }: EmailLook
       </View>
     </Form>
   );
-}
+};

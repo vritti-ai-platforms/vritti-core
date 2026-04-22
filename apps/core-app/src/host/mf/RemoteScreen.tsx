@@ -1,5 +1,6 @@
-import React, { Suspense } from 'react';
 import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
+import type { RouteProp } from '@react-navigation/native';
+import React, { Suspense } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { getRemoteConfig } from '../config/remotes.config';
 
@@ -8,10 +9,14 @@ const remoteCache = new Map<string, React.LazyExoticComponent<React.ComponentTyp
 
 type RemoteModule = { default: React.ComponentType };
 
-interface RemoteScreenProps {
+export interface RemoteScreenParams {
   remoteName: string;
   moduleName: string;
   remoteEntry?: string;
+}
+
+interface RemoteScreenProps {
+  route: RouteProp<Record<string, RemoteScreenParams>, string>;
 }
 
 function ensureRemoteRegistered(remoteName: string, remoteEntry?: string) {
@@ -37,14 +42,9 @@ async function loadRemoteModule(remoteName: string, moduleName: string) {
  * Registers a remote manifest on-demand and lazy-loads a screen from it.
  * This mirrors the core-web setup: runtime registry + loadRemote() + cache.
  */
-export function RemoteScreen({
-  remoteName,
-  moduleName,
-  remoteEntry,
-}: RemoteScreenProps) {
-  const normalizedModuleName = moduleName.startsWith('./')
-    ? moduleName
-    : `./${moduleName}`;
+export const RemoteScreen = ({ route }: RemoteScreenProps) => {
+  const { remoteName, moduleName, remoteEntry } = route.params;
+  const normalizedModuleName = moduleName.startsWith('./') ? moduleName : `./${moduleName}`;
   const cacheKey = `${remoteName}|${remoteEntry ?? 'default'}|${normalizedModuleName}`;
 
   if (!remoteCache.has(cacheKey)) {
@@ -66,7 +66,7 @@ export function RemoteScreen({
       <Component />
     </Suspense>
   );
-}
+};
 
 function LoadingFallback() {
   return (

@@ -8,7 +8,7 @@ interface StartupSplashScreenProps {
   statusText: string;
 }
 
-export function StartupSplashScreen({ statusText }: StartupSplashScreenProps) {
+export const StartupSplashScreen = ({ statusText }: StartupSplashScreenProps) => {
   return (
     <SplashScreen
       logo={<Image source={logo} style={{ width: 72, height: 72 }} resizeMode="contain" />}
@@ -18,4 +18,4 @@ export function StartupSplashScreen({ statusText }: StartupSplashScreenProps) {
       showSpinner
     />
   );
-}
+};

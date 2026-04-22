@@ -1,9 +1,9 @@
 import { BottomNavigation, type RouteConfig } from '@vritti/quantum-ui-native/BottomNavigation';
-import { Text } from '@vritti/quantum-ui-native/Typography';
 import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { resolveRemoteName } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
+import { AccountNavigator } from '../screens/account/AccountNavigator';
 import { RemoteScreen } from './RemoteScreen';
 import { getCommerceTabIcon } from './tabIcons';
 
@@ -13,26 +13,35 @@ import { getCommerceTabIcon } from './tabIcons';
 // Builds bottom tab screens dynamically from the user's permission features.
 // Each tab resolves the remote from permission metadata, then loads the
 // exposed module through the runtime remote registry.
-// Uses standalone={false} since it's embedded inside core-app's NavigationContainer.
+// Lives inside core-app's NavigationContainer and builds native tab screens dynamically.
 // ---------------------------------------------------------------------------
 
-export function DynamicFeatureNavigator() {
+export const DynamicFeatureNavigator = () => {
   const { features, isLoadingBUs, isLoadingPermissions } = usePermissionContext();
 
   const routes = useMemo<RouteConfig[]>(
-    () =>
-      features.map((feature) => ({
+    () => [
+      ...features.map((feature) => ({
         name: feature.route.routePrefix,
-        render: () => (
-          <RemoteScreen
-            remoteName={resolveRemoteName(feature.route.remoteEntry)}
-            remoteEntry={feature.route.remoteEntry}
-            moduleName={feature.route.exposedModule}
-          />
-        ),
+        component: RemoteScreen,
+        params: {
+          remoteName: resolveRemoteName(feature.route.remoteEntry),
+          remoteEntry: feature.route.remoteEntry,
+          moduleName: feature.route.exposedModule,
+        },
         icon: getCommerceTabIcon(feature.route.exposedModule),
         label: feature.name,
       })),
+      {
+        name: 'Account',
+        component: AccountNavigator,
+        icon: {
+          sfSymbol: 'person.crop.circle',
+          materialSymbol: 'account_circle',
+        },
+        label: 'Account',
+      },
+    ],
     [features],
   );
 
@@ -44,13 +53,5 @@ export function DynamicFeatureNavigator() {
     );
   }
 
-  if (features.length === 0) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text className="text-muted-foreground">No features assigned to this business unit.</Text>
-      </View>
-    );
-  }
-
-  return <BottomNavigation routes={routes} standalone={false} />;
-}
+  return <BottomNavigation routes={routes} />;
+};

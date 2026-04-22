@@ -16,7 +16,7 @@ interface AuthScreenLayoutProps {
   onBack?: () => void;
 }
 
-export function AuthScreenLayout({ title, subtitle, children, onBack }: AuthScreenLayoutProps) {
+export const AuthScreenLayout = ({ title, subtitle, children, onBack }: AuthScreenLayoutProps) => {
   const { isDark } = useTheme();
 
   return (
@@ -53,4 +53,4 @@ export function AuthScreenLayout({ title, subtitle, children, onBack }: AuthScre
       </View>
     </SafeAreaView>
   );
-}
+};

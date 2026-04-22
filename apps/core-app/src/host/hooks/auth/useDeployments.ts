@@ -5,10 +5,10 @@ import type { Deployment } from '../../types/deployment';
 
 type UseDeploymentsOptions = Omit<UseQueryOptions<Deployment[], AxiosError>, 'queryKey' | 'queryFn'>;
 
-export function useDeployments(options?: UseDeploymentsOptions) {
+export const useDeployments = (options?: UseDeploymentsOptions) => {
   return useQuery<Deployment[], AxiosError>({
     queryKey: ['auth', 'deployments'],
     queryFn: getDeployments,
     ...options,
   });
-}
+};

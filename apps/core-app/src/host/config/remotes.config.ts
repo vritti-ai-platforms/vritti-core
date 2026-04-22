@@ -27,20 +27,20 @@ export const ALL_REMOTES: RemoteConfig[] = [
   },
 ];
 
-export function getRemoteConfig(remoteName: string) {
+export const getRemoteConfig = (remoteName: string) => {
   return ALL_REMOTES.find((remote) => remote.name === remoteName);
-}
+};
 
-export function getRemoteConfigByRuntimeName(runtimeName?: string) {
+export const getRemoteConfigByRuntimeName = (runtimeName?: string) => {
   if (!runtimeName) return undefined;
   return ALL_REMOTES.find((remote) => remote.runtimeName === runtimeName);
-}
+};
 
-export function getRemoteAssetBase(remote: RemoteConfig) {
+export const getRemoteAssetBase = (remote: RemoteConfig) => {
   return remote.entry.replace(/\/mf-manifest\.json$/, '/');
-}
+};
 
-export function resolveRemoteName(remoteEntry?: string) {
+export const resolveRemoteName = (remoteEntry?: string) => {
   if (!remoteEntry) return 'commerce-ma';
 
   const matchedRemote = ALL_REMOTES.find((remote) => {
@@ -50,4 +50,4 @@ export function resolveRemoteName(remoteEntry?: string) {
   });
 
   return matchedRemote?.name ?? 'commerce-ma';
-}
+};

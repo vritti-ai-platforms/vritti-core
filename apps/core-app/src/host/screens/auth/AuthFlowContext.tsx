@@ -33,13 +33,13 @@ interface AuthFlowContextValue {
 
 const AuthFlowContext = createContext<AuthFlowContextValue | null>(null);
 
-export function useAuthFlow(): AuthFlowContextValue {
+export const useAuthFlow = (): AuthFlowContextValue => {
   const ctx = useContext(AuthFlowContext);
   if (!ctx) throw new Error('useAuthFlow must be used within AuthFlowProvider');
   return ctx;
-}
+};
 
-export function useEmailLookupStep() {
+export const useEmailLookupStep = () => {
   const { flow, backFromEmailLookup, resolveOrganizations } = useAuthFlow();
 
   if (flow.step !== 'emailLookup') {
@@ -51,9 +51,9 @@ export function useEmailLookupStep() {
     goBack: backFromEmailLookup,
     resolveOrganizations,
   };
-}
+};
 
-export function useOrgSelectionStep() {
+export const useOrgSelectionStep = () => {
   const { flow, backFromOrgSelection, selectOrganization } = useAuthFlow();
 
   if (flow.step !== 'orgSelection') {
@@ -66,9 +66,9 @@ export function useOrgSelectionStep() {
     goBack: backFromOrgSelection,
     selectOrganization,
   };
-}
+};
 
-export function useLoginStep() {
+export const useLoginStep = () => {
   const { flow, backFromLogin } = useAuthFlow();
 
   if (flow.step !== 'login') {
@@ -83,13 +83,13 @@ export function useLoginStep() {
     organizationSubdomain: flow.organizationSubdomain,
     goBack: backFromLogin,
   };
-}
+};
 
 interface AuthFlowProviderProps {
   children: React.ReactNode;
 }
 
-export function AuthFlowProvider({ children }: AuthFlowProviderProps) {
+export const AuthFlowProvider = ({ children }: AuthFlowProviderProps) => {
   const [flow, setFlow] = useState<AuthFlowState>({ step: 'deployment' });
 
   const value = useMemo<AuthFlowContextValue>(
@@ -176,4 +176,4 @@ export function AuthFlowProvider({ children }: AuthFlowProviderProps) {
   );
 
   return <AuthFlowContext.Provider value={value}>{children}</AuthFlowContext.Provider>;
-}
+};

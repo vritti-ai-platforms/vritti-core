@@ -30,11 +30,11 @@ export interface LookupOrganizationsDto {
   deploymentBaseURL: string;
 }
 
-export function login(dto: LoginDto): Promise<LoginResponse> {
+export const login = (dto: LoginDto): Promise<LoginResponse> => {
   return axios.post<LoginResponse>('auth/mobile/login', dto, { public: true }).then((r) => r.data);
-}
+};
 
-export function lookupOrganizations({ email, deploymentBaseURL }: LookupOrganizationsDto): Promise<LookupResponse> {
+export const lookupOrganizations = ({ email, deploymentBaseURL }: LookupOrganizationsDto): Promise<LookupResponse> => {
   return axios
     .get<LookupResponse>('users/organizations-by-email', {
       baseURL: buildPublicApiBaseURL(deploymentBaseURL),
@@ -42,8 +42,8 @@ export function lookupOrganizations({ email, deploymentBaseURL }: LookupOrganiza
       public: true,
     })
     .then((r) => r.data);
-}
+};
 
-export function logout(): Promise<void> {
+export const logout = (): Promise<void> => {
   return axios.post('auth/mobile/logout').then(() => undefined);
-}
+};

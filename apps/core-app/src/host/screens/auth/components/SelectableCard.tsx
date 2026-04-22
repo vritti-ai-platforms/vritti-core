@@ -12,14 +12,14 @@ interface SelectableCardProps {
   trailing?: React.ReactNode;
 }
 
-export function SelectableCard({
+export const SelectableCard = ({
   selected,
   onPress,
   leading,
   title,
   subtitle,
   trailing,
-}: SelectableCardProps) {
+}: SelectableCardProps) => {
   return (
     <PressableCard
       onPress={onPress}
@@ -40,4 +40,4 @@ export function SelectableCard({
       {trailing ? trailing : null}
     </PressableCard>
   );
-}
+};

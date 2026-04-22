@@ -16,13 +16,13 @@ interface LoginFormProps {
   onSubmit: (values: LoginFormValues) => void;
 }
 
-export function LoginForm({
+export const LoginForm = ({
   email,
   formError,
   isSubmitting,
   isPreparingTenantURL,
   onSubmit,
-}: LoginFormProps) {
+}: LoginFormProps) => {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email, password: '' },
@@ -70,4 +70,4 @@ export function LoginForm({
       </View>
     </Form>
   );
-}
+};

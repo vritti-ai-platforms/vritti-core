@@ -17,11 +17,11 @@ interface PermissionContextValue {
 
 const PermissionContext = createContext<PermissionContextValue | null>(null);
 
-export function usePermissionContext(): PermissionContextValue {
+export const usePermissionContext = (): PermissionContextValue => {
   const ctx = useContext(PermissionContext);
   if (!ctx) throw new Error('usePermissionContext must be used within PermissionProvider');
   return ctx;
-}
+};
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -31,7 +31,7 @@ interface PermissionProviderProps {
   children: React.ReactNode;
 }
 
-export function PermissionProvider({ children }: PermissionProviderProps) {
+export const PermissionProvider = ({ children }: PermissionProviderProps) => {
   const { authState, phase } = useAuthSessionSnapshot();
   const [businessUnits, setBusinessUnits] = useState<AssignedBU[]>([]);
   const [featuresByBuId, setFeaturesByBuId] = useState<Record<string, PermissionFeature[]>>({});
@@ -87,4 +87,4 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       {children}
     </PermissionContext.Provider>
   );
-}
+};

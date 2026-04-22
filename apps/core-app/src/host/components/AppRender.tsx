@@ -15,7 +15,7 @@ function HomeScreen() {
   );
 }
 
-export function AppRender() {
+export const AppRender = () => {
   const { isDark } = useTheme();
   const { isAuthenticated, isLoading } = useAuth();
   const { phase } = useAuthSessionSnapshot();
@@ -50,4 +50,4 @@ export function AppRender() {
       <HomeScreen />
     </NavigationContainer>
   );
-}
+};

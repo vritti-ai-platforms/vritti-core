@@ -6,7 +6,7 @@ import { logout } from '../../services/auth/auth.service';
 type UseLogoutOptions = Omit<UseMutationOptions<void, AxiosError, void>, 'mutationFn'>;
 
 // Logs out and clears all stored tokens
-export function useLogout(options?: UseLogoutOptions) {
+export const useLogout = (options?: UseLogoutOptions) => {
   return useMutation<void, AxiosError, void>({
     ...options,
     mutationFn: logout,
@@ -16,4 +16,4 @@ export function useLogout(options?: UseLogoutOptions) {
       options?.onSuccess?.(...args);
     },
   });
-}
+};

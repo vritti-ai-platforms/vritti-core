@@ -7,7 +7,7 @@ function buildAuthStatusUrl(baseURL: string): string {
   return `${baseURL.replace(/\/$/, '')}/auth/status`;
 }
 
-export function useAuthStatusStream(enabled: boolean) {
+export const useAuthStatusStream = (enabled: boolean) => {
   const [authState, setAuthState] = useState<AuthStatusResponse | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const token = getToken();
@@ -58,4 +58,4 @@ export function useAuthStatusStream(enabled: boolean) {
   }, [baseURL, enabled, token]);
 
   return { authState, isConnected };
-}
+};
