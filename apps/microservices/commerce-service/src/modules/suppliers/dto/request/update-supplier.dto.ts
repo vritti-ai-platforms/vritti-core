@@ -1,4 +1,15 @@
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateIf } from 'class-validator';
+import { IsCurrencyCode } from '@vritti/api-sdk';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 
 export class UpdateSupplierDto {
   @IsOptional()
@@ -12,8 +23,7 @@ export class UpdateSupplierDto {
   code?: string;
 
   @IsOptional()
-  @IsString()
-  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  @IsCurrencyCode()
   currencyCode?: string;
 
   @IsOptional()

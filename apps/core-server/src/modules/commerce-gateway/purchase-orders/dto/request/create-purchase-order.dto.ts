@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateTime } from '@vritti/api-sdk';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
+import { IsCurrencyCode, IsDateTime } from '@vritti/api-sdk';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreatePurchaseOrderDto {
   @ApiProperty({ description: 'Supplier ID' })
@@ -9,8 +9,7 @@ export class CreatePurchaseOrderDto {
 
   @ApiProperty({ description: 'PO currency code (ISO 4217)', example: 'INR' })
   @IsNotEmpty()
-  @IsString()
-  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  @IsCurrencyCode()
   currencyCode: string;
 
   @ApiProperty({ description: 'Order date (ISO string)', example: '2026-04-10' })

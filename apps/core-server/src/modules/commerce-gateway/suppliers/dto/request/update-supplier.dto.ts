@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateIf } from 'class-validator';
+import { IsCurrencyCode } from '@vritti/api-sdk';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, ValidateIf } from 'class-validator';
 
 export class UpdateSupplierDto {
   @ApiPropertyOptional({ description: 'Updated supplier name' })
@@ -14,8 +15,7 @@ export class UpdateSupplierDto {
 
   @ApiPropertyOptional({ description: 'Updated supplier currency code (ISO 4217)' })
   @IsOptional()
-  @IsString()
-  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  @IsCurrencyCode()
   currencyCode?: string;
 
   @ApiPropertyOptional({ description: 'Updated mailing address' })

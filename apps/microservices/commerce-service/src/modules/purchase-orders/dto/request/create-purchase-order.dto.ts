@@ -1,13 +1,12 @@
-import { IsDateTime } from '@vritti/api-sdk';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
+import { IsCurrencyCode, IsDateTime } from '@vritti/api-sdk';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreatePurchaseOrderDto {
   @IsUUID()
   supplierId: string;
 
   @IsNotEmpty()
-  @IsString()
-  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  @IsCurrencyCode()
   currencyCode: string;
 
   @IsNotEmpty()

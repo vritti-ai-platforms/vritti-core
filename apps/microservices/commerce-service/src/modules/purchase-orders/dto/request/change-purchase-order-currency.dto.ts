@@ -1,8 +1,8 @@
-import { IsNumber, IsOptional, IsString, Matches, Min } from 'class-validator';
+import { IsCurrencyCode } from '@vritti/api-sdk';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 
 export class ChangePurchaseOrderCurrencyDto {
-  @IsString()
-  @Matches(/^[A-Z]{3}$/)
+  @IsCurrencyCode()
   currencyCode: string;
 
   @IsOptional()

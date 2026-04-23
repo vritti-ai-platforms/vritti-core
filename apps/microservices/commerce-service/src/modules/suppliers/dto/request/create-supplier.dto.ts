@@ -1,5 +1,17 @@
+import { IsCurrencyCode } from '@vritti/api-sdk';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateIf, ValidateNested } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  Min,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreatePrimarySupplierContactDto {
   @IsString()
@@ -45,9 +57,8 @@ export class CreateSupplierDto {
   @MaxLength(100)
   code: string;
 
-  @IsString()
   @IsNotEmpty()
-  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  @IsCurrencyCode()
   currencyCode: string;
 
   @ValidateNested()

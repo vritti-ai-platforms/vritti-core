@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsCurrencyCode } from '@vritti/api-sdk';
 import { Type } from 'class-transformer';
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, ValidateIf, ValidateNested } from 'class-validator';
 
@@ -47,9 +48,8 @@ export class CreateSupplierDto {
   code: string;
 
   @ApiProperty({ description: 'Default supplier currency code (ISO 4217)', example: 'INR' })
-  @IsString()
   @IsNotEmpty()
-  @Matches(/^[A-Z]{3}$/, { message: 'Currency code must be a valid 3-letter ISO code.' })
+  @IsCurrencyCode()
   currencyCode: string;
 
   @ApiProperty({ description: 'Primary contact details', type: CreatePrimarySupplierContactDto })
