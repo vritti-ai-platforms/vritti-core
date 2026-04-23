@@ -1,9 +1,9 @@
-import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { BasicCard } from '@vritti/quantum-ui-native/Card';
+import { Alert } from '@vritti/quantum-ui-native/Alert';
+import { useTheme } from '@vritti/quantum-ui-native/hooks';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { RadioGroup, RadioGroupItem } from '@vritti/quantum-ui-native/RadioGroup';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { useTheme } from '@vritti/quantum-ui-native/hooks';
 import { ScrollView, View } from 'react-native';
 
 export const AccountThemeScreen = () => {
@@ -19,10 +19,7 @@ export const AccountThemeScreen = () => {
 
       <View className="gap-3">
         <SectionHeader title="Appearance" />
-        <BasicCard
-          title="Choose theme"
-          description="Your selection is stored locally and applied across the host app."
-        >
+        <BasicCard title="Choose theme" description="Your selection is stored locally and applied across the host app.">
           <View className="gap-4">
             <RadioGroup value={themePreference} onValueChange={(value) => void setThemePreference(value as any)}>
               <View className="gap-4">

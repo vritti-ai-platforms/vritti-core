@@ -1,4 +1,3 @@
-import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { BasicCard } from '@vritti/quantum-ui-native/Card';
 import { KeyValue, SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { ScrollView, View } from 'react-native';
@@ -12,13 +11,11 @@ export const AccountProfileScreen = () => {
   const lastLoginAt = formatDateTime(user?.lastLoginAt);
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-6 p-4 pb-8">
-      <Alert
-        variant="info"
-        title="Read-only profile"
-        description="Profile edits are not available in native yet. Contact your administrator for account changes."
-      />
-
+    <ScrollView
+      className="flex-1 bg-background"
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="gap-6 p-4 pb-8"
+    >
       <View className="gap-3">
         <SectionHeader title="Personal" />
         <BasicCard title="User details" description="Current information from your signed-in session.">

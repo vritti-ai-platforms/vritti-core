@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { resolveRemoteName } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
-import { AccountNavigator } from '../screens/account/AccountNavigator';
+import { AccountHomeScreen } from '../screens/account/AccountHomeScreen';
 import { RemoteScreen } from './RemoteScreen';
 import { getCommerceTabIcon } from './tabIcons';
 
@@ -34,7 +34,7 @@ export const DynamicFeatureNavigator = () => {
       })),
       {
         name: 'Account',
-        component: AccountNavigator,
+        component: AccountHomeScreen,
         icon: {
           sfSymbol: 'person.crop.circle',
           materialSymbol: 'account_circle',

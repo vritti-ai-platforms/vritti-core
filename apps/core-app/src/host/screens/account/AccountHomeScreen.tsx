@@ -1,21 +1,19 @@
-import { Alert as InfoAlert } from '@vritti/quantum-ui-native/Alert';
+import { usePushNavigator } from '@vritti/quantum-ui-native';
+import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { ProfileCard, SettingsRowCard } from '@vritti/quantum-ui-native/Card';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert as NativeAlert, ScrollView, View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
-import type { AccountDetailRoute } from './types';
+import type { HostAppRoute } from './types';
 import { getInitials } from './utils';
 
-interface AccountHomeScreenProps {
-  onNavigate?: (route: AccountDetailRoute) => void;
-}
-
-export const AccountHomeScreen = ({ onNavigate }: AccountHomeScreenProps) => {
+export const AccountHomeScreen = () => {
   const { user, org, logout } = useAuth();
+  const { push } = usePushNavigator<HostAppRoute>();
 
   const handleLogout = () => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out of this session?', [
+    NativeAlert.alert('Sign out', 'Are you sure you want to sign out of this session?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign out',
@@ -35,7 +33,7 @@ export const AccountHomeScreen = ({ onNavigate }: AccountHomeScreenProps) => {
         role={org?.name ?? user?.email}
       />
 
-      <InfoAlert
+      <Alert
         variant="info"
         title="Account"
         description="Manage your profile, security settings, theme preference, and session access from one place."
@@ -47,19 +45,19 @@ export const AccountHomeScreen = ({ onNavigate }: AccountHomeScreenProps) => {
           <SettingsRowCard
             label="Profile"
             description="View your personal and organization details"
-            onPress={() => onNavigate?.('AccountProfile')}
+            onPress={() => push('AccountProfile')}
             className="border-b border-border"
           />
           <SettingsRowCard
             label="Password"
             description="Review password management options"
-            onPress={() => onNavigate?.('AccountPassword')}
+            onPress={() => push('AccountPassword')}
             className="border-b border-border"
           />
           <SettingsRowCard
             label="Sessions"
             description="See active sessions and sign-in activity"
-            onPress={() => onNavigate?.('AccountSessions')}
+            onPress={() => push('AccountSessions')}
           />
         </View>
       </View>
@@ -70,7 +68,7 @@ export const AccountHomeScreen = ({ onNavigate }: AccountHomeScreenProps) => {
           <SettingsRowCard
             label="Theme"
             description="Choose system, light, or dark appearance"
-            onPress={() => onNavigate?.('AccountTheme')}
+            onPress={() => push('AccountTheme')}
           />
         </View>
       </View>

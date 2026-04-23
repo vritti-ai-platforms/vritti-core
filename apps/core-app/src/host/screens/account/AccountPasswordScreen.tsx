@@ -1,5 +1,5 @@
-import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { BasicCard } from '@vritti/quantum-ui-native/Card';
+import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { ScrollView, View } from 'react-native';

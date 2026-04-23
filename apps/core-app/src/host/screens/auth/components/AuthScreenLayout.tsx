@@ -4,7 +4,6 @@ import { getTheme, useTheme } from '@vritti/quantum-ui-native';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import * as React from 'react';
 import { Image, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const logo = require('../../../../../assets/vritti-logo.png');
@@ -20,7 +19,7 @@ export const AuthScreenLayout = ({ title, subtitle, children, onBack }: AuthScre
   const { isDark } = useTheme();
 
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
         backgroundColor: getTheme(isDark ? 'dark' : 'light').background,
@@ -51,6 +50,6 @@ export const AuthScreenLayout = ({ title, subtitle, children, onBack }: AuthScre
         <View className="h-8" />
         {children}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };

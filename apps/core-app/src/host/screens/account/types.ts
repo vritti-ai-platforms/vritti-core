@@ -3,3 +3,5 @@ export type AccountDetailRoute =
   | 'AccountPassword'
   | 'AccountSessions'
   | 'AccountTheme';
+
+export type HostAppRoute = 'HomeTabs' | AccountDetailRoute;
