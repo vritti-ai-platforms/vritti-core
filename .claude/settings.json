@@ -1,4 +1,5 @@
 {
+  "model": "opusplan",
   "enabledPlugins": {
     "vritti-dev-tools@vritti-plugins": true,
     "codex@openai-codex": true
