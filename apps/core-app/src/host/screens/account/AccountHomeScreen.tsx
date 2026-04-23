@@ -26,7 +26,7 @@ export const AccountHomeScreen = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-6 p-4 pb-8">
+    <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-6 p-4 pb-28">
       <ProfileCard
         initials={getInitials(user?.fullName)}
         name={user?.fullName ?? 'Account'}

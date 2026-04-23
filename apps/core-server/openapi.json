@@ -11840,12 +11840,17 @@
           "type": {
             "type": "string",
             "example": "REGION"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "America/New_York"
           }
         },
         "required": [
           "id",
           "name",
-          "type"
+          "type",
+          "timezone"
         ]
       },
       "AuthResponseDto": {

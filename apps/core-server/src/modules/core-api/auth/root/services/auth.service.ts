@@ -7,12 +7,12 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, TokenService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
-import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.dto';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
 import { LoginDto } from '../dto/request/login.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
 import { AuthResponseDto } from '../dto/response/auth-response.dto';
 import { MessageResponseDto } from '../dto/response/message-response.dto';
+import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.dto';
 import { TokenResponseDto } from '../dto/response/token-response.dto';
 import { AUTH_STATUS_EVENTS, SessionRevokedEvent } from '../events/auth-status.events';
 
@@ -228,7 +228,8 @@ export class AuthService {
           : orgData;
 
         let businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>> = [];
-        let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> = {};
+        let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> =
+          {};
 
         if (resolvedOrg) {
           try {
@@ -262,6 +263,8 @@ export class AuthService {
                 fullName: user.fullName,
                 status: user.status,
                 hasPassword: user.passwordHash !== null,
+                locale: user.locale,
+                timezone: user.timezone,
                 createdAt: user.createdAt.toISOString(),
                 lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
               }
