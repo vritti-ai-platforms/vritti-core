@@ -87,7 +87,7 @@ export class InventoryItemsService {
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      groupId: query.groupIdKey || 'categoryId',
+      groupIdKey: query.groupIdKey || 'categoryId',
       search: query.search,
       limit: query.limit,
       offset: query.offset,

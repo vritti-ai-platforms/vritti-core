@@ -54,7 +54,7 @@ export function ApiUpdateBusinessUnitWebhook() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update business unit',
-      description: 'Updates a business unit name, code, type, metadata, or active status.',
+      description: 'Updates a business unit name, code, type, timezone, metadata, or active status.',
     }),
     ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
     ApiParam({ name: 'id', description: 'Business unit ID' }),

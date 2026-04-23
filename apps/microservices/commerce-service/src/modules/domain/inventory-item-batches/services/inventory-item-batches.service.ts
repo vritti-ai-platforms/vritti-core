@@ -245,13 +245,11 @@ export class InventoryItemBatchesService {
   async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
     if (!query.inventoryItemId) throw new BadRequestException('inventoryItemId is required.');
     const search = query.search?.trim();
-    const groupIdKey = query.groupIdKey || 'locationId';
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'batchNumber',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      groupId: groupIdKey,
       values: query.values,
       excludeIds: query.excludeIds,
       limit: query.limit,
@@ -259,12 +257,17 @@ export class InventoryItemBatchesService {
       orderByKey: query.orderByKey || 'createdAt',
       orderDirection: query.orderDirection || 'desc',
       where: { inventoryItemId: query.inventoryItemId },
-      groupTable: groupIdKey === 'locationId' ? storageLocations : undefined,
-      groupIdKey: groupIdKey === 'locationId' ? 'id' : undefined,
-      groupLabelKey: groupIdKey === 'locationId' ? 'name' : undefined,
+      groupTable: query.groupIdKey === 'locationId' ? storageLocations : undefined,
+      groupIdKey: query.groupIdKey === 'locationId' ? 'id' : undefined,
+      groupLabelKey: query.groupIdKey === 'locationId' ? 'name' : undefined,
       joins: [{ table: storageLocations, on: eq(inventoryItemBatches.locationId, storageLocations.id), type: 'left' }],
       conditions: search
-        ? [or(ilike(inventoryItemBatches.batchNumber, `%${search}%`), ilike(storageLocations.name, `%${search}%`)) as SQL]
+        ? [
+            or(
+              ilike(inventoryItemBatches.batchNumber, `%${search}%`),
+              ilike(storageLocations.name, `%${search}%`),
+            ) as SQL,
+          ]
         : undefined,
     });
   }

@@ -21,9 +21,9 @@ export const OverviewTab = ({ po, status }: OverviewTabProps) => (
       <div className="grid grid-cols-2 gap-6">
         <DetailField label="PO Number" value={po.poNumber} number />
         <DetailField label="Supplier" value={po.supplierName} />
-        <DetailField label="Order Date" value={po.orderDate} dateFormat="dd/MM/yyyy" />
-        <DetailField label="Expected By" value={po.expectedBy} dateFormat="dd/MM/yyyy HH:mm" />
-        <DetailField label="Created At" value={po.createdAt} dateFormat="dd/MM/yyyy HH:mm" />
+        <DetailField label="Order Date" value={po.orderDate} dateFormat="dd/MM/yyyy" dateOnly />
+        <DetailField label="Expected By" value={po.expectedBy} dateFormat="dd/MM/yyyy HH:mm" timeZone={po.timezone} />
+        <DetailField label="Created At" value={po.createdAt} dateFormat="dd/MM/yyyy HH:mm" timeZone={po.timezone} />
         <DetailField
           label="Status"
           value={

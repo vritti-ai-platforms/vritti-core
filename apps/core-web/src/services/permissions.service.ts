@@ -21,13 +21,12 @@ export interface AssignedBU {
   name: string;
   code: string | null;
   type: string;
+  timezone: string;
 }
 
 // Fetches business units where the user has role assignments
 export function getAssignedBusinessUnits(): Promise<AssignedBU[]> {
-  return axios
-    .get<AssignedBU[]>('user-permissions/business-units')
-    .then((r: { data: AssignedBU[] }) => r.data);
+  return axios.get<AssignedBU[]>('user-permissions/business-units').then((r: { data: AssignedBU[] }) => r.data);
 }
 
 // Fetches resolved features + MF config for the user at a specific BU

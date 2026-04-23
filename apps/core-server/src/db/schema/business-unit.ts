@@ -14,7 +14,6 @@ export interface BuMetadata {
   city?: string;
   state?: string;
   country?: string;
-  timezone?: string;
   lat?: number;
   lng?: number;
   phone?: string;
@@ -38,6 +37,7 @@ export const businessUnits = coreSchema.table(
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     appCodes: jsonb('app_codes').$type<string[]>().notNull().default([]),
+    timezone: varchar('timezone', { length: 50 }).notNull(),
     metadata: jsonb('metadata').$type<BuMetadata>(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

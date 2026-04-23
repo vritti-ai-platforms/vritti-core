@@ -1,10 +1,14 @@
 {
+  "enabledPlugins": {
+    "vritti-dev-tools@vritti-plugins": true,
+    "codex@openai-codex": true
+  },
   "extraKnownMarketplaces": {
     "vritti-plugins": {
-      "source": { "source": "github", "repo": "vritti-ai-platforms/vritti-plugins" }
+      "source": {
+        "source": "github",
+        "repo": "vritti-ai-platforms/vritti-plugins"
+      }
     }
-  },
-  "enabledPlugins": {
-    "vritti-dev-tools@vritti-plugins": true
   }
 }

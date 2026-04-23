@@ -12,4 +12,7 @@ export class AssignedBuResponseDto {
 
   @ApiProperty({ example: 'REGION' })
   type: string;
+
+  @ApiProperty({ example: 'America/New_York' })
+  timezone: string;
 }

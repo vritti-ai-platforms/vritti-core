@@ -2008,7 +2008,7 @@
         ]
       },
       "patch": {
-        "description": "Updates a business unit name, code, type, metadata, or active status.",
+        "description": "Updates a business unit name, code, type, timezone, metadata, or active status.",
         "operationId": "BusinessUnitController_update",
         "parameters": [
           {
@@ -9330,9 +9330,14 @@
             "type": "string",
             "description": "Business unit description"
           },
+          "timezone": {
+            "type": "string",
+            "description": "Business unit timezone",
+            "example": "Asia/Kolkata"
+          },
           "metadata": {
             "type": "object",
-            "description": "Business unit metadata (address, timezone, etc.)",
+            "description": "Business unit metadata (address, city, state, country, phone, etc.)",
             "example": {
               "city": "New York"
             }
@@ -9342,7 +9347,8 @@
           "orgId",
           "name",
           "code",
-          "type"
+          "type",
+          "timezone"
         ]
       },
       "BusinessUnitDto": {
@@ -9399,6 +9405,10 @@
             "type": "number",
             "example": 0
           },
+          "timezone": {
+            "type": "string",
+            "example": "Asia/Kolkata"
+          },
           "metadata": {
             "type": "object",
             "nullable": true
@@ -9420,6 +9430,7 @@
           "depth",
           "isActive",
           "sortOrder",
+          "timezone",
           "createdAt",
           "updatedAt"
         ]
@@ -9469,6 +9480,10 @@
           "description": {
             "type": "string",
             "description": "Business unit description"
+          },
+          "timezone": {
+            "type": "string",
+            "example": "Asia/Kolkata"
           },
           "metadata": {
             "type": "object",
@@ -11442,7 +11457,8 @@
           },
           "expectedBy": {
             "type": "string",
-            "description": "Expected-by date/time (ISO string with timezone)"
+            "description": "Expected-by date/time (UTC ISO string)",
+            "example": "2026-04-25T20:00:00.000Z"
           },
           "notes": {
             "type": "string",

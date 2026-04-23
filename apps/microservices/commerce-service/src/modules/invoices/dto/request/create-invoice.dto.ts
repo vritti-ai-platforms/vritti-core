@@ -1,6 +1,16 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsDateTime } from '@vritti/api-sdk';
 import { Type } from 'class-transformer';
-import { IsZonedIsoDateString } from '@vritti/api-sdk';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreateInvoiceItemDto {
   @IsString()
@@ -73,11 +83,11 @@ export class CreateInvoiceDto {
   paymentTerms?: string;
 
   @IsOptional()
-  @IsZonedIsoDateString()
+  @IsDateTime()
   issuedDate?: string;
 
   @IsOptional()
-  @IsZonedIsoDateString()
+  @IsDateTime()
   dueDate?: string;
 
   @IsOptional()

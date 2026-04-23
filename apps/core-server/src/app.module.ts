@@ -7,6 +7,7 @@ import { relations } from '@/db/schema';
 
 import './db/schema.registry';
 
+import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import {
   AuthConfigModule,
   DatabaseModule,
@@ -19,7 +20,6 @@ import {
   type TokenExpiryString,
   UnauthorizedException,
 } from '@vritti/api-sdk';
-import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
@@ -168,7 +168,8 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           const [buAncestorIds, buDescendantIds] = path
             ? await Promise.all([buRepo.findAncestors(path), buRepo.findDescendants(path)])
             : [[buId], [buId]];
-          return { orgId, userId: sessionInfo.userId, buId, buAncestorIds, buDescendantIds };
+          const buTimezone = bu?.timezone ?? 'UTC';
+          return { orgId, userId: sessionInfo.userId, buId, buTimezone, buAncestorIds, buDescendantIds };
         },
       }),
     }),

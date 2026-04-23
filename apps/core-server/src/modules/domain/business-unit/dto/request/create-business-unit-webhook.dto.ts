@@ -34,7 +34,15 @@ export class CreateBusinessUnitWebhookDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Business unit metadata (address, timezone, etc.)', example: { city: 'New York' } })
+  @ApiProperty({ description: 'Business unit timezone', example: 'Asia/Kolkata' })
+  @IsString()
+  @IsNotEmpty()
+  timezone: string;
+
+  @ApiPropertyOptional({
+    description: 'Business unit metadata (address, city, state, country, phone, etc.)',
+    example: { city: 'New York' },
+  })
   @IsOptional()
   @IsObject()
   metadata?: Record<string, unknown>;

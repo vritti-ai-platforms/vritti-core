@@ -35,6 +35,7 @@ export class PurchaseOrderDto {
   conversionRate: number;
   orderDate: string;
   expectedBy: string | null;
+  timezone: string;
   notes: string | null;
   totalAmount: number | null;
   createdAt: string;
@@ -52,6 +53,7 @@ export class PurchaseOrderDto {
     dto.conversionRate = Number(entity.conversionRate);
     dto.orderDate = entity.orderDate;
     dto.expectedBy = entity.expectedBy ?? null;
+    dto.timezone = entity.timezone;
     dto.notes = entity.notes ?? null;
     dto.totalAmount = entity.totalAmount ? Number(entity.totalAmount) : null;
     dto.createdAt = entity.createdAt.toISOString();

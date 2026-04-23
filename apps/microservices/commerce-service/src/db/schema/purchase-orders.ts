@@ -20,6 +20,7 @@ export const purchaseOrders = coreSchema.table(
     conversionRate: decimal('conversion_rate', { precision: 18, scale: 6 }).notNull().default('1'),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
+    timezone: varchar('timezone', { length: 50 }).notNull().default(sql`current_setting('app.bu_timezone')::text`),
     notes: text('notes'),
     totalAmount: bigint('total_amount', { mode: 'number' }),
     createdBy: uuid('created_by'),

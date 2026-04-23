@@ -1,8 +1,9 @@
+import { useAssignedBusinessUnits, useUserPermissions } from '@hooks/usePermissions';
+import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
 import { parseSlug } from '@vritti/quantum-ui/slug';
+import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
-import { useAssignedBusinessUnits, useUserPermissions } from '@hooks/usePermissions';
 import { useAuth } from './AuthProvider';
 
 interface PermissionContextValue {
@@ -58,6 +59,12 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { data: permissionsResponse, isLoading: isLoadingPermissions } = useUserPermissions(selectedBuId);
 
   const features = permissionsResponse?.features ?? [];
+
+  useEffect(() => {
+    for (const businessUnit of businessUnits) {
+      setBusinessUnitTimeZone(businessUnit.id, businessUnit.timezone);
+    }
+  }, [businessUnits]);
 
   const selectBu = useCallback((buId: string) => {
     setSelectedBuId(buId);

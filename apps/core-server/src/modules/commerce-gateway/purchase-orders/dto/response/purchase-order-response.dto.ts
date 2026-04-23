@@ -34,6 +34,9 @@ export class PurchaseOrderResponseDto {
   @ApiPropertyOptional({ description: 'Expected-by date/time', nullable: true })
   expectedBy: string | null;
 
+  @ApiProperty({ description: 'IANA timezone the PO was raised under (origin BU zone)', example: 'Asia/Kolkata' })
+  timezone: string;
+
   @ApiPropertyOptional({ description: 'Notes', nullable: true })
   notes: string | null;
 

@@ -1,5 +1,5 @@
+import { IsDateTime } from '@vritti/api-sdk';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
-import { IsZonedIsoDateString } from '@vritti/api-sdk';
 
 export class CreatePurchaseOrderDto {
   @IsUUID()
@@ -15,7 +15,7 @@ export class CreatePurchaseOrderDto {
   orderDate: string;
 
   @IsOptional()
-  @IsZonedIsoDateString()
+  @IsDateTime()
   expectedBy?: string;
 
   @IsOptional()

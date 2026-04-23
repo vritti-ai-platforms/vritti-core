@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { BuMetadata, BuType, BusinessUnit } from '@/db/schema';
+import type { BuMetadata, BusinessUnit, BuType } from '@/db/schema';
 
 export class BusinessUnitDto {
   @ApiProperty({ example: 'uuid-here' })
@@ -23,7 +23,10 @@ export class BusinessUnitDto {
   @ApiProperty({ example: 0 })
   depth: number;
 
-  @ApiPropertyOptional({ example: 'a1b2c3d4_e5f6_7890_abcd_ef1234567890.f1e2d3c4_b5a6_0987_dcba_fe9876543210', nullable: true })
+  @ApiPropertyOptional({
+    example: 'a1b2c3d4_e5f6_7890_abcd_ef1234567890.f1e2d3c4_b5a6_0987_dcba_fe9876543210',
+    nullable: true,
+  })
   path: string | null;
 
   @ApiProperty({ example: true })
@@ -31,6 +34,9 @@ export class BusinessUnitDto {
 
   @ApiProperty({ example: 0 })
   sortOrder: number;
+
+  @ApiProperty({ example: 'Asia/Kolkata' })
+  timezone: string;
 
   @ApiPropertyOptional({ nullable: true })
   metadata: BuMetadata | null;
@@ -54,6 +60,7 @@ export class BusinessUnitDto {
     dto.path = bu.path ?? null;
     dto.isActive = bu.isActive;
     dto.sortOrder = bu.sortOrder;
+    dto.timezone = bu.timezone;
     dto.metadata = bu.metadata ?? null;
     dto.createdAt = bu.createdAt.toISOString();
     dto.updatedAt = bu.updatedAt.toISOString();

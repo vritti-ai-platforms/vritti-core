@@ -3,7 +3,7 @@ import type { AuthOrg, User } from '@services/user.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearToken } from '@vritti/quantum-ui/axios';
 import { getLocale, setLocale } from '@vritti/quantum-ui/locale';
-import { getTimeZone, setTimeZone } from '@vritti/quantum-ui/timezone';
+import { getUserTimeZone, setUserTimeZone } from '@vritti/quantum-ui/timezone';
 import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 
 interface AuthContextValue {
@@ -42,9 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const resolvedTimeZone =
-      user?.timezone ?? getTimeZone() ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC';
-    setTimeZone(resolvedTimeZone);
+    const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC';
+    const resolvedTimeZone = user?.timezone ?? getUserTimeZone() ?? browserTimeZone;
+    setUserTimeZone(resolvedTimeZone);
 
     const browserLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
     const resolvedLocale = user?.locale ?? getLocale() ?? browserLocale;

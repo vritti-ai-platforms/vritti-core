@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { NotFoundException } from '@vritti/api-sdk';
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { ConfigCacheService } from '@domain/config-cache/services/config-cache.service';
 import { UserRoleAssignmentRepository } from '@domain/user-role/repositories/user-role-assignment.repository';
+import { Injectable, Logger } from '@nestjs/common';
+import { NotFoundException } from '@vritti/api-sdk';
 
 export interface PermissionFeature {
   code: string;
@@ -21,6 +21,7 @@ export interface AssignedBU {
   name: string;
   code: string | null;
   type: string;
+  timezone: string;
 }
 
 @Injectable()
@@ -46,7 +47,7 @@ export class UserPermissionsService {
     const result: AssignedBU[] = [];
     for (const id of buIds) {
       const bu = buMap.get(id);
-      if (bu) result.push({ id: bu.id, name: bu.name, code: bu.code, type: bu.type as string });
+      if (bu) result.push({ id: bu.id, name: bu.name, code: bu.code, type: bu.type as string, timezone: bu.timezone });
     }
     return result;
   }
@@ -73,7 +74,7 @@ export class UserPermissionsService {
           mergedFeatures.set(code, new Set());
         }
         for (const perm of perms) {
-          mergedFeatures.get(code)!.add(perm);
+          mergedFeatures.get(code)?.add(perm);
         }
       }
     }

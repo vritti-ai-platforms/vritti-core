@@ -43,6 +43,7 @@ export class BusinessUnitService {
       type: dto.type as BuType,
       depth,
       path,
+      timezone: dto.timezone,
       metadata: dto.metadata as BuMetadata,
     });
 
@@ -82,6 +83,7 @@ export class BusinessUnitService {
       ...(dto.name && { name: dto.name }),
       ...(dto.code !== undefined && { code: dto.code }),
       ...(dto.type && { type: dto.type as BuType }),
+      ...(dto.timezone !== undefined && { timezone: dto.timezone }),
       ...(dto.metadata !== undefined && { metadata: dto.metadata as BuMetadata }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
       updatedAt: new Date(),

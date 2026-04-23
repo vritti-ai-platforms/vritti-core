@@ -26,6 +26,12 @@ export class UpdateBusinessUnitWebhookDto {
   @IsString()
   description?: string;
 
+  @ApiPropertyOptional({ example: 'Asia/Kolkata' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  timezone?: string;
+
   @ApiPropertyOptional({ example: { city: 'New York' } })
   @IsOptional()
   @IsObject()

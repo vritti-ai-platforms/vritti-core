@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDateTime } from '@vritti/api-sdk';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
 
 export class CreatePurchaseOrderDto {
@@ -17,9 +18,13 @@ export class CreatePurchaseOrderDto {
   @IsNotEmpty()
   orderDate: string;
 
-  @ApiPropertyOptional({ description: 'Expected-by date/time (ISO string with timezone)' })
+  @ApiPropertyOptional({
+    description: 'Expected-by date/time (UTC ISO string)',
+    example: '2026-04-25T20:00:00.000Z',
+  })
   @IsOptional()
   @IsString()
+  @IsDateTime()
   expectedBy?: string;
 
   @ApiPropertyOptional({ description: 'Notes' })

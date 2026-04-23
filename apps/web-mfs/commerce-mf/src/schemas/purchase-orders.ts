@@ -50,6 +50,7 @@ export interface PurchaseOrderData {
   conversionRate: number;
   orderDate: string;
   expectedBy: string | null;
+  timezone: string;
   notes: string | null;
   totalAmount: number | null;
   createdAt: string;

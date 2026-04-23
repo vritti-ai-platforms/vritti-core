@@ -34,6 +34,7 @@ export class RlsInterceptor implements NestInterceptor {
       await client.execute(sql`
         SELECT set_config('app.org_id', ${headers.orgId}, FALSE),
                set_config('app.bu_id', ${headers.buId}, FALSE),
+               set_config('app.bu_timezone', ${headers.buTimezone}, FALSE),
                set_config('app.bu_ancestor_ids', ${`{${headers.buAncestorIds.join(',')}}`}, FALSE),
                set_config('app.bu_descendant_ids', ${`{${headers.buDescendantIds.join(',')}}`}, FALSE)
       `);
@@ -43,6 +44,7 @@ export class RlsInterceptor implements NestInterceptor {
       await client.execute(sql`
         SELECT set_config('app.org_id', '', FALSE),
                set_config('app.bu_id', '', FALSE),
+               set_config('app.bu_timezone', '', FALSE),
                set_config('app.bu_ancestor_ids', '{}', FALSE),
                set_config('app.bu_descendant_ids', '{}', FALSE)
       `);
