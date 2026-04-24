@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CurrencyAmountDto } from '@vritti/api-sdk';
 
 export class SupplierItemResponseDto {
   @ApiProperty({ description: 'Supplier item link ID' })
@@ -13,8 +14,8 @@ export class SupplierItemResponseDto {
   @ApiPropertyOptional({ description: 'Supplier-specific item code', nullable: true })
   supplierItemCode: string | null;
 
-  @ApiPropertyOptional({ description: 'Unit price', nullable: true })
-  unitPrice: number | null;
+  @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true })
+  unitPrice: CurrencyAmountDto | null;
 
   @ApiProperty({ description: 'UOM ID' })
   uomId: string;

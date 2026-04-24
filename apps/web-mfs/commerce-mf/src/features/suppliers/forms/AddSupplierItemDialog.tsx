@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
+import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
@@ -12,6 +13,7 @@ import { type LinkSupplierItemFormData, linkSupplierItemSchema } from '@/schemas
 
 interface AddSupplierItemDialogProps {
   supplierId: string;
+  supplierCurrencyCode?: string;
   existingInventoryItemIds: string[];
   onSuccess: () => void;
   onCancel: () => void;
@@ -19,6 +21,7 @@ interface AddSupplierItemDialogProps {
 
 export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
   supplierId,
+  supplierCurrencyCode,
   existingInventoryItemIds,
   onSuccess,
   onCancel,
@@ -28,7 +31,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
     defaultValues: {
       inventoryItemId: '',
       supplierItemCode: '',
-      unitPrice: '',
+      unitPrice: undefined,
       uomId: '',
       minOrderQuantity: '',
       leadTimeDays: '',
@@ -50,7 +53,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
         supplierItemCode: data.supplierItemCode || undefined,
-        unitPrice: data.unitPrice ? Number(data.unitPrice) : undefined,
+        unitPrice: data.unitPrice ?? undefined,
         uomId: data.uomId,
         minOrderQuantity: data.minOrderQuantity ? Number(data.minOrderQuantity) : undefined,
         leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : undefined,
@@ -66,7 +69,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
       <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
       <div className="grid grid-cols-2 gap-4">
-        <TextField name="unitPrice" label="Unit Price" type="number" placeholder="e.g. 150.00" />
+        <CurrencyField name="unitPrice" label="Unit Price" currencyCode={supplierCurrencyCode} />
         <TextField name="minOrderQuantity" label="Min Order Qty" type="number" placeholder="e.g. 100" />
       </div>
       <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" />

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
+  type CurrencyAmountDto,
   DataTableStateService,
   NatsClientService,
   SelectOptionsQueryDto,
@@ -137,7 +138,7 @@ export class SuppliersGatewayService {
   }
 
   // Returns the unit price for a supplier-item pair
-  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: number | null }> {
+  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: CurrencyAmountDto | null }> {
     this.logger.log(`suppliers.findItemPrice — supplierId: ${supplierId}, itemId: ${inventoryItemId}`);
     return this.nats.send('commerce', 'suppliers.findItemPrice', { supplierId, inventoryItemId });
   }

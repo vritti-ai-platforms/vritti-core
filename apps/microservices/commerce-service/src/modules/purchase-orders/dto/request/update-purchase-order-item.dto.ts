@@ -1,3 +1,4 @@
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
 import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class UpdatePurchaseOrderItemDto {
@@ -11,12 +12,10 @@ export class UpdatePurchaseOrderItemDto {
   orderedQuantity?: number;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  supplierUnitPrice?: number;
+  @IsCurrency()
+  supplierUnitPrice?: CurrencyAmountDto;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  unitPrice?: number | null;
+  @IsCurrency()
+  unitPrice?: CurrencyAmountDto;
 }

@@ -1,9 +1,11 @@
+import type { CurrencyAmountDto } from '@vritti/api-sdk';
+
 export interface PurchaseOrderEmailItem {
   inventoryItemId: string;
   inventoryItemName: string | null;
   orderedQuantity: number;
-  unitPrice: number | null;
-  totalPrice: number | null;
+  unitPrice: CurrencyAmountDto | null;
+  totalPrice: CurrencyAmountDto | null;
 }
 
 export interface PurchaseOrderEmailData {
@@ -12,7 +14,7 @@ export interface PurchaseOrderEmailData {
   orderDate: string;
   expectedBy: string | null;
   notes: string | null;
-  totalAmount: number | null;
+  totalAmount: CurrencyAmountDto | null;
   items: PurchaseOrderEmailItem[];
 }
 
@@ -35,18 +37,22 @@ function formatDate(value: string | null): string {
   return new Date(value).toLocaleDateString('en-US');
 }
 
-function formatAmount(value: number | null): string {
+// Returns a display string for a CurrencyAmountDto, e.g. "INR 99.99"
+function formatAmount(value: CurrencyAmountDto | null): string {
   if (value == null) return '-';
-  return value.toFixed(2);
+  return `${value.currency} ${value.value}`;
 }
 
-function resolveTotalAmount(po: PurchaseOrderEmailData): number {
-  if (po.totalAmount != null) return po.totalAmount;
-  return po.items.reduce((sum, item) => sum + (item.totalPrice ?? 0), 0);
+// Returns numeric total from totalAmount or sums item totalPrices (same currency assumed)
+function resolveTotalAmountDisplay(po: PurchaseOrderEmailData): string {
+  if (po.totalAmount != null) return formatAmount(po.totalAmount);
+  const currency = po.items.find((i) => i.totalPrice != null)?.totalPrice?.currency ?? '';
+  const sum = po.items.reduce((acc, item) => acc + Number(item.totalPrice?.value ?? 0), 0);
+  return currency ? `${currency} ${sum.toFixed(2)}` : '-';
 }
 
 export function buildPurchaseOrderEmailHtml(po: PurchaseOrderEmailData, supplier: SupplierEmailData): string {
-  const totalAmount = resolveTotalAmount(po);
+  const totalAmountDisplay = resolveTotalAmountDisplay(po);
   const poNumber = escapeHtml(po.poNumber ?? '-');
   const supplierName = escapeHtml(supplier.name ?? '-');
   const notes = escapeHtml(po.notes ?? '-');
@@ -109,7 +115,7 @@ export function buildPurchaseOrderEmailHtml(po: PurchaseOrderEmailData, supplier
         <tbody>${lineItems}</tbody>
       </table>
 
-      <p style="margin: 0;"><strong>Total Amount:</strong> ${formatAmount(totalAmount)}</p>
+      <p style="margin: 0;"><strong>Total Amount:</strong> ${totalAmountDisplay}</p>
     </div>
   </body>
 </html>
@@ -117,7 +123,7 @@ export function buildPurchaseOrderEmailHtml(po: PurchaseOrderEmailData, supplier
 }
 
 export function buildPurchaseOrderEmailText(po: PurchaseOrderEmailData, supplier: SupplierEmailData): string {
-  const totalAmount = resolveTotalAmount(po);
+  const totalAmountDisplay = resolveTotalAmountDisplay(po);
   const itemLines = po.items
     .map((item, index) => {
       const itemName = item.inventoryItemName ?? item.inventoryItemId;
@@ -137,6 +143,6 @@ export function buildPurchaseOrderEmailText(po: PurchaseOrderEmailData, supplier
     'Line Items:',
     itemLines || '-',
     '',
-    `Total Amount: ${formatAmount(totalAmount)}`,
+    `Total Amount: ${totalAmountDisplay}`,
   ].join('\n');
 }

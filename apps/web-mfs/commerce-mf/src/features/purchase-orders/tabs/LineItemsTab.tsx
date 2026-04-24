@@ -73,16 +73,14 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
         accessorKey: 'unitPrice',
         header: 'Unit Price',
         cell: ({ row }) => (
-          <span className="font-mono">{row.original.unitPrice != null ? row.original.unitPrice.toFixed(2) : '—'}</span>
+          <span className="font-mono">{`${row.original.unitPrice.currency} ${row.original.unitPrice.value}`}</span>
         ),
       },
       {
         accessorKey: 'totalPrice',
         header: 'Total',
         cell: ({ row }) => (
-          <span className="font-mono">
-            {row.original.totalPrice != null ? row.original.totalPrice.toFixed(2) : '—'}
-          </span>
+          <span className="font-mono">{`${row.original.totalPrice.currency} ${row.original.totalPrice.value}`}</span>
         ),
       },
       ...(canModifyItems
@@ -103,6 +101,8 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
                         content: (close) => (
                           <UpdatePurchaseOrderItemDialog
                             purchaseOrderId={purchaseOrderId}
+                            poCurrencyCode={purchaseOrder.currencyCode}
+                            supplierCurrencyCode={purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode}
                             conversionRate={purchaseOrder.conversionRate}
                             item={row.original}
                             onSuccess={close}
@@ -127,7 +127,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
           ]
         : []),
     ],
-    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.conversionRate],
+    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.conversionRate, purchaseOrder.currencyCode, purchaseOrder.supplierCurrencyCode],
   );
 
   const { table } = useDataTable({

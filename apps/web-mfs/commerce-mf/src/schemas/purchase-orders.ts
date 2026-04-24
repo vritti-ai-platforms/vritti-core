@@ -52,7 +52,7 @@ export interface PurchaseOrderData {
   expectedBy: string | null;
   timezone: string;
   notes: string | null;
-  totalAmount: number | null;
+  totalAmount: { currency: string; value: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,9 +63,9 @@ export interface PurchaseOrderItemData {
   inventoryItemName: string | null;
   orderedQuantity: number;
   receivedQuantity: number;
-  supplierUnitPrice: number;
-  unitPrice: number | null;
-  totalPrice: number | null;
+  supplierUnitPrice: { currency: string; value: string };
+  unitPrice: { currency: string; value: string };
+  totalPrice: { currency: string; value: string };
 }
 
 export interface GoodsReceiptItemData {

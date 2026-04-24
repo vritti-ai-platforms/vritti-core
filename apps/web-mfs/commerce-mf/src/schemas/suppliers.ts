@@ -113,7 +113,7 @@ export const updateSupplierContactSchema = z.object({
 export const linkSupplierItemSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
   supplierItemCode: z.string().max(100).optional(),
-  unitPrice: z.string().optional(),
+  unitPrice: z.object({ currency: z.string(), value: z.string() }).optional(),
   uomId: z.uuid('Unit of measure is required'),
   minOrderQuantity: z.string().optional(),
   leadTimeDays: z.string().optional(),
@@ -153,7 +153,7 @@ export interface SupplierItemData {
   inventoryItemId: string;
   inventoryItemName: string | null;
   supplierItemCode: string | null;
-  unitPrice: number | null;
+  unitPrice: { currency: string; value: string } | null;
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;

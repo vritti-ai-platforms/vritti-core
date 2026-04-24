@@ -295,9 +295,9 @@ export class PurchaseOrdersGatewayService {
       if (!value) return '-';
       return new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
-    const formatAmount = (value: number | null): string => {
+    const formatAmount = (value: { currency: string; value: string } | null): string => {
       if (value == null) return '-';
-      return value.toFixed(2);
+      return `${value.currency} ${value.value}`;
     };
     const truncate = (text: string, maxWidth: number, size: number, f: typeof font): string => {
       if (f.widthOfTextAtSize(text, size) <= maxWidth) return text;
@@ -431,7 +431,13 @@ export class PurchaseOrdersGatewayService {
     }
 
     // Data rows
-    const totalAmount = po.totalAmount ?? po.items.reduce((sum, item) => sum + (item.totalPrice ?? 0), 0);
+    const resolveTotalAmountDisplay = (): string => {
+      if (po.totalAmount != null) return formatAmount(po.totalAmount);
+      const currency = po.items.find((i) => i.totalPrice != null)?.totalPrice?.currency ?? '';
+      const sum = po.items.reduce((acc, item) => acc + Number(item.totalPrice?.value ?? 0), 0);
+      return currency ? `${currency} ${sum.toFixed(2)}` : '-';
+    };
+    const totalAmountDisplay = resolveTotalAmountDisplay();
     let currentY = tableTopY - rowHeight;
 
     for (const [index, item] of po.items.entries()) {
@@ -495,7 +501,7 @@ export class PurchaseOrdersGatewayService {
 
     // Subtotal row
     const subtotalLabel = 'Subtotal';
-    const subtotalValue = formatAmount(totalAmount);
+    const subtotalValue = totalAmountDisplay;
     page.drawText(subtotalLabel, { x: totalsX + 10, y: totalsY, size: 9, font, color: GRAY });
     const subtotalValueWidth = font.widthOfTextAtSize(subtotalValue, 9);
     page.drawText(subtotalValue, {
@@ -533,7 +539,7 @@ export class PurchaseOrdersGatewayService {
       font: boldFont,
       color: WHITE,
     });
-    const totalValueText = formatAmount(totalAmount);
+    const totalValueText = totalAmountDisplay;
     const totalValueWidth = boldFont.widthOfTextAtSize(totalValueText, 10);
     page.drawText(totalValueText, {
       x: totalsX + totalsWidth - 10 - totalValueWidth,

@@ -74,8 +74,8 @@ export const purchaseOrderItems = coreSchema.table(
     orderedQuantity: decimal('ordered_quantity', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     supplierUnitPrice: bigint('supplier_unit_price', { mode: 'number' }).notNull(),
-    unitPrice: bigint('unit_price', { mode: 'number' }),
-    totalPrice: bigint('total_price', { mode: 'number' }),
+    unitPrice: bigint('unit_price', { mode: 'number' }).notNull(),
+    totalPrice: bigint('total_price', { mode: 'number' }).notNull(),
   },
   (table) => [
     unique('uq_purchase_order_items_po_item').on(table.purchaseOrderId, table.inventoryItemId),

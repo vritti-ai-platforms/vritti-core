@@ -32,7 +32,11 @@ export const OverviewTab = ({ po, status }: OverviewTabProps) => (
             </Badge>
           }
         />
-        <DetailField label="Total Amount" value={po.totalAmount != null ? po.totalAmount.toFixed(2) : null} number />
+        <DetailField
+          label="Total Amount"
+          value={po.totalAmount != null ? `${po.totalAmount.currency} ${po.totalAmount.value}` : null}
+          number
+        />
         <DetailField label="Notes" value={po.notes} className="col-span-2" />
       </div>
     </CardContent>

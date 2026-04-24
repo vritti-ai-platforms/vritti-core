@@ -21,8 +21,8 @@ export interface AddPurchaseOrderItemPayload {
   id: string;
   inventoryItemId: string;
   orderedQuantity: number;
-  supplierUnitPrice: number;
-  unitPrice?: number | null;
+  supplierUnitPrice: { currency: string; value: string };
+  unitPrice?: { currency: string; value: string } | null;
 }
 
 export interface UpdatePurchaseOrderItemPayload {
@@ -30,8 +30,8 @@ export interface UpdatePurchaseOrderItemPayload {
   itemId: string;
   inventoryItemId?: string;
   orderedQuantity?: number;
-  supplierUnitPrice?: number;
-  unitPrice?: number | null;
+  supplierUnitPrice?: { currency: string; value: string };
+  unitPrice?: { currency: string; value: string } | null;
 }
 
 export interface UpdatePurchaseOrderNotesPayload {

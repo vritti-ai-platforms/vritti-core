@@ -2,7 +2,7 @@ import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto'
 import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, CurrencyAmountDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { LinkSupplierItemDto } from '@/modules/suppliers/dto/request/link-supplier-item.dto';
 
 @Controller()
@@ -38,7 +38,7 @@ export class SupplierItemsController {
   }
 
   @MessagePattern({ cmd: 'suppliers.findItemPrice' })
-  findItemPrice(@Payload() data: { supplierId: string; inventoryItemId: string }): Promise<{ unitPrice: number | null }> {
+  findItemPrice(@Payload() data: { supplierId: string; inventoryItemId: string }): Promise<{ unitPrice: CurrencyAmountDto | null }> {
     this.logger.log(`suppliers.findItemPrice — supplierId: ${data.supplierId}, itemId: ${data.inventoryItemId}`);
     return this.service.findItemPrice(data.supplierId, data.inventoryItemId);
   }

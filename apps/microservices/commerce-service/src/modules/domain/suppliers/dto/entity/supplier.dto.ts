@@ -1,3 +1,4 @@
+import { type CurrencyAmountDto, type CurrencyCode, minorToMajor } from '@vritti/api-sdk';
 import type { Supplier, SupplierItem } from '@/db/schema';
 
 export class SupplierItemDto {
@@ -5,7 +6,7 @@ export class SupplierItemDto {
   inventoryItemId: string;
   inventoryItemName: string | null;
   supplierItemCode: string | null;
-  unitPrice: number | null;
+  unitPrice: CurrencyAmountDto | null;
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;
@@ -13,13 +14,16 @@ export class SupplierItemDto {
   isPreferred: boolean;
   isActive: boolean;
 
-  static from(entity: SupplierItem, itemName?: string | null, uomSymbol?: string | null): SupplierItemDto {
+  static from(entity: SupplierItem, itemName?: string | null, uomSymbol?: string | null, currencyCode?: string | null): SupplierItemDto {
     const dto = new SupplierItemDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? null;
     dto.supplierItemCode = entity.supplierItemCode ?? null;
-    dto.unitPrice = entity.unitPrice ? Number(entity.unitPrice) : null;
+    const code = (currencyCode ?? 'USD') as CurrencyCode;
+    dto.unitPrice = entity.unitPrice != null
+      ? { currency: code, value: minorToMajor(BigInt(entity.unitPrice), code) }
+      : null;
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? '';
     dto.minOrderQuantity = entity.minOrderQuantity ? Number(entity.minOrderQuantity) : null;

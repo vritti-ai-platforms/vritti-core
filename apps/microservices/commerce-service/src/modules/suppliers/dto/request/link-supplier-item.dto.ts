@@ -1,3 +1,4 @@
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
 import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class LinkSupplierItemDto {
@@ -10,9 +11,8 @@ export class LinkSupplierItemDto {
   supplierItemCode?: string;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  unitPrice?: number;
+  @IsCurrency()
+  unitPrice?: CurrencyAmountDto;
 
   @IsUUID()
   @IsNotEmpty()

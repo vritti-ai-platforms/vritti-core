@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { type CreateResponseDto, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import { type CreateResponseDto, type CurrencyAmountDto, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { CreateSupplierDto } from './dto/request/create-supplier.dto';
@@ -49,7 +49,7 @@ export class SuppliersGatewayController {
   getItemPrice(
     @Query('supplierId') supplierId: string,
     @Query('inventoryItemId') inventoryItemId: string,
-  ): Promise<{ unitPrice: number | null }> {
+  ): Promise<{ unitPrice: CurrencyAmountDto | null }> {
     this.logger.log(`GET /commerce-api/suppliers/items/price`);
     return this.suppliersGatewayService.findItemPrice(supplierId, inventoryItemId);
   }

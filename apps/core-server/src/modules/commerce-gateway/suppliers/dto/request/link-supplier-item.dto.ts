@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
 import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class LinkSupplierItemDto {
@@ -12,11 +13,10 @@ export class LinkSupplierItemDto {
   @IsString()
   supplierItemCode?: string;
 
-  @ApiPropertyOptional({ description: 'Unit price from this supplier', example: 12.5 })
+  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Unit price from this supplier' })
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 4 })
-  @Min(0)
-  unitPrice?: number;
+  @IsCurrency()
+  unitPrice?: CurrencyAmountDto;
 
   @ApiProperty({ description: 'UOM ID for pricing' })
   @IsUUID()

@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import {
+  BadRequestException,
   type CreateResponseDto,
+  type CurrencyAmountDto,
+  type CurrencyCode,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
+  majorToMinor,
+  minorToMajor,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, uom } from '@/db/schema';
@@ -49,7 +54,7 @@ export class SupplierItemsService {
     });
 
     return {
-      result: result.map((row) => SupplierItemDto.from(row, row.inventoryItemName, row.uomSymbol)),
+      result: result.map((row) => SupplierItemDto.from(row, row.inventoryItemName, row.uomSymbol, supplier.currencyCode)),
       count,
     };
   }
@@ -64,11 +69,29 @@ export class SupplierItemsService {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
+    let unitPriceMinor: number | null = null;
+    if (data.unitPrice != null) {
+      if (data.unitPrice.currency !== supplier.currencyCode) {
+        throw new BadRequestException({
+          label: 'Currency Mismatch',
+          detail: `unitPrice.currency must be ${supplier.currencyCode}.`,
+        });
+      }
+      try {
+        unitPriceMinor = Number(majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode));
+      } catch (e) {
+        throw new BadRequestException({
+          label: 'Invalid Price',
+          detail: e instanceof Error ? e.message : 'Invalid price value.',
+        });
+      }
+    }
+
     const created = await this.repository.createSupplierItem({
       supplierId,
       inventoryItemId: data.inventoryItemId,
       supplierItemCode: data.supplierItemCode ?? null,
-      unitPrice: data.unitPrice ?? null,
+      unitPrice: unitPriceMinor,
       uomId: data.uomId,
       minOrderQuantity: data.minOrderQuantity != null ? String(data.minOrderQuantity) : null,
       leadTimeDays: data.leadTimeDays ?? null,
@@ -81,7 +104,7 @@ export class SupplierItemsService {
     return {
       success: true,
       message: 'Item linked to supplier successfully.',
-      data: SupplierItemDto.from(linked, linked.inventoryItemName, linked.uomSymbol),
+      data: SupplierItemDto.from(linked, linked.inventoryItemName, linked.uomSymbol, supplier.currencyCode),
     };
   }
 
@@ -98,8 +121,11 @@ export class SupplierItemsService {
     return { success: true, message: `Supplier item link "${supplierItemId}" removed successfully.` };
   }
 
-  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: number | null }> {
+  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: CurrencyAmountDto | null }> {
+    const supplier = await this.repository.findSupplierById(supplierId);
     const item = await this.repository.findItemBySupplierAndInventoryItem(supplierId, inventoryItemId);
-    return { unitPrice: item?.unitPrice != null ? Number(item.unitPrice) : null };
+    if (item?.unitPrice == null || !supplier) return { unitPrice: null };
+    const code = supplier.currencyCode as CurrencyCode;
+    return { unitPrice: { currency: code, value: minorToMajor(BigInt(item.unitPrice), code) } };
   }
 }

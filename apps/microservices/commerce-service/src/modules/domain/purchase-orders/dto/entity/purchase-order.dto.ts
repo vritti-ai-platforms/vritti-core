@@ -1,3 +1,4 @@
+import { type CurrencyAmountDto, type CurrencyCode, minorToMajor } from '@vritti/api-sdk';
 import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus } from '@/db/schema';
 
 export class PurchaseOrderItemDto {
@@ -6,20 +7,33 @@ export class PurchaseOrderItemDto {
   inventoryItemName: string | null;
   orderedQuantity: number;
   receivedQuantity: number;
-  supplierUnitPrice: number;
-  unitPrice: number | null;
-  totalPrice: number | null;
+  supplierUnitPrice: CurrencyAmountDto;
+  unitPrice: CurrencyAmountDto;
+  totalPrice: CurrencyAmountDto;
 
-  static from(entity: PurchaseOrderItem, itemName?: string | null): PurchaseOrderItemDto {
+  static from(
+    entity: PurchaseOrderItem,
+    itemName?: string | null,
+    poCurrencyCode?: string | null,
+    supplierCurrencyCode?: string | null,
+  ): PurchaseOrderItemDto {
     const dto = new PurchaseOrderItemDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? null;
     dto.orderedQuantity = Number(entity.orderedQuantity);
     dto.receivedQuantity = Number(entity.receivedQuantity);
-    dto.supplierUnitPrice = Number(entity.supplierUnitPrice);
-    dto.unitPrice = entity.unitPrice ? Number(entity.unitPrice) : null;
-    dto.totalPrice = entity.totalPrice ? Number(entity.totalPrice) : null;
+
+    const supplierCode = (supplierCurrencyCode ?? poCurrencyCode ?? 'USD') as CurrencyCode;
+    const poCode = (poCurrencyCode ?? 'USD') as CurrencyCode;
+
+    dto.supplierUnitPrice = {
+      currency: supplierCode,
+      value: minorToMajor(BigInt(entity.supplierUnitPrice), supplierCode) as string,
+    };
+    dto.unitPrice = { currency: poCode, value: minorToMajor(BigInt(entity.unitPrice), poCode) as string };
+    dto.totalPrice = { currency: poCode, value: minorToMajor(BigInt(entity.totalPrice), poCode) as string };
+
     return dto;
   }
 }
@@ -37,7 +51,7 @@ export class PurchaseOrderDto {
   expectedBy: string | null;
   timezone: string;
   notes: string | null;
-  totalAmount: number | null;
+  totalAmount: CurrencyAmountDto | null;
   createdAt: string;
   updatedAt: string;
 
@@ -55,7 +69,13 @@ export class PurchaseOrderDto {
     dto.expectedBy = entity.expectedBy ?? null;
     dto.timezone = entity.timezone;
     dto.notes = entity.notes ?? null;
-    dto.totalAmount = entity.totalAmount ? Number(entity.totalAmount) : null;
+    dto.totalAmount =
+      entity.totalAmount != null
+        ? {
+            currency: entity.currencyCode,
+            value: minorToMajor(BigInt(entity.totalAmount), entity.currencyCode as CurrencyCode) as string,
+          }
+        : null;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

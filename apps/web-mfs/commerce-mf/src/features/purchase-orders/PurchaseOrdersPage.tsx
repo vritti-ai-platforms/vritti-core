@@ -66,7 +66,10 @@ export const PurchaseOrdersPage = () => {
       {
         accessorKey: 'totalAmount',
         header: 'Total',
-        cell: ({ row }) => (row.original.totalAmount != null ? row.original.totalAmount.toFixed(2) : '—'),
+        cell: ({ row }) =>
+          row.original.totalAmount != null
+            ? `${row.original.totalAmount.currency} ${row.original.totalAmount.value}`
+            : '—',
       },
       {
         id: 'actions',

@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CurrencyAmountDto } from '@vritti/api-sdk';
 
 export class PurchaseOrderResponseDto {
   @ApiProperty({ description: 'Purchase order ID' })
@@ -40,8 +41,8 @@ export class PurchaseOrderResponseDto {
   @ApiPropertyOptional({ description: 'Notes', nullable: true })
   notes: string | null;
 
-  @ApiPropertyOptional({ description: 'Total amount', nullable: true })
-  totalAmount: number | null;
+  @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true })
+  totalAmount: CurrencyAmountDto | null;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

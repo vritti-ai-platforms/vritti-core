@@ -109,14 +109,21 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
       .where(eq(purchaseOrderItems.id, itemId));
   }
 
-  // Recalculates all line prices for a purchase order using supplier price * conversion rate
-  async recalculateLinePricingByPoId(poId: string, conversionRate: number, tx?: TypedDrizzleClient): Promise<void> {
+  // Recalculates all line prices for a purchase order using supplier minor price * conversion rate with exponent scaling
+  async recalculateLinePricingByPoId(
+    poId: string,
+    conversionRate: number,
+    poExponent: number,
+    supplierExponent: number,
+    tx?: TypedDrizzleClient,
+  ): Promise<void> {
     const db = tx ?? this.db;
+    const scaleFactor = 10 ** poExponent / 10 ** supplierExponent;
     await db
       .update(purchaseOrderItems)
       .set({
-        unitPrice: sql`(${purchaseOrderItems.supplierUnitPrice} * ${conversionRate})::bigint`,
-        totalPrice: sql`(${purchaseOrderItems.orderedQuantity} * (${purchaseOrderItems.supplierUnitPrice} * ${conversionRate}))::bigint`,
+        unitPrice: sql`ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor})::bigint`,
+        totalPrice: sql`ROUND(${purchaseOrderItems.orderedQuantity}::numeric * ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor}))::bigint`,
       })
       .where(eq(purchaseOrderItems.purchaseOrderId, poId));
   }

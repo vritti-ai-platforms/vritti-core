@@ -56,7 +56,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
       {
         accessorKey: 'unitPrice',
         header: supplierCurrencyCode ? `Unit Price (${supplierCurrencyCode})` : 'Unit Price',
-        cell: ({ row }) => (row.original.unitPrice != null ? row.original.unitPrice.toFixed(2) : '—'),
+        cell: ({ row }) => (row.original.unitPrice != null ? `${row.original.unitPrice.currency} ${row.original.unitPrice.value}` : '—'),
       },
       {
         accessorKey: 'minOrderQuantity',
@@ -135,6 +135,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
         content={(close) => (
           <AddSupplierItemDialog
             supplierId={supplierId}
+            supplierCurrencyCode={supplierCurrencyCode}
             existingInventoryItemIds={existingInventoryItemIds}
             onSuccess={close}
             onCancel={close}

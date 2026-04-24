@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import { Button } from '@vritti/quantum-ui/Button';
+import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -22,11 +23,13 @@ interface AddPurchaseOrderItemDialogProps {
   onCancel: () => void;
 }
 
+const currencyValueSchema = z.object({ currency: z.string(), value: z.string() });
+
 type AddLineItemFormData = {
   inventoryItemId: string;
   orderedQuantity: string;
   overridePrice: boolean;
-  unitPrice?: string;
+  unitPrice?: { currency: string; value: string } | null;
 };
 
 const baseAddLineItemSchema = z
@@ -34,10 +37,10 @@ const baseAddLineItemSchema = z
     inventoryItemId: z.string().min(1, 'Item is required'),
     orderedQuantity: z.string().min(1, 'Quantity is required'),
     overridePrice: z.boolean(),
-    unitPrice: z.string().optional(),
+    unitPrice: currencyValueSchema.optional().nullable(),
   })
   .superRefine((data, ctx) => {
-    if (!data.unitPrice) {
+    if (!data.unitPrice?.value) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['unitPrice'],
@@ -54,8 +57,8 @@ const baseAddLineItemSchema = z
       });
     }
 
-    if (data.unitPrice) {
-      const unitPrice = Number(data.unitPrice);
+    if (data.unitPrice?.value) {
+      const unitPrice = Number(data.unitPrice.value);
       if (Number.isNaN(unitPrice) || unitPrice < 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -72,15 +75,17 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   mutation,
   onCancel,
 }) => {
+  // Raw supplier unit price number from the inventory item option
   const [supplierUnitPrice, setSupplierUnitPrice] = useState<number | null>(null);
   const convertedSupplierUnitPrice =
     supplierUnitPrice != null ? supplierUnitPrice * purchaseOrder.conversionRate : null;
+
   const addLineItemSchema = useMemo(
     () =>
       baseAddLineItemSchema.superRefine((data, ctx) => {
         if (!data.overridePrice) return;
-        const unitPrice = Number(data.unitPrice);
-        if (Number.isFinite(unitPrice) && supplierUnitPrice != null && unitPrice === supplierUnitPrice) {
+        const unitPriceNum = Number(data.unitPrice?.value);
+        if (Number.isFinite(unitPriceNum) && supplierUnitPrice != null && unitPriceNum === supplierUnitPrice) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['unitPrice'],
@@ -97,22 +102,29 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       inventoryItemId: '',
       orderedQuantity: '',
       overridePrice: false,
-      unitPrice: '',
+      unitPrice: null,
     },
   });
 
   const excludeIds = existingItemIds.join(',');
   const unitPriceLabel =
-    supplierUnitPrice != null ? `Unit Price (Supplier: ${supplierUnitPrice.toFixed(2)})` : 'Unit Price';
+    supplierUnitPrice != null
+      ? `Unit Price (Supplier: ${supplierUnitPrice.toFixed(2)})`
+      : 'Unit Price';
 
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
 
   useEffect(() => {
     form.clearErrors('unitPrice');
     if (!watchedOverridePrice) {
-      form.setValue('unitPrice', convertedSupplierUnitPrice != null ? String(convertedSupplierUnitPrice) : '');
+      form.setValue(
+        'unitPrice',
+        convertedSupplierUnitPrice != null
+          ? { currency: purchaseOrder.currencyCode, value: String(convertedSupplierUnitPrice) }
+          : null,
+      );
     }
-  }, [watchedOverridePrice, convertedSupplierUnitPrice, form]);
+  }, [watchedOverridePrice, convertedSupplierUnitPrice, purchaseOrder.currencyCode, form]);
 
   const handleItemSelect = (option: SelectOption | null) => {
     const nextPrice = option?.additionals?.unitPrice;
@@ -124,7 +136,9 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     form.setValue('overridePrice', false);
     form.setValue(
       'unitPrice',
-      unitPrice != null ? String(unitPrice * purchaseOrder.conversionRate) : '',
+      unitPrice != null
+        ? { currency: purchaseOrder.currencyCode, value: String(unitPrice * purchaseOrder.conversionRate) }
+        : null,
     );
 
     if (unitPrice == null) {
@@ -142,12 +156,15 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         id: purchaseOrder.id,
         inventoryItemId: data.inventoryItemId,
         orderedQuantity: Number(data.orderedQuantity),
-        supplierUnitPrice: supplierUnitPrice != null ? supplierUnitPrice : Number(data.unitPrice),
+        supplierUnitPrice: {
+          currency: purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode,
+          value: String(supplierUnitPrice ?? Number(data.unitPrice?.value ?? '0')),
+        },
         unitPrice: data.overridePrice
-          ? Number(data.unitPrice)
+          ? data.unitPrice ?? null
           : convertedSupplierUnitPrice != null
-            ? convertedSupplierUnitPrice
-            : Number(data.unitPrice),
+            ? { currency: purchaseOrder.currencyCode, value: String(convertedSupplierUnitPrice) }
+            : data.unitPrice ?? null,
       })}
     >
       <InventoryItemSelector
@@ -175,10 +192,10 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         description="Enable to set a custom unit price for this PO line."
         disabled={supplierUnitPrice == null}
       />
-      <TextField
+      <CurrencyField
         name="unitPrice"
         label={unitPriceLabel}
-        type="number"
+        currencyCode={purchaseOrder.currencyCode}
         placeholder={watchedOverridePrice ? 'Enter custom unit price' : 'Supplier price'}
         disabled={!watchedOverridePrice || supplierUnitPrice == null}
       />
