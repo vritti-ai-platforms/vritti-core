@@ -184,6 +184,7 @@ async function bootstrap() {
       },
       // Transform class-validator errors into RFC 9457 field errors
       exceptionFactory: (errors: ValidationError[]) => {
+        console.error('[ValidationPipe] Validation errors:', JSON.stringify(errors, null, 2));
         return new BadRequestException({
           detail: 'Please check your input and try again.',
           errors: errors.map((err) => ({

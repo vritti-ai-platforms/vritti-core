@@ -2,7 +2,13 @@ import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@domain/purchase-or
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+  TableViewState,
+} from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
 import type { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
 import type { ChangePurchaseOrderCurrencyDto } from './dto/request/change-purchase-order-currency.dto';
@@ -42,7 +48,9 @@ export class PurchaseOrdersController {
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.addItem' })
-  async addItem(@Payload() data: { id: string } & AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  async addItem(
+    @Payload() data: { id: string } & AddPurchaseOrderItemDto,
+  ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`purchaseOrders.addItem — id: ${data.id}, inventoryItemId: ${data.inventoryItemId}`);
     return this.service.addItem(data.id, data);
   }

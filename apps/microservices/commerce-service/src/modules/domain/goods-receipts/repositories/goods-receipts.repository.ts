@@ -65,10 +65,17 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
 
   // Returns paginated goods receipts for table view
   async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (typeof goodsReceipts.$inferSelect & { supplierName: string | null; poNumber: string | null })[];
+    result: (typeof goodsReceipts.$inferSelect & {
+      supplierName: string | null;
+      poNumber: string | null;
+      poOrderDate: string | null;
+      poExpectedBy: string | null;
+      poTotalAmount: number | null;
+      poCurrencyCode: string | null;
+    })[];
     count: number;
   }> {
-    return this.findAllAndCount<typeof goodsReceipts.$inferSelect & { supplierName: string | null; poNumber: string | null }>({
+    return this.findAllAndCount({
       select: {
         id: goodsReceipts.id,
         organizationId: goodsReceipts.organizationId,
@@ -83,6 +90,10 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         poNumber: purchaseOrders.poNumber,
+        poOrderDate: purchaseOrders.orderDate,
+        poExpectedBy: purchaseOrders.expectedBy,
+        poTotalAmount: purchaseOrders.totalAmount,
+        poCurrencyCode: purchaseOrders.currencyCode,
       },
       leftJoins: [
         { table: suppliers, on: eq(goodsReceipts.supplierId, suppliers.id) },
@@ -139,9 +150,14 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
   }
 
   // Finds receipt by ID with supplier + PO references
-  async findByIdWithRefs(
-    id: string,
-  ): Promise<(typeof goodsReceipts.$inferSelect & { supplierName: string | null; poNumber: string | null }) | null> {
+  async findByIdWithRefs(id: string): Promise<(typeof goodsReceipts.$inferSelect & {
+    supplierName: string | null;
+    poNumber: string | null;
+    poOrderDate: string | null;
+    poExpectedBy: string | null;
+    poTotalAmount: number | null;
+    poCurrencyCode: string | null;
+  }) | null> {
     const rows = await this.db
       .select({
         id: goodsReceipts.id,
@@ -157,6 +173,10 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         poNumber: purchaseOrders.poNumber,
+        poOrderDate: purchaseOrders.orderDate,
+        poExpectedBy: purchaseOrders.expectedBy,
+        poTotalAmount: purchaseOrders.totalAmount,
+        poCurrencyCode: purchaseOrders.currencyCode,
       })
       .from(goodsReceipts)
       .leftJoin(suppliers, eq(goodsReceipts.supplierId, suppliers.id))

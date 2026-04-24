@@ -34,8 +34,13 @@ export class GoodsReceiptDto {
   supplierId: string;
   supplierName: string | null;
   status: string;
-  purchaseOrderId: string | null;
-  poNumber: string | null;
+  po: {
+    id: string;
+    poNumber: string;
+    orderDate: string;
+    expectedBy: string | null;
+    totalAmount: { currency: string; value: number } | null;
+  } | null;
   receivedBy: string | null;
   receivedDate: string;
   notes: string | null;
@@ -45,7 +50,15 @@ export class GoodsReceiptDto {
   static from(
     entity: GoodsReceipt,
     items: GoodsReceiptItemDto[],
-    refs?: { supplierName?: string | null; poNumber?: string | null },
+    refs?: {
+      supplierName?: string | null;
+      poId?: string | null;
+      poNumber?: string | null;
+      poOrderDate?: string | null;
+      poExpectedBy?: string | null;
+      poTotalAmount?: number | null;
+      poCurrencyCode?: string | null;
+    },
   ): GoodsReceiptDto {
     const dto = new GoodsReceiptDto();
     dto.id = entity.id;
@@ -53,8 +66,19 @@ export class GoodsReceiptDto {
     dto.supplierId = entity.supplierId;
     dto.supplierName = refs?.supplierName ?? null;
     dto.status = entity.status;
-    dto.purchaseOrderId = entity.purchaseOrderId ?? null;
-    dto.poNumber = refs?.poNumber ?? null;
+    dto.po =
+      refs?.poId && refs?.poNumber
+        ? {
+            id: refs.poId,
+            poNumber: refs.poNumber,
+            orderDate: refs.poOrderDate ?? '',
+            expectedBy: refs.poExpectedBy ?? null,
+            totalAmount:
+              refs.poTotalAmount != null && refs.poCurrencyCode
+                ? { currency: refs.poCurrencyCode, value: refs.poTotalAmount }
+                : null,
+          }
+        : null;
     dto.receivedBy = entity.receivedBy ?? null;
     dto.receivedDate = entity.receivedDate;
     dto.notes = entity.notes ?? null;

@@ -1,5 +1,4 @@
-import { IsDateTime } from '@vritti/api-sdk';
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateGoodsReceiptDto {
   @IsUUID()
@@ -14,7 +13,7 @@ export class CreateGoodsReceiptDto {
   receivedBy?: string;
 
   @IsNotEmpty()
-  @IsDateTime()
+  @IsDateString()
   receivedDate: string;
 
   @IsOptional()

@@ -35,14 +35,19 @@ export class GoodsReceiptsService {
 
   // Creates a DRAFT goods receipt header
   async create(data: CreateGoodsReceiptDto): Promise<GoodsReceiptDto> {
+    this.logger.log(`create — incoming data: ${JSON.stringify(data)}`);
     const supplier = await this.repository.findSupplierById(data.supplierId);
+    this.logger.log(`create — supplier lookup result: ${JSON.stringify(supplier)}`);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
     const po = data.purchaseOrderId ? await this.poRepository.findById(data.purchaseOrderId) : null;
+    this.logger.log(`create — PO lookup result: ${JSON.stringify(po)}`);
     if (data.purchaseOrderId && !po) throw new NotFoundException('Purchase order not found.');
     if (po && po.supplierId !== data.supplierId) {
+      this.logger.warn(`create — PO supplierId mismatch: po.supplierId=${po.supplierId}, data.supplierId=${data.supplierId}`);
       throw new BadRequestException('Purchase order does not belong to the provided supplier.');
     }
+    this.logger.log(`create — inserting GR with receivedDate: ${data.receivedDate}`);
     const entity = await this.repository.create({
       supplierId: data.supplierId,
       status: GoodsReceiptStatusValues.DRAFT,
@@ -52,8 +57,17 @@ export class GoodsReceiptsService {
       notes: data.notes ?? null,
     });
 
+    this.logger.log(`create — entity inserted: ${JSON.stringify(entity)}`);
     this.logger.log(`Created DRAFT GR ${entity.id}`);
-    return GoodsReceiptDto.from(entity, [], { supplierName: supplier.name, poNumber: po?.poNumber ?? null });
+    return GoodsReceiptDto.from(entity, [], {
+      supplierName: supplier.name,
+      poId: po?.id ?? null,
+      poNumber: po?.poNumber ?? null,
+      poOrderDate: po?.orderDate ?? null,
+      poExpectedBy: po?.expectedBy ?? null,
+      poTotalAmount: po?.totalAmount ?? null,
+      poCurrencyCode: po?.currencyCode ?? null,
+    });
   }
 
   // Returns all GRs for a PO
@@ -67,7 +81,15 @@ export class GoodsReceiptsService {
         GoodsReceiptDto.from(
           gr,
           itemsWithNames.map((i) => GoodsReceiptItemDto.from(i, i.inventoryItemName)),
-          { supplierName: refs?.supplierName ?? null, poNumber: refs?.poNumber ?? null },
+          {
+            supplierName: refs?.supplierName ?? null,
+            poId: gr.purchaseOrderId ?? null,
+            poNumber: refs?.poNumber ?? null,
+            poOrderDate: refs?.poOrderDate ?? null,
+            poExpectedBy: refs?.poExpectedBy ?? null,
+            poTotalAmount: refs?.poTotalAmount ?? null,
+            poCurrencyCode: refs?.poCurrencyCode ?? null,
+          },
         ),
       );
     }
@@ -93,7 +115,12 @@ export class GoodsReceiptsService {
       result: rows.map((row) =>
         GoodsReceiptDto.from(row, [], {
           supplierName: row.supplierName,
+          poId: row.purchaseOrderId ?? null,
           poNumber: row.poNumber,
+          poOrderDate: row.poOrderDate ?? null,
+          poExpectedBy: row.poExpectedBy ?? null,
+          poTotalAmount: row.poTotalAmount ?? null,
+          poCurrencyCode: row.poCurrencyCode ?? null,
         }),
       ),
       count,
@@ -110,7 +137,12 @@ export class GoodsReceiptsService {
       itemsWithNames.map((item) => GoodsReceiptItemDto.from(item, item.inventoryItemName)),
       {
         supplierName: gr.supplierName,
+        poId: gr.purchaseOrderId ?? null,
         poNumber: gr.poNumber,
+        poOrderDate: gr.poOrderDate ?? null,
+        poExpectedBy: gr.poExpectedBy ?? null,
+        poTotalAmount: gr.poTotalAmount ?? null,
+        poCurrencyCode: gr.poCurrencyCode ?? null,
       },
     );
   }

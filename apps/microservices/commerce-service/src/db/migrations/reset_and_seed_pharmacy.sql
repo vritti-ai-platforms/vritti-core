@@ -209,7 +209,7 @@ WHERE p.business_unit_id = e.business_unit_id;
 CREATE TEMP TABLE _suppliers AS
 WITH ins AS (
   INSERT INTO vritti_core.suppliers (
-    id, organization_id, business_unit_id, name, code, contact_name, phone, email, website, address, tax_id, payment_terms, lead_time_days, notes, is_active, created_at, updated_at
+    id, organization_id, business_unit_id, name, code, contact_name, phone, email, website, address, tax_id, payment_terms, lead_time_days, notes, is_active, currency_code, created_at, updated_at
   )
   SELECT
     gen_random_uuid(),
@@ -227,6 +227,7 @@ WITH ins AS (
     s.lead_time_days,
     'Pharmacy partner supplier',
     true,
+    'OMR',
     now(),
     now()
   FROM _env e

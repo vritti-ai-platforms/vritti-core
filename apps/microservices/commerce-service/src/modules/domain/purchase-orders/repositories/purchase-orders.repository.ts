@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
-import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
     id: string,
     data: { currencyCode: string; conversionRate: string },
     tx?: TypedDrizzleClient,
-  ): Promise<(typeof purchaseOrders.$inferSelect) | null> {
+  ): Promise<typeof purchaseOrders.$inferSelect | null> {
     const db = tx ?? this.db;
     const [row] = await db
       .update(purchaseOrders)
@@ -39,7 +39,9 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
   // Returns PO with supplier name for detail endpoint
   async findByIdWithSupplierName(
     id: string,
-  ): Promise<(typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }) | null> {
+  ): Promise<
+    (typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }) | null
+  > {
     const [row] = await this.db
       .select({
         id: purchaseOrders.id,
@@ -71,10 +73,15 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
 
   // Returns paginated POs with supplier name for table view
   async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null })[];
+    result: (typeof purchaseOrders.$inferSelect & {
+      supplierName: string | null;
+      supplierCurrencyCode: string | null;
+    })[];
     count: number;
   }> {
-    return this.findAllAndCount<typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }>({
+    return this.findAllAndCount<
+      typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }
+    >({
       select: {
         id: purchaseOrders.id,
         organizationId: purchaseOrders.organizationId,
@@ -101,5 +108,16 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
       limit: options.limit,
       offset: options.offset,
     });
+  }
+
+  // Recalculates and persists totalAmount from the sum of all line item totalPrices
+  async syncTotalAmount(id: string, tx?: TypedDrizzleClient): Promise<void> {
+    const db = tx ?? this.db;
+    await db
+      .update(purchaseOrders)
+      .set({
+        totalAmount: sql`(SELECT COALESCE(SUM(total_price), 0) FROM vritti_core.purchase_order_items WHERE purchase_order_id = ${id})`,
+      })
+      .where(eq(purchaseOrders.id, id));
   }
 }

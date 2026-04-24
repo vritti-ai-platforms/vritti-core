@@ -22,7 +22,7 @@ export const purchaseOrders = coreSchema.table(
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
     timezone: varchar('timezone', { length: 50 }).notNull().default(sql`current_setting('app.bu_timezone')::text`),
     notes: text('notes'),
-    totalAmount: bigint('total_amount', { mode: 'number' }),
+    totalAmount: bigint('total_amount', { mode: 'number' }).notNull().default(0),
     createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

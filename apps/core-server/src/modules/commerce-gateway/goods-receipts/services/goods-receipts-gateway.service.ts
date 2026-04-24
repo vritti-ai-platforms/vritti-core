@@ -15,8 +15,11 @@ export class GoodsReceiptsGatewayService {
 
   // Creates a new goods receipt for a purchase order
   async create(dto: CreateGoodsReceiptDto): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`goodsReceipts.create — poId: ${dto.purchaseOrderId}`);
-    return this.nats.send('commerce', 'goodsReceipts.create', dto);
+    this.logger.log(`goodsReceipts.create — supplierId: ${dto.supplierId}, poId: ${dto.purchaseOrderId}, receivedDate: ${dto.receivedDate}, receivedBy: ${dto.receivedBy}, notes: ${dto.notes}`);
+    this.logger.log(`goodsReceipts.create — full payload: ${JSON.stringify(dto)}`);
+    const result = await this.nats.send<GoodsReceiptResponseDto>('commerce', 'goodsReceipts.create', dto);
+    this.logger.log(`goodsReceipts.create — result: ${JSON.stringify(result)}`);
+    return result;
   }
 
   // Returns goods receipts for a given purchase order

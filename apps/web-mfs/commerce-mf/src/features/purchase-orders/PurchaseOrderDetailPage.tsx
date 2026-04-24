@@ -45,6 +45,8 @@ type PrimaryAction = {
   onClick: () => void;
   icon?: typeof Send;
   variant?: 'default' | 'destructive';
+  disabled?: boolean;
+  disabledTip?: string;
 };
 
 export const PurchaseOrderDetailPage = () => {
@@ -64,6 +66,13 @@ export const PurchaseOrderDetailPage = () => {
       const confirmed = await confirm({
         title: `${label}?`,
         description: `This will change the purchase order status to "${statusConfig[nextStatus].label}".`,
+        alert:
+          nextStatus === 'SENT'
+            ? {
+                type: 'warning',
+                text: 'You cannot add any line items after this action.',
+              }
+            : undefined,
         confirmLabel: label,
       });
       if (confirmed) {
@@ -139,6 +148,12 @@ export const PurchaseOrderDetailPage = () => {
 
   const statusBadgeConfig = statusConfig[po.status];
   const nextAction = nextStatusAction[po.status];
+  const totalAmountValue = Number(po.totalAmount?.value ?? 0);
+  const hasPositiveTotalAmount = Number.isFinite(totalAmountValue) && totalAmountValue > 0;
+  const requiresPositiveTotalToSend = po.status === 'DRAFT' && !hasPositiveTotalAmount;
+  const markAsSentDisabledTip = requiresPositiveTotalToSend
+    ? 'Add Line Items to Mark the Purchase Order as Sent'
+    : undefined;
   const canModifyItems = po.status === 'DRAFT';
   const canCancel = po.status !== 'DRAFT' && po.status !== 'CANCELLED' && po.status !== 'RECEIVED';
   const canSendEmail = po.status !== 'CANCELLED';
@@ -154,6 +169,8 @@ export const PurchaseOrderDetailPage = () => {
             label: nextAction.label,
             onClick: () => handleStatusChange(nextAction.status, nextAction.label),
             icon: Send,
+            disabled: nextAction.status === 'SENT' && requiresPositiveTotalToSend,
+            disabledTip: nextAction.status === 'SENT' ? markAsSentDisabledTip : undefined,
           }
         : undefined;
   const actionMenuItems: MenuItem[] = [
@@ -213,6 +230,7 @@ export const PurchaseOrderDetailPage = () => {
       id: 'send-email',
       label: 'Send Email',
       icon: Mail,
+      disabled: requiresPositiveTotalToSend,
       dialog: {
         title: 'Send Purchase Order Email',
         description: 'Send this purchase order to the supplier. Leave recipient empty to use supplier email.',
@@ -272,6 +290,8 @@ export const PurchaseOrderDetailPage = () => {
                 variant={primaryAction.variant}
                 startAdornment={primaryAction.icon ? <primaryAction.icon className="size-4" /> : undefined}
                 onClick={primaryAction.onClick}
+                disabled={primaryAction.disabled}
+                disabledTip={primaryAction.disabledTip}
               >
                 {primaryAction.label}
               </Button>

@@ -32,6 +32,23 @@ export class GoodsReceiptItemResponseDto {
   expiryDate: string | null;
 }
 
+export class GoodsReceiptPoDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  poNumber: string;
+
+  @ApiProperty()
+  orderDate: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  expectedBy: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  totalAmount: { currency: string; value: number } | null;
+}
+
 export class GoodsReceiptResponseDto {
   @ApiProperty()
   id: string;
@@ -48,11 +65,8 @@ export class GoodsReceiptResponseDto {
   @ApiPropertyOptional({ nullable: true })
   supplierName: string | null;
 
-  @ApiPropertyOptional({ nullable: true })
-  purchaseOrderId: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  poNumber: string | null;
+  @ApiPropertyOptional({ type: GoodsReceiptPoDto, nullable: true })
+  po: GoodsReceiptPoDto | null;
 
   @ApiPropertyOptional({ nullable: true })
   receivedBy: string | null;

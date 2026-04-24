@@ -22,14 +22,21 @@ export interface GoodsReceiptItemData {
   expiryDate: string | null;
 }
 
+export interface GoodsReceiptPoData {
+  id: string;
+  poNumber: string;
+  orderDate: string;
+  expectedBy: string | null;
+  totalAmount: { currency: string; value: number } | null;
+}
+
 export interface GoodsReceiptData {
   id: string;
   grNumber: string;
   supplierId: string;
   status: 'DRAFT' | 'POSTED';
-  supplierName: string | null;
-  purchaseOrderId: string | null;
-  poNumber: string | null;
+  supplierName: string;
+  po: GoodsReceiptPoData | null;
   receivedBy: string | null;
   receivedDate: string;
   notes: string | null;

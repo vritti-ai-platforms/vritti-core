@@ -204,7 +204,7 @@ export class PurchaseOrdersService {
         const supplierExp = Number(resolveCurrency(supplierCode).exponent);
         const poExp = Number(resolveCurrency(poCode).exponent);
         const unitPriceNum =
-          Number(supplierUnitPriceMinor) * Number(existing.conversionRate) * 10 ** poExp / 10 ** supplierExp;
+          (Number(supplierUnitPriceMinor) * Number(existing.conversionRate) * 10 ** poExp) / 10 ** supplierExp;
         unitPriceMinor = BigInt(Math.round(unitPriceNum));
       }
     } catch (e) {
@@ -225,6 +225,7 @@ export class PurchaseOrdersService {
       totalPrice: Number(totalPriceMinor),
     });
 
+    await this.repository.syncTotalAmount(id);
     this.logger.log(`Added PO item: ${existing.poNumber} (${existing.id})`);
     return {
       success: true,
@@ -289,7 +290,7 @@ export class PurchaseOrdersService {
         const supplierExp = Number(resolveCurrency(supplierCode).exponent);
         const poExp = Number(resolveCurrency(poCode).exponent);
         const unitPriceNum =
-          Number(supplierUnitPriceMinor) * Number(existing.conversionRate) * 10 ** poExp / 10 ** supplierExp;
+          (Number(supplierUnitPriceMinor) * Number(existing.conversionRate) * 10 ** poExp) / 10 ** supplierExp;
         unitPriceMinor = BigInt(Math.round(unitPriceNum));
       } else {
         // data.unitPrice is undefined — keep existing minor value or derive if missing
@@ -313,6 +314,7 @@ export class PurchaseOrdersService {
       totalPrice: Number(totalPriceMinor),
     });
 
+    await this.repository.syncTotalAmount(id);
     this.logger.log(`Updated PO item: ${existing.poNumber} (${itemId})`);
     return { success: true, message: `Line item updated for purchase order "${existing.poNumber}".` };
   }
@@ -329,6 +331,7 @@ export class PurchaseOrdersService {
     if (!item) throw new NotFoundException('Purchase order line item not found.');
 
     await this.poItemsRepository.delete(itemId);
+    await this.repository.syncTotalAmount(id);
     this.logger.log(`Removed PO item: ${existing.poNumber} (${itemId})`);
     return { success: true, message: `Line item removed from purchase order "${existing.poNumber}".` };
   }
@@ -410,6 +413,7 @@ export class PurchaseOrdersService {
       await this.poItemsRepository.recalculateLinePricingByPoId(id, resolvedConversionRate, poExp, supplierExp, tx);
     });
 
+    await this.repository.syncTotalAmount(id);
     this.logger.log(`Changed PO currency: ${existing.poNumber} (${id}) -> ${currencyCode}`);
     return {
       success: true,
@@ -470,6 +474,12 @@ export class PurchaseOrdersService {
     const allowedNext = PurchaseOrdersService.STATUS_TRANSITIONS[existing.status] ?? [];
     if (!allowedNext.includes(status)) {
       throw new BadRequestException(`Cannot transition purchase order status from ${existing.status} to ${status}.`);
+    }
+    if (status === PurchaseOrderStatusValues.SENT && Number(existing.totalAmount ?? 0) <= 0) {
+      throw new BadRequestException({
+        label: 'Cannot Mark as Sent',
+        detail: 'Purchase order total amount must be greater than 0 before marking it as sent.',
+      });
     }
     const entity = await this.repository.update(id, { status });
     this.logger.log(`PO ${entity.poNumber} status → ${status}`);

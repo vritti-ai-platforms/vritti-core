@@ -179,6 +179,13 @@ export class PurchaseOrdersGatewayService {
       this.nats.send<PurchaseOrderResponseDto>('commerce', 'purchaseOrders.findById', { id }),
       this.nats.send<PurchaseOrderItemResponseDto[]>('commerce', 'purchaseOrders.items', { id }),
     ]);
+    const totalAmountValue = Number(po.totalAmount?.value ?? 0);
+    if (po.status === 'DRAFT' && (!Number.isFinite(totalAmountValue) || totalAmountValue <= 0)) {
+      throw new BadRequestException({
+        label: 'Cannot Mark as Sent',
+        detail: 'Purchase order total amount must be greater than 0 before sending the purchase order email.',
+      });
+    }
     const supplier = await this.nats.send<SupplierEmailData>('commerce', 'suppliers.findById', { id: po.supplierId });
     const recipientEmail = dto.email?.trim() || supplier.email || null;
 

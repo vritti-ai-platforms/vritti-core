@@ -34,16 +34,16 @@ export const GoodsReceiptsPage = () => {
       {
         accessorKey: 'supplierName',
         header: 'Supplier',
-        cell: ({ row }) => row.original.supplierName ?? row.original.supplierId,
+        cell: ({ row }) => row.original.supplierName,
       },
       {
         accessorKey: 'status',
         header: 'Status',
       },
       {
-        accessorKey: 'poNumber',
+        accessorKey: 'po',
         header: 'Purchase Order',
-        cell: ({ row }) => row.original.poNumber ?? 'Standalone',
+        cell: ({ row }) => row.original.po?.poNumber ?? 'Standalone',
       },
       {
         accessorKey: 'notes',

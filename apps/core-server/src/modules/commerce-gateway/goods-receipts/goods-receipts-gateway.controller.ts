@@ -20,6 +20,7 @@ export class GoodsReceiptsGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateGoodsReceiptDto): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`POST /commerce-api/goods-receipts — supplierId: ${dto.supplierId}, poId: ${dto.purchaseOrderId}, receivedDate: ${dto.receivedDate}`);
     return this.service.create(dto);
   }
 

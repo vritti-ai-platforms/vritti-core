@@ -14,6 +14,7 @@ export class GoodsReceiptsController {
   // Creates a goods receipt and updates PO + inventory
   @MessagePattern({ cmd: 'goodsReceipts.create' })
   async create(@Payload() dto: CreateGoodsReceiptDto): Promise<GoodsReceiptDto> {
+    this.logger.log(`goodsReceipts.create — received payload: ${JSON.stringify(dto)}`);
     this.logger.log(`goodsReceipts.create — poId: ${dto.purchaseOrderId}`);
     return this.service.create(dto);
   }
