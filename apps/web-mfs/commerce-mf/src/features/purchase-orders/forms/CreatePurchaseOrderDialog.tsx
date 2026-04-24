@@ -7,8 +7,8 @@ import { Form } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
+import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -26,7 +26,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
     defaultValues: {
       supplierId: '',
       supplierCurrencyCode: '',
-      currencyCode: 'INR',
+      currencyCode: '',
       conversionRate: '1',
       orderDate: new Date().toISOString().split('T')[0],
       expectedBy: '',
