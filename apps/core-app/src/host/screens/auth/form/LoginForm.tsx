@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
+import { PasswordField } from '@vritti/quantum-ui-native/PasswordField';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import React from 'react';
@@ -47,7 +48,7 @@ export const LoginForm = ({
   return (
     <Form form={form} rootErrorPosition="top">
       <TextField name="email" label="Email" keyboardType="email-address" autoCapitalize="none" editable={false} />
-      <TextField name="password" label="Password" secureTextEntry autoComplete="password" />
+      <PasswordField name="password" label="Password" autoComplete="password" />
 
       <View className="mt-3 items-end">
         <Button variant="link" onPress={() => {}}>

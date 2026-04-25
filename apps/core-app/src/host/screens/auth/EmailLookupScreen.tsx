@@ -1,11 +1,14 @@
+import { Text, usePushNavigator } from '@vritti/quantum-ui-native';
 import * as React from 'react';
+import { View } from 'react-native';
 import { useLookupOrganizations } from '../../hooks/auth';
-import { useEmailLookupStep } from './AuthFlowContext';
-import { AuthScreenLayout } from './components/AuthScreenLayout';
+import { useAuthFlow } from '../../providers/AuthFlowProvider';
+import type { AuthRoute } from '../../routes/auth/authRoutes';
 import { EmailLookupForm } from './form/EmailLookupForm';
 
 export const EmailLookupScreen = () => {
-  const { deploymentBaseURL, goBack, resolveOrganizations } = useEmailLookupStep();
+  const { deploymentBaseURL, setOrganizations } = useAuthFlow();
+  const { push } = usePushNavigator<AuthRoute>();
   const [formError, setFormError] = React.useState<string | undefined>();
 
   const lookupMutation = useLookupOrganizations({
@@ -18,20 +21,23 @@ export const EmailLookupScreen = () => {
         return;
       }
 
-      resolveOrganizations({
-        email,
-        organizations: data.organizations,
-      });
+      setOrganizations({ email, organizations: data.organizations });
+      push('OrgSelection');
     },
   });
 
+  if (!deploymentBaseURL) {
+    throw new Error('EmailLookupScreen requires a deployment to be selected first');
+  }
+
   return (
-    <AuthScreenLayout title="Enter your email" subtitle="We'll find your organizations" onBack={goBack}>
+    <View className="flex-1 bg-background px-5">
+      <Text className="text-xl text-center font-bold">Enter your email</Text>
       <EmailLookupForm
         isSubmitting={lookupMutation.isPending}
         formError={formError}
         onSubmit={(email) => lookupMutation.mutate({ email, deploymentBaseURL })}
       />
-    </AuthScreenLayout>
+    </View>
   );
 };

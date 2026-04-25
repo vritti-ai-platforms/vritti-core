@@ -1,19 +1,23 @@
 import { setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
+import { View } from 'react-native';
+import { Text } from '@vritti/quantum-ui-native/Typography';
+import { useLogin } from '../../hooks/auth';
+import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import type { LoginFormValues } from '../../schemas/auth/login';
-import { useLogin } from '../../hooks/auth';
 import { buildOrganizationApiBaseURL } from '../../services/auth/deployment.service';
-import { useLoginStep } from './AuthFlowContext';
-import { AuthScreenLayout } from './components/AuthScreenLayout';
 import { LoginForm } from './form/LoginForm';
 
 export const LoginScreen = () => {
   const { beginStatusConfirmation } = useAuth();
-  const { deploymentBaseURL, email, organizationId, organizationName, organizationSubdomain, goBack } =
-    useLoginStep();
+  const { deploymentBaseURL, email, organizationId, organizationSubdomain } = useAuthFlow();
   const [isPreparingTenantURL, setIsPreparingTenantURL] = React.useState(true);
   const [formError, setFormError] = React.useState<string | undefined>();
+
+  if (!deploymentBaseURL || !email || !organizationId || !organizationSubdomain) {
+    throw new Error('LoginScreen requires an organization to be selected first');
+  }
 
   const loginMutation = useLogin({
     onSuccess: () => {
@@ -50,7 +54,8 @@ export const LoginScreen = () => {
   }, [deploymentBaseURL, organizationSubdomain]);
 
   return (
-    <AuthScreenLayout title="Welcome back" subtitle={organizationName} onBack={goBack}>
+    <View className="flex-1 bg-background px-5">
+      <Text className="text-xl text-center font-bold">Welcome back</Text>
       <LoginForm
         email={email}
         formError={formError}
@@ -65,6 +70,6 @@ export const LoginScreen = () => {
           });
         }}
       />
-    </AuthScreenLayout>
+    </View>
   );
 };

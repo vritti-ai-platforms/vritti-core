@@ -5,7 +5,7 @@ import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { Alert as NativeAlert, ScrollView, View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
-import type { HostAppRoute } from './types';
+import type { HostAppRoute } from '../../routes';
 import { getInitials } from './utils';
 
 export const AccountHomeScreen = () => {

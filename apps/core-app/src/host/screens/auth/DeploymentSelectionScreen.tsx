@@ -1,3 +1,4 @@
+import { usePushNavigator } from '@vritti/quantum-ui-native';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
@@ -7,9 +8,9 @@ import { setSelectedDeploymentBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
 import { View } from 'react-native';
 import { useDeployments } from '../../hooks/auth';
+import { useAuthFlow } from '../../providers/AuthFlowProvider';
+import type { AuthRoute } from '../../routes/auth/authRoutes';
 import type { Deployment, DeploymentStatus } from '../../types/deployment';
-import { useAuthFlow } from './AuthFlowContext';
-import { AuthScreenLayout } from './components/AuthScreenLayout';
 import { SelectableCard } from './components/SelectableCard';
 
 function dotColorClass(status: DeploymentStatus) {
@@ -24,7 +25,8 @@ function orgText(count: number) {
 }
 
 export const DeploymentSelectionScreen = () => {
-  const { connectDeployment } = useAuthFlow();
+  const { setDeployment } = useAuthFlow();
+  const { push } = usePushNavigator<AuthRoute>();
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const deploymentsQuery = useDeployments();
   const deployments = deploymentsQuery.data ?? [];
@@ -34,11 +36,13 @@ export const DeploymentSelectionScreen = () => {
   async function handleConnect() {
     if (!selectedDeployment) return;
     await setSelectedDeploymentBaseURL(selectedDeployment.url);
-    connectDeployment(selectedDeployment.url);
+    setDeployment(selectedDeployment.url);
+    push('EmailLookup');
   }
 
   return (
-    <AuthScreenLayout title="Where would you like to connect?">
+    <View className="flex-1 bg-background px-5">
+      <Text className="text-xl text-center font-bold">Where would you like to connect?</Text>
       {deploymentsQuery.isLoading ? (
         <View className="flex-1 items-center justify-center gap-2">
           <Spinner size="large" />
@@ -102,6 +106,6 @@ export const DeploymentSelectionScreen = () => {
           </View>
         </Button>
       </View>
-    </AuthScreenLayout>
+    </View>
   );
 };

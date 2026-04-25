@@ -1,13 +1,14 @@
+import { usePushNavigator } from '@vritti/quantum-ui-native';
+import { Avatar, AvatarFallback, AvatarImage } from '@vritti/quantum-ui-native/Avatar';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
-import { Avatar, AvatarFallback, AvatarImage } from '@vritti/quantum-ui-native/Avatar';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import * as React from 'react';
 import { View } from 'react-native';
+import { useAuthFlow } from '../../providers/AuthFlowProvider';
+import type { AuthRoute } from '../../routes/auth/authRoutes';
 import type { LookupOrganization } from '../../services/auth/auth.service';
-import { useOrgSelectionStep } from './AuthFlowContext';
-import { AuthScreenLayout } from './components/AuthScreenLayout';
 import { SelectableCard } from './components/SelectableCard';
 
 function orgInitials(name: string) {
@@ -15,7 +16,8 @@ function orgInitials(name: string) {
 }
 
 export const OrgSelectionScreen = () => {
-  const { email, organizations, goBack, selectOrganization } = useOrgSelectionStep();
+  const { organizations, selectOrganization } = useAuthFlow();
+  const { push } = usePushNavigator<AuthRoute>();
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
   const selectedOrg = organizations.find((o: LookupOrganization) => o.id === selectedId) ?? null;
@@ -23,15 +25,16 @@ export const OrgSelectionScreen = () => {
   function handleContinue() {
     if (!selectedOrg) return;
     selectOrganization({
-      email,
       organizationId: selectedOrg.id,
       organizationName: selectedOrg.name,
       organizationSubdomain: selectedOrg.subdomain,
     });
+    push('Login');
   }
 
   return (
-    <AuthScreenLayout title="Select your organization" subtitle={email} onBack={goBack}>
+    <View className="flex-1 bg-background px-5">
+      <Text className="text-xl text-center font-bold">Select your organization</Text>
       <View className="flex-1">
         <FlashList
           style={{ flex: 1 }}
@@ -69,6 +72,6 @@ export const OrgSelectionScreen = () => {
           </View>
         </Button>
       </View>
-    </AuthScreenLayout>
+    </View>
   );
 };

@@ -222,6 +222,7 @@ const componentDirs = [
   'Input',
   'Label',
   'NativeStack',
+  'PasswordField',
   'Progress',
   'RadioGroup',
   'Separator',

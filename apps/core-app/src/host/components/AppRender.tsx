@@ -1,26 +1,10 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
-import { getTheme, PushNavigator, type PushScreenConfig, ScreenLayout, useTheme } from '@vritti/quantum-ui-native';
+import { getTheme, PushNavigator, useTheme } from '@vritti/quantum-ui-native';
 import { useMemo } from 'react';
-import { DynamicFeatureNavigator } from '../mf/DynamicFeatureNavigator';
+import { AuthFlowProvider } from '../providers/AuthFlowProvider';
 import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';
-import { PermissionProvider } from '../providers/PermissionProvider';
-import { AccountPasswordScreen } from '../screens/account/AccountPasswordScreen';
-import { AccountProfileScreen } from '../screens/account/AccountProfileScreen';
-import { AccountSessionsScreen } from '../screens/account/AccountSessionsScreen';
-import { AccountThemeScreen } from '../screens/account/AccountThemeScreen';
-import type { HostAppRoute } from '../screens/account/types';
-import { AuthFlowShell } from '../screens/auth/AuthFlowShell';
+import { authenticatedRoutes, authRoutes } from '../routes';
 import { StartupSplashScreen } from './StartupSplashScreen';
-
-const HomeTabsScreen = () => {
-  return (
-    <ScreenLayout>
-      <PermissionProvider>
-        <DynamicFeatureNavigator />
-      </PermissionProvider>
-    </ScreenLayout>
-  );
-};
 
 export const AppRender = () => {
   const { isDark } = useTheme();
@@ -44,42 +28,18 @@ export const AppRender = () => {
     return 'Starting Vritti';
   }, [phase]);
 
-  const authenticatedRoutes = useMemo<ReadonlyArray<PushScreenConfig<HostAppRoute>>>(
-    () => [
-      {
-        name: 'HomeTabs',
-        component: HomeTabsScreen,
-      },
-      {
-        name: 'AccountProfile',
-        title: 'Profile',
-        component: AccountProfileScreen,
-      },
-      {
-        name: 'AccountPassword',
-        title: 'Password',
-        component: AccountPasswordScreen,
-      },
-      {
-        name: 'AccountSessions',
-        title: 'Sessions',
-        component: AccountSessionsScreen,
-      },
-      {
-        name: 'AccountTheme',
-        title: 'Theme',
-        component: AccountThemeScreen,
-      },
-    ],
-    [],
-  );
-
   if (isLoading) {
     return <StartupSplashScreen statusText={splashStatusText} />;
   }
 
   if (!isAuthenticated) {
-    return <AuthFlowShell />;
+    return (
+      <AuthFlowProvider>
+        <NavigationContainer theme={navTheme}>
+          <PushNavigator initialRoute="Deployment" screens={authRoutes} />
+        </NavigationContainer>
+      </AuthFlowProvider>
+    );
   }
 
   return (
