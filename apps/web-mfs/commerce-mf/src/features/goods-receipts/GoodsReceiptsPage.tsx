@@ -8,7 +8,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GOODS_RECEIPTS_TABLE_KEY, useGoodsReceiptsTable } from '@/hooks/useGoodsReceiptsTable';
+import { GOODS_RECEIPTS_TABLE_KEY } from '@/hooks/goods-receipts/keys';
+import { useGoodsReceiptsTable } from '@/hooks/goods-receipts/useGoodsReceiptsTable';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import { CreateGoodsReceiptDialog } from './forms/CreateGoodsReceiptDialog';
 
@@ -43,12 +44,12 @@ export const GoodsReceiptsPage = () => {
       {
         accessorKey: 'po',
         header: 'Purchase Order',
-        cell: ({ row }) => row.original.po?.poNumber ?? 'Standalone',
+        cell: ({ row }) => row.original.po?.poNumber ?? '--',
       },
       {
         accessorKey: 'notes',
         header: 'Notes',
-        cell: ({ row }) => row.original.notes ?? '—',
+        cell: ({ row }) => row.original.notes ?? '--',
       },
       {
         id: 'actions',

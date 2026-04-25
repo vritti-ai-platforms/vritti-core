@@ -1,10 +1,16 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { type CreateResponseDto, RequireSession, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import {
+  type CreateResponseDto,
+  RequireSession,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+  UserId,
+} from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
-import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { CreateStorageLocationConfigDto } from './dto/request/create-storage-location-config.dto';
+import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { UpdateStorageLocationConfigDto } from './dto/request/update-storage-location-config.dto';
 import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
@@ -29,12 +35,18 @@ export class InventoryItemsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Returns paginated inventory item options for select dropdowns; optionally filtered by supplier
+  // Returns paginated inventory item options; filtered by PO when poId provided, by supplier when supplierId provided, else all
   @Get('select')
-  @ApiQuery({ name: 'supplierId', required: false, type: String, description: 'Optional supplier ID to filter linked inventory items' })
+  @ApiQuery({ name: 'supplierId', required: false, type: String, description: 'Filter to items linked to a supplier' })
+  @ApiQuery({
+    name: 'poId',
+    required: false,
+    type: String,
+    description: 'Filter to items on a purchase order (takes precedence over supplierId)',
+  })
   select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-items/select');
-    return this.service.select(query, query.supplierId);
+    return this.service.select(query, query.supplierId, query.poId);
   }
 
   // Creates a new inventory item
@@ -111,7 +123,11 @@ export class InventoryItemsGatewayController {
 
   // Updates a storage location config
   @Patch(':id/storage-location-configs/:configId')
-  updateStorageLocationConfig(@Param('id') id: string, @Param('configId') configId: string, @Body() dto: UpdateStorageLocationConfigDto) {
+  updateStorageLocationConfig(
+    @Param('id') id: string,
+    @Param('configId') configId: string,
+    @Body() dto: UpdateStorageLocationConfigDto,
+  ) {
     this.logger.log(`PATCH /commerce-api/inventory-items/${id}/storage-location-configs/${configId}`);
     return this.service.updateStorageLocationConfig(configId, dto);
   }

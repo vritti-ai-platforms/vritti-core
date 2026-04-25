@@ -3,9 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
 import { addStockAdjustmentLineItem, type AddStockAdjustmentLineItemPayload } from '@/services/stock-adjustments.service';
-import { STOCK_ADJUSTMENT_LINE_KEY } from './useStockAdjustmentLine';
-import { STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY } from './useStockAdjustmentLineItemsTable';
-import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
+import { STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY, STOCK_ADJUSTMENT_LINE_KEY, STOCK_ADJUSTMENT_LINES_KEY } from './keys';
 
 export function useAddStockAdjustmentLineItem(
   adjustmentId: string,

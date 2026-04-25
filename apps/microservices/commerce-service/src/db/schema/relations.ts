@@ -63,6 +63,7 @@ export const relations = defineRelations(schema, (r) => ({
     supplierItems: r.many.supplierItems(),
     purchaseOrderItems: r.many.purchaseOrderItems(),
     goodsReceiptItems: r.many.goodsReceiptItems(),
+    goodsReceiptBatches: r.many.goodsReceiptBatches(),
     inventoryItemBatches: r.many.inventoryItemBatches(),
     inventoryItemBatchItems: r.many.inventoryItemBatchItems(),
     inventoryLedger: r.many.inventoryLedger(),
@@ -74,6 +75,7 @@ export const relations = defineRelations(schema, (r) => ({
     inventoryItemBatches: r.many.inventoryItemBatches(),
     storageLocationConfigs: r.many.storageLocationConfigs(),
     stockAdjustmentLines: r.many.stockAdjustmentLines(),
+    goodsReceiptBatches: r.many.goodsReceiptBatches(),
   },
   inventoryItemBatches: {
     inventoryItem: r.one.inventoryItems({
@@ -161,7 +163,6 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.purchaseOrderItems.inventoryItemId,
       to: r.inventoryItems.id,
     }),
-    goodsReceiptItems: r.many.goodsReceiptItems(),
   },
   goodsReceipts: {
     supplier: r.one.suppliers({
@@ -174,20 +175,37 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     goodsReceiptItems: r.many.goodsReceiptItems(),
   },
+  goodsReceiptBatches: {
+    goodsReceiptItem: r.one.goodsReceiptItems({
+      from: r.goodsReceiptBatches.goodsReceiptLineId,
+      to: r.goodsReceiptItems.id,
+    }),
+    inventoryItem: r.one.inventoryItems({
+      from: r.goodsReceiptBatches.inventoryItemId,
+      to: r.inventoryItems.id,
+    }),
+    location: r.one.storageLocations({
+      from: r.goodsReceiptBatches.locationId,
+      to: r.storageLocations.id,
+    }),
+    goodsReceiptBatchItems: r.many.goodsReceiptBatchItems(),
+  },
+  goodsReceiptBatchItems: {
+    goodsReceiptBatch: r.one.goodsReceiptBatches({
+      from: r.goodsReceiptBatchItems.goodsReceiptBatchId,
+      to: r.goodsReceiptBatches.id,
+    }),
+  },
   goodsReceiptItems: {
     goodsReceipt: r.one.goodsReceipts({
       from: r.goodsReceiptItems.goodsReceiptId,
       to: r.goodsReceipts.id,
     }),
-    purchaseOrderItem: r.one.purchaseOrderItems({
-      from: r.goodsReceiptItems.purchaseOrderItemId,
-      to: r.purchaseOrderItems.id,
-    }),
     inventoryItem: r.one.inventoryItems({
       from: r.goodsReceiptItems.inventoryItemId,
       to: r.inventoryItems.id,
     }),
-    inventoryItemBatches: r.many.inventoryItemBatches(),
+    goodsReceiptBatches: r.many.goodsReceiptBatches(),
   },
   conversions: {
     bom: r.one.bom({

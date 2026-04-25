@@ -3,8 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import { type AddStockAdjustmentLinePayload, updateStockAdjustmentLine } from '@/services/stock-adjustments.service';
-import { STOCK_ADJUSTMENT_LINE_KEY } from './useStockAdjustmentLine';
-import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
+import { STOCK_ADJUSTMENT_LINE_KEY, STOCK_ADJUSTMENT_LINES_KEY } from './keys';
 
 export function useUpdateStockAdjustmentLine(
   adjustmentId: string,

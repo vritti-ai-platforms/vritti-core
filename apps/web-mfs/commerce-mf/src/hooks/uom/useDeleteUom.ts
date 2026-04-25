@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import { deleteUom } from '@/services/uom.service';
-import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './useUom';
+import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './keys';
 
 // Deletes a UOM and invalidates the UOM lists
 export function useDeleteUom(

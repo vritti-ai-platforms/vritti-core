@@ -5,4 +5,8 @@ export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsString()
   supplierId?: string;
+
+  @IsOptional()
+  @IsString()
+  poId?: string;
 }

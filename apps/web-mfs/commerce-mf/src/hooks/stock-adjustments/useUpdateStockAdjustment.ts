@@ -2,8 +2,7 @@ import type { AxiosError } from 'axios';
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { type UpdateStockAdjustmentPayload, updateStockAdjustment } from '@/services/stock-adjustments.service';
-import { STOCK_ADJUSTMENT_KEY } from './useStockAdjustment';
-import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
+import { STOCK_ADJUSTMENT_KEY, STOCK_ADJUSTMENT_LINES_KEY } from './keys';
 
 export function useUpdateStockAdjustment(
   adjustmentId: string,

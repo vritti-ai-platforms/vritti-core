@@ -4,10 +4,7 @@ import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import type { PurchaseOrderData } from '@/schemas/purchase-orders';
 import { addPurchaseOrderItem, type AddPurchaseOrderItemPayload } from '@/services/purchase-orders.service';
-import { PURCHASE_ORDER_KEY } from './usePurchaseOrder';
-import { PURCHASE_ORDER_ITEMS_IDS_KEY } from './usePurchaseOrderItemsIds';
-import { PURCHASE_ORDER_ITEMS_TABLE_KEY } from './usePurchaseOrderItemsTable';
-import { PURCHASE_ORDERS_TABLE_KEY } from './usePurchaseOrdersTable';
+import { PURCHASE_ORDERS_TABLE_KEY, PURCHASE_ORDER_KEY, PURCHASE_ORDER_ITEMS_IDS_KEY, PURCHASE_ORDER_ITEMS_TABLE_KEY } from './keys';
 
 export function useAddPurchaseOrderItem(
   options?: Omit<UseMutationOptions<CreateResponse<PurchaseOrderData>, AxiosError, AddPurchaseOrderItemPayload>, 'mutationFn'>,

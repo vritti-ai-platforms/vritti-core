@@ -4,7 +4,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GOODS_RECEIPTS_KEY, useGoodsReceipts } from '@/hooks/useGoodsReceipts';
+import { GOODS_RECEIPTS_KEY } from '@/hooks/goods-receipts/keys';
+import { useGoodsReceipts } from '@/hooks/goods-receipts/useGoodsReceipts';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 
 interface GoodsReceiptsTabProps {
@@ -33,21 +34,16 @@ export const GoodsReceiptsTab = ({ poId, isActive }: GoodsReceiptsTabProps) => {
       {
         accessorKey: 'receivedBy',
         header: 'Received By',
-        cell: ({ row }) => row.original.receivedBy ?? '—',
+        cell: ({ row }) => row.original.receivedBy ?? '--',
       },
       {
         accessorKey: 'status',
         header: 'Status',
       },
       {
-        id: 'lineCount',
-        header: 'Lines',
-        cell: ({ row }) => row.original.items.length,
-      },
-      {
         accessorKey: 'notes',
         header: 'Notes',
-        cell: ({ row }) => row.original.notes ?? '—',
+        cell: ({ row }) => row.original.notes ?? '--',
       },
       {
         id: 'actions',

@@ -2,11 +2,7 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { BatchLedgerTableResponse, InventoryItemBatchData } from '@/schemas/inventory-item-batches';
 import { getInventoryItemBatch, getInventoryItemBatchLedgerTable } from '@/services/inventory-item-batches.service';
-
-export const INVENTORY_ITEM_BATCH_KEY = (batchId: string) => ['commerce', 'inventory-item-batches', batchId] as const;
-
-export const INVENTORY_ITEM_BATCH_LEDGER_KEY = (batchId: string) =>
-  ['commerce', 'inventory-item-batches', batchId, 'ledger'] as const;
+import { INVENTORY_ITEM_BATCH_KEY, INVENTORY_ITEM_BATCH_LEDGER_KEY } from './keys';
 
 export function useInventoryItemBatch(
   id: string | null,

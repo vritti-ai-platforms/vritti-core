@@ -2,8 +2,7 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { PurchaseOrdersTableResponse } from '@/schemas/purchase-orders';
 import { getPurchaseOrdersTable } from '@/services/purchase-orders.service';
-
-export const PURCHASE_ORDERS_TABLE_KEY = ['commerce', 'purchase-orders', 'table'] as const;
+import { PURCHASE_ORDERS_TABLE_KEY } from './keys';
 
 // Fetches purchase orders table data
 export function usePurchaseOrdersTable(

@@ -114,17 +114,18 @@ export class PurchaseOrdersGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns goods receipts table linked to a purchase order
   async findGoodsReceiptTable(id: string, userId: string): Promise<GoodsReceiptTableResponseDto> {
-    this.logger.log(`purchaseOrders.goodsReceiptTable — id: ${id}`);
+    this.logger.log(`purchaseOrders.goodsReceipts — id: ${id}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `commerce-purchase-order-${id}-goods-receipts`,
     );
-    const result = await this.nats.send<GoodsReceiptResponseDto[]>('commerce', 'goodsReceipts.findByPoId', {
-      purchaseOrderId: id,
-    });
-    return { result, count: result.length, state, activeViewId };
+    const { result, count } = await this.nats.send<{ result: GoodsReceiptResponseDto[]; count: number }>(
+      'commerce',
+      'purchaseOrders.goodsReceipts',
+      { purchaseOrderId: id, ...state },
+    );
+    return { result, count, state, activeViewId };
   }
 
   // Adds a line item to a purchase order

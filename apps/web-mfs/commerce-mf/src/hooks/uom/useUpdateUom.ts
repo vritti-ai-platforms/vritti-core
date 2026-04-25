@@ -4,7 +4,7 @@ import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { UpdateUomData } from '@/schemas/uom';
 import { updateUom } from '@/services/uom.service';
-import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './useUom';
+import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './keys';
 
 // Updates a UOM and invalidates the UOM lists
 export function useUpdateUom(

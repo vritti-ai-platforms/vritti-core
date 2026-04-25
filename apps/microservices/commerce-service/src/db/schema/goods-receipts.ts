@@ -2,8 +2,7 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceiptStatusEnum } from './enums';
-import { inventoryItems } from './inventory-items';
-import { purchaseOrderItems, purchaseOrders } from './purchase-orders';
+import { purchaseOrders } from './purchase-orders';
 import { suppliers } from './suppliers';
 
 export const goodsReceipts = coreSchema.table(
@@ -21,6 +20,7 @@ export const goodsReceipts = coreSchema.table(
     receivedBy: uuid('received_by'),
     receivedDate: timestamp('received_date', { withTimezone: true, mode: 'string' }).notNull(),
     notes: text('notes'),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
@@ -53,31 +53,3 @@ export const goodsReceipts = coreSchema.table(
 
 export type GoodsReceipt = typeof goodsReceipts.$inferSelect;
 export type NewGoodsReceipt = typeof goodsReceipts.$inferInsert;
-
-export const goodsReceiptItems = coreSchema.table(
-  'goods_receipt_items',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    goodsReceiptId: uuid('goods_receipt_id')
-      .notNull()
-      .references(() => goodsReceipts.id, { onDelete: 'cascade' }),
-    purchaseOrderItemId: uuid('purchase_order_item_id').references(() => purchaseOrderItems.id),
-    inventoryItemId: uuid('inventory_item_id')
-      .notNull()
-      .references(() => inventoryItems.id),
-    acceptedQuantity: decimal('accepted_quantity', { precision: 12, scale: 3 }).notNull(),
-    rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
-    rejectionReason: text('rejection_reason'),
-    batchNumber: varchar('batch_number', { length: 100 }),
-    manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
-    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }),
-  },
-  (table) => [
-    index('idx_goods_receipt_items_gr').on(table.goodsReceiptId),
-    index('idx_goods_receipt_items_inventory').on(table.inventoryItemId),
-  ],
-);
-
-export type GoodsReceiptItem = typeof goodsReceiptItems.$inferSelect;
-export type NewGoodsReceiptItem = typeof goodsReceiptItems.$inferInsert;

@@ -98,6 +98,24 @@ export class InventoryItemsService {
     });
   }
 
+  // Returns inventory items scoped to a purchase order for select dropdowns
+  findForSelectByPurchaseOrder(poId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelectByPurchaseOrder(poId, {
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
+  }
+
   // Creates a new inventory item
   async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     const entity = await this.repository.create({

@@ -2,9 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { StorageLocationTreeNode } from '@/schemas/storage-locations';
 import { listLocationTree } from '@/services/storage-locations.service';
-import { LOCATIONS_KEY } from './keys';
-
-export const LOCATION_TREE_KEY = [...LOCATIONS_KEY, 'tree'] as const;
+import { LOCATION_TREE_KEY } from './keys';
 
 export function useLocationTree(search?: string) {
 	return useQuery<StorageLocationTreeNode[], AxiosError>({

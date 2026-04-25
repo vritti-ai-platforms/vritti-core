@@ -4,7 +4,7 @@ import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import type { PurchaseOrderData } from '@/schemas/purchase-orders';
 import { type CreatePurchaseOrderPayload, createPurchaseOrder } from '@/services/purchase-orders.service';
-import { PURCHASE_ORDERS_TABLE_KEY } from './usePurchaseOrdersTable';
+import { PURCHASE_ORDERS_TABLE_KEY } from './keys';
 
 // Creates a new purchase order and invalidates the table
 export function useCreatePurchaseOrder(

@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { AxiosError } from 'axios';
 import { deleteInventoryItem } from '@/services/inventory-items.service';
-import { INVENTORY_ITEMS_TABLE_KEY } from './useInventoryItemsTable';
+import { INVENTORY_ITEMS_TABLE_KEY } from './keys';
 
 // Deletes an inventory item and invalidates the table
 export function useDeleteInventoryItem(

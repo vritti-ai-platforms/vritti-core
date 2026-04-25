@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import { deleteStockAdjustment } from '@/services/stock-adjustments.service';
-import { STOCK_ADJUSTMENTS_TABLE_KEY } from './useStockAdjustmentsTable';
+import { STOCK_ADJUSTMENTS_TABLE_KEY } from './keys';
 
 export function useDeleteStockAdjustment(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,

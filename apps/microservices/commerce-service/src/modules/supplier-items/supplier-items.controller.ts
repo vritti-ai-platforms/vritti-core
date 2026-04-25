@@ -13,33 +13,33 @@ export class SupplierItemsController {
 
   @MessagePattern({ cmd: 'suppliers.itemsTable' })
   itemsTable(@Payload() data: { supplierId: string } & TableViewState): Promise<{ result: SupplierItemDto[]; count: number }> {
-    this.logger.log(`suppliers.itemsTable — supplierId: ${data.supplierId}`);
+    this.logger.log('suppliers.itemsTable');
     const { supplierId, ...state } = data;
     return this.service.findForTable(supplierId, state);
   }
 
   @MessagePattern({ cmd: 'suppliers.itemIds' })
   itemIds(@Payload() data: { supplierId: string }): Promise<string[]> {
-    this.logger.log(`suppliers.itemIds — supplierId: ${data.supplierId}`);
+    this.logger.log('suppliers.itemIds');
     return this.service.findItemIds(data.supplierId);
   }
 
   @MessagePattern({ cmd: 'suppliers.linkItem' })
   linkItem(@Payload() data: { supplierId: string } & LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
     const { supplierId, ...itemData } = data;
-    this.logger.log(`suppliers.linkItem — supplierId: ${supplierId}`);
+    this.logger.log(`suppliers.linkItem — item: ${itemData.inventoryItemId}`);
     return this.service.linkItem(supplierId, itemData);
   }
 
   @MessagePattern({ cmd: 'suppliers.unlinkItem' })
   unlinkItem(@Payload() data: { supplierId: string; supplierItemId: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`suppliers.unlinkItem — supplierId: ${data.supplierId}, itemId: ${data.supplierItemId}`);
+    this.logger.log('suppliers.unlinkItem');
     return this.service.unlinkItem(data.supplierId, data.supplierItemId);
   }
 
   @MessagePattern({ cmd: 'suppliers.findItemPrice' })
   findItemPrice(@Payload() data: { supplierId: string; inventoryItemId: string }): Promise<{ unitPrice: CurrencyAmountDto | null }> {
-    this.logger.log(`suppliers.findItemPrice — supplierId: ${data.supplierId}, itemId: ${data.inventoryItemId}`);
+    this.logger.log('suppliers.findItemPrice');
     return this.service.findItemPrice(data.supplierId, data.inventoryItemId);
   }
 }

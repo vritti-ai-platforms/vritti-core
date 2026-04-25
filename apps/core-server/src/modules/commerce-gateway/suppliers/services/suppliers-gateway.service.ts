@@ -49,20 +49,20 @@ export class SuppliersGatewayService {
   }
 
   // Creates a new supplier
-  async create(dto: CreateSupplierDto): Promise<SupplierResponseDto> {
+  async create(dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierResponseDto>> {
     this.logger.log(`suppliers.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'suppliers.create', dto);
   }
 
   // Finds a supplier by ID
   async findById(id: string): Promise<SupplierResponseDto> {
-    this.logger.log(`suppliers.findById — id: ${id}`);
+    this.logger.log('suppliers.findById');
     return this.nats.send('commerce', 'suppliers.findById', { id });
   }
 
   // Returns linked supplier items for the table
   async findItemsTable(supplierId: string, userId: string): Promise<SupplierItemTableResponseDto> {
-    this.logger.log(`suppliers.itemsTable — supplierId: ${supplierId}`);
+    this.logger.log('suppliers.itemsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `commerce-supplier-${supplierId}-items`,
@@ -79,67 +79,67 @@ export class SuppliersGatewayService {
 
   // Returns linked inventory item IDs for a supplier
   async findItemIds(supplierId: string): Promise<string[]> {
-    this.logger.log(`suppliers.itemIds — supplierId: ${supplierId}`);
+    this.logger.log('suppliers.itemIds');
     return this.nats.send('commerce', 'suppliers.itemIds', { supplierId });
   }
 
   // Returns supplier contacts
   async findContacts(supplierId: string): Promise<SupplierContactResponseDto[]> {
-    this.logger.log(`suppliers.contacts — supplierId: ${supplierId}`);
+    this.logger.log('suppliers.contacts');
     return this.nats.send('commerce', 'suppliers.contacts', { supplierId });
   }
 
   // Updates a supplier by ID
   async update(id: string, dto: UpdateSupplierDto): Promise<SuccessResponseDto> {
-    this.logger.log(`suppliers.update — id: ${id}`);
+    this.logger.log('suppliers.update');
     return this.nats.send('commerce', 'suppliers.update', { id, ...dto });
   }
 
   // Deletes a supplier by ID
-  async delete(id: string): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`suppliers.delete — id: ${id}`);
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.delete');
     return this.nats.send('commerce', 'suppliers.delete', { id });
   }
 
   // Links an inventory item to a supplier
   async linkItem(supplierId: string, dto: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemResponseDto>> {
-    this.logger.log(`suppliers.linkItem — supplierId: ${supplierId}, itemId: ${dto.inventoryItemId}`);
+    this.logger.log(`suppliers.linkItem — item: ${dto.inventoryItemId}`);
     return this.nats.send('commerce', 'suppliers.linkItem', { supplierId, ...dto });
   }
 
   // Unlinks an inventory item from a supplier
-  async unlinkItem(supplierId: string, supplierItemId: string): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`suppliers.unlinkItem — supplierId: ${supplierId}, supplierItemId: ${supplierItemId}`);
+  async unlinkItem(supplierId: string, supplierItemId: string): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.unlinkItem');
     return this.nats.send('commerce', 'suppliers.unlinkItem', { supplierId, supplierItemId });
   }
 
   // Adds a contact to a supplier
-  async addContact(supplierId: string, dto: CreateSupplierContactDto): Promise<SupplierContactResponseDto> {
-    this.logger.log(`suppliers.addContact — supplierId: ${supplierId}`);
+  async addContact(supplierId: string, dto: CreateSupplierContactDto): Promise<CreateResponseDto<SupplierContactResponseDto>> {
+    this.logger.log('suppliers.addContact');
     return this.nats.send('commerce', 'suppliers.addContact', { supplierId, ...dto });
   }
 
   // Updates a supplier contact
-  async updateContact(supplierId: string, contactId: string, dto: UpdateSupplierContactDto): Promise<SupplierContactResponseDto> {
-    this.logger.log(`suppliers.updateContact — supplierId: ${supplierId}, contactId: ${contactId}`);
+  async updateContact(supplierId: string, contactId: string, dto: UpdateSupplierContactDto): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.updateContact');
     return this.nats.send('commerce', 'suppliers.updateContact', { supplierId, contactId, ...dto });
   }
 
   // Deletes a supplier contact
   async deleteContact(supplierId: string, contactId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`suppliers.deleteContact — supplierId: ${supplierId}, contactId: ${contactId}`);
+    this.logger.log('suppliers.deleteContact');
     return this.nats.send('commerce', 'suppliers.deleteContact', { supplierId, contactId });
   }
 
   // Marks a supplier contact as primary
-  async markPrimaryContact(supplierId: string, contactId: string): Promise<SupplierContactResponseDto> {
-    this.logger.log(`suppliers.markPrimaryContact — supplierId: ${supplierId}, contactId: ${contactId}`);
+  async markPrimaryContact(supplierId: string, contactId: string): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.markPrimaryContact');
     return this.nats.send('commerce', 'suppliers.markPrimaryContact', { supplierId, contactId });
   }
 
   // Returns the unit price for a supplier-item pair
   async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: CurrencyAmountDto | null }> {
-    this.logger.log(`suppliers.findItemPrice — supplierId: ${supplierId}, itemId: ${inventoryItemId}`);
+    this.logger.log('suppliers.findItemPrice');
     return this.nats.send('commerce', 'suppliers.findItemPrice', { supplierId, inventoryItemId });
   }
 }

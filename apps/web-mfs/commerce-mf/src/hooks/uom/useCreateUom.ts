@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { CreateUomData, CreateUomResponse } from '@/schemas/uom';
 import { createUom } from '@/services/uom.service';
-import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './useUom';
+import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './keys';
 
 // Creates a new UOM and invalidates the UOM lists
 export function useCreateUom(

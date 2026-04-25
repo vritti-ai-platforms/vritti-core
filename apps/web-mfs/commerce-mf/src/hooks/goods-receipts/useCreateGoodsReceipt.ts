@@ -8,9 +8,8 @@ import {
   PURCHASE_ORDER_ITEMS_TABLE_KEY,
   PURCHASE_ORDER_KEY,
   PURCHASE_ORDERS_TABLE_KEY,
-} from './purchase-orders';
-import { GOODS_RECEIPTS_KEY } from './useGoodsReceipts';
-import { GOODS_RECEIPTS_TABLE_KEY } from './useGoodsReceiptsTable';
+} from '@/hooks/purchase-orders/keys';
+import { GOODS_RECEIPTS_KEY, GOODS_RECEIPTS_TABLE_KEY } from './keys';
 
 // Creates a goods receipt and invalidates PO detail + table
 export function useCreateGoodsReceipt(

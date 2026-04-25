@@ -1,7 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { decimal, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { goodsReceiptItems } from './goods-receipts';
+import { goodsReceiptItems } from './goods-receipt-items';
 import { inventoryItems } from './inventory-items';
 import { storageLocations } from './storage-locations';
 

@@ -4,7 +4,7 @@ import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import type { UpdateInventoryItemFormData } from '@/schemas/inventory-items';
 import { updateInventoryItem } from '@/services/inventory-items.service';
-import { INVENTORY_ITEMS_TABLE_KEY } from './useInventoryItemsTable';
+import { INVENTORY_ITEM_KEY, INVENTORY_ITEMS_TABLE_KEY } from './keys';
 
 // Updates an inventory item and invalidates table + detail
 export function useUpdateInventoryItem(
@@ -18,7 +18,7 @@ export function useUpdateInventoryItem(
     onSuccess: (...args) => {
       const [, variables] = args;
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEMS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: ['commerce', 'inventory-items', variables.id] });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_KEY(variables.id) });
       options?.onSuccess?.(...args);
     },
   });

@@ -2,9 +2,7 @@ import { type UseQueryOptions, useQuery, useSuspenseQuery } from '@tanstack/reac
 import type { AxiosError } from 'axios';
 import type { UomData } from '@/schemas/uom';
 import { listBaseUnits, listDerivedUnits } from '@/services/uom.service';
-
-export const UOM_BASE_KEY = ['commerce', 'uom', 'base'] as const;
-export const UOM_DERIVED_KEY = ['commerce', 'uom', 'derived'] as const;
+import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './keys';
 
 // Fetches base units, optionally filtered by search — suspends until data is available
 export function useBaseUnits(search?: string) {

@@ -1,37 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class GoodsReceiptItemResponseDto {
-  @ApiProperty()
-  id: string;
-
-  @ApiPropertyOptional({ nullable: true })
-  purchaseOrderItemId: string | null;
-
-  @ApiProperty()
-  inventoryItemId: string;
-
-  @ApiPropertyOptional({ nullable: true })
-  inventoryItemName: string | null;
-
-  @ApiProperty()
-  acceptedQuantity: number;
-
-  @ApiProperty()
-  rejectedQuantity: number;
-
-  @ApiPropertyOptional({ nullable: true })
-  rejectionReason: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  batchNumber: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  manufacturingDate: string | null;
-
-  @ApiPropertyOptional({ nullable: true })
-  expiryDate: string | null;
-}
-
 export class GoodsReceiptPoDto {
   @ApiProperty()
   id: string;
@@ -45,8 +13,8 @@ export class GoodsReceiptPoDto {
   @ApiPropertyOptional({ nullable: true })
   expectedBy: string | null;
 
-  @ApiPropertyOptional({ nullable: true })
-  totalAmount: { currency: string; value: number } | null;
+  @ApiProperty()
+  totalAmount: { currency: string; value: number };
 }
 
 export class GoodsReceiptResponseDto {
@@ -59,11 +27,14 @@ export class GoodsReceiptResponseDto {
   @ApiProperty()
   supplierId: string;
 
-  @ApiProperty({ description: 'Goods receipt status' })
+  @ApiProperty()
+  supplierName: string;
+
+  @ApiProperty()
   status: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  supplierName: string | null;
+  @ApiPropertyOptional()
+  isPublishable?: boolean;
 
   @ApiPropertyOptional({ type: GoodsReceiptPoDto, nullable: true })
   po: GoodsReceiptPoDto | null;
@@ -77,9 +48,9 @@ export class GoodsReceiptResponseDto {
   @ApiPropertyOptional({ nullable: true })
   notes: string | null;
 
+  @ApiPropertyOptional({ nullable: true })
+  publishedAt: string | null;
+
   @ApiProperty()
   createdAt: string;
-
-  @ApiProperty({ type: [GoodsReceiptItemResponseDto] })
-  items: GoodsReceiptItemResponseDto[];
 }

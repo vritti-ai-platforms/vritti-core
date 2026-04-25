@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { type CreateStockAdjustmentPayload, createStockAdjustment } from '@/services/stock-adjustments.service';
-import { STOCK_ADJUSTMENTS_TABLE_KEY } from './useStockAdjustmentsTable';
+import { STOCK_ADJUSTMENTS_TABLE_KEY } from './keys';
 
 export function useCreateStockAdjustment(
   options?: Omit<UseMutationOptions<StockAdjustmentData, AxiosError, CreateStockAdjustmentPayload>, 'mutationFn'>,

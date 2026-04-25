@@ -39,6 +39,20 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     });
   }
 
+  // Returns inventory item options scoped to a purchase order with orderedQuantity/receivedQuantity available as additionalKeys
+  findForSelectByPurchaseOrder(poId: string, config: FindForSelectConfig): Promise<SelectQueryResult> {
+    return super.findForSelect({
+      ...config,
+      joins: [
+        { table: purchaseOrderItems, on: eq(purchaseOrderItems.inventoryItemId, inventoryItems.id), type: 'inner' },
+        { table: categories, on: eq(inventoryItems.categoryId, categories.id), type: 'left' },
+        { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' },
+      ],
+      groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
+      conditions: [eq(purchaseOrderItems.purchaseOrderId, poId)],
+    });
+  }
+
   // Returns paginated inventory items with UOM symbol via LEFT JOIN
   async findAllWithUom(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];

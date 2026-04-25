@@ -2,7 +2,7 @@ import type { SupplierDetailDto, SupplierDto } from '@domain/suppliers/dto/entit
 import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 
@@ -25,27 +25,27 @@ export class SuppliersController {
   }
 
   @MessagePattern({ cmd: 'suppliers.create' })
-  async create(@Payload() dto: CreateSupplierDto): Promise<SupplierDto> {
+  async create(@Payload() dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     this.logger.log(`suppliers.create — name: ${dto.name}`);
     return this.service.create(dto);
   }
 
   @MessagePattern({ cmd: 'suppliers.findById' })
   async findById(@Payload() data: { id: string }): Promise<SupplierDetailDto> {
-    this.logger.log(`suppliers.findById — id: ${data.id}`);
+    this.logger.log('suppliers.findById');
     return this.service.findById(data.id);
   }
 
   @MessagePattern({ cmd: 'suppliers.update' })
   async update(@Payload() data: { id: string } & UpdateSupplierDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
-    this.logger.log(`suppliers.update — id: ${id}`);
+    this.logger.log('suppliers.update');
     return this.service.update(id, updateData);
   }
 
   @MessagePattern({ cmd: 'suppliers.delete' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`suppliers.delete — id: ${data.id}`);
+    this.logger.log('suppliers.delete');
     return this.service.delete(data.id);
   }
 }

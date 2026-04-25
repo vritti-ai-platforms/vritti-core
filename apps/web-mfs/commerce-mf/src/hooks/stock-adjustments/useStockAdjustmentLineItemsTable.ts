@@ -2,9 +2,7 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { StockAdjustmentLineItemsTableResponse } from '@/schemas/stock-adjustments';
 import { getStockAdjustmentLineItemsTable } from '@/services/stock-adjustments.service';
-
-export const STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY = (adjustmentId: string, lineId: string) =>
-  ['commerce', 'stock-adjustments', adjustmentId, 'lines', lineId, 'items', 'table'] as const;
+import { STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY } from './keys';
 
 export function useStockAdjustmentLineItemsTable(
   adjustmentId: string | null,

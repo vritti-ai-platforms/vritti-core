@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BadRequestException, NotFoundException, type SuccessResponseDto } from '@vritti/api-sdk';
+import { BadRequestException, type CreateResponseDto, NotFoundException, type SuccessResponseDto } from '@vritti/api-sdk';
 import { SupplierContactDto } from '../dto/entity/supplier-contact.dto';
 import { SupplierContactsRepository } from '../repositories/supplier-contacts.repository';
 
@@ -38,7 +38,7 @@ export class SupplierContactsService {
     return rows.map(SupplierContactDto.from);
   }
 
-  async createContact(supplierId: string, data: CreateSupplierContactInput): Promise<SupplierContactDto> {
+  async createContact(supplierId: string, data: CreateSupplierContactInput): Promise<CreateResponseDto<SupplierContactDto>> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
@@ -82,14 +82,14 @@ export class SupplierContactsService {
       return row;
     });
 
-    return SupplierContactDto.from(created);
+    return { success: true, message: 'Contact added.', data: SupplierContactDto.from(created) };
   }
 
   async updateContact(
     supplierId: string,
     contactId: string,
     data: UpdateSupplierContactInput,
-  ): Promise<SupplierContactDto> {
+  ): Promise<SuccessResponseDto> {
     const existing = await this.repository.findBySupplierAndContactId(supplierId, contactId);
     if (!existing) throw new NotFoundException('Supplier contact not found.');
 
@@ -97,7 +97,7 @@ export class SupplierContactsService {
       throw new BadRequestException('Primary contact cannot be unset directly. Mark another contact as primary first.');
     }
 
-    const updated = await this.repository.transaction(async (tx) => {
+    await this.repository.transaction(async (tx) => {
       if (data.isPrimary === true) {
         await this.repository.clearPrimaryBySupplierId(supplierId, tx);
       }
@@ -124,17 +124,16 @@ export class SupplierContactsService {
           tx,
         );
       }
-      return row;
     });
 
-    return SupplierContactDto.from(updated);
+    return { success: true, message: 'Contact updated.' };
   }
 
-  async markPrimary(supplierId: string, contactId: string): Promise<SupplierContactDto> {
+  async markPrimary(supplierId: string, contactId: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findBySupplierAndContactId(supplierId, contactId);
     if (!existing) throw new NotFoundException('Supplier contact not found.');
 
-    const updated = await this.repository.transaction(async (tx) => {
+    await this.repository.transaction(async (tx) => {
       await this.repository.clearPrimaryBySupplierId(supplierId, tx);
       const row = await this.repository.updateContact(contactId, { isPrimary: true }, tx);
       await this.repository.syncSupplierPrimaryContact(
@@ -142,10 +141,9 @@ export class SupplierContactsService {
         { name: row.name, phone: row.phone, email: row.email ?? null },
         tx,
       );
-      return row;
     });
 
-    return SupplierContactDto.from(updated);
+    return { success: true, message: 'Primary contact updated.' };
   }
 
   async deleteContact(supplierId: string, contactId: string): Promise<SuccessResponseDto> {

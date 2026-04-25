@@ -1,3 +1,5 @@
+import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
+import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -21,7 +23,10 @@ import type { UpdatePurchaseOrderNotesDto } from './dto/request/update-purchase-
 export class PurchaseOrdersController {
   private readonly logger = new Logger(PurchaseOrdersController.name);
 
-  constructor(private readonly service: PurchaseOrdersService) {}
+  constructor(
+    private readonly service: PurchaseOrdersService,
+    private readonly goodsReceiptsService: GoodsReceiptsService,
+  ) {}
 
   @MessagePattern({ cmd: 'purchaseOrders.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
@@ -118,5 +123,14 @@ export class PurchaseOrdersController {
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.delete — id: ${data.id}`);
     return this.service.delete(data.id);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.goodsReceipts' })
+  async goodsReceipts(
+    @Payload() data: { purchaseOrderId: string } & TableViewState,
+  ): Promise<{ result: GoodsReceiptDto[]; count: number }> {
+    this.logger.log(`purchaseOrders.goodsReceipts — id: ${data.purchaseOrderId}`);
+    const { purchaseOrderId, ...state } = data;
+    return this.goodsReceiptsService.findForTableByPoId(purchaseOrderId, state);
   }
 }

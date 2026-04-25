@@ -4,11 +4,14 @@ import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import type { CreateInventoryItemFormData, InventoryItemData } from '@/schemas/inventory-items';
 import { createInventoryItem } from '@/services/inventory-items.service';
-import { INVENTORY_ITEMS_TABLE_KEY } from './useInventoryItemsTable';
+import { INVENTORY_ITEMS_TABLE_KEY } from './keys';
 
 // Creates a new inventory item and invalidates the table
 export function useCreateInventoryItem(
-  options?: Omit<UseMutationOptions<CreateResponse<InventoryItemData>, AxiosError, CreateInventoryItemFormData>, 'mutationFn'>,
+  options?: Omit<
+    UseMutationOptions<CreateResponse<InventoryItemData>, AxiosError, CreateInventoryItemFormData>,
+    'mutationFn'
+  >,
 ) {
   const queryClient = useQueryClient();
 

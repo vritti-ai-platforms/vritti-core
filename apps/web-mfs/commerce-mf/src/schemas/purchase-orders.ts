@@ -68,29 +68,24 @@ export interface PurchaseOrderItemData {
   totalPrice: { currency: string; value: string };
 }
 
-export interface GoodsReceiptItemData {
-  id: string;
-  purchaseOrderItemId: string | null;
-  inventoryItemId: string;
-  inventoryItemName: string | null;
-  acceptedQuantity: number;
-  rejectedQuantity: number;
-  rejectionReason: string | null;
-}
-
 export interface GoodsReceiptData {
   id: string;
   grNumber: string;
   supplierId: string;
-  status: 'DRAFT' | 'POSTED';
+  status: 'DRAFT' | 'ALLOCATION_PENDING' | 'PUBLISHED';
   supplierName: string | null;
-  purchaseOrderId: string | null;
-  poNumber: string | null;
+  po: {
+    id: string;
+    poNumber: string;
+    orderDate: string;
+    expectedBy: string | null;
+    totalAmount: { currency: string; value: number } | null;
+  } | null;
   receivedBy: string | null;
   receivedDate: string;
   notes: string | null;
+  publishedAt: string | null;
   createdAt: string;
-  items: GoodsReceiptItemData[];
 }
 
 export type PurchaseOrderDetail = PurchaseOrderData;

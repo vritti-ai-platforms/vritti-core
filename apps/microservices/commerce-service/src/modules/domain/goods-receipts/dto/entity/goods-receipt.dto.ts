@@ -1,55 +1,27 @@
-import type { GoodsReceipt, GoodsReceiptItem } from '@/db/schema';
-
-export class GoodsReceiptItemDto {
-  id: string;
-  purchaseOrderItemId: string | null;
-  inventoryItemId: string;
-  inventoryItemName: string | null;
-  acceptedQuantity: number;
-  rejectedQuantity: number;
-  rejectionReason: string | null;
-  batchNumber: string | null;
-  manufacturingDate: string | null;
-  expiryDate: string | null;
-
-  static from(entity: GoodsReceiptItem, itemName?: string | null): GoodsReceiptItemDto {
-    const dto = new GoodsReceiptItemDto();
-    dto.id = entity.id;
-    dto.purchaseOrderItemId = entity.purchaseOrderItemId ?? null;
-    dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
-    dto.acceptedQuantity = Number(entity.acceptedQuantity);
-    dto.rejectedQuantity = Number(entity.rejectedQuantity);
-    dto.rejectionReason = entity.rejectionReason ?? null;
-    dto.batchNumber = entity.batchNumber ?? null;
-    dto.manufacturingDate = entity.manufacturingDate ?? null;
-    dto.expiryDate = entity.expiryDate ?? null;
-    return dto;
-  }
-}
+import type { GoodsReceipt } from '@/db/schema';
 
 export class GoodsReceiptDto {
   id: string;
   grNumber: string;
   supplierId: string;
-  supplierName: string | null;
+  supplierName: string;
   status: string;
+  isPublishable?: boolean;
   po: {
     id: string;
     poNumber: string;
     orderDate: string;
     expectedBy: string | null;
-    totalAmount: { currency: string; value: number } | null;
+    totalAmount: { currency: string; value: number };
   } | null;
   receivedBy: string | null;
   receivedDate: string;
   notes: string | null;
+  publishedAt: string | null;
   createdAt: string;
-  items: GoodsReceiptItemDto[];
 
   static from(
-    entity: GoodsReceipt,
-    items: GoodsReceiptItemDto[],
+    entity: GoodsReceipt & { isPublishable?: boolean },
     refs?: {
       supplierName?: string | null;
       poId?: string | null;
@@ -64,8 +36,9 @@ export class GoodsReceiptDto {
     dto.id = entity.id;
     dto.grNumber = entity.grNumber;
     dto.supplierId = entity.supplierId;
-    dto.supplierName = refs?.supplierName ?? null;
+    dto.supplierName = refs?.supplierName ?? '';
     dto.status = entity.status;
+    if (entity.isPublishable !== undefined) dto.isPublishable = entity.isPublishable;
     dto.po =
       refs?.poId && refs?.poNumber
         ? {
@@ -73,17 +46,17 @@ export class GoodsReceiptDto {
             poNumber: refs.poNumber,
             orderDate: refs.poOrderDate ?? '',
             expectedBy: refs.poExpectedBy ?? null,
-            totalAmount:
-              refs.poTotalAmount != null && refs.poCurrencyCode
-                ? { currency: refs.poCurrencyCode, value: refs.poTotalAmount }
-                : null,
+            totalAmount: {
+              currency: refs.poCurrencyCode ?? '',
+              value: refs.poTotalAmount ?? 0,
+            },
           }
         : null;
     dto.receivedBy = entity.receivedBy ?? null;
     dto.receivedDate = entity.receivedDate;
     dto.notes = entity.notes ?? null;
+    dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
-    dto.items = items;
     return dto;
   }
 }

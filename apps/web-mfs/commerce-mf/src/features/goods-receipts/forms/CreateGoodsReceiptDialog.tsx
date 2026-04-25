@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
+import { format } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
 import { PurchaseOrderSelector } from '@vritti/quantum-ui/selects/purchase-order';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
@@ -8,7 +9,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateGoodsReceipt } from '@/hooks/useCreateGoodsReceipt';
+import { useCreateGoodsReceipt } from '@/hooks/goods-receipts/useCreateGoodsReceipt';
 import {
   type CreateGoodsReceiptFormData,
   createGoodsReceiptSchema,
@@ -26,7 +27,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
     defaultValues: {
       supplierId: '',
       purchaseOrderId: '',
-      receivedDate: new Date().toISOString().split('T')[0],
+      receivedDate: format(new Date(), 'yyyy-MM-dd'),
       notes: '',
     },
   });
@@ -48,9 +49,9 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
       onCancel={onCancel}
       transformSubmit={(data) => ({
         supplierId: data.supplierId,
-        purchaseOrderId: data.purchaseOrderId || undefined,
+        purchaseOrderId: data.purchaseOrderId,
         receivedDate: data.receivedDate,
-        notes: data.notes || undefined,
+        notes: data.notes,
       })}
     >
       <SupplierSelector name="supplierId" label="Supplier" placeholder="Select supplier" />

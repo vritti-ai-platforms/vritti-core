@@ -181,7 +181,7 @@ export function deletePurchaseOrder(id: string): Promise<SuccessResponse> {
 // Fetches goods receipt table for a purchase order
 export function getPurchaseOrderGoodsReceiptsTable(poId: string): Promise<GoodsReceiptsTableResponse> {
   return axios
-    .get<GoodsReceiptsTableResponse>(`commerce-api/purchase-orders/${poId}/goods-reciept/table`, {
+    .get<GoodsReceiptsTableResponse>(`commerce-api/purchase-orders/${poId}/goods-receipts/table`, {
       showSuccessToast: false,
     })
     .then((r) => r.data);

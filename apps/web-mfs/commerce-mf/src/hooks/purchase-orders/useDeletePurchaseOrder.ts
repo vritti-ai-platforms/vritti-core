@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import { deletePurchaseOrder } from '@/services/purchase-orders.service';
-import { PURCHASE_ORDERS_TABLE_KEY } from './usePurchaseOrdersTable';
+import { PURCHASE_ORDERS_TABLE_KEY } from './keys';
 
 // Deletes a purchase order and invalidates the table
 export function useDeletePurchaseOrder(

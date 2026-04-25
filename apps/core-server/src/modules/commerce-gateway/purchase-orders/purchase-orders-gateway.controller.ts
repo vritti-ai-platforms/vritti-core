@@ -14,7 +14,13 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { type CreateResponseDto, RequireSession, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import {
+  type CreateResponseDto,
+  RequireSession,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+  UserId,
+} from '@vritti/api-sdk';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
@@ -43,12 +49,14 @@ export class PurchaseOrdersGatewayController {
   // Returns paginated purchase orders for the data table
   @Get('table')
   getTable(@UserId() userId: string): Promise<PurchaseOrderTableResponseDto> {
+    this.logger.log('GET /commerce-api/purchase-orders/table');
     return this.service.findForTable(userId);
   }
 
   // Returns purchase order options for select dropdowns
   @Get('select')
   select(@Query() query: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('GET /commerce-api/purchase-orders/select');
     return this.service.select(query);
   }
 
@@ -56,6 +64,7 @@ export class PurchaseOrdersGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+    this.logger.log('POST /commerce-api/purchase-orders');
     return this.service.create(dto);
   }
 
@@ -73,31 +82,38 @@ export class PurchaseOrdersGatewayController {
   // Returns a single purchase order by ID
   @Get(':id')
   findById(@Param('id') id: string): Promise<PurchaseOrderResponseDto> {
+    this.logger.log(`GET /commerce-api/purchase-orders/${id}`);
     return this.service.findById(id);
   }
 
   // Returns inventory item IDs for a purchase order
   @Get(':id/items/ids')
   findItemIds(@Param('id') id: string): Promise<string[]> {
+    this.logger.log(`GET /commerce-api/purchase-orders/${id}/items/ids`);
     return this.service.findItemIds(id);
   }
 
   // Returns line items table for a purchase order
   @Get(':id/items/table')
   findItemsTable(@Param('id') id: string, @UserId() userId: string): Promise<PurchaseOrderItemTableResponseDto> {
+    this.logger.log(`GET /commerce-api/purchase-orders/${id}/items/table`);
     return this.service.findItemsTable(id, userId);
   }
 
-  // Returns goods receipts table for a purchase order
-  @Get(':id/goods-reciept/table')
+  @Get(':id/goods-receipts/table')
   findGoodsReceiptTable(@Param('id') id: string, @UserId() userId: string): Promise<GoodsReceiptTableResponseDto> {
+    this.logger.log(`GET /commerce-api/purchase-orders/${id}/goods-receipts/table`);
     return this.service.findGoodsReceiptTable(id, userId);
   }
 
   // Adds a line item to a purchase order
   @Post(':id/items')
   @HttpCode(HttpStatus.CREATED)
-  addItem(@Param('id') id: string, @Body() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+  addItem(
+    @Param('id') id: string,
+    @Body() dto: AddPurchaseOrderItemDto,
+  ): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+    this.logger.log(`POST /commerce-api/purchase-orders/${id}/items`);
     return this.service.addItem(id, dto);
   }
 
@@ -108,46 +124,43 @@ export class PurchaseOrdersGatewayController {
     @Param('itemId') itemId: string,
     @Body() dto: UpdatePurchaseOrderItemDto,
   ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/items/${itemId}`);
     return this.service.updateItem(id, itemId, dto);
   }
 
   // Removes a line item from a purchase order
   @Delete(':id/items/:itemId')
   removeItem(@Param('id') id: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/purchase-orders/${id}/items/${itemId}`);
     return this.service.removeItem(id, itemId);
   }
 
   // Updates purchase order notes
   @Patch(':id/notes')
   updateNotes(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/notes`);
     return this.service.updateNotes(id, dto);
   }
 
   // Changes purchase order supplier
   @Patch(':id/supplier')
-  changeSupplier(
-    @Param('id') id: string,
-    @Body() dto: ChangePurchaseOrderSupplierDto,
-  ): Promise<SuccessResponseDto> {
+  changeSupplier(@Param('id') id: string, @Body() dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/supplier`);
     return this.service.changeSupplier(id, dto);
   }
 
   // Changes purchase order currency
   @Patch(':id/currency')
-  changeCurrency(
-    @Param('id') id: string,
-    @Body() dto: ChangePurchaseOrderCurrencyDto,
-  ): Promise<SuccessResponseDto> {
+  changeCurrency(@Param('id') id: string, @Body() dto: ChangePurchaseOrderCurrencyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/currency`);
     return this.service.changeCurrency(id, dto);
   }
 
   // Updates the status of a purchase order
   @Patch(':id/status')
   @HttpCode(HttpStatus.OK)
-  updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: string,
-  ): Promise<SuccessResponseDto> {
+  updateStatus(@Param('id') id: string, @Body('status') status: string): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/status`);
     return this.service.updateStatus(id, status);
   }
 
@@ -155,12 +168,14 @@ export class PurchaseOrdersGatewayController {
   @Post(':id/send-email')
   @HttpCode(HttpStatus.OK)
   sendEmail(@Param('id') id: string, @Body() dto: SendPurchaseOrderEmailDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/purchase-orders/${id}/send-email`);
     return this.service.sendEmail(id, dto);
   }
 
   // Deletes a purchase order by ID
   @Delete(':id')
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/purchase-orders/${id}`);
     return this.service.delete(id);
   }
 }

@@ -1,7 +1,3 @@
+export { INVENTORY_ITEM_BATCH_KEY, INVENTORY_ITEM_BATCH_LEDGER_KEY } from './keys';
 export { useDeleteInventoryItemBatch } from './useDeleteInventoryItemBatch';
-export {
-  INVENTORY_ITEM_BATCH_KEY,
-  INVENTORY_ITEM_BATCH_LEDGER_KEY,
-  useInventoryItemBatch,
-  useInventoryItemBatchLedgerTable,
-} from './useInventoryItemBatch';
+export { useInventoryItemBatch, useInventoryItemBatchLedgerTable } from './useInventoryItemBatch';

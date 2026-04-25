@@ -8,9 +8,7 @@ import {
   getStorageLocationConfigsTable,
   updateStorageLocationConfig,
 } from '@/services/storage-location-configs.service';
-
-export const STORAGE_LOCATION_CONFIGS_KEY = (itemId: string) =>
-  ['commerce', 'inventory-items', itemId, 'storage-location-configs'] as const;
+import { STORAGE_LOCATION_CONFIGS_KEY } from './keys';
 
 export function useStorageLocationConfigsTable(
   itemId: string | null,

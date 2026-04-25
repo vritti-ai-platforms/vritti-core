@@ -6,9 +6,7 @@ import {
   type AddStockAdjustmentLineItemPayload,
   updateStockAdjustmentLineItem,
 } from '@/services/stock-adjustments.service';
-import { STOCK_ADJUSTMENT_LINE_KEY } from './useStockAdjustmentLine';
-import { STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY } from './useStockAdjustmentLineItemsTable';
-import { STOCK_ADJUSTMENT_LINES_KEY } from './useStockAdjustmentLines';
+import { STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY, STOCK_ADJUSTMENT_LINE_KEY, STOCK_ADJUSTMENT_LINES_KEY } from './keys';
 
 export function useUpdateStockAdjustmentLineItem(
   adjustmentId: string,

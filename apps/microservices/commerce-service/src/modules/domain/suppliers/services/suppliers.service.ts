@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   ConflictException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -86,7 +87,7 @@ export class SuppliersService {
   }
 
   // Creates a new supplier
-  async create(data: CreateSupplierDto): Promise<SupplierDto> {
+  async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     const normalizedTaxId = data.taxId?.trim() ? data.taxId.trim() : null;
     const normalizedTaxIdType = data.taxIdType ?? null;
     if ((normalizedTaxId != null) !== (normalizedTaxIdType != null)) {
@@ -131,7 +132,7 @@ export class SuppliersService {
       return supplier;
     });
     this.logger.log(`Created supplier: ${entity.name} (${entity.code})`);
-    return SupplierDto.from(entity);
+    return { success: true, message: `Supplier "${entity.name}" created.`, data: SupplierDto.from(entity) };
   }
 
   // Returns supplier detail
