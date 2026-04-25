@@ -3,14 +3,15 @@ import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { useTheme } from '@vritti/quantum-ui-native/hooks';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { RadioGroup, RadioGroupItem } from '@vritti/quantum-ui-native/RadioGroup';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 
 export const AccountThemeScreen = () => {
   const { colorScheme, isDark, themePreference, setThemePreference } = useTheme();
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-6 p-4 pb-8">
+    <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
       <Alert
         variant="info"
         title="Theme preference"
@@ -34,6 +35,6 @@ export const AccountThemeScreen = () => {
           </View>
         </BasicCard>
       </View>
-    </ScrollView>
+    </ScreenContainer>
   );
 };

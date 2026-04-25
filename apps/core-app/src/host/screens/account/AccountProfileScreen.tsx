@@ -1,6 +1,7 @@
 import { BasicCard } from '@vritti/quantum-ui-native/Card';
 import { KeyValue, SectionHeader } from '@vritti/quantum-ui-native/Label';
-import { ScrollView, View } from 'react-native';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
 import { formatDateTime } from './utils';
 
@@ -11,11 +12,7 @@ export const AccountProfileScreen = () => {
   const lastLoginAt = formatDateTime(user?.lastLoginAt);
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerClassName="gap-6 p-4 pb-8"
-    >
+    <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
       <View className="gap-3">
         <SectionHeader title="Personal" />
         <BasicCard title="User details" description="Current information from your signed-in session.">
@@ -50,6 +47,6 @@ export const AccountProfileScreen = () => {
           </View>
         </BasicCard>
       </View>
-    </ScrollView>
+    </ScreenContainer>
   );
 };

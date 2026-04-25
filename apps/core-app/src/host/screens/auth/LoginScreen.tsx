@@ -1,7 +1,7 @@
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { Text } from '@vritti/quantum-ui-native/Typography';
 import { setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
-import { View } from 'react-native';
-import { Text } from '@vritti/quantum-ui-native/Typography';
 import { useLogin } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import { useAuth } from '../../providers/AuthProvider';
@@ -54,7 +54,7 @@ export const LoginScreen = () => {
   }, [deploymentBaseURL, organizationSubdomain]);
 
   return (
-    <View className="flex-1 bg-background px-5">
+    <ScreenContainer className="px-5">
       <Text className="text-xl text-center font-bold">Welcome back</Text>
       <LoginForm
         email={email}
@@ -70,6 +70,6 @@ export const LoginScreen = () => {
           });
         }}
       />
-    </View>
+    </ScreenContainer>
   );
 };

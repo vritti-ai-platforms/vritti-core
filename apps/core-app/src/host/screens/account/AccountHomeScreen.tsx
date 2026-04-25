@@ -2,8 +2,9 @@ import { usePushNavigator } from '@vritti/quantum-ui-native';
 import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { ProfileCard, SettingsRowCard } from '@vritti/quantum-ui-native/Card';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { Alert as NativeAlert, ScrollView, View } from 'react-native';
+import { Alert as NativeAlert, View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
 import type { HostAppRoute } from '../../routes';
 import { getInitials } from './utils';
@@ -26,7 +27,7 @@ export const AccountHomeScreen = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-6 p-4 pb-28">
+    <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-28">
       <ProfileCard
         initials={getInitials(user?.fullName)}
         name={user?.fullName ?? 'Account'}
@@ -86,6 +87,6 @@ export const AccountHomeScreen = () => {
           You can always sign back in with your organization and existing credentials.
         </Text>
       </View>
-    </ScrollView>
+    </ScreenContainer>
   );
 };

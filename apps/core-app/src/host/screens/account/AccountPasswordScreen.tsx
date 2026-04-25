@@ -1,12 +1,13 @@
 import { BasicCard } from '@vritti/quantum-ui-native/Card';
 import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 
 export const AccountPasswordScreen = () => {
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerClassName="gap-6 p-4 pb-8">
+    <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
       <Alert
         variant="warning"
         title="Coming soon"
@@ -30,6 +31,6 @@ export const AccountPasswordScreen = () => {
           </View>
         </BasicCard>
       </View>
-    </ScrollView>
+    </ScreenContainer>
   );
 };

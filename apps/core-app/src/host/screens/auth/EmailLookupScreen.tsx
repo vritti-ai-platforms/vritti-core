@@ -1,6 +1,6 @@
 import { Text, usePushNavigator } from '@vritti/quantum-ui-native';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import * as React from 'react';
-import { View } from 'react-native';
 import { useLookupOrganizations } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import type { AuthRoute } from '../../routes/auth/authRoutes';
@@ -31,13 +31,13 @@ export const EmailLookupScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-background px-5">
+    <ScreenContainer className="px-5">
       <Text className="text-xl text-center font-bold">Enter your email</Text>
       <EmailLookupForm
         isSubmitting={lookupMutation.isPending}
         formError={formError}
         onSubmit={(email) => lookupMutation.mutate({ email, deploymentBaseURL })}
       />
-    </View>
+    </ScreenContainer>
   );
 };

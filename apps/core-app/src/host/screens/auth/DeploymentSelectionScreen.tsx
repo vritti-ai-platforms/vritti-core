@@ -2,6 +2,7 @@ import { usePushNavigator } from '@vritti/quantum-ui-native';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { setSelectedDeploymentBaseURL } from '@vritti/quantum-ui-native/utils';
@@ -41,7 +42,7 @@ export const DeploymentSelectionScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-background px-5">
+    <ScreenContainer className="px-5">
       <Text className="text-xl text-center font-bold">Where would you like to connect?</Text>
       {deploymentsQuery.isLoading ? (
         <View className="flex-1 items-center justify-center gap-2">
@@ -106,6 +107,6 @@ export const DeploymentSelectionScreen = () => {
           </View>
         </Button>
       </View>
-    </View>
+    </ScreenContainer>
   );
 };

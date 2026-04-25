@@ -225,6 +225,7 @@ const componentDirs = [
   'PasswordField',
   'Progress',
   'RadioGroup',
+  'ScreenContainer',
   'Separator',
   'Skeleton',
   'SplashScreen',
