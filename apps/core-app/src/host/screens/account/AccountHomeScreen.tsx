@@ -1,9 +1,9 @@
 import { usePushNavigator } from '@vritti/quantum-ui-native';
-import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { Card } from '@vritti/quantum-ui-native/Card';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { ListItem } from '@vritti/quantum-ui-native/ListItem';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { Alert as NativeAlert, View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
@@ -41,7 +41,7 @@ export const AccountHomeScreen = () => {
         </View>
       </Card>
 
-      <Alert
+      <StaticAlert
         variant="info"
         title="Account"
         description="Manage your profile, security settings, theme preference, and session access from one place."

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui-native/Button';
-import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { Form } from '@vritti/quantum-ui-native/Form';
+import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import React from 'react';
@@ -35,7 +35,7 @@ export const EmailLookupForm = ({ isSubmitting, formError, onSubmit }: EmailLook
 
   return (
     <Form form={form} rootErrorPosition="top">
-      {formError ? <Alert variant="destructive" title="Organization Not Found" className="mb-4" /> : null}
+      {formError ? <StaticAlert variant="destructive" title="Organization Not Found" className="mb-4" /> : null}
       <TextField
         name="email"
         label="Email"

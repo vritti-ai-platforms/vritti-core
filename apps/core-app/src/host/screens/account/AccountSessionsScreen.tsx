@@ -1,14 +1,14 @@
-import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { View } from 'react-native';
 
 export const AccountSessionsScreen = () => {
   return (
     <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
-      <Alert
+      <StaticAlert
         variant="info"
         title="Session controls are scaffolded"
         description="Active session listing and revoke actions are planned for a follow-up native implementation."

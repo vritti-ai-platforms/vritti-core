@@ -95,7 +95,6 @@ const rnCssComponentsPath = path.join(rnCssRoot, 'dist/commonjs/components/index
 // ---------------------------------------------------------------------------
 
 const componentDirs = [
-  'Alert',
   'Avatar',
   'Badge',
   'BottomNavigation',
@@ -115,8 +114,9 @@ const componentDirs = [
   'ScreenContainer',
   'Separator',
   'Skeleton',
-  'SplashScreen',
   'Spinner',
+  'SplashScreen',
+  'StaticAlert',
   'Switch',
   'TextField',
   'Typography',

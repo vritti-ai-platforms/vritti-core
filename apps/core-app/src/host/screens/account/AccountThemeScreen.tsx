@@ -1,9 +1,9 @@
-import { Alert } from '@vritti/quantum-ui-native/Alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
 import { useTheme } from '@vritti/quantum-ui-native/hooks';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { RadioGroup, RadioGroupItem } from '@vritti/quantum-ui-native/RadioGroup';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { View } from 'react-native';
 
@@ -12,7 +12,7 @@ export const AccountThemeScreen = () => {
 
   return (
     <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
-      <Alert
+      <StaticAlert
         variant="info"
         title="Theme preference"
         description={`Current appearance is ${isDark ? 'Dark' : 'Light'} (${colorScheme} mode).`}
