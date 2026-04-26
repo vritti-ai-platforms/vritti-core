@@ -64,35 +64,42 @@ export const relations = defineRelations(schema, (r) => ({
     purchaseOrderItems: r.many.purchaseOrderItems(),
     goodsReceiptItems: r.many.goodsReceiptItems(),
     goodsReceiptBatches: r.many.goodsReceiptBatches(),
-    inventoryItemBatches: r.many.inventoryItemBatches(),
-    inventoryItemBatchItems: r.many.inventoryItemBatchItems(),
+    inventoryItemQuants: r.many.inventoryItemQuants(),
+    inventoryItemQuantItems: r.many.inventoryItemQuantItems(),
+    inventoryItemLots: r.many.inventoryItemLots(),
     inventoryLedger: r.many.inventoryLedger(),
     stockAdjustments: r.many.stockAdjustments(),
     stockTransfers: r.many.stockTransfers(),
     storageLocationConfigs: r.many.storageLocationConfigs(),
   },
   storageLocations: {
-    inventoryItemBatches: r.many.inventoryItemBatches(),
+    inventoryItemQuants: r.many.inventoryItemQuants(),
     storageLocationConfigs: r.many.storageLocationConfigs(),
     stockAdjustmentLines: r.many.stockAdjustmentLines(),
     goodsReceiptBatches: r.many.goodsReceiptBatches(),
   },
-  inventoryItemBatches: {
+  inventoryItemQuants: {
     inventoryItem: r.one.inventoryItems({
-      from: r.inventoryItemBatches.inventoryItemId,
+      from: r.inventoryItemQuants.inventoryItemId,
       to: r.inventoryItems.id,
     }),
     location: r.one.storageLocations({
-      from: r.inventoryItemBatches.locationId,
+      from: r.inventoryItemQuants.locationId,
       to: r.storageLocations.id,
     }),
-    goodsReceiptItem: r.one.goodsReceiptItems({
-      from: r.inventoryItemBatches.goodsReceiptItemId,
-      to: r.goodsReceiptItems.id,
+    lot: r.one.inventoryItemLots({
+      from: r.inventoryItemQuants.lotId,
+      to: r.inventoryItemLots.id,
     }),
     inventoryLedger: r.many.inventoryLedger(),
-    stockAdjustmentLines: r.many.stockAdjustmentLines(),
-    inventoryItemBatchItems: r.many.inventoryItemBatchItems(),
+    inventoryItemQuantItems: r.many.inventoryItemQuantItems(),
+  },
+  inventoryItemLots: {
+    inventoryItem: r.one.inventoryItems({
+      from: r.inventoryItemLots.inventoryItemId,
+      to: r.inventoryItems.id,
+    }),
+    inventoryItemQuants: r.many.inventoryItemQuants(),
   },
   inventoryLevels: {},
   inventoryLedger: {
@@ -100,9 +107,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryLedger.inventoryItemId,
       to: r.inventoryItems.id,
     }),
-    batch: r.one.inventoryItemBatches({
+    batch: r.one.inventoryItemQuants({
       from: r.inventoryLedger.batchId,
-      to: r.inventoryItemBatches.id,
+      to: r.inventoryItemQuants.id,
     }),
   },
   bom: {
@@ -240,6 +247,18 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.stockAdjustments.inventoryItemId,
       to: r.inventoryItems.id,
     }),
+    stockAdjustmentLots: r.many.stockAdjustmentLots(),
+    stockAdjustmentLines: r.many.stockAdjustmentLines(),
+  },
+  stockAdjustmentLots: {
+    stockAdjustment: r.one.stockAdjustments({
+      from: r.stockAdjustmentLots.stockAdjustmentId,
+      to: r.stockAdjustments.id,
+    }),
+    resolvedLot: r.one.inventoryItemLots({
+      from: r.stockAdjustmentLots.resolvedLotId,
+      to: r.inventoryItemLots.id,
+    }),
     stockAdjustmentLines: r.many.stockAdjustmentLines(),
   },
   stockAdjustmentLines: {
@@ -247,13 +266,21 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.stockAdjustmentLines.stockAdjustmentId,
       to: r.stockAdjustments.id,
     }),
-    batch: r.one.inventoryItemBatches({
-      from: r.stockAdjustmentLines.batchId,
-      to: r.inventoryItemBatches.id,
+    stockAdjustmentLot: r.one.stockAdjustmentLots({
+      from: r.stockAdjustmentLines.stockAdjustmentLotId,
+      to: r.stockAdjustmentLots.id,
+    }),
+    quant: r.one.inventoryItemQuants({
+      from: r.stockAdjustmentLines.quantId,
+      to: r.inventoryItemQuants.id,
     }),
     location: r.one.storageLocations({
       from: r.stockAdjustmentLines.locationId,
       to: r.storageLocations.id,
+    }),
+    resolvedQuant: r.one.inventoryItemQuants({
+      from: r.stockAdjustmentLines.resolvedQuantId,
+      to: r.inventoryItemQuants.id,
     }),
     stockAdjustmentLineItems: r.many.stockAdjustmentLineItems(),
   },
@@ -263,13 +290,13 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.stockAdjustmentLines.id,
     }),
   },
-  inventoryItemBatchItems: {
-    inventoryItemBatch: r.one.inventoryItemBatches({
-      from: r.inventoryItemBatchItems.inventoryItemBatchId,
-      to: r.inventoryItemBatches.id,
+  inventoryItemQuantItems: {
+    inventoryItemQuant: r.one.inventoryItemQuants({
+      from: r.inventoryItemQuantItems.inventoryItemQuantId,
+      to: r.inventoryItemQuants.id,
     }),
     inventoryItem: r.one.inventoryItems({
-      from: r.inventoryItemBatchItems.inventoryItemId,
+      from: r.inventoryItemQuantItems.inventoryItemId,
       to: r.inventoryItems.id,
     }),
   },

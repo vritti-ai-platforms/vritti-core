@@ -5,7 +5,6 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
-import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -17,9 +16,8 @@ import {
 const batchSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
   locationId: z.string().min(1, 'Storage location is required'),
-  acceptedQuantity: z.string().min(1, 'Accepted quantity is required'),
-  rejectedQuantity: z.string().optional(),
-  rejectionReason: z.string().optional(),
+  quantity: z.string().min(1, 'Accepted quantity is required'),
+  lotNumber: z.string().max(100).optional(),
   manufacturingDate: z.string().optional(),
   expiryDate: z.string().optional(),
 });
@@ -30,9 +28,8 @@ type BatchEditorBatch = {
   id: string;
   inventoryItemId: string;
   locationId: string;
-  acceptedQuantity: number;
-  rejectedQuantity: number;
-  rejectionReason: string | null;
+  quantity: number;
+  lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
 };
@@ -61,9 +58,8 @@ const BatchEditorForm = ({
     defaultValues: {
       inventoryItemId: batch?.inventoryItemId ?? defaultInventoryItemId ?? '',
       locationId: batch?.locationId ?? '',
-      acceptedQuantity: String(batch?.acceptedQuantity ?? ''),
-      rejectedQuantity: String(batch?.rejectedQuantity ?? 0),
-      rejectionReason: batch?.rejectionReason ?? '',
+      quantity: String(batch?.quantity ?? ''),
+      lotNumber: batch?.lotNumber ?? '',
       manufacturingDate: batch?.manufacturingDate ?? '',
       expiryDate: batch?.expiryDate ?? '',
     },
@@ -72,9 +68,8 @@ const BatchEditorForm = ({
   const transformSubmit = (data: BatchFormData) => ({
     inventoryItemId: data.inventoryItemId,
     locationId: data.locationId,
-    acceptedQuantity: Number(data.acceptedQuantity),
-    rejectedQuantity: Number(data.rejectedQuantity ?? '0'),
-    rejectionReason: data.rejectionReason || undefined,
+    quantity: Number(data.quantity),
+    lotNumber: data.lotNumber?.trim() || undefined,
     manufacturingDate: data.manufacturingDate || undefined,
     expiryDate: data.expiryDate || undefined,
   });
@@ -88,9 +83,12 @@ const BatchEditorForm = ({
         disabled={Boolean(defaultInventoryItemId)}
       />
       <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
-      <TextField name="acceptedQuantity" label="Accepted Quantity" type="number" />
-      <TextField name="rejectedQuantity" label="Rejected Quantity" type="number" min={0} />
-      <TextArea name="rejectionReason" label="Rejection Reason" placeholder="Optional reason" />
+      <TextField name="quantity" label="Quantity" type="number" positive nonZero />
+      <TextField
+        name="lotNumber"
+        label="Lot Number"
+        placeholder="Required for lot/serial-tracked items (e.g. ABC-2024-001)"
+      />
       <TextField name="manufacturingDate" label="Manufacturing Date" type="date" />
       <TextField name="expiryDate" label="Expiry Date" type="date" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
@@ -144,7 +142,7 @@ export const BatchEditorDialog = ({
   <Dialog
     handle={handle}
     title={batch ? 'Edit Batch' : 'Add Batch'}
-    description={batch ? 'Update this batch details.' : 'Add accepted/rejected quantities for this line.'}
+    description={batch ? 'Update this batch details.' : 'Allocate accepted quantity to a storage location.'}
     content={(close) => (
       <BatchEditorForm
         id={id}

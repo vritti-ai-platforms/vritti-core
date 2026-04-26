@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
-import type { InventoryItemType } from '@/db/schema';
+import type { InventoryItemType, InventoryTracking } from '@/db/schema';
 
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 
@@ -19,6 +19,9 @@ export class CreateInventoryItemDto {
 
   @IsEnum(['MATERIAL', 'PRODUCT'])
   type: InventoryItemType;
+
+  @IsEnum(['quantity', 'lot', 'serial'])
+  tracking: InventoryTracking;
 
   @IsUUID()
   categoryId: string;

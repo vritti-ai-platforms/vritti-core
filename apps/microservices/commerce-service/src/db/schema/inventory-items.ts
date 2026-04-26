@@ -2,7 +2,7 @@ import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritt
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { categories } from './categories';
 import { coreSchema } from './core-schema';
-import { inventoryItemTypeEnum } from './enums';
+import { inventoryItemTypeEnum, inventoryTrackingEnum } from './enums';
 import { uom } from './uom';
 
 export const inventoryItems = coreSchema.table(
@@ -14,6 +14,7 @@ export const inventoryItems = coreSchema.table(
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     type: inventoryItemTypeEnum('type').notNull(),
+    tracking: inventoryTrackingEnum('tracking').notNull().default('lot'),
     categoryId: uuid('category_id').notNull().references(() => categories.id),
     description: varchar('description', { length: 500 }),
     uomId: uuid('uom_id').notNull().references(() => uom.id),

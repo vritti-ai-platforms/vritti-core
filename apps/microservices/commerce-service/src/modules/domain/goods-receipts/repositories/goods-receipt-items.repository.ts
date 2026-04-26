@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type GoodsReceiptItem, goodsReceiptItems, goodsReceipts, inventoryItems, purchaseOrderItems } from '@/db/schema';
+import {
+  type GoodsReceiptItem,
+  goodsReceiptItems,
+  goodsReceipts,
+  inventoryItems,
+  type InventoryTracking,
+  purchaseOrderItems,
+} from '@/db/schema';
 
 @Injectable()
 export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof goodsReceiptItems> {
@@ -130,10 +137,10 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     };
   }
 
-  // Find items for publish validation
+  // Find items for publish validation, including each item's tracking type
   async findByReceiptIdForPublish(
     goodsReceiptId: string,
-  ): Promise<GoodsReceiptItem[]> {
+  ): Promise<(GoodsReceiptItem & { tracking: InventoryTracking })[]> {
     const rows = await this.db
       .select({
         id: goodsReceiptItems.id,
@@ -145,11 +152,13 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         createdAt: goodsReceiptItems.createdAt,
         updatedAt: goodsReceiptItems.updatedAt,
+        tracking: inventoryItems.tracking,
       })
       .from(goodsReceiptItems)
+      .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
       .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId))
       .orderBy(desc(goodsReceiptItems.createdAt));
 
-    return rows as GoodsReceiptItem[];
+    return rows as (GoodsReceiptItem & { tracking: InventoryTracking })[];
   }
 }

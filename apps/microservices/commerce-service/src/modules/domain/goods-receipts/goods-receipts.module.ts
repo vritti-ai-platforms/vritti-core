@@ -1,4 +1,4 @@
-import { InventoryItemBatchesDomainModule } from '@domain/inventory-item-batches/inventory-item-batches.module';
+import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryLedgerDomainModule } from '@domain/inventory-ledger/inventory-ledger.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
 import { Module } from '@nestjs/common';
@@ -13,7 +13,7 @@ import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.s
 import { GoodsReceiptsService } from './services/goods-receipts.service';
 
 @Module({
-  imports: [PurchaseOrdersDomainModule, InventoryItemBatchesDomainModule, InventoryLedgerDomainModule],
+  imports: [PurchaseOrdersDomainModule, InventoryItemQuantsDomainModule, InventoryLedgerDomainModule],
   providers: [
     GoodsReceiptsService,
     GoodsReceiptsPublishService,

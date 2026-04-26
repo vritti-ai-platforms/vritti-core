@@ -32,7 +32,7 @@ export class GoodsReceiptsBatchesController {
       lineId: string;
       inventoryItemId: string;
       locationId: string;
-      acceptedQuantity: number;
+      quantity: number;
       rejectedQuantity?: number;
       rejectionReason?: string;
       manufacturingDate?: string;
@@ -52,7 +52,7 @@ export class GoodsReceiptsBatchesController {
       batchId: string;
       inventoryItemId?: string;
       locationId?: string;
-      acceptedQuantity?: number;
+      quantity?: number;
       rejectedQuantity?: number;
       rejectionReason?: string | null;
       manufacturingDate?: string | null;

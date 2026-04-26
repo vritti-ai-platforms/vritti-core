@@ -1,39 +1,79 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { z } from 'zod';
 
-export type StockAdjustmentType =
-  | 'WASTE'
-  | 'DAMAGE'
-  | 'THEFT'
-  | 'EXPIRED'
-  | 'CORRECTION'
-  | 'OPENING_STOCK';
+export const StockAdjustmentTypeValues = {
+  WASTE: 'WASTE',
+  DAMAGE: 'DAMAGE',
+  THEFT: 'THEFT',
+  EXPIRED: 'EXPIRED',
+  CORRECTION: 'CORRECTION',
+  OPENING_STOCK: 'OPENING_STOCK',
+} as const;
+export type StockAdjustmentType = (typeof StockAdjustmentTypeValues)[keyof typeof StockAdjustmentTypeValues];
 
-export type StockAdjustmentStatus = 'DRAFT' | 'PUBLISHED';
+export const StockAdjustmentStatusValues = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED',
+} as const;
+export type StockAdjustmentStatus = (typeof StockAdjustmentStatusValues)[keyof typeof StockAdjustmentStatusValues];
+
+export const InventoryTrackingValues = {
+  QUANTITY: 'quantity',
+  LOT: 'lot',
+  SERIAL: 'serial',
+} as const;
+export type InventoryTracking = (typeof InventoryTrackingValues)[keyof typeof InventoryTrackingValues];
+
+export interface StockAdjustmentLotData {
+  id: string;
+  stockAdjustmentId: string;
+  lotNumber: string;
+  manufacturingDate: string | null;
+  expiryDate: string | null;
+  resolvedLotId: string | null;
+  linesCount: number;
+  totalQuantity: number;
+  isBalanced: boolean;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
 
 export interface StockAdjustmentLineData {
   id: string;
   stockAdjustmentId: string;
   createdById: string;
-  batchId: string;
-  batchNumber: string;
-  locationId: string;
-  locationName: string;
+
+  // Register intent (OPENING_STOCK)
+  stockAdjustmentLotId: string | null;
+  locationId: string | null;
+  locationName: string | null;
+  // Lot info (denormalized from stock_adjustment_lots — for display)
+  lotNumber: string | null;
+  manufacturingDate: string | null;
+  expiryDate: string | null;
+
+  // Change intent (deduct/CORRECTION)
+  quantId: string | null;
+  quantLotNumber: string | null;
+  quantLocationId: string | null;
+  quantLocationName: string | null;
+  quantTotalQuantity: number | null;
+  quantReservedQuantity: number | null;
+  quantAvailableQuantity: number | null;
+
   quantity: number;
-  lineItemsCount: number;
-  lineItemsQuantitySum: number;
-  lineItemsDelta: number;
+  resolvedQuantId: string | null;
   isBalanced: boolean;
-  isLineItemsBalanced: boolean;
-  manufacturingDate: string;
-  expiryDate: string;
+  lineItemsCount: number;
+  metadata: Record<string, unknown>;
   createdAt: string;
 }
 
 export interface StockAdjustmentLineItemData {
   id: string;
   stockAdjustmentLineId: string;
-  quantity: number;
+  serialNumber: string;
+  metadata: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -43,20 +83,37 @@ export interface StockAdjustmentData {
   inventoryItemId: string;
   inventoryItemName: string;
   inventoryItemUomSymbol: string;
+  inventoryItemTracking: InventoryTracking;
   type: StockAdjustmentType;
-  quantity: number;
+  totalQuantity: number;
   status: StockAdjustmentStatus;
   reason: string | null;
   createdById: string;
-  createdByFullName: string;
+  createdByFullName?: string; // populated on detail endpoint only
   isPublishable: boolean;
+  metadata: Record<string, unknown>;
   publishedAt: string | null;
   createdAt: string;
+}
+
+export interface StockAdjustmentTreeNode {
+  id: string;
+  name: string;
+  path: string[];
+  kind: 'lot' | 'line';
+  totalQuantity?: number;
+  linesCount?: number;
+  quantity?: number;
+  lineItemsCount?: number;
+  isBalanced: boolean;
+  children?: StockAdjustmentTreeNode[];
 }
 
 export type StockAdjustmentsTableResponse = TableResponse<StockAdjustmentData>;
 export type StockAdjustmentLinesTableResponse = TableResponse<StockAdjustmentLineData>;
 export type StockAdjustmentLineItemsTableResponse = TableResponse<StockAdjustmentLineItemData>;
+
+// Form schemas
 
 export const createStockAdjustmentSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
@@ -64,17 +121,32 @@ export const createStockAdjustmentSchema = z.object({
     message: 'Adjustment type is required',
   }),
   reason: z.string().min(1, 'Reason is required'),
-  quantity: z.string().min(1, 'Quantity is required'),
 });
-
 export type CreateStockAdjustmentFormData = z.infer<typeof createStockAdjustmentSchema>;
 
-export const addStockAdjustmentLineSchema = z.object({
-  batchId: z.string().optional(),
-  locationId: z.string().optional(),
-  quantity: z.string().min(1, 'Quantity is required'),
+export const addStockAdjustmentLotSchema = z.object({
+  lotNumber: z.string().min(1, 'Lot number is required').max(100),
   manufacturingDate: z.string().optional(),
   expiryDate: z.string().optional(),
 });
+export type AddStockAdjustmentLotFormData = z.infer<typeof addStockAdjustmentLotSchema>;
 
-export type AddStockAdjustmentLineFormData = z.infer<typeof addStockAdjustmentLineSchema>;
+// OPENING_STOCK lines (register intent)
+export const addOpeningStockLineSchema = z.object({
+  stockAdjustmentLotId: z.string().optional(), // null for tracking='quantity'
+  locationId: z.string().min(1, 'Location is required'),
+  quantity: z.string().min(1, 'Quantity is required'),
+});
+export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
+
+// Deduct/CORRECTION lines (change intent)
+export const addChangeLineSchema = z.object({
+  quantId: z.string().min(1, 'Quant is required'),
+  quantity: z.string().min(1, 'Quantity is required'),
+});
+export type AddChangeLineFormData = z.infer<typeof addChangeLineSchema>;
+
+export const addStockAdjustmentLineItemSchema = z.object({
+  serialNumber: z.string().min(1, 'Serial number is required').max(100),
+});
+export type AddStockAdjustmentLineItemFormData = z.infer<typeof addStockAdjustmentLineItemSchema>;

@@ -6,13 +6,15 @@ export class StockAdjustmentResponseDto {
   @ApiProperty() inventoryItemId: string;
   @ApiProperty() inventoryItemName: string;
   @ApiProperty() inventoryItemUomSymbol: string;
+  @ApiProperty({ enum: ['quantity', 'lot', 'serial'] }) inventoryItemTracking: 'quantity' | 'lot' | 'serial';
   @ApiProperty({ example: 'WASTE' }) type: string;
-  @ApiProperty() quantity: number;
+  @ApiProperty({ description: 'Sum of stock_adjustment_lines.quantity' }) totalQuantity: number;
   @ApiProperty({ example: 'DRAFT' }) status: string;
   @ApiPropertyOptional({ nullable: true }) reason: string | null;
   @ApiProperty() createdById: string;
-  @ApiProperty() createdByFullName: string;
+  @ApiPropertyOptional({ description: 'Populated on detail endpoints only.' }) createdByFullName?: string;
   @ApiProperty() isPublishable: boolean;
+  @ApiProperty() metadata: Record<string, unknown>;
   @ApiPropertyOptional({ nullable: true }) publishedAt: string | null;
   @ApiProperty() createdAt: string;
 }

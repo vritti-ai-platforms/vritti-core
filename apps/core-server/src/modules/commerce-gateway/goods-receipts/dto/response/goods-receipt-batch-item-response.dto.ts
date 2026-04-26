@@ -8,7 +8,7 @@ export class GoodsReceiptBatchItemResponseDto {
   goodsReceiptBatchId: string;
 
   @ApiProperty()
-  quantity: number;
+  serialNumber: string;
 
   @ApiProperty()
   createdAt: string;

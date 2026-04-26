@@ -21,6 +21,12 @@ const typeOptions = [
   { value: 'PRODUCT', label: 'Product' },
 ];
 
+const trackingOptions = [
+  { value: 'quantity', label: 'Quantity — bulk fungible (e.g. office supplies)' },
+  { value: 'lot', label: 'Lot — batch identity (mfg/expiry, lot #)' },
+  { value: 'serial', label: 'Serial — per unit (high-value goods)' },
+];
+
 export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ onSuccess, onCancel }) => {
   const form = useForm<CreateInventoryItemFormData>({
     resolver: zodResolver(createInventoryItemSchema),
@@ -28,6 +34,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       name: '',
       code: '',
       type: 'MATERIAL',
+      tracking: 'lot',
       categoryId: '',
       description: '',
       uomId: '',
@@ -41,6 +48,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       <RadioGroup name="type" label="Type" options={typeOptions} orientation="horizontal" />
       <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
       <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
+      <RadioGroup name="tracking" label="Tracking" options={trackingOptions} />
       <CategorySelector name="categoryId" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
       <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />

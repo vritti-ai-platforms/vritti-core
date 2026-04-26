@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min } from 'class-validator';
+import { IsString, MaxLength } from 'class-validator';
 
+// Each batch item represents one physical unit (tracking='serial' only).
 export class AddGoodsReceiptBatchItemDto {
-  @ApiProperty()
-  @IsNumber()
-  @Min(0.001)
-  quantity: number;
+  @ApiProperty({ description: 'Serial number for the physical unit' })
+  @IsString()
+  @MaxLength(100)
+  serialNumber: string;
 }

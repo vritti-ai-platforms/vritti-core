@@ -5,15 +5,21 @@ import {
   NatsClientService,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { UserService } from '@/modules/domain/user/services/user.service';
 import type { AddStockAdjustmentLineDto } from '../dto/request/add-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '../dto/request/add-stock-adjustment-line-item.dto';
+import type { AddStockAdjustmentLotDto } from '../dto/request/add-stock-adjustment-lot.dto';
 import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjustment.dto';
 import type { UpdateStockAdjustmentDto } from '../dto/request/update-stock-adjustment.dto';
 import type { UpdateStockAdjustmentLineDto } from '../dto/request/update-stock-adjustment-line.dto';
 import type { UpdateStockAdjustmentLineItemDto } from '../dto/request/update-stock-adjustment-line-item.dto';
+import type { UpdateStockAdjustmentLotDto } from '../dto/request/update-stock-adjustment-lot.dto';
 import type { StockAdjustmentLineItemResponseDto } from '../dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from '../dto/response/stock-adjustment-line-item-table-response.dto';
 import type { StockAdjustmentLineResponseDto } from '../dto/response/stock-adjustment-line-response.dto';
+import type { StockAdjustmentLineTableResponseDto } from '../dto/response/stock-adjustment-line-table-response.dto';
+import type { StockAdjustmentLotResponseDto } from '../dto/response/stock-adjustment-lot-response.dto';
+import type { StockAdjustmentTreeNodeResponseDto } from '../dto/response/stock-adjustment-tree-response.dto';
 import type { StockAdjustmentResponseDto } from '../dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from '../dto/response/stock-adjustment-table-response.dto';
 
@@ -24,6 +30,7 @@ export class StockAdjustmentsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
+    private readonly userService: UserService,
   ) {}
 
   async findForTable(userId: string): Promise<StockAdjustmentTableResponseDto> {
@@ -44,12 +51,85 @@ export class StockAdjustmentsGatewayService {
 
   async findById(id: string): Promise<StockAdjustmentResponseDto> {
     this.logger.log(`stockAdjustments.findById — id: ${id}`);
-    return this.nats.send('commerce', 'stockAdjustments.findById', { id });
+    const adjustment = await this.nats.send<StockAdjustmentResponseDto>('commerce', 'stockAdjustments.findById', {
+      id,
+    });
+    const user = await this.userService.findById(adjustment.createdById);
+    return { ...adjustment, createdByFullName: user?.fullName ?? 'Unknown User' };
   }
 
   async findLines(adjustmentId: string): Promise<StockAdjustmentLineResponseDto[]> {
     this.logger.log(`stockAdjustments.lines — adjustment: ${adjustmentId}`);
     return this.nats.send('commerce', 'stockAdjustments.lines', { adjustmentId });
+  }
+
+  async findTree(adjustmentId: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
+    this.logger.log(`stockAdjustments.tree — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'stockAdjustments.tree', { adjustmentId });
+  }
+
+  async findLinesTable(adjustmentId: string, userId: string): Promise<StockAdjustmentLineTableResponseDto> {
+    this.logger.log(`stockAdjustments.linesTable — adjustment: ${adjustmentId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `stock-adjustment-${adjustmentId}-lines`,
+    );
+    const { result, count } = await this.nats.send<{ result: StockAdjustmentLineResponseDto[]; count: number }>(
+      'commerce',
+      'stockAdjustments.linesTable',
+      { adjustmentId, ...state },
+    );
+    return { result, count, state, activeViewId };
+  }
+
+  async findLinesByLotTable(
+    adjustmentId: string,
+    lotId: string,
+    userId: string,
+  ): Promise<StockAdjustmentLineTableResponseDto> {
+    this.logger.log(`stockAdjustments.linesByLotTable — adjustment: ${adjustmentId}, lot: ${lotId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `stock-adjustment-${adjustmentId}-lot-${lotId}-lines`,
+    );
+    const { result, count } = await this.nats.send<{ result: StockAdjustmentLineResponseDto[]; count: number }>(
+      'commerce',
+      'stockAdjustments.linesByLotTable',
+      { adjustmentId, lotId, ...state },
+    );
+    return { result, count, state, activeViewId };
+  }
+
+  async findLinesByLot(adjustmentId: string, lotId: string): Promise<StockAdjustmentLineResponseDto[]> {
+    this.logger.log(`stockAdjustments.linesByLot — adjustment: ${adjustmentId}, lot: ${lotId}`);
+    return this.nats.send('commerce', 'stockAdjustments.linesByLot', { adjustmentId, lotId });
+  }
+
+  async findLots(adjustmentId: string): Promise<StockAdjustmentLotResponseDto[]> {
+    this.logger.log(`stockAdjustments.lots — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'stockAdjustments.lots', { adjustmentId });
+  }
+
+  async addLot(
+    adjustmentId: string,
+    dto: AddStockAdjustmentLotDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
+    this.logger.log(`stockAdjustments.addLot — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'stockAdjustments.addLot', { adjustmentId, ...dto });
+  }
+
+  async updateLot(
+    adjustmentId: string,
+    lotId: string,
+    dto: UpdateStockAdjustmentLotDto,
+  ): Promise<StockAdjustmentLotResponseDto> {
+    this.logger.log(`stockAdjustments.updateLot — lot: ${lotId}`);
+    return this.nats.send('commerce', 'stockAdjustments.updateLot', { adjustmentId, lotId, ...dto });
+  }
+
+  async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.removeLot — lot: ${lotId}`);
+    return this.nats.send('commerce', 'stockAdjustments.removeLot', { adjustmentId, lotId });
   }
 
   async findLineById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineResponseDto> {

@@ -1,49 +1,63 @@
-import type { StockAdjustmentLine } from '@/db/schema';
+import type { StockAdjustmentLineWithRefs } from '../../repositories/stock-adjustment-lines.repository';
 
 export class StockAdjustmentLineDto {
   id: string;
   stockAdjustmentId: string;
   createdById: string;
-  batchId: string | null;
-  batchNumber: string | null;
+
+  // Register intent (OPENING_STOCK):
+  stockAdjustmentLotId: string | null;
   locationId: string | null;
   locationName: string | null;
-  quantity: number;
-  lineItemsCount: number;
-  lineItemsQuantitySum: number;
-  lineItemsDelta: number;
-  isBalanced: boolean;
-  isLineItemsBalanced: boolean;
+
+  // Lot info (denormalized from stock_adjustment_lots — for display)
+  lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
+
+  // Change intent (deduct/CORRECTION):
+  quantId: string | null;
+  // Source quant detail (denormalized — for display)
+  quantLotNumber: string | null;
+  quantLocationId: string | null;
+  quantLocationName: string | null;
+  quantTotalQuantity: number | null;
+  quantReservedQuantity: number | null;
+  quantAvailableQuantity: number | null;
+
+  quantity: number;
+  resolvedQuantId: string | null;
+  isBalanced: boolean;
+  lineItemsCount: number;
+  metadata: Record<string, unknown>;
   createdAt: string;
 
-  static from(
-    row: StockAdjustmentLine & {
-      locationName?: string | null;
-      lineItemsCount?: number;
-      lineItemsQuantitySum?: number;
-      lineItemsDelta?: number;
-      isBalanced?: boolean;
-      isLineItemsBalanced?: boolean;
-    },
-  ): StockAdjustmentLineDto {
+  static from(row: StockAdjustmentLineWithRefs): StockAdjustmentLineDto {
     const dto = new StockAdjustmentLineDto();
     dto.id = row.id;
     dto.stockAdjustmentId = row.stockAdjustmentId;
     dto.createdById = row.createdById;
-    dto.batchId = row.batchId ?? null;
-    dto.batchNumber = row.batchNumber ?? null;
+    dto.stockAdjustmentLotId = row.stockAdjustmentLotId ?? null;
     dto.locationId = row.locationId ?? null;
     dto.locationName = row.locationName ?? null;
+    dto.lotNumber = row.lotNumber ?? null;
+    dto.manufacturingDate = row.lotManufacturingDate ?? null;
+    dto.expiryDate = row.lotExpiryDate ?? null;
+    dto.quantId = row.quantId ?? null;
+    dto.quantLotNumber = row.quantLotNumber ?? null;
+    dto.quantLocationId = row.quantLocationId ?? null;
+    dto.quantLocationName = row.quantLocationName ?? null;
+    dto.quantTotalQuantity = row.quantTotalQuantity != null ? Number(row.quantTotalQuantity) : null;
+    dto.quantReservedQuantity = row.quantReservedQuantity != null ? Number(row.quantReservedQuantity) : null;
+    dto.quantAvailableQuantity =
+      dto.quantTotalQuantity !== null && dto.quantReservedQuantity !== null
+        ? dto.quantTotalQuantity - dto.quantReservedQuantity
+        : null;
     dto.quantity = Number(row.quantity);
-    dto.lineItemsCount = Number(row.lineItemsCount ?? 0);
-    dto.lineItemsQuantitySum = Number(row.lineItemsQuantitySum ?? 0);
-    dto.lineItemsDelta = Number(row.lineItemsDelta ?? dto.quantity - dto.lineItemsQuantitySum);
-    dto.isBalanced = row.isBalanced ?? (dto.lineItemsCount > 0 && dto.lineItemsDelta === 0);
-    dto.isLineItemsBalanced = row.isLineItemsBalanced ?? dto.isBalanced;
-    dto.manufacturingDate = row.manufacturingDate ?? null;
-    dto.expiryDate = row.expiryDate ?? null;
+    dto.resolvedQuantId = row.resolvedQuantId ?? null;
+    dto.isBalanced = row.isBalanced;
+    dto.lineItemsCount = row.lineItemsCount;
+    dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;
     dto.createdAt = row.createdAt.toISOString();
     return dto;
   }

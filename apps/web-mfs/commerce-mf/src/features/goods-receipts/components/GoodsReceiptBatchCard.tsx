@@ -26,7 +26,7 @@ export const GoodsReceiptBatchCard = ({
   const confirm = useConfirm();
   const addItemDialog = useDialog();
   const editItemDialog = useDialog();
-  const [editingItem, setEditingItem] = useState<{ id: string; quantity: number } | null>(null);
+  const [editingItem, setEditingItem] = useState<{ id: string; serialNumber: string } | null>(null);
   const { data: items = [] } = useGoodsReceiptBatchItems(id, itemId, batch.id);
   const removeItemMutation = useRemoveGoodsReceiptBatchItem(id, itemId, batch.id);
 
@@ -54,7 +54,7 @@ export const GoodsReceiptBatchCard = ({
                 batch.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
               }`}
             >
-              {batch.batchItemsQuantitySum}/{batch.acceptedQuantity}
+              {batch.batchItemsCount}/{batch.quantity}
             </span>
             {isDraft && (
               <>
@@ -82,13 +82,11 @@ export const GoodsReceiptBatchCard = ({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>Accepted: {batch.acceptedQuantity}</div>
-          <div>Rejected: {batch.rejectedQuantity}</div>
+          <div>Quantity: {batch.quantity}</div>
           <div>
             Manufacturing: {batch.manufacturingDate ? new Date(batch.manufacturingDate).toLocaleDateString() : '—'}
           </div>
           <div>Expiry: {batch.expiryDate ? new Date(batch.expiryDate).toLocaleDateString() : '—'}</div>
-          <div className="col-span-2 text-muted-foreground">Reason: {batch.rejectionReason ?? '—'}</div>
         </div>
 
         <div className="flex items-center justify-between">
@@ -115,7 +113,7 @@ export const GoodsReceiptBatchCard = ({
               <tbody>
                 {items.map((item) => (
                   <tr key={item.id} className="border-b last:border-0">
-                    <td className="py-2">{item.quantity}</td>
+                    <td className="py-2">{item.serialNumber}</td>
                     <td className="py-2">{new Date(item.createdAt).toLocaleDateString()}</td>
                     <td className="py-2">
                       {isDraft && (
@@ -125,7 +123,7 @@ export const GoodsReceiptBatchCard = ({
                             variant="outline"
                             startAdornment={<Pencil className="size-3.5" />}
                             onClick={() => {
-                              setEditingItem({ id: item.id, quantity: item.quantity });
+                              setEditingItem({ id: item.id, serialNumber: item.serialNumber });
                               editItemDialog.open();
                             }}
                           >

@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsDateString, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class UpdateGoodsReceiptBatchDto {
   @ApiPropertyOptional()
@@ -16,18 +16,13 @@ export class UpdateGoodsReceiptBatchDto {
   @IsOptional()
   @IsNumber()
   @Min(0.001)
-  acceptedQuantity?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  rejectedQuantity?: number;
+  quantity?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  rejectionReason?: string | null;
+  @MaxLength(100)
+  lotNumber?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()

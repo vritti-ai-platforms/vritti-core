@@ -12,6 +12,14 @@ import {
   uom,
 } from '@/db/schema';
 
+export type StockAdjustmentWithRefs = StockAdjustment & {
+  inventoryItemName: string;
+  inventoryItemUomSymbol: string | null;
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  totalQuantity: number;
+  isPublishable: boolean;
+};
+
 @Injectable()
 export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof stockAdjustments> {
   constructor(database: PrimaryDatabaseService) {
@@ -19,19 +27,21 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
   }
 
   async findAllForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (StockAdjustment & {
-      inventoryItemName: string;
-      createdByFullName: string;
-    })[];
+    result: StockAdjustmentWithRefs[];
     count: number;
   }> {
-    return this.findAllAndCount<
-      StockAdjustment & {
-        inventoryItemName: string;
-        inventoryItemUomSymbol: string | null;
-        createdByFullName: string;
-      }
-    >({
+    const totalQuantitySql = sql<string>`COALESCE((
+      SELECT SUM(quantity) FROM vritti_core.stock_adjustment_lines WHERE stock_adjustment_id = ${stockAdjustments.id}
+    ), 0)`;
+    const isPublishableSql = sql<boolean>`(
+      ${stockAdjustments.status} = 'DRAFT'
+      AND EXISTS(SELECT 1 FROM vritti_core.stock_adjustment_lines WHERE stock_adjustment_id = ${stockAdjustments.id})
+      AND NOT EXISTS(
+        SELECT 1 FROM vritti_core.stock_adjustment_lines
+        WHERE stock_adjustment_id = ${stockAdjustments.id} AND is_balanced = false
+      )
+    )`;
+    return this.findAllAndCount<StockAdjustmentWithRefs>({
       select: {
         id: stockAdjustments.id,
         organizationId: stockAdjustments.organizationId,
@@ -39,15 +49,17 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         inventoryItemId: stockAdjustments.inventoryItemId,
         code: stockAdjustments.code,
         type: stockAdjustments.type,
-        quantity: stockAdjustments.quantity,
         status: stockAdjustments.status,
         reason: stockAdjustments.reason,
         createdById: stockAdjustments.createdById,
         publishedAt: stockAdjustments.publishedAt,
+        metadata: stockAdjustments.metadata,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
         inventoryItemUomSymbol: uom.symbol,
-        createdByFullName: sql<string>`''`.as('created_by_full_name'),
+        inventoryItemTracking: inventoryItems.tracking,
+        totalQuantity: totalQuantitySql,
+        isPublishable: isPublishableSql,
       },
       leftJoins: [
         { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
@@ -60,15 +72,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     });
   }
 
-  async findByIdWithItemName(id: string): Promise<
-    | (StockAdjustment & {
-        inventoryItemName: string;
-        inventoryItemUomSymbol: string | null;
-        createdByFullName: string;
-        isPublishable: boolean;
-      })
-    | undefined
-  > {
+  async findByIdWithItemName(id: string): Promise<StockAdjustmentWithRefs | undefined> {
     const rows = await this.db
       .select({
         id: stockAdjustments.id,
@@ -77,19 +81,19 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         inventoryItemId: stockAdjustments.inventoryItemId,
         code: stockAdjustments.code,
         type: stockAdjustments.type,
-        quantity: stockAdjustments.quantity,
         status: stockAdjustments.status,
         reason: stockAdjustments.reason,
         createdById: stockAdjustments.createdById,
         publishedAt: stockAdjustments.publishedAt,
+        metadata: stockAdjustments.metadata,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
         inventoryItemUomSymbol: uom.symbol,
-        createdByFullName: sql<string>`''`.as('created_by_full_name'),
+        inventoryItemTracking: inventoryItems.tracking,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity}), 0)`,
         isPublishable: sql<boolean>`(
           ${stockAdjustments.status} = 'DRAFT'
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0
-          AND COALESCE(SUM(${stockAdjustmentLines.quantity}), 0) = ${stockAdjustments.quantity}
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) =
               COUNT(DISTINCT CASE WHEN ${stockAdjustmentLines.isBalanced} THEN ${stockAdjustmentLines.id} END)
         )`,
@@ -106,27 +110,24 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         stockAdjustments.inventoryItemId,
         stockAdjustments.code,
         stockAdjustments.type,
-        stockAdjustments.quantity,
         stockAdjustments.status,
         stockAdjustments.reason,
         stockAdjustments.createdById,
         stockAdjustments.publishedAt,
+        stockAdjustments.metadata,
         stockAdjustments.createdAt,
         inventoryItems.name,
         uom.symbol,
+        inventoryItems.tracking,
       )
       .limit(1);
 
     const [row] = rows;
-
-    return row as
-      | (StockAdjustment & {
-          inventoryItemName: string;
-          inventoryItemUomSymbol: string | null;
-          createdByFullName: string;
-          isPublishable: boolean;
-        })
-      | undefined;
+    if (!row) return undefined;
+    return {
+      ...row,
+      totalQuantity: Number(row.totalQuantity ?? 0),
+    } as StockAdjustmentWithRefs;
   }
 
   async updateStatusInTx(

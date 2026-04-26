@@ -7,11 +7,9 @@ import {
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
-  ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { StockAdjustmentStatusValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
-import { StockAdjustmentLinesRepository } from '../../stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';
 
@@ -24,10 +22,7 @@ export class StockAdjustmentsService {
     status: { column: stockAdjustments.status, type: 'string' },
   };
 
-  constructor(
-    private readonly repository: StockAdjustmentsRepository,
-    private readonly linesRepository: StockAdjustmentLinesRepository,
-  ) {}
+  constructor(private readonly repository: StockAdjustmentsRepository) {}
 
   // Returns paginated stock adjustments for the data table
   async findForTable(state: TableViewState): Promise<{ result: StockAdjustmentDto[]; count: number }> {
@@ -53,18 +48,17 @@ export class StockAdjustmentsService {
     return StockAdjustmentDto.from(adjustment);
   }
 
-  // Creates a new DRAFT stock adjustment with an auto-generated code
+  // Creates a new DRAFT stock adjustment with an auto-generated code.
+  // No `quantity` on the header — totals are derived from lines.
   async create(data: {
     inventoryItemId: string;
     type: StockAdjustmentType;
-    quantity: number;
     reason: string;
     createdById: string;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
       type: data.type,
-      quantity: String(data.quantity),
       reason: data.reason,
       createdById: data.createdById,
     });
@@ -90,28 +84,18 @@ export class StockAdjustmentsService {
     return { success: true, message: `Stock adjustment "${adjustment.code}" deleted successfully.` };
   }
 
-  async updateQuantity(id: string, quantity: number): Promise<StockAdjustmentDto> {
+  async updateAdjustment(id: string, data: { reason?: string }): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findById(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be edited.');
     }
 
-    const linesTotal = await this.linesRepository.totalQuantityForAdjustment(id);
-    if (this.toScaled(quantity) < this.toScaled(linesTotal)) {
-      throw new ValidationException({
-        detail: 'Adjustment quantity cannot be less than total line quantity.',
-        errors: [{ field: 'quantity', message: 'Adjustment quantity cannot be less than total line quantity.' }],
-      });
-    }
-
-    await this.repository.update(id, { quantity: String(quantity) });
+    await this.repository.update(id, {
+      ...(data.reason !== undefined ? { reason: data.reason } : {}),
+    });
     const updated = await this.repository.findByIdWithItemName(id);
     if (!updated) throw new NotFoundException('Stock adjustment not found.');
     return StockAdjustmentDto.from(updated);
-  }
-
-  private toScaled(value: number): number {
-    return Math.round(value * 1000);
   }
 }

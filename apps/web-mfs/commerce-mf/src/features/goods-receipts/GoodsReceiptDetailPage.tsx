@@ -69,6 +69,26 @@ export const GoodsReceiptDetailPage = () => {
             >
               Start Allocation
             </Button>
+          ) : isAllocationPending ? (
+            <Button
+              onClick={async () => {
+                const confirmed = await confirm({
+                  title: 'Publish this goods receipt?',
+                  description: 'Publishing will apply inventory updates and lock this receipt from further editing.',
+                  alert: {
+                    type: 'warning',
+                    text: 'You cannot add any line items after this action.',
+                  },
+                  confirmLabel: 'Publish',
+                });
+                if (confirmed) publishMutation.mutate(receipt.id);
+              }}
+              isLoading={publishMutation.isPending}
+              disabled={!canPublish}
+              disabledTip="Complete batch allocation and balancing before publishing."
+            >
+              Publish
+            </Button>
           ) : null
         }
       />
@@ -90,30 +110,7 @@ export const GoodsReceiptDetailPage = () => {
         onValueChange={setActiveTab}
       />
 
-      {isAllocationPending && (
-        <DangerZone
-          title="Publish Goods Receipt"
-          description="Publishing applies inventory updates and locks the receipt from further editing."
-          buttonText="Publish"
-          isLoading={publishMutation.isPending}
-          disabled={!canPublish}
-          warning={!canPublish ? 'Complete batch allocation and balancing before publishing.' : undefined}
-          onClick={async () => {
-            const confirmed = await confirm({
-              title: 'Publish this goods receipt?',
-              description: 'Publishing will apply inventory updates and lock this receipt from further editing.',
-              alert: {
-                type: 'warning',
-                text: 'You cannot add any line items after this action.',
-              },
-              confirmLabel: 'Publish',
-            });
-            if (confirmed) publishMutation.mutate(receipt.id);
-          }}
-        />
-      )}
-
-      {(isDraft || isAllocationPending) && (
+{(isDraft || isAllocationPending) && (
         <DangerZone
           title="Delete Goods Receipt"
           description="Permanently delete this receipt and all its lines. This cannot be undone."

@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, decimal, index, pgPolicy, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceiptItems } from './goods-receipt-items';
 import { inventoryItems } from './inventory-items';
@@ -20,9 +20,8 @@ export const goodsReceiptBatches = coreSchema.table(
     locationId: uuid('location_id')
       .notNull()
       .references(() => storageLocations.id),
-    acceptedQuantity: decimal('accepted_quantity', { precision: 12, scale: 3 }).notNull(),
-    rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
-    rejectionReason: text('rejection_reason'),
+    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    lotNumber: varchar('lot_number', { length: 100 }),
     isBalanced: boolean('is_balanced').notNull().default(false),
     manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
     expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }),

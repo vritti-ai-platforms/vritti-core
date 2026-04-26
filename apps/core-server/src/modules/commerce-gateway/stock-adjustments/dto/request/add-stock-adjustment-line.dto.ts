@@ -1,27 +1,25 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, IsOptional, IsUUID } from 'class-validator';
 
+// A line is either a register intent (location + lot draft) for OPENING_STOCK
+// or a change intent (quant_id) for deduct/CORRECTION. Service-side CHECK enforces XOR.
 export class AddStockAdjustmentLineDto {
-  @ApiPropertyOptional({ description: 'Batch ID (required for non-OPENING_STOCK)' })
+  @ApiPropertyOptional({ description: 'Stock adjustment lot draft ID (OPENING_STOCK + tracking=lot/serial)' })
   @IsOptional()
   @IsUUID()
-  batchId?: string;
+  stockAdjustmentLotId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Storage location ID (required for OPENING_STOCK)' })
+  @ApiPropertyOptional({ description: 'Storage location ID (OPENING_STOCK)' })
   @IsOptional()
   @IsUUID()
-  locationId?: string;
+  locationId?: string | null;
 
+  @ApiPropertyOptional({ description: 'Quant ID — the existing stock to adjust (deduct/CORRECTION)' })
+  @IsOptional()
+  @IsUUID()
+  quantId?: string | null;
+
+  @ApiProperty({ description: 'Line quantity (magnitude — sign comes from adjustment.type)' })
   @IsNumber()
   quantity: number;
-
-  @ApiPropertyOptional({ description: 'Manufacturing date (OPENING_STOCK)' })
-  @IsOptional()
-  @IsString()
-  manufacturingDate?: string;
-
-  @ApiPropertyOptional({ description: 'Expiry date (OPENING_STOCK)' })
-  @IsOptional()
-  @IsString()
-  expiryDate?: string;
 }

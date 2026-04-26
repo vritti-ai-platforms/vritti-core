@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  type InventoryLedgerReferenceType,
-  type InventoryLedgerEntry,
-  inventoryItemBatches,
+  inventoryItemLots,
+  inventoryItemQuants,
   inventoryItems,
   inventoryLedger,
+  type InventoryLedgerEntry,
+  type InventoryLedgerReferenceType,
   type NewInventoryLedgerEntry,
 } from '@/db/schema';
 
@@ -27,10 +28,10 @@ export class InventoryLedgerRepository extends PrimaryBaseRepository<typeof inve
   }
 
   async findAllForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (InventoryLedgerEntry & { inventoryItemName: string | null; batchNumber: string | null })[];
+    result: (InventoryLedgerEntry & { inventoryItemName: string | null; lotNumber: string | null })[];
     count: number;
   }> {
-    return this.findAllAndCount<InventoryLedgerEntry & { inventoryItemName: string | null; batchNumber: string | null }>({
+    return this.findAllAndCount<InventoryLedgerEntry & { inventoryItemName: string | null; lotNumber: string | null }>({
       select: {
         id: inventoryLedger.id,
         organizationId: inventoryLedger.organizationId,
@@ -44,11 +45,12 @@ export class InventoryLedgerRepository extends PrimaryBaseRepository<typeof inve
         notes: inventoryLedger.notes,
         createdAt: inventoryLedger.createdAt,
         inventoryItemName: inventoryItems.name,
-        batchNumber: inventoryItemBatches.batchNumber,
+        lotNumber: inventoryItemLots.lotNumber,
       },
       leftJoins: [
         { table: inventoryItems, on: eq(inventoryLedger.inventoryItemId, inventoryItems.id) },
-        { table: inventoryItemBatches, on: eq(inventoryLedger.batchId, inventoryItemBatches.id) },
+        { table: inventoryItemQuants, on: eq(inventoryLedger.batchId, inventoryItemQuants.id) },
+        { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
       ],
       where: options.where,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(inventoryLedger.createdAt)],

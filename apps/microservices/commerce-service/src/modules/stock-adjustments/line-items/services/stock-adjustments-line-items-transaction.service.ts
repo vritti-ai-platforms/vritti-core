@@ -17,18 +17,24 @@ export class StockAdjustmentsLineItemsTransactionService {
     return this.lineItemsService.findForTable(data.adjustmentId, data.lineId, data);
   }
 
-  addLineItem(data: { adjustmentId: string; lineId: string; quantity: number }): Promise<StockAdjustmentLineItemDto> {
-    return this.lineItemsService.addLineItem(data.adjustmentId, data.lineId, { quantity: data.quantity });
+  addLineItem(data: {
+    adjustmentId: string;
+    lineId: string;
+    serialNumber: string;
+  }): Promise<StockAdjustmentLineItemDto> {
+    return this.lineItemsService.addLineItem(data.adjustmentId, data.lineId, {
+      serialNumber: data.serialNumber,
+    });
   }
 
   updateLineItem(data: {
     adjustmentId: string;
     lineId: string;
     itemId: string;
-    quantity: number;
+    serialNumber: string;
   }): Promise<StockAdjustmentLineItemDto> {
     return this.lineItemsService.updateLineItem(data.adjustmentId, data.lineId, data.itemId, {
-      quantity: data.quantity,
+      serialNumber: data.serialNumber,
     });
   }
 

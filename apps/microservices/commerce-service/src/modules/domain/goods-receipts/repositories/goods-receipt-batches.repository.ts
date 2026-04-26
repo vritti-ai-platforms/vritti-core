@@ -27,9 +27,7 @@ export class GoodsReceiptBatchesRepository extends PrimaryBaseRepository<typeof 
         goodsReceiptLineId: goodsReceiptBatches.goodsReceiptLineId,
         inventoryItemId: goodsReceiptBatches.inventoryItemId,
         locationId: goodsReceiptBatches.locationId,
-        acceptedQuantity: goodsReceiptBatches.acceptedQuantity,
-        rejectedQuantity: goodsReceiptBatches.rejectedQuantity,
-        rejectionReason: goodsReceiptBatches.rejectionReason,
+        quantity: goodsReceiptBatches.quantity,
         isBalanced: goodsReceiptBatches.isBalanced,
         manufacturingDate: goodsReceiptBatches.manufacturingDate,
         expiryDate: goodsReceiptBatches.expiryDate,
@@ -68,9 +66,8 @@ export class GoodsReceiptBatchesRepository extends PrimaryBaseRepository<typeof 
         goodsReceiptLineId: goodsReceiptBatches.goodsReceiptLineId,
         inventoryItemId: goodsReceiptBatches.inventoryItemId,
         locationId: goodsReceiptBatches.locationId,
-        acceptedQuantity: goodsReceiptBatches.acceptedQuantity,
-        rejectedQuantity: goodsReceiptBatches.rejectedQuantity,
-        rejectionReason: goodsReceiptBatches.rejectionReason,
+        quantity: goodsReceiptBatches.quantity,
+        lotNumber: goodsReceiptBatches.lotNumber,
         isBalanced: goodsReceiptBatches.isBalanced,
         manufacturingDate: goodsReceiptBatches.manufacturingDate,
         expiryDate: goodsReceiptBatches.expiryDate,
@@ -92,24 +89,31 @@ export class GoodsReceiptBatchesRepository extends PrimaryBaseRepository<typeof 
       .select({
         batchId: goodsReceiptBatchItems.goodsReceiptBatchId,
         batchItemsCount: sql<number>`COUNT(${goodsReceiptBatchItems.id})`,
-        batchItemsQuantitySum: sql<string>`COALESCE(SUM(${goodsReceiptBatchItems.quantity}), 0)`,
       })
       .from(goodsReceiptBatchItems)
       .where(inArray(goodsReceiptBatchItems.goodsReceiptBatchId, batchIds))
       .groupBy(goodsReceiptBatchItems.goodsReceiptBatchId);
 
-    return new Map(rows.map((row) => [row.batchId, row]));
+    return new Map(
+      rows.map((row) => {
+        const count = Number(row.batchItemsCount ?? 0);
+        return [row.batchId, { batchItemsCount: count, batchItemsQuantitySum: String(count) }];
+      }),
+    );
   }
 
+  // Each batch item represents 1 unit. Batch is balanced when count === batch.quantity.
+  // For tracking='quantity'/'lot' batches the publish flow accepts zero items; this flag
+  // is primarily a UI hint for tracking='serial' batches.
   async refreshIsBalanced(batchId: string): Promise<void> {
     await this.db
       .update(goodsReceiptBatches)
       .set({
         isBalanced: sql`COALESCE((
-          SELECT SUM(i.quantity)
+          SELECT COUNT(*)
           FROM vritti_core.goods_receipt_batch_items i
           WHERE i.goods_receipt_batch_id = ${goodsReceiptBatches.id}
-        ), 0) = ${goodsReceiptBatches.acceptedQuantity}`,
+        ), 0) = ${goodsReceiptBatches.quantity}`,
       })
       .where(eq(goodsReceiptBatches.id, batchId));
   }

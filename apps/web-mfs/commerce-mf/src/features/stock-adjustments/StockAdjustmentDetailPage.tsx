@@ -3,21 +3,24 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
-import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { CheckCircle, Pencil } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDeleteStockAdjustment, usePublishStockAdjustment, useStockAdjustment } from '@/hooks/stock-adjustments';
 import {
-  useDeleteStockAdjustment,
-  usePublishStockAdjustment,
-  useStockAdjustment,
-} from '@/hooks/stock-adjustments';
-import type {
-  StockAdjustmentStatus,
-  StockAdjustmentType,
+  InventoryTrackingValues,
+  type StockAdjustmentStatus,
+  StockAdjustmentStatusValues,
+  type StockAdjustmentType,
+  StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
-import { StockAdjustmentContent, StockAdjustmentOverviewCard, StockAdjustmentSidePanel } from './components';
+import { StockAdjustmentOverviewCard } from './components';
+import { ChangeContent } from './components/change/ChangeContent';
+import { ChangeItemContent } from './components/change/ChangeItemContent';
+import { OpeningItemContent } from './components/opening/OpeningItemContent';
+import { OpeningLotContent } from './components/opening/OpeningLotContent';
+import { OpeningNoneContent } from './components/opening/OpeningNoneContent';
 import { EditStockAdjustmentDialog } from './forms/EditStockAdjustmentDialog';
 
 const typeConfig: Record<
@@ -42,21 +45,16 @@ export const StockAdjustmentDetailPage = () => {
   const navigate = useNavigate();
   const confirm = useConfirm();
   const editAdjustmentDialog = useDialog();
-  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
 
-  const { data: adjustment } = useStockAdjustment(id ?? '');
+  const { data: adjustment } = useStockAdjustment(id);
   const deleteMutation = useDeleteStockAdjustment();
   const publishMutation = usePublishStockAdjustment();
-
-  const isDraft = adjustment?.status === 'DRAFT';
-  const isOpeningStock = adjustment?.type === 'OPENING_STOCK';
 
   const handlePublish = useCallback(async () => {
     if (!id) return;
     const confirmed = await confirm({
       title: 'Publish this adjustment?',
-      description:
-        'Publishing will atomically create/adjust batches and write ledger entries. This action cannot be undone.',
+      description: 'Publishing will atomically create/adjust quants and write ledger entries.',
       confirmLabel: 'Publish',
     });
     if (confirmed) publishMutation.mutate(id);
@@ -66,7 +64,7 @@ export const StockAdjustmentDetailPage = () => {
     if (!id) return;
     const confirmed = await confirm({
       title: 'Delete this draft?',
-      description: 'This draft adjustment and all its lines will be permanently removed.',
+      description: 'This draft adjustment and all its lots, lines and serials will be permanently removed.',
       confirmLabel: 'Delete',
       variant: 'destructive',
     });
@@ -75,14 +73,31 @@ export const StockAdjustmentDetailPage = () => {
     }
   }, [id, confirm, deleteMutation, navigate]);
 
+  const isDraft = adjustment.status === StockAdjustmentStatusValues.DRAFT;
+  const isOpeningStock = adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK;
+  const tracking = adjustment.inventoryItemTracking;
+
   const typeConf = typeConfig[adjustment.type];
   const statusConf = statusConfig[adjustment.status];
+
+  const renderVariant = () => {
+    if (isOpeningStock) {
+      if (tracking === InventoryTrackingValues.QUANTITY)
+        return <OpeningNoneContent adjustment={adjustment} isDraft={isDraft} />;
+      if (tracking === InventoryTrackingValues.LOT)
+        return <OpeningLotContent adjustment={adjustment} isDraft={isDraft} />;
+      return <OpeningItemContent adjustment={adjustment} isDraft={isDraft} />;
+    }
+    if (tracking === InventoryTrackingValues.SERIAL)
+      return <ChangeItemContent adjustment={adjustment} isDraft={isDraft} />;
+    return <ChangeContent adjustment={adjustment} isDraft={isDraft} tracking={tracking} />;
+  };
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={adjustment.code}
-        description={`${typeConf.label} — ${adjustment.inventoryItemName ?? 'Stock Adjustment'}`}
+        description={`${typeConf.label} — ${adjustment.inventoryItemName}`}
         actions={
           isDraft ? (
             <div className="flex items-center gap-2">
@@ -92,7 +107,7 @@ export const StockAdjustmentDetailPage = () => {
                 startAdornment={<Pencil className="size-4" />}
                 onClick={editAdjustmentDialog.open}
               >
-                Edit Quantity
+                Edit Reason
               </Button>
               <Button
                 size="sm"
@@ -111,33 +126,11 @@ export const StockAdjustmentDetailPage = () => {
       />
 
       <StockAdjustmentOverviewCard adjustment={adjustment} typeLabel={typeConf.label} typeVariant={typeConf.variant} />
-
-      <PageContent>
-        <StockAdjustmentSidePanel
-          adjustmentId={adjustment.id}
-          adjustmentQuantity={adjustment.quantity}
-          adjustmentType={adjustment.type}
-          inventoryItemId={adjustment.inventoryItemId}
-          selectedLineId={selectedLineId}
-          isOpeningStock={isOpeningStock}
-          isDraft={Boolean(isDraft)}
-          onSelectLine={setSelectedLineId}
-        />
-        <PageContentDetails>
-          <StockAdjustmentContent
-            adjustment={adjustment}
-            selectedLineId={selectedLineId}
-            isDraft={Boolean(isDraft)}
-            isOpeningStock={isOpeningStock}
-            onSelectLine={setSelectedLineId}
-          />
-        </PageContentDetails>
-      </PageContent>
-
+      {renderVariant()}
       {isDraft && (
         <DangerZone
           title="Delete this draft adjustment"
-          description="This action cannot be undone. The draft adjustment and all its lines will be permanently removed."
+          description="This action cannot be undone. The draft adjustment and all its lots, lines, and serials will be permanently removed."
           buttonText="Delete Draft"
           onClick={handleDelete}
           isLoading={deleteMutation.isPending}
@@ -147,12 +140,12 @@ export const StockAdjustmentDetailPage = () => {
 
       <Dialog
         handle={editAdjustmentDialog}
-        title="Edit Quantity"
-        description="Update adjustment quantity while in draft."
+        title="Edit Reason"
+        description="Update the reason for this draft adjustment."
         content={(close) => (
           <EditStockAdjustmentDialog
             adjustmentId={adjustment.id}
-            quantity={adjustment.quantity}
+            reason={adjustment.reason}
             onSuccess={close}
             onCancel={close}
           />

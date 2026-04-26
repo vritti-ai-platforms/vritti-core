@@ -4,13 +4,18 @@ import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId
 import { SessionTypeValues } from '@/db/schema';
 import { AddStockAdjustmentLineDto } from './dto/request/add-stock-adjustment-line.dto';
 import { AddStockAdjustmentLineItemDto } from './dto/request/add-stock-adjustment-line-item.dto';
+import { AddStockAdjustmentLotDto } from './dto/request/add-stock-adjustment-lot.dto';
 import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
 import { UpdateStockAdjustmentDto } from './dto/request/update-stock-adjustment.dto';
 import { UpdateStockAdjustmentLineDto } from './dto/request/update-stock-adjustment-line.dto';
 import { UpdateStockAdjustmentLineItemDto } from './dto/request/update-stock-adjustment-line-item.dto';
+import { UpdateStockAdjustmentLotDto } from './dto/request/update-stock-adjustment-lot.dto';
 import type { StockAdjustmentLineItemResponseDto } from './dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from './dto/response/stock-adjustment-line-item-table-response.dto';
+import type { StockAdjustmentLineTableResponseDto } from './dto/response/stock-adjustment-line-table-response.dto';
+import type { StockAdjustmentTreeNodeResponseDto } from './dto/response/stock-adjustment-tree-response.dto';
 import type { StockAdjustmentLineResponseDto } from './dto/response/stock-adjustment-line-response.dto';
+import type { StockAdjustmentLotResponseDto } from './dto/response/stock-adjustment-lot-response.dto';
 import type { StockAdjustmentResponseDto } from './dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from './dto/response/stock-adjustment-table-response.dto';
 import { StockAdjustmentsGatewayService } from './services/stock-adjustments-gateway.service';
@@ -36,10 +41,70 @@ export class StockAdjustmentsGatewayController {
     return this.service.findById(id);
   }
 
+  @Get(':id/lots')
+  getLots(@Param('id') id: string): Promise<StockAdjustmentLotResponseDto[]> {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots`);
+    return this.service.findLots(id);
+  }
+
+  @Post(':id/lots')
+  @HttpCode(HttpStatus.CREATED)
+  addLot(
+    @Param('id') id: string,
+    @Body() dto: AddStockAdjustmentLotDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
+    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/lots`);
+    return this.service.addLot(id, dto);
+  }
+
+  @Patch(':id/lots/:lotId')
+  updateLot(
+    @Param('id') id: string,
+    @Param('lotId') lotId: string,
+    @Body() dto: UpdateStockAdjustmentLotDto,
+  ): Promise<StockAdjustmentLotResponseDto> {
+    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/lots/${lotId}`);
+    return this.service.updateLot(id, lotId, dto);
+  }
+
+  @Delete(':id/lots/:lotId')
+  removeLot(@Param('id') id: string, @Param('lotId') lotId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}/lots/${lotId}`);
+    return this.service.removeLot(id, lotId);
+  }
+
+  @Get(':id/tree')
+  getTree(@Param('id') id: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/tree`);
+    return this.service.findTree(id);
+  }
+
   @Get(':id/lines')
   getLines(@Param('id') id: string): Promise<StockAdjustmentLineResponseDto[]> {
     this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines`);
     return this.service.findLines(id);
+  }
+
+  @Get(':id/lines/table')
+  getLinesTable(@Param('id') id: string, @UserId() userId: string): Promise<StockAdjustmentLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/table`);
+    return this.service.findLinesTable(id, userId);
+  }
+
+  @Get(':id/lots/:lotId/lines')
+  getLinesByLot(@Param('id') id: string, @Param('lotId') lotId: string): Promise<StockAdjustmentLineResponseDto[]> {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots/${lotId}/lines`);
+    return this.service.findLinesByLot(id, lotId);
+  }
+
+  @Get(':id/lots/:lotId/lines/table')
+  getLinesByLotTable(
+    @Param('id') id: string,
+    @Param('lotId') lotId: string,
+    @UserId() userId: string,
+  ): Promise<StockAdjustmentLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots/${lotId}/lines/table`);
+    return this.service.findLinesByLotTable(id, lotId, userId);
   }
 
   @Get(':id/lines/:lineId')

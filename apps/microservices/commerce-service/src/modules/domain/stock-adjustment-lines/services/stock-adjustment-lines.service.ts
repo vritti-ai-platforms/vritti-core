@@ -1,4 +1,4 @@
-import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
+import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -20,24 +20,23 @@ import {
   stockAdjustmentLines,
   storageLocations,
 } from '@/db/schema';
+import { StockAdjustmentLineDto } from '../dto/entity/stock-adjustment-line.dto';
+import { StockAdjustmentLinesRepository } from '../repositories/stock-adjustment-lines.repository';
 
 interface AdjustmentContext {
   id: string;
   code: string;
   status: StockAdjustmentStatus;
   type: StockAdjustmentType;
-  quantity: string;
+  inventoryItemId: string;
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
 }
-
-import { StockAdjustmentLineDto } from '../dto/entity/stock-adjustment-line.dto';
-import { StockAdjustmentLinesRepository } from '../repositories/stock-adjustment-lines.repository';
 
 @Injectable()
 export class StockAdjustmentLinesService {
   private readonly logger = new Logger(StockAdjustmentLinesService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
-    batchNumber: { column: stockAdjustmentLines.batchNumber, type: 'string' },
     locationName: { column: storageLocations.name, type: 'string' },
     quantity: { column: stockAdjustmentLines.quantity, type: 'number' },
   };
@@ -45,86 +44,102 @@ export class StockAdjustmentLinesService {
   constructor(
     private readonly repository: StockAdjustmentLinesRepository,
     private readonly adjustmentsRepository: StockAdjustmentsRepository,
-    private readonly lineItemsRepository: StockAdjustmentLineItemsRepository,
+    private readonly lotsRepository: StockAdjustmentLotsRepository,
   ) {}
 
   async findForTable(
     adjustmentId: string,
     state: TableViewState,
+    lotId?: string | null,
   ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLinesService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLinesService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
-
     const { result, count } = await this.repository.findForTable(adjustmentId, {
       where,
       orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentLinesService.FIELD_MAP),
       limit,
       offset,
+      lotId,
     });
+    return { result: result.map(StockAdjustmentLineDto.from), count };
+  }
 
-    const stats = await this.lineItemsRepository.findStatsByLineIds(result.map((line) => line.id));
-    return {
-      result: result.map((line) => {
-        const lineStats = stats.get(line.id);
-        const sum = Number(lineStats?.lineItemsQuantitySum ?? 0);
-        const lineQty = Number(line.quantity);
-        return StockAdjustmentLineDto.from({
-          ...line,
-          lineItemsCount: Number(lineStats?.lineItemsCount ?? 0),
-          lineItemsQuantitySum: sum,
-          lineItemsDelta: Number((lineQty - sum).toFixed(3)),
-          isBalanced: line.isBalanced,
-          isLineItemsBalanced: line.isBalanced,
-        });
-      }),
-      count,
-    };
+  async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineDto[]> {
+    const rows = await this.repository.findByAdjustmentId(adjustmentId);
+    return rows.map(StockAdjustmentLineDto.from);
+  }
+
+  async findByLotId(adjustmentId: string, lotId: string): Promise<StockAdjustmentLineDto[]> {
+    // Verify lot belongs to adjustment
+    const lot = await this.lotsRepository.findById(lotId);
+    if (!lot || lot.stockAdjustmentId !== adjustmentId) {
+      throw new NotFoundException('Stock adjustment lot not found.');
+    }
+    const rows = await this.repository.findByLotId(lotId);
+    return rows.map(StockAdjustmentLineDto.from);
+  }
+
+  async findById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineDto> {
+    const line = await this.repository.findByAdjustmentIdAndLineId(adjustmentId, lineId);
+    if (!line) throw new NotFoundException('Stock adjustment line not found.');
+    return StockAdjustmentLineDto.from(line);
   }
 
   async addLine(
     adjustment: AdjustmentContext,
     data: {
       createdById: string;
-      batchId?: string;
-      locationId?: string;
+      stockAdjustmentLotId?: string | null;
+      locationId?: string | null;
+      quantId?: string | null;
       quantity: number;
-      manufacturingDate?: string;
-      expiryDate?: string;
     },
   ): Promise<StockAdjustmentLineDto> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be added to DRAFT adjustments.');
     }
 
-    this.validateLineForType(adjustment.type, data);
-    await this.validateQuantityLimit(adjustment, data.quantity);
+    await this.validateIntent(adjustment, data);
+
+    const isItemTracking = adjustment.inventoryItemTracking === 'serial';
+
+    // For tracking='serial', quantity is derived from the serial count and starts at 0.
+    // For 'quantity'/'lot' the user enters a quantity which must be non-zero.
+    if (!Number.isFinite(data.quantity) || (data.quantity === 0 && !isItemTracking)) {
+      throw new ValidationException({
+        detail: 'Quantity must be a non-zero number.',
+        errors: [{ field: 'quantity', message: 'Quantity is required.' }],
+      });
+    }
+
+    const initialIsBalanced = isItemTracking ? data.quantity === 0 : true;
 
     const line = await this.repository.create({
       stockAdjustmentId: adjustment.id,
       createdById: data.createdById,
-      batchId: data.batchId ?? null,
+      stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
       locationId: data.locationId ?? null,
+      quantId: data.quantId ?? null,
       quantity: String(data.quantity),
-      isBalanced: false,
-      manufacturingDate: data.manufacturingDate ?? null,
-      expiryDate: data.expiryDate ?? null,
+      isBalanced: initialIsBalanced,
     });
 
     this.logger.log(`Added line ${line.id} to adjustment ${adjustment.id}`);
-    return StockAdjustmentLineDto.from(line);
+    const refreshed = await this.repository.findByAdjustmentIdAndLineId(adjustment.id, line.id);
+    if (!refreshed) throw new NotFoundException('Line not found after insert.');
+    return StockAdjustmentLineDto.from(refreshed);
   }
 
   async addLineByAdjustmentId(
     adjustmentId: string,
     data: {
       createdById: string;
-      batchId?: string;
-      locationId?: string;
+      stockAdjustmentLotId?: string | null;
+      locationId?: string | null;
+      quantId?: string | null;
       quantity: number;
-      manufacturingDate?: string;
-      expiryDate?: string;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
@@ -141,35 +156,41 @@ export class StockAdjustmentLinesService {
     lineId: string,
     data: {
       quantity?: number;
-      locationId?: string;
-      manufacturingDate?: string;
-      expiryDate?: string;
+      stockAdjustmentLotId?: string | null;
+      locationId?: string | null;
+      quantId?: string | null;
     },
   ): Promise<StockAdjustmentLineDto> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be updated on DRAFT adjustments.');
     }
-
     const line = await this.repository.findLineById(lineId);
     if (!line) throw new NotFoundException('Stock adjustment line not found.');
     if (line.stockAdjustmentId !== adjustment.id) {
       throw new BadRequestException('Line does not belong to this adjustment.');
     }
-    if (data.quantity !== undefined) {
-      await this.validateQuantityLimit(adjustment, data.quantity, line.id, Number(line.quantity));
-    }
+
+    // Build the proposed shape and re-validate intent
+    const next = {
+      stockAdjustmentLotId:
+        data.stockAdjustmentLotId !== undefined ? data.stockAdjustmentLotId : line.stockAdjustmentLotId,
+      locationId: data.locationId !== undefined ? data.locationId : line.locationId,
+      quantId: data.quantId !== undefined ? data.quantId : line.quantId,
+      quantity: data.quantity !== undefined ? data.quantity : Number(line.quantity),
+    };
+    await this.validateIntent(adjustment, next);
 
     await this.repository.update(lineId, {
       ...(data.quantity !== undefined ? { quantity: String(data.quantity) } : {}),
+      ...(data.stockAdjustmentLotId !== undefined ? { stockAdjustmentLotId: data.stockAdjustmentLotId } : {}),
       ...(data.locationId !== undefined ? { locationId: data.locationId } : {}),
-      ...(data.manufacturingDate !== undefined ? { manufacturingDate: data.manufacturingDate } : {}),
-      ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate } : {}),
+      ...(data.quantId !== undefined ? { quantId: data.quantId } : {}),
     });
-    await this.repository.refreshIsBalanced(lineId);
-    const refreshed = await this.repository.findLineById(lineId);
-    if (!refreshed) throw new NotFoundException('Stock adjustment line not found.');
 
-    this.logger.log(`Updated line ${lineId} on adjustment ${adjustment.id}`);
+    await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
+
+    const refreshed = await this.repository.findByAdjustmentIdAndLineId(adjustment.id, lineId);
+    if (!refreshed) throw new NotFoundException('Line not found after update.');
     return StockAdjustmentLineDto.from(refreshed);
   }
 
@@ -178,9 +199,9 @@ export class StockAdjustmentLinesService {
     lineId: string,
     data: {
       quantity?: number;
-      locationId?: string;
-      manufacturingDate?: string;
-      expiryDate?: string;
+      stockAdjustmentLotId?: string | null;
+      locationId?: string | null;
+      quantId?: string | null;
     },
   ): Promise<StockAdjustmentLineDto> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
@@ -191,13 +212,11 @@ export class StockAdjustmentLinesService {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be removed from DRAFT adjustments.');
     }
-
     const line = await this.repository.findLineById(lineId);
     if (!line) throw new NotFoundException('Stock adjustment line not found.');
     if (line.stockAdjustmentId !== adjustment.id) {
       throw new BadRequestException('Line does not belong to this adjustment.');
     }
-
     await this.repository.deleteLine(lineId);
     this.logger.log(`Removed line ${lineId} from adjustment ${adjustment.id}`);
   }
@@ -208,61 +227,87 @@ export class StockAdjustmentLinesService {
     return { success: true, message: `Line removed from adjustment "${adjustment.code}" successfully.` };
   }
 
-  async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineDto[]> {
-    const rows = await this.repository.findByAdjustmentId(adjustmentId);
-    const stats = await this.lineItemsRepository.findStatsByLineIds(rows.map((line) => line.id));
-    return rows.map((line) => {
-      const lineStats = stats.get(line.id);
-      const sum = Number(lineStats?.lineItemsQuantitySum ?? 0);
-      const lineQty = Number(line.quantity);
-      return StockAdjustmentLineDto.from({
-        ...line,
-        lineItemsCount: Number(lineStats?.lineItemsCount ?? 0),
-        lineItemsQuantitySum: sum,
-        lineItemsDelta: Number((lineQty - sum).toFixed(3)),
-        isBalanced: line.isBalanced,
-        isLineItemsBalanced: line.isBalanced,
-      });
-    });
+  async refreshIsBalanced(adjustmentId: string, lineId: string): Promise<void> {
+    const adjustment = await this.getAdjustmentContext(adjustmentId);
+    await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
   }
 
-  async findById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineDto> {
-    const line = await this.repository.findByAdjustmentIdAndLineId(adjustmentId, lineId);
-    if (!line) throw new NotFoundException('Stock adjustment line not found.');
-
-    const stats = await this.lineItemsRepository.findStatsByLineIds([line.id]);
-    const lineStats = stats.get(line.id);
-    const sum = Number(lineStats?.lineItemsQuantitySum ?? 0);
-    const lineQty = Number(line.quantity);
-
-    return StockAdjustmentLineDto.from({
-      ...line,
-      lineItemsCount: Number(lineStats?.lineItemsCount ?? 0),
-      lineItemsQuantitySum: sum,
-      lineItemsDelta: Number((lineQty - sum).toFixed(3)),
-      isBalanced: line.isBalanced,
-      isLineItemsBalanced: line.isBalanced,
-    });
-  }
-
+  // Used at publish time — return mismatched lines for tracking='serial' adjustments
   async getPublishValidation(adjustmentId: string): Promise<{ valid: boolean; invalidLinesCount: number }> {
-    const errors = await this.repository.validateLineByAdjustmentId(adjustmentId);
+    const adjustment = await this.getAdjustmentContext(adjustmentId);
+    if (adjustment.inventoryItemTracking !== 'serial') return { valid: true, invalidLinesCount: 0 };
+    const errors = await this.repository.findUnbalancedItemLines(adjustmentId);
     return { valid: errors.length === 0, invalidLinesCount: errors.length };
   }
 
-  private validateLineForType(type: StockAdjustmentType, data: { batchId?: string; locationId?: string }): void {
-    if (type === StockAdjustmentTypeValues.OPENING_STOCK) {
+  // Validates the line shape against (adjustment.type, item.tracking)
+  private async validateIntent(
+    adjustment: AdjustmentContext,
+    data: {
+      stockAdjustmentLotId?: string | null;
+      locationId?: string | null;
+      quantId?: string | null;
+    },
+  ): Promise<void> {
+    const isOpening = adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK;
+    const tracking = adjustment.inventoryItemTracking;
+
+    if (isOpening) {
+      // Register intent: locationId required, quantId forbidden
       if (!data.locationId) {
         throw new ValidationException({
           detail: 'Storage location is required for OPENING_STOCK lines.',
           errors: [{ field: 'locationId', message: 'Storage location is required.' }],
         });
       }
-    } else {
-      if (!data.batchId) {
+      if (data.quantId) {
         throw new ValidationException({
-          detail: 'Batch is required for non-OPENING_STOCK lines.',
-          errors: [{ field: 'batchId', message: 'Batch is required.' }],
+          detail: 'quantId must not be set on OPENING_STOCK lines.',
+          errors: [{ field: 'quantId', message: 'Not allowed on OPENING_STOCK.' }],
+        });
+      }
+      // tracking=quantity: lot must NOT be set; tracking=lot/serial: lot must be set
+      if (tracking === 'quantity') {
+        if (data.stockAdjustmentLotId) {
+          throw new ValidationException({
+            detail: 'Lot must not be set for items with tracking=quantity.',
+            errors: [{ field: 'stockAdjustmentLotId', message: 'Not allowed for tracking=quantity.' }],
+          });
+        }
+      } else {
+        if (!data.stockAdjustmentLotId) {
+          throw new ValidationException({
+            detail: 'A lot must be selected for OPENING_STOCK on lot/item-tracked items.',
+            errors: [{ field: 'stockAdjustmentLotId', message: 'Lot is required.' }],
+          });
+        }
+        // Verify the lot belongs to this adjustment
+        const lot = await this.lotsRepository.findById(data.stockAdjustmentLotId);
+        if (!lot || lot.stockAdjustmentId !== adjustment.id) {
+          throw new ValidationException({
+            detail: 'Lot does not belong to this adjustment.',
+            errors: [{ field: 'stockAdjustmentLotId', message: 'Invalid lot reference.' }],
+          });
+        }
+      }
+    } else {
+      // Change intent: quantId required, locationId/stockAdjustmentLotId forbidden
+      if (!data.quantId) {
+        throw new ValidationException({
+          detail: 'A quant must be selected for deduct/correction lines.',
+          errors: [{ field: 'quantId', message: 'Quant is required.' }],
+        });
+      }
+      if (data.locationId) {
+        throw new ValidationException({
+          detail: 'locationId must not be set on deduct/correction lines.',
+          errors: [{ field: 'locationId', message: 'Not allowed for deduct/correction.' }],
+        });
+      }
+      if (data.stockAdjustmentLotId) {
+        throw new ValidationException({
+          detail: 'stockAdjustmentLotId must not be set on deduct/correction lines.',
+          errors: [{ field: 'stockAdjustmentLotId', message: 'Not allowed for deduct/correction.' }],
         });
       }
     }
@@ -272,30 +317,5 @@ export class StockAdjustmentLinesService {
     const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return adjustment;
-  }
-
-  private async validateQuantityLimit(
-    adjustment: AdjustmentContext,
-    nextLineQuantity: number,
-    updatingLineId?: string,
-    currentLineQuantity = 0,
-  ): Promise<void> {
-    const totalExisting = await this.repository.totalQuantityForAdjustment(adjustment.id);
-    const nextTotal = updatingLineId
-      ? totalExisting - currentLineQuantity + nextLineQuantity
-      : totalExisting + nextLineQuantity;
-    const adjustmentQuantity = Number(adjustment.quantity);
-    if (this.toScaled(nextTotal) > this.toScaled(adjustmentQuantity)) {
-      const maxPermissible = Math.max(0, adjustmentQuantity - (totalExisting - currentLineQuantity));
-      const message = `Total line quantity cannot exceed adjustment quantity (${adjustmentQuantity}). Max permissible quantity for this line is ${maxPermissible}.`;
-      throw new ValidationException({
-        detail: message,
-        errors: [{ field: 'quantity', message }],
-      });
-    }
-  }
-
-  private toScaled(value: number): number {
-    return Math.round(value * 1000);
   }
 }

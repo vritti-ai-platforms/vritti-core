@@ -1,7 +1,8 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, check, decimal, index, jsonb, pgPolicy, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { inventoryItemBatches } from './inventory-item-batches';
+import { inventoryItemQuants } from './inventory-item-quants';
+import { stockAdjustmentLots } from './stock-adjustment-lots';
 import { stockAdjustments } from './stock-adjustments';
 import { storageLocations } from './storage-locations';
 
@@ -15,13 +16,18 @@ export const stockAdjustmentLines = coreSchema.table(
       .notNull()
       .references(() => stockAdjustments.id, { onDelete: 'cascade' }),
     createdById: uuid('created_by_id').notNull(),
-    batchId: uuid('batch_id').references(() => inventoryItemBatches.id, { onDelete: 'set null' }),
+    // Register intent (OPENING_STOCK): exactly one of locationId / quantId must be set
+    stockAdjustmentLotId: uuid('stock_adjustment_lot_id').references(() => stockAdjustmentLots.id, {
+      onDelete: 'cascade',
+    }),
     locationId: uuid('location_id').references(() => storageLocations.id),
+    // Change intent (deduct + CORRECTION):
+    quantId: uuid('quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
+    // Always set:
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    batchNumber: varchar('batch_number', { length: 100 }),
-    isBalanced: boolean('is_balanced').notNull().default(false),
-    manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
-    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }),
+    resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
+    isBalanced: boolean('is_balanced').notNull().default(true),
+    metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -30,7 +36,14 @@ export const stockAdjustmentLines = coreSchema.table(
   },
   (table) => [
     index('idx_stock_adjustment_lines_adjustment').on(table.stockAdjustmentId),
-    index('idx_stock_adjustment_lines_batch').on(table.batchId),
+    index('idx_stock_adjustment_lines_lot').on(table.stockAdjustmentLotId),
+    index('idx_stock_adjustment_lines_quant').on(table.quantId),
+    index('idx_stock_adjustment_lines_resolved').on(table.resolvedQuantId),
+    check(
+      'chk_line_intent',
+      sql`(${table.locationId} IS NOT NULL AND ${table.quantId} IS NULL)
+       OR (${table.locationId} IS NULL AND ${table.quantId} IS NOT NULL)`,
+    ),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

@@ -4,7 +4,6 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateStockAdjustment } from '@/hooks/stock-adjustments';
@@ -31,7 +30,6 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
     defaultValues: {
       inventoryItemId: '',
       type: undefined,
-      quantity: '',
       reason: '',
     },
   });
@@ -44,19 +42,16 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
         type: data.type,
-        quantity: Number(data.quantity),
         reason: data.reason,
       })}
     >
       <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />
       <Select name="type" label="Adjustment Type" placeholder="Select type" options={adjustmentTypeOptions} />
-      <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 100" />
       <TextArea name="reason" label="Reason" placeholder="Enter reason for adjustment" />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

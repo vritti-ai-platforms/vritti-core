@@ -172,6 +172,22 @@ export const inventoryItemTypeEnum = coreSchema.enum('inventory_item_type', ['MA
 export const InventoryItemTypeValues = { MATERIAL: 'MATERIAL' as const, PRODUCT: 'PRODUCT' as const };
 export type InventoryItemType = (typeof inventoryItemTypeEnum.enumValues)[number];
 
+export const inventoryTrackingEnum = coreSchema.enum('inventory_tracking', ['quantity', 'lot', 'serial']);
+export const InventoryTrackingValues = {
+  QUANTITY: 'quantity' as const,
+  LOT: 'lot' as const,
+  SERIAL: 'serial' as const,
+};
+export type InventoryTracking = (typeof inventoryTrackingEnum.enumValues)[number];
+
+export const quantItemStatusEnum = coreSchema.enum('quant_item_status', ['AVAILABLE', 'RESERVED', 'CONSUMED']);
+export const QuantItemStatusValues = {
+  AVAILABLE: 'AVAILABLE' as const,
+  RESERVED: 'RESERVED' as const,
+  CONSUMED: 'CONSUMED' as const,
+};
+export type QuantItemStatus = (typeof quantItemStatusEnum.enumValues)[number];
+
 export const inventoryLedgerTypeEnum = coreSchema.enum('inventory_ledger_type', [
   'GOODS_RECEIPT',
   'ORDER_RESERVE',

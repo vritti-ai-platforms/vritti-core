@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { stockAdjustmentLineItems, stockAdjustmentLines, type StockAdjustmentLineItem } from '@/db/schema';
 
 @Injectable()
@@ -13,8 +13,8 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
     const rows = await this.db
       .select()
       .from(stockAdjustmentLineItems)
-      .where(eq(stockAdjustmentLineItems.stockAdjustmentLineId, lineId));
-
+      .where(eq(stockAdjustmentLineItems.stockAdjustmentLineId, lineId))
+      .orderBy(asc(stockAdjustmentLineItems.createdAt));
     return rows as StockAdjustmentLineItem[];
   }
 
@@ -25,14 +25,14 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
         organizationId: stockAdjustmentLineItems.organizationId,
         businessUnitId: stockAdjustmentLineItems.businessUnitId,
         stockAdjustmentLineId: stockAdjustmentLineItems.stockAdjustmentLineId,
-        quantity: stockAdjustmentLineItems.quantity,
+        serialNumber: stockAdjustmentLineItems.serialNumber,
+        metadata: stockAdjustmentLineItems.metadata,
         createdAt: stockAdjustmentLineItems.createdAt,
         updatedAt: stockAdjustmentLineItems.updatedAt,
       })
       .from(stockAdjustmentLineItems)
       .innerJoin(stockAdjustmentLines, eq(stockAdjustmentLineItems.stockAdjustmentLineId, stockAdjustmentLines.id))
       .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
-
     return rows as StockAdjustmentLineItem[];
   }
 
@@ -49,36 +49,36 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<StockAdjustmentLineItem>({
       where: combinedWhere,
-      orderBy: options.orderBy?.length ? options.orderBy : [desc(stockAdjustmentLineItems.createdAt)],
+      orderBy: options.orderBy?.length ? options.orderBy : [asc(stockAdjustmentLineItems.createdAt)],
       limit: options.limit,
       offset: options.offset,
     });
   }
 
-  async findStatsByLineIds(
-    lineIds: string[],
-  ): Promise<Map<string, { lineItemsCount: number; lineItemsQuantitySum: number }>> {
+  async findStatsByLineIds(lineIds: string[]): Promise<Map<string, { count: number }>> {
     if (lineIds.length === 0) return new Map();
-
     const rows = await this.db
       .select({
         lineId: stockAdjustmentLineItems.stockAdjustmentLineId,
-        lineItemsCount: sql<number>`count(*)`,
-        lineItemsQuantitySum: sql<string>`COALESCE(SUM(${stockAdjustmentLineItems.quantity}), 0)`,
+        count: sql<number>`count(*)`,
       })
       .from(stockAdjustmentLineItems)
       .where(inArray(stockAdjustmentLineItems.stockAdjustmentLineId, lineIds))
       .groupBy(stockAdjustmentLineItems.stockAdjustmentLineId);
-
-    return new Map(
-      rows.map((row) => [
-        row.lineId,
-        {
-          lineItemsCount: Number(row.lineItemsCount ?? 0),
-          lineItemsQuantitySum: Number(row.lineItemsQuantitySum ?? 0),
-        },
-      ]),
-    );
+    return new Map(rows.map((r) => [r.lineId, { count: Number(r.count) }]));
   }
 
+  async findBySerialOnLine(lineId: string, serialNumber: string): Promise<StockAdjustmentLineItem | undefined> {
+    const rows = await this.db
+      .select()
+      .from(stockAdjustmentLineItems)
+      .where(
+        and(
+          eq(stockAdjustmentLineItems.stockAdjustmentLineId, lineId),
+          eq(stockAdjustmentLineItems.serialNumber, serialNumber),
+        ),
+      )
+      .limit(1);
+    return rows[0] as StockAdjustmentLineItem | undefined;
+  }
 }

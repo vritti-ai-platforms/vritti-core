@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  inventoryItemBatches,
+  inventoryItemQuants,
   type StorageLocationConfig,
   storageLocationConfigs,
   storageLocations,
@@ -54,13 +54,13 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
     const locationIds = result.map((row) => row.locationId);
     const stockRows = await this.db
       .select({
-        locationId: inventoryItemBatches.locationId,
-        stockedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.quantity}) AS TEXT)`,
-        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.reservedQuantity}) AS TEXT)`,
+        locationId: inventoryItemQuants.locationId,
+        stockedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.quantity}) AS TEXT)`,
+        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.reservedQuantity}) AS TEXT)`,
       })
-      .from(inventoryItemBatches)
-      .where(and(eq(inventoryItemBatches.inventoryItemId, itemId), inArray(inventoryItemBatches.locationId, locationIds)))
-      .groupBy(inventoryItemBatches.locationId);
+      .from(inventoryItemQuants)
+      .where(and(eq(inventoryItemQuants.inventoryItemId, itemId), inArray(inventoryItemQuants.locationId, locationIds)))
+      .groupBy(inventoryItemQuants.locationId);
 
     const stockByLocation = new Map(
       stockRows.map((row) => [
@@ -94,15 +94,15 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
     // Subquery: aggregate stock per (inventoryItemId, locationId)
     const stockAgg = this.db
       .select({
-        inventoryItemId: inventoryItemBatches.inventoryItemId,
-        locationId: inventoryItemBatches.locationId,
-        stockedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.quantity}) AS TEXT)`.as('stocked_quantity'),
-        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemBatches.reservedQuantity}) AS TEXT)`.as(
+        inventoryItemId: inventoryItemQuants.inventoryItemId,
+        locationId: inventoryItemQuants.locationId,
+        stockedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.quantity}) AS TEXT)`.as('stocked_quantity'),
+        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.reservedQuantity}) AS TEXT)`.as(
           'reserved_quantity',
         ),
       })
-      .from(inventoryItemBatches)
-      .groupBy(inventoryItemBatches.inventoryItemId, inventoryItemBatches.locationId)
+      .from(inventoryItemQuants)
+      .groupBy(inventoryItemQuants.inventoryItemId, inventoryItemQuants.locationId)
       .as('stock_agg');
 
     const rows = await this.db

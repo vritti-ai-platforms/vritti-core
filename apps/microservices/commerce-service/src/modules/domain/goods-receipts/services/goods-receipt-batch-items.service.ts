@@ -22,15 +22,19 @@ export class GoodsReceiptBatchItemsService {
     return rows.map((row) => GoodsReceiptBatchItemDto.from(row));
   }
 
+  // For tracking='serial' batches: each batch item represents one physical unit (serialNumber required, quantity always 1)
   async addItem(
     goodsReceiptId: string,
     lineId: string,
     batchId: string,
-    data: { quantity: number },
+    data: { serialNumber: string },
   ): Promise<CreateResponseDto<GoodsReceiptBatchItemDto>> {
     await this.ensureEditableBatch(goodsReceiptId, lineId, batchId);
-    this.validateQuantity(data.quantity);
-    const entity = await this.batchItemsRepository.create({ goodsReceiptBatchId: batchId, quantity: String(data.quantity) });
+    this.validateSerialNumber(data.serialNumber);
+    const entity = await this.batchItemsRepository.create({
+      goodsReceiptBatchId: batchId,
+      serialNumber: data.serialNumber,
+    });
     await this.batchesRepository.refreshIsBalanced(batchId);
     return {
       success: true,
@@ -44,13 +48,13 @@ export class GoodsReceiptBatchItemsService {
     lineId: string,
     batchId: string,
     itemId: string,
-    data: { quantity: number },
+    data: { serialNumber: string },
   ): Promise<SuccessResponseDto> {
     await this.ensureEditableBatch(goodsReceiptId, lineId, batchId);
-    this.validateQuantity(data.quantity);
+    this.validateSerialNumber(data.serialNumber);
     const existing = await this.batchItemsRepository.findByBatchIdAndItemId(batchId, itemId);
     if (!existing) throw new NotFoundException('Goods receipt batch item not found.');
-    await this.batchItemsRepository.update(existing.id, { quantity: String(data.quantity) });
+    await this.batchItemsRepository.update(existing.id, { serialNumber: data.serialNumber });
     await this.batchesRepository.refreshIsBalanced(batchId);
     return { success: true, message: 'Batch item updated.' };
   }
@@ -64,9 +68,9 @@ export class GoodsReceiptBatchItemsService {
     return { success: true, message: `Batch item "${itemId}" removed successfully.` };
   }
 
-  private validateQuantity(quantity: number) {
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      throw new BadRequestException('quantity must be greater than 0.');
+  private validateSerialNumber(serialNumber: string) {
+    if (!serialNumber || serialNumber.trim().length === 0) {
+      throw new BadRequestException('serialNumber is required.');
     }
   }
 

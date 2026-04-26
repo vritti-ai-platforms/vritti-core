@@ -3100,9 +3100,47 @@
         ]
       }
     },
-    "/commerce-api/inventory-item-batches/select": {
+    "/commerce-api/inventory-item-lots/select": {
       "get": {
-        "operationId": "InventoryItemBatchesGatewayController_select",
+        "operationId": "InventoryItemLotsGatewayController_select",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Item Lots"
+        ]
+      }
+    },
+    "/commerce-api/inventory-item-quant-items/select": {
+      "get": {
+        "operationId": "InventoryItemQuantItemsGatewayController_select",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Item Quant Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-item-quants/select": {
+      "get": {
+        "operationId": "InventoryItemQuantsGatewayController_select",
         "parameters": [],
         "responses": {
           "200": {
@@ -3119,9 +3157,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-item-batches/{id}": {
+    "/commerce-api/inventory-item-quants/{id}": {
       "get": {
-        "operationId": "InventoryItemBatchesGatewayController_findById",
+        "operationId": "InventoryItemQuantsGatewayController_findById",
         "parameters": [
           {
             "name": "id",
@@ -3147,7 +3185,7 @@
         ]
       },
       "delete": {
-        "operationId": "InventoryItemBatchesGatewayController_delete",
+        "operationId": "InventoryItemQuantsGatewayController_delete",
         "parameters": [
           {
             "name": "id",
@@ -3173,9 +3211,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-item-batches/{id}/ledger/table": {
+    "/commerce-api/inventory-item-quants/{id}/ledger/table": {
       "get": {
-        "operationId": "InventoryItemBatchesGatewayController_getLedgerTable",
+        "operationId": "InventoryItemQuantsGatewayController_getLedgerTable",
         "parameters": [
           {
             "name": "id",
@@ -7230,6 +7268,178 @@
         ]
       }
     },
+    "/commerce-api/stock-adjustments/{id}/lots": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLots",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_addLot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddStockAdjustmentLotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lots/{lotId}": {
+      "patch": {
+        "operationId": "StockAdjustmentsGatewayController_updateLot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lotId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStockAdjustmentLotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      },
+      "delete": {
+        "operationId": "StockAdjustmentsGatewayController_removeLot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lotId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/tree": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getTree",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
     "/commerce-api/stock-adjustments/{id}/lines": {
       "get": {
         "operationId": "StockAdjustmentsGatewayController_getLines",
@@ -7281,6 +7491,106 @@
         },
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lines/table": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLinesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lots/{lotId}/lines": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLinesByLot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lotId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/lots/{lotId}/lines/table": {
+      "get": {
+        "operationId": "StockAdjustmentsGatewayController_getLinesByLotTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lotId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -10791,14 +11101,12 @@
           "locationId": {
             "type": "string"
           },
-          "acceptedQuantity": {
+          "quantity": {
             "type": "number"
           },
-          "rejectedQuantity": {
-            "type": "number"
-          },
-          "rejectionReason": {
-            "type": "string"
+          "lotNumber": {
+            "type": "string",
+            "description": "Lot number (required for tracking=lot or tracking=serial)"
           },
           "manufacturingDate": {
             "type": "string"
@@ -10810,7 +11118,7 @@
         "required": [
           "inventoryItemId",
           "locationId",
-          "acceptedQuantity"
+          "quantity"
         ]
       },
       "UpdateGoodsReceiptBatchDto": {
@@ -10822,13 +11130,10 @@
           "locationId": {
             "type": "string"
           },
-          "acceptedQuantity": {
+          "quantity": {
             "type": "number"
           },
-          "rejectedQuantity": {
-            "type": "number"
-          },
-          "rejectionReason": {
+          "lotNumber": {
             "type": "object"
           },
           "manufacturingDate": {
@@ -10842,23 +11147,25 @@
       "AddGoodsReceiptBatchItemDto": {
         "type": "object",
         "properties": {
-          "quantity": {
-            "type": "number"
+          "serialNumber": {
+            "type": "string",
+            "description": "Serial number for the physical unit"
           }
         },
         "required": [
-          "quantity"
+          "serialNumber"
         ]
       },
       "UpdateGoodsReceiptBatchItemDto": {
         "type": "object",
         "properties": {
-          "quantity": {
-            "type": "number"
+          "serialNumber": {
+            "type": "string",
+            "description": "Serial number for the physical unit"
           }
         },
         "required": [
-          "quantity"
+          "serialNumber"
         ]
       },
       "CreateInventoryItemDto": {
@@ -10882,6 +11189,16 @@
               "PRODUCT"
             ]
           },
+          "tracking": {
+            "type": "string",
+            "description": "Tracking type — granularity at which stock for this item is identified.",
+            "enum": [
+              "quantity",
+              "lot",
+              "serial"
+            ],
+            "example": "lot"
+          },
           "categoryId": {
             "type": "string",
             "description": "Category ID"
@@ -10899,6 +11216,7 @@
           "name",
           "code",
           "type",
+          "tracking",
           "categoryId",
           "uomId"
         ]
@@ -12414,6 +12732,43 @@
           }
         }
       },
+      "AddStockAdjustmentLotDto": {
+        "type": "object",
+        "properties": {
+          "lotNumber": {
+            "type": "string",
+            "description": "Lot number (must not already exist on inventory_item_lots)"
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "description": "Manufacturing date"
+          },
+          "expiryDate": {
+            "type": "object",
+            "description": "Expiry date"
+          }
+        },
+        "required": [
+          "lotNumber"
+        ]
+      },
+      "UpdateStockAdjustmentLotDto": {
+        "type": "object",
+        "properties": {
+          "lotNumber": {
+            "type": "string",
+            "description": "Lot number"
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "description": "Manufacturing date"
+          },
+          "expiryDate": {
+            "type": "object",
+            "description": "Expiry date"
+          }
+        }
+      },
       "CreateStockAdjustmentDto": {
         "type": "object",
         "properties": {
@@ -12426,11 +12781,6 @@
             "description": "Adjustment type",
             "example": "WASTE"
           },
-          "quantity": {
-            "type": "number",
-            "description": "Adjustment quantity",
-            "example": 100
-          },
           "reason": {
             "type": "string",
             "description": "Reason for adjustment"
@@ -12439,87 +12789,85 @@
         "required": [
           "inventoryItemId",
           "type",
-          "quantity",
           "reason"
         ]
       },
       "UpdateStockAdjustmentDto": {
         "type": "object",
         "properties": {
+          "reason": {
+            "type": "string",
+            "description": "Reason for adjustment"
+          }
+        }
+      },
+      "AddStockAdjustmentLineDto": {
+        "type": "object",
+        "properties": {
+          "stockAdjustmentLotId": {
+            "type": "object",
+            "description": "Stock adjustment lot draft ID (OPENING_STOCK + tracking=lot/serial)"
+          },
+          "locationId": {
+            "type": "object",
+            "description": "Storage location ID (OPENING_STOCK)"
+          },
+          "quantId": {
+            "type": "object",
+            "description": "Quant ID — the existing stock to adjust (deduct/CORRECTION)"
+          },
           "quantity": {
             "type": "number",
-            "description": "Adjustment quantity",
-            "example": 100
+            "description": "Line quantity (magnitude — sign comes from adjustment.type)"
           }
         },
         "required": [
           "quantity"
         ]
-      },
-      "AddStockAdjustmentLineDto": {
-        "type": "object",
-        "properties": {
-          "batchId": {
-            "type": "string",
-            "description": "Batch ID (required for non-OPENING_STOCK)"
-          },
-          "locationId": {
-            "type": "string",
-            "description": "Storage location ID (required for OPENING_STOCK)"
-          },
-          "manufacturingDate": {
-            "type": "string",
-            "description": "Manufacturing date (OPENING_STOCK)"
-          },
-          "expiryDate": {
-            "type": "string",
-            "description": "Expiry date (OPENING_STOCK)"
-          }
-        }
       },
       "UpdateStockAdjustmentLineDto": {
         "type": "object",
         "properties": {
           "quantity": {
             "type": "number",
-            "description": "Quantity"
+            "description": "Line quantity"
+          },
+          "stockAdjustmentLotId": {
+            "type": "object",
+            "description": "Stock adjustment lot draft ID"
           },
           "locationId": {
-            "type": "string",
+            "type": "object",
             "description": "Storage location ID"
           },
-          "manufacturingDate": {
-            "type": "string",
-            "description": "Manufacturing date"
-          },
-          "expiryDate": {
-            "type": "string",
-            "description": "Expiry date"
+          "quantId": {
+            "type": "object",
+            "description": "Quant ID"
           }
         }
       },
       "AddStockAdjustmentLineItemDto": {
         "type": "object",
         "properties": {
-          "quantity": {
-            "type": "number",
-            "description": "Line item quantity"
+          "serialNumber": {
+            "type": "string",
+            "description": "Serial number for the physical unit"
           }
         },
         "required": [
-          "quantity"
+          "serialNumber"
         ]
       },
       "UpdateStockAdjustmentLineItemDto": {
         "type": "object",
         "properties": {
-          "quantity": {
-            "type": "number",
-            "description": "Line item quantity"
+          "serialNumber": {
+            "type": "string",
+            "description": "Serial number for the physical unit"
           }
         },
         "required": [
-          "quantity"
+          "serialNumber"
         ]
       },
       "CreateStockTransferDto": {

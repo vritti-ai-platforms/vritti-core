@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceiptBatches } from './goods-receipt-batches';
 
@@ -12,7 +12,7 @@ export const goodsReceiptBatchItems = coreSchema.table(
     goodsReceiptBatchId: uuid('goods_receipt_batch_id')
       .notNull()
       .references(() => goodsReceiptBatches.id, { onDelete: 'cascade' }),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    serialNumber: varchar('serial_number', { length: 100 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

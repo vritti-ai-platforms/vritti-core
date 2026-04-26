@@ -1,8 +1,11 @@
-import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
+import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryLedgerService } from '@domain/inventory-ledger/services/inventory-ledger.service';
 import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
+import type { StockAdjustmentLineWithRefs } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
+import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
+import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { type StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
@@ -19,9 +22,11 @@ import _ from '@vritti/api-sdk/lodash';
 import {
   InventoryLedgerReferenceTypeValues,
   InventoryLedgerTypeValues,
+  type InventoryTracking,
+  InventoryTrackingValues,
   type StockAdjustment,
-  type StockAdjustmentLine,
   type StockAdjustmentLineItem,
+  type StockAdjustmentLot,
   StockAdjustmentStatusValues,
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
@@ -35,8 +40,10 @@ export class StockAdjustmentsRootService {
     private readonly repository: StockAdjustmentsRepository,
     private readonly linesRepository: StockAdjustmentLinesRepository,
     private readonly lineItemsRepository: StockAdjustmentLineItemsRepository,
+    private readonly lotsRepository: StockAdjustmentLotsRepository,
+    private readonly lotsService: StockAdjustmentLotsService,
     private readonly linesService: StockAdjustmentLinesService,
-    private readonly batchesService: InventoryItemBatchesService,
+    private readonly batchesService: InventoryItemQuantsService,
     private readonly ledgerService: InventoryLedgerService,
     private readonly adjustmentsService: StockAdjustmentsService,
   ) {}
@@ -52,7 +59,6 @@ export class StockAdjustmentsRootService {
   create(data: {
     inventoryItemId: string;
     type: StockAdjustmentType;
-    quantity: number;
     reason: string;
     createdById: string;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
@@ -63,8 +69,8 @@ export class StockAdjustmentsRootService {
     return this.adjustmentsService.delete(id);
   }
 
-  update(id: string, data: { quantity: number }): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.updateQuantity(id, data.quantity);
+  update(id: string, data: { reason?: string }): Promise<StockAdjustmentDto> {
+    return this.adjustmentsService.updateAdjustment(id, data);
   }
 
   async publish(id: string): Promise<StockAdjustmentDto> {
@@ -78,30 +84,41 @@ export class StockAdjustmentsRootService {
     if (linesCount === 0) {
       throw new BadRequestException('Cannot publish an adjustment with no lines.');
     }
-    const totalLinesQuantity = await this.linesRepository.totalQuantityForAdjustment(id);
-    if (!this.areEqualToScale(totalLinesQuantity, Number(adjustment.quantity))) {
-      throw new BadRequestException('Line quantity total must equal adjustment quantity before publish.');
-    }
 
-    const validation = await this.linesService.getPublishValidation(id);
-    if (!validation.valid) {
-      throw new BadRequestException(`Line items mismatch in ${validation.invalidLinesCount} line(s).`);
+    const tracking = adjustment.inventoryItemTracking;
+
+    // For tracking='serial' lines: validate balance (count of line_items === line.quantity)
+    if (tracking === InventoryTrackingValues.SERIAL) {
+      const validation = await this.linesService.getPublishValidation(id);
+      if (!validation.valid) {
+        throw new BadRequestException(`Line items mismatch in ${validation.invalidLinesCount} line(s).`);
+      }
     }
 
     const lines = await this.linesRepository.findByAdjustmentId(id);
-    const adjustmentLineItems = await this.lineItemsRepository.findByAdjustmentId(id);
-    const lineItemsByLineId = _.groupBy(adjustmentLineItems, (lineItem) => lineItem.stockAdjustmentLineId);
+    const allLineItems = await this.lineItemsRepository.findByAdjustmentId(id);
+    const lineItemsByLineId = _.groupBy(allLineItems, (li) => li.stockAdjustmentLineId);
+
+    const lots =
+      adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK && tracking !== InventoryTrackingValues.QUANTITY
+        ? await this.lotsRepository.findByAdjustmentId(id)
+        : [];
 
     await this.repository.transaction(async (tx) => {
+      // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
+      const resolvedLotByDraftId = new Map<string, string>();
+      for (const lot of lots) {
+        const inventoryLot = await this.lotsService.resolveInventoryLotInTx(tx, adjustment.inventoryItemId, lot.id);
+        resolvedLotByDraftId.set(lot.id, inventoryLot.id);
+      }
+
+      // Phase B: process each line
       for (const line of lines) {
+        const lineItems = lineItemsByLineId[line.id] ?? [];
         if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
-          const lineItems = lineItemsByLineId[line.id];
-          if (!lineItems) {
-            throw new BadRequestException(`Line ${line.id} has no line items for publish.`);
-          }
-          await this.publishOpeningLine(tx, id, adjustment, line, lineItems);
+          await this.publishRegisterLine(tx, id, adjustment, tracking, line, lineItems, lots);
         } else {
-          await this.publishNonOpeningLine(tx, id, adjustment, line);
+          await this.publishChangeLine(tx, id, adjustment, tracking, line, lineItems);
         }
       }
 
@@ -112,43 +129,81 @@ export class StockAdjustmentsRootService {
     return this.adjustmentsService.findById(id);
   }
 
-  private async publishOpeningLine(
+  // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials])
+  private async publishRegisterLine(
     tx: TypedDrizzleClient,
     adjustmentId: string,
-    adjustment: StockAdjustment & { inventoryItemName: string; createdByFullName: string },
-    line: StockAdjustmentLine,
+    adjustment: StockAdjustment & { inventoryItemName: string },
+    tracking: InventoryTracking,
+    line: StockAdjustmentLineWithRefs,
     lineItems: StockAdjustmentLineItem[],
+    lots: StockAdjustmentLot[],
   ): Promise<void> {
     if (!line.locationId) {
-      throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK adjustment.`);
+      throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK.`);
     }
 
-    const batch = await this.batchesService.createBatchInTx(tx, {
-      inventoryItemId: adjustment.inventoryItemId,
-      locationId: line.locationId,
-      quantity: Number(line.quantity),
-      manufacturingDate: line.manufacturingDate ?? undefined,
-      expiryDate: line.expiryDate ?? undefined,
-    });
+    let createParams: Parameters<typeof this.batchesService.createBatchInTx>[1];
+    if (tracking === InventoryTrackingValues.QUANTITY) {
+      if (line.stockAdjustmentLotId) {
+        throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=quantity.`);
+      }
+      createParams = {
+        inventoryItemId: adjustment.inventoryItemId,
+        locationId: line.locationId,
+        tracking,
+        quantity: Number(line.quantity),
+      };
+    } else {
+      if (!line.stockAdjustmentLotId) {
+        throw new BadRequestException(`Line ${line.id}: lot is required for tracking=${tracking}.`);
+      }
+      const lot = lots.find((l) => l.id === line.stockAdjustmentLotId);
+      if (!lot) throw new BadRequestException(`Line ${line.id}: lot draft not found.`);
 
-    if (!batch.batchNumber) {
-      throw new BadRequestException(`Batch number generation failed for line ${line.id}.`);
+      if (tracking === InventoryTrackingValues.LOT) {
+        createParams = {
+          inventoryItemId: adjustment.inventoryItemId,
+          locationId: line.locationId,
+          tracking,
+          quantity: Number(line.quantity),
+          lot: {
+            lotNumber: lot.lotNumber,
+            manufacturingDate: lot.manufacturingDate ?? null,
+            expiryDate: lot.expiryDate ?? null,
+          },
+        };
+      } else {
+        // tracking === 'serial'
+        const serials = lineItems.map((li) => li.serialNumber);
+        if (serials.length !== Number(line.quantity)) {
+          throw new BadRequestException(
+            `Line ${line.id}: expected ${line.quantity} serial numbers, got ${serials.length}.`,
+          );
+        }
+        if (new Set(serials).size !== serials.length) {
+          throw new BadRequestException(`Line ${line.id} has duplicate serial numbers.`);
+        }
+        createParams = {
+          inventoryItemId: adjustment.inventoryItemId,
+          locationId: line.locationId,
+          tracking,
+          quantity: serials.length,
+          lot: {
+            lotNumber: lot.lotNumber,
+            manufacturingDate: lot.manufacturingDate ?? null,
+            expiryDate: lot.expiryDate ?? null,
+          },
+          serialNumbers: serials,
+        };
+      }
     }
 
-    if (lineItems.length === 0) {
-      throw new BadRequestException('Cannot publish opening stock line with no line items.');
-    }
-
-    const totalLineItemsQuantity = lineItems.reduce((sum, lineItem) => sum + Number(lineItem.quantity), 0);
-    await this.batchesService.upsertBatchItemWithTx(tx, {
-      inventoryItemBatchId: batch.id,
-      inventoryItemId: adjustment.inventoryItemId,
-      quantity: String(totalLineItemsQuantity),
-    });
+    const { quant } = await this.batchesService.createBatchInTx(tx, createParams);
 
     await this.ledgerService.createEntryInTx(tx, {
       inventoryItemId: adjustment.inventoryItemId,
-      batchId: batch.id,
+      batchId: quant.id,
       type: InventoryLedgerTypeValues.OPENING_STOCK,
       quantity: line.quantity,
       referenceType: InventoryLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
@@ -156,32 +211,47 @@ export class StockAdjustmentsRootService {
       notes: adjustment.reason ?? null,
     });
 
-    await this.linesRepository.updateLineWithBatchInTx(tx, line.id, batch.id, batch.batchNumber);
+    await this.linesRepository.setResolvedQuantInTx(tx, line.id, quant.id);
   }
 
-  private async publishNonOpeningLine(
+  // Deduct/CORRECTION: line carries (quantId, quantity, [serials])
+  private async publishChangeLine(
     tx: TypedDrizzleClient,
     adjustmentId: string,
-    adjustment: StockAdjustment & { inventoryItemName: string; createdByFullName: string },
-    line: StockAdjustmentLine,
+    adjustment: StockAdjustment & { inventoryItemName: string },
+    tracking: InventoryTracking,
+    line: StockAdjustmentLineWithRefs,
+    lineItems: StockAdjustmentLineItem[],
   ): Promise<void> {
-    if (!line.batchId) {
-      throw new BadRequestException(`Line ${line.id} is missing batchId for ${adjustment.type} adjustment.`);
+    if (!line.quantId) {
+      throw new BadRequestException(`Line ${line.id} is missing quantId for ${adjustment.type} adjustment.`);
     }
 
-    const delta = this.isDeductType(adjustment.type) ? -Math.abs(Number(line.quantity)) : Number(line.quantity);
-
-    await this.batchesService.adjustBatchInTx(tx, line.batchId, delta);
+    let signedDelta: number;
+    if (tracking === InventoryTrackingValues.SERIAL) {
+      const serials = lineItems.map((li) => li.serialNumber);
+      if (serials.length !== Number(line.quantity)) {
+        throw new BadRequestException(`Line ${line.id}: expected ${line.quantity} serials, got ${serials.length}.`);
+      }
+      await this.batchesService.adjustBatchInTx(tx, line.quantId, { tracking, serials });
+      signedDelta = this.isDeductType(adjustment.type) ? -serials.length : serials.length;
+    } else {
+      const delta = this.isDeductType(adjustment.type) ? -Math.abs(Number(line.quantity)) : Number(line.quantity);
+      await this.batchesService.adjustBatchInTx(tx, line.quantId, { tracking, delta });
+      signedDelta = delta;
+    }
 
     await this.ledgerService.createEntryInTx(tx, {
       inventoryItemId: adjustment.inventoryItemId,
-      batchId: line.batchId,
+      batchId: line.quantId,
       type: InventoryLedgerTypeValues.ADJUSTMENT,
-      quantity: String(delta),
+      quantity: String(signedDelta),
       referenceType: InventoryLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
       referenceId: adjustmentId,
       notes: `${adjustment.type}: ${adjustment.reason ?? ''}`,
     });
+
+    await this.linesRepository.setResolvedQuantInTx(tx, line.id, line.quantId);
   }
 
   private isDeductType(type: StockAdjustmentType): boolean {
@@ -193,9 +263,5 @@ export class StockAdjustmentsRootService {
         StockAdjustmentTypeValues.EXPIRED,
       ] as readonly StockAdjustmentType[]
     ).includes(type);
-  }
-
-  private areEqualToScale(a: number, b: number): boolean {
-    return Math.round(a * 1000) === Math.round(b * 1000);
   }
 }

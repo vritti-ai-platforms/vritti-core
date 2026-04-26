@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  inventoryItemBatches,
+  inventoryItemQuants,
   type StorageLocationRole,
   storageLocations,
 } from '@/db/schema';
@@ -171,9 +171,9 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
   async findReferencedIds(ids: string[]): Promise<Set<string>> {
     if (ids.length === 0) return new Set();
     const rows = await this.db
-      .select({ id: inventoryItemBatches.locationId })
-      .from(inventoryItemBatches)
-      .where(inArray(inventoryItemBatches.locationId, ids));
+      .select({ id: inventoryItemQuants.locationId })
+      .from(inventoryItemQuants)
+      .where(inArray(inventoryItemQuants.locationId, ids));
     const referenced = new Set<string>();
     for (const row of rows) {
       if (row.id) referenced.add(row.id);
@@ -199,8 +199,8 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
   async countReferences(id: string): Promise<{ inventoryLevels: number; childLocations: number }> {
     const [result] = await this.db
       .select({ count: sql<number>`count(*)` })
-      .from(inventoryItemBatches)
-      .where(eq(inventoryItemBatches.locationId, id));
+      .from(inventoryItemQuants)
+      .where(eq(inventoryItemQuants.locationId, id));
     const [children] = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(storageLocations)

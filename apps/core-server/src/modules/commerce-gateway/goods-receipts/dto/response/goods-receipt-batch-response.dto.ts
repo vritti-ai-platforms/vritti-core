@@ -20,13 +20,16 @@ export class GoodsReceiptBatchResponseDto {
   locationName: string | null;
 
   @ApiProperty()
-  acceptedQuantity: number;
+  quantity: number;
 
   @ApiProperty()
   rejectedQuantity: number;
 
   @ApiPropertyOptional({ nullable: true })
   rejectionReason: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  lotNumber: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   manufacturingDate: string | null;

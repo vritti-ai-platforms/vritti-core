@@ -5,6 +5,7 @@ export const createInventoryItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   code: z.string().min(1, 'Code is required').max(100),
   type: z.enum(['MATERIAL', 'PRODUCT']),
+  tracking: z.enum(['quantity', 'lot', 'serial']),
   categoryId: z.string().uuid('Category is required'),
   description: z.string().optional(),
   uomId: z.string().uuid('Unit of measure is required'),
@@ -24,12 +25,14 @@ export type UpdateInventoryItemFormData = z.infer<typeof updateInventoryItemSche
 export type InventoryItemsTableResponse = TableResponse<InventoryItemData>;
 
 export type InventoryItemType = 'MATERIAL' | 'PRODUCT';
+export type InventoryTracking = 'quantity' | 'lot' | 'serial';
 
 export interface InventoryItemData {
   id: string;
   name: string;
   code: string;
   type: InventoryItemType;
+  tracking: InventoryTracking;
   categoryId: string;
   categoryName: string | null;
   description: string | null;

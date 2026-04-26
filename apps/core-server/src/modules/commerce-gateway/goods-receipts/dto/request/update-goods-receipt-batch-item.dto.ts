@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min } from 'class-validator';
+import { IsString, MaxLength } from 'class-validator';
 
 export class UpdateGoodsReceiptBatchItemDto {
-  @ApiProperty()
-  @IsNumber()
-  @Min(0.001)
-  quantity: number;
+  @ApiProperty({ description: 'Serial number for the physical unit' })
+  @IsString()
+  @MaxLength(100)
+  serialNumber: string;
 }

@@ -23,6 +23,14 @@ export class CreateInventoryItemDto {
   @IsEnum(['MATERIAL', 'PRODUCT'])
   type: string;
 
+  @ApiProperty({
+    description: 'Tracking type — granularity at which stock for this item is identified.',
+    enum: ['quantity', 'lot', 'serial'],
+    example: 'lot',
+  })
+  @IsEnum(['quantity', 'lot', 'serial'])
+  tracking: 'quantity' | 'lot' | 'serial';
+
   @ApiProperty({ description: 'Category ID' })
   @IsUUID()
   categoryId: string;

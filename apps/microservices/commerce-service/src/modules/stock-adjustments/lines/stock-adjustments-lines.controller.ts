@@ -8,6 +8,7 @@ import {
   type NatsHeaders,
   RpcNatsHeaders,
   type SuccessResponseDto,
+  type TableViewState,
 } from '@vritti/api-sdk';
 
 @Controller()
@@ -22,6 +23,30 @@ export class StockAdjustmentsLinesController {
     return this.service.findByAdjustmentId(data.adjustmentId);
   }
 
+  @MessagePattern({ cmd: 'stockAdjustments.linesTable' })
+  linesTable(
+    @Payload() data: { adjustmentId: string } & TableViewState,
+  ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
+    this.logger.log(`stockAdjustments.linesTable — adjustment: ${data.adjustmentId}`);
+    const { adjustmentId, ...state } = data;
+    return this.service.findForTable(adjustmentId, state);
+  }
+
+  @MessagePattern({ cmd: 'stockAdjustments.linesByLotTable' })
+  linesByLotTable(
+    @Payload() data: { adjustmentId: string; lotId: string } & TableViewState,
+  ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
+    this.logger.log(`stockAdjustments.linesByLotTable — adjustment: ${data.adjustmentId}, lot: ${data.lotId}`);
+    const { adjustmentId, lotId, ...state } = data;
+    return this.service.findForTable(adjustmentId, state, lotId);
+  }
+
+  @MessagePattern({ cmd: 'stockAdjustments.linesByLot' })
+  linesByLot(@Payload() data: { adjustmentId: string; lotId: string }): Promise<StockAdjustmentLineDto[]> {
+    this.logger.log(`stockAdjustments.linesByLot — adjustment: ${data.adjustmentId}, lot: ${data.lotId}`);
+    return this.service.findByLotId(data.adjustmentId, data.lotId);
+  }
+
   @MessagePattern({ cmd: 'stockAdjustments.lineById' })
   lineById(@Payload() data: { adjustmentId: string; lineId: string }): Promise<StockAdjustmentLineDto> {
     this.logger.log(`stockAdjustments.lineById — adjustment: ${data.adjustmentId}, line: ${data.lineId}`);
@@ -32,11 +57,10 @@ export class StockAdjustmentsLinesController {
   addLine(
     @Payload() data: {
       adjustmentId: string;
-      batchId?: string;
-      locationId?: string;
+      stockAdjustmentLotId?: string | null;
+      locationId?: string | null;
+      quantId?: string | null;
       quantity: number;
-      manufacturingDate?: string;
-      expiryDate?: string;
     },
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
@@ -53,17 +77,17 @@ export class StockAdjustmentsLinesController {
       adjustmentId: string;
       lineId: string;
       quantity?: number;
-      locationId?: string;
-      manufacturingDate?: string;
-      expiryDate?: string;
+      stockAdjustmentLotId?: string | null;
+      locationId?: string | null;
+      quantId?: string | null;
     },
   ): Promise<StockAdjustmentLineDto> {
     this.logger.log(`stockAdjustments.updateLine — line: ${data.lineId}`);
     return this.service.updateLineByAdjustmentId(data.adjustmentId, data.lineId, {
       quantity: data.quantity,
+      stockAdjustmentLotId: data.stockAdjustmentLotId,
       locationId: data.locationId,
-      manufacturingDate: data.manufacturingDate,
-      expiryDate: data.expiryDate,
+      quantId: data.quantId,
     });
   }
 

@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
@@ -8,7 +9,6 @@ import { GOODS_RECEIPT_ITEMS_TABLE_KEY } from '@/hooks/goods-receipts/keys';
 import { useGoodsReceiptItemsTable } from '@/hooks/goods-receipts/useGoodsReceiptLinesTable';
 import { useRemoveGoodsReceiptItem } from '@/hooks/goods-receipts/useRemoveGoodsReceiptLine';
 import type { GoodsReceiptData, GoodsReceiptItemData } from '@/schemas/goods-receipts';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { AddLineForm } from '../forms/AddLineDialog';
 import { EditLineForm } from '../forms/EditLineDialog';
 

@@ -1,4 +1,4 @@
-import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
+import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -34,7 +34,7 @@ export class ConversionsService {
 
   constructor(
     private readonly repository: ConversionsRepository,
-    private readonly batchesService: InventoryItemBatchesService,
+    private readonly batchesService: InventoryItemQuantsService,
   ) {}
 
   // Returns paginated conversions for the data table
@@ -140,12 +140,17 @@ export class ConversionsService {
       }
     }
 
-    // Create output batches
+    // Create output batches. Auto-generates a lot number for tracking='lot' outputs.
     for (const output of outputs) {
+      const autoLot = `CONV-${id.slice(0, 8)}-${output.inventoryItemId.slice(0, 8)}`;
       await this.batchesService.createBatch({
         inventoryItemId: output.inventoryItemId,
         locationId,
         quantity: Number(output.quantity),
+        // For tracking='quantity' the service will reject `lot`; we let the service decide based on tracking.
+        // Conversions don't surface lot/serial UX yet, so for 'lot' we synthesize a number.
+        // Items with tracking='serial' will fail here — conversion of serialized goods is a follow-up.
+        lot: { lotNumber: autoLot },
         type: InventoryLedgerTypeValues.CONVERSION_OUTPUT,
         referenceType: InventoryLedgerReferenceTypeValues.CONVERSION,
         referenceId: id,

@@ -26,9 +26,8 @@ export interface AddGoodsReceiptItemPayload {
 export interface AddGoodsReceiptBatchPayload {
   inventoryItemId: string;
   locationId: string;
-  acceptedQuantity: number;
-  rejectedQuantity?: number;
-  rejectionReason?: string;
+  quantity: number;
+  lotNumber?: string;
   manufacturingDate?: string;
   expiryDate?: string;
 }
@@ -41,7 +40,11 @@ export interface UpdateGoodsReceiptItemPayload {
 export interface UpdateGoodsReceiptBatchPayload extends Partial<AddGoodsReceiptBatchPayload> {}
 
 export interface AddGoodsReceiptBatchItemPayload {
-  quantity: number;
+  serialNumber: string;
+}
+
+export interface UpdateGoodsReceiptBatchItemPayload {
+  serialNumber: string;
 }
 
 export function getGoodsReceiptsTable(): Promise<GoodsReceiptsTableResponse> {

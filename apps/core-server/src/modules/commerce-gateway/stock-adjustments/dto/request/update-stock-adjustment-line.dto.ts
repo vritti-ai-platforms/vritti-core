@@ -1,24 +1,24 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNumber, IsOptional, IsUUID } from 'class-validator';
 
 export class UpdateStockAdjustmentLineDto {
-  @ApiPropertyOptional({ description: 'Quantity' })
+  @ApiPropertyOptional({ description: 'Line quantity' })
   @IsOptional()
   @IsNumber()
   quantity?: number;
 
+  @ApiPropertyOptional({ description: 'Stock adjustment lot draft ID' })
+  @IsOptional()
+  @IsUUID()
+  stockAdjustmentLotId?: string | null;
+
   @ApiPropertyOptional({ description: 'Storage location ID' })
   @IsOptional()
   @IsUUID()
-  locationId?: string;
+  locationId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Manufacturing date' })
+  @ApiPropertyOptional({ description: 'Quant ID' })
   @IsOptional()
-  @IsString()
-  manufacturingDate?: string;
-
-  @ApiPropertyOptional({ description: 'Expiry date' })
-  @IsOptional()
-  @IsString()
-  expiryDate?: string;
+  @IsUUID()
+  quantId?: string | null;
 }

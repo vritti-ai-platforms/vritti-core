@@ -1,12 +1,13 @@
-import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
+import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
+import { StockAdjustmentLinesDomainModule } from '@domain/stock-adjustment-lines/stock-adjustment-lines.module';
 import { StockAdjustmentsDomainModule } from '@domain/stock-adjustments/stock-adjustments.module';
 import { Module } from '@nestjs/common';
 import { StockAdjustmentLineItemsRepository } from './repositories/stock-adjustment-line-items.repository';
 import { StockAdjustmentLineItemsService } from './services/stock-adjustment-line-items.service';
 
 @Module({
-  imports: [StockAdjustmentsDomainModule],
-  providers: [StockAdjustmentLineItemsService, StockAdjustmentLineItemsRepository, StockAdjustmentLinesRepository],
+  imports: [StockAdjustmentsDomainModule, StockAdjustmentLinesDomainModule, InventoryItemQuantsDomainModule],
+  providers: [StockAdjustmentLineItemsService, StockAdjustmentLineItemsRepository],
   exports: [StockAdjustmentLineItemsService, StockAdjustmentLineItemsRepository],
 })
 export class StockAdjustmentLineItemsDomainModule {}

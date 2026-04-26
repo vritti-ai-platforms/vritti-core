@@ -46,11 +46,14 @@ export interface GoodsReceiptData {
   createdAt: string;
 }
 
+export type InventoryTracking = 'quantity' | 'lot' | 'serial';
+
 export interface GoodsReceiptItemData {
   id: string;
   goodsReceiptId: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
+  inventoryItemTracking: InventoryTracking;
   acceptedQuantity: number;
   rejectedQuantity: number;
   poItem: { orderedQuantity: number; receivedQuantity: number } | null;
@@ -64,14 +67,11 @@ export interface GoodsReceiptBatchData {
   inventoryItemName: string | null;
   locationId: string;
   locationName: string | null;
-  acceptedQuantity: number;
-  rejectedQuantity: number;
-  rejectionReason: string | null;
+  quantity: number;
+  lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
   batchItemsCount: number;
-  batchItemsQuantitySum: number;
-  batchItemsDelta: number;
   isBalanced: boolean;
   createdAt: string;
 }
@@ -79,7 +79,7 @@ export interface GoodsReceiptBatchData {
 export interface GoodsReceiptBatchItemData {
   id: string;
   goodsReceiptBatchId: string;
-  quantity: number;
+  serialNumber: string;
   createdAt: string;
 }
 

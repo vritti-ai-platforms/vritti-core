@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateStockAdjustmentDto {
-  @ApiProperty({ description: 'Adjustment quantity', example: 100 })
-  @IsNumber()
-  @Min(0.001)
-  quantity: number;
+  @ApiPropertyOptional({ description: 'Reason for adjustment' })
+  @IsOptional()
+  @IsString()
+  reason?: string;
 }

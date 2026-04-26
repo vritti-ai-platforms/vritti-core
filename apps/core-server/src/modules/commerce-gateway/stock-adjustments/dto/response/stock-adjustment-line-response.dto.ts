@@ -1,20 +1,34 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class StockAdjustmentLineResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() stockAdjustmentId: string;
   @ApiProperty() createdById: string;
-  @ApiProperty({ nullable: true }) batchId: string | null;
-  @ApiProperty({ nullable: true }) batchNumber: string | null;
-  @ApiProperty({ nullable: true }) locationId: string | null;
-  @ApiProperty({ nullable: true }) locationName: string | null;
+
+  // Register intent (OPENING_STOCK):
+  @ApiPropertyOptional({ nullable: true }) stockAdjustmentLotId: string | null;
+  @ApiPropertyOptional({ nullable: true }) locationId: string | null;
+  @ApiPropertyOptional({ nullable: true }) locationName: string | null;
+
+  // Lot info denormalized from stock_adjustment_lots (for display)
+  @ApiPropertyOptional({ nullable: true }) lotNumber: string | null;
+  @ApiPropertyOptional({ nullable: true }) manufacturingDate: string | null;
+  @ApiPropertyOptional({ nullable: true }) expiryDate: string | null;
+
+  // Change intent (deduct/CORRECTION):
+  @ApiPropertyOptional({ nullable: true }) quantId: string | null;
+  @ApiPropertyOptional({ nullable: true }) quantLotNumber: string | null;
+  @ApiPropertyOptional({ nullable: true }) quantLocationId: string | null;
+  @ApiPropertyOptional({ nullable: true }) quantLocationName: string | null;
+  @ApiPropertyOptional({ nullable: true }) quantTotalQuantity: number | null;
+  @ApiPropertyOptional({ nullable: true }) quantReservedQuantity: number | null;
+  @ApiPropertyOptional({ nullable: true }) quantAvailableQuantity: number | null;
+
   @ApiProperty() quantity: number;
-  @ApiProperty() lineItemsCount: number;
-  @ApiProperty() lineItemsQuantitySum: number;
-  @ApiProperty() lineItemsDelta: number;
+  @ApiPropertyOptional({ nullable: true, description: 'Set after publish' })
+  resolvedQuantId: string | null;
   @ApiProperty() isBalanced: boolean;
-  @ApiProperty() isLineItemsBalanced: boolean;
-  @ApiProperty({ nullable: true }) manufacturingDate: string | null;
-  @ApiProperty({ nullable: true }) expiryDate: string | null;
+  @ApiProperty() lineItemsCount: number;
+  @ApiProperty() metadata: Record<string, unknown>;
   @ApiProperty() createdAt: string;
 }

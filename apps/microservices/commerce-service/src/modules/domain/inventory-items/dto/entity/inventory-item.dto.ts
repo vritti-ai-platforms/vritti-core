@@ -1,10 +1,11 @@
-import type { InventoryItem, InventoryItemType } from '@/db/schema';
+import type { InventoryItem, InventoryItemType, InventoryTracking } from '@/db/schema';
 
 export class InventoryItemDto {
   id: string;
   name: string;
   code: string;
   type: InventoryItemType;
+  tracking: InventoryTracking;
   categoryId: string;
   categoryName: string | null;
   description: string | null;
@@ -25,6 +26,7 @@ export class InventoryItemDto {
     dto.name = entity.name;
     dto.code = entity.code;
     dto.type = entity.type;
+    dto.tracking = entity.tracking;
     dto.categoryId = entity.categoryId;
     dto.categoryName = categoryName ?? null;
     dto.description = entity.description ?? null;

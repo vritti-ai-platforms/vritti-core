@@ -7,7 +7,7 @@ import {
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import type { InventoryLedgerEntry, InventoryLedgerReferenceType, NewInventoryLedgerEntry } from '@/db/schema';
-import { inventoryItemBatches, inventoryItems, inventoryLedger } from '@/db/schema';
+import { inventoryItemLots, inventoryItems, inventoryLedger } from '@/db/schema';
 import { InventoryLedgerDto } from '../dto/entity/inventory-ledger.dto';
 import { InventoryLedgerRepository } from '../repositories/inventory-ledger.repository';
 
@@ -20,7 +20,7 @@ export class InventoryLedgerService {
     createdAt: { column: inventoryLedger.createdAt, type: 'string' },
     referenceType: { column: inventoryLedger.referenceType, type: 'string' },
     inventoryItemName: { column: inventoryItems.name, type: 'string' },
-    batchNumber: { column: inventoryItemBatches.batchNumber, type: 'string' },
+    lotNumber: { column: inventoryItemLots.lotNumber, type: 'string' },
   };
 
   constructor(private readonly repository: InventoryLedgerRepository) {}
@@ -50,7 +50,7 @@ export class InventoryLedgerService {
     });
 
     return {
-      result: result.map((r) => InventoryLedgerDto.from(r, r.inventoryItemName, r.batchNumber)),
+      result: result.map((r) => InventoryLedgerDto.from(r, r.inventoryItemName, r.lotNumber)),
       count,
     };
   }

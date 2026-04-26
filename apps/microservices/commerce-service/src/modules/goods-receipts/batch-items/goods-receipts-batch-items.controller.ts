@@ -20,20 +20,22 @@ export class GoodsReceiptsBatchItemsController {
 
   @MessagePattern({ cmd: 'goodsReceipts.addBatchItem' })
   addBatchItem(
-    @Payload() data: { goodsReceiptId: string; lineId: string; batchId: string; quantity: number },
+    @Payload() data: { goodsReceiptId: string; lineId: string; batchId: string; serialNumber: string },
   ): Promise<CreateResponseDto<GoodsReceiptBatchItemDto>> {
     this.logger.log('goodsReceipts.addBatchItem');
-    return this.batchItemsService.addItem(data.goodsReceiptId, data.lineId, data.batchId, { quantity: data.quantity });
+    return this.batchItemsService.addItem(data.goodsReceiptId, data.lineId, data.batchId, {
+      serialNumber: data.serialNumber,
+    });
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.updateBatchItem' })
   updateBatchItem(
     @Payload()
-    data: { goodsReceiptId: string; lineId: string; batchId: string; itemId: string; quantity: number },
+    data: { goodsReceiptId: string; lineId: string; batchId: string; itemId: string; serialNumber: string },
   ): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.updateBatchItem');
     return this.batchItemsService.updateItem(data.goodsReceiptId, data.lineId, data.batchId, data.itemId, {
-      quantity: data.quantity,
+      serialNumber: data.serialNumber,
     });
   }
 

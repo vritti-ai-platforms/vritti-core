@@ -22,7 +22,7 @@ export class GoodsReceiptBatchesService {
     const stats = await this.batchesRepository.findStatsByBatchIds(batches.map((batch) => batch.id));
     return batches.map((batch) => {
       const stat = stats.get(batch.id);
-      const accepted = Number(batch.acceptedQuantity);
+      const accepted = Number(batch.quantity);
       const sum = Number(stat?.batchItemsQuantitySum ?? 0);
       return GoodsReceiptBatchDto.from({
         ...batch,
@@ -49,24 +49,19 @@ export class GoodsReceiptBatchesService {
     data: {
       inventoryItemId: string;
       locationId: string;
-      acceptedQuantity: number;
-      rejectedQuantity?: number;
-      rejectionReason?: string;
+      quantity: number;
       manufacturingDate?: string;
       expiryDate?: string;
     },
   ): Promise<CreateResponseDto<GoodsReceiptBatchDto>> {
     const { receipt, line } = await this.ensureEditableLine(goodsReceiptId, lineId);
-    this.validateQuantities(data.acceptedQuantity, data.rejectedQuantity ?? 0);
     this.validateInventoryItemForLine(line.inventoryItemId, data.inventoryItemId);
 
     const entity = await this.batchesRepository.create({
       goodsReceiptLineId: line.id,
       inventoryItemId: data.inventoryItemId,
       locationId: data.locationId,
-      acceptedQuantity: String(data.acceptedQuantity),
-      rejectedQuantity: String(data.rejectedQuantity ?? 0),
-      rejectionReason: data.rejectionReason ?? null,
+      quantity: String(data.quantity),
       manufacturingDate: data.manufacturingDate ?? null,
       expiryDate: data.expiryDate ?? null,
     });
@@ -86,9 +81,7 @@ export class GoodsReceiptBatchesService {
     data: {
       inventoryItemId?: string;
       locationId?: string;
-      acceptedQuantity?: number;
-      rejectedQuantity?: number;
-      rejectionReason?: string | null;
+      quantity?: number;
       manufacturingDate?: string | null;
       expiryDate?: string | null;
     },
@@ -97,19 +90,13 @@ export class GoodsReceiptBatchesService {
     const batch = await this.batchesRepository.findByLineIdAndBatchId(lineId, batchId);
     if (!batch) throw new NotFoundException('Goods receipt batch not found.');
 
-    const acceptedQuantity = data.acceptedQuantity ?? Number(batch.acceptedQuantity);
-    const rejectedQuantity = data.rejectedQuantity ?? Number(batch.rejectedQuantity);
-    this.validateQuantities(acceptedQuantity, rejectedQuantity);
-
     const inventoryItemId = data.inventoryItemId ?? batch.inventoryItemId;
     this.validateInventoryItemForLine(line.inventoryItemId, inventoryItemId);
 
     await this.batchesRepository.update(batch.id, {
       inventoryItemId,
       locationId: data.locationId,
-      acceptedQuantity: data.acceptedQuantity !== undefined ? String(data.acceptedQuantity) : undefined,
-      rejectedQuantity: data.rejectedQuantity !== undefined ? String(data.rejectedQuantity) : undefined,
-      rejectionReason: data.rejectionReason === undefined ? undefined : data.rejectionReason,
+      quantity: data.quantity !== undefined ? String(data.quantity) : undefined,
       manufacturingDate: data.manufacturingDate === undefined ? undefined : data.manufacturingDate,
       expiryDate: data.expiryDate === undefined ? undefined : data.expiryDate,
     });
@@ -123,15 +110,6 @@ export class GoodsReceiptBatchesService {
     if (!batch) throw new NotFoundException('Goods receipt batch not found.');
     await this.batchesRepository.delete(batch.id);
     return { success: true, message: `Batch removed from goods receipt "${receipt.grNumber}".` };
-  }
-
-  private validateQuantities(acceptedQuantity: number, rejectedQuantity: number) {
-    if (!Number.isFinite(acceptedQuantity) || acceptedQuantity <= 0) {
-      throw new BadRequestException('acceptedQuantity must be greater than 0.');
-    }
-    if (!Number.isFinite(rejectedQuantity) || rejectedQuantity < 0) {
-      throw new BadRequestException('rejectedQuantity must be greater than or equal to 0.');
-    }
   }
 
   private validateInventoryItemForLine(lineInventoryItemId: string, inventoryItemId: string): void {

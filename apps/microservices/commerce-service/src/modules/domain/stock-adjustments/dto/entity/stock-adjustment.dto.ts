@@ -6,21 +6,26 @@ export class StockAdjustmentDto {
   inventoryItemId: string;
   inventoryItemName: string;
   inventoryItemUomSymbol: string;
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
   type: StockAdjustmentType;
-  quantity: number;
+  totalQuantity: number; // derived from sum(lines.quantity)
   status: StockAdjustmentStatus;
   reason: string | null;
   createdById: string;
-  createdByFullName: string;
   isPublishable: boolean;
+  metadata: Record<string, unknown>;
   publishedAt: string | null;
   createdAt: string;
 
-  static from(entity: StockAdjustment & {
-    inventoryItemName?: string;
-    inventoryItemUomSymbol?: string | null;
-    createdByFullName?: string;
-  }): StockAdjustmentDto {
+  static from(
+    entity: StockAdjustment & {
+      inventoryItemName?: string;
+      inventoryItemUomSymbol?: string | null;
+      inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+      totalQuantity?: number | string | null;
+      isPublishable?: boolean;
+    },
+  ): StockAdjustmentDto {
     const dto = new StockAdjustmentDto();
     dto.id = entity.id;
     dto.code = entity.code;
@@ -30,13 +35,14 @@ export class StockAdjustmentDto {
       throw new Error(`Inventory item UOM symbol missing for stock adjustment ${entity.id}`);
     }
     dto.inventoryItemUomSymbol = entity.inventoryItemUomSymbol;
+    dto.inventoryItemTracking = entity.inventoryItemTracking;
     dto.type = entity.type;
-    dto.quantity = Number(entity.quantity);
+    dto.totalQuantity = Number(entity.totalQuantity ?? 0);
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
     dto.createdById = entity.createdById;
-    dto.createdByFullName = entity.createdByFullName ?? '';
-    dto.isPublishable = Boolean((entity as { isPublishable?: boolean }).isPublishable);
+    dto.isPublishable = Boolean(entity.isPublishable);
+    dto.metadata = (entity.metadata ?? {}) as Record<string, unknown>;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;
@@ -49,13 +55,14 @@ export class StockAdjustmentDto {
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = '';
     dto.inventoryItemUomSymbol = '';
+    dto.inventoryItemTracking = 'lot';
     dto.type = entity.type;
-    dto.quantity = Number(entity.quantity);
+    dto.totalQuantity = 0;
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
     dto.createdById = entity.createdById;
-    dto.createdByFullName = '';
     dto.isPublishable = false;
+    dto.metadata = (entity.metadata ?? {}) as Record<string, unknown>;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;

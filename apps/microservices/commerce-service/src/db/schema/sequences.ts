@@ -5,4 +5,3 @@ export const goodsReceiptNumberSeq = coreSchema.sequence('goods_receipt_number_s
 export const stockAdjustmentCodeSeq = coreSchema.sequence('stock_adjustment_code_seq');
 export const orderNumberSeq = coreSchema.sequence('order_number_seq');
 export const itemCodeSeq = coreSchema.sequence('item_code_seq');
-export const inventoryItemBatchNumberSeq = coreSchema.sequence('inventory_item_batch_number_seq');

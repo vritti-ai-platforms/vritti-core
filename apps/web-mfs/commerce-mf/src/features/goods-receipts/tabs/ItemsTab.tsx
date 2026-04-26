@@ -1,5 +1,5 @@
-import { GoodsReceiptStatus } from '@/schemas/goods-receipts';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
+import { GoodsReceiptStatus } from '@/schemas/goods-receipts';
 import { GoodsReceiptAllocation } from '../components/GoodsReceiptAllocation';
 import { GoodsReceiptItems } from '../components/GoodsReceiptItems';
 

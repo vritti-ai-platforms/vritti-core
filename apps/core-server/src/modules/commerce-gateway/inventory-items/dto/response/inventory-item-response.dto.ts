@@ -13,6 +13,9 @@ export class InventoryItemResponseDto {
   @ApiProperty({ enum: ['MATERIAL', 'PRODUCT'] })
   type: string;
 
+  @ApiProperty({ enum: ['quantity', 'lot', 'serial'] })
+  tracking: 'quantity' | 'lot' | 'serial';
+
   @ApiProperty()
   categoryId: string;
 

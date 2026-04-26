@@ -3,7 +3,7 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryLedgerReferenceTypeEnum, inventoryLedgerTypeEnum } from './enums';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
-import { inventoryItemBatches } from './inventory-item-batches';
+import { inventoryItemQuants } from './inventory-item-quants';
 
 export const inventoryLedger = coreSchema.table(
   'inventory_ledger',
@@ -12,7 +12,7 @@ export const inventoryLedger = coreSchema.table(
     organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
     businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
     inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id, { onDelete: 'cascade' }),
-    batchId: uuid('batch_id').references(() => inventoryItemBatches.id, { onDelete: 'set null' }),
+    batchId: uuid('batch_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     type: inventoryLedgerTypeEnum('type').notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     referenceType: inventoryLedgerReferenceTypeEnum('reference_type'),

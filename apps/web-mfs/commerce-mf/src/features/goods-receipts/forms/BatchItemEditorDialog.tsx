@@ -12,7 +12,7 @@ import {
 } from '@/hooks/goods-receipts/useGoodsReceiptMutations';
 
 const batchItemSchema = z.object({
-  quantity: z.string().min(1, 'Quantity is required'),
+  serialNumber: z.string().min(1, 'Serial number is required').max(100),
 });
 
 type BatchItemFormData = z.infer<typeof batchItemSchema>;
@@ -28,7 +28,7 @@ const BatchItemEditorForm = ({
   id: string;
   itemId: string;
   batchId: string;
-  item?: { id: string; quantity: number };
+  item?: { id: string; serialNumber: string };
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
@@ -38,7 +38,7 @@ const BatchItemEditorForm = ({
 
   const form = useForm<BatchItemFormData>({
     resolver: zodResolver(batchItemSchema),
-    defaultValues: { quantity: item ? String(item.quantity) : '' },
+    defaultValues: { serialNumber: item?.serialNumber ?? '' },
   });
 
   return (
@@ -47,14 +47,14 @@ const BatchItemEditorForm = ({
       mutation={isEdit ? updateMutation : addMutation}
       resetOnSuccess={!isEdit}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ quantity: Number(data.quantity) })}
+      transformSubmit={(data) => ({ serialNumber: data.serialNumber.trim() })}
     >
-      <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 10" />
+      <TextField name="serialNumber" label="Serial Number" placeholder="e.g. SN-00001" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
-        <Button type="submit">{isEdit ? 'Update Line Item' : 'Add Line Item'}</Button>
+        <Button type="submit">{isEdit ? 'Update Serial' : 'Add Serial'}</Button>
       </div>
     </Form>
   );
@@ -71,12 +71,12 @@ export const BatchItemEditorDialog = ({
   itemId: string;
   batchId: string;
   handle: ReturnType<typeof useDialog>;
-  item?: { id: string; quantity: number };
+  item?: { id: string; serialNumber: string };
 }) => (
   <Dialog
     handle={handle}
-    title={item ? 'Edit Line Item' : 'Add Line Item'}
-    description={item ? 'Update this line item quantity.' : 'Add a quantity entry for this batch.'}
+    title={item ? 'Edit Serial' : 'Add Serial'}
+    description={item ? 'Update the serial number for this physical unit.' : 'Register a serial number for this batch.'}
     content={(close) => (
       <BatchItemEditorForm
         id={id}

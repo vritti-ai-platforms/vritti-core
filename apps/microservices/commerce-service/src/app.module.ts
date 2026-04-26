@@ -14,7 +14,9 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ConversionsModule } from './modules/conversions/conversions.module';
 import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
 import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.module';
-import { InventoryItemBatchesModule } from './modules/inventory-item-batches/inventory-item-batches.module';
+import { InventoryItemLotsModule } from './modules/inventory-item-lots/inventory-item-lots.module';
+import { InventoryItemQuantItemsModule } from './modules/inventory-item-quant-items/inventory-item-quant-items.module';
+import { InventoryItemQuantsModule } from './modules/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemsModule } from './modules/inventory-items/inventory-items.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { ItemsModule } from './modules/items/items.module';
@@ -73,7 +75,9 @@ import { UomModule } from './modules/uom/uom.module';
     StorageLocationsModule,
     ConversionsModule,
     StockAdjustmentsModule,
-    InventoryItemBatchesModule,
+    InventoryItemLotsModule,
+    InventoryItemQuantItemsModule,
+    InventoryItemQuantsModule,
     StockTransfersModule,
     InvoicesModule,
     PaymentsModule,

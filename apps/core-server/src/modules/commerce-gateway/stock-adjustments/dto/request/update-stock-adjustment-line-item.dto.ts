@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class UpdateStockAdjustmentLineItemDto {
-  @ApiProperty({ description: 'Line item quantity' })
-  @IsNumber()
-  quantity: number;
+  @ApiProperty({ description: 'Serial number for the physical unit' })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  serialNumber: string;
 }

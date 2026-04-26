@@ -168,6 +168,6 @@ export class GoodsReceiptsService {
     const lineCount = await this.itemsRepository.countByReceiptId(goodsReceiptId);
     if (lineCount === 0) return false;
     const batches = await this.batchesRepository.findByReceiptIdForPublish(goodsReceiptId);
-    return batches.every((batch) => batch.isBalanced && Number(batch.acceptedQuantity) > 0);
+    return batches.every((batch) => batch.isBalanced && Number(batch.quantity) > 0);
   }
 }

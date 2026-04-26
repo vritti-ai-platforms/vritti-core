@@ -1,4 +1,4 @@
-import type { InventoryItemBatchDto, LocationStockDto } from '@domain/inventory-item-batches/dto/entity/inventory-item-batch.dto';
+import type { InventoryItemQuantDto, LocationStockDto } from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
@@ -64,7 +64,7 @@ export class InventoryItemsController {
   @MessagePattern({ cmd: 'inventoryItems.batchesTable' })
   async batchesTable(
     @Payload() data: { itemId: string } & TableViewState,
-  ): Promise<{ result: InventoryItemBatchDto[]; count: number }> {
+  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
     this.logger.log(`inventoryItems.batchesTable — itemId: ${data.itemId}`);
     return this.service.findBatchesForTable(data.itemId, data);
   }

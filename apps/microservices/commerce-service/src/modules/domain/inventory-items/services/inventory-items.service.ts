@@ -1,8 +1,8 @@
 import type {
-  InventoryItemBatchDto,
+  InventoryItemQuantDto,
   LocationStockDto,
-} from '@domain/inventory-item-batches/dto/entity/inventory-item-batch.dto';
-import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
+} from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
+import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
 import { StorageLocationConfigsService } from '@domain/storage-location-configs/services/storage-location-configs.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -38,7 +38,7 @@ export class InventoryItemsService {
 
   constructor(
     private readonly repository: InventoryItemsRepository,
-    private readonly batchesService: InventoryItemBatchesService,
+    private readonly batchesService: InventoryItemQuantsService,
     private readonly storageLocationConfigsService: StorageLocationConfigsService,
   ) {}
 
@@ -122,6 +122,7 @@ export class InventoryItemsService {
       name: data.name,
       code: data.code,
       type: data.type,
+      ...(data.tracking ? { tracking: data.tracking } : {}),
       categoryId: data.categoryId,
       description: data.description || null,
       uomId: data.uomId,
@@ -150,7 +151,7 @@ export class InventoryItemsService {
   async findBatchesForTable(
     itemId: string,
     state: TableViewState,
-  ): Promise<{ result: InventoryItemBatchDto[]; count: number }> {
+  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     return this.batchesService.findBatchesForTable(itemId, state);
@@ -193,7 +194,7 @@ export class InventoryItemsService {
     return this.storageLocationConfigsService.delete(id);
   }
 
-  // Updates an inventory item
+  // Updates an inventory item. Tracking is set at creation and cannot be changed.
   async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');

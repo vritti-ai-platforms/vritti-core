@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
 import { BusinessUnitDomainModule } from '@/modules/domain/business-unit/business-unit.module';
+import { UserDomainModule } from '@/modules/domain/user/user.module';
 import { BomGatewayController } from './bom/bom-gateway.controller';
 import { BomGatewayService } from './bom/services/bom-gateway.service';
-import { InventoryItemBatchesGatewayController } from './inventory-item-batches/inventory-item-batches-gateway.controller';
-import { InventoryItemBatchesGatewayService } from './inventory-item-batches/services/inventory-item-batches-gateway.service';
+import { InventoryItemLotsGatewayController } from './inventory-item-lots/inventory-item-lots-gateway.controller';
+import { InventoryItemLotsGatewayService } from './inventory-item-lots/services/inventory-item-lots-gateway.service';
+import { InventoryItemQuantItemsGatewayController } from './inventory-item-quant-items/inventory-item-quant-items-gateway.controller';
+import { InventoryItemQuantItemsGatewayService } from './inventory-item-quant-items/services/inventory-item-quant-items-gateway.service';
+import { InventoryItemQuantsGatewayController } from './inventory-item-quants/inventory-item-quants-gateway.controller';
+import { InventoryItemQuantsGatewayService } from './inventory-item-quants/services/inventory-item-quants-gateway.service';
 import { CategoriesGatewayController } from './categories/categories-gateway.controller';
 import { CategoriesGatewayService } from './categories/services/categories-gateway.service';
 import { ConversionsGatewayController } from './conversions/conversions-gateway.controller';
@@ -40,11 +45,13 @@ import { UomGatewayController } from './uom/uom-gateway.controller';
 import { UomGatewayService } from './uom/services/uom-gateway.service';
 
 @Module({
-  imports: [BusinessUnitDomainModule],
+  imports: [BusinessUnitDomainModule, UserDomainModule],
   controllers: [
     BomGatewayController,
     CategoriesGatewayController,
-    InventoryItemBatchesGatewayController,
+    InventoryItemLotsGatewayController,
+    InventoryItemQuantItemsGatewayController,
+    InventoryItemQuantsGatewayController,
     ConversionsGatewayController,
     CreditNotesGatewayController,
     GoodsReceiptsGatewayController,
@@ -65,7 +72,9 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
   providers: [
     BomGatewayService,
     CategoriesGatewayService,
-    InventoryItemBatchesGatewayService,
+    InventoryItemLotsGatewayService,
+    InventoryItemQuantItemsGatewayService,
+    InventoryItemQuantsGatewayService,
     ConversionsGatewayService,
     CreditNotesGatewayService,
     GoodsReceiptsGatewayService,

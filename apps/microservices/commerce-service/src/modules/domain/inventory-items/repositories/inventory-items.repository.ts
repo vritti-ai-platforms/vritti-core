@@ -88,6 +88,7 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         name: inventoryItems.name,
         code: inventoryItems.code,
         type: inventoryItems.type,
+        tracking: inventoryItems.tracking,
         categoryId: inventoryItems.categoryId,
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,

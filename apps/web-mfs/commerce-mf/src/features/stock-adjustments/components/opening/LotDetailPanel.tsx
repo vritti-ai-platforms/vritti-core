@@ -1,0 +1,282 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { Button } from '@vritti/quantum-ui/Button';
+import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Empty } from '@vritti/quantum-ui/Empty';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
+import {
+  STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY,
+  useRemoveStockAdjustmentLine,
+  useRemoveStockAdjustmentLot,
+  useStockAdjustmentLinesByLotTable,
+  useStockAdjustmentLots,
+} from '@/hooks/stock-adjustments';
+import {
+  type InventoryTracking,
+  InventoryTrackingValues,
+  type StockAdjustmentLineData,
+} from '@/schemas/stock-adjustments';
+import { AddOpeningLineForm } from '../../forms/opening/AddOpeningLineForm';
+import { EditLotDialog } from '../../forms/opening/EditLotDialog';
+import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';
+
+interface LotDetailPanelProps {
+  adjustmentId: string;
+  lotId: string | null;
+  tracking: InventoryTracking;
+  isDraft: boolean;
+  uomSymbol: string;
+  selectedLineId?: string | null;
+  onSelectLine?: (lineId: string | null) => void;
+  onLotRemoved?: () => void;
+}
+
+export const LotDetailPanel = ({
+  adjustmentId,
+  lotId,
+  tracking,
+  isDraft,
+  uomSymbol,
+  selectedLineId,
+  onSelectLine,
+  onLotRemoved,
+}: LotDetailPanelProps) => {
+  const confirm = useConfirm();
+  const queryClient = useQueryClient();
+  const editLotDialog = useDialog();
+  const addLineDialog = useDialog();
+
+  const { data: lots = [] } = useStockAdjustmentLots(adjustmentId);
+  const { data: response, isLoading } = useStockAdjustmentLinesByLotTable(adjustmentId, lotId);
+
+  const lot = lots.find((l) => l.id === lotId) ?? null;
+
+  const removeLotMutation = useRemoveStockAdjustmentLot(adjustmentId, {
+    onSuccess: () => onLotRemoved?.(),
+  });
+  const removeLineMutation = useRemoveStockAdjustmentLine(adjustmentId);
+
+  const isSerial = tracking === InventoryTrackingValues.SERIAL;
+
+  const handleRemoveLine = useCallback(
+    async (line: StockAdjustmentLineData) => {
+      const confirmed = await confirm({
+        title: 'Remove this line?',
+        description: 'This line and any serials added under it will be removed.',
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (confirmed) {
+        removeLineMutation.mutate(line.id, {
+          onSuccess: () => {
+            if (selectedLineId === line.id) onSelectLine?.(null);
+          },
+        });
+      }
+    },
+    [confirm, removeLineMutation, selectedLineId, onSelectLine],
+  );
+
+  const columns = useMemo<ColumnDef<StockAdjustmentLineData>[]>(
+    () => [
+      {
+        accessorKey: 'locationName',
+        header: 'Location',
+        cell: ({ row }) => row.original.locationName ?? row.original.locationId ?? '—',
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'quantity',
+        header: 'Quantity',
+        cell: ({ row }) => (
+          <span className="font-mono">
+            {row.original.quantity} {uomSymbol}
+          </span>
+        ),
+        enableSorting: true,
+      },
+      ...(isSerial
+        ? [
+            {
+              id: 'serials',
+              header: 'Serials',
+              cell: ({ row }) => (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
+                    row.original.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
+                  }`}
+                >
+                  {row.original.lineItemsCount}/{row.original.quantity}
+                </span>
+              ),
+            } satisfies ColumnDef<StockAdjustmentLineData>,
+          ]
+        : []),
+      ...(isDraft
+        ? [
+            {
+              id: 'actions',
+              header: '',
+              cell: ({ row }) => (
+                <RowActions
+                  actions={[
+                    {
+                      id: 'edit',
+                      icon: Pencil,
+                      label: 'Edit',
+                      dialog: {
+                        title: 'Edit Line',
+                        description: 'Update the storage location or quantity for this line.',
+                        content: (close) => (
+                          <EditOpeningLineForm
+                            adjustmentId={adjustmentId}
+                            line={row.original}
+                            tracking={tracking}
+                            onSuccess={close}
+                            onCancel={close}
+                          />
+                        ),
+                      },
+                    },
+                    {
+                      id: 'delete',
+                      icon: Trash2,
+                      label: 'Remove',
+                      variant: 'destructive',
+                      onClick: () => handleRemoveLine(row.original),
+                    },
+                  ]}
+                />
+              ),
+              enableSorting: false,
+              enableHiding: false,
+            } satisfies ColumnDef<StockAdjustmentLineData>,
+          ]
+        : []),
+    ],
+    [adjustmentId, isDraft, isSerial, tracking, uomSymbol, handleRemoveLine],
+  );
+
+  const { table } = useDataTable({
+    columns,
+    serverState: response,
+    slug: `stock-adjustment-${adjustmentId}-lot-${lotId ?? 'none'}-lines`,
+    label: 'line',
+    enableRowSelection: false,
+    onStatePush: () => {
+      if (lotId) {
+        queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY(adjustmentId, lotId) });
+      }
+    },
+  });
+
+  if (!lot) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Empty icon={<Boxes />} title="No lot selected" description="Select a lot from the left panel." />
+      </div>
+    );
+  }
+
+  const handleRemoveLot = async () => {
+    const confirmed = await confirm({
+      title: `Remove lot ${lot.lotNumber}?`,
+      description: 'This lot and all its lines and serials will be removed.',
+      confirmLabel: 'Remove',
+      variant: 'destructive',
+    });
+    if (confirmed) removeLotMutation.mutate(lot.id);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-semibold">{lot.lotNumber}</h3>
+          <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
+            <div>Mfg: {lot.manufacturingDate ? new Date(lot.manufacturingDate).toLocaleDateString() : '—'}</div>
+            <div>Exp: {lot.expiryDate ? new Date(lot.expiryDate).toLocaleDateString() : '—'}</div>
+            <div>
+              Total: {lot.totalQuantity} {uomSymbol}
+            </div>
+            <div>Lines: {lot.linesCount}</div>
+          </div>
+        </div>
+        {isDraft && (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              startAdornment={<Pencil className="size-3.5" />}
+              onClick={editLotDialog.open}
+            >
+              Edit Lot
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-destructive hover:text-destructive"
+              startAdornment={<Trash2 className="size-3.5" />}
+              onClick={handleRemoveLot}
+              isLoading={removeLotMutation.isPending}
+            >
+              Remove Lot
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <DataTable
+        table={table}
+        mode="compact"
+        isLoading={isLoading}
+        onRowClick={onSelectLine ? (row) => onSelectLine(row.id) : undefined}
+        selectedRowId={selectedLineId ?? null}
+        toolbarActions={
+          isDraft
+            ? {
+                actions: (
+                  <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addLineDialog.open}>
+                    Add Line
+                  </Button>
+                ),
+              }
+            : undefined
+        }
+        emptyStateConfig={{
+          icon: ClipboardList,
+          title: 'No lines yet',
+          description: 'Distribute opening stock across locations.',
+          action: isDraft ? (
+            <Button startAdornment={<Plus className="size-4" />} onClick={addLineDialog.open}>
+              Add Line
+            </Button>
+          ) : undefined,
+        }}
+      />
+
+      <EditLotDialog adjustmentId={adjustmentId} lot={lot} handle={editLotDialog} />
+
+      <Dialog
+        handle={addLineDialog}
+        title="Add Line"
+        description={
+          isSerial
+            ? 'Pick a storage location for this line. Quantity is derived from the serials you add.'
+            : 'Distribute opening stock across a storage location.'
+        }
+        content={(close) => (
+          <AddOpeningLineForm
+            adjustmentId={adjustmentId}
+            stockAdjustmentLotId={lot.id}
+            tracking={tracking}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
+      />
+    </div>
+  );
+};

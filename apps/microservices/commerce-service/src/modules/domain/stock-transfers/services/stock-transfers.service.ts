@@ -1,4 +1,4 @@
-import { InventoryItemBatchesService } from '@domain/inventory-item-batches/services/inventory-item-batches.service';
+import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -29,7 +29,7 @@ export class StockTransfersService {
 
   constructor(
     private readonly repository: StockTransfersRepository,
-    private readonly batchesService: InventoryItemBatchesService,
+    private readonly batchesService: InventoryItemQuantsService,
   ) {}
 
   // Returns paginated stock transfers for the data table
@@ -95,12 +95,22 @@ export class StockTransfersService {
       }
     }
 
-    // On RECEIVED: create new batch in destination location
+    // On RECEIVED: create new batch in destination location, preserving source lot identity
     if (newStatus === StockTransferStatusValues.RECEIVED) {
+      const sourceLot = data.fromBatchId ? await this.batchesService.loadLotByQuantId(data.fromBatchId) : null;
+      const lot = sourceLot
+        ? {
+            lotNumber: sourceLot.lotNumber,
+            manufacturingDate: sourceLot.manufacturingDate ?? null,
+            expiryDate: sourceLot.expiryDate ?? null,
+          }
+        : undefined;
+
       await this.batchesService.createBatch({
         inventoryItemId: entity.inventoryItemId,
         locationId: data.toLocationId,
         quantity: Number(entity.quantity),
+        lot,
         type: InventoryLedgerTypeValues.TRANSFER_IN,
         referenceType: InventoryLedgerReferenceTypeValues.STOCK_TRANSFER,
         referenceId: id,
