@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
@@ -27,7 +27,10 @@ function loadCoreAppEnv() {
     if (separatorIndex === -1) continue;
 
     const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, '');
+    const value = line
+      .slice(separatorIndex + 1)
+      .trim()
+      .replace(/^['"]|['"]$/g, '');
 
     if (key && process.env[key] === undefined) {
       process.env[key] = value;
@@ -48,15 +51,11 @@ function validateDeploymentsApiBaseUrl() {
   try {
     parsed = new URL(rawValue);
   } catch {
-    throw new Error(
-      `DEPLOYMENTS_API_BASE_URL must be a valid absolute http/https URL. Received: ${rawValue}`,
-    );
+    throw new Error(`DEPLOYMENTS_API_BASE_URL must be a valid absolute http/https URL. Received: ${rawValue}`);
   }
 
   if (!['http:', 'https:'].includes(parsed.protocol)) {
-    throw new Error(
-      `DEPLOYMENTS_API_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`,
-    );
+    throw new Error(`DEPLOYMENTS_API_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`);
   }
 
   if (parsed.pathname && parsed.pathname !== '/') {
@@ -66,9 +65,7 @@ function validateDeploymentsApiBaseUrl() {
   }
 
   if (parsed.search || parsed.hash) {
-    throw new Error(
-      'DEPLOYMENTS_API_BASE_URL must not include query params or a hash fragment.',
-    );
+    throw new Error('DEPLOYMENTS_API_BASE_URL must not include query params or a hash fragment.');
   }
 
   return parsed.origin;
@@ -85,15 +82,11 @@ function validateDevRawCoreBaseUrl(rawValue) {
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error(
-      `DEV_RAW_CORE_BASE_URL must be a valid absolute http/https URL. Received: ${value}`,
-    );
+    throw new Error(`DEV_RAW_CORE_BASE_URL must be a valid absolute http/https URL. Received: ${value}`);
   }
 
   if (!['http:', 'https:'].includes(parsed.protocol)) {
-    throw new Error(
-      `DEV_RAW_CORE_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`,
-    );
+    throw new Error(`DEV_RAW_CORE_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`);
   }
 
   if (parsed.pathname && parsed.pathname !== '/') {
@@ -103,9 +96,7 @@ function validateDevRawCoreBaseUrl(rawValue) {
   }
 
   if (parsed.search || parsed.hash) {
-    throw new Error(
-      'DEV_RAW_CORE_BASE_URL must not include query params or a hash fragment.',
-    );
+    throw new Error('DEV_RAW_CORE_BASE_URL must not include query params or a hash fragment.');
   }
 
   return parsed.origin;
@@ -121,9 +112,7 @@ function validateDevMfHost(rawValue) {
   }
 
   if (value.includes('://')) {
-    throw new Error(
-      `DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`,
-    );
+    throw new Error(`DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`);
   }
 
   let parsed;
@@ -158,9 +147,7 @@ function validateDevHostPublicHost(rawValue, fallbackHost) {
   }
 
   if (value.includes('://')) {
-    throw new Error(
-      `DEV_HOST_PUBLIC_HOST must be a host or IP only, without a protocol. Received: ${value}`,
-    );
+    throw new Error(`DEV_HOST_PUBLIC_HOST must be a host or IP only, without a protocol. Received: ${value}`);
   }
 
   let parsed;
@@ -215,12 +202,14 @@ const componentDirs = [
   'BottomNavigation',
   'Button',
   'Card',
+  'CardPressable',
   'Checkbox',
   'DynamicIcon',
   'FlashList',
   'Form',
   'Input',
   'Label',
+  'ListItem',
   'NativeStack',
   'PasswordField',
   'Progress',
@@ -263,12 +252,12 @@ export default (env) => {
   const { platform, mode } = env;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
-  const devMfHost = mode === 'development'
-    ? validateDevMfHost(process.env.DEV_MF_HOST)
-    : (process.env.DEV_MF_HOST?.trim() ?? '');
-  const devHostPublicHost = mode === 'development'
-    ? validateDevHostPublicHost(process.env.DEV_HOST_PUBLIC_HOST, devMfHost)
-    : (process.env.DEV_HOST_PUBLIC_HOST?.trim() ?? process.env.DEV_MF_HOST?.trim() ?? '');
+  const devMfHost =
+    mode === 'development' ? validateDevMfHost(process.env.DEV_MF_HOST) : (process.env.DEV_MF_HOST?.trim() ?? '');
+  const devHostPublicHost =
+    mode === 'development'
+      ? validateDevHostPublicHost(process.env.DEV_HOST_PUBLIC_HOST, devMfHost)
+      : (process.env.DEV_HOST_PUBLIC_HOST?.trim() ?? process.env.DEV_MF_HOST?.trim() ?? '');
 
   return {
     mode,
@@ -287,15 +276,9 @@ export default (env) => {
       alias: {
         ...quantumAliases,
         ...rnCssAliases,
-        '@module-federation/enhanced/runtime': require.resolve(
-          '@module-federation/enhanced/runtime',
-        ),
-        '@module-federation/runtime-tools/runtime': require.resolve(
-          '@module-federation/runtime-tools/runtime',
-        ),
-        '@module-federation/runtime': require.resolve(
-          '@module-federation/runtime',
-        ),
+        '@module-federation/enhanced/runtime': require.resolve('@module-federation/enhanced/runtime'),
+        '@module-federation/runtime-tools/runtime': require.resolve('@module-federation/runtime-tools/runtime'),
+        '@module-federation/runtime': require.resolve('@module-federation/runtime'),
         'react-native-css/components': path.join(rnCssRoot, 'dist/commonjs/components'),
         'colorjs.io/fn': require.resolve('colorjs.io/fn'),
         '@react-navigation/elements/internal': path.join(
@@ -316,9 +299,7 @@ export default (env) => {
     output: {
       path: '[context]/build/host-app/[platform]',
       uniqueName: 'vritti-core-app',
-      ...(mode === 'development'
-        ? { publicPath: `http://${devHostPublicHost}:8081/[platform]/` }
-        : {}),
+      ...(mode === 'development' ? { publicPath: `http://${devHostPublicHost}:8081/[platform]/` } : {}),
     },
 
     module: {

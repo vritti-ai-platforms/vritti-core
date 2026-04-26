@@ -1,4 +1,4 @@
-import { PressableCard } from '@vritti/quantum-ui-native/Card';
+import { CardPressable } from '@vritti/quantum-ui-native/CardPressable';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import * as React from 'react';
 import { View } from 'react-native';
@@ -12,16 +12,9 @@ interface SelectableCardProps {
   trailing?: React.ReactNode;
 }
 
-export const SelectableCard = ({
-  selected,
-  onPress,
-  leading,
-  title,
-  subtitle,
-  trailing,
-}: SelectableCardProps) => {
+export const SelectableCard = ({ selected, onPress, leading, title, subtitle, trailing }: SelectableCardProps) => {
   return (
-    <PressableCard
+    <CardPressable
       onPress={onPress}
       selected={selected}
       className={`rounded-2xl p-4 flex-row items-center gap-3 ${selected ? '' : 'border border-border bg-card'}`}
@@ -38,6 +31,6 @@ export const SelectableCard = ({
       </View>
 
       {trailing ? trailing : null}
-    </PressableCard>
+    </CardPressable>
   );
 };

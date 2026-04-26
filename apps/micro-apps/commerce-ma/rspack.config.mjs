@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
@@ -27,7 +27,10 @@ function loadCoreAppEnv() {
     if (separatorIndex === -1) continue;
 
     const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, '');
+    const value = line
+      .slice(separatorIndex + 1)
+      .trim()
+      .replace(/^['"]|['"]$/g, '');
 
     if (key && process.env[key] === undefined) {
       process.env[key] = value;
@@ -45,9 +48,7 @@ function validateDevMfHost(rawValue) {
   }
 
   if (value.includes('://')) {
-    throw new Error(
-      `DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`,
-    );
+    throw new Error(`DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`);
   }
 
   let parsed;
@@ -100,15 +101,18 @@ const componentDirs = [
   'BottomNavigation',
   'Button',
   'Card',
+  'CardPressable',
   'Checkbox',
   'DynamicIcon',
   'FlashList',
   'Form',
   'Input',
   'Label',
+  'ListItem',
   'NativeStack',
   'Progress',
   'RadioGroup',
+  'ScreenContainer',
   'Separator',
   'Skeleton',
   'SplashScreen',
@@ -139,9 +143,8 @@ export default (env) => {
   const { platform, mode } = env;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
-  const devMfHost = mode === 'development'
-    ? validateDevMfHost(process.env.DEV_MF_HOST)
-    : (process.env.DEV_MF_HOST?.trim() ?? '');
+  const devMfHost =
+    mode === 'development' ? validateDevMfHost(process.env.DEV_MF_HOST) : (process.env.DEV_MF_HOST?.trim() ?? '');
 
   return {
     mode,
@@ -180,9 +183,7 @@ export default (env) => {
     output: {
       path: '[context]/build/[platform]',
       uniqueName: 'commerce_ma',
-      ...(mode === 'development'
-        ? { publicPath: `http://${devMfHost}:9002/[platform]/` }
-        : {}),
+      ...(mode === 'development' ? { publicPath: `http://${devMfHost}:9002/[platform]/` } : {}),
     },
 
     module: {

@@ -1,3 +1,4 @@
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { View } from 'react-native';
 
@@ -7,16 +8,17 @@ import { View } from 'react-native';
  */
 export default function ItemsScreen() {
   return (
-    <View className="flex-1 bg-background">
-      <Text className="text-2xl font-bold text-foreground">Items</Text>
-      <Text className="text-sm text-muted-foreground mt-1">Manage your inventory items</Text>
-
-      <View className="mt-6 p-4 rounded-xl bg-card border border-border">
+    <ScreenContainer scrollable contentContainerClassName="p-4 gap-4">
+      <View>
+        <Text className="text-2xl font-bold text-foreground">Items</Text>
+        <Text className="text-sm text-muted-foreground mt-1">Manage your inventory items</Text>
+      </View>
+      <View className="p-4 rounded-xl bg-card border border-border">
         <Text className="text-base font-medium text-card-foreground">Items list will be loaded here</Text>
         <Text className="text-sm text-muted-foreground mt-1">
           This screen is served from the commerce micro app via Module Federation.
         </Text>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }

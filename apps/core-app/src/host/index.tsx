@@ -1,6 +1,6 @@
+import { Script, ScriptManager } from '@callstack/repack/client';
 import { lazy, Suspense } from 'react';
 import { AppRegistry } from 'react-native';
-import { ScriptManager, Script } from '@callstack/repack/client';
 import { getRemoteAssetBase, getRemoteConfigByRuntimeName } from './config/remotes.config';
 
 // Resolve host-local split chunks from the host dev server/filesystem and remote

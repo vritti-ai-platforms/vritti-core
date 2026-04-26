@@ -1,5 +1,5 @@
-import { BasicCard } from '@vritti/quantum-ui-native/Card';
 import { Alert } from '@vritti/quantum-ui-native/Alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Typography';
@@ -16,20 +16,25 @@ export const AccountPasswordScreen = () => {
 
       <View className="gap-3">
         <SectionHeader title="Password" />
-        <BasicCard
-          title="Password management"
-          description="This screen is reserved for updating your password and handling recovery-related actions."
-        >
-          <View className="gap-3">
-            <Text className="text-sm leading-6 text-muted-foreground">
-              The web account area already supports password changes. This native screen is scaffolded now so the
-              account navigation and overall UX can settle before the full form and validation flow are added.
-            </Text>
-            <Text className="text-sm leading-6 text-muted-foreground">
-              Planned support includes current password verification, new password validation, and confirmation.
-            </Text>
-          </View>
-        </BasicCard>
+        <Card>
+          <CardHeader>
+            <CardTitle>Password management</CardTitle>
+            <CardDescription>
+              This screen is reserved for updating your password and handling recovery-related actions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <View className="gap-3">
+              <Text className="text-sm leading-6 text-muted-foreground">
+                The web account area already supports password changes. This native screen is scaffolded now so the
+                account navigation and overall UX can settle before the full form and validation flow are added.
+              </Text>
+              <Text className="text-sm leading-6 text-muted-foreground">
+                Planned support includes current password verification, new password validation, and confirmation.
+              </Text>
+            </View>
+          </CardContent>
+        </Card>
       </View>
     </ScreenContainer>
   );
