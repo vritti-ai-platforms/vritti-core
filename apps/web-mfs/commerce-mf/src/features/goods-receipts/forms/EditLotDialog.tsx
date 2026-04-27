@@ -1,0 +1,86 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button } from '@vritti/quantum-ui/Button';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Form } from '@vritti/quantum-ui/Form';
+import { useDialog } from '@vritti/quantum-ui/hooks';
+import { TextField } from '@vritti/quantum-ui/TextField';
+import { useForm } from 'react-hook-form';
+import { useUpdateGoodsReceiptLot } from '@/hooks/goods-receipts';
+import {
+  type AddGoodsReceiptLotFormData,
+  addGoodsReceiptLotSchema,
+  type GoodsReceiptLotData,
+} from '@/schemas/goods-receipts';
+
+const toDateInput = (value: string | null): string => (value ? value.slice(0, 10) : '');
+
+const EditLotForm = ({
+  goodsReceiptId,
+  itemId,
+  lot,
+  onSuccess,
+  onCancel,
+}: {
+  goodsReceiptId: string;
+  itemId: string;
+  lot: GoodsReceiptLotData;
+  onSuccess: () => void;
+  onCancel: () => void;
+}) => {
+  const form = useForm<AddGoodsReceiptLotFormData>({
+    resolver: zodResolver(addGoodsReceiptLotSchema),
+    defaultValues: {
+      lotNumber: lot.lotNumber,
+      manufacturingDate: toDateInput(lot.manufacturingDate),
+      expiryDate: toDateInput(lot.expiryDate),
+    },
+  });
+  const mutation = useUpdateGoodsReceiptLot(goodsReceiptId, itemId, lot.id, { onSuccess });
+
+  return (
+    <Form
+      form={form}
+      mutation={mutation}
+      onCancel={onCancel}
+      transformSubmit={(data) => ({
+        lotNumber: data.lotNumber.trim(),
+        manufacturingDate: data.manufacturingDate?.trim() || null,
+        expiryDate: data.expiryDate?.trim() || null,
+      })}
+    >
+      <TextField name="lotNumber" label="Lot Number" placeholder="e.g. ABC-2026-001" />
+      <TextField name="manufacturingDate" label="Manufacturing Date" type="date" />
+      <TextField name="expiryDate" label="Expiry Date" type="date" />
+
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" data-cancel>
+          Cancel
+        </Button>
+        <Button type="submit" loadingText="Saving...">
+          Save
+        </Button>
+      </div>
+    </Form>
+  );
+};
+
+export const EditLotDialog = ({
+  goodsReceiptId,
+  itemId,
+  lot,
+  handle,
+}: {
+  goodsReceiptId: string;
+  itemId: string;
+  lot: GoodsReceiptLotData | null;
+  handle: ReturnType<typeof useDialog>;
+}) => (
+  <Dialog
+    handle={handle}
+    title="Edit Lot"
+    description="Update this lot's number or dates."
+    content={(close) =>
+      lot ? <EditLotForm goodsReceiptId={goodsReceiptId} itemId={itemId} lot={lot} onSuccess={close} onCancel={close} /> : null
+    }
+  />
+);

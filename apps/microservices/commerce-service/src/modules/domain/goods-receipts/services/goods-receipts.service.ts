@@ -13,7 +13,6 @@ import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { GoodsReceiptStatusValues, goodsReceipts, purchaseOrders, suppliers } from '@/db/schema';
 import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
-import { GoodsReceiptBatchesRepository } from '../repositories/goods-receipt-batches.repository';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
 
@@ -30,7 +29,6 @@ export class GoodsReceiptsService {
   constructor(
     private readonly repository: GoodsReceiptsRepository,
     private readonly itemsRepository: GoodsReceiptItemsRepository,
-    private readonly batchesRepository: GoodsReceiptBatchesRepository,
     private readonly poRepository: PurchaseOrdersRepository,
   ) {}
 
@@ -69,7 +67,10 @@ export class GoodsReceiptsService {
     };
   }
 
-  async findForTableByPoId(poId: string, state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
+  async findForTableByPoId(
+    poId: string,
+    state: TableViewState,
+  ): Promise<{ result: GoodsReceiptDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -84,18 +85,15 @@ export class GoodsReceiptsService {
     });
 
     const result = rows.map((row) =>
-      GoodsReceiptDto.from(
-        row,
-        {
-          supplierName: row.supplierName,
-          poId: row.purchaseOrderId ?? null,
-          poNumber: row.poNumber,
-          poOrderDate: row.poOrderDate ?? null,
-          poExpectedBy: row.poExpectedBy ?? null,
-          poTotalAmount: row.poTotalAmount ?? null,
-          poCurrencyCode: row.poCurrencyCode ?? null,
-        },
-      ),
+      GoodsReceiptDto.from(row, {
+        supplierName: row.supplierName,
+        poId: row.purchaseOrderId ?? null,
+        poNumber: row.poNumber,
+        poOrderDate: row.poOrderDate ?? null,
+        poExpectedBy: row.poExpectedBy ?? null,
+        poTotalAmount: row.poTotalAmount ?? null,
+        poCurrencyCode: row.poCurrencyCode ?? null,
+      }),
     );
 
     return { result, count };
@@ -116,18 +114,15 @@ export class GoodsReceiptsService {
     });
 
     const result = rows.map((row) =>
-      GoodsReceiptDto.from(
-        row,
-        {
-          supplierName: row.supplierName,
-          poId: row.purchaseOrderId ?? null,
-          poNumber: row.poNumber,
-          poOrderDate: row.poOrderDate ?? null,
-          poExpectedBy: row.poExpectedBy ?? null,
-          poTotalAmount: row.poTotalAmount ?? null,
-          poCurrencyCode: row.poCurrencyCode ?? null,
-        },
-      ),
+      GoodsReceiptDto.from(row, {
+        supplierName: row.supplierName,
+        poId: row.purchaseOrderId ?? null,
+        poNumber: row.poNumber,
+        poOrderDate: row.poOrderDate ?? null,
+        poExpectedBy: row.poExpectedBy ?? null,
+        poTotalAmount: row.poTotalAmount ?? null,
+        poCurrencyCode: row.poCurrencyCode ?? null,
+      }),
     );
 
     return { result, count };
@@ -154,20 +149,29 @@ export class GoodsReceiptsService {
   async delete(id: string): Promise<SuccessResponseDto> {
     const gr = await this.repository.findById(id);
     if (!gr) throw new NotFoundException('Goods receipt not found.');
-    const deletableStatuses = [GoodsReceiptStatusValues.DRAFT, GoodsReceiptStatusValues.ALLOCATION_PENDING];
-    if (!deletableStatuses.includes(gr.status as typeof deletableStatuses[number])) {
-      throw new BadRequestException('Only DRAFT or ALLOCATION_PENDING goods receipts can be deleted.');
+    if (gr.status !== GoodsReceiptStatusValues.DRAFT) {
+      throw new BadRequestException('Only DRAFT goods receipts can be deleted.');
     }
     await this.repository.delete(id);
     this.logger.log(`Deleted DRAFT goods receipt ${gr.grNumber} (${id})`);
     return { success: true, message: `Goods receipt "${gr.grNumber}" deleted successfully.` };
   }
 
+  // is_publishable: status='DRAFT' AND every item has accepted qty > 0 AND every line is balanced
+  // AND (when PO is linked) PO cap respected. The lines.is_balanced flag captures the serial mismatch
+  // case; the items query gives us acceptedQuantity (sum of lines) and PO totals.
   private async isPublishable(goodsReceiptId: string, status: string): Promise<boolean> {
-    if (status !== GoodsReceiptStatusValues.ALLOCATION_PENDING) return false;
-    const lineCount = await this.itemsRepository.countByReceiptId(goodsReceiptId);
-    if (lineCount === 0) return false;
-    const batches = await this.batchesRepository.findByReceiptIdForPublish(goodsReceiptId);
-    return batches.every((batch) => batch.isBalanced && Number(batch.quantity) > 0);
+    if (status !== GoodsReceiptStatusValues.DRAFT) return false;
+    const items = await this.itemsRepository.findByReceiptId(goodsReceiptId);
+    if (items.length === 0) return false;
+    return items.every((item) => {
+      if (item.unbalancedLinesCount > 0) return false;
+      if (item.acceptedQuantity <= 0) return false;
+      if (item.poOrderedQuantity != null) {
+        const remaining = Number(item.poOrderedQuantity) - Number(item.poReceivedQuantity ?? 0);
+        if (item.acceptedQuantity > remaining + 1e-9) return false;
+      }
+      return true;
+    });
   }
 }

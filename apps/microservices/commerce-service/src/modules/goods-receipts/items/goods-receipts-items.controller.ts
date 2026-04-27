@@ -38,31 +38,21 @@ export class GoodsReceiptsItemsController {
 
   @MessagePattern({ cmd: 'goodsReceipts.addItem' })
   addItem(
-    @Payload() data: { goodsReceiptId: string; inventoryItemId: string; acceptedQuantity: number; rejectedQuantity?: number },
+    @Payload() data: { goodsReceiptId: string; inventoryItemId: string; rejectedQuantity?: number },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItem — item: ${data.inventoryItemId}`);
     return this.itemsService.addItem(data.goodsReceiptId, {
       inventoryItemId: data.inventoryItemId,
-      acceptedQuantity: data.acceptedQuantity,
       rejectedQuantity: data.rejectedQuantity,
     });
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.updateItem' })
   updateItem(
-    @Payload()
-    data: {
-      goodsReceiptId: string;
-      itemId: string;
-      inventoryItemId?: string;
-      acceptedQuantity?: number;
-      rejectedQuantity?: number;
-    },
+    @Payload() data: { goodsReceiptId: string; itemId: string; rejectedQuantity?: number },
   ): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.updateItem');
     return this.itemsService.updateItem(data.goodsReceiptId, data.itemId, {
-      inventoryItemId: data.inventoryItemId,
-      acceptedQuantity: data.acceptedQuantity,
       rejectedQuantity: data.rejectedQuantity,
     });
   }

@@ -60,7 +60,11 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
         label="Purchase Order (Optional)"
         placeholder="Select purchase order"
         disabled={!supplierId}
-        params={supplierId ? { status: 'CONFIRMED', supplierId } : { status: 'CONFIRMED' }}
+        params={
+          supplierId
+            ? { status: 'CONFIRMED,PARTIALLY_RECEIVED', supplierId }
+            : { status: 'CONFIRMED,PARTIALLY_RECEIVED' }
+        }
       />
       <TextField name="receivedDate" label="Received Date" type="date" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />

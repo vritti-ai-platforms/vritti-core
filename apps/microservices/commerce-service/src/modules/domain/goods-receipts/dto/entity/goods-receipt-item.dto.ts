@@ -1,41 +1,42 @@
-import type { GoodsReceiptItem } from '@/db/schema';
+import type { GoodsReceiptItemWithRefs } from '../../repositories/goods-receipt-items.repository';
 
 export class GoodsReceiptItemDto {
   id: string;
   goodsReceiptId: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  inventoryItemUomSymbol: string | null;
   acceptedQuantity: number;
   rejectedQuantity: number;
-  poItem: { orderedQuantity: number; receivedQuantity: number } | null;
+  lotsCount: number;
+  linesCount: number;
+  isBalanced: boolean;
+  poOrderedQuantity: number | null;
+  poReceivedQuantity: number | null;
+  poRemainingQuantity: number | null;
+  metadata: Record<string, unknown>;
   createdAt: string;
 
-  // Map a GoodsReceiptItem entity to a DTO
-  static from(
-    entity: GoodsReceiptItem & {
-      inventoryItemId?: string | null;
-      inventoryItemName?: string | null;
-      acceptedQuantity?: number | string;
-      rejectedQuantity?: number | string;
-      poOrderedQuantity?: string | null;
-      poReceivedQuantity?: string | null;
-    },
-  ): GoodsReceiptItemDto {
+  static from(row: GoodsReceiptItemWithRefs): GoodsReceiptItemDto {
     const dto = new GoodsReceiptItemDto();
-    dto.id = entity.id;
-    dto.goodsReceiptId = entity.goodsReceiptId;
-    dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = entity.inventoryItemName ?? null;
-    dto.acceptedQuantity = Number(entity.acceptedQuantity ?? 0);
-    dto.rejectedQuantity = Number(entity.rejectedQuantity ?? 0);
-    dto.poItem =
-      entity.poOrderedQuantity != null
-        ? {
-            orderedQuantity: Number(entity.poOrderedQuantity),
-            receivedQuantity: Number(entity.poReceivedQuantity ?? 0),
-          }
-        : null;
-    dto.createdAt = entity.createdAt.toISOString();
+    dto.id = row.id;
+    dto.goodsReceiptId = row.goodsReceiptId;
+    dto.inventoryItemId = row.inventoryItemId;
+    dto.inventoryItemName = row.inventoryItemName ?? null;
+    dto.inventoryItemTracking = row.inventoryItemTracking;
+    dto.inventoryItemUomSymbol = row.inventoryItemUomSymbol ?? null;
+    dto.acceptedQuantity = Number(row.acceptedQuantity ?? 0);
+    dto.rejectedQuantity = Number(row.rejectedQuantity ?? 0);
+    dto.lotsCount = row.lotsCount;
+    dto.linesCount = row.linesCount;
+    dto.isBalanced = row.unbalancedLinesCount === 0;
+    dto.poOrderedQuantity = row.poOrderedQuantity != null ? Number(row.poOrderedQuantity) : null;
+    dto.poReceivedQuantity = row.poReceivedQuantity != null ? Number(row.poReceivedQuantity) : null;
+    dto.poRemainingQuantity =
+      dto.poOrderedQuantity != null ? dto.poOrderedQuantity - (dto.poReceivedQuantity ?? 0) : null;
+    dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;
+    dto.createdAt = row.createdAt.toISOString();
     return dto;
   }
 }

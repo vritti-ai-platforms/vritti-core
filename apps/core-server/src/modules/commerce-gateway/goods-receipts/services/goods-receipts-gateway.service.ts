@@ -1,18 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, DataTableStateService, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
-import type { AddGoodsReceiptBatchDto } from '../dto/request/add-goods-receipt-batch.dto';
-import type { AddGoodsReceiptBatchItemDto } from '../dto/request/add-goods-receipt-batch-item.dto';
 import type { AddGoodsReceiptItemDto } from '../dto/request/add-goods-receipt-item.dto';
+import type { AddGoodsReceiptLineDto } from '../dto/request/add-goods-receipt-line.dto';
+import type { AddGoodsReceiptLineItemDto } from '../dto/request/add-goods-receipt-line-item.dto';
+import type { AddGoodsReceiptLotDto } from '../dto/request/add-goods-receipt-lot.dto';
 import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
-import type { UpdateGoodsReceiptBatchDto } from '../dto/request/update-goods-receipt-batch.dto';
-import type { UpdateGoodsReceiptBatchItemDto } from '../dto/request/update-goods-receipt-batch-item.dto';
 import type { UpdateGoodsReceiptItemDto } from '../dto/request/update-goods-receipt-item.dto';
-import type { GoodsReceiptBatchItemResponseDto } from '../dto/response/goods-receipt-batch-item-response.dto';
-import type { GoodsReceiptBatchResponseDto } from '../dto/response/goods-receipt-batch-response.dto';
+import type { UpdateGoodsReceiptLineDto } from '../dto/request/update-goods-receipt-line.dto';
+import type { UpdateGoodsReceiptLineItemDto } from '../dto/request/update-goods-receipt-line-item.dto';
+import type { UpdateGoodsReceiptLotDto } from '../dto/request/update-goods-receipt-lot.dto';
 import type { GoodsReceiptItemResponseDto } from '../dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from '../dto/response/goods-receipt-item-table-response.dto';
+import type { GoodsReceiptLineItemResponseDto } from '../dto/response/goods-receipt-line-item-response.dto';
+import type { GoodsReceiptLineItemTableResponseDto } from '../dto/response/goods-receipt-line-item-table-response.dto';
+import type { GoodsReceiptLineResponseDto } from '../dto/response/goods-receipt-line-response.dto';
+import type { GoodsReceiptLineTableResponseDto } from '../dto/response/goods-receipt-line-table-response.dto';
+import type { GoodsReceiptLotResponseDto } from '../dto/response/goods-receipt-lot-response.dto';
 import type { GoodsReceiptResponseDto } from '../dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from '../dto/response/goods-receipt-table-response.dto';
+import type { GoodsReceiptTreeNodeResponseDto } from '../dto/response/goods-receipt-tree-response.dto';
 
 @Injectable()
 export class GoodsReceiptsGatewayService {
@@ -23,7 +29,10 @@ export class GoodsReceiptsGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  async create(dto: CreateGoodsReceiptDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+  // Header-level operations
+
+  create(dto: CreateGoodsReceiptDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+    this.logger.log('goodsReceipts.create');
     return this.nats.send('commerce', 'goodsReceipts.create', dto);
   }
 
@@ -37,15 +46,32 @@ export class GoodsReceiptsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async findById(id: string): Promise<GoodsReceiptResponseDto> {
+  findById(id: string): Promise<GoodsReceiptResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.findById', { id });
   }
 
-  async findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
+  findTree(goodsReceiptId: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {
+    this.logger.log(`goodsReceipts.tree — receipt: ${goodsReceiptId}`);
+    return this.nats.send('commerce', 'goodsReceipts.tree', { goodsReceiptId });
+  }
+
+  publish(id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`goodsReceipts.publish — id: ${id}`);
+    return this.nats.send('commerce', 'goodsReceipts.publish', { id });
+  }
+
+  delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`goodsReceipts.delete — id: ${id}`);
+    return this.nats.send('commerce', 'goodsReceipts.delete', { id });
+  }
+
+  // Items
+
+  findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
     return this.nats.send('commerce', 'goodsReceipts.inventoryItemIds', { goodsReceiptId });
   }
 
-  async findItems(goodsReceiptId: string): Promise<GoodsReceiptItemResponseDto[]> {
+  findItems(goodsReceiptId: string): Promise<GoodsReceiptItemResponseDto[]> {
     return this.nats.send('commerce', 'goodsReceipts.items', { goodsReceiptId });
   }
 
@@ -62,95 +88,185 @@ export class GoodsReceiptsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async findItemById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemResponseDto> {
+  findItemById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.itemById', { goodsReceiptId, itemId });
   }
 
-  async addItem(goodsReceiptId: string, dto: AddGoodsReceiptItemDto): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
+  addItem(
+    goodsReceiptId: string,
+    dto: AddGoodsReceiptItemDto,
+  ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
     return this.nats.send('commerce', 'goodsReceipts.addItem', { goodsReceiptId, ...dto });
   }
 
-  async updateItem(goodsReceiptId: string, itemId: string, dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
+  updateItem(
+    goodsReceiptId: string,
+    itemId: string,
+    dto: UpdateGoodsReceiptItemDto,
+  ): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.updateItem', { goodsReceiptId, itemId, ...dto });
   }
 
-  async removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
+  removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.removeItem', { goodsReceiptId, itemId });
   }
 
-  async findBatches(goodsReceiptId: string, lineId: string): Promise<GoodsReceiptBatchResponseDto[]> {
-    return this.nats.send('commerce', 'goodsReceipts.batches', { goodsReceiptId, lineId });
+  // Lots (item-scoped)
+
+  findLots(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
+    return this.nats.send('commerce', 'goodsReceipts.lots', { goodsReceiptId, itemId });
   }
 
-  async findBatchById(goodsReceiptId: string, lineId: string, batchId: string): Promise<GoodsReceiptBatchResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.batchById', { goodsReceiptId, lineId, batchId });
-  }
-
-  async addBatch(
+  addLot(
     goodsReceiptId: string,
-    lineId: string,
-    dto: AddGoodsReceiptBatchDto,
-  ): Promise<CreateResponseDto<GoodsReceiptBatchResponseDto>> {
-    return this.nats.send('commerce', 'goodsReceipts.addBatch', { goodsReceiptId, lineId, ...dto });
-  }
-
-  async updateBatch(
-    goodsReceiptId: string,
-    lineId: string,
-    batchId: string,
-    dto: UpdateGoodsReceiptBatchDto,
-  ): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.updateBatch', { goodsReceiptId, lineId, batchId, ...dto });
-  }
-
-  async removeBatch(goodsReceiptId: string, lineId: string, batchId: string): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.removeBatch', { goodsReceiptId, lineId, batchId });
-  }
-
-  async findBatchItems(goodsReceiptId: string, lineId: string, batchId: string): Promise<GoodsReceiptBatchItemResponseDto[]> {
-    return this.nats.send('commerce', 'goodsReceipts.batchItems', { goodsReceiptId, lineId, batchId });
-  }
-
-  async addBatchItem(
-    goodsReceiptId: string,
-    lineId: string,
-    batchId: string,
-    dto: AddGoodsReceiptBatchItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptBatchItemResponseDto>> {
-    return this.nats.send('commerce', 'goodsReceipts.addBatchItem', { goodsReceiptId, lineId, batchId, ...dto });
-  }
-
-  async updateBatchItem(
-    goodsReceiptId: string,
-    lineId: string,
-    batchId: string,
     itemId: string,
-    dto: UpdateGoodsReceiptBatchItemDto,
-  ): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.updateBatchItem', { goodsReceiptId, lineId, batchId, itemId, ...dto });
+    dto: AddGoodsReceiptLotDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
+    return this.nats.send('commerce', 'goodsReceipts.addLot', { goodsReceiptId, itemId, ...dto });
   }
 
-  async removeBatchItem(
+  updateLot(
     goodsReceiptId: string,
-    lineId: string,
-    batchId: string,
     itemId: string,
+    lotId: string,
+    dto: UpdateGoodsReceiptLotDto,
+  ): Promise<GoodsReceiptLotResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.updateLot', { goodsReceiptId, itemId, lotId, ...dto });
+  }
+
+  removeLot(goodsReceiptId: string, itemId: string, lotId: string): Promise<SuccessResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.removeLot', { goodsReceiptId, itemId, lotId });
+  }
+
+  // Lines (item-scoped)
+
+  findLines(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLineResponseDto[]> {
+    return this.nats.send('commerce', 'goodsReceipts.lines', { goodsReceiptId, itemId });
+  }
+
+  async findLinesTable(
+    goodsReceiptId: string,
+    itemId: string,
+    userId: string,
+  ): Promise<GoodsReceiptLineTableResponseDto> {
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `goods-receipt-${goodsReceiptId}-item-${itemId}-lines`,
+    );
+    const { result, count } = await this.nats.send<{ result: GoodsReceiptLineResponseDto[]; count: number }>(
+      'commerce',
+      'goodsReceipts.linesTable',
+      { goodsReceiptId, itemId, ...state },
+    );
+    return { result, count, state, activeViewId };
+  }
+
+  async findLinesByLotTable(
+    goodsReceiptId: string,
+    itemId: string,
+    lotId: string,
+    userId: string,
+  ): Promise<GoodsReceiptLineTableResponseDto> {
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `goods-receipt-${goodsReceiptId}-item-${itemId}-lot-${lotId}-lines`,
+    );
+    const { result, count } = await this.nats.send<{ result: GoodsReceiptLineResponseDto[]; count: number }>(
+      'commerce',
+      'goodsReceipts.linesByLotTable',
+      { goodsReceiptId, itemId, lotId, ...state },
+    );
+    return { result, count, state, activeViewId };
+  }
+
+  findLineById(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+  ): Promise<GoodsReceiptLineResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.lineById', { goodsReceiptId, itemId, lineId });
+  }
+
+  addLine(
+    goodsReceiptId: string,
+    itemId: string,
+    dto: AddGoodsReceiptLineDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLineResponseDto>> {
+    return this.nats.send('commerce', 'goodsReceipts.addLine', { goodsReceiptId, itemId, ...dto });
+  }
+
+  updateLine(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+    dto: UpdateGoodsReceiptLineDto,
+  ): Promise<GoodsReceiptLineResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.updateLine', { goodsReceiptId, itemId, lineId, ...dto });
+  }
+
+  removeLine(goodsReceiptId: string, itemId: string, lineId: string): Promise<SuccessResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.removeLine', { goodsReceiptId, itemId, lineId });
+  }
+
+  // Line items (serials, line-scoped)
+
+  findLineItems(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+  ): Promise<GoodsReceiptLineItemResponseDto[]> {
+    return this.nats.send('commerce', 'goodsReceipts.lineItems', { goodsReceiptId, itemId, lineId });
+  }
+
+  async findLineItemsTable(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+    userId: string,
+  ): Promise<GoodsReceiptLineItemTableResponseDto> {
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `goods-receipt-${goodsReceiptId}-line-${lineId}-items`,
+    );
+    const { result, count } = await this.nats.send<{ result: GoodsReceiptLineItemResponseDto[]; count: number }>(
+      'commerce',
+      'goodsReceipts.lineItemsTable',
+      { goodsReceiptId, itemId, lineId, ...state },
+    );
+    return { result, count, state, activeViewId };
+  }
+
+  addLineItem(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+    dto: AddGoodsReceiptLineItemDto,
+  ): Promise<GoodsReceiptLineItemResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.addLineItem', { goodsReceiptId, itemId, lineId, ...dto });
+  }
+
+  updateLineItem(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+    subItemId: string,
+    dto: UpdateGoodsReceiptLineItemDto,
+  ): Promise<GoodsReceiptLineItemResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.updateLineItem', {
+      goodsReceiptId,
+      itemId,
+      lineId,
+      subItemId,
+      ...dto,
+    });
+  }
+
+  removeLineItem(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+    subItemId: string,
   ): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.removeBatchItem', { goodsReceiptId, lineId, batchId, itemId });
-  }
-
-  async publish(id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`goodsReceipts.publish — id: ${id}`);
-    return this.nats.send('commerce', 'goodsReceipts.publish', { id });
-  }
-
-  async startAllocation(id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`goodsReceipts.startAllocation — id: ${id}`);
-    return this.nats.send('commerce', 'goodsReceipts.startAllocation', { id });
-  }
-
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`goodsReceipts.delete — id: ${id}`);
-    return this.nats.send('commerce', 'goodsReceipts.delete', { id });
+    return this.nats.send('commerce', 'goodsReceipts.removeLineItem', { goodsReceiptId, itemId, lineId, subItemId });
   }
 }

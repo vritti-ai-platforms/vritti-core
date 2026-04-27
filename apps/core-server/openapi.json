@@ -3550,6 +3550,62 @@
         ]
       }
     },
+    "/commerce-api/goods-receipts/{id}/tree": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_tree",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/publish": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_publish",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/goods-receipts/{id}/items/inventory-item-ids": {
       "get": {
         "operationId": "GoodsReceiptsGatewayController_inventoryItemIds",
@@ -3784,9 +3840,9 @@
         ]
       }
     },
-    "/commerce-api/goods-receipts/{id}/items/{itemId}/batches": {
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lots": {
       "get": {
-        "operationId": "GoodsReceiptsGatewayController_batches",
+        "operationId": "GoodsReceiptsGatewayController_lots",
         "parameters": [
           {
             "name": "id",
@@ -3820,7 +3876,7 @@
         ]
       },
       "post": {
-        "operationId": "GoodsReceiptsGatewayController_addBatch",
+        "operationId": "GoodsReceiptsGatewayController_addLot",
         "parameters": [
           {
             "name": "id",
@@ -3844,7 +3900,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddGoodsReceiptBatchDto"
+                "$ref": "#/components/schemas/AddGoodsReceiptLotDto"
               }
             }
           }
@@ -3864,9 +3920,9 @@
         ]
       }
     },
-    "/commerce-api/goods-receipts/{id}/items/{itemId}/batches/{batchId}": {
-      "get": {
-        "operationId": "GoodsReceiptsGatewayController_batchById",
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lots/{lotId}": {
+      "patch": {
+        "operationId": "GoodsReceiptsGatewayController_updateLot",
         "parameters": [
           {
             "name": "id",
@@ -3885,7 +3941,183 @@
             }
           },
           {
-            "name": "batchId",
+            "name": "lotId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGoodsReceiptLotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      },
+      "delete": {
+        "operationId": "GoodsReceiptsGatewayController_removeLot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lotId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lines/table": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_linesTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lots/{lotId}/lines/table": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_linesByLotTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lotId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lines/{lineId}": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_lineById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
             "required": true,
             "in": "path",
             "schema": {
@@ -3908,7 +4140,7 @@
         ]
       },
       "patch": {
-        "operationId": "GoodsReceiptsGatewayController_updateBatch",
+        "operationId": "GoodsReceiptsGatewayController_updateLine",
         "parameters": [
           {
             "name": "id",
@@ -3927,7 +4159,7 @@
             }
           },
           {
-            "name": "batchId",
+            "name": "lineId",
             "required": true,
             "in": "path",
             "schema": {
@@ -3940,7 +4172,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateGoodsReceiptBatchDto"
+                "$ref": "#/components/schemas/UpdateGoodsReceiptLineDto"
               }
             }
           }
@@ -3960,7 +4192,7 @@
         ]
       },
       "delete": {
-        "operationId": "GoodsReceiptsGatewayController_removeBatch",
+        "operationId": "GoodsReceiptsGatewayController_removeLine",
         "parameters": [
           {
             "name": "id",
@@ -3979,7 +4211,7 @@
             }
           },
           {
-            "name": "batchId",
+            "name": "lineId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4002,9 +4234,55 @@
         ]
       }
     },
-    "/commerce-api/goods-receipts/{id}/items/{itemId}/batches/{batchId}/items": {
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lines": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_addLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddGoodsReceiptLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lines/{lineId}/items/table": {
       "get": {
-        "operationId": "GoodsReceiptsGatewayController_batchItems",
+        "operationId": "GoodsReceiptsGatewayController_lineItemsTable",
         "parameters": [
           {
             "name": "id",
@@ -4023,7 +4301,7 @@
             }
           },
           {
-            "name": "batchId",
+            "name": "lineId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4044,9 +4322,11 @@
         "tags": [
           "Commerce - Goods Receipts"
         ]
-      },
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lines/{lineId}/items": {
       "post": {
-        "operationId": "GoodsReceiptsGatewayController_addBatchItem",
+        "operationId": "GoodsReceiptsGatewayController_addLineItem",
         "parameters": [
           {
             "name": "id",
@@ -4065,7 +4345,7 @@
             }
           },
           {
-            "name": "batchId",
+            "name": "lineId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4078,7 +4358,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddGoodsReceiptBatchItemDto"
+                "$ref": "#/components/schemas/AddGoodsReceiptLineItemDto"
               }
             }
           }
@@ -4098,9 +4378,9 @@
         ]
       }
     },
-    "/commerce-api/goods-receipts/{id}/items/{itemId}/batches/{batchId}/items/{subItemId}": {
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/lines/{lineId}/items/{subItemId}": {
       "patch": {
-        "operationId": "GoodsReceiptsGatewayController_updateBatchItem",
+        "operationId": "GoodsReceiptsGatewayController_updateLineItem",
         "parameters": [
           {
             "name": "id",
@@ -4119,7 +4399,7 @@
             }
           },
           {
-            "name": "batchId",
+            "name": "lineId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4140,7 +4420,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateGoodsReceiptBatchItemDto"
+                "$ref": "#/components/schemas/UpdateGoodsReceiptLineItemDto"
               }
             }
           }
@@ -4160,7 +4440,7 @@
         ]
       },
       "delete": {
-        "operationId": "GoodsReceiptsGatewayController_removeBatchItem",
+        "operationId": "GoodsReceiptsGatewayController_removeLineItem",
         "parameters": [
           {
             "name": "id",
@@ -4179,7 +4459,7 @@
             }
           },
           {
-            "name": "batchId",
+            "name": "lineId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4197,62 +4477,6 @@
         ],
         "responses": {
           "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
-    "/commerce-api/goods-receipts/{id}/publish": {
-      "post": {
-        "operationId": "GoodsReceiptsGatewayController_publish",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
-    "/commerce-api/goods-receipts/{id}/start-allocation": {
-      "post": {
-        "operationId": "GoodsReceiptsGatewayController_startAllocation",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
             "description": ""
           }
         },
@@ -6634,9 +6858,9 @@
             "name": "status",
             "required": false,
             "in": "query",
-            "description": "Optional status filter",
+            "description": "Optional status filter. Accepts a single value or comma-separated list.",
             "schema": {
-              "example": "CONFIRMED",
+              "example": "CONFIRMED,PARTIALLY_RECEIVED",
               "type": "string"
             }
           },
@@ -11061,107 +11285,121 @@
             "type": "string",
             "description": "Inventory item ID"
           },
-          "acceptedQuantity": {
-            "type": "number",
-            "description": "Accepted quantity for this GR item"
-          },
           "rejectedQuantity": {
             "type": "number",
-            "description": "Rejected quantity for this GR item"
+            "description": "Damage-on-arrival quantity (does not go to inventory)."
           }
         },
         "required": [
-          "inventoryItemId",
-          "acceptedQuantity"
+          "inventoryItemId"
         ]
       },
       "UpdateGoodsReceiptItemDto": {
         "type": "object",
         "properties": {
-          "inventoryItemId": {
-            "type": "string",
-            "description": "Inventory item ID"
-          },
-          "acceptedQuantity": {
-            "type": "number",
-            "description": "Accepted quantity for this GR item"
-          },
           "rejectedQuantity": {
             "type": "number",
-            "description": "Rejected quantity for this GR item"
+            "description": "Damage-on-arrival quantity (does not go to inventory)."
           }
         }
       },
-      "AddGoodsReceiptBatchDto": {
+      "AddGoodsReceiptLotDto": {
         "type": "object",
         "properties": {
-          "inventoryItemId": {
-            "type": "string"
-          },
-          "locationId": {
-            "type": "string"
-          },
-          "quantity": {
-            "type": "number"
-          },
           "lotNumber": {
             "type": "string",
-            "description": "Lot number (required for tracking=lot or tracking=serial)"
+            "description": "Lot number (must not already exist on inventory_item_lots)"
           },
           "manufacturingDate": {
-            "type": "string"
+            "type": "object",
+            "description": "Manufacturing date"
           },
           "expiryDate": {
-            "type": "string"
+            "type": "object",
+            "description": "Expiry date"
           }
         },
         "required": [
-          "inventoryItemId",
+          "lotNumber"
+        ]
+      },
+      "UpdateGoodsReceiptLotDto": {
+        "type": "object",
+        "properties": {
+          "lotNumber": {
+            "type": "string",
+            "description": "Lot number"
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "description": "Manufacturing date",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "description": "Expiry date",
+            "nullable": true
+          }
+        }
+      },
+      "AddGoodsReceiptLineDto": {
+        "type": "object",
+        "properties": {
+          "goodsReceiptLotId": {
+            "type": "object",
+            "description": "Goods-receipt lot id (required for tracking=lot/serial; null for tracking=quantity).",
+            "nullable": true
+          },
+          "locationId": {
+            "type": "string",
+            "description": "Storage location id where the inventory will land."
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity received for this line. For tracking=serial, pass 0 — quantity grows as serials are added."
+          }
+        },
+        "required": [
           "locationId",
           "quantity"
         ]
       },
-      "UpdateGoodsReceiptBatchDto": {
+      "UpdateGoodsReceiptLineDto": {
         "type": "object",
         "properties": {
-          "inventoryItemId": {
-            "type": "string"
+          "goodsReceiptLotId": {
+            "type": "object",
+            "description": "Goods-receipt lot id",
+            "nullable": true
           },
           "locationId": {
-            "type": "string"
+            "type": "string",
+            "description": "Storage location id"
           },
           "quantity": {
-            "type": "number"
-          },
-          "lotNumber": {
-            "type": "object"
-          },
-          "manufacturingDate": {
-            "type": "object"
-          },
-          "expiryDate": {
-            "type": "object"
+            "type": "number",
+            "description": "Line quantity"
           }
         }
       },
-      "AddGoodsReceiptBatchItemDto": {
+      "AddGoodsReceiptLineItemDto": {
         "type": "object",
         "properties": {
           "serialNumber": {
             "type": "string",
-            "description": "Serial number for the physical unit"
+            "description": "Serial number registered against this line."
           }
         },
         "required": [
           "serialNumber"
         ]
       },
-      "UpdateGoodsReceiptBatchItemDto": {
+      "UpdateGoodsReceiptLineItemDto": {
         "type": "object",
         "properties": {
           "serialNumber": {
             "type": "string",
-            "description": "Serial number for the physical unit"
+            "description": "Serial number registered against this line."
           }
         },
         "required": [

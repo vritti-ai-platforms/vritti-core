@@ -6,12 +6,7 @@ export class AddGoodsReceiptItemDto {
   @IsUUID()
   inventoryItemId: string;
 
-  @ApiProperty({ description: 'Accepted quantity for this GR item' })
-  @IsNumber()
-  @Min(0)
-  acceptedQuantity: number;
-
-  @ApiPropertyOptional({ description: 'Rejected quantity for this GR item' })
+  @ApiPropertyOptional({ description: 'Damage-on-arrival quantity (does not go to inventory).' })
   @IsOptional()
   @IsNumber()
   @Min(0)

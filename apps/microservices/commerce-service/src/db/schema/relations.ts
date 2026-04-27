@@ -63,7 +63,6 @@ export const relations = defineRelations(schema, (r) => ({
     supplierItems: r.many.supplierItems(),
     purchaseOrderItems: r.many.purchaseOrderItems(),
     goodsReceiptItems: r.many.goodsReceiptItems(),
-    goodsReceiptBatches: r.many.goodsReceiptBatches(),
     inventoryItemQuants: r.many.inventoryItemQuants(),
     inventoryItemQuantItems: r.many.inventoryItemQuantItems(),
     inventoryItemLots: r.many.inventoryItemLots(),
@@ -76,7 +75,7 @@ export const relations = defineRelations(schema, (r) => ({
     inventoryItemQuants: r.many.inventoryItemQuants(),
     storageLocationConfigs: r.many.storageLocationConfigs(),
     stockAdjustmentLines: r.many.stockAdjustmentLines(),
-    goodsReceiptBatches: r.many.goodsReceiptBatches(),
+    goodsReceiptLines: r.many.goodsReceiptLines(),
   },
   inventoryItemQuants: {
     inventoryItem: r.one.inventoryItems({
@@ -182,27 +181,6 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     goodsReceiptItems: r.many.goodsReceiptItems(),
   },
-  goodsReceiptBatches: {
-    goodsReceiptItem: r.one.goodsReceiptItems({
-      from: r.goodsReceiptBatches.goodsReceiptLineId,
-      to: r.goodsReceiptItems.id,
-    }),
-    inventoryItem: r.one.inventoryItems({
-      from: r.goodsReceiptBatches.inventoryItemId,
-      to: r.inventoryItems.id,
-    }),
-    location: r.one.storageLocations({
-      from: r.goodsReceiptBatches.locationId,
-      to: r.storageLocations.id,
-    }),
-    goodsReceiptBatchItems: r.many.goodsReceiptBatchItems(),
-  },
-  goodsReceiptBatchItems: {
-    goodsReceiptBatch: r.one.goodsReceiptBatches({
-      from: r.goodsReceiptBatchItems.goodsReceiptBatchId,
-      to: r.goodsReceiptBatches.id,
-    }),
-  },
   goodsReceiptItems: {
     goodsReceipt: r.one.goodsReceipts({
       from: r.goodsReceiptItems.goodsReceiptId,
@@ -212,7 +190,44 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.goodsReceiptItems.inventoryItemId,
       to: r.inventoryItems.id,
     }),
-    goodsReceiptBatches: r.many.goodsReceiptBatches(),
+    goodsReceiptLots: r.many.goodsReceiptLots(),
+    goodsReceiptLines: r.many.goodsReceiptLines(),
+  },
+  goodsReceiptLots: {
+    goodsReceiptItem: r.one.goodsReceiptItems({
+      from: r.goodsReceiptLots.goodsReceiptItemId,
+      to: r.goodsReceiptItems.id,
+    }),
+    resolvedLot: r.one.inventoryItemLots({
+      from: r.goodsReceiptLots.resolvedLotId,
+      to: r.inventoryItemLots.id,
+    }),
+    goodsReceiptLines: r.many.goodsReceiptLines(),
+  },
+  goodsReceiptLines: {
+    goodsReceiptItem: r.one.goodsReceiptItems({
+      from: r.goodsReceiptLines.goodsReceiptItemId,
+      to: r.goodsReceiptItems.id,
+    }),
+    goodsReceiptLot: r.one.goodsReceiptLots({
+      from: r.goodsReceiptLines.goodsReceiptLotId,
+      to: r.goodsReceiptLots.id,
+    }),
+    location: r.one.storageLocations({
+      from: r.goodsReceiptLines.locationId,
+      to: r.storageLocations.id,
+    }),
+    resolvedQuant: r.one.inventoryItemQuants({
+      from: r.goodsReceiptLines.resolvedQuantId,
+      to: r.inventoryItemQuants.id,
+    }),
+    goodsReceiptLineItems: r.many.goodsReceiptLineItems(),
+  },
+  goodsReceiptLineItems: {
+    goodsReceiptLine: r.one.goodsReceiptLines({
+      from: r.goodsReceiptLineItems.goodsReceiptLineId,
+      to: r.goodsReceiptLines.id,
+    }),
   },
   conversions: {
     bom: r.one.bom({

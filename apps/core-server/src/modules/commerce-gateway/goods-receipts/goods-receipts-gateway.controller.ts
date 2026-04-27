@@ -2,19 +2,25 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Pat
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import { AddGoodsReceiptBatchDto } from './dto/request/add-goods-receipt-batch.dto';
-import { AddGoodsReceiptBatchItemDto } from './dto/request/add-goods-receipt-batch-item.dto';
 import { AddGoodsReceiptItemDto } from './dto/request/add-goods-receipt-item.dto';
+import { AddGoodsReceiptLineDto } from './dto/request/add-goods-receipt-line.dto';
+import { AddGoodsReceiptLineItemDto } from './dto/request/add-goods-receipt-line-item.dto';
+import { AddGoodsReceiptLotDto } from './dto/request/add-goods-receipt-lot.dto';
 import { CreateGoodsReceiptDto } from './dto/request/create-goods-receipt.dto';
-import { UpdateGoodsReceiptBatchDto } from './dto/request/update-goods-receipt-batch.dto';
-import { UpdateGoodsReceiptBatchItemDto } from './dto/request/update-goods-receipt-batch-item.dto';
 import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
-import type { GoodsReceiptBatchItemResponseDto } from './dto/response/goods-receipt-batch-item-response.dto';
-import type { GoodsReceiptBatchResponseDto } from './dto/response/goods-receipt-batch-response.dto';
+import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
+import { UpdateGoodsReceiptLineItemDto } from './dto/request/update-goods-receipt-line-item.dto';
+import { UpdateGoodsReceiptLotDto } from './dto/request/update-goods-receipt-lot.dto';
 import type { GoodsReceiptItemResponseDto } from './dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from './dto/response/goods-receipt-item-table-response.dto';
+import type { GoodsReceiptLineItemResponseDto } from './dto/response/goods-receipt-line-item-response.dto';
+import type { GoodsReceiptLineItemTableResponseDto } from './dto/response/goods-receipt-line-item-table-response.dto';
+import type { GoodsReceiptLineResponseDto } from './dto/response/goods-receipt-line-response.dto';
+import type { GoodsReceiptLineTableResponseDto } from './dto/response/goods-receipt-line-table-response.dto';
+import type { GoodsReceiptLotResponseDto } from './dto/response/goods-receipt-lot-response.dto';
 import type { GoodsReceiptResponseDto } from './dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from './dto/response/goods-receipt-table-response.dto';
+import type { GoodsReceiptTreeNodeResponseDto } from './dto/response/goods-receipt-tree-response.dto';
 import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.service';
 
 @ApiTags('Commerce - Goods Receipts')
@@ -25,6 +31,8 @@ export class GoodsReceiptsGatewayController {
   private readonly logger = new Logger(GoodsReceiptsGatewayController.name);
 
   constructor(private readonly service: GoodsReceiptsGatewayService) {}
+
+  // Header
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -44,6 +52,26 @@ export class GoodsReceiptsGatewayController {
     this.logger.log(`GET /commerce-api/goods-receipts/${id}`);
     return this.service.findById(id);
   }
+
+  @Get(':id/tree')
+  tree(@Param('id') id: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${id}/tree`);
+    return this.service.findTree(id);
+  }
+
+  @Post(':id/publish')
+  publish(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${id}/publish`);
+    return this.service.publish(id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/goods-receipts/${id}`);
+    return this.service.delete(id);
+  }
+
+  // Items
 
   @Get(':id/items/inventory-item-ids')
   inventoryItemIds(@Param('id') goodsReceiptId: string): Promise<string[]> {
@@ -95,114 +123,163 @@ export class GoodsReceiptsGatewayController {
     return this.service.removeItem(goodsReceiptId, itemId);
   }
 
-  @Get(':id/items/:itemId/batches')
-  batches(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<GoodsReceiptBatchResponseDto[]> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches`);
-    return this.service.findBatches(goodsReceiptId, itemId);
-  }
+  // Lots
 
-  @Get(':id/items/:itemId/batches/:batchId')
-  batchById(
+  @Get(':id/items/:itemId/lots')
+  lots(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Param('batchId') batchId: string,
-  ): Promise<GoodsReceiptBatchResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches/${batchId}`);
-    return this.service.findBatchById(goodsReceiptId, itemId, batchId);
+  ): Promise<GoodsReceiptLotResponseDto[]> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
+    return this.service.findLots(goodsReceiptId, itemId);
   }
 
-  @Post(':id/items/:itemId/batches')
+  @Post(':id/items/:itemId/lots')
   @HttpCode(HttpStatus.CREATED)
-  addBatch(
+  addLot(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Body() dto: AddGoodsReceiptBatchDto,
-  ): Promise<CreateResponseDto<GoodsReceiptBatchResponseDto>> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches`);
-    return this.service.addBatch(goodsReceiptId, itemId, dto);
+    @Body() dto: AddGoodsReceiptLotDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
+    return this.service.addLot(goodsReceiptId, itemId, dto);
   }
 
-  @Patch(':id/items/:itemId/batches/:batchId')
-  updateBatch(
+  @Patch(':id/items/:itemId/lots/:lotId')
+  updateLot(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Param('batchId') batchId: string,
-    @Body() dto: UpdateGoodsReceiptBatchDto,
+    @Param('lotId') lotId: string,
+    @Body() dto: UpdateGoodsReceiptLotDto,
+  ): Promise<GoodsReceiptLotResponseDto> {
+    this.logger.log(`PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
+    return this.service.updateLot(goodsReceiptId, itemId, lotId, dto);
+  }
+
+  @Delete(':id/items/:itemId/lots/:lotId')
+  removeLot(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lotId') lotId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches/${batchId}`);
-    return this.service.updateBatch(goodsReceiptId, itemId, batchId, dto);
+    this.logger.log(`DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
+    return this.service.removeLot(goodsReceiptId, itemId, lotId);
   }
 
-  @Delete(':id/items/:itemId/batches/:batchId')
-  removeBatch(
+  // Lines
+
+  @Get(':id/items/:itemId/lines/table')
+  linesTable(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Param('batchId') batchId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches/${batchId}`);
-    return this.service.removeBatch(goodsReceiptId, itemId, batchId);
+    @UserId() userId: string,
+  ): Promise<GoodsReceiptLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/table`);
+    return this.service.findLinesTable(goodsReceiptId, itemId, userId);
   }
 
-  @Get(':id/items/:itemId/batches/:batchId/items')
-  batchItems(
+  @Get(':id/items/:itemId/lots/:lotId/lines/table')
+  linesByLotTable(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Param('batchId') batchId: string,
-  ): Promise<GoodsReceiptBatchItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches/${batchId}/items`);
-    return this.service.findBatchItems(goodsReceiptId, itemId, batchId);
+    @Param('lotId') lotId: string,
+    @UserId() userId: string,
+  ): Promise<GoodsReceiptLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}/lines/table`);
+    return this.service.findLinesByLotTable(goodsReceiptId, itemId, lotId, userId);
   }
 
-  @Post(':id/items/:itemId/batches/:batchId/items')
+  @Get(':id/items/:itemId/lines/:lineId')
+  lineById(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
+  ): Promise<GoodsReceiptLineResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    return this.service.findLineById(goodsReceiptId, itemId, lineId);
+  }
+
+  @Post(':id/items/:itemId/lines')
   @HttpCode(HttpStatus.CREATED)
-  addBatchItem(
+  addLine(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Param('batchId') batchId: string,
-    @Body() dto: AddGoodsReceiptBatchItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptBatchItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches/${batchId}/items`);
-    return this.service.addBatchItem(goodsReceiptId, itemId, batchId, dto);
+    @Body() dto: AddGoodsReceiptLineDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLineResponseDto>> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines`);
+    return this.service.addLine(goodsReceiptId, itemId, dto);
   }
 
-  @Patch(':id/items/:itemId/batches/:batchId/items/:subItemId')
-  updateBatchItem(
+  @Patch(':id/items/:itemId/lines/:lineId')
+  updateLine(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Param('batchId') batchId: string,
-    @Param('subItemId') subItemId: string,
-    @Body() dto: UpdateGoodsReceiptBatchItemDto,
+    @Param('lineId') lineId: string,
+    @Body() dto: UpdateGoodsReceiptLineDto,
+  ): Promise<GoodsReceiptLineResponseDto> {
+    this.logger.log(`PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    return this.service.updateLine(goodsReceiptId, itemId, lineId, dto);
+  }
+
+  @Delete(':id/items/:itemId/lines/:lineId')
+  removeLine(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches/${batchId}/items/${subItemId}`);
-    return this.service.updateBatchItem(goodsReceiptId, itemId, batchId, subItemId, dto);
+    this.logger.log(`DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    return this.service.removeLine(goodsReceiptId, itemId, lineId);
   }
 
-  @Delete(':id/items/:itemId/batches/:batchId/items/:subItemId')
-  removeBatchItem(
+  // Line items (serials)
+
+  @Get(':id/items/:itemId/lines/:lineId/items/table')
+  lineItemsTable(
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
-    @Param('batchId') batchId: string,
+    @Param('lineId') lineId: string,
+    @UserId() userId: string,
+  ): Promise<GoodsReceiptLineItemTableResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/table`);
+    return this.service.findLineItemsTable(goodsReceiptId, itemId, lineId, userId);
+  }
+
+  @Post(':id/items/:itemId/lines/:lineId/items')
+  @HttpCode(HttpStatus.CREATED)
+  addLineItem(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: AddGoodsReceiptLineItemDto,
+  ): Promise<GoodsReceiptLineItemResponseDto> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items`);
+    return this.service.addLineItem(goodsReceiptId, itemId, lineId, dto);
+  }
+
+  @Patch(':id/items/:itemId/lines/:lineId/items/:subItemId')
+  updateLineItem(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
+    @Param('subItemId') subItemId: string,
+    @Body() dto: UpdateGoodsReceiptLineItemDto,
+  ): Promise<GoodsReceiptLineItemResponseDto> {
+    this.logger.log(
+      `PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/${subItemId}`,
+    );
+    return this.service.updateLineItem(goodsReceiptId, itemId, lineId, subItemId, dto);
+  }
+
+  @Delete(':id/items/:itemId/lines/:lineId/items/:subItemId')
+  removeLineItem(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
     @Param('subItemId') subItemId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/batches/${batchId}/items/${subItemId}`);
-    return this.service.removeBatchItem(goodsReceiptId, itemId, batchId, subItemId);
-  }
-
-  @Post(':id/publish')
-  publish(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${id}/publish`);
-    return this.service.publish(id);
-  }
-
-  @Post(':id/start-allocation')
-  startAllocation(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${id}/start-allocation`);
-    return this.service.startAllocation(id);
-  }
-
-  @Delete(':id')
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/${id}`);
-    return this.service.delete(id);
+    this.logger.log(
+      `DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/${subItemId}`,
+    );
+    return this.service.removeLineItem(goodsReceiptId, itemId, lineId, subItemId);
   }
 }

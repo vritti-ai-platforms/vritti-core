@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 export const GoodsReceiptStatus = {
   DRAFT: 'DRAFT',
-  ALLOCATION_PENDING: 'ALLOCATION_PENDING',
   PUBLISHED: 'PUBLISHED',
 } as const;
 
@@ -11,7 +10,6 @@ export type GoodsReceiptStatus = (typeof GoodsReceiptStatus)[keyof typeof GoodsR
 
 export const goodsReceiptStatusLabels: Record<GoodsReceiptStatus, string> = {
   DRAFT: 'Draft',
-  ALLOCATION_PENDING: 'Allocation Pending',
   PUBLISHED: 'Published',
 };
 
@@ -47,6 +45,11 @@ export interface GoodsReceiptData {
 }
 
 export type InventoryTracking = 'quantity' | 'lot' | 'serial';
+export const InventoryTrackingValues = {
+  QUANTITY: 'quantity' as const,
+  LOT: 'lot' as const,
+  SERIAL: 'serial' as const,
+};
 
 export interface GoodsReceiptItemData {
   id: string;
@@ -54,34 +57,115 @@ export interface GoodsReceiptItemData {
   inventoryItemId: string;
   inventoryItemName: string | null;
   inventoryItemTracking: InventoryTracking;
+  inventoryItemUomSymbol: string | null;
+  // derived from sum(lines.quantity)
   acceptedQuantity: number;
   rejectedQuantity: number;
-  poItem: { orderedQuantity: number; receivedQuantity: number } | null;
+  lotsCount: number;
+  linesCount: number;
+  isBalanced: boolean;
+  poOrderedQuantity: number | null;
+  poReceivedQuantity: number | null;
+  poRemainingQuantity: number | null;
+  metadata: Record<string, unknown>;
   createdAt: string;
 }
 
-export interface GoodsReceiptBatchData {
+export interface GoodsReceiptLotData {
   id: string;
-  goodsReceiptLineId: string;
-  inventoryItemId: string;
-  inventoryItemName: string | null;
+  goodsReceiptItemId: string;
+  lotNumber: string;
+  manufacturingDate: string | null;
+  expiryDate: string | null;
+  resolvedLotId: string | null;
+  linesCount: number;
+  totalQuantity: number;
+  isBalanced: boolean;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface GoodsReceiptLineData {
+  id: string;
+  goodsReceiptItemId: string;
+  goodsReceiptLotId: string | null;
   locationId: string;
   locationName: string | null;
-  quantity: number;
+  // denormalized lot info (display only):
   lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
-  batchItemsCount: number;
+  quantity: number;
+  resolvedQuantId: string | null;
   isBalanced: boolean;
+  lineItemsCount: number;
+  metadata: Record<string, unknown>;
   createdAt: string;
 }
 
-export interface GoodsReceiptBatchItemData {
+export interface GoodsReceiptLineItemData {
   id: string;
-  goodsReceiptBatchId: string;
+  goodsReceiptLineId: string;
   serialNumber: string;
+  metadata: Record<string, unknown>;
   createdAt: string;
+}
+
+export interface GoodsReceiptTreeNode {
+  id: string;
+  name: string;
+  // [itemId] | [itemId, lotId] | [itemId, lotId, lineId]
+  path: string[];
+  kind: 'item' | 'lot' | 'line';
+  // item-only:
+  inventoryItemTracking?: InventoryTracking;
+  inventoryItemUomSymbol?: string;
+  acceptedQuantity?: number;
+  rejectedQuantity?: number;
+  poOrderedQuantity?: number | null;
+  poReceivedQuantity?: number | null;
+  poRemainingQuantity?: number | null;
+  // lot-only:
+  totalQuantity?: number;
+  linesCount?: number;
+  // line-only:
+  quantity?: number;
+  lineItemsCount?: number;
+  isBalanced: boolean;
+  children?: GoodsReceiptTreeNode[];
 }
 
 export type GoodsReceiptsTableResponse = TableResponse<GoodsReceiptData>;
 export type GoodsReceiptItemsTableResponse = TableResponse<GoodsReceiptItemData>;
+export type GoodsReceiptLinesTableResponse = TableResponse<GoodsReceiptLineData>;
+export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineItemData>;
+
+export const addGoodsReceiptItemSchema = z.object({
+  inventoryItemId: z.string().min(1, 'Inventory item is required'),
+  rejectedQuantity: z.string().optional(),
+});
+export type AddGoodsReceiptItemFormData = z.infer<typeof addGoodsReceiptItemSchema>;
+
+export const updateGoodsReceiptItemSchema = z.object({
+  rejectedQuantity: z.string().optional(),
+});
+export type UpdateGoodsReceiptItemFormData = z.infer<typeof updateGoodsReceiptItemSchema>;
+
+export const addGoodsReceiptLotSchema = z.object({
+  lotNumber: z.string().min(1, 'Lot number is required').max(100),
+  manufacturingDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+});
+export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema>;
+
+export const addGoodsReceiptLineSchema = z.object({
+  goodsReceiptLotId: z.string().optional(),
+  locationId: z.string().min(1, 'Location is required'),
+  quantity: z.string().min(1, 'Quantity is required'),
+});
+export type AddGoodsReceiptLineFormData = z.infer<typeof addGoodsReceiptLineSchema>;
+
+export const addGoodsReceiptLineItemSchema = z.object({
+  serialNumber: z.string().min(1, 'Serial number is required').max(100),
+});
+export type AddGoodsReceiptLineItemFormData = z.infer<typeof addGoodsReceiptLineItemSchema>;

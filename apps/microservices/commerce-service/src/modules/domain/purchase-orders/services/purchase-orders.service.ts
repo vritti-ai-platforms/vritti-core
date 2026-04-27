@@ -11,7 +11,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor, resolveCurrency } from '@vritti/api-sdk/money';
 import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems, purchaseOrders } from '@/db/schema';
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
@@ -62,12 +62,18 @@ export class PurchaseOrdersService {
     private readonly suppliersService: SuppliersService,
   ) {}
 
-  // Returns paginated purchase order options for select dropdowns
+  // Returns paginated purchase order options for select dropdowns.
+  // `status` accepts a single value or a comma-separated list (e.g. "CONFIRMED,PARTIALLY_RECEIVED").
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     const { status, supplierId } = query as SelectOptionsQueryDto & { status?: string; supplierId?: string };
     const where: Record<string, string> = {};
-    if (status) where.status = status;
     if (supplierId) where.supplierId = supplierId;
+
+    const statusList = status
+      ?.split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const conditions = statusList && statusList.length > 0 ? [inArray(purchaseOrders.status, statusList as PurchaseOrderStatus[])] : undefined;
 
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
@@ -81,6 +87,7 @@ export class PurchaseOrdersService {
       values: query.values,
       excludeIds: query.excludeIds,
       where: Object.keys(where).length > 0 ? where : undefined,
+      conditions,
       orderByKey: query.orderByKey || 'poNumber',
       orderDirection: query.orderDirection || 'desc',
     });

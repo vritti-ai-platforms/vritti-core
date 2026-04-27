@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { index, jsonb, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceiptStatusEnum } from './enums';
 import { purchaseOrders } from './purchase-orders';
@@ -20,6 +20,7 @@ export const goodsReceipts = coreSchema.table(
     receivedBy: uuid('received_by'),
     receivedDate: timestamp('received_date', { withTimezone: true, mode: 'string' }).notNull(),
     notes: text('notes'),
+    metadata: jsonb('metadata').notNull().default({}),
     publishedAt: timestamp('published_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },

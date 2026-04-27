@@ -1,21 +1,35 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { GoodsReceiptItemData } from '@/schemas/goods-receipts';
-import { type AddGoodsReceiptItemPayload, addGoodsReceiptItem } from '@/services/goods-receipts.service';
-import { GOODS_RECEIPT_ITEMS_KEY, GOODS_RECEIPT_KEY } from './keys';
+import type { GoodsReceiptLineData } from '@/schemas/goods-receipts';
+import { type AddGoodsReceiptLinePayload, addGoodsReceiptLine } from '@/services/goods-receipts.service';
+import {
+  GOODS_RECEIPT_ITEMS_KEY,
+  GOODS_RECEIPT_ITEMS_TABLE_KEY,
+  GOODS_RECEIPT_ITEM_KEY,
+  GOODS_RECEIPT_KEY,
+  GOODS_RECEIPT_LINES_TABLE_KEY,
+  GOODS_RECEIPT_LOTS_KEY,
+  GOODS_RECEIPT_TREE_KEY,
+} from './keys';
 
-export function useAddGoodsReceiptItem(
+export function useAddGoodsReceiptLine(
   goodsReceiptId: string,
-  options?: Omit<UseMutationOptions<GoodsReceiptItemData, AxiosError, AddGoodsReceiptItemPayload>, 'mutationFn'>,
+  itemId: string,
+  options?: Omit<UseMutationOptions<GoodsReceiptLineData, AxiosError, AddGoodsReceiptLinePayload>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<GoodsReceiptItemData, AxiosError, AddGoodsReceiptItemPayload>({
+  return useMutation<GoodsReceiptLineData, AxiosError, AddGoodsReceiptLinePayload>({
     ...options,
-    mutationFn: (payload) => addGoodsReceiptItem(goodsReceiptId, payload),
+    mutationFn: (data) => addGoodsReceiptLine(goodsReceiptId, itemId, data),
     onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_LINES_TABLE_KEY(goodsReceiptId, itemId) });
+      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_LOTS_KEY(goodsReceiptId, itemId) });
+      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_ITEM_KEY(goodsReceiptId, itemId) });
       queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_ITEMS_KEY(goodsReceiptId) });
+      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_ITEMS_TABLE_KEY(goodsReceiptId) });
       queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_KEY(goodsReceiptId) });
+      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_TREE_KEY(goodsReceiptId) });
       options?.onSuccess?.(...args);
     },
   });

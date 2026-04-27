@@ -248,14 +248,9 @@ export const PurchaseOrderStatusValues = {
 };
 export type PurchaseOrderStatus = (typeof purchaseOrderStatusEnum.enumValues)[number];
 
-export const goodsReceiptStatusEnum = coreSchema.enum('goods_receipt_status', [
-  'DRAFT',
-  'ALLOCATION_PENDING',
-  'PUBLISHED',
-]);
+export const goodsReceiptStatusEnum = coreSchema.enum('goods_receipt_status', ['DRAFT', 'PUBLISHED']);
 export const GoodsReceiptStatusValues = {
   DRAFT: 'DRAFT' as const,
-  ALLOCATION_PENDING: 'ALLOCATION_PENDING' as const,
   PUBLISHED: 'PUBLISHED' as const,
 };
 export type GoodsReceiptStatus = (typeof goodsReceiptStatusEnum.enumValues)[number];

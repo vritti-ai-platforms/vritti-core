@@ -3,7 +3,10 @@ import { SelectOptionsQueryDto } from '@vritti/api-sdk';
 import { IsOptional, IsString } from 'class-validator';
 
 export class PurchaseOrderSelectQueryDto extends SelectOptionsQueryDto {
-  @ApiPropertyOptional({ description: 'Optional status filter', example: 'CONFIRMED' })
+  @ApiPropertyOptional({
+    description: 'Optional status filter. Accepts a single value or comma-separated list.',
+    example: 'CONFIRMED,PARTIALLY_RECEIVED',
+  })
   @IsOptional()
   @IsString()
   status?: string;

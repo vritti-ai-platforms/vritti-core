@@ -1,12 +1,16 @@
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
 import type {
-  GoodsReceiptBatchData,
-  GoodsReceiptBatchItemData,
   GoodsReceiptData,
   GoodsReceiptItemData,
   GoodsReceiptItemsTableResponse,
+  GoodsReceiptLineData,
+  GoodsReceiptLineItemData,
+  GoodsReceiptLineItemsTableResponse,
+  GoodsReceiptLinesTableResponse,
+  GoodsReceiptLotData,
   GoodsReceiptsTableResponse,
+  GoodsReceiptTreeNode,
 } from '@/schemas/goods-receipts';
 
 export interface CreateGoodsReceiptPayload {
@@ -19,33 +23,46 @@ export interface CreateGoodsReceiptPayload {
 
 export interface AddGoodsReceiptItemPayload {
   inventoryItemId: string;
-  acceptedQuantity: number;
   rejectedQuantity?: number;
 }
 
-export interface AddGoodsReceiptBatchPayload {
-  inventoryItemId: string;
+export interface UpdateGoodsReceiptItemPayload {
+  rejectedQuantity?: number;
+}
+
+export interface AddGoodsReceiptLotPayload {
+  lotNumber: string;
+  manufacturingDate?: string | null;
+  expiryDate?: string | null;
+}
+
+export interface UpdateGoodsReceiptLotPayload {
+  lotNumber?: string;
+  manufacturingDate?: string | null;
+  expiryDate?: string | null;
+}
+
+export interface AddGoodsReceiptLinePayload {
+  goodsReceiptLotId?: string | null;
   locationId: string;
   quantity: number;
-  lotNumber?: string;
-  manufacturingDate?: string;
-  expiryDate?: string;
 }
 
-export interface UpdateGoodsReceiptItemPayload {
-  acceptedQuantity: number;
-  rejectedQuantity: number;
+export interface UpdateGoodsReceiptLinePayload {
+  goodsReceiptLotId?: string | null;
+  locationId?: string;
+  quantity?: number;
 }
 
-export interface UpdateGoodsReceiptBatchPayload extends Partial<AddGoodsReceiptBatchPayload> {}
-
-export interface AddGoodsReceiptBatchItemPayload {
+export interface AddGoodsReceiptLineItemPayload {
   serialNumber: string;
 }
 
-export interface UpdateGoodsReceiptBatchItemPayload {
+export interface UpdateGoodsReceiptLineItemPayload {
   serialNumber: string;
 }
+
+// Header
 
 export function getGoodsReceiptsTable(): Promise<GoodsReceiptsTableResponse> {
   return axios
@@ -59,9 +76,25 @@ export function getGoodsReceipt(id: string): Promise<GoodsReceiptData> {
     .then((r) => r.data);
 }
 
+export function getGoodsReceiptTree(id: string): Promise<GoodsReceiptTreeNode[]> {
+  return axios
+    .get<GoodsReceiptTreeNode[]>(`commerce-api/goods-receipts/${id}/tree`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
 export function createGoodsReceipt(data: CreateGoodsReceiptPayload): Promise<GoodsReceiptData> {
   return axios.post<GoodsReceiptData>('commerce-api/goods-receipts', data).then((r) => r.data);
 }
+
+export function publishGoodsReceipt(id: string): Promise<GoodsReceiptData> {
+  return axios.post<GoodsReceiptData>(`commerce-api/goods-receipts/${id}/publish`).then((r) => r.data);
+}
+
+export function deleteGoodsReceipt(id: string): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}`).then((r) => r.data);
+}
+
+// Items
 
 export function getGoodsReceiptInventoryItemIds(id: string): Promise<string[]> {
   return axios
@@ -70,7 +103,9 @@ export function getGoodsReceiptInventoryItemIds(id: string): Promise<string[]> {
 }
 
 export function getGoodsReceiptItems(id: string): Promise<GoodsReceiptItemData[]> {
-  return axios.get<GoodsReceiptItemData[]>(`commerce-api/goods-receipts/${id}/items`, { showSuccessToast: false }).then((r) => r.data);
+  return axios
+    .get<GoodsReceiptItemData[]>(`commerce-api/goods-receipts/${id}/items`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
 export function getGoodsReceiptItemsTable(id: string): Promise<GoodsReceiptItemsTableResponse> {
@@ -95,9 +130,9 @@ export function updateGoodsReceiptItem(
   id: string,
   itemId: string,
   data: UpdateGoodsReceiptItemPayload,
-): Promise<GoodsReceiptItemData> {
+): Promise<SuccessResponse> {
   return axios
-    .patch<GoodsReceiptItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}`, data)
+    .patch<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}`, data)
     .then((r) => r.data);
 }
 
@@ -105,90 +140,154 @@ export function removeGoodsReceiptItem(id: string, itemId: string): Promise<Succ
   return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}`).then((r) => r.data);
 }
 
-export function getGoodsReceiptBatches(id: string, itemId: string): Promise<GoodsReceiptBatchData[]> {
+// Lots (item-scoped)
+
+export function getGoodsReceiptLots(id: string, itemId: string): Promise<GoodsReceiptLotData[]> {
   return axios
-    .get<GoodsReceiptBatchData[]>(`commerce-api/goods-receipts/${id}/items/${itemId}/batches`, { showSuccessToast: false })
+    .get<GoodsReceiptLotData[]>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
-export function addGoodsReceiptBatch(
+export function addGoodsReceiptLot(
   id: string,
   itemId: string,
-  data: AddGoodsReceiptBatchPayload,
-): Promise<GoodsReceiptBatchData> {
+  data: AddGoodsReceiptLotPayload,
+): Promise<GoodsReceiptLotData> {
   return axios
-    .post<CreateResponse<GoodsReceiptBatchData>>(`commerce-api/goods-receipts/${id}/items/${itemId}/batches`, data)
+    .post<CreateResponse<GoodsReceiptLotData>>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots`, data)
     .then((r) => r.data.data);
 }
 
-export function updateGoodsReceiptBatch(
+export function updateGoodsReceiptLot(
   id: string,
   itemId: string,
-  batchId: string,
-  data: UpdateGoodsReceiptBatchPayload,
-): Promise<GoodsReceiptBatchData> {
+  lotId: string,
+  data: UpdateGoodsReceiptLotPayload,
+): Promise<GoodsReceiptLotData> {
   return axios
-    .patch<GoodsReceiptBatchData>(`commerce-api/goods-receipts/${id}/items/${itemId}/batches/${batchId}`, data)
+    .patch<GoodsReceiptLotData>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots/${lotId}`, data)
     .then((r) => r.data);
 }
 
-export function removeGoodsReceiptBatch(id: string, itemId: string, batchId: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/batches/${batchId}`).then((r) => r.data);
+export function removeGoodsReceiptLot(id: string, itemId: string, lotId: string): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots/${lotId}`)
+    .then((r) => r.data);
 }
 
-export function getGoodsReceiptBatchItems(id: string, itemId: string, batchId: string): Promise<GoodsReceiptBatchItemData[]> {
+// Lines (item-scoped)
+
+export function getGoodsReceiptLinesTable(id: string, itemId: string): Promise<GoodsReceiptLinesTableResponse> {
   return axios
-    .get<GoodsReceiptBatchItemData[]>(`commerce-api/goods-receipts/${id}/items/${itemId}/batches/${batchId}/items`, {
+    .get<GoodsReceiptLinesTableResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/table`, {
       showSuccessToast: false,
     })
     .then((r) => r.data);
 }
 
-export function addGoodsReceiptBatchItem(
+export function getGoodsReceiptLinesByLotTable(
   id: string,
   itemId: string,
-  batchId: string,
-  data: AddGoodsReceiptBatchItemPayload,
-): Promise<GoodsReceiptBatchItemData> {
+  lotId: string,
+): Promise<GoodsReceiptLinesTableResponse> {
   return axios
-    .post<GoodsReceiptBatchItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}/batches/${batchId}/items`, data)
+    .get<GoodsReceiptLinesTableResponse>(
+      `commerce-api/goods-receipts/${id}/items/${itemId}/lots/${lotId}/lines/table`,
+      { showSuccessToast: false },
+    )
     .then((r) => r.data);
 }
 
-export function updateGoodsReceiptBatchItem(
+export function getGoodsReceiptLineById(
   id: string,
   itemId: string,
-  batchId: string,
-  subItemId: string,
-  data: AddGoodsReceiptBatchItemPayload,
-): Promise<GoodsReceiptBatchItemData> {
+  lineId: string,
+): Promise<GoodsReceiptLineData> {
   return axios
-    .patch<GoodsReceiptBatchItemData>(
-      `commerce-api/goods-receipts/${id}/items/${itemId}/batches/${batchId}/items/${subItemId}`,
+    .get<GoodsReceiptLineData>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}`, {
+      showSuccessToast: false,
+    })
+    .then((r) => r.data);
+}
+
+export function addGoodsReceiptLine(
+  id: string,
+  itemId: string,
+  data: AddGoodsReceiptLinePayload,
+): Promise<GoodsReceiptLineData> {
+  return axios
+    .post<CreateResponse<GoodsReceiptLineData>>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines`, data)
+    .then((r) => r.data.data);
+}
+
+export function updateGoodsReceiptLine(
+  id: string,
+  itemId: string,
+  lineId: string,
+  data: UpdateGoodsReceiptLinePayload,
+): Promise<GoodsReceiptLineData> {
+  return axios
+    .patch<GoodsReceiptLineData>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}`, data)
+    .then((r) => r.data);
+}
+
+export function removeGoodsReceiptLine(id: string, itemId: string, lineId: string): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}`)
+    .then((r) => r.data);
+}
+
+// Line items (serials, line-scoped)
+
+export function getGoodsReceiptLineItemsTable(
+  id: string,
+  itemId: string,
+  lineId: string,
+): Promise<GoodsReceiptLineItemsTableResponse> {
+  return axios
+    .get<GoodsReceiptLineItemsTableResponse>(
+      `commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/table`,
+      { showSuccessToast: false },
+    )
+    .then((r) => r.data);
+}
+
+export function addGoodsReceiptLineItem(
+  id: string,
+  itemId: string,
+  lineId: string,
+  data: AddGoodsReceiptLineItemPayload,
+): Promise<GoodsReceiptLineItemData> {
+  return axios
+    .post<GoodsReceiptLineItemData>(
+      `commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items`,
       data,
     )
     .then((r) => r.data);
 }
 
-export function removeGoodsReceiptBatchItem(
+export function updateGoodsReceiptLineItem(
   id: string,
   itemId: string,
-  batchId: string,
+  lineId: string,
   subItemId: string,
-): Promise<SuccessResponse> {
+  data: UpdateGoodsReceiptLineItemPayload,
+): Promise<GoodsReceiptLineItemData> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/batches/${batchId}/items/${subItemId}`)
+    .patch<GoodsReceiptLineItemData>(
+      `commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/${subItemId}`,
+      data,
+    )
     .then((r) => r.data);
 }
 
-export function publishGoodsReceipt(id: string): Promise<GoodsReceiptData> {
-  return axios.post<GoodsReceiptData>(`commerce-api/goods-receipts/${id}/publish`).then((r) => r.data);
-}
-
-export function startGoodsReceiptAllocation(id: string): Promise<GoodsReceiptData> {
-  return axios.post<GoodsReceiptData>(`commerce-api/goods-receipts/${id}/start-allocation`).then((r) => r.data);
-}
-
-export function deleteGoodsReceipt(id: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}`).then((r) => r.data);
+export function removeGoodsReceiptLineItem(
+  id: string,
+  itemId: string,
+  lineId: string,
+  subItemId: string,
+): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/${subItemId}`)
+    .then((r) => r.data);
 }

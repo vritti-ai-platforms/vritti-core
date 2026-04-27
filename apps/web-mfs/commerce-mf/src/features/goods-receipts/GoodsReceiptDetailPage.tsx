@@ -2,56 +2,51 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { useState } from 'react';
+import { CheckCircle } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useGoodsReceipt } from '@/hooks/goods-receipts/useGoodsReceipt';
-import { useGoodsReceiptInventoryItemIds } from '@/hooks/goods-receipts/useGoodsReceiptLineIds';
-import { GoodsReceiptStatus, goodsReceiptStatusLabels } from '@/schemas/goods-receipts';
 import {
   useDeleteGoodsReceipt,
+  useGoodsReceipt,
   usePublishGoodsReceipt,
-  useStartGoodsReceiptAllocation,
-} from '@/hooks/goods-receipts/useGoodsReceiptMutations';
-import { ItemsTab } from './tabs/ItemsTab';
-import { OverviewTab } from './tabs/OverviewTab';
-
+} from '@/hooks/goods-receipts';
+import { GoodsReceiptStatus, goodsReceiptStatusLabels } from '@/schemas/goods-receipts';
+import { GoodsReceiptOverviewCard } from './components/GoodsReceiptOverviewCard';
+import { GoodsReceiptTreePanel, type TreeSelection } from './components/GoodsReceiptTreePanel';
+import { RightContent } from './components/RightContent';
 
 export const GoodsReceiptDetailPage = () => {
   const { id } = useSlugParams('grSlug');
   const navigate = useNavigate();
   const confirm = useConfirm();
   const { data: receipt } = useGoodsReceipt(id);
-  const { data: inventoryItemIds = [] } = useGoodsReceiptInventoryItemIds(id);
-  const publishMutation = usePublishGoodsReceipt();
-  const startAllocationMutation = useStartGoodsReceiptAllocation();
+  const publishMutation = usePublishGoodsReceipt(receipt.id);
   const deleteMutation = useDeleteGoodsReceipt();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [selection, setSelection] = useState<TreeSelection | null>(null);
 
   const isDraft = receipt.status === GoodsReceiptStatus.DRAFT;
-  const isAllocationPending = receipt.status === GoodsReceiptStatus.ALLOCATION_PENDING;
-  const canPublish = isAllocationPending && receipt.isPublishable;
-  const lineCount = inventoryItemIds.length;
+  const canPublish = isDraft && !!receipt.isPublishable;
 
-  const handleStartAllocation = async () => {
+  const handlePublish = useCallback(async () => {
     const confirmed = await confirm({
-      title: 'Move to batch allocation?',
-      description: 'You will stop editing line quantities and move to batch and item allocation.',
-      confirmLabel: 'Start Allocation',
+      title: 'Publish this goods receipt?',
+      description: 'Publishing creates inventory entries and locks the receipt from further editing.',
+      confirmLabel: 'Publish',
     });
-    if (confirmed) startAllocationMutation.mutate(receipt.id);
-  };
+    if (confirmed) publishMutation.mutate();
+  }, [confirm, publishMutation]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     const confirmed = await confirm({
-      title: 'Delete this goods receipt?',
-      description: 'This will permanently delete the receipt and all its lines.',
+      title: 'Delete this draft?',
+      description: 'This goods receipt and all its items, lots, lines, and serials will be removed.',
       confirmLabel: 'Delete',
       variant: 'destructive',
     });
     if (confirmed) deleteMutation.mutate(receipt.id, { onSuccess: () => navigate('..') });
-  };
+  }, [confirm, deleteMutation, navigate, receipt.id]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,30 +57,11 @@ export const GoodsReceiptDetailPage = () => {
         actions={
           isDraft ? (
             <Button
-              onClick={handleStartAllocation}
-              isLoading={startAllocationMutation.isPending}
-              disabled={lineCount === 0}
-              disabledTip="Add at least one line item before starting allocation."
-            >
-              Start Allocation
-            </Button>
-          ) : isAllocationPending ? (
-            <Button
-              onClick={async () => {
-                const confirmed = await confirm({
-                  title: 'Publish this goods receipt?',
-                  description: 'Publishing will apply inventory updates and lock this receipt from further editing.',
-                  alert: {
-                    type: 'warning',
-                    text: 'You cannot add any line items after this action.',
-                  },
-                  confirmLabel: 'Publish',
-                });
-                if (confirmed) publishMutation.mutate(receipt.id);
-              }}
+              startAdornment={<CheckCircle className="size-4" />}
+              onClick={handlePublish}
               isLoading={publishMutation.isPending}
               disabled={!canPublish}
-              disabledTip="Complete batch allocation and balancing before publishing."
+              disabledTip="Add items, balance lines, and stay within PO caps before publishing."
             >
               Publish
             </Button>
@@ -93,31 +69,33 @@ export const GoodsReceiptDetailPage = () => {
         }
       />
 
-      <Tabs
-        tabs={[
-          {
-            value: 'overview',
-            label: 'Overview',
-            content: <OverviewTab id={id} />,
-          },
-          {
-            value: 'items',
-            label: lineCount > 0 ? `Items (${lineCount})` : 'Items',
-            content: <ItemsTab id={id} receipt={receipt} existingInventoryItemIds={inventoryItemIds} />,
-          },
-        ]}
-        value={activeTab}
-        onValueChange={setActiveTab}
-      />
+      <GoodsReceiptOverviewCard id={id} />
 
-{(isDraft || isAllocationPending) && (
+      <PageContent>
+        <GoodsReceiptTreePanel
+          goodsReceiptId={receipt.id}
+          isDraft={isDraft}
+          poId={receipt.po?.id ?? null}
+          supplierId={receipt.supplierId}
+          selection={selection}
+          onSelect={setSelection}
+        />
+        <RightContent
+          goodsReceiptId={receipt.id}
+          isDraft={isDraft}
+          selection={selection}
+          onSelectionChange={setSelection}
+        />
+      </PageContent>
+
+      {isDraft && (
         <DangerZone
-          title="Delete Goods Receipt"
-          description="Permanently delete this receipt and all its lines. This cannot be undone."
-          buttonText="Delete"
+          title="Delete this draft"
+          description="This action cannot be undone. The draft receipt and all its items, lots, lines, and serials will be permanently removed."
+          buttonText="Delete Draft"
+          onClick={handleDelete}
           isLoading={deleteMutation.isPending}
           disabled={deleteMutation.isPending}
-          onClick={handleDelete}
         />
       )}
     </div>

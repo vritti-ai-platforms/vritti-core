@@ -1,5 +1,5 @@
 import { PurchaseOrderItemsRepository } from '@domain/purchase-orders/repositories/purchase-order-items.repository';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   type CreateResponseDto,
@@ -8,43 +8,40 @@ import {
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
-import { GoodsReceiptBatchesRepository } from '../repositories/goods-receipt-batches.repository';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
 
 @Injectable()
 export class GoodsReceiptItemsService {
+  private readonly logger = new Logger(GoodsReceiptItemsService.name);
+
   private static readonly FIELD_MAP: FieldMap = {
     inventoryItemName: { column: inventoryItems.name, type: 'string' },
-    acceptedQuantity: { column: goodsReceiptItems.acceptedQuantity, type: 'number' },
     rejectedQuantity: { column: goodsReceiptItems.rejectedQuantity, type: 'number' },
   };
 
   constructor(
     private readonly receiptsRepository: GoodsReceiptsRepository,
     private readonly itemsRepository: GoodsReceiptItemsRepository,
-    private readonly batchesRepository: GoodsReceiptBatchesRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
   ) {}
 
-  // Find all inventory item IDs for a goods receipt
   async findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
     await this.ensureReceiptExists(goodsReceiptId);
     return this.itemsRepository.findInventoryItemIds(goodsReceiptId);
   }
 
-  // Find all items for a goods receipt
   async findByGoodsReceiptId(goodsReceiptId: string): Promise<GoodsReceiptItemDto[]> {
     await this.ensureReceiptExists(goodsReceiptId);
     const rows = await this.itemsRepository.findByReceiptId(goodsReceiptId);
-    return rows.map((row) => GoodsReceiptItemDto.from(row));
+    return rows.map(GoodsReceiptItemDto.from);
   }
 
-  // Find items for table view with filtering, search, and pagination
   async findForTable(
     goodsReceiptId: string,
     state: TableViewState,
@@ -63,25 +60,20 @@ export class GoodsReceiptItemsService {
       offset,
     });
 
-    return { result: result.map((row) => GoodsReceiptItemDto.from(row)), count };
+    return { result: result.map(GoodsReceiptItemDto.from), count };
   }
 
-  // Find a single item by receipt ID and item ID
   async findById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemDto> {
     await this.ensureReceiptExists(goodsReceiptId);
-    const item = await this.itemsRepository.findByReceiptIdAndItemId(goodsReceiptId, itemId);
-    if (!item) throw new NotFoundException('Goods receipt item not found.');
-
-    const rows = await this.itemsRepository.findByReceiptId(goodsReceiptId);
-    const enriched = rows.find((row) => row.id === item.id);
-    if (!enriched) throw new NotFoundException('Goods receipt item not found.');
-    return GoodsReceiptItemDto.from(enriched);
+    const row = await this.itemsRepository.findByReceiptIdAndItemIdWithRefs(goodsReceiptId, itemId);
+    if (!row) throw new NotFoundException('Goods receipt item not found.');
+    return GoodsReceiptItemDto.from(row);
   }
 
-  // Add an item to a goods receipt
+  // Add an item to a goods receipt. acceptedQuantity is derived from sum(lines.quantity).
   async addItem(
     goodsReceiptId: string,
-    data: { inventoryItemId: string; acceptedQuantity: number; rejectedQuantity?: number },
+    data: { inventoryItemId: string; rejectedQuantity?: number },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
     if (receipt.purchaseOrderId) {
@@ -91,15 +83,26 @@ export class GoodsReceiptItemsService {
       }
     }
 
-    this.validateQuantities(data.acceptedQuantity, data.rejectedQuantity ?? 0);
+    // Reject duplicate (DB also enforces unique constraint, but produce a clean error)
+    const existing = await this.itemsRepository.findByReceiptAndInventoryItem(goodsReceiptId, data.inventoryItemId);
+    if (existing) {
+      throw new ValidationException({
+        detail: 'This inventory item is already on the goods receipt.',
+        errors: [{ field: 'inventoryItemId', message: 'Already added to this goods receipt.' }],
+      });
+    }
+
+    if (data.rejectedQuantity !== undefined) {
+      this.validateRejectedQuantity(data.rejectedQuantity);
+    }
 
     const entity = await this.itemsRepository.create({
       goodsReceiptId,
       inventoryItemId: data.inventoryItemId,
-      acceptedQuantity: String(data.acceptedQuantity),
       rejectedQuantity: String(data.rejectedQuantity ?? 0),
     });
 
+    this.logger.log(`Added item ${entity.id} to goods receipt ${goodsReceiptId}`);
     const dto = await this.findById(goodsReceiptId, entity.id);
     return {
       success: true,
@@ -108,38 +111,26 @@ export class GoodsReceiptItemsService {
     };
   }
 
-  // Update an existing item on a goods receipt
+  // Update an existing item (only rejectedQuantity is editable; inventoryItemId is set-once).
   async updateItem(
     goodsReceiptId: string,
     itemId: string,
-    data: { inventoryItemId?: string; acceptedQuantity?: number; rejectedQuantity?: number },
+    data: { rejectedQuantity?: number },
   ): Promise<SuccessResponseDto> {
-    const receipt = await this.ensureEditableReceipt(goodsReceiptId);
+    await this.ensureEditableReceipt(goodsReceiptId);
     const item = await this.itemsRepository.findByReceiptIdAndItemId(goodsReceiptId, itemId);
     if (!item) throw new NotFoundException('Goods receipt item not found.');
 
-    if (data.inventoryItemId !== undefined && receipt.purchaseOrderId) {
-      const poItem = await this.poItemsRepository.findItemByInventoryItemId(receipt.purchaseOrderId, data.inventoryItemId);
-      if (!poItem) {
-        throw new BadRequestException('Inventory item is not part of the linked purchase order.');
-      }
-    }
-
-    if (data.acceptedQuantity !== undefined || data.rejectedQuantity !== undefined) {
-      const acceptedQuantity = data.acceptedQuantity ?? Number(item.acceptedQuantity);
-      const rejectedQuantity = data.rejectedQuantity ?? Number(item.rejectedQuantity);
-      this.validateQuantities(acceptedQuantity, rejectedQuantity);
+    if (data.rejectedQuantity !== undefined) {
+      this.validateRejectedQuantity(data.rejectedQuantity);
     }
 
     await this.itemsRepository.update(item.id, {
-      inventoryItemId: data.inventoryItemId,
-      acceptedQuantity: data.acceptedQuantity === undefined ? undefined : String(data.acceptedQuantity),
       rejectedQuantity: data.rejectedQuantity === undefined ? undefined : String(data.rejectedQuantity),
     });
     return { success: true, message: 'Item updated.' };
   }
 
-  // Remove an item from a goods receipt
   async removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
     const item = await this.itemsRepository.findByReceiptIdAndItemId(goodsReceiptId, itemId);
@@ -148,21 +139,9 @@ export class GoodsReceiptItemsService {
     return { success: true, message: `Item removed from goods receipt "${receipt.grNumber}".` };
   }
 
-  // Get the accepted total quantity for a specific item
-  async getAcceptedTotalForItem(itemId: string): Promise<number> {
-    const item = await this.itemsRepository.findItemById(itemId);
-    return Number(item?.acceptedQuantity ?? 0);
-  }
-
-  private validateQuantities(acceptedQuantity: number, rejectedQuantity: number) {
-    if (!Number.isFinite(acceptedQuantity) || acceptedQuantity < 0) {
-      throw new BadRequestException('acceptedQuantity must be greater than or equal to 0.');
-    }
+  private validateRejectedQuantity(rejectedQuantity: number) {
     if (!Number.isFinite(rejectedQuantity) || rejectedQuantity < 0) {
       throw new BadRequestException('rejectedQuantity must be greater than or equal to 0.');
-    }
-    if (acceptedQuantity <= 0 && rejectedQuantity <= 0) {
-      throw new BadRequestException('At least one of acceptedQuantity or rejectedQuantity must be greater than 0.');
     }
   }
 

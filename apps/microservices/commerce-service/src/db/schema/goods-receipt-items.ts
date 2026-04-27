@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, jsonb, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceipts } from './goods-receipts';
 import { inventoryItems } from './inventory-items';
@@ -16,8 +16,8 @@ export const goodsReceiptItems = coreSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
-    acceptedQuantity: decimal('accepted_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
+    metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -25,6 +25,7 @@ export const goodsReceiptItems = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    unique('uq_goods_receipt_items_gr_item').on(table.goodsReceiptId, table.inventoryItemId),
     index('idx_goods_receipt_items_receipt').on(table.goodsReceiptId),
     index('idx_goods_receipt_items_inventory').on(table.inventoryItemId),
     pgPolicy('org_isolation', {
