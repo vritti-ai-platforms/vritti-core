@@ -49,7 +49,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
       onCancel={onCancel}
       transformSubmit={(data) => ({
         supplierId: data.supplierId,
-        purchaseOrderId: data.purchaseOrderId,
+        purchaseOrderId: data.purchaseOrderId || undefined,
         receivedDate: data.receivedDate,
         notes: data.notes,
       })}
