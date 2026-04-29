@@ -19,11 +19,13 @@ import { GoodsReceiptsRepository } from '../repositories/goods-receipts.reposito
 @Injectable()
 export class GoodsReceiptsService {
   private readonly logger = new Logger(GoodsReceiptsService.name);
-  private static readonly FIELD_MAP: FieldMap = {
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
     grNumber: { column: goodsReceipts.grNumber, type: 'string' },
     supplierName: { column: suppliers.name, type: 'string' },
     poNumber: { column: purchaseOrders.poNumber, type: 'string' },
-    receivedDate: { column: goodsReceipts.receivedDate, type: 'string' },
+  };
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
+    status: { column: goodsReceipts.status, type: 'string' },
   };
 
   constructor(
@@ -71,10 +73,14 @@ export class GoodsReceiptsService {
     poId: string,
     state: TableViewState,
   ): Promise<{ result: GoodsReceiptDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...GoodsReceiptsService.SEARCH_FIELD_MAP,
+      ...GoodsReceiptsService.FILTER_FIELD_MAP,
+      receivedDate: { column: goodsReceipts.receivedDate, type: 'string' },
+    });
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findForTableByPoId(poId, {
@@ -100,10 +106,14 @@ export class GoodsReceiptsService {
   }
 
   async findForTable(state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...GoodsReceiptsService.SEARCH_FIELD_MAP,
+      ...GoodsReceiptsService.FILTER_FIELD_MAP,
+      receivedDate: { column: goodsReceipts.receivedDate, type: 'string' },
+    });
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findForTable({

@@ -5,26 +5,16 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { SupplierFilter } from '@vritti/quantum-ui/selects/supplier';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ClipboardList, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PURCHASE_ORDERS_TABLE_KEY, usePurchaseOrdersTable } from '@/hooks/purchase-orders';
-import type { PurchaseOrderData, PurchaseOrderStatus } from '@/schemas/purchase-orders';
+import { purchaseOrderStatusConfig } from '@/schemas/purchase-orders';
+import type { PurchaseOrderData } from '@/schemas/purchase-orders';
 import { CreatePurchaseOrderDialog } from './forms/CreatePurchaseOrderDialog';
-
-const statusConfig: Record<
-  PurchaseOrderStatus,
-  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
-> = {
-  DRAFT: { label: 'Draft', variant: 'outline' },
-  SENT: { label: 'Sent', variant: 'secondary' },
-  CONFIRMED: { label: 'Confirmed', variant: 'secondary', className: 'bg-success/15 text-success' },
-  PARTIALLY_RECEIVED: { label: 'Partial', variant: 'secondary', className: 'bg-warning/15 text-warning' },
-  RECEIVED: { label: 'Received', variant: 'secondary', className: 'bg-success/15 text-success' },
-  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
-};
 
 export const PurchaseOrdersPage = () => {
   const navigate = useNavigate();
@@ -55,7 +45,7 @@ export const PurchaseOrdersPage = () => {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-          const config = statusConfig[row.original.status];
+          const config = purchaseOrderStatusConfig[row.original.status];
           return (
             <Badge variant={config.variant} className={config.className}>
               {config.label}
@@ -70,6 +60,7 @@ export const PurchaseOrdersPage = () => {
           row.original.totalAmount != null
             ? `${row.original.totalAmount.currency} ${row.original.totalAmount.value}`
             : '—',
+        enableSorting: false,
       },
       {
         id: 'actions',
@@ -118,7 +109,16 @@ export const PurchaseOrdersPage = () => {
           ],
           searchAll: true,
         }}
-        filters={[<SupplierFilter key="supplierId" name="supplierId" />]}
+        filters={[
+          <SelectFilter
+            key="status"
+            name="status"
+            label="Status"
+            multiple
+            options={Object.entries(purchaseOrderStatusConfig).map(([value, { label }]) => ({ label, value }))}
+          />,
+          <SupplierFilter key="supplierId" name="supplierId" />,
+        ]}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={addDialog.open}>

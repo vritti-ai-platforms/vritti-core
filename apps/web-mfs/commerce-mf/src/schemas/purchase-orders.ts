@@ -39,6 +39,27 @@ export type PurchaseOrderItemsTableResponse = TableResponse<PurchaseOrderItemDat
 
 export type PurchaseOrderStatus = 'DRAFT' | 'SENT' | 'CONFIRMED' | 'PARTIALLY_RECEIVED' | 'RECEIVED' | 'CANCELLED';
 
+export const PurchaseOrderStatusValues = {
+  DRAFT: 'DRAFT',
+  SENT: 'SENT',
+  CONFIRMED: 'CONFIRMED',
+  PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED',
+  RECEIVED: 'RECEIVED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export const purchaseOrderStatusConfig: Record<
+  PurchaseOrderStatus,
+  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
+> = {
+  DRAFT: { label: 'Draft', variant: 'outline' },
+  SENT: { label: 'Sent', variant: 'secondary' },
+  CONFIRMED: { label: 'Confirmed', variant: 'secondary', className: 'bg-success/15 text-success' },
+  PARTIALLY_RECEIVED: { label: 'Partial', variant: 'secondary', className: 'bg-warning/15 text-warning' },
+  RECEIVED: { label: 'Received', variant: 'secondary', className: 'bg-success/15 text-success' },
+  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
+};
+
 export interface PurchaseOrderData {
   id: string;
   supplierId: string;

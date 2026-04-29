@@ -12,12 +12,12 @@ import { UpdateStockAdjustmentLineItemDto } from './dto/request/update-stock-adj
 import { UpdateStockAdjustmentLotDto } from './dto/request/update-stock-adjustment-lot.dto';
 import type { StockAdjustmentLineItemResponseDto } from './dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from './dto/response/stock-adjustment-line-item-table-response.dto';
-import type { StockAdjustmentLineTableResponseDto } from './dto/response/stock-adjustment-line-table-response.dto';
-import type { StockAdjustmentTreeNodeResponseDto } from './dto/response/stock-adjustment-tree-response.dto';
 import type { StockAdjustmentLineResponseDto } from './dto/response/stock-adjustment-line-response.dto';
+import type { StockAdjustmentLineTableResponseDto } from './dto/response/stock-adjustment-line-table-response.dto';
 import type { StockAdjustmentLotResponseDto } from './dto/response/stock-adjustment-lot-response.dto';
 import type { StockAdjustmentResponseDto } from './dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from './dto/response/stock-adjustment-table-response.dto';
+import type { StockAdjustmentTreeNodeResponseDto } from './dto/response/stock-adjustment-tree-response.dto';
 import { StockAdjustmentsGatewayService } from './services/stock-adjustments-gateway.service';
 
 @ApiTags('Commerce - Stock Adjustments')

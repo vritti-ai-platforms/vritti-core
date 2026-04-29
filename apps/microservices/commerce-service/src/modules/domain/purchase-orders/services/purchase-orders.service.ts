@@ -13,7 +13,7 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor, resolveCurrency } from '@vritti/api-sdk/money';
-import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems, purchaseOrders } from '@/db/schema';
+import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems, purchaseOrders, suppliers } from '@/db/schema';
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
@@ -25,8 +25,11 @@ import { PurchaseOrdersRepository } from '../repositories/purchase-orders.reposi
 export class PurchaseOrdersService {
   private readonly logger = new Logger(PurchaseOrdersService.name);
 
-  private static readonly FIELD_MAP: FieldMap = {
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
     poNumber: { column: purchaseOrders.poNumber, type: 'string' },
+    supplierName: { column: suppliers.name, type: 'string' },
+  };
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
     status: { column: purchaseOrders.status, type: 'string' },
     supplierId: { column: purchaseOrders.supplierId, type: 'string' },
   };
@@ -95,10 +98,14 @@ export class PurchaseOrdersService {
 
   // Returns paginated POs for the data table
   async findForTable(state: TableViewState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrdersService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrdersService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrdersService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrdersService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...PurchaseOrdersService.SEARCH_FIELD_MAP,
+      ...PurchaseOrdersService.FILTER_FIELD_MAP,
+      orderDate: { column: purchaseOrders.orderDate, type: 'string' },
+    });
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findForTable({

@@ -1,15 +1,18 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GOODS_RECEIPTS_TABLE_KEY } from '@/hooks/goods-receipts/keys';
 import { useGoodsReceiptsTable } from '@/hooks/goods-receipts/useGoodsReceiptsTable';
+import { goodsReceiptStatusConfig } from '@/schemas/goods-receipts';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import { CreateGoodsReceiptDialog } from './forms/CreateGoodsReceiptDialog';
 
@@ -40,16 +43,22 @@ export const GoodsReceiptsPage = () => {
       {
         accessorKey: 'status',
         header: 'Status',
+        cell: ({ row }) => {
+          const config = goodsReceiptStatusConfig[row.original.status];
+          return <Badge variant={config.variant}>{config.label}</Badge>;
+        },
       },
       {
         accessorKey: 'po',
         header: 'Purchase Order',
         cell: ({ row }) => row.original.po?.poNumber ?? '--',
+        enableSorting: false,
       },
       {
         accessorKey: 'notes',
         header: 'Notes',
         cell: ({ row }) => row.original.notes ?? '--',
+        enableSorting: false,
       },
       {
         id: 'actions',
@@ -102,6 +111,15 @@ export const GoodsReceiptsPage = () => {
           ],
           searchAll: true,
         }}
+        filters={[
+          <SelectFilter
+            key="status"
+            name="status"
+            label="Status"
+            multiple
+            options={Object.entries(goodsReceiptStatusConfig).map(([value, { label }]) => ({ label, value }))}
+          />,
+        ]}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={createDialog.open}>

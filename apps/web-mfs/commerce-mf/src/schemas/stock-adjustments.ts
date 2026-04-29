@@ -11,11 +11,28 @@ export const StockAdjustmentTypeValues = {
 } as const;
 export type StockAdjustmentType = (typeof StockAdjustmentTypeValues)[keyof typeof StockAdjustmentTypeValues];
 
+export const stockAdjustmentTypeConfig: Record<
+  StockAdjustmentType,
+  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }
+> = {
+  OPENING_STOCK: { label: 'Opening Stock', variant: 'default' },
+  WASTE: { label: 'Waste', variant: 'destructive' },
+  DAMAGE: { label: 'Damage', variant: 'destructive' },
+  THEFT: { label: 'Theft', variant: 'destructive' },
+  EXPIRED: { label: 'Expired', variant: 'secondary' },
+  CORRECTION: { label: 'Correction', variant: 'outline' },
+};
+
 export const StockAdjustmentStatusValues = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED',
 } as const;
 export type StockAdjustmentStatus = (typeof StockAdjustmentStatusValues)[keyof typeof StockAdjustmentStatusValues];
+
+export const stockAdjustmentStatusConfig: Record<StockAdjustmentStatus, { label: string; variant: 'outline' | 'default' }> = {
+  DRAFT: { label: 'Draft', variant: 'outline' },
+  PUBLISHED: { label: 'Published', variant: 'default' },
+};
 
 export const InventoryTrackingValues = {
   QUANTITY: 'quantity',

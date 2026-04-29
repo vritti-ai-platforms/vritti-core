@@ -25,6 +25,17 @@ export type UpdateInventoryItemFormData = z.infer<typeof updateInventoryItemSche
 export type InventoryItemsTableResponse = TableResponse<InventoryItemData>;
 
 export type InventoryItemType = 'MATERIAL' | 'PRODUCT';
+
+export const InventoryItemTypeValues = {
+  MATERIAL: 'MATERIAL',
+  PRODUCT: 'PRODUCT',
+} as const;
+
+export const inventoryItemTypeConfig: Record<InventoryItemType, { label: string; variant: 'secondary' | 'outline' }> = {
+  MATERIAL: { label: 'Material', variant: 'secondary' },
+  PRODUCT: { label: 'Product', variant: 'outline' },
+};
+
 export type InventoryTracking = 'quantity' | 'lot' | 'serial';
 
 export interface InventoryItemData {

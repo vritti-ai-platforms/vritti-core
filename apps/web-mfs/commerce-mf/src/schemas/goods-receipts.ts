@@ -13,6 +13,11 @@ export const goodsReceiptStatusLabels: Record<GoodsReceiptStatus, string> = {
   PUBLISHED: 'Published',
 };
 
+export const goodsReceiptStatusConfig: Record<GoodsReceiptStatus, { label: string; variant: 'default' | 'outline' }> = {
+  DRAFT: { label: 'Draft', variant: 'outline' },
+  PUBLISHED: { label: 'Published', variant: 'default' },
+};
+
 export const createGoodsReceiptSchema = z.object({
   supplierId: z.string().min(1, 'Supplier is required'),
   purchaseOrderId: z.string().optional(),

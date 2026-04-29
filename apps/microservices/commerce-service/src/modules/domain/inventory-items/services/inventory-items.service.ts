@@ -28,9 +28,11 @@ import { InventoryItemsRepository } from '../repositories/inventory-items.reposi
 export class InventoryItemsService {
   private readonly logger = new Logger(InventoryItemsService.name);
 
-  private static readonly FIELD_MAP: FieldMap = {
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
     name: { column: inventoryItems.name, type: 'string' },
     code: { column: inventoryItems.code, type: 'string' },
+  };
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
     type: { column: inventoryItems.type, type: 'string' },
     categoryId: { column: inventoryItems.categoryId, type: 'string' },
     uomId: { column: inventoryItems.uomId, type: 'string' },
@@ -44,10 +46,13 @@ export class InventoryItemsService {
 
   // Returns paginated, filtered, and sorted inventory items for the data table
   async findForTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemsService.FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...InventoryItemsService.SEARCH_FIELD_MAP,
+      ...InventoryItemsService.FILTER_FIELD_MAP,
+    });
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result: rows, count } = await this.repository.findAllWithUom({

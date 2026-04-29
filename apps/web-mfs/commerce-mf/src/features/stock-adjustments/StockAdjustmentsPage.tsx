@@ -5,30 +5,19 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ClipboardMinus, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/stock-adjustments';
-import type { StockAdjustmentData, StockAdjustmentStatus, StockAdjustmentType } from '@/schemas/stock-adjustments';
+import {
+  stockAdjustmentStatusConfig,
+  stockAdjustmentTypeConfig,
+  type StockAdjustmentData,
+} from '@/schemas/stock-adjustments';
 import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog';
 
-const typeConfig: Record<
-  StockAdjustmentType,
-  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }
-> = {
-  OPENING_STOCK: { label: 'Opening Stock', variant: 'default' },
-  WASTE: { label: 'Waste', variant: 'destructive' },
-  DAMAGE: { label: 'Damage', variant: 'destructive' },
-  THEFT: { label: 'Theft', variant: 'destructive' },
-  EXPIRED: { label: 'Expired', variant: 'secondary' },
-  CORRECTION: { label: 'Correction', variant: 'outline' },
-};
-
-const statusConfig: Record<StockAdjustmentStatus, { label: string; variant: 'outline' | 'default' }> = {
-  DRAFT: { label: 'Draft', variant: 'outline' },
-  PUBLISHED: { label: 'Published', variant: 'default' },
-};
 
 export const StockAdjustmentsPage = () => {
   const navigate = useNavigate();
@@ -53,7 +42,7 @@ export const StockAdjustmentsPage = () => {
         accessorKey: 'type',
         header: 'Type',
         cell: ({ row }) => {
-          const config = typeConfig[row.original.type];
+          const config = stockAdjustmentTypeConfig[row.original.type];
           return <Badge variant={config.variant}>{config.label}</Badge>;
         },
       },
@@ -61,7 +50,7 @@ export const StockAdjustmentsPage = () => {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-          const config = statusConfig[row.original.status];
+          const config = stockAdjustmentStatusConfig[row.original.status];
           return <Badge variant={config.variant}>{config.label}</Badge>;
         },
       },
@@ -69,13 +58,9 @@ export const StockAdjustmentsPage = () => {
         accessorKey: 'reason',
         header: 'Reason',
         cell: ({ row }) => row.original.reason ?? '—',
+        enableSorting: false,
       },
-      {
-        accessorKey: 'createdAt',
-        header: 'Date',
-        cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
-        enableSorting: true,
-      },
+
       {
         id: 'actions',
         header: '',
@@ -121,11 +106,27 @@ export const StockAdjustmentsPage = () => {
         isLoading={isLoading}
         searchConfig={{
           columns: [
+            { id: 'code', label: 'Code' },
             { id: 'inventoryItemName', label: 'Item' },
-            { id: 'reason', label: 'Reason' },
           ],
           searchAll: true,
         }}
+        filters={[
+          <SelectFilter
+            key="type"
+            name="type"
+            label="Type"
+            multiple
+            options={Object.entries(stockAdjustmentTypeConfig).map(([value, { label }]) => ({ label, value }))}
+          />,
+          <SelectFilter
+            key="status"
+            name="status"
+            label="Status"
+            multiple
+            options={Object.entries(stockAdjustmentStatusConfig).map(([value, { label }]) => ({ label, value }))}
+          />,
+        ]}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={addDialog.open}>

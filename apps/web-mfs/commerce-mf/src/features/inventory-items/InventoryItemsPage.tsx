@@ -13,6 +13,7 @@ import { Eye, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/inventory-items';
+import { inventoryItemTypeConfig } from '@/schemas/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
 import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
 
@@ -38,19 +39,21 @@ export const InventoryItemsPage = () => {
         accessorKey: 'categoryName',
         header: 'Category',
         cell: ({ row }) => row.original.categoryName ?? '—',
+        enableSorting: false,
       },
       {
         accessorKey: 'type',
         header: 'Type',
         cell: ({ row }) => {
-          const isMaterial = row.original.type === 'MATERIAL';
-          return <Badge variant={isMaterial ? 'secondary' : 'outline'}>{isMaterial ? 'Material' : 'Product'}</Badge>;
+          const config = inventoryItemTypeConfig[row.original.type];
+          return <Badge variant={config.variant}>{config.label}</Badge>;
         },
       },
       {
         accessorKey: 'uomSymbol',
         header: 'Unit',
         cell: ({ row }) => row.original.uomSymbol ?? '—',
+        enableSorting: false,
       },
       {
         id: 'actions',
@@ -104,10 +107,8 @@ export const InventoryItemsPage = () => {
             key="type"
             name="type"
             label="Type"
-            options={[
-              { label: 'Material', value: 'MATERIAL' },
-              { label: 'Product', value: 'PRODUCT' },
-            ]}
+            multiple
+            options={Object.entries(inventoryItemTypeConfig).map(([value, { label }]) => ({ label, value }))}
           />,
           <CategoryFilter key="categoryId" />,
           <UomFilter key="uomId" />,
