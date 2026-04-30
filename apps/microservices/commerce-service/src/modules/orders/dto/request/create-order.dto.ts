@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateOrderItemModifierDto {
@@ -48,6 +48,10 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
   channel: string;
+
+  @IsOptional()
+  @IsUUID()
+  customerId?: string;
 
   @IsOptional()
   @IsString()

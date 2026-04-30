@@ -13,6 +13,7 @@ import { BomModule } from './modules/bom/bom.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ConversionsModule } from './modules/conversions/conversions.module';
 import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
+import { CustomersModule } from './modules/customers/customers.module';
 import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.module';
 import { InventoryItemLotsModule } from './modules/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemQuantItemsModule } from './modules/inventory-item-quant-items/inventory-item-quant-items.module';
@@ -23,6 +24,8 @@ import { ItemsModule } from './modules/items/items.module';
 import { ModifierGroupsModule } from './modules/modifier-groups/modifier-groups.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { PriceListsModule } from './modules/price-lists/price-lists.module';
+import { PosTerminalsModule } from './modules/pos-terminals/pos-terminals.module';
 import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
 import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjustments.module';
 import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
@@ -81,7 +84,10 @@ import { UomModule } from './modules/uom/uom.module';
     StockTransfersModule,
     InvoicesModule,
     PaymentsModule,
+    PriceListsModule,
+    PosTerminalsModule,
     CreditNotesModule,
+    CustomersModule,
     OrdersModule,
   ],
   providers: [

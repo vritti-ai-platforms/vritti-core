@@ -14,11 +14,14 @@ export const BULayout = () => {
       <TopBar />
       <Sidebar />
       <SidebarInset className="pt-14 h-svh overflow-hidden">
-        <main className={mode === 'full'
-          ? 'flex-1 overflow-hidden flex flex-col'
-          : 'flex-1 overflow-auto p-4 sm:p-6'
-        }>
-          <div className="max-w-7xl mx-auto w-full">
+        <main
+          className={
+            mode === 'full'
+              ? 'flex-1 overflow-hidden flex flex-col'
+              : 'flex-1 overflow-auto p-4 sm:p-6'
+          }
+        >
+          <div className={mode === 'full' ? 'flex-1 min-h-0 flex flex-col w-full' : 'max-w-7xl mx-auto w-full'}>
             <QueryErrorBoundary>
               <Outlet />
             </QueryErrorBoundary>

@@ -15,6 +15,8 @@ import { ConversionsGatewayController } from './conversions/conversions-gateway.
 import { ConversionsGatewayService } from './conversions/services/conversions-gateway.service';
 import { CreditNotesGatewayController } from './credit-notes/credit-notes-gateway.controller';
 import { CreditNotesGatewayService } from './credit-notes/services/credit-notes-gateway.service';
+import { CustomersGatewayController } from './customers/customers-gateway.controller';
+import { CustomersGatewayService } from './customers/services/customers-gateway.service';
 import { GoodsReceiptsGatewayController } from './goods-receipts/goods-receipts-gateway.controller';
 import { GoodsReceiptsGatewayService } from './goods-receipts/services/goods-receipts-gateway.service';
 import { InventoryItemsGatewayController } from './inventory-items/inventory-items-gateway.controller';
@@ -37,6 +39,10 @@ import { StockTransfersGatewayController } from './stock-transfers/stock-transfe
 import { StockTransfersGatewayService } from './stock-transfers/services/stock-transfers-gateway.service';
 import { OrdersGatewayController } from './orders/orders-gateway.controller';
 import { OrdersGatewayService } from './orders/services/orders-gateway.service';
+import { PosTerminalsGatewayController } from './pos-terminals/pos-terminals-gateway.controller';
+import { PosTerminalsGatewayService } from './pos-terminals/services/pos-terminals-gateway.service';
+import { PriceListsGatewayController } from './price-lists/price-lists-gateway.controller';
+import { PriceListsGatewayService } from './price-lists/services/price-lists-gateway.service';
 import { SuppliersGatewayController } from './suppliers/suppliers-gateway.controller';
 import { SuppliersGatewayService } from './suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './tax-groups/services/tax-groups-gateway.service';
@@ -54,6 +60,7 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
     InventoryItemQuantsGatewayController,
     ConversionsGatewayController,
     CreditNotesGatewayController,
+    CustomersGatewayController,
     GoodsReceiptsGatewayController,
     InventoryItemsGatewayController,
     StorageLocationsGatewayController,
@@ -61,6 +68,8 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
     ItemsGatewayController,
     ModifierGroupsGatewayController,
     OrdersGatewayController,
+    PriceListsGatewayController,
+    PosTerminalsGatewayController,
     PaymentsGatewayController,
     PurchaseOrdersGatewayController,
     StockAdjustmentsGatewayController,
@@ -77,6 +86,7 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
     InventoryItemQuantsGatewayService,
     ConversionsGatewayService,
     CreditNotesGatewayService,
+    CustomersGatewayService,
     GoodsReceiptsGatewayService,
     InventoryItemsGatewayService,
     StorageLocationsGatewayService,
@@ -84,6 +94,8 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
     ItemsGatewayService,
     ModifierGroupsGatewayService,
     OrdersGatewayService,
+    PriceListsGatewayService,
+    PosTerminalsGatewayService,
     PaymentsGatewayService,
     PurchaseOrdersGatewayService,
     StockAdjustmentsGatewayService,

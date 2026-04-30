@@ -3448,6 +3448,294 @@
         ]
       }
     },
+    "/commerce-api/customers/table": {
+      "get": {
+        "operationId": "CustomersGatewayController_getCustomerTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Customers"
+        ]
+      }
+    },
+    "/commerce-api/customers/select": {
+      "get": {
+        "operationId": "CustomersGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Customers"
+        ]
+      }
+    },
+    "/commerce-api/customers": {
+      "post": {
+        "operationId": "CustomersGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Customers"
+        ]
+      }
+    },
+    "/commerce-api/customers/{id}": {
+      "get": {
+        "operationId": "CustomersGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Customers"
+        ]
+      },
+      "patch": {
+        "operationId": "CustomersGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Customers"
+        ]
+      },
+      "delete": {
+        "operationId": "CustomersGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Customers"
+        ]
+      }
+    },
     "/commerce-api/goods-receipts": {
       "post": {
         "operationId": "GoodsReceiptsGatewayController_create",
@@ -6669,6 +6957,1111 @@
         ],
         "tags": [
           "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/price-lists/table": {
+      "get": {
+        "description": "Returns paginated, filtered, and sorted price lists using server-stored table state.",
+        "operationId": "PriceListsGatewayController_table",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Price lists table retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceListTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get price lists table",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/price-lists/select": {
+      "get": {
+        "description": "Returns paginated price list options for select dropdowns.",
+        "operationId": "PriceListsGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by name",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {}
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {}
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to fetch specific options",
+            "schema": {}
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price list select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get price list select options",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/price-lists/item-variants/select": {
+      "get": {
+        "description": "Returns paginated item variant options eligible for price list assignment.",
+        "operationId": "PriceListsGatewayController_selectItemVariants",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by name or SKU",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {}
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {}
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to fetch specific options",
+            "schema": {}
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item variant select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get item variant select options eligible for price lists",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/price-lists/terminals/{terminalId}": {
+      "get": {
+        "operationId": "PriceListsGatewayController_listTerminalPriceLists",
+        "parameters": [
+          {
+            "name": "terminalId",
+            "required": true,
+            "in": "path",
+            "description": "POS terminal ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Terminal price list assignments retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TerminalPriceListResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "POS terminal not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List price list assignments for a POS terminal",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      },
+      "put": {
+        "description": "Replaces all price list assignments for the terminal with the provided set.",
+        "operationId": "PriceListsGatewayController_saveTerminalPriceLists",
+        "parameters": [
+          {
+            "name": "terminalId",
+            "required": true,
+            "in": "path",
+            "description": "POS terminal ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveTerminalPriceListsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Terminal price list assignments saved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "POS terminal or price list not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace price list assignments for a POS terminal",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/price-lists/terminals/{terminalId}/sellable-items": {
+      "get": {
+        "description": "Returns resolved sellable inventory items for a terminal from its assigned price lists.",
+        "operationId": "PriceListsGatewayController_listTerminalSellableItems",
+        "parameters": [
+          {
+            "name": "terminalId",
+            "required": true,
+            "in": "path",
+            "description": "POS terminal ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sellable items retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TerminalSellableItemResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "POS terminal not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List sellable items for a POS terminal",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/price-lists/{id}/items": {
+      "get": {
+        "operationId": "PriceListsGatewayController_listPriceListItems",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Price list ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price list items retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PriceListItemResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Price list not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List inventory item assignments for a price list",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      },
+      "put": {
+        "description": "Replaces all inventory item assignments for the price list with the provided set.",
+        "operationId": "PriceListsGatewayController_savePriceListItems",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Price list ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavePriceListItemsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Price list items saved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Price list or item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Replace inventory item assignments for a price list",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/price-lists/{id}": {
+      "get": {
+        "operationId": "PriceListsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Price list ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price list retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Price list not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a price list by ID",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      },
+      "patch": {
+        "operationId": "PriceListsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Price list ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePriceListDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Price list updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Price list not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a price list",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      },
+      "delete": {
+        "operationId": "PriceListsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Price list ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Price list deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Price list not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a price list",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/price-lists": {
+      "post": {
+        "description": "Creates a new price list for the business unit. organizationId is resolved from the authenticated user.",
+        "operationId": "PriceListsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePriceListDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Price list created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a price list",
+        "tags": [
+          "Commerce - Price Lists"
+        ]
+      }
+    },
+    "/commerce-api/pos-terminals/table": {
+      "get": {
+        "description": "Returns paginated, filtered, and sorted POS terminals using server-stored table state.",
+        "operationId": "PosTerminalsGatewayController_table",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "POS terminals table retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosTerminalTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get POS terminals table",
+        "tags": [
+          "Commerce - POS Terminals"
+        ]
+      }
+    },
+    "/commerce-api/pos-terminals/select": {
+      "get": {
+        "description": "Returns paginated POS terminal options for select dropdowns.",
+        "operationId": "PosTerminalsGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by name or code",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "POS terminal select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get POS terminal select options",
+        "tags": [
+          "Commerce - POS Terminals"
+        ]
+      }
+    },
+    "/commerce-api/pos-terminals/storage-locations/select": {
+      "get": {
+        "description": "Returns paginated POS-role storage location options for select dropdowns.",
+        "operationId": "PosTerminalsGatewayController_selectStorageLocations",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by name",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Storage location select options retrieved successfully."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get POS-role storage location select options",
+        "tags": [
+          "Commerce - POS Terminals"
+        ]
+      }
+    },
+    "/commerce-api/pos-terminals/{id}": {
+      "get": {
+        "operationId": "PosTerminalsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "POS terminal ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "POS terminal retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosTerminalResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "POS terminal not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a POS terminal by ID",
+        "tags": [
+          "Commerce - POS Terminals"
+        ]
+      },
+      "patch": {
+        "operationId": "PosTerminalsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "POS terminal ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePosTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "POS terminal updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "POS terminal not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a POS terminal",
+        "tags": [
+          "Commerce - POS Terminals"
+        ]
+      },
+      "delete": {
+        "operationId": "PosTerminalsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "POS terminal ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "POS terminal deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "POS terminal not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a POS terminal",
+        "tags": [
+          "Commerce - POS Terminals"
+        ]
+      }
+    },
+    "/commerce-api/pos-terminals": {
+      "post": {
+        "description": "Creates a new POS terminal for the business unit. organizationId is resolved from the authenticated user.",
+        "operationId": "PosTerminalsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePosTerminalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "POS terminal created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PosTerminalResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a POS terminal",
+        "tags": [
+          "Commerce - POS Terminals"
         ]
       }
     },
@@ -11248,6 +12641,62 @@
           "amount"
         ]
       },
+      "CreateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Customer name",
+            "example": "Jane Doe"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Customer phone number",
+            "example": "+919876543210"
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email address",
+            "example": "jane@example.com"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "required": [
+          "name",
+          "phone"
+        ]
+      },
+      "UpdateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Customer name",
+            "example": "Jane Doe"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Customer phone number",
+            "example": "+919876543210"
+          },
+          "email": {
+            "type": "string",
+            "description": "Customer email address",
+            "example": "jane@example.com"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the customer is active"
+          }
+        }
+      },
       "CreateGoodsReceiptDto": {
         "type": "object",
         "properties": {
@@ -12714,6 +14163,10 @@
               "WALK_IN"
             ]
           },
+          "customerId": {
+            "type": "string",
+            "description": "Customer ID (links the order to an existing customer record)"
+          },
           "customerName": {
             "type": "string",
             "description": "Customer name"
@@ -12783,6 +14236,571 @@
         "required": [
           "status"
         ]
+      },
+      "PriceListResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Price list ID"
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organization ID"
+          },
+          "businessUnitId": {
+            "type": "string",
+            "description": "Business unit ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Price list name",
+            "example": "Lunch Menu"
+          },
+          "code": {
+            "type": "string",
+            "description": "Price list code",
+            "example": "PL-LUNCH"
+          },
+          "description": {
+            "type": "object",
+            "description": "Price list description",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether price list is active"
+          },
+          "assignedItemsCount": {
+            "type": "number",
+            "description": "Number of assigned inventory items"
+          },
+          "assignedTerminalsCount": {
+            "type": "number",
+            "description": "Number of assigned terminals"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "businessUnitId",
+          "name",
+          "code",
+          "isActive",
+          "assignedItemsCount",
+          "assignedTerminalsCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PriceListTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PriceListResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "TerminalPriceListResponseDto": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "description": "Terminal ID"
+          },
+          "priceListId": {
+            "type": "string",
+            "description": "Price list ID"
+          },
+          "priceListName": {
+            "type": "string",
+            "description": "Price list name"
+          },
+          "priceListCode": {
+            "type": "string",
+            "description": "Price list code"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Price list merge priority"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this is the terminal default price list"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "terminalId",
+          "priceListId",
+          "priceListName",
+          "priceListCode",
+          "priority",
+          "isDefault",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TerminalPriceListAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "priceListId": {
+            "type": "string",
+            "description": "Price list ID"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Priority order for price list merge",
+            "default": 0
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "Whether this assignment is default",
+            "default": false
+          }
+        },
+        "required": [
+          "priceListId"
+        ]
+      },
+      "SaveTerminalPriceListsDto": {
+        "type": "object",
+        "properties": {
+          "priceLists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TerminalPriceListAssignmentDto"
+            }
+          }
+        },
+        "required": [
+          "priceLists"
+        ]
+      },
+      "TerminalSellableItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "description": "Terminal ID"
+          },
+          "priceListId": {
+            "type": "string",
+            "description": "Price list ID from which item is resolved"
+          },
+          "priceListName": {
+            "type": "string",
+            "description": "Price list name from which item is resolved"
+          },
+          "itemVariantId": {
+            "type": "string",
+            "description": "Item variant ID"
+          },
+          "itemVariantSku": {
+            "type": "string",
+            "description": "Item variant SKU"
+          },
+          "itemVariantName": {
+            "type": "string",
+            "description": "Item variant name"
+          },
+          "itemId": {
+            "type": "string",
+            "description": "Parent item ID"
+          },
+          "itemName": {
+            "type": "string",
+            "description": "Parent item name"
+          },
+          "basePrice": {
+            "type": "number",
+            "description": "Base price in minor units"
+          },
+          "categoryName": {
+            "type": "object",
+            "description": "Category name",
+            "nullable": true
+          },
+          "priceOverride": {
+            "type": "object",
+            "description": "Price override in minor units",
+            "nullable": true
+          },
+          "priority": {
+            "type": "number",
+            "description": "Resolved price list priority"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Resolved price list item sort order"
+          }
+        },
+        "required": [
+          "terminalId",
+          "priceListId",
+          "priceListName",
+          "itemVariantId",
+          "itemVariantSku",
+          "itemVariantName",
+          "itemId",
+          "itemName",
+          "basePrice",
+          "priority",
+          "sortOrder"
+        ]
+      },
+      "PriceListItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "priceListId": {
+            "type": "string",
+            "description": "Price list ID"
+          },
+          "itemVariantId": {
+            "type": "string",
+            "description": "Item variant ID"
+          },
+          "itemVariantSku": {
+            "type": "string",
+            "description": "Item variant SKU"
+          },
+          "itemVariantName": {
+            "type": "string",
+            "description": "Item variant name"
+          },
+          "itemId": {
+            "type": "string",
+            "description": "Parent item ID"
+          },
+          "itemName": {
+            "type": "string",
+            "description": "Parent item name"
+          },
+          "basePrice": {
+            "type": "number",
+            "description": "Base price in minor units"
+          },
+          "categoryName": {
+            "type": "object",
+            "description": "Category name",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Sort order"
+          },
+          "isVisible": {
+            "type": "boolean",
+            "description": "Whether item is visible"
+          },
+          "priceOverride": {
+            "type": "object",
+            "description": "Price override in minor units",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "priceListId",
+          "itemVariantId",
+          "itemVariantSku",
+          "itemVariantName",
+          "itemId",
+          "itemName",
+          "basePrice",
+          "sortOrder",
+          "isVisible",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PriceListItemAssignmentDto": {
+        "type": "object",
+        "properties": {
+          "itemVariantId": {
+            "type": "string",
+            "description": "Item variant ID"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Sort order",
+            "default": 0
+          },
+          "isVisible": {
+            "type": "boolean",
+            "description": "Whether the item is visible on POS terminal",
+            "default": true
+          },
+          "priceOverride": {
+            "type": "object",
+            "description": "Price override for this price list item (minor units)",
+            "nullable": true
+          }
+        },
+        "required": [
+          "itemVariantId"
+        ]
+      },
+      "SavePriceListItemsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PriceListItemAssignmentDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreatePriceListDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Price list name",
+            "example": "Lunch Menu"
+          },
+          "code": {
+            "type": "string",
+            "description": "Price list code",
+            "example": "PL-LUNCH"
+          },
+          "description": {
+            "type": "string",
+            "description": "Price list description",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the price list is active",
+            "default": true
+          }
+        },
+        "required": [
+          "name",
+          "code"
+        ]
+      },
+      "UpdatePriceListDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Price list name",
+            "example": "Lunch Menu"
+          },
+          "code": {
+            "type": "string",
+            "description": "Price list code",
+            "example": "PL-LUNCH"
+          },
+          "description": {
+            "type": "string",
+            "description": "Price list description",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the price list is active"
+          }
+        }
+      },
+      "PosTerminalResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Terminal ID"
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organization ID"
+          },
+          "businessUnitId": {
+            "type": "string",
+            "description": "Business unit ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Terminal name",
+            "example": "Counter 1"
+          },
+          "code": {
+            "type": "string",
+            "description": "Terminal code",
+            "example": "POS-CTR-1"
+          },
+          "storageLocationId": {
+            "type": "string",
+            "description": "Linked storage location ID"
+          },
+          "storageLocationName": {
+            "type": "object",
+            "description": "Linked storage location name",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "description": "Terminal description",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the terminal is active"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "businessUnitId",
+          "name",
+          "code",
+          "storageLocationId",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PosTerminalTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PosTerminalResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "CreatePosTerminalDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "POS terminal name",
+            "example": "Counter 1"
+          },
+          "code": {
+            "type": "string",
+            "description": "POS terminal code",
+            "example": "POS-CTR-1"
+          },
+          "storageLocationId": {
+            "type": "string",
+            "description": "Linked POS storage location ID"
+          },
+          "description": {
+            "type": "string",
+            "description": "Terminal description",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the terminal is active",
+            "default": true
+          }
+        },
+        "required": [
+          "name",
+          "code",
+          "storageLocationId"
+        ]
+      },
+      "UpdatePosTerminalDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "POS terminal name",
+            "example": "Counter 1"
+          },
+          "code": {
+            "type": "string",
+            "description": "POS terminal code",
+            "example": "POS-CTR-1"
+          },
+          "storageLocationId": {
+            "type": "string",
+            "description": "Linked POS storage location ID"
+          },
+          "description": {
+            "type": "string",
+            "description": "Terminal description",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the terminal is active"
+          }
+        }
       },
       "CreatePaymentDto": {
         "type": "object",

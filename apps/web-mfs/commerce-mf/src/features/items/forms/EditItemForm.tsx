@@ -42,21 +42,34 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: item.id,
         data: {
-          ...data,
+          name: data.name,
+          description: data.description,
+          categoryId: data.categoryId ?? null,
           taxGroupId: data.taxGroupId || null,
+          isAvailable: data.isAvailable,
         },
       })}
     >
       <TextField name="name" label="Name" placeholder="Item name" />
-      <TextArea name="description" label="Description" placeholder="Optional description" />
-      <CategorySelector name="categoryId" params={{ buId: item.businessUnitId, status: 'active' }} clearable />
-      <Select name="taxGroupId" label="Tax Group" placeholder="Select tax group" options={taxGroupOptions} />
-      <Switch name="isAvailable" label="Available" />
+
+      <div className="grid grid-cols-2 gap-4">
+        <CategorySelector name="categoryId" params={{ buId: item.businessUnitId, status: 'active' }} clearable />
+        <Select
+          name="taxGroupId"
+          label="Tax Group"
+          placeholder="Select tax group (optional)"
+          options={taxGroupOptions}
+        />
+      </div>
+
+      <TextArea name="description" label="Description" placeholder="Optional description" rows={3} />
+
+      <Switch name="isAvailable" label="Available for ordering" />
+
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

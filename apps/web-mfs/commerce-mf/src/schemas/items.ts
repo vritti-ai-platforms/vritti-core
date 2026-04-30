@@ -25,6 +25,11 @@ export type UpdateItemFormData = z.infer<typeof updateItemSchema>;
 
 export type ItemType = 'PRODUCT' | 'SERVICE';
 
+export const ITEM_TYPE_OPTIONS: { value: ItemType; label: string }[] = [
+  { value: 'PRODUCT', label: 'Product' },
+  { value: 'SERVICE', label: 'Service' },
+];
+
 export interface ItemData {
   id: string;
   businessUnitId: string;

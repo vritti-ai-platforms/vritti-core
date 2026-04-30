@@ -17,6 +17,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.bom.id,
     }),
     orderItems: r.many.orderItems(),
+    priceListItems: r.many.priceListItems(),
   },
   itemVariantOptionValues: {},
   modifierGroups: {},
@@ -76,6 +77,38 @@ export const relations = defineRelations(schema, (r) => ({
     storageLocationConfigs: r.many.storageLocationConfigs(),
     stockAdjustmentLines: r.many.stockAdjustmentLines(),
     goodsReceiptLines: r.many.goodsReceiptLines(),
+    posTerminals: r.many.posTerminals(),
+  },
+  posTerminals: {
+    location: r.one.storageLocations({
+      from: r.posTerminals.storageLocationId,
+      to: r.storageLocations.id,
+    }),
+    terminalPriceLists: r.many.terminalPriceLists(),
+  },
+  priceLists: {
+    priceListItems: r.many.priceListItems(),
+    terminalPriceLists: r.many.terminalPriceLists(),
+  },
+  priceListItems: {
+    priceList: r.one.priceLists({
+      from: r.priceListItems.priceListId,
+      to: r.priceLists.id,
+    }),
+    itemVariant: r.one.itemVariants({
+      from: r.priceListItems.itemVariantId,
+      to: r.itemVariants.id,
+    }),
+  },
+  terminalPriceLists: {
+    terminal: r.one.posTerminals({
+      from: r.terminalPriceLists.terminalId,
+      to: r.posTerminals.id,
+    }),
+    priceList: r.one.priceLists({
+      from: r.terminalPriceLists.priceListId,
+      to: r.priceLists.id,
+    }),
   },
   inventoryItemQuants: {
     inventoryItem: r.one.inventoryItems({

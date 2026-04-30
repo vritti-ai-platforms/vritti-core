@@ -1,6 +1,7 @@
 import { bigint, decimal, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
+import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
 import { items } from './items';
 import { itemVariants } from './item-variants';
@@ -15,6 +16,7 @@ export const orders = coreSchema.table(
     type: orderTypeEnum('type').notNull(),
     channel: orderSourceEnum('channel').notNull(),
     status: orderStatusEnum('status').notNull().default('PENDING'),
+    customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'set null' }),
     customerName: varchar('customer_name', { length: 255 }),
     customerPhone: varchar('customer_phone', { length: 20 }),
     deliveryAddress: text('delivery_address'),

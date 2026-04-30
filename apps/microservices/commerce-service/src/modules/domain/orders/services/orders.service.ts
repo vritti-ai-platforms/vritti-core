@@ -70,6 +70,7 @@ export class OrdersService {
       orderNumber,
       type: data.type as OrderType,
       channel: data.channel as OrderSource,
+      customerId: data.customerId ?? null,
       customerName: data.customerName ?? null,
       customerPhone: data.customerPhone ?? null,
       deliveryAddress: data.deliveryAddress ?? null,

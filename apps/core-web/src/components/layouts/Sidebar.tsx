@@ -40,7 +40,7 @@ export const Sidebar = () => {
     ];
   }, [features, buSlug]);
 
-  if (!selectedBuId) return null;
+  if (!selectedBuId || pathname.includes('/pos-billing')) return null;
 
   if (isLoadingPermissions) {
     return (

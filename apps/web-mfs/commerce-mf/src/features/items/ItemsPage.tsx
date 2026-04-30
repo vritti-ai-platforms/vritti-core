@@ -13,7 +13,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteItem } from '@/hooks/useDeleteItem';
 import { ITEMS_TABLE_KEY, useItemsTable } from '@/hooks/useItemsTable';
-import type { ItemData } from '@/schemas/items';
+import { ITEM_TYPE_OPTIONS, type ItemData } from '@/schemas/items';
 import { AddItemDialog } from './forms/AddItemDialog';
 
 export const ItemsPage = () => {
@@ -68,16 +68,7 @@ export const ItemsPage = () => {
           searchAll: true,
         }}
         filters={[
-          <SelectFilter
-            key="type"
-            name="type"
-            label="Type"
-            placeholder="All types"
-            options={[
-              { value: 'PRODUCT', label: 'Product' },
-              { value: 'SERVICE', label: 'Service' },
-            ]}
-          />,
+          <SelectFilter key="type" name="type" label="Type" placeholder="All types" options={ITEM_TYPE_OPTIONS} />,
           <CategoryFilter key="categoryId" params={{ buId: buId ?? '' }} />,
         ]}
         toolbarActions={{
@@ -99,12 +90,14 @@ export const ItemsPage = () => {
         }}
       />
 
-      <Dialog
-        handle={addDialog}
-        title="Add Item"
-        description="Enter the details for the new item."
-        content={(close) => <AddItemDialog businessUnitId={buId ?? ''} onSuccess={close} onCancel={close} />}
-      />
+      {buId ? (
+        <Dialog
+          handle={addDialog}
+          title="Add Item"
+          description="Enter the details for the new item."
+          content={(close) => <AddItemDialog businessUnitId={buId} onSuccess={close} onCancel={close} />}
+        />
+      ) : null}
     </div>
   );
 };
@@ -117,20 +110,16 @@ interface ColumnActions {
 function getColumns({ onView, onDelete }: ColumnActions): ColumnDef<ItemData, unknown>[] {
   return [
     {
-      accessorKey: 'code',
-      header: 'Code',
-      cell: ({ row }) => (
-        <Badge variant="outline" className="font-mono text-[10px] font-medium">
-          {row.original.code}
-        </Badge>
-      ),
-      enableSorting: true,
-    },
-    {
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       enableSorting: true,
+    },
+    {
+      accessorKey: 'code',
+      header: 'Code',
+      cell: ({ row }) => <span className="font-mono text-sm text-muted-foreground">{row.original.code}</span>,
+      enableSorting: false,
     },
     {
       accessorKey: 'categoryName',
@@ -146,17 +135,7 @@ function getColumns({ onView, onDelete }: ColumnActions): ColumnDef<ItemData, un
     {
       accessorKey: 'type',
       header: 'Type',
-      cell: ({ row }) => {
-        const isProduct = row.original.type === 'PRODUCT';
-        return (
-          <Badge
-            variant="secondary"
-            className={isProduct ? 'bg-primary/10 text-primary' : 'bg-accent/50 text-accent-foreground'}
-          >
-            {isProduct ? 'Product' : 'Service'}
-          </Badge>
-        );
-      },
+      cell: ({ row }) => <Badge variant="outline">{row.original.type === 'PRODUCT' ? 'Product' : 'Service'}</Badge>,
       enableSorting: false,
     },
     {
@@ -169,7 +148,7 @@ function getColumns({ onView, onDelete }: ColumnActions): ColumnDef<ItemData, un
             variant={isAvailable ? 'secondary' : 'outline'}
             className={isAvailable ? 'bg-success/15 text-success' : ''}
           >
-            {isAvailable ? 'Active' : 'Inactive'}
+            {isAvailable ? 'Available' : 'Unavailable'}
           </Badge>
         );
       },
