@@ -1,15 +1,12 @@
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { CreateUomData, CreateUomResponse, UpdateUomData, UomData } from '@/schemas/uom';
+import type { CreateUomData, CreateUomResponse, UomTableResponse, UpdateUomData } from '@/schemas/uom';
 
-// Fetches base units, optionally filtered by search
-export function listBaseUnits(search?: string): Promise<UomData[]> {
-  return axios.get<UomData[]>('commerce-api/uom/base', { params: { search: search || undefined } }).then((r) => r.data);
-}
-
-// Fetches derived units for a given base unit
-export function listDerivedUnits(baseUnitId: string): Promise<UomData[]> {
-  return axios.get<UomData[]>(`commerce-api/uom/${baseUnitId}/derived`).then((r) => r.data);
+// Fetches UOM table for a dimension with server-side pagination/sorting/filtering
+export function getUomTable(dimensionId: string): Promise<UomTableResponse> {
+  return axios
+    .get<UomTableResponse>(`commerce-api/uom/dimension/${dimensionId}/table`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
 // Creates a new UOM

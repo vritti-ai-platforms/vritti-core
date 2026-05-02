@@ -41,3 +41,4 @@ export * from './suppliers';
 export * from './tax-groups';
 export * from './tax-rates';
 export * from './uom';
+export * from './uom-dimensions';

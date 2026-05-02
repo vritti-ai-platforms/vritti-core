@@ -117,13 +117,13 @@ export class PriceListsService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Price list not found.');
 
-    await this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       ...data,
       description: data.description !== undefined ? data.description || null : undefined,
     });
 
-    this.logger.log(`Updated price list: ${existing.name} (${id})`);
-    return { success: true, message: `Price list "${existing.name}" updated successfully.` };
+    this.logger.log(`Updated price list: ${updated.name} (${id})`);
+    return { success: true, message: `Price list "${updated.name}" updated successfully.` };
   }
 
   // Deletes a price list and cascades item/terminal assignments

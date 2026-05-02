@@ -1,6 +1,9 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
+  @IsUUID()
+  dimensionId: string;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)

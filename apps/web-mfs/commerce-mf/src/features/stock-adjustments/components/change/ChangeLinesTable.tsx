@@ -94,8 +94,7 @@ export const ChangeLinesTable = ({
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="text-destructive hover:text-destructive"
+                        variant="destructive"
                         onClick={(e) => {
                           e.stopPropagation();
                           onRemove(line);

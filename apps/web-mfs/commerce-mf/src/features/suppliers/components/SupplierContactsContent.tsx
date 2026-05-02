@@ -94,8 +94,7 @@ export const SupplierContactsContent = ({
           </Button>
           <Button
             size="sm"
-            variant="outline"
-            className="text-destructive hover:text-destructive"
+            variant="destructive"
             startAdornment={<Trash2 className="size-3.5" />}
             onClick={() => {
               if (selectedContact.isPrimary) return;

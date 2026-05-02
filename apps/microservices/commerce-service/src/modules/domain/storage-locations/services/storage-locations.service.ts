@@ -237,8 +237,8 @@ export class StorageLocationsService {
       }
     }
 
-    await this.storageLocationsRepository.transaction(async (tx) => {
-      await this.storageLocationsRepository.update(id, {
+    const updated = await this.storageLocationsRepository.transaction(async (tx) => {
+      const next = await this.storageLocationsRepository.update(id, {
         ...data,
         parentId: nextParentId,
         area: data.area !== undefined ? data.area || null : undefined,
@@ -249,10 +249,11 @@ export class StorageLocationsService {
         const nextPath = StorageLocationsService.buildPath(nextParentPath, nextCode);
         await this.storageLocationsRepository.rewriteSubtreePathInTx(tx, existing.path, nextPath);
       }
+      return next;
     });
 
-    this.logger.log(`Updated storage location: ${existing.name} (${id})`);
-    return { success: true, message: `Storage location "${existing.name}" updated successfully.` };
+    this.logger.log(`Updated storage location: ${updated.name} (${id})`);
+    return { success: true, message: `Storage location "${updated.name}" updated successfully.` };
   }
 
   // Deletes an storage location by ID; throws ConflictException if referenced

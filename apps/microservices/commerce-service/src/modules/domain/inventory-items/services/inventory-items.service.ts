@@ -205,9 +205,9 @@ export class InventoryItemsService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
     if (data.description !== undefined) data.description = data.description || null;
-    await this.repository.update(id, data);
-    this.logger.log(`Updated inventory item: ${existing.name} (${existing.code})`);
-    return { success: true, message: `Inventory item "${existing.name}" updated successfully.` };
+    const updated = await this.repository.update(id, data);
+    this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);
+    return { success: true, message: `Inventory item "${updated.name}" updated successfully.` };
   }
 
   // Deletes an inventory item; throws ConflictException if referenced

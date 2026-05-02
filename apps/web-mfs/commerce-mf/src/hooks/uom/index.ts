@@ -1,5 +1,5 @@
-export { UOM_BASE_KEY, UOM_DERIVED_KEY } from './keys';
+export { UOM_TABLE_KEY } from './keys';
 export { useCreateUom } from './useCreateUom';
 export { useDeleteUom } from './useDeleteUom';
-export { useBaseUnits, useDerivedUnits } from './useUom';
+export { useUomTable } from './useUomTable';
 export { useUpdateUom } from './useUpdateUom';

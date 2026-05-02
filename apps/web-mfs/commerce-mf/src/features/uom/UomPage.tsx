@@ -1,68 +1,55 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { keyBy } from '@vritti/quantum-ui/lodash';
-import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { useBaseUnits, useDerivedUnits } from '@/hooks/uom';
-import { UomDetailPanel, UomEmptyState, UomListPanel } from './components';
-import { AddBaseUnitDialog } from './forms/AddBaseUnitDialog';
+import { Plus, Ruler } from 'lucide-react';
+import { useState } from 'react';
+import { UomDimensionDetailPanel } from './components/UomDimensionDetailPanel';
+import { UomDimensionsPanel } from './components/UomDimensionsPanel';
+import { AddUomDimensionDialog } from './forms/AddUomDimensionDialog';
 
 export const UomPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const { data: baseUnits } = useBaseUnits(searchQuery);
-  const addBaseDialog = useDialog();
-
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const baseUnitsMap = useMemo(() => keyBy(baseUnits, (bu) => bu.id), [baseUnits]);
-  const selectedBaseUnit = selectedId ? (baseUnitsMap[selectedId] ?? null) : null;
-  const { data: derivedUnits = [], isLoading: isDerivedLoading } = useDerivedUnits(selectedId);
+  const [selectedDimensionId, setSelectedDimensionId] = useState<string | null>(null);
+  const addDimensionDialog = useDialog();
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Units of Measure"
-        description={`${baseUnits.length} base unit${baseUnits.length !== 1 ? 's' : ''}`}
+        description="Group units by dimension. Each dimension defines a base unit and any number of derived units."
         actions={
-          <Button onClick={addBaseDialog.open} startAdornment={<Plus className="size-4" />}>
-            Add Base Unit
+          <Button onClick={addDimensionDialog.open} startAdornment={<Plus className="size-4" />}>
+            Add Dimension
           </Button>
         }
       />
 
       <PageContent>
-        <UomListPanel
-          baseUnits={baseUnits}
-          selectedId={selectedId}
-          searchQuery={searchQuery}
-          onSelect={setSelectedId}
-          onSearch={setSearchQuery}
-        />
-
-        <div className="flex-1 min-w-0 flex flex-col">
-          {selectedBaseUnit ? (
-            <UomDetailPanel
-              baseUnit={selectedBaseUnit}
-              derivedUnits={derivedUnits}
-              isDerivedLoading={isDerivedLoading}
-              onBaseDeleted={() => setSelectedId(null)}
+        <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
+        <PageContentDetails className="flex flex-col">
+          {selectedDimensionId ? (
+            <UomDimensionDetailPanel
+              dimensionId={selectedDimensionId}
+              onDeleted={() => setSelectedDimensionId(null)}
             />
           ) : (
-            <div className="flex-1 overflow-auto p-6 flex flex-col">
-              <UomEmptyState />
-            </div>
+            <Empty
+              icon={<Ruler />}
+              title="Pick a dimension"
+              description="Select a dimension from the side panel to manage its units."
+              className="flex-1"
+            />
           )}
-        </div>
+        </PageContentDetails>
       </PageContent>
 
       <Dialog
-        handle={addBaseDialog}
-        title="Add Base Unit"
-        description="Create a new base unit of measure."
-        content={(close) => <AddBaseUnitDialog onSuccess={close} onCancel={close} />}
+        handle={addDimensionDialog}
+        title="Add Dimension"
+        description="Create a new UOM dimension."
+        content={(close) => <AddUomDimensionDialog onSuccess={close} onCancel={close} />}
       />
     </div>
   );

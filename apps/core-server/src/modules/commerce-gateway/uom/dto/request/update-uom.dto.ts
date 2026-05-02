@@ -2,6 +2,11 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
+  @ApiPropertyOptional({ description: 'Updated dimension UUID' })
+  @IsOptional()
+  @IsUUID()
+  dimensionId?: string;
+
   @ApiPropertyOptional({ description: 'Updated unit name' })
   @IsOptional()
   @IsString()

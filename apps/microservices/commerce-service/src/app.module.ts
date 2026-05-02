@@ -35,6 +35,7 @@ import { SupplierItemsModule } from './modules/supplier-items/supplier-items.mod
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
 import { UomModule } from './modules/uom/uom.module';
+import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { UomModule } from './modules/uom/uom.module';
     ItemsModule,
     ModifierGroupsModule,
     TaxGroupsModule,
+    UomDimensionsModule,
     UomModule,
     InventoryItemsModule,
     BomModule,

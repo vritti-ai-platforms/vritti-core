@@ -99,7 +99,6 @@ export function TaxGroupForm({ form, showStatusFields = false, compactRates = fa
                   size="icon-sm"
                   onClick={() => rateFields.remove(index)}
                   disabled={rateFields.fields.length <= 1}
-                  className="text-destructive hover:text-destructive"
                 >
                   <Trash2 className="size-4" />
                 </Button>

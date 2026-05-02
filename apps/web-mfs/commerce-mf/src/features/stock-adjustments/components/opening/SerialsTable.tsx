@@ -154,8 +154,7 @@ export const SerialsTable = ({ adjustmentId, line, isDraft, onLineRemoved }: Ser
               </Button>
               <Button
                 size="sm"
-                variant="outline"
-                className="text-destructive hover:text-destructive"
+                variant="destructive"
                 startAdornment={<Trash2 className="size-4" />}
                 onClick={handleRemoveLine}
                 isLoading={removeLineMutation.isPending}

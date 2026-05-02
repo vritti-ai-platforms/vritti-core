@@ -75,10 +75,9 @@ export const BatchDetailPage = () => {
         actions={
           batch.canDelete ? (
             <Button
-              variant="outline"
+              variant="destructive"
               size="sm"
               startAdornment={<Trash2 className="size-4" />}
-              className="text-destructive hover:text-destructive"
               onClick={handleDelete}
               isLoading={deleteMutation.isPending}
             >

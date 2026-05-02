@@ -3,9 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import type { CreateUomData, CreateUomResponse } from '@/schemas/uom';
 import { createUom } from '@/services/uom.service';
-import { UOM_BASE_KEY, UOM_DERIVED_KEY } from './keys';
+import { UOM_DIMENSIONS_KEY } from '../uom-dimensions/keys';
+import { UOM_TABLE_KEY } from './keys';
 
-// Creates a new UOM and invalidates the UOM lists
+// Creates a new UOM and invalidates the UOM table
 export function useCreateUom(
   options?: Omit<UseMutationOptions<CreateUomResponse, AxiosError, CreateUomData>, 'mutationFn'>,
 ) {
@@ -15,8 +16,8 @@ export function useCreateUom(
     ...options,
     mutationFn: createUom,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: UOM_BASE_KEY });
-      queryClient.invalidateQueries({ queryKey: UOM_DERIVED_KEY });
+      queryClient.invalidateQueries({ queryKey: UOM_TABLE_KEY });
+      queryClient.invalidateQueries({ queryKey: UOM_DIMENSIONS_KEY });
       options?.onSuccess?.(...args);
     },
   });

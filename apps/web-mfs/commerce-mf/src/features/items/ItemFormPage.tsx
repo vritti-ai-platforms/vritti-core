@@ -73,10 +73,9 @@ export const ItemFormPage = () => {
               Edit
             </Button>
             <Button
-              variant="outline"
+              variant="destructive"
               size="sm"
               startAdornment={<Trash2 className="size-4" />}
-              className="text-destructive hover:text-destructive"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
               isLoading={deleteMutation.isPending}

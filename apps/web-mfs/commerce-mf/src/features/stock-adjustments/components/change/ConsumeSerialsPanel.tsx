@@ -79,8 +79,7 @@ export const ConsumeSerialsPanel = ({ adjustmentId, line, isDraft, uomSymbol }: 
                   {isDraft && (
                     <Button
                       size="sm"
-                      variant="outline"
-                      className="text-destructive hover:text-destructive"
+                      variant="destructive"
                       startAdornment={<Trash2 className="size-3.5" />}
                       onClick={() => handleRemove(serial.id)}
                       isLoading={removeMutation.isPending && removeMutation.variables === serial.id}

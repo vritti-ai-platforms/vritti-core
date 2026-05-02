@@ -1,6 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { doublePrecision, index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { uomDimensions } from './uom-dimensions';
 
 export const uom = coreSchema.table(
   'uom',
@@ -8,6 +9,9 @@ export const uom = coreSchema.table(
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    dimensionId: uuid('dimension_id')
+      .notNull()
+      .references(() => uomDimensions.id, { onDelete: 'restrict' }),
     name: varchar('name', { length: 50 }).notNull(),
     symbol: varchar('symbol', { length: 10 }).notNull(),
     baseUnitId: uuid('base_unit_id'),
@@ -17,6 +21,7 @@ export const uom = coreSchema.table(
   (table) => [
     uniqueIndex('uq_uom_bu_symbol').on(table.businessUnitId, table.symbol),
     index('idx_uom_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_uom_dimension').on(table.dimensionId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

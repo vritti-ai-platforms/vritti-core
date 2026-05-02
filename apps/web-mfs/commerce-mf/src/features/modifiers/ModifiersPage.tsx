@@ -389,9 +389,9 @@ const GroupDetailPanel = ({
                           <Pencil className="size-3.5" />
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="destructive"
                           size="icon"
-                          className="size-7 text-destructive hover:text-destructive"
+                          className="size-7"
                           onClick={() => onDeleteOption(option)}
                         >
                           <Trash2 className="size-3.5" />

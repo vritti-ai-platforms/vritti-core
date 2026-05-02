@@ -6,12 +6,14 @@ import {
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
+  UserId,
 } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateUomDto } from './dto/request/create-uom.dto';
 import { UomBaseQueryDto } from './dto/request/uom-base-query.dto';
 import { UpdateUomDto } from './dto/request/update-uom.dto';
 import type { UomResponseDto } from './dto/response/uom-response.dto';
+import type { UomTableResponseDto } from './dto/response/uom-table-response.dto';
 import { UomGatewayService } from './services/uom-gateway.service';
 
 @ApiTags('Commerce - Units of Measure')
@@ -42,6 +44,16 @@ export class UomGatewayController {
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/uom/select');
     return this.uomGatewayService.select(query);
+  }
+
+  // Returns paginated UOMs for the data table, scoped to a dimension
+  @Get('dimension/:dimensionId/table')
+  findForTable(
+    @Param('dimensionId') dimensionId: string,
+    @UserId() userId: string,
+  ): Promise<UomTableResponseDto> {
+    this.logger.log(`GET /commerce-api/uom/dimension/${dimensionId}/table`);
+    return this.uomGatewayService.findForTable(userId, dimensionId);
   }
 
   // Creates a new UOM

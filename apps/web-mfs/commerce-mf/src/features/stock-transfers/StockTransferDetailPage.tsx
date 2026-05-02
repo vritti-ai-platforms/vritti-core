@@ -91,9 +91,8 @@ export const StockTransferDetailPage = () => {
             )}
             {canCancel && (
               <Button
-                variant="outline"
+                variant="destructive"
                 size="sm"
-                className="text-destructive"
                 startAdornment={<XCircle className="size-4" />}
                 onClick={() => handleStatusChange('CANCELLED', 'Cancel Transfer')}
               >

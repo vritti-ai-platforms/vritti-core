@@ -3,11 +3,16 @@ import {
   BadRequestException,
   ConflictException,
   type CreateResponseDto,
+  type FieldMap,
+  FilterProcessor,
   NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
+  type TableViewState,
 } from '@vritti/api-sdk';
+import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { uom } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
 import { UomDto } from '../dto/entity/uom.dto';
@@ -17,7 +22,36 @@ import { UomRepository } from '../repositories/uom.repository';
 export class UomService {
   private readonly logger = new Logger(UomService.name);
 
+  private static readonly FIELD_MAP: FieldMap = {
+    name: { column: uom.name, type: 'string' },
+    symbol: { column: uom.symbol, type: 'string' },
+    conversionFactor: { column: uom.conversionFactor, type: 'number' },
+  };
+
   constructor(private readonly uomRepository: UomRepository) {}
+
+  // Returns paginated UOMs for the data table, scoped to a dimension
+  async findForTable(state: TableViewState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, UomService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, UomService.FIELD_MAP);
+    const dimensionWhere = eq(uom.dimensionId, state.dimensionId);
+    const where = and(dimensionWhere, filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, UomService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.uomRepository.findAllAndCount({
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(uom.createdAt)],
+      limit,
+      offset,
+    });
+
+    const referencedIds = await this.uomRepository.findReferencedIds(rows.map((r) => r.id));
+    return {
+      result: rows.map((row) => UomDto.from(row, !referencedIds.has(row.id))),
+      count,
+    };
+  }
 
   // Returns base units, optionally filtered by search
   async findBaseUnits(search?: string): Promise<UomDto[]> {
@@ -67,6 +101,7 @@ export class UomService {
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId);
 
     const entity = await this.uomRepository.create({
+      dimensionId: data.dimensionId,
       name: data.name,
       symbol: data.symbol,
       baseUnitId: data.baseUnitId ?? null,
@@ -93,9 +128,9 @@ export class UomService {
     const existing = await this.uomRepository.findById(id);
     if (!existing) throw new NotFoundException('Unit of measure not found.');
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId, id);
-    await this.uomRepository.update(id, data);
-    this.logger.log(`Updated UOM: ${existing.name} (${existing.symbol})`);
-    return { success: true, message: `Unit "${existing.name}" updated successfully.` };
+    const updated = await this.uomRepository.update(id, data);
+    this.logger.log(`Updated UOM: ${updated.name} (${updated.symbol})`);
+    return { success: true, message: `Unit "${updated.name}" updated successfully.` };
   }
 
   // Deletes a UOM by ID; throws ConflictException if referenced

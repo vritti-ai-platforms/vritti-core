@@ -161,8 +161,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
+                  variant="destructive"
                   startAdornment={<Trash2 className="size-3.5" />}
                   onClick={handleRemoveLot}
                   isLoading={removeLotMutation.isPending}
@@ -231,8 +230,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="text-destructive hover:text-destructive"
+                    variant="destructive"
                     startAdornment={<Trash2 className="size-3.5" />}
                     onClick={handleRemoveItem}
                     isLoading={removeItemMutation.isPending}
@@ -322,8 +320,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
+                  variant="destructive"
                   startAdornment={<Trash2 className="size-3.5" />}
                   onClick={handleRemoveItem}
                   isLoading={removeItemMutation.isPending}

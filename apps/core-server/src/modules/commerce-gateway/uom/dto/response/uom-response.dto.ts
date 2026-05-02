@@ -4,6 +4,9 @@ export class UomResponseDto {
   @ApiProperty({ description: 'UOM ID' })
   id: string;
 
+  @ApiProperty({ description: 'Dimension UUID this UOM belongs to' })
+  dimensionId: string;
+
   @ApiProperty({ description: 'Unit name', example: 'Kilogram' })
   name: string;
 

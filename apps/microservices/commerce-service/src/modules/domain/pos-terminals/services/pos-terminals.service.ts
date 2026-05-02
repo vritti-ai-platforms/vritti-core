@@ -133,13 +133,13 @@ export class PosTerminalsService {
       await this.assertValidStorageLocation(data.storageLocationId);
     }
 
-    await this.repository.update(id, {
+    const updated = await this.repository.update(id, {
       ...data,
       description: data.description !== undefined ? data.description || null : undefined,
     });
 
-    this.logger.log(`Updated POS terminal: ${existing.name} (${id})`);
-    return { success: true, message: `POS terminal "${existing.name}" updated successfully.` };
+    this.logger.log(`Updated POS terminal: ${updated.name} (${id})`);
+    return { success: true, message: `POS terminal "${updated.name}" updated successfully.` };
   }
 
   // Deletes a POS terminal

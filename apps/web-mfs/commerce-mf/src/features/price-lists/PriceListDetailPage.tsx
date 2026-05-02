@@ -73,12 +73,11 @@ export const PriceListDetailPage = () => {
               Edit
             </Button>
             <Button
-              variant="outline"
+              variant="destructive"
               size="sm"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
               isLoading={deleteMutation.isPending}
-              className="text-destructive hover:text-destructive"
               startAdornment={<Trash2 className="size-4" />}
             >
               Delete

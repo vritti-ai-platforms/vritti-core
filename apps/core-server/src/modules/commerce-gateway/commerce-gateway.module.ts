@@ -49,6 +49,8 @@ import { TaxGroupsGatewayService } from './tax-groups/services/tax-groups-gatewa
 import { TaxGroupsGatewayController } from './tax-groups/tax-groups-gateway.controller';
 import { UomGatewayController } from './uom/uom-gateway.controller';
 import { UomGatewayService } from './uom/services/uom-gateway.service';
+import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-gateway.controller';
+import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimensions-gateway.service';
 
 @Module({
   imports: [BusinessUnitDomainModule, UserDomainModule],
@@ -77,6 +79,7 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
     SuppliersGatewayController,
     TaxGroupsGatewayController,
     UomGatewayController,
+    UomDimensionsGatewayController,
   ],
   providers: [
     BomGatewayService,
@@ -103,6 +106,7 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
     SuppliersGatewayService,
     TaxGroupsGatewayService,
     UomGatewayService,
+    UomDimensionsGatewayService,
   ],
 })
 export class CommerceGatewayModule {}

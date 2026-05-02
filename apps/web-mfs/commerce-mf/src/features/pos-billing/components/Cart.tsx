@@ -90,9 +90,9 @@ export const Cart = ({
         </div>
         {!isEmpty && (
           <Button
-            variant="ghost"
+            variant="destructive"
             size="sm"
-            className="text-destructive h-7"
+            className="h-7"
             onClick={handleClear}
             startAdornment={<Trash2 className="size-3.5" />}
           >

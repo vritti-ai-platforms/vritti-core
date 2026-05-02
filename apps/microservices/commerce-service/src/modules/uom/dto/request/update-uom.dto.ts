@@ -2,6 +2,10 @@ import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLeng
 
 export class UpdateUomDto {
   @IsOptional()
+  @IsUUID()
+  dimensionId?: string;
+
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
