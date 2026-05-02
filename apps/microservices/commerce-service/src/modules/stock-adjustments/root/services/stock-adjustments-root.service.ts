@@ -16,7 +16,6 @@ import {
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
-  type TypedDrizzleClient,
 } from '@vritti/api-sdk';
 import _ from '@vritti/api-sdk/lodash';
 import {
@@ -105,26 +104,22 @@ export class StockAdjustmentsRootService {
         ? await this.lotsRepository.findByAdjustmentId(id)
         : [];
 
-    await this.repository.transaction(async (tx) => {
-      // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
-      const resolvedLotByDraftId = new Map<string, string>();
-      for (const lot of lots) {
-        const inventoryLot = await this.lotsService.resolveInventoryLotInTx(tx, adjustment.inventoryItemId, lot.id);
-        resolvedLotByDraftId.set(lot.id, inventoryLot.id);
-      }
+    // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
+    for (const lot of lots) {
+      await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id);
+    }
 
-      // Phase B: process each line
-      for (const line of lines) {
-        const lineItems = lineItemsByLineId[line.id] ?? [];
-        if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
-          await this.publishRegisterLine(tx, id, adjustment, tracking, line, lineItems, lots);
-        } else {
-          await this.publishChangeLine(tx, id, adjustment, tracking, line, lineItems);
-        }
+    // Phase B: process each line
+    for (const line of lines) {
+      const lineItems = lineItemsByLineId[line.id] ?? [];
+      if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
+        await this.publishRegisterLine(id, adjustment, tracking, line, lineItems, lots);
+      } else {
+        await this.publishChangeLine(id, adjustment, tracking, line, lineItems);
       }
+    }
 
-      await this.repository.updateStatusInTx(tx, id, StockAdjustmentStatusValues.PUBLISHED, new Date());
-    });
+    await this.repository.updateStatus(id, StockAdjustmentStatusValues.PUBLISHED, new Date());
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
     return this.adjustmentsService.findById(id);
@@ -132,7 +127,6 @@ export class StockAdjustmentsRootService {
 
   // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials])
   private async publishRegisterLine(
-    tx: TypedDrizzleClient,
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
     tracking: InventoryTracking,
@@ -144,7 +138,7 @@ export class StockAdjustmentsRootService {
       throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK.`);
     }
 
-    let createParams: Parameters<typeof this.batchesService.createBatchInTx>[1];
+    let createParams: Parameters<typeof this.batchesService.createBatchScoped>[0];
     if (tracking === InventoryTrackingValues.QUANTITY) {
       if (line.stockAdjustmentLotId) {
         throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=quantity.`);
@@ -220,9 +214,9 @@ export class StockAdjustmentsRootService {
       }
     }
 
-    const { quant } = await this.batchesService.createBatchInTx(tx, createParams);
+    const { quant } = await this.batchesService.createBatchScoped(createParams);
 
-    await this.ledgerService.createEntryInTx(tx, {
+    await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
       batchId: quant.id,
       type: InventoryLedgerTypeValues.OPENING_STOCK,
@@ -232,12 +226,11 @@ export class StockAdjustmentsRootService {
       notes: adjustment.reason ?? null,
     });
 
-    await this.linesRepository.setResolvedQuantInTx(tx, line.id, quant.id);
+    await this.linesRepository.setResolvedQuant(line.id, quant.id);
   }
 
   // Deduct/CORRECTION: line carries (quantId, quantity, [serials])
   private async publishChangeLine(
-    tx: TypedDrizzleClient,
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
     tracking: InventoryTracking,
@@ -254,15 +247,15 @@ export class StockAdjustmentsRootService {
       if (serials.length !== Number(line.quantity)) {
         throw new BadRequestException(`Line ${line.id}: expected ${line.quantity} serials, got ${serials.length}.`);
       }
-      await this.batchesService.adjustBatchInTx(tx, line.quantId, { tracking, serials });
+      await this.batchesService.adjustBatchScoped(line.quantId, { tracking, serials });
       signedDelta = this.isDeductType(adjustment.type) ? -serials.length : serials.length;
     } else {
       const delta = this.isDeductType(adjustment.type) ? -Math.abs(Number(line.quantity)) : Number(line.quantity);
-      await this.batchesService.adjustBatchInTx(tx, line.quantId, { tracking, delta });
+      await this.batchesService.adjustBatchScoped(line.quantId, { tracking, delta });
       signedDelta = delta;
     }
 
-    await this.ledgerService.createEntryInTx(tx, {
+    await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
       batchId: line.quantId,
       type: InventoryLedgerTypeValues.ADJUSTMENT,
@@ -272,7 +265,7 @@ export class StockAdjustmentsRootService {
       notes: `${adjustment.type}: ${adjustment.reason ?? ''}`,
     });
 
-    await this.linesRepository.setResolvedQuantInTx(tx, line.id, line.quantId);
+    await this.linesRepository.setResolvedQuant(line.id, line.quantId);
   }
 
   private isDeductType(type: StockAdjustmentType): boolean {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptLot,
@@ -66,13 +66,13 @@ export class GoodsReceiptLotsRepository extends PrimaryBaseRepository<typeof goo
     return rows[0] as GoodsReceiptLot | undefined;
   }
 
-  async createWithTx(tx: TypedDrizzleClient, data: typeof goodsReceiptLots.$inferInsert): Promise<GoodsReceiptLot> {
-    const results = await tx.insert(goodsReceiptLots).values(data).returning();
+  async createLot(data: typeof goodsReceiptLots.$inferInsert): Promise<GoodsReceiptLot> {
+    const results = await this.db.insert(goodsReceiptLots).values(data).returning();
     return results[0] as GoodsReceiptLot;
   }
 
-  async setResolvedLotIdInTx(tx: TypedDrizzleClient, lotId: string, resolvedLotId: string): Promise<void> {
-    await tx.update(goodsReceiptLots).set({ resolvedLotId }).where(eq(goodsReceiptLots.id, lotId));
+  async setResolvedLotId(lotId: string, resolvedLotId: string): Promise<void> {
+    await this.db.update(goodsReceiptLots).set({ resolvedLotId }).where(eq(goodsReceiptLots.id, lotId));
   }
 
   // Counts how many line_items reference any line under this lot — used to validate deletion safety

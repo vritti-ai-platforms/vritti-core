@@ -4,7 +4,6 @@ import {
   PrimaryBaseRepository,
   PrimaryDatabaseService,
   type SelectQueryResult,
-  type TypedDrizzleClient,
 } from '@vritti/api-sdk';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import { categories, inventoryItems, items } from '@/db/schema';
@@ -226,8 +225,8 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
     return rows.map((row) => row.id);
   }
 
-  // Updates a category sort order within an existing transaction
-  async updateSortOrderInTx(tx: TypedDrizzleClient, id: string, sortOrder: number): Promise<void> {
-    await tx.update(categories).set({ sortOrder }).where(eq(categories.id, id));
+  // Updates a category sort order
+  async updateSortOrder(id: string, sortOrder: number): Promise<void> {
+    await this.db.update(categories).set({ sortOrder }).where(eq(categories.id, id));
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemQuants,
@@ -221,22 +221,22 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
     return rows.map((row) => row.id);
   }
 
-  // Updates a location sort order within an existing transaction
-  async updateSortOrderInTx(tx: TypedDrizzleClient, id: string, sortOrder: number): Promise<void> {
-    await tx.update(storageLocations).set({ sortOrder }).where(eq(storageLocations.id, id));
+  // Updates a location sort order
+  async updateSortOrder(id: string, sortOrder: number): Promise<void> {
+    await this.db.update(storageLocations).set({ sortOrder }).where(eq(storageLocations.id, id));
   }
 
-  // Updates path for a single location within an existing transaction
-  async updatePathInTx(tx: TypedDrizzleClient, id: string, path: string): Promise<void> {
-    await tx
+  // Updates path for a single location
+  async updatePath(id: string, path: string): Promise<void> {
+    await this.db
       .update(storageLocations)
       .set({ path: sql`cast(${path} as ltree)` })
       .where(eq(storageLocations.id, id));
   }
 
   // Rewrites path prefix for a moved subtree: oldPath -> newPath
-  async rewriteSubtreePathInTx(tx: TypedDrizzleClient, oldPath: string, newPath: string): Promise<void> {
-    await tx.execute(sql`
+  async rewriteSubtreePath(oldPath: string, newPath: string): Promise<void> {
+    await this.db.execute(sql`
       UPDATE ${storageLocations}
       SET path = CASE
         WHEN path = cast(${oldPath} as ltree) THEN cast(${newPath} as ltree)
@@ -247,8 +247,8 @@ export class StorageLocationsRepository extends PrimaryBaseRepository<typeof sto
   }
 
   // Applies location role to a subtree root and all descendants
-  async updateLocationRoleForSubtreeInTx(tx: TypedDrizzleClient, rootPath: string, locationRole: StorageLocationRole): Promise<void> {
-    await tx.execute(sql`
+  async updateLocationRoleForSubtree(rootPath: string, locationRole: StorageLocationRole): Promise<void> {
+    await this.db.execute(sql`
       UPDATE ${storageLocations}
       SET location_role = cast(${locationRole} as vritti_core.storage_location_role)
       WHERE path <@ cast(${rootPath} as ltree)

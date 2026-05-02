@@ -7,7 +7,7 @@ import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent'
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { FolderTree, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { CATEGORIES_KEY, useCategoryById, useCategoryCount } from '@/hooks/categories';
+import { CATEGORIES_KEY, useCategoryCount } from '@/hooks/categories';
 import { CategoryDetailPanel, CategoryTreePanel } from './components';
 import { AddCategoryDialog } from './forms/AddCategoryDialog';
 
@@ -15,7 +15,6 @@ export const CategoriesPage = () => {
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { data: categoryCount } = useCategoryCount();
-  const { data: selectedCategory, isLoading: isSelectedCategoryLoading } = useCategoryById(selectedId);
   const formDialog = useDialog();
 
   return (
@@ -34,10 +33,8 @@ export const CategoriesPage = () => {
         <CategoryTreePanel selectedId={selectedId} onSelect={setSelectedId} />
 
         <PageContentDetails className="flex flex-col">
-          {selectedCategory ? (
-            <CategoryDetailPanel category={selectedCategory} onSelectCategory={setSelectedId} />
-          ) : selectedId && isSelectedCategoryLoading ? (
-            <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Loading…</div>
+          {selectedId ? (
+            <CategoryDetailPanel categoryId={selectedId} onSelectCategory={setSelectedId} />
           ) : (
             <Empty
               icon={<FolderTree />}

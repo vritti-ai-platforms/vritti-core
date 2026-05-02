@@ -9,7 +9,6 @@ import {
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type TableViewState,
-  type TypedDrizzleClient,
 } from '@vritti/api-sdk';
 import { and, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
@@ -69,52 +68,49 @@ export class InventoryItemQuantsService {
     referenceId?: string;
     notes?: string;
   }): Promise<{ batch: InventoryItemQuant }> {
-    const result = await this.repository.transaction(async (tx) => {
-      const tracking = await this.repository.findItemTrackingInTx(tx, params.inventoryItemId);
-      let createParams: CreateQuantParams;
-      if (tracking === InventoryTrackingValues.QUANTITY) {
-        createParams = {
-          inventoryItemId: params.inventoryItemId,
-          locationId: params.locationId,
-          tracking,
-          quantity: params.quantity,
-        };
-      } else if (tracking === InventoryTrackingValues.SERIAL) {
-        createParams = {
-          inventoryItemId: params.inventoryItemId,
-          locationId: params.locationId,
-          tracking,
-          quantity: params.quantity,
-          serialNumbers: params.serialNumbers,
-        };
-      } else {
-        createParams = {
-          inventoryItemId: params.inventoryItemId,
-          locationId: params.locationId,
-          tracking,
-          quantity: params.quantity,
-          lot: params.lot,
-          serialNumbers: params.serialNumbers,
-        };
-      }
-
-      const { quant } = await this.createBatchInTx(tx, createParams);
-      await this.ledgerService.createEntryInTx(tx, {
+    const tracking = await this.repository.findItemTracking(params.inventoryItemId);
+    let createParams: CreateQuantParams;
+    if (tracking === InventoryTrackingValues.QUANTITY) {
+      createParams = {
         inventoryItemId: params.inventoryItemId,
-        batchId: quant.id,
-        type: params.type,
-        quantity: String(params.quantity),
-        referenceType: params.referenceType ?? null,
-        referenceId: params.referenceId ?? null,
-        notes: params.notes ?? null,
-      });
-      return quant;
+        locationId: params.locationId,
+        tracking,
+        quantity: params.quantity,
+      };
+    } else if (tracking === InventoryTrackingValues.SERIAL) {
+      createParams = {
+        inventoryItemId: params.inventoryItemId,
+        locationId: params.locationId,
+        tracking,
+        quantity: params.quantity,
+        serialNumbers: params.serialNumbers,
+      };
+    } else {
+      createParams = {
+        inventoryItemId: params.inventoryItemId,
+        locationId: params.locationId,
+        tracking,
+        quantity: params.quantity,
+        lot: params.lot,
+        serialNumbers: params.serialNumbers,
+      };
+    }
+
+    const { quant } = await this.createBatchScoped(createParams);
+    await this.ledgerService.createEntry({
+      inventoryItemId: params.inventoryItemId,
+      batchId: quant.id,
+      type: params.type,
+      quantity: String(params.quantity),
+      referenceType: params.referenceType ?? null,
+      referenceId: params.referenceId ?? null,
+      notes: params.notes ?? null,
     });
 
     this.logger.log(
-      `Created quant ${result.id} for item ${params.inventoryItemId} (${params.type}, qty: ${params.quantity})`,
+      `Created quant ${quant.id} for item ${params.inventoryItemId} (${params.type}, qty: ${params.quantity})`,
     );
-    return { batch: result };
+    return { batch: quant };
   }
 
   // Creates or upserts a quant within a transaction. Tracking-aware:
@@ -123,8 +119,7 @@ export class InventoryItemQuantsService {
   //   'lot_serial': resolves/creates lot, upsert quant, then inserts N quant_items with serials
   //   'serial':     lotId=null, upsert quant by (item, location), then inserts N quant_items with serials
   // No ledger — caller handles it.
-  async createBatchInTx(
-    tx: TypedDrizzleClient,
+  async createBatchScoped(
     params: CreateQuantParams,
   ): Promise<{ quant: InventoryItemQuant; lot: InventoryItemLot | null; quantItems: InventoryItemQuantItem[] }> {
     this.validateCreateParams(params);
@@ -135,7 +130,7 @@ export class InventoryItemQuantsService {
       params.tracking === InventoryTrackingValues.LOT_SERIAL
     ) {
       if (!params.lot) throw new BadRequestException('lot is required for tracking=lot or lot_serial.');
-      lot = await this.lotsService.findOrCreateLotInTx(tx, {
+      lot = await this.lotsService.findOrCreateLot({
         inventoryItemId: params.inventoryItemId,
         lotNumber: params.lot.lotNumber,
         manufacturingDate: params.lot.manufacturingDate ?? null,
@@ -145,8 +140,7 @@ export class InventoryItemQuantsService {
 
     const lotId = lot?.id ?? null;
 
-    const existing = await this.repository.findByItemLocationLotInTx(
-      tx,
+    const existing = await this.repository.findByItemLocationLot(
       params.inventoryItemId,
       params.locationId,
       lotId,
@@ -154,9 +148,9 @@ export class InventoryItemQuantsService {
 
     let quant: InventoryItemQuant;
     if (existing) {
-      quant = await this.repository.updateQuantityWithTx(tx, existing.id, String(params.quantity));
+      quant = await this.repository.updateQuantity(existing.id, String(params.quantity));
     } else {
-      quant = await this.repository.createWithTx(tx, {
+      quant = await this.repository.createBatch({
         inventoryItemId: params.inventoryItemId,
         locationId: params.locationId,
         lotId,
@@ -170,8 +164,7 @@ export class InventoryItemQuantsService {
       params.tracking === InventoryTrackingValues.LOT_SERIAL
     ) {
       const serials = params.serialNumbers ?? [];
-      quantItems = await this.repository.insertQuantItemsInTx(
-        tx,
+      quantItems = await this.repository.insertQuantItems(
         serials.map((serialNumber) => ({
           inventoryItemQuantId: quant.id,
           inventoryItemId: params.inventoryItemId,
@@ -246,69 +239,56 @@ export class InventoryItemQuantsService {
     const quant = await this.repository.findById(params.batchId);
     if (!quant) throw new NotFoundException('Batch not found.');
 
-    const result = await this.repository.transaction(async (tx) => {
-      const tracking = await this.repository.findItemTrackingInTx(tx, quant.inventoryItemId);
+    const tracking = await this.repository.findItemTracking(quant.inventoryItemId);
 
-      const adjustParams: AdjustQuantParams =
-        tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL
-          ? { tracking, serials: params.serials ?? [] }
-          : { tracking, delta: params.quantity };
+    const adjustParams: AdjustQuantParams =
+      tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL
+        ? { tracking, serials: params.serials ?? [] }
+        : { tracking, delta: params.quantity };
 
-      const { quant: updated } = await this.adjustBatchInTx(tx, params.batchId, adjustParams);
+    const { quant: updated } = await this.adjustBatchScoped(params.batchId, adjustParams);
 
-      await this.ledgerService.createEntryInTx(tx, {
-        inventoryItemId: updated.inventoryItemId,
-        batchId: updated.id,
-        type: params.type,
-        quantity: String(params.quantity),
-        referenceType: params.referenceType ?? null,
-        referenceId: params.referenceId ?? null,
-        notes: params.notes ?? null,
-      });
-
-      return updated;
+    await this.ledgerService.createEntry({
+      inventoryItemId: updated.inventoryItemId,
+      batchId: updated.id,
+      type: params.type,
+      quantity: String(params.quantity),
+      referenceType: params.referenceType ?? null,
+      referenceId: params.referenceId ?? null,
+      notes: params.notes ?? null,
     });
 
-    this.logger.log(`Adjusted quant ${result.id} by ${params.quantity} (${params.type})`);
-    return { batch: result };
+    this.logger.log(`Adjusted quant ${updated.id} by ${params.quantity} (${params.type})`);
+    return { batch: updated };
   }
 
   // Adjusts a quant within a transaction (no ledger — caller handles it).
   //   'quantity' | 'lot':         delta-based adjustment of quant.quantity
   //   'serial' | 'lot_serial':    resolves serials → consumes those quant_items; quantity decremented by length
-  async adjustBatchInTx(
-    tx: TypedDrizzleClient,
+  async adjustBatchScoped(
     batchId: string,
     params: AdjustQuantParams,
   ): Promise<{ quant: InventoryItemQuant; consumedItems: InventoryItemQuantItem[] }> {
     switch (params.tracking) {
       case 'quantity':
       case 'lot': {
-        const quant = await this.repository.updateQuantityWithTx(tx, batchId, String(params.delta));
+        const quant = await this.repository.updateQuantity(batchId, String(params.delta));
         return { quant, consumedItems: [] };
       }
       case 'serial':
       case 'lot_serial': {
-        const items = await this.repository.loadAvailableQuantItemsBySerialsInTx(tx, batchId, params.serials);
+        const items = await this.repository.loadAvailableQuantItemsBySerials(batchId, params.serials);
         if (items.length !== params.serials.length) {
           throw new BadRequestException('Some serials are not AVAILABLE or do not belong to the given batch.');
         }
-        await this.repository.consumeQuantItemsInTx(
-          tx,
-          items.map((i) => i.id),
-        );
-        const quant = await this.repository.updateQuantityWithTx(tx, batchId, String(-items.length));
+        await this.repository.consumeQuantItems(items.map((i) => i.id));
+        const quant = await this.repository.updateQuantity(batchId, String(-items.length));
         return { quant, consumedItems: items };
       }
     }
   }
 
   // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.
-  loadLotByQuantIdInTx(tx: TypedDrizzleClient, quantId: string): Promise<InventoryItemLot | null> {
-    return this.repository.findLotByQuantIdInTx(tx, quantId);
-  }
-
-  // Non-tx variant of loadLotByQuantIdInTx for callers outside a transaction
   async loadLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
     const quant = await this.repository.findById(quantId);
     if (!quant?.lotNumber) return null;

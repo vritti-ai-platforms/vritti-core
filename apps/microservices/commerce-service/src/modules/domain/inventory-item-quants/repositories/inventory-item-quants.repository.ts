@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemLot,
@@ -88,8 +88,8 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return rows[0] as InventoryItemQuantWithRefs | undefined;
   }
 
-  async updateQuantityWithTx(tx: TypedDrizzleClient, id: string, delta: string): Promise<InventoryItemQuant> {
-    const results = await tx
+  async updateQuantity(id: string, delta: string): Promise<InventoryItemQuant> {
+    const results = await this.db
       .update(inventoryItemQuants)
       .set({
         quantity: sql`${inventoryItemQuants.quantity} + ${delta}::decimal`,
@@ -112,17 +112,14 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results[0] as InventoryItemQuant;
   }
 
-  async createWithTx(
-    tx: TypedDrizzleClient,
-    data: typeof inventoryItemQuants.$inferInsert,
-  ): Promise<InventoryItemQuant> {
-    const results = await tx.insert(inventoryItemQuants).values(data).returning();
+  async createBatch(data: typeof inventoryItemQuants.$inferInsert): Promise<InventoryItemQuant> {
+    const results = await this.db.insert(inventoryItemQuants).values(data).returning();
     return results[0] as InventoryItemQuant;
   }
 
   // Returns the tracking type for an item (none | lot | item)
-  async findItemTrackingInTx(tx: TypedDrizzleClient, inventoryItemId: string): Promise<InventoryTracking> {
-    const rows = await tx
+  async findItemTracking(inventoryItemId: string): Promise<InventoryTracking> {
+    const rows = await this.db
       .select({ tracking: inventoryItems.tracking })
       .from(inventoryItems)
       .where(eq(inventoryItems.id, inventoryItemId))
@@ -133,8 +130,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Find an existing quant by item + location + lotId. lotId=null matches NULL (tracking='quantity').
-  async findByItemLocationLotInTx(
-    tx: TypedDrizzleClient,
+  async findByItemLocationLot(
     inventoryItemId: string,
     locationId: string,
     lotId: string | null,
@@ -151,17 +147,16 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
             eq(inventoryItemQuants.locationId, locationId),
             sql`${inventoryItemQuants.lotId} IS NULL`,
           );
-    const rows = await tx.select().from(inventoryItemQuants).where(condition).limit(1);
+    const rows = await this.db.select().from(inventoryItemQuants).where(condition).limit(1);
     return rows[0] as InventoryItemQuant | undefined;
   }
 
   // Inserts one row per serial number into inventory_item_quant_items (status='AVAILABLE')
-  async insertQuantItemsInTx(
-    tx: TypedDrizzleClient,
+  async insertQuantItems(
     items: { inventoryItemQuantId: string; inventoryItemId: string; serialNumber: string }[],
   ): Promise<InventoryItemQuantItem[]> {
     if (items.length === 0) return [];
-    const results = await tx
+    const results = await this.db
       .insert(inventoryItemQuantItems)
       .values(
         items.map((item) => ({
@@ -176,13 +171,12 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Validate quant items belong to a quant and are AVAILABLE by serial number; returns the rows
-  async loadAvailableQuantItemsBySerialsInTx(
-    tx: TypedDrizzleClient,
+  async loadAvailableQuantItemsBySerials(
     quantId: string,
     serials: string[],
   ): Promise<InventoryItemQuantItem[]> {
     if (serials.length === 0) return [];
-    const rows = await tx
+    const rows = await this.db
       .select()
       .from(inventoryItemQuantItems)
       .where(
@@ -196,20 +190,17 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Marks the given quant items as CONSUMED (by id)
-  async consumeQuantItemsInTx(tx: TypedDrizzleClient, quantItemIds: string[]): Promise<void> {
+  async consumeQuantItems(quantItemIds: string[]): Promise<void> {
     if (quantItemIds.length === 0) return;
-    await tx
+    await this.db
       .update(inventoryItemQuantItems)
       .set({ status: QuantItemStatusValues.CONSUMED })
       .where(inArray(inventoryItemQuantItems.id, quantItemIds));
   }
 
   // Loads the lot row associated with a quant (null when tracking='quantity')
-  async findLotByQuantIdInTx(
-    tx: TypedDrizzleClient,
-    quantId: string,
-  ): Promise<InventoryItemLot | null> {
-    const rows = await tx
+  async findLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
+    const rows = await this.db
       .select({
         id: inventoryItemLots.id,
         organizationId: inventoryItemLots.organizationId,

@@ -59,7 +59,7 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
           },
           drizzleSchema: schema,
           drizzleRelations: relations,
-          maxConnections: 10,
+          maxConnections: 20,
         };
         return options;
       },

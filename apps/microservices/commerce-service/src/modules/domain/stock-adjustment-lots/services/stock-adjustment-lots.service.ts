@@ -7,7 +7,6 @@ import {
   type CreateResponseDto,
   NotFoundException,
   type SuccessResponseDto,
-  type TypedDrizzleClient,
   ValidationException,
 } from '@vritti/api-sdk';
 import {
@@ -196,21 +195,16 @@ export class StockAdjustmentLotsService {
 
   // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.
   // Throws if a lot with the same (item, number) already exists in inventory (cannot reuse).
-  async resolveInventoryLotInTx(
-    tx: TypedDrizzleClient,
-    inventoryItemId: string,
-    lotId: string,
-  ): Promise<InventoryItemLot> {
+  async resolveInventoryLot(inventoryItemId: string, lotId: string): Promise<InventoryItemLot> {
     const sa = await this.repository.findById(lotId);
     if (!sa) throw new NotFoundException(`Stock adjustment lot ${lotId} not found.`);
-    // Use the inventoryLotsRepository.createWithTx via its in-tx insert
-    const inserted = await this.inventoryLotsRepository.createWithTx(tx, {
+    const inserted = await this.inventoryLotsRepository.createLot({
       inventoryItemId,
       lotNumber: sa.lotNumber,
       manufacturingDate: sa.manufacturingDate ?? null,
       expiryDate: sa.expiryDate ?? null,
     });
-    await this.repository.setResolvedLotIdInTx(tx, lotId, inserted.id);
+    await this.repository.setResolvedLotId(lotId, inserted.id);
     return inserted;
   }
 

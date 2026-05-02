@@ -1,10 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type FieldMap,
-  FilterProcessor,
-  type TableViewState,
-  type TypedDrizzleClient,
-} from '@vritti/api-sdk';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import type { InventoryLedgerEntry, InventoryLedgerReferenceType, NewInventoryLedgerEntry } from '@/db/schema';
 import { inventoryItemLots, inventoryItems, inventoryLedger } from '@/db/schema';
@@ -29,10 +24,6 @@ export class InventoryLedgerService {
     const entry = await this.repository.createEntry(data);
     this.logger.log(`Created ledger entry ${entry.id} (${data.type}, qty: ${data.quantity})`);
     return entry;
-  }
-
-  async createEntryInTx(tx: TypedDrizzleClient, data: NewInventoryLedgerEntry): Promise<InventoryLedgerEntry> {
-    return this.repository.createEntryWithTx(tx, data);
   }
 
   async findForTable(state: TableViewState): Promise<{ result: InventoryLedgerDto[]; count: number }> {

@@ -1,10 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  BadRequestException,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type TypedDrizzleClient,
-} from '@vritti/api-sdk';
+import { BadRequestException, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { ilike } from '@vritti/api-sdk/drizzle-orm';
 import { type InventoryItemLot, inventoryItemLots } from '@/db/schema';
 import { InventoryItemLotsRepository } from '../repositories/inventory-item-lots.repository';
@@ -16,19 +11,16 @@ export class InventoryItemLotsService {
   constructor(private readonly repository: InventoryItemLotsRepository) {}
 
   // Returns existing lot or creates a new one. Lot identity is (orgId, itemId, lotNumber).
-  async findOrCreateLotInTx(
-    tx: TypedDrizzleClient,
-    params: {
-      inventoryItemId: string;
-      lotNumber: string;
-      manufacturingDate?: string | null;
-      expiryDate?: string | null;
-    },
-  ): Promise<InventoryItemLot> {
-    const existing = await this.repository.findByItemAndNumberInTx(tx, params.inventoryItemId, params.lotNumber);
+  async findOrCreateLot(params: {
+    inventoryItemId: string;
+    lotNumber: string;
+    manufacturingDate?: string | null;
+    expiryDate?: string | null;
+  }): Promise<InventoryItemLot> {
+    const existing = await this.repository.findByItemAndNumber(params.inventoryItemId, params.lotNumber);
     if (existing) return existing;
 
-    return this.repository.createWithTx(tx, {
+    return this.repository.createLot({
       inventoryItemId: params.inventoryItemId,
       lotNumber: params.lotNumber,
       manufacturingDate: params.manufacturingDate ?? null,

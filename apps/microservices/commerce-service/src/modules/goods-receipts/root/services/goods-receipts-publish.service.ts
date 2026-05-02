@@ -50,135 +50,131 @@ export class GoodsReceiptsPublishService {
       );
     }
 
-    await this.receiptsRepository.transaction(async (tx) => {
-      for (const item of items) {
-        const lines = await this.linesRepository.findByItemId(item.id);
+    for (const item of items) {
+      const lines = await this.linesRepository.findByItemId(item.id);
 
-        // For tracking='quantity': require at least one line; total > 0
-        // For tracking='lot' or 'serial': lines also must reference a lot under this item
-        let acceptedTotal = 0;
+      // For tracking='quantity': require at least one line; total > 0
+      // For tracking='lot' or 'serial': lines also must reference a lot under this item
+      let acceptedTotal = 0;
 
-        for (const line of lines) {
-          const lineQuantity = Number(line.quantity);
-          const isSerialBearing =
-            item.tracking === InventoryTrackingValues.SERIAL || item.tracking === InventoryTrackingValues.LOT_SERIAL;
-          const requiresLot =
-            item.tracking === InventoryTrackingValues.LOT || item.tracking === InventoryTrackingValues.LOT_SERIAL;
+      for (const line of lines) {
+        const lineQuantity = Number(line.quantity);
+        const isSerialBearing =
+          item.tracking === InventoryTrackingValues.SERIAL || item.tracking === InventoryTrackingValues.LOT_SERIAL;
+        const requiresLot =
+          item.tracking === InventoryTrackingValues.LOT || item.tracking === InventoryTrackingValues.LOT_SERIAL;
 
-          if (lineQuantity <= 0 && !isSerialBearing) {
-            throw new BadRequestException(`Line ${line.id} has zero quantity.`);
-          }
-          if (requiresLot && !line.goodsReceiptLotId) {
-            throw new BadRequestException(`Line ${line.id} requires a lot for tracking=${item.tracking}.`);
-          }
+        if (lineQuantity <= 0 && !isSerialBearing) {
+          throw new BadRequestException(`Line ${line.id} has zero quantity.`);
+        }
+        if (requiresLot && !line.goodsReceiptLotId) {
+          throw new BadRequestException(`Line ${line.id} requires a lot for tracking=${item.tracking}.`);
+        }
 
-          const lotInfo =
-            requiresLot && line.lotNumber
-              ? {
-                  lotNumber: line.lotNumber,
-                  manufacturingDate: line.lotManufacturingDate ?? null,
-                  expiryDate: line.lotExpiryDate ?? null,
-                }
-              : undefined;
-
-          const serials = isSerialBearing
-            ? (await this.lineItemsRepository.findByLineId(line.id)).map((li) => li.serialNumber)
+        const lotInfo =
+          requiresLot && line.lotNumber
+            ? {
+                lotNumber: line.lotNumber,
+                manufacturingDate: line.lotManufacturingDate ?? null,
+                expiryDate: line.lotExpiryDate ?? null,
+              }
             : undefined;
 
-          if (isSerialBearing && serials && serials.length === 0) {
-            throw new BadRequestException(`Line ${line.id} has no serials.`);
-          }
+        const serials = isSerialBearing
+          ? (await this.lineItemsRepository.findByLineId(line.id)).map((li) => li.serialNumber)
+          : undefined;
 
-          let createParams: Parameters<typeof this.quantsService.createBatchInTx>[1];
-          if (item.tracking === InventoryTrackingValues.QUANTITY) {
-            createParams = {
-              inventoryItemId: item.inventoryItemId,
-              locationId: line.locationId,
-              tracking: InventoryTrackingValues.QUANTITY,
-              quantity: lineQuantity,
-            };
-          } else if (item.tracking === InventoryTrackingValues.LOT) {
-            createParams = {
-              inventoryItemId: item.inventoryItemId,
-              locationId: line.locationId,
-              tracking: InventoryTrackingValues.LOT,
-              quantity: lineQuantity,
-              lot: lotInfo!,
-            };
-          } else if (item.tracking === InventoryTrackingValues.SERIAL) {
-            createParams = {
-              inventoryItemId: item.inventoryItemId,
-              locationId: line.locationId,
-              tracking: InventoryTrackingValues.SERIAL,
-              quantity: lineQuantity,
-              serialNumbers: serials!,
-            };
-          } else {
-            createParams = {
-              inventoryItemId: item.inventoryItemId,
-              locationId: line.locationId,
-              tracking: InventoryTrackingValues.LOT_SERIAL,
-              quantity: lineQuantity,
-              lot: lotInfo!,
-              serialNumbers: serials!,
-            };
-          }
+        if (isSerialBearing && serials && serials.length === 0) {
+          throw new BadRequestException(`Line ${line.id} has no serials.`);
+        }
 
-          const { quant, lot: createdLot } = await this.quantsService.createBatchInTx(tx, createParams);
-          await this.linesRepository.setResolvedQuantInTx(tx, line.id, quant.id);
-          if (createdLot && line.goodsReceiptLotId) {
-            await this.lotsRepository.setResolvedLotIdInTx(tx, line.goodsReceiptLotId, createdLot.id);
-          }
-
-          await this.ledgerService.createEntryInTx(tx, {
+        let createParams: Parameters<typeof this.quantsService.createBatchScoped>[0];
+        if (item.tracking === InventoryTrackingValues.QUANTITY) {
+          createParams = {
             inventoryItemId: item.inventoryItemId,
-            batchId: quant.id,
-            type: InventoryLedgerTypeValues.GOODS_RECEIPT,
-            quantity: String(lineQuantity),
-            referenceType: InventoryLedgerReferenceTypeValues.GOODS_RECEIPT,
-            referenceId: receipt.id,
-            notes: receipt.notes ?? null,
-          });
-
-          acceptedTotal += lineQuantity;
+            locationId: line.locationId,
+            tracking: InventoryTrackingValues.QUANTITY,
+            quantity: lineQuantity,
+          };
+        } else if (item.tracking === InventoryTrackingValues.LOT) {
+          createParams = {
+            inventoryItemId: item.inventoryItemId,
+            locationId: line.locationId,
+            tracking: InventoryTrackingValues.LOT,
+            quantity: lineQuantity,
+            lot: lotInfo!,
+          };
+        } else if (item.tracking === InventoryTrackingValues.SERIAL) {
+          createParams = {
+            inventoryItemId: item.inventoryItemId,
+            locationId: line.locationId,
+            tracking: InventoryTrackingValues.SERIAL,
+            quantity: lineQuantity,
+            serialNumbers: serials!,
+          };
+        } else {
+          createParams = {
+            inventoryItemId: item.inventoryItemId,
+            locationId: line.locationId,
+            tracking: InventoryTrackingValues.LOT_SERIAL,
+            quantity: lineQuantity,
+            lot: lotInfo!,
+            serialNumbers: serials!,
+          };
         }
 
-        // PO cap re-check at publish time + bump receivedQuantity on the linked PO item
-        if (receipt.purchaseOrderId && item.poItemId) {
-          const ordered = Number(item.poOrderedQuantity ?? 0);
-          const received = Number(item.poReceivedQuantity ?? 0);
-          if (this.toScaled(received + acceptedTotal) > this.toScaled(ordered)) {
-            throw new BadRequestException(
-              `Accepted quantity ${acceptedTotal} exceeds remaining PO quantity ${ordered - received} for item ${item.id}.`,
-            );
-          }
-          await this.receiptsRepository.updatePoItemReceivedQtyInTx(tx, item.poItemId, acceptedTotal);
+        const { quant, lot: createdLot } = await this.quantsService.createBatchScoped(createParams);
+        await this.linesRepository.setResolvedQuant(line.id, quant.id);
+        if (createdLot && line.goodsReceiptLotId) {
+          await this.lotsRepository.setResolvedLotId(line.goodsReceiptLotId, createdLot.id);
         }
+
+        await this.ledgerService.createEntry({
+          inventoryItemId: item.inventoryItemId,
+          batchId: quant.id,
+          type: InventoryLedgerTypeValues.GOODS_RECEIPT,
+          quantity: String(lineQuantity),
+          referenceType: InventoryLedgerReferenceTypeValues.GOODS_RECEIPT,
+          referenceId: receipt.id,
+          notes: receipt.notes ?? null,
+        });
+
+        acceptedTotal += lineQuantity;
       }
 
-      // Update PO status overall
-      if (receipt.purchaseOrderId) {
-        const totals = await this.receiptsRepository.getPoTotalsInTx(tx, receipt.purchaseOrderId);
-        if (
-          this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.orderedQuantity) &&
-          totals.orderedQuantity > 0
-        ) {
-          await this.receiptsRepository.updatePoStatusInTx(
-            tx,
-            receipt.purchaseOrderId,
-            PurchaseOrderStatusValues.RECEIVED,
-          );
-        } else if (totals.receivedQuantity > 0) {
-          await this.receiptsRepository.updatePoStatusInTx(
-            tx,
-            receipt.purchaseOrderId,
-            PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
+      // PO cap re-check at publish time + bump receivedQuantity on the linked PO item
+      if (receipt.purchaseOrderId && item.poItemId) {
+        const ordered = Number(item.poOrderedQuantity ?? 0);
+        const received = Number(item.poReceivedQuantity ?? 0);
+        if (this.toScaled(received + acceptedTotal) > this.toScaled(ordered)) {
+          throw new BadRequestException(
+            `Accepted quantity ${acceptedTotal} exceeds remaining PO quantity ${ordered - received} for item ${item.id}.`,
           );
         }
+        await this.receiptsRepository.updatePoItemReceivedQty(item.poItemId, acceptedTotal);
       }
+    }
 
-      await this.receiptsRepository.updateStatusInTx(tx, id, GoodsReceiptStatusValues.PUBLISHED, new Date());
-    });
+    // Update PO status overall
+    if (receipt.purchaseOrderId) {
+      const totals = await this.receiptsRepository.getPoTotals(receipt.purchaseOrderId);
+      if (
+        this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.orderedQuantity) &&
+        totals.orderedQuantity > 0
+      ) {
+        await this.receiptsRepository.updatePoStatus(
+          receipt.purchaseOrderId,
+          PurchaseOrderStatusValues.RECEIVED,
+        );
+      } else if (totals.receivedQuantity > 0) {
+        await this.receiptsRepository.updatePoStatus(
+          receipt.purchaseOrderId,
+          PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
+        );
+      }
+    }
+
+    await this.receiptsRepository.updateStatus(id, GoodsReceiptStatusValues.PUBLISHED, new Date());
 
     void this.poItemsRepository;
     return this.receiptsService.findById(id);

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { type NewSupplierContact, supplierContacts, suppliers } from '@/db/schema';
 
@@ -51,22 +51,16 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
     return rows[0] as (typeof supplierContacts.$inferSelect) | undefined;
   }
 
-  async createContact(
-    data: NewSupplierContact,
-    tx?: TypedDrizzleClient,
-  ): Promise<(typeof supplierContacts.$inferSelect)> {
-    const db = tx ?? this.db;
-    const rows = await db.insert(supplierContacts).values(data).returning();
+  async createContact(data: NewSupplierContact): Promise<(typeof supplierContacts.$inferSelect)> {
+    const rows = await this.db.insert(supplierContacts).values(data).returning();
     return rows[0] as (typeof supplierContacts.$inferSelect);
   }
 
   async updateContact(
     id: string,
     data: Partial<NewSupplierContact>,
-    tx?: TypedDrizzleClient,
   ): Promise<(typeof supplierContacts.$inferSelect)> {
-    const db = tx ?? this.db;
-    const rows = await db
+    const rows = await this.db
       .update(supplierContacts)
       .set(data)
       .where(eq(supplierContacts.id, id))
@@ -74,14 +68,12 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
     return rows[0] as (typeof supplierContacts.$inferSelect);
   }
 
-  async deleteContact(id: string, tx?: TypedDrizzleClient): Promise<void> {
-    const db = tx ?? this.db;
-    await db.delete(supplierContacts).where(eq(supplierContacts.id, id));
+  async deleteContact(id: string): Promise<void> {
+    await this.db.delete(supplierContacts).where(eq(supplierContacts.id, id));
   }
 
-  async clearPrimaryBySupplierId(supplierId: string, tx?: TypedDrizzleClient): Promise<void> {
-    const db = tx ?? this.db;
-    await db
+  async clearPrimaryBySupplierId(supplierId: string): Promise<void> {
+    await this.db
       .update(supplierContacts)
       .set({ isPrimary: false })
       .where(and(eq(supplierContacts.supplierId, supplierId), eq(supplierContacts.isPrimary, true)));
@@ -90,10 +82,8 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
   async syncSupplierPrimaryContact(
     supplierId: string,
     data: { name: string | null; phone: string; email: string | null },
-    tx?: TypedDrizzleClient,
   ): Promise<void> {
-    const db = tx ?? this.db;
-    await db
+    await this.db
       .update(suppliers)
       .set({
         contactName: data.name,

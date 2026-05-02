@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemLots,
@@ -19,11 +19,6 @@ export class InventoryLedgerRepository extends PrimaryBaseRepository<typeof inve
 
   async createEntry(data: NewInventoryLedgerEntry): Promise<InventoryLedgerEntry> {
     const results = await this.db.insert(inventoryLedger).values(data).returning();
-    return results[0] as InventoryLedgerEntry;
-  }
-
-  async createEntryWithTx(tx: TypedDrizzleClient, data: NewInventoryLedgerEntry): Promise<InventoryLedgerEntry> {
-    const results = await tx.insert(inventoryLedger).values(data).returning();
     return results[0] as InventoryLedgerEntry;
   }
 

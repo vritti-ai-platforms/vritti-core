@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, type PurchaseOrderItem, purchaseOrderItems } from '@/db/schema';
 
@@ -94,13 +94,8 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
   }
 
   // Updates pricing fields for a PO line item
-  async updateLinePricing(
-    itemId: string,
-    data: { unitPrice: number; totalPrice: number },
-    tx?: TypedDrizzleClient,
-  ): Promise<void> {
-    const db = tx ?? this.db;
-    await db
+  async updateLinePricing(itemId: string, data: { unitPrice: number; totalPrice: number }): Promise<void> {
+    await this.db
       .update(purchaseOrderItems)
       .set({
         unitPrice: data.unitPrice,
@@ -115,11 +110,9 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
     conversionRate: number,
     poExponent: number,
     supplierExponent: number,
-    tx?: TypedDrizzleClient,
   ): Promise<void> {
-    const db = tx ?? this.db;
     const scaleFactor = 10 ** poExponent / 10 ** supplierExponent;
-    await db
+    await this.db
       .update(purchaseOrderItems)
       .set({
         unitPrice: sql`ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor})::bigint`,

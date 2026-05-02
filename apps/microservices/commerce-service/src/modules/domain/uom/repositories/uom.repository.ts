@@ -9,6 +9,11 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
     super(database, uom);
   }
 
+  // Returns the UOM matching a symbol within the current BU (RLS enforces scope)
+  async findBySymbol(symbol: string): Promise<Uom | undefined> {
+    return this.model.findFirst({ where: { symbol } });
+  }
+
   // Returns base units, optionally filtered by name or symbol
   async findBaseUnits(search?: string): Promise<Uom[]> {
     const baseCondition = isNull(uom.baseUnitId);

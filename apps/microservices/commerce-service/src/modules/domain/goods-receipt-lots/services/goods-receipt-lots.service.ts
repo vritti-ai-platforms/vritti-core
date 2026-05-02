@@ -8,7 +8,6 @@ import {
   type CreateResponseDto,
   NotFoundException,
   type SuccessResponseDto,
-  type TypedDrizzleClient,
   ValidationException,
 } from '@vritti/api-sdk';
 import { GoodsReceiptStatusValues, type InventoryItemLot, InventoryTrackingValues } from '@/db/schema';
@@ -235,20 +234,16 @@ export class GoodsReceiptLotsService {
   }
 
   // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.
-  async resolveInventoryLotInTx(
-    tx: TypedDrizzleClient,
-    inventoryItemId: string,
-    lotId: string,
-  ): Promise<InventoryItemLot> {
+  async resolveInventoryLot(inventoryItemId: string, lotId: string): Promise<InventoryItemLot> {
     const gr = await this.repository.findById(lotId);
     if (!gr) throw new NotFoundException(`Goods receipt lot ${lotId} not found.`);
-    const inserted = await this.inventoryLotsRepository.createWithTx(tx, {
+    const inserted = await this.inventoryLotsRepository.createLot({
       inventoryItemId,
       lotNumber: gr.lotNumber,
       manufacturingDate: gr.manufacturingDate ?? null,
       expiryDate: gr.expiryDate ?? null,
     });
-    await this.repository.setResolvedLotIdInTx(tx, lotId, inserted.id);
+    await this.repository.setResolvedLotId(lotId, inserted.id);
     return inserted;
   }
 

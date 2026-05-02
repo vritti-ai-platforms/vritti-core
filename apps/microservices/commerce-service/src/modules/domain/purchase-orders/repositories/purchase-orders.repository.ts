@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 
@@ -13,10 +13,8 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
   async updateCurrency(
     id: string,
     data: { currencyCode: string; conversionRate: string },
-    tx?: TypedDrizzleClient,
   ): Promise<typeof purchaseOrders.$inferSelect | null> {
-    const db = tx ?? this.db;
-    const [row] = await db
+    const [row] = await this.db
       .update(purchaseOrders)
       .set({
         currencyCode: data.currencyCode,
@@ -111,9 +109,8 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
   }
 
   // Recalculates and persists totalAmount from the sum of all line item totalPrices
-  async syncTotalAmount(id: string, tx?: TypedDrizzleClient): Promise<void> {
-    const db = tx ?? this.db;
-    await db
+  async syncTotalAmount(id: string): Promise<void> {
+    await this.db
       .update(purchaseOrders)
       .set({
         totalAmount: sql`(SELECT COALESCE(SUM(total_price), 0) FROM vritti_core.purchase_order_items WHERE purchase_order_id = ${id})`,

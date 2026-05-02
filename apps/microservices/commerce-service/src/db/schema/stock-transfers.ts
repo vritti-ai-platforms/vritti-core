@@ -31,7 +31,7 @@ export const stockTransfers = coreSchema.table(
     index('idx_stock_transfers_to_bu').on(table.toBuId),
     pgPolicy('org_isolation', {
       for: 'all',
-      using: sql`organization_id = current_setting('app.org_id', true)::uuid`,
+      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
     }),
   ],
 );

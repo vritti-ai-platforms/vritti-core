@@ -100,6 +100,14 @@ export class UomService {
   async create(data: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId);
 
+    const dup = await this.uomRepository.findBySymbol(data.symbol);
+    if (dup) {
+      throw new ConflictException({
+        label: 'Duplicate Symbol',
+        detail: `A unit with symbol "${data.symbol}" already exists.`,
+      });
+    }
+
     const entity = await this.uomRepository.create({
       dimensionId: data.dimensionId,
       name: data.name,
@@ -128,6 +136,17 @@ export class UomService {
     const existing = await this.uomRepository.findById(id);
     if (!existing) throw new NotFoundException('Unit of measure not found.');
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId, id);
+
+    if (data.symbol && data.symbol !== existing.symbol) {
+      const dup = await this.uomRepository.findBySymbol(data.symbol);
+      if (dup && dup.id !== id) {
+        throw new ConflictException({
+          label: 'Duplicate Symbol',
+          detail: `A unit with symbol "${data.symbol}" already exists.`,
+        });
+      }
+    }
+
     const updated = await this.uomRepository.update(id, data);
     this.logger.log(`Updated UOM: ${updated.name} (${updated.symbol})`);
     return { success: true, message: `Unit "${updated.name}" updated successfully.` };

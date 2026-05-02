@@ -137,21 +137,14 @@ export class PurchaseOrdersService {
     }
 
     const poNumber = await this.repository.generatePoNumber();
-    const entity = await this.repository.transaction(async (tx) => {
-      const created = await this.repository.create(
-        {
-          supplierId: data.supplierId,
-          poNumber,
-          currencyCode: data.currencyCode,
-          conversionRate: String(conversionRate ?? 1),
-          orderDate: data.orderDate,
-          expectedBy: data.expectedBy ?? null,
-          notes: data.notes ?? null,
-        },
-        tx,
-      );
-
-      return created;
+    const entity = await this.repository.create({
+      supplierId: data.supplierId,
+      poNumber,
+      currencyCode: data.currencyCode,
+      conversionRate: String(conversionRate ?? 1),
+      orderDate: data.orderDate,
+      expectedBy: data.expectedBy ?? null,
+      notes: data.notes ?? null,
     });
 
     const detailed = await this.repository.findByIdWithSupplierName(entity.id);
@@ -411,21 +404,15 @@ export class PurchaseOrdersService {
       });
     }
 
-    await this.repository.transaction(async (tx) => {
-      const resolvedConversionRate = Number(nextConversionRate ?? 1);
-      await this.repository.updateCurrency(
-        id,
-        {
-          currencyCode,
-          conversionRate: String(resolvedConversionRate),
-        },
-        tx,
-      );
-
-      const supplierExp = Number(resolveCurrency(supplier.currencyCode as CurrencyCode).exponent);
-      const poExp = Number(resolveCurrency(currencyCode as CurrencyCode).exponent);
-      await this.poItemsRepository.recalculateLinePricingByPoId(id, resolvedConversionRate, poExp, supplierExp, tx);
+    const resolvedConversionRate = Number(nextConversionRate ?? 1);
+    await this.repository.updateCurrency(id, {
+      currencyCode,
+      conversionRate: String(resolvedConversionRate),
     });
+
+    const supplierExp = Number(resolveCurrency(supplier.currencyCode as CurrencyCode).exponent);
+    const poExp = Number(resolveCurrency(currencyCode as CurrencyCode).exponent);
+    await this.poItemsRepository.recalculateLinePricingByPoId(id, resolvedConversionRate, poExp, supplierExp);
 
     await this.repository.syncTotalAmount(id);
     this.logger.log(`Changed PO currency: ${existing.poNumber} (${id}) -> ${currencyCode}`);

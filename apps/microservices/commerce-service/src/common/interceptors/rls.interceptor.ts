@@ -3,7 +3,7 @@ import { NatsContext } from '@nestjs/microservices';
 import type { NatsHeaders } from '@vritti/api-sdk';
 import { PrimaryDatabaseService, parseNatsHeaders } from '@vritti/api-sdk';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { from, type Observable, switchMap } from 'rxjs';
+import { from, type Observable } from 'rxjs';
 
 @Injectable()
 export class RlsInterceptor implements NestInterceptor {
@@ -23,31 +23,22 @@ export class RlsInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    return from(this.executeWithRls(natsHeaders, next)).pipe(switchMap((result) => [result]));
+    return from(this.executeWithRls(natsHeaders, next));
   }
 
-  // Sets RLS session variables, executes the handler, then resets variables
-  private async executeWithRls(headers: NatsHeaders, next: CallHandler): Promise<unknown> {
-    const client = this.db.drizzleClient;
-
-    try {
+  // Sets RLS session variables on a single pinned connection for the entire request,
+  // so subsequent repository queries hit the same connection and see app.org_id / app.bu_id.
+  private executeWithRls(headers: NatsHeaders, next: CallHandler): Promise<unknown> {
+    return this.db.runWithPinnedConnection(async () => {
+      const client = this.db.drizzleClient;
       await client.execute(sql`
-        SELECT set_config('app.org_id', ${headers.orgId}, FALSE),
-               set_config('app.bu_id', ${headers.buId}, FALSE),
-               set_config('app.bu_timezone', ${headers.buTimezone}, FALSE),
-               set_config('app.bu_ancestor_ids', ${`{${headers.buAncestorIds.join(',')}}`}, FALSE),
-               set_config('app.bu_descendant_ids', ${`{${headers.buDescendantIds.join(',')}}`}, FALSE)
+        SELECT set_config('app.org_id', ${headers.orgId}, TRUE),
+               set_config('app.bu_id', ${headers.buId}, TRUE),
+               set_config('app.bu_timezone', ${headers.buTimezone}, TRUE),
+               set_config('app.bu_ancestor_ids', ${`{${headers.buAncestorIds.join(',')}}`}, TRUE),
+               set_config('app.bu_descendant_ids', ${`{${headers.buDescendantIds.join(',')}}`}, TRUE)
       `);
-
       return await next.handle().toPromise();
-    } finally {
-      await client.execute(sql`
-        SELECT set_config('app.org_id', '', FALSE),
-               set_config('app.bu_id', '', FALSE),
-               set_config('app.bu_timezone', '', FALSE),
-               set_config('app.bu_ancestor_ids', '{}', FALSE),
-               set_config('app.bu_descendant_ids', '{}', FALSE)
-      `);
-    }
+    });
   }
 }

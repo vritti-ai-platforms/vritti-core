@@ -1,3 +1,4 @@
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -37,7 +38,19 @@ export const UomDimensionDetailPanel: React.FC<UomDimensionDetailPanelProps> = (
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
-        {dimension ? <Typography variant="h3">{dimension.name}</Typography> : <Skeleton className="h-8 w-48" />}
+        {dimension ? (
+          <div className="flex items-center gap-3 flex-wrap">
+            <Typography variant="h3">{dimension.name}</Typography>
+            <Badge variant="outline" className="font-mono">
+              {dimension.code}
+            </Badge>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -61,26 +74,12 @@ export const UomDimensionDetailPanel: React.FC<UomDimensionDetailPanelProps> = (
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        {dimension ? (
-          <>
-            <DetailField label="Code" value={<span className="font-mono">{dimension.code}</span>} />
-            <DetailField label="Description" value={dimension.description ?? '—'} />
-          </>
-        ) : (
-          <>
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </>
-        )}
-      </div>
+      <DetailField label="Description" value={dimension?.description ?? '—'} loading={!dimension} />
 
-      <div>
-        <Typography variant="overline" intent="muted" className="mb-3">
-          Units
-        </Typography>
-        <UomTable dimensionId={dimensionId} isLoading={isLoading} />
-      </div>
+      <Typography variant="overline" intent="muted" className="mb-3">
+        Units
+      </Typography>
+      <UomTable dimensionId={dimensionId} isLoading={isLoading} />
 
       {dimension ? (
         <Dialog

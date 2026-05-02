@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   goodsReceiptNumberSeq,
@@ -168,8 +168,8 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     return rows[0] ?? null;
   }
 
-  async updatePoItemReceivedQtyInTx(tx: TypedDrizzleClient, poItemId: string, addQty: number): Promise<void> {
-    await tx
+  async updatePoItemReceivedQty(poItemId: string, addQty: number): Promise<void> {
+    await this.db
       .update(purchaseOrderItems)
       .set({
         receivedQuantity: sql`${purchaseOrderItems.receivedQuantity} + ${String(addQty)}`,
@@ -177,11 +177,8 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       .where(eq(purchaseOrderItems.id, poItemId));
   }
 
-  async getPoTotalsInTx(
-    tx: TypedDrizzleClient,
-    poId: string,
-  ): Promise<{ orderedQuantity: number; receivedQuantity: number }> {
-    const [row] = await tx
+  async getPoTotals(poId: string): Promise<{ orderedQuantity: number; receivedQuantity: number }> {
+    const [row] = await this.db
       .select({
         orderedQuantity: sql<string>`COALESCE(SUM(${purchaseOrderItems.orderedQuantity}), 0)`,
         receivedQuantity: sql<string>`COALESCE(SUM(${purchaseOrderItems.receivedQuantity}), 0)`,
@@ -195,17 +192,16 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     };
   }
 
-  async updatePoStatusInTx(tx: TypedDrizzleClient, poId: string, status: PurchaseOrderStatus): Promise<void> {
-    await tx.update(purchaseOrders).set({ status }).where(eq(purchaseOrders.id, poId));
+  async updatePoStatus(poId: string, status: PurchaseOrderStatus): Promise<void> {
+    await this.db.update(purchaseOrders).set({ status }).where(eq(purchaseOrders.id, poId));
   }
 
-  async updateStatusInTx(
-    tx: TypedDrizzleClient,
+  async updateStatus(
     id: string,
     status: (typeof goodsReceipts.$inferSelect)['status'],
     publishedAt?: Date,
   ): Promise<void> {
-    await tx
+    await this.db
       .update(goodsReceipts)
       .set({
         status,

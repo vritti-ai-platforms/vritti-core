@@ -58,14 +58,9 @@ export const UomDimensionsPanel: React.FC<UomDimensionsPanelProps> = ({ selected
                 active={selectedId === dimension.id}
                 onClick={() => onSelect(dimension.id)}
               >
-                <div className="min-w-0">
-                  <Typography variant="body2" className="truncate font-medium">
-                    {dimension.name}
-                  </Typography>
-                  <Typography variant="caption" intent="muted" className="block truncate font-mono">
-                    {dimension.code}
-                  </Typography>
-                </div>
+                <Typography variant="body2" className="truncate font-medium">
+                  {dimension.name}
+                </Typography>
               </SidePanelListItem>
             ))}
           </div>

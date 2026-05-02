@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItems,
@@ -130,13 +130,8 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     } as StockAdjustmentWithRefs;
   }
 
-  async updateStatusInTx(
-    tx: TypedDrizzleClient,
-    id: string,
-    status: StockAdjustmentStatus,
-    publishedAt?: Date,
-  ): Promise<void> {
-    await tx
+  async updateStatus(id: string, status: StockAdjustmentStatus, publishedAt?: Date): Promise<void> {
+    await this.db
       .update(stockAdjustments)
       .set({ status, ...(publishedAt ? { publishedAt } : {}) })
       .where(eq(stockAdjustments.id, id));

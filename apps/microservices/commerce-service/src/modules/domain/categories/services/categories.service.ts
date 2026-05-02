@@ -173,11 +173,9 @@ export class CategoriesService {
       throw new BadRequestException('orderedIds contains invalid category IDs for the selected parent.');
     }
 
-    await this.categoriesRepository.transaction(async (tx) => {
-      for (let index = 0; index < orderedIds.length; index += 1) {
-        await this.categoriesRepository.updateSortOrderInTx(tx, orderedIds[index], index + 1);
-      }
-    });
+    for (let index = 0; index < orderedIds.length; index += 1) {
+      await this.categoriesRepository.updateSortOrder(orderedIds[index], index + 1);
+    }
 
     this.logger.log(`Reordered ${orderedIds.length} categories under parent ${parentId ?? 'ROOT'}`);
     return { success: true, message: 'Categories reordered successfully.' };

@@ -29,23 +29,23 @@ export const stockAdjustments = coreSchema.table(
     index('idx_stock_adjustments_status').on(table.status),
     pgPolicy('org_isolation', {
       for: 'all',
-      using: sql`organization_id = current_setting('app.org_id', true)::uuid`,
+      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
     }),
     pgPolicy('bu_ancestor_read', {
       for: 'select',
-      using: sql`business_unit_id = ANY(current_setting('app.bu_ancestor_ids', true)::uuid[])`,
+      using: sql`business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])`,
     }),
     pgPolicy('bu_write', {
       for: 'insert',
-      withCheck: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+      withCheck: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
     }),
     pgPolicy('bu_update', {
       for: 'update',
-      using: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+      using: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
     }),
     pgPolicy('bu_delete', {
       for: 'delete',
-      using: sql`business_unit_id = current_setting('app.bu_id', true)::uuid`,
+      using: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
     }),
   ],
 );

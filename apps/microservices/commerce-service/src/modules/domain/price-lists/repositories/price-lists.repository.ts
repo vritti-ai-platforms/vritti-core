@@ -163,21 +163,19 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
     priceListId: string,
     itemAssignments: Array<{ itemVariantId: string; sortOrder: number; isVisible: boolean; priceOverride: number | null }>,
   ): Promise<void> {
-    await this.transaction(async (tx) => {
-      await tx.delete(priceListItems).where(eq(priceListItems.priceListId, priceListId));
+    await this.db.delete(priceListItems).where(eq(priceListItems.priceListId, priceListId));
 
-      if (itemAssignments.length === 0) return;
+    if (itemAssignments.length === 0) return;
 
-      await tx.insert(priceListItems).values(
-        itemAssignments.map((item) => ({
-          priceListId,
-          itemVariantId: item.itemVariantId,
-          sortOrder: item.sortOrder,
-          isVisible: item.isVisible,
-          priceOverride: item.priceOverride,
-        })),
-      );
-    });
+    await this.db.insert(priceListItems).values(
+      itemAssignments.map((item) => ({
+        priceListId,
+        itemVariantId: item.itemVariantId,
+        sortOrder: item.sortOrder,
+        isVisible: item.isVisible,
+        priceOverride: item.priceOverride,
+      })),
+    );
   }
 
   // Returns price list assignments for a terminal
@@ -208,20 +206,18 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
     terminalId: string,
     assignments: Array<{ priceListId: string; priority: number; isDefault: boolean }>,
   ): Promise<void> {
-    await this.transaction(async (tx) => {
-      await tx.delete(terminalPriceLists).where(eq(terminalPriceLists.terminalId, terminalId));
+    await this.db.delete(terminalPriceLists).where(eq(terminalPriceLists.terminalId, terminalId));
 
-      if (assignments.length === 0) return;
+    if (assignments.length === 0) return;
 
-      await tx.insert(terminalPriceLists).values(
-        assignments.map((assignment) => ({
-          terminalId,
-          priceListId: assignment.priceListId,
-          priority: assignment.priority,
-          isDefault: assignment.isDefault,
-        })),
-      );
-    });
+    await this.db.insert(terminalPriceLists).values(
+      assignments.map((assignment) => ({
+        terminalId,
+        priceListId: assignment.priceListId,
+        priority: assignment.priority,
+        isDefault: assignment.isDefault,
+      })),
+    );
   }
 
   // Returns terminal sellable rows from assigned price lists ordered by assignment priority and item sort

@@ -150,11 +150,9 @@ export class StorageLocationsService {
       throw new BadRequestException('orderedIds contains invalid location IDs for the selected parent.');
     }
 
-    await this.storageLocationsRepository.transaction(async (tx) => {
-      for (let index = 0; index < orderedIds.length; index += 1) {
-        await this.storageLocationsRepository.updateSortOrderInTx(tx, orderedIds[index], index + 1);
-      }
-    });
+    for (let index = 0; index < orderedIds.length; index += 1) {
+      await this.storageLocationsRepository.updateSortOrder(orderedIds[index], index + 1);
+    }
 
     this.logger.log(`Reordered ${orderedIds.length} storage locations under parent ${parentId ?? 'ROOT'}`);
     return { success: true, message: 'Storage locations reordered successfully.' };
@@ -237,20 +235,17 @@ export class StorageLocationsService {
       }
     }
 
-    const updated = await this.storageLocationsRepository.transaction(async (tx) => {
-      const next = await this.storageLocationsRepository.update(id, {
-        ...data,
-        parentId: nextParentId,
-        area: data.area !== undefined ? data.area || null : undefined,
-        address: data.address !== undefined ? data.address || null : undefined,
-      }, tx);
-
-      if (parentChanged || codeChanged) {
-        const nextPath = StorageLocationsService.buildPath(nextParentPath, nextCode);
-        await this.storageLocationsRepository.rewriteSubtreePathInTx(tx, existing.path, nextPath);
-      }
-      return next;
+    const updated = await this.storageLocationsRepository.update(id, {
+      ...data,
+      parentId: nextParentId,
+      area: data.area !== undefined ? data.area || null : undefined,
+      address: data.address !== undefined ? data.address || null : undefined,
     });
+
+    if (parentChanged || codeChanged) {
+      const nextPath = StorageLocationsService.buildPath(nextParentPath, nextCode);
+      await this.storageLocationsRepository.rewriteSubtreePath(existing.path, nextPath);
+    }
 
     this.logger.log(`Updated storage location: ${updated.name} (${id})`);
     return { success: true, message: `Storage location "${updated.name}" updated successfully.` };

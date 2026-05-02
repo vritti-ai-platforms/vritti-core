@@ -94,10 +94,8 @@ export class UomDimensionsService {
       });
     }
 
-    await this.repository.transaction(async (tx) => {
-      await this.repository.deleteUomsByDimensionId(tx, id);
-      await this.repository.delete(id, tx);
-    });
+    await this.repository.deleteUomsByDimensionId(id);
+    await this.repository.delete(id);
     this.logger.log(`Deleted UOM dimension: ${existing.name} (${id}) and cascaded its units`);
     return { success: true, message: `Dimension "${existing.name}" deleted successfully.` };
   }

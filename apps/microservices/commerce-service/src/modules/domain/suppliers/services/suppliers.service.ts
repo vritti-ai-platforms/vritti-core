@@ -94,43 +94,34 @@ export class SuppliersService {
       SuppliersService.throwInvalidTaxDetailsError(normalizedTaxId, normalizedTaxIdType);
     }
 
-    const entity = await this.repository.transaction(async (tx) => {
-      const supplier = await this.repository.create(
-        {
-          name: data.name,
-          code: data.code,
-          currencyCode: data.currencyCode,
-          contactName: data.primaryContact.name,
-          phone: data.primaryContact.phone,
-          email: data.primaryContact.email ?? null,
-          website: data.website ?? null,
-          address: data.address ?? null,
-          taxId: normalizedTaxId,
-          taxIdType: normalizedTaxIdType,
-          paymentTerms: data.paymentTerms ?? null,
-          leadTimeDays: data.leadTimeDays ?? null,
-          notes: data.notes ?? null,
-        },
-        tx,
-      );
-
-      await this.supplierContactsRepository.createContact(
-        {
-          supplierId: supplier.id,
-          name: data.primaryContact.name,
-          phone: data.primaryContact.phone,
-          alternatePhone: data.primaryContact.alternatePhone ?? null,
-          email: data.primaryContact.email ?? null,
-          alternateEmail: data.primaryContact.alternateEmail ?? null,
-          designation: data.primaryContact.designation ?? null,
-          isPrimary: true,
-          isActive: true,
-        },
-        tx,
-      );
-
-      return supplier;
+    const entity = await this.repository.create({
+      name: data.name,
+      code: data.code,
+      currencyCode: data.currencyCode,
+      contactName: data.primaryContact.name,
+      phone: data.primaryContact.phone,
+      email: data.primaryContact.email ?? null,
+      website: data.website ?? null,
+      address: data.address ?? null,
+      taxId: normalizedTaxId,
+      taxIdType: normalizedTaxIdType,
+      paymentTerms: data.paymentTerms ?? null,
+      leadTimeDays: data.leadTimeDays ?? null,
+      notes: data.notes ?? null,
     });
+
+    await this.supplierContactsRepository.createContact({
+      supplierId: entity.id,
+      name: data.primaryContact.name,
+      phone: data.primaryContact.phone,
+      alternatePhone: data.primaryContact.alternatePhone ?? null,
+      email: data.primaryContact.email ?? null,
+      alternateEmail: data.primaryContact.alternateEmail ?? null,
+      designation: data.primaryContact.designation ?? null,
+      isPrimary: true,
+      isActive: true,
+    });
+
     this.logger.log(`Created supplier: ${entity.name} (${entity.code})`);
     return { success: true, message: `Supplier "${entity.name}" created.`, data: SupplierDto.from(entity) };
   }

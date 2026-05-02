@@ -13,8 +13,8 @@ export const documentCounters = coreSchema.table(
   (table) => [
     pgPolicy('org_isolation', {
       for: 'all',
-      using: sql`${table.organizationId} = current_setting('app.org_id', true)::uuid`,
-      withCheck: sql`${table.organizationId} = current_setting('app.org_id', true)::uuid`,
+      using: sql`${table.organizationId} = (select current_setting('app.org_id', true)::uuid)`,
+      withCheck: sql`${table.organizationId} = (select current_setting('app.org_id', true)::uuid)`,
     }),
   ],
 );

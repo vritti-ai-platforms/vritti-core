@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptLine,
@@ -82,8 +82,8 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     await this.db.delete(goodsReceiptLines).where(eq(goodsReceiptLines.id, lineId));
   }
 
-  async setResolvedQuantInTx(tx: TypedDrizzleClient, lineId: string, resolvedQuantId: string): Promise<void> {
-    await tx.update(goodsReceiptLines).set({ resolvedQuantId }).where(eq(goodsReceiptLines.id, lineId));
+  async setResolvedQuant(lineId: string, resolvedQuantId: string): Promise<void> {
+    await this.db.update(goodsReceiptLines).set({ resolvedQuantId }).where(eq(goodsReceiptLines.id, lineId));
   }
 
   async totalQuantityForItem(itemId: string, excludeLineId?: string): Promise<number> {
