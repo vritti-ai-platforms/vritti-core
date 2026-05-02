@@ -180,6 +180,14 @@ export const InventoryTrackingValues = {
 };
 export type InventoryTracking = (typeof inventoryTrackingEnum.enumValues)[number];
 
+export const inventoryPickStrategyEnum = coreSchema.enum('inventory_pick_strategy', ['none', 'fifo', 'fefo']);
+export const InventoryPickStrategyValues = {
+  NONE: 'none' as const,
+  FIFO: 'fifo' as const,
+  FEFO: 'fefo' as const,
+};
+export type InventoryPickStrategy = (typeof inventoryPickStrategyEnum.enumValues)[number];
+
 export const quantItemStatusEnum = coreSchema.enum('quant_item_status', ['AVAILABLE', 'RESERVED', 'CONSUMED']);
 export const QuantItemStatusValues = {
   AVAILABLE: 'AVAILABLE' as const,

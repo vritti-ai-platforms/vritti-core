@@ -31,6 +31,11 @@ export class CreateInventoryItemDto {
   @IsEnum(['quantity', 'lot', 'serial'])
   tracking: 'quantity' | 'lot' | 'serial';
 
+  @ApiPropertyOptional({ description: 'Pick strategy for lot/serial tracked items', enum: ['none', 'fifo', 'fefo'], default: 'none' })
+  @IsOptional()
+  @IsEnum(['none', 'fifo', 'fefo'])
+  pickStrategy?: 'none' | 'fifo' | 'fefo';
+
   @ApiProperty({ description: 'Category ID' })
   @IsUUID()
   categoryId: string;

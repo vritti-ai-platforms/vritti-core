@@ -128,6 +128,7 @@ export class InventoryItemsService {
       code: data.code,
       type: data.type,
       ...(data.tracking ? { tracking: data.tracking } : {}),
+      ...(data.pickStrategy ? { pickStrategy: data.pickStrategy } : {}),
       categoryId: data.categoryId,
       description: data.description || null,
       uomId: data.uomId,

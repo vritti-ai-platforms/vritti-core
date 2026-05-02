@@ -9,6 +9,7 @@ export const createInventoryItemSchema = z.object({
   categoryId: z.string().uuid('Category is required'),
   description: z.string().optional(),
   uomId: z.string().uuid('Unit of measure is required'),
+  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
 });
 
 export const updateInventoryItemSchema = z.object({
@@ -18,6 +19,7 @@ export const updateInventoryItemSchema = z.object({
   description: z.string().nullable().optional(),
   categoryId: z.uuid('Category is required').optional(),
   uomId: z.uuid('Unit of measure is required').optional(),
+  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
 });
 
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
@@ -38,12 +40,17 @@ export const inventoryItemTypeConfig: Record<InventoryItemType, { label: string;
 
 export type InventoryTracking = 'quantity' | 'lot' | 'serial';
 
+export type InventoryPickStrategy = 'none' | 'fifo' | 'fefo';
+
+export const InventoryPickStrategyValues = { NONE: 'none', FIFO: 'fifo', FEFO: 'fefo' } as const;
+
 export interface InventoryItemData {
   id: string;
   name: string;
   code: string;
   type: InventoryItemType;
   tracking: InventoryTracking;
+  pickStrategy: InventoryPickStrategy;
   categoryId: string;
   categoryName: string | null;
   description: string | null;

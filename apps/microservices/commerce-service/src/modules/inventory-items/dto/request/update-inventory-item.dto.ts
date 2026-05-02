@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
-import type { InventoryItemType } from '@/db/schema';
+import type { InventoryItemType, InventoryPickStrategy } from '@/db/schema';
 
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 
@@ -33,4 +33,8 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @IsUUID()
   uomId?: string;
+
+  @IsEnum(['none', 'fifo', 'fefo'])
+  @IsOptional()
+  pickStrategy?: InventoryPickStrategy;
 }

@@ -7,7 +7,7 @@ import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useCreateInventoryItem } from '@/hooks/inventory-items';
 import { type CreateInventoryItemFormData, createInventoryItemSchema } from '@/schemas/inventory-items';
 
@@ -27,6 +27,12 @@ const trackingOptions = [
   { value: 'serial', label: 'Serial — per unit (high-value goods)' },
 ];
 
+const pickStrategyOptions = [
+  { value: 'none', label: 'None — free pick' },
+  { value: 'fifo', label: 'FIFO — oldest received first' },
+  { value: 'fefo', label: 'FEFO — nearest expiry first' },
+];
+
 export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ onSuccess, onCancel }) => {
   const form = useForm<CreateInventoryItemFormData>({
     resolver: zodResolver(createInventoryItemSchema),
@@ -35,12 +41,14 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       code: '',
       type: 'MATERIAL',
       tracking: 'lot',
+      pickStrategy: 'none',
       categoryId: '',
       description: '',
       uomId: '',
     },
   });
 
+  const tracking = useWatch({ control: form.control, name: 'tracking' });
   const createMutation = useCreateInventoryItem({ onSuccess });
 
   return (
@@ -49,6 +57,9 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
       <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
       <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
       <RadioGroup name="tracking" label="Tracking" options={trackingOptions} />
+      {tracking !== 'quantity' && (
+        <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
+      )}
       <CategorySelector name="categoryId" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
       <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />

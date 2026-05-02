@@ -26,6 +26,12 @@ const typeOptions = [
   { value: 'PRODUCT', label: 'Product' },
 ];
 
+const pickStrategyOptions = [
+  { value: 'none', label: 'None — free pick' },
+  { value: 'fifo', label: 'FIFO — oldest received first' },
+  { value: 'fefo', label: 'FEFO — nearest expiry first' },
+];
+
 export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ item, onSuccess, onCancel }) => {
   const form = useForm<UpdateInventoryItemFormData>({
     resolver: zodResolver(updateInventoryItemSchema),
@@ -33,6 +39,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       name: item.name,
       code: item.code,
       type: item.type,
+      pickStrategy: item.pickStrategy,
       categoryId: item.categoryId,
       description: item.description ?? '',
       uomId: item.uomId,
@@ -53,6 +60,9 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       })}
     >
       <RadioGroup name="type" label="Type" options={typeOptions} orientation="horizontal" />
+      {item.tracking !== 'quantity' && (
+        <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
+      )}
       <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
       <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
       <CategorySelector name="categoryId" />

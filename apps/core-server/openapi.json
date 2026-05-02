@@ -12886,6 +12886,16 @@
             ],
             "example": "lot"
           },
+          "pickStrategy": {
+            "type": "string",
+            "description": "Pick strategy for lot/serial tracked items",
+            "enum": [
+              "none",
+              "fifo",
+              "fefo"
+            ],
+            "default": "none"
+          },
           "categoryId": {
             "type": "string",
             "description": "Category ID"
@@ -12967,6 +12977,16 @@
           "uomId": {
             "type": "string",
             "description": "Unit of measure ID"
+          },
+          "pickStrategy": {
+            "type": "string",
+            "description": "Pick strategy for lot/serial tracked items",
+            "enum": [
+              "none",
+              "fifo",
+              "fefo"
+            ],
+            "default": "none"
           }
         }
       },

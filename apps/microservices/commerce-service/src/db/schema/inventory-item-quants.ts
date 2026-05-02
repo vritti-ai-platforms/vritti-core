@@ -1,9 +1,10 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { decimal, index, pgPolicy, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItemLots } from './inventory-item-lots';
 import { inventoryItems } from './inventory-items';
 import { storageLocations } from './storage-locations';
+import { suppliers } from './suppliers';
 
 export const inventoryItemQuants = coreSchema.table(
   'inventory_item_quants',
@@ -18,6 +19,7 @@ export const inventoryItemQuants = coreSchema.table(
       .notNull()
       .references(() => storageLocations.id),
     lotId: uuid('lot_id').references(() => inventoryItemLots.id, { onDelete: 'restrict' }),
+    supplierId: uuid('supplier_id').references(() => suppliers.id, { onDelete: 'restrict' }),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     reservedQuantity: decimal('reserved_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -31,6 +33,7 @@ export const inventoryItemQuants = coreSchema.table(
     index('idx_inventory_item_quants_location').on(table.locationId),
     index('idx_inventory_item_quants_item_location').on(table.inventoryItemId, table.locationId),
     index('idx_inventory_item_quants_lot').on(table.lotId),
+    index('idx_inventory_item_quants_supplier').on(table.supplierId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = current_setting('app.org_id', true)::uuid`,

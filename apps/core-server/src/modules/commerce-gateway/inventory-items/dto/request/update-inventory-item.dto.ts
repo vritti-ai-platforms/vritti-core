@@ -39,4 +39,9 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @IsUUID()
   uomId?: string;
+
+  @ApiPropertyOptional({ description: 'Pick strategy for lot/serial tracked items', enum: ['none', 'fifo', 'fefo'], default: 'none' })
+  @IsOptional()
+  @IsEnum(['none', 'fifo', 'fefo'])
+  pickStrategy?: 'none' | 'fifo' | 'fefo';
 }
