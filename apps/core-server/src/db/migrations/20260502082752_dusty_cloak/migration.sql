@@ -1,4 +1,5 @@
-
+CREATE SCHEMA "vritti_core";
+--> statement-breakpoint
 CREATE TYPE "vritti_core"."assignment_type" AS ENUM('DIRECT', 'INHERITED');--> statement-breakpoint
 CREATE TYPE "vritti_core"."bu_type" AS ENUM('ORGANIZATION', 'REGION', 'FRANCHISEE', 'BRANCH', 'TEAM', 'DEPARTMENT', 'CUSTOM');--> statement-breakpoint
 CREATE TYPE "vritti_core"."media_status" AS ENUM('pending', 'ready', 'failed', 'deleted');--> statement-breakpoint
@@ -98,12 +99,13 @@ CREATE TABLE "vritti_core"."business_units" (
 	"code" varchar(100) NOT NULL,
 	"type" "vritti_core"."bu_type" NOT NULL,
 	"depth" integer DEFAULT 0 NOT NULL,
-	"path" "vritti_core".ltree NOT NULL,
+	"path" vritti_core.ltree NOT NULL,
 	"app_overrides" jsonb,
 	"inherit_config" boolean DEFAULT true NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
 	"app_codes" jsonb DEFAULT '[]' NOT NULL,
+	"timezone" varchar(50) NOT NULL,
 	"metadata" jsonb,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL

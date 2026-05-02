@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "32bb0647-9d53-4525-ad2f-2b8f738ce57c",
+  "id": "eac60ae0-e46a-479d-b397-50cd626c449c",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -1089,7 +1089,7 @@
       "table": "business_units"
     },
     {
-      "type": "ltree",
+      "type": "vritti_core.ltree",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
@@ -1162,6 +1162,19 @@
       "generated": null,
       "identity": null,
       "name": "app_codes",
+      "entityType": "columns",
+      "schema": "vritti_core",
+      "table": "business_units"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "timezone",
       "entityType": "columns",
       "schema": "vritti_core",
       "table": "business_units"
