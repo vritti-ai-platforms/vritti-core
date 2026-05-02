@@ -61,11 +61,9 @@ export class GoodsReceiptsPublishService {
         for (const line of lines) {
           const lineQuantity = Number(line.quantity);
           const isSerialBearing =
-            item.tracking === InventoryTrackingValues.SERIAL ||
-            item.tracking === InventoryTrackingValues.LOT_SERIAL;
+            item.tracking === InventoryTrackingValues.SERIAL || item.tracking === InventoryTrackingValues.LOT_SERIAL;
           const requiresLot =
-            item.tracking === InventoryTrackingValues.LOT ||
-            item.tracking === InventoryTrackingValues.LOT_SERIAL;
+            item.tracking === InventoryTrackingValues.LOT || item.tracking === InventoryTrackingValues.LOT_SERIAL;
 
           if (lineQuantity <= 0 && !isSerialBearing) {
             throw new BadRequestException(`Line ${line.id} has zero quantity.`);
