@@ -26,6 +26,18 @@ export class PermissionFeatureDto {
 
   @ApiProperty({ type: PermissionRouteDto })
   route: PermissionRouteDto;
+
+  @ApiProperty({ example: 'commerce' })
+  appCode: string;
+
+  @ApiProperty({ example: 'Commerce' })
+  appName: string;
+
+  @ApiProperty({ example: 'shopping-cart', nullable: true })
+  appIcon: string | null;
+
+  @ApiProperty({ example: 10 })
+  appSortOrder: number;
 }
 
 export class PermissionsResponseDto {

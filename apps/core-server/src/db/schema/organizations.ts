@@ -9,6 +9,10 @@ export interface FeatureCatalogEntry {
   remoteEntry: string;
   exposedModule: string;
   routePrefix: string;
+  appCode: string;
+  appName: string;
+  appIcon: string | null;
+  appSortOrder: number;
 }
 
 export const organizations = coreSchema.table('organizations', {

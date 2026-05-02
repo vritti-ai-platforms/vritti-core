@@ -14,6 +14,10 @@ export interface PermissionFeature {
     exposedModule: string;
     routePrefix: string;
   };
+  appCode: string;
+  appName: string;
+  appIcon: string | null;
+  appSortOrder: number;
 }
 
 export interface AssignedBU {
@@ -95,6 +99,10 @@ export class UserPermissionsService {
           exposedModule: catalogEntry.exposedModule,
           routePrefix: catalogEntry.routePrefix,
         },
+        appCode: catalogEntry.appCode,
+        appName: catalogEntry.appName,
+        appIcon: catalogEntry.appIcon,
+        appSortOrder: catalogEntry.appSortOrder,
       });
     }
 

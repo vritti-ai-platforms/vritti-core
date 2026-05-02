@@ -10,6 +10,10 @@ export interface PermissionFeature {
     exposedModule: string;
     routePrefix: string;
   };
+  appCode: string;
+  appName: string;
+  appIcon: string | null;
+  appSortOrder: number;
 }
 
 export interface PermissionsResponse {

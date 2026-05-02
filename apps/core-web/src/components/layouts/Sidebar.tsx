@@ -1,4 +1,5 @@
-import { type SidebarNavGroup, Sidebar as QSidebar } from '@vritti/quantum-ui/Sidebar';
+import { groupBy, sortBy, uniqBy } from '@vritti/quantum-ui/lodash';
+import { Sidebar as QSidebar, type SidebarNavGroup } from '@vritti/quantum-ui/Sidebar';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Box } from 'lucide-react';
 import { DynamicIcon, type IconName, iconNames } from 'lucide-react/dynamic';
@@ -28,16 +29,17 @@ export const Sidebar = () => {
   const groups = useMemo<SidebarNavGroup[]>(() => {
     if (!features.length || !buSlug) return [];
 
-    return [
-      {
-        label: 'Features',
-        items: features.map((f) => ({
-          title: f.name,
-          icon: resolveIcon(f.icon),
-          path: `/${buSlug}/${f.route.routePrefix.replace(/^\//, '')}`,
-        })),
-      },
-    ];
+    const featuresByApp = groupBy(features, 'appCode');
+    const apps = sortBy(uniqBy(features, 'appCode'), 'appSortOrder');
+
+    return apps.map((app) => ({
+      label: app.appName,
+      items: featuresByApp[app.appCode].map((f) => ({
+        title: f.name,
+        icon: resolveIcon(f.icon),
+        path: `/${buSlug}/${f.route.routePrefix.replace(/^\//, '')}`,
+      })),
+    }));
   }, [features, buSlug]);
 
   if (!selectedBuId || pathname.includes('/pos-billing')) return null;
