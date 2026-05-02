@@ -7,7 +7,7 @@ import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { View } from 'react-native';
 
-export const AccountThemeScreen = () => {
+export const ThemeScreen = () => {
   const { colorScheme, isDark, themePreference, setThemePreference } = useTheme();
 
   return (

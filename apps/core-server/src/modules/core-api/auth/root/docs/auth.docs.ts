@@ -111,8 +111,8 @@ export function ApiMobileLookup() {
         'Returns all organizations the user belongs to. Used by the mobile app to present an organization picker before login.',
     }),
     ApiBody({ type: MobileLookupDto }),
-    ApiResponse({ status: 200, description: 'Organizations returned (may be empty).', type: MobileLookupResponseDto }),
-    ApiResponse({ status: 400, description: 'Invalid email format.' }),
+    ApiResponse({ status: 200, description: 'Organizations retrieved successfully.', type: MobileLookupResponseDto }),
+    ApiResponse({ status: 400, description: 'Invalid email format or no account found for the given email.' }),
   );
 }
 

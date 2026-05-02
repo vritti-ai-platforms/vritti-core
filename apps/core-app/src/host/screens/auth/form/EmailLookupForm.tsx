@@ -1,41 +1,20 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
-import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 import { View } from 'react-native';
-import { type EmailLookupFormValues, emailLookupSchema } from '../../../schemas/auth/emailLookup';
+import type { EmailLookupFormValues } from '../../../schemas/auth/emailLookup';
 
 interface EmailLookupFormProps {
+  form: UseFormReturn<EmailLookupFormValues>;
   isSubmitting: boolean;
-  formError?: string;
-  onSubmit: (email: string) => void;
+  onSubmit: (values: EmailLookupFormValues) => void;
 }
 
-export const EmailLookupForm = ({ isSubmitting, formError, onSubmit }: EmailLookupFormProps) => {
-  const form = useForm<EmailLookupFormValues>({
-    resolver: zodResolver(emailLookupSchema),
-    defaultValues: { email: '' },
-  });
-
-  React.useEffect(() => {
-    if (formError) {
-      form.setError('root', {
-        type: 'lookup',
-        message: formError,
-      });
-      return;
-    }
-
-    form.clearErrors('root');
-  }, [form, formError]);
-
+export const EmailLookupForm = ({ form, isSubmitting, onSubmit }: EmailLookupFormProps) => {
   return (
     <Form form={form} rootErrorPosition="top">
-      {formError ? <StaticAlert variant="destructive" title="Organization Not Found" className="mb-4" /> : null}
       <TextField
         name="email"
         label="Email"
@@ -50,7 +29,7 @@ export const EmailLookupForm = ({ isSubmitting, formError, onSubmit }: EmailLook
       <View className="pb-8 pt-4">
         <Button
           isLoading={isSubmitting}
-          onPress={form.handleSubmit((data) => onSubmit(data.email))}
+          onPress={form.handleSubmit(onSubmit)}
           className="h-[52px] rounded-xl"
           loadingText="Looking up..."
         >

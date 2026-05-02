@@ -1,11 +1,13 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
+import { mapApiErrorsToForm, setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
+import { useForm } from 'react-hook-form';
 import { useLogin } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import { useAuth } from '../../providers/AuthProvider';
-import type { LoginFormValues } from '../../schemas/auth/login';
+import { loginSchema, type LoginFormValues } from '../../schemas/auth/login';
 import { buildOrganizationApiBaseURL } from '../../services/auth/deployment.service';
 import { LoginForm } from './form/LoginForm';
 
@@ -13,11 +15,15 @@ export const LoginScreen = () => {
   const { beginStatusConfirmation } = useAuth();
   const { deploymentBaseURL, email, organizationId, organizationSubdomain } = useAuthFlow();
   const [isPreparingTenantURL, setIsPreparingTenantURL] = React.useState(true);
-  const [formError, setFormError] = React.useState<string | undefined>();
 
   if (!deploymentBaseURL || !email || !organizationId || !organizationSubdomain) {
     throw new Error('LoginScreen requires an organization to be selected first');
   }
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email, password: '' },
+  });
 
   const loginMutation = useLogin({
     onSuccess: () => {
@@ -30,14 +36,17 @@ export const LoginScreen = () => {
 
     const configureTenantURL = async () => {
       setIsPreparingTenantURL(true);
-      setFormError(undefined);
+      form.clearErrors('root');
 
       try {
         const tenantBaseURL = buildOrganizationApiBaseURL(deploymentBaseURL, organizationSubdomain);
         await setMobileBaseURL(tenantBaseURL);
       } catch {
         if (active) {
-          setFormError('Unable to prepare the organization URL. Please go back and try again.');
+          form.setError('root', {
+            type: 'Workspace Unavailable',
+            message: 'Unable to prepare the organization URL. Please go back and try again.',
+          });
         }
       } finally {
         if (active) {
@@ -51,24 +60,29 @@ export const LoginScreen = () => {
     return () => {
       active = false;
     };
-  }, [deploymentBaseURL, organizationSubdomain]);
+  }, [deploymentBaseURL, organizationSubdomain, form]);
+
+  const handleSubmit = async (values: LoginFormValues) => {
+    if (isPreparingTenantURL) return;
+    try {
+      await loginMutation.mutateAsync({
+        email: values.email,
+        password: values.password,
+        organizationId,
+      });
+    } catch (error) {
+      mapApiErrorsToForm(error, form);
+    }
+  };
 
   return (
     <ScreenContainer className="px-5">
       <Text className="text-xl text-center font-bold">Welcome back</Text>
       <LoginForm
-        email={email}
-        formError={formError}
+        form={form}
         isSubmitting={loginMutation.isPending}
         isPreparingTenantURL={isPreparingTenantURL}
-        onSubmit={(data: LoginFormValues) => {
-          if (isPreparingTenantURL) return;
-          loginMutation.mutate({
-            email: data.email,
-            password: data.password,
-            organizationId,
-          });
-        }}
+        onSubmit={handleSubmit}
       />
     </ScreenContainer>
   );

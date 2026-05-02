@@ -45,16 +45,18 @@ export class AuthService {
       : await this.userService.findByEmail(dto.email);
 
     if (!user) {
-      throw new UnauthorizedException({
+      throw new BadRequestException({
         label: 'Invalid Credentials',
         detail: 'The email or password you entered is incorrect. Please check your credentials and try again.',
+        errors: [{ field: 'email', message: 'No account found for this email' }],
       });
     }
 
     if (!user.passwordHash) {
-      throw new UnauthorizedException({
+      throw new BadRequestException({
         label: 'Password Not Set',
         detail: 'Please set a password before logging in. Check your invitation email.',
+        errors: [{ field: 'password', message: 'Password not set — check your invitation email' }],
       });
     }
 
@@ -68,15 +70,19 @@ export class AuthService {
     const isPasswordValid = await argon2.verify(user.passwordHash, dto.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException({
+      throw new BadRequestException({
         label: 'Invalid Credentials',
         detail: 'The email or password you entered is incorrect. Please check your credentials and try again.',
+        errors: [{ field: 'password', message: 'Invalid credentials' }],
       });
     }
 
     const org = await this.organizationService.getById(user.organizationId);
     if (!org) {
-      throw new UnauthorizedException('Organization not found. Please contact support.');
+      throw new BadRequestException({
+        label: 'Organization Not Found',
+        detail: 'Organization not found. Please contact support.',
+      });
     }
 
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(

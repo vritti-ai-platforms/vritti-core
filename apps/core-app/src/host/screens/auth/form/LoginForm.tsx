@@ -1,50 +1,20 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { PasswordField } from '@vritti/quantum-ui-native/PasswordField';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 import { View } from 'react-native';
-import { loginSchema, type LoginFormValues } from '../../../schemas/auth/login';
+import type { LoginFormValues } from '../../../schemas/auth/login';
 
 interface LoginFormProps {
-  email: string;
-  formError?: string;
+  form: UseFormReturn<LoginFormValues>;
   isSubmitting: boolean;
   isPreparingTenantURL: boolean;
   onSubmit: (values: LoginFormValues) => void;
 }
 
-export const LoginForm = ({
-  email,
-  formError,
-  isSubmitting,
-  isPreparingTenantURL,
-  onSubmit,
-}: LoginFormProps) => {
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email, password: '' },
-  });
-
-  React.useEffect(() => {
-    form.reset({ email, password: '' });
-  }, [email, form]);
-
-  React.useEffect(() => {
-    if (formError) {
-      form.setError('root', {
-        type: 'login',
-        message: formError,
-      });
-      return;
-    }
-
-    form.clearErrors('root');
-  }, [form, formError]);
-
+export const LoginForm = ({ form, isSubmitting, isPreparingTenantURL, onSubmit }: LoginFormProps) => {
   return (
     <Form form={form} rootErrorPosition="top">
       <TextField name="email" label="Email" keyboardType="email-address" autoCapitalize="none" editable={false} />

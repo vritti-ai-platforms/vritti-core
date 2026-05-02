@@ -128,6 +128,14 @@ export class UserService {
   async lookupOrganizationsByEmail(email: string): Promise<LookupOrganizationsResult> {
     const usersWithOrg = await this.userRepository.findAllByEmailWithOrg(email);
 
+    if (usersWithOrg.length === 0) {
+      throw new NotFoundException({
+        label: 'Account Not Found',
+        detail: 'No account is associated with this email address. Please check the email and try again.',
+        errors: [{ field: 'email', message: 'No organization found for this email' }],
+      });
+    }
+
     return {
       organizations: usersWithOrg.map((u) => ({
         id: u.organization.id,

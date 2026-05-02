@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
 import { formatDateTime } from './utils';
 
-export const AccountProfileScreen = () => {
+export const ProfileScreen = () => {
   const { user, org, sessionId } = useAuth();
 
   const createdAt = formatDateTime(user?.createdAt);

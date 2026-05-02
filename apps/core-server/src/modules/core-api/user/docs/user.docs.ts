@@ -14,7 +14,7 @@ export function ApiGetOrganizationsByEmail() {
     }),
     ApiQuery({ name: 'email', description: 'User email address', required: true }),
     ApiResponse({ status: 200, description: 'Organizations retrieved successfully.', type: MobileLookupResponseDto }),
-    ApiResponse({ status: 400, description: 'Invalid email address.' }),
+    ApiResponse({ status: 400, description: 'Invalid email address or no account found for the given email.' }),
   );
 }
 

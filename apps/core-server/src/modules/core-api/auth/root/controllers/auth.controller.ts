@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import {
   Body,
   Controller,
@@ -14,7 +15,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
-import { isIP } from 'node:net';
 import {
   AccessToken,
   CookieName,
@@ -49,7 +49,6 @@ import { MobileRefreshDto } from '../dto/request/mobile-refresh.dto';
 import { SetPasswordDto } from '../dto/request/set-password.dto';
 import { AuthResponseDto } from '../dto/response/auth-response.dto';
 import { MessageResponseDto } from '../dto/response/message-response.dto';
-import { MobileAuthResponseDto } from '../dto/response/mobile-auth-response.dto';
 import { MobileLookupResponseDto } from '../dto/response/mobile-lookup-response.dto';
 import { MobileTokenResponseDto } from '../dto/response/mobile-token-response.dto';
 import { TokenResponseDto } from '../dto/response/token-response.dto';
@@ -104,19 +103,14 @@ export class AuthController {
   @Public()
   @SkipCsrf()
   @ApiMobileLogin()
-  async mobileLogin(@Body() dto: MobileLoginDto, @Ip() ipAddress: string): Promise<MobileAuthResponseDto> {
+  async mobileLogin(@Body() dto: MobileLoginDto, @Ip() ipAddress: string) {
     this.logger.log(`POST /auth/mobile/login - Email: ${dto.email}`);
     const result = await this.authService.login(
       { email: dto.email, password: dto.password, organizationId: dto.organizationId },
       ipAddress,
       SessionTypeValues.MOBILE,
     );
-    return new MobileAuthResponseDto({
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      expiresIn: result.expiresIn,
-      isAuthenticated: true,
-    });
+    return result;
   }
 
   // Rotates tokens using refresh token from request body
@@ -196,8 +190,7 @@ export class AuthController {
     const host = request.hostname ?? '';
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
-    const allowRawIpOrgResolution =
-      this.config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false) && isIP(host) > 0;
+    const allowRawIpOrgResolution = this.config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false) && isIP(host) > 0;
 
     this.logger.log(`SSE /auth/status — subdomain: ${subdomain ?? 'none'}`);
 

@@ -1,16 +1,16 @@
 import { Body, Controller, Delete, Get, Headers, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { SuccessResponseDto } from '@vritti/api-sdk';
 import { RequireSession, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { ApiChangePassword, ApiGetSessions, ApiRevokeAllSessions, ApiRevokeSession } from '../docs/security.docs';
 import { ChangePasswordDto } from '../dto/request/change-password.dto';
 import { SessionResponseDto } from '../dto/response/session-response.dto';
 import { SecurityService } from '../services/security.service';
-import type { SuccessResponseDto } from '@vritti/api-sdk';
 
 @ApiTags('Account - Security')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
 @Controller('security')
 export class SecurityController {
   private readonly logger = new Logger(SecurityController.name);
@@ -21,10 +21,7 @@ export class SecurityController {
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   @ApiChangePassword()
-  async changePassword(
-    @UserId() userId: string,
-    @Body() dto: ChangePasswordDto,
-  ): Promise<SuccessResponseDto> {
+  async changePassword(@UserId() userId: string, @Body() dto: ChangePasswordDto): Promise<SuccessResponseDto> {
     this.logger.log(`POST /account/security/change-password - userId: ${userId}`);
     return this.securityService.changePassword(userId, dto.currentPassword, dto.newPassword);
   }

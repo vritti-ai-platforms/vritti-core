@@ -5,7 +5,7 @@ import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { View } from 'react-native';
 
-export const AccountSessionsScreen = () => {
+export const SessionsScreen = () => {
   return (
     <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
       <StaticAlert

@@ -10,7 +10,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import type { HostAppRoute } from '../../routes';
 import { getInitials } from './utils';
 
-export const AccountHomeScreen = () => {
+export const AccountScreen = () => {
   const { user, org, logout } = useAuth();
   const { push } = usePushNavigator<HostAppRoute>();
 
