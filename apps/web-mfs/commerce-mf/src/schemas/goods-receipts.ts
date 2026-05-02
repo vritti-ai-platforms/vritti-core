@@ -49,10 +49,11 @@ export interface GoodsReceiptData {
   createdAt: string;
 }
 
-export type InventoryTracking = 'quantity' | 'lot' | 'serial';
+export type InventoryTracking = 'quantity' | 'lot' | 'lot_serial' | 'serial';
 export const InventoryTrackingValues = {
   QUANTITY: 'quantity' as const,
   LOT: 'lot' as const,
+  LOT_SERIAL: 'lot_serial' as const,
   SERIAL: 'serial' as const,
 };
 

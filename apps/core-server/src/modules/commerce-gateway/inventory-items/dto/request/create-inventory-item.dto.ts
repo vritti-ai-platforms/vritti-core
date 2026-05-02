@@ -25,11 +25,11 @@ export class CreateInventoryItemDto {
 
   @ApiProperty({
     description: 'Tracking type — granularity at which stock for this item is identified.',
-    enum: ['quantity', 'lot', 'serial'],
+    enum: ['quantity', 'lot', 'lot_serial', 'serial'],
     example: 'lot',
   })
-  @IsEnum(['quantity', 'lot', 'serial'])
-  tracking: 'quantity' | 'lot' | 'serial';
+  @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])
+  tracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
 
   @ApiPropertyOptional({ description: 'Pick strategy for lot/serial tracked items', enum: ['none', 'fifo', 'fefo'], default: 'none' })
   @IsOptional()

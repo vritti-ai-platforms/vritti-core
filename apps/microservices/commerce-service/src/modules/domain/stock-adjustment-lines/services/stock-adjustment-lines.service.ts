@@ -29,7 +29,7 @@ interface AdjustmentContext {
   status: StockAdjustmentStatus;
   type: StockAdjustmentType;
   inventoryItemId: string;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
 }
 
 @Injectable()
@@ -103,9 +103,10 @@ export class StockAdjustmentLinesService {
 
     await this.validateIntent(adjustment, data);
 
-    const isItemTracking = adjustment.inventoryItemTracking === 'serial';
+    const isItemTracking =
+      adjustment.inventoryItemTracking === 'serial' || adjustment.inventoryItemTracking === 'lot_serial';
 
-    // For tracking='serial', quantity is derived from the serial count and starts at 0.
+    // For tracking='serial' or 'lot_serial', quantity is derived from the serial count and starts at 0.
     // For 'quantity'/'lot' the user enters a quantity which must be non-zero.
     if (!Number.isFinite(data.quantity) || (data.quantity === 0 && !isItemTracking)) {
       throw new ValidationException({
@@ -232,10 +233,15 @@ export class StockAdjustmentLinesService {
     await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
   }
 
-  // Used at publish time — return mismatched lines for tracking='serial' adjustments
+  // Used at publish time — return mismatched lines for serial-bearing adjustments
   async getPublishValidation(adjustmentId: string): Promise<{ valid: boolean; invalidLinesCount: number }> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
-    if (adjustment.inventoryItemTracking !== 'serial') return { valid: true, invalidLinesCount: 0 };
+    if (
+      adjustment.inventoryItemTracking !== 'serial' &&
+      adjustment.inventoryItemTracking !== 'lot_serial'
+    ) {
+      return { valid: true, invalidLinesCount: 0 };
+    }
     const errors = await this.repository.findUnbalancedItemLines(adjustmentId);
     return { valid: errors.length === 0, invalidLinesCount: errors.length };
   }
@@ -266,18 +272,18 @@ export class StockAdjustmentLinesService {
           errors: [{ field: 'quantId', message: 'Not allowed on OPENING_STOCK.' }],
         });
       }
-      // tracking=quantity: lot must NOT be set; tracking=lot/serial: lot must be set
-      if (tracking === 'quantity') {
+      // tracking=quantity or serial: lot must NOT be set; tracking=lot or lot_serial: lot must be set
+      if (tracking === 'quantity' || tracking === 'serial') {
         if (data.stockAdjustmentLotId) {
           throw new ValidationException({
-            detail: 'Lot must not be set for items with tracking=quantity.',
-            errors: [{ field: 'stockAdjustmentLotId', message: 'Not allowed for tracking=quantity.' }],
+            detail: `Lot must not be set for items with tracking=${tracking}.`,
+            errors: [{ field: 'stockAdjustmentLotId', message: `Not allowed for tracking=${tracking}.` }],
           });
         }
       } else {
         if (!data.stockAdjustmentLotId) {
           throw new ValidationException({
-            detail: 'A lot must be selected for OPENING_STOCK on lot/item-tracked items.',
+            detail: 'A lot must be selected for OPENING_STOCK on lot/lot_serial-tracked items.',
             errors: [{ field: 'stockAdjustmentLotId', message: 'Lot is required.' }],
           });
         }

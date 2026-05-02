@@ -5,8 +5,8 @@ export class GoodsReceiptItemResponseDto {
   @ApiProperty() goodsReceiptId: string;
   @ApiProperty() inventoryItemId: string;
   @ApiPropertyOptional({ nullable: true }) inventoryItemName: string | null;
-  @ApiProperty({ enum: ['quantity', 'lot', 'serial'] })
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] })
+  inventoryItemTracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
   @ApiPropertyOptional({ nullable: true }) inventoryItemUomSymbol: string | null;
   @ApiProperty({ description: 'Derived from sum(lines.quantity).' })
   acceptedQuantity: number;

@@ -27,7 +27,7 @@ export const EditOpeningLineForm = ({
   onSuccess,
   onCancel,
 }: EditOpeningLineFormProps) => {
-  const isItem = tracking === 'serial';
+  const isItem = tracking === 'serial' || tracking === 'lot_serial';
   const form = useForm<AddOpeningStockLineFormData>({
     resolver: zodResolver(addOpeningStockLineSchema),
     defaultValues: {

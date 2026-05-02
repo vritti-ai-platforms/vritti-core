@@ -5,7 +5,7 @@ export class GoodsReceiptItemDto {
   goodsReceiptId: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
   inventoryItemUomSymbol: string | null;
   acceptedQuantity: number;
   rejectedQuantity: number;

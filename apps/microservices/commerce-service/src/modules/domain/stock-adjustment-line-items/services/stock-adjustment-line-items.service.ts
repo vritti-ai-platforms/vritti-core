@@ -77,8 +77,8 @@ export class StockAdjustmentLineItemsService {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Line items can only be modified on DRAFT adjustments.');
     }
-    if (adjustment.inventoryItemTracking !== 'serial') {
-      throw new BadRequestException('Line items are only allowed on item-tracked adjustments.');
+    if (adjustment.inventoryItemTracking !== 'serial' && adjustment.inventoryItemTracking !== 'lot_serial') {
+      throw new BadRequestException('Line items are only allowed on serial-tracked adjustments.');
     }
 
     const line = await this.linesRepository.findLineById(lineId);
@@ -179,7 +179,7 @@ export class StockAdjustmentLineItemsService {
   // OPENING+item: serial must NOT already exist for this item (would collide with inventory_item_quant_items unique).
   // Deduct+item: serial must exist on a quant_item where parent_quant = line.quantId AND status=AVAILABLE.
   private async validateSerialForIntent(
-    adjustment: StockAdjustment & { inventoryItemTracking: 'quantity' | 'lot' | 'serial' },
+    adjustment: StockAdjustment & { inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial' },
     lineQuantId: string | null,
     serialNumber: string,
   ): Promise<void> {

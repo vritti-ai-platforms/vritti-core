@@ -30,7 +30,7 @@ export const EditLineForm = ({
   onSuccess,
   onCancel,
 }: EditLineFormProps) => {
-  const isSerial = tracking === InventoryTrackingValues.SERIAL;
+  const isSerial = tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL;
   const form = useForm<AddGoodsReceiptLineFormData>({
     resolver: zodResolver(addGoodsReceiptLineSchema),
     defaultValues: {

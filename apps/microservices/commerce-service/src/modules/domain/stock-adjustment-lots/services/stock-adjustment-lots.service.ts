@@ -82,8 +82,8 @@ export class StockAdjustmentLotsService {
     if (adjustment.type !== StockAdjustmentTypeValues.OPENING_STOCK) {
       throw new BadRequestException('Lots are only allowed on OPENING_STOCK adjustments.');
     }
-    if (adjustment.inventoryItemTracking === 'quantity') {
-      throw new BadRequestException('Items with tracking=quantity cannot have lots.');
+    if (adjustment.inventoryItemTracking === 'quantity' || adjustment.inventoryItemTracking === 'serial') {
+      throw new BadRequestException(`Items with tracking=${adjustment.inventoryItemTracking} cannot have lots.`);
     }
 
     const lotNumber = data.lotNumber?.trim();

@@ -35,7 +35,7 @@ export const ChangeLinesTable = ({
     return <Empty icon={<ClipboardList />} title="No lines yet" description="Pick a quant to start." />;
   }
 
-  const isItem = tracking === 'serial';
+  const isItem = tracking === 'serial' || tracking === 'lot_serial';
 
   return (
     <div className="overflow-x-auto rounded-md border">

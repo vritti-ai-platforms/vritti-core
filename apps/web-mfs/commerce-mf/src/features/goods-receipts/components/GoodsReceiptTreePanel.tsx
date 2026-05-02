@@ -17,7 +17,7 @@ import { AddItemDialog } from '../forms/AddItemDialog';
 export type TreeSelection =
   | { kind: 'item'; itemId: string }
   | { kind: 'lot'; itemId: string; lotId: string }
-  | { kind: 'line'; itemId: string; lotId: string; lineId: string };
+  | { kind: 'line'; itemId: string; lotId: string | null; lineId: string };
 
 interface GoodsReceiptTreePanelProps {
   goodsReceiptId: string;
@@ -30,7 +30,7 @@ interface GoodsReceiptTreePanelProps {
 
 interface TreeNodeData extends TreeDataItem {
   kind: 'item' | 'lot' | 'line';
-  inventoryItemTracking?: 'quantity' | 'lot' | 'serial';
+  inventoryItemTracking?: 'quantity' | 'lot' | 'lot_serial' | 'serial';
   uomSymbol?: string;
   acceptedQuantity?: number;
   poRemainingQuantity?: number | null;
@@ -98,15 +98,19 @@ const TreeRow = ({ item }: TreeRenderItemParams) => {
 // Builds a parent-of map so we can recover (itemId, lotId?) from a clicked node id.
 const buildParentMap = (nodes: GoodsReceiptTreeNode[]) => {
   const itemOfLot = new Map<string, string>();
-  const itemAndLotOfLine = new Map<string, { itemId: string; lotId: string }>();
+  const itemAndLotOfLine = new Map<string, { itemId: string; lotId: string | null }>();
   for (const item of nodes) {
     if (item.kind !== 'item') continue;
-    for (const lot of item.children ?? []) {
-      if (lot.kind !== 'lot') continue;
-      itemOfLot.set(lot.id, item.id);
-      for (const line of lot.children ?? []) {
-        if (line.kind !== 'line') continue;
-        itemAndLotOfLine.set(line.id, { itemId: item.id, lotId: lot.id });
+    for (const child of item.children ?? []) {
+      if (child.kind === 'lot') {
+        itemOfLot.set(child.id, item.id);
+        for (const line of child.children ?? []) {
+          if (line.kind !== 'line') continue;
+          itemAndLotOfLine.set(line.id, { itemId: item.id, lotId: child.id });
+        }
+      } else if (child.kind === 'line') {
+        // SERIAL items: lines hang directly off the item (no lot layer).
+        itemAndLotOfLine.set(child.id, { itemId: item.id, lotId: null });
       }
     }
   }
@@ -181,7 +185,7 @@ export const GoodsReceiptTreePanel = ({
                 // line
                 const parents = itemAndLotOfLine.get(node.id);
                 if (!parents) return onSelect(null);
-                onSelect({ kind: 'line', itemId: parents.itemId, lotId: parents.lotId, lineId: node.id });
+                onSelect({ kind: 'line', itemId: parents.itemId, lotId: parents.lotId ?? null, lineId: node.id });
               }}
               renderItem={(params) => <TreeRow {...params} />}
               defaultNodeIcon={Package}

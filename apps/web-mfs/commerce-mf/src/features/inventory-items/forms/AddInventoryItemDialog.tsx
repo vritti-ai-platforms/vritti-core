@@ -24,7 +24,8 @@ const typeOptions = [
 const trackingOptions = [
   { value: 'quantity', label: 'Quantity — bulk fungible (e.g. office supplies)' },
   { value: 'lot', label: 'Lot — batch identity (mfg/expiry, lot #)' },
-  { value: 'serial', label: 'Serial — per unit (high-value goods)' },
+  { value: 'serial', label: 'Serial — per unit, no batch (e.g. IT assets, tools)' },
+  { value: 'lot_serial', label: 'Lot + Serial — per unit within batch (e.g. pharma)' },
 ];
 
 const pickStrategyOptions = [

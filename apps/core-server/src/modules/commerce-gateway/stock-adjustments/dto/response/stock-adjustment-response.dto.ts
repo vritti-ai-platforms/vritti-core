@@ -6,7 +6,11 @@ export class StockAdjustmentResponseDto {
   @ApiProperty() inventoryItemId: string;
   @ApiProperty() inventoryItemName: string;
   @ApiProperty() inventoryItemUomSymbol: string;
-  @ApiProperty({ enum: ['quantity', 'lot', 'serial'] }) inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] }) inventoryItemTracking:
+    | 'quantity'
+    | 'lot'
+    | 'lot_serial'
+    | 'serial';
   @ApiProperty({ example: 'WASTE' }) type: string;
   @ApiProperty({ description: 'Sum of stock_adjustment_lines.quantity' }) totalQuantity: number;
   @ApiProperty({ example: 'DRAFT' }) status: string;

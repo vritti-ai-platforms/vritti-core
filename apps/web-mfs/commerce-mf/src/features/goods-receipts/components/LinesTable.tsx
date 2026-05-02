@@ -58,7 +58,7 @@ export const LinesTable = ({
 
   const removeLineMutation = useRemoveGoodsReceiptLine(goodsReceiptId, scope.itemId);
 
-  const isSerial = tracking === InventoryTrackingValues.SERIAL;
+  const isSerial = tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL;
 
   const handleRemoveLine = useCallback(
     async (line: GoodsReceiptLineData) => {
@@ -205,7 +205,7 @@ export const LinesTable = ({
           icon: ClipboardList,
           title: 'No lines yet',
           description:
-            tracking === InventoryTrackingValues.QUANTITY
+            tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL
               ? 'Distribute the received quantity across storage locations.'
               : 'Add a line to start receiving stock under this lot.',
           action: isDraft ? (

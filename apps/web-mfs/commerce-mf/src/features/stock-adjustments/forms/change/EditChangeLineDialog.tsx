@@ -26,7 +26,7 @@ const EditChangeLineForm = ({
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
-  const isItem = tracking === 'serial';
+  const isItem = tracking === 'serial' || tracking === 'lot_serial';
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { quantity: String(line.quantity ?? '') },

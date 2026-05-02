@@ -103,10 +103,10 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     return Number(result?.count ?? 0);
   }
 
-  // For tracking='serial': sync quantity to count(line_items); isBalanced is always true.
+  // For tracking='serial' or 'lot_serial': sync quantity to count(line_items); isBalanced is always true.
   // For other tracking types: isBalanced is always true (no derived count).
-  async refreshIsBalanced(lineId: string, tracking: 'quantity' | 'lot' | 'serial'): Promise<void> {
-    if (tracking !== 'serial') {
+  async refreshIsBalanced(lineId: string, tracking: 'quantity' | 'lot' | 'serial' | 'lot_serial'): Promise<void> {
+    if (tracking !== 'serial' && tracking !== 'lot_serial') {
       await this.db.update(stockAdjustmentLines).set({ isBalanced: true }).where(eq(stockAdjustmentLines.id, lineId));
       return;
     }

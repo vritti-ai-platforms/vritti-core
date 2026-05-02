@@ -58,7 +58,7 @@ export const LotDetailPanel = ({
   });
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustmentId);
 
-  const isSerial = tracking === InventoryTrackingValues.SERIAL;
+  const isSerial = tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL;
 
   const handleRemoveLine = useCallback(
     async (line: StockAdjustmentLineData) => {

@@ -20,7 +20,7 @@ export class CreateInventoryItemDto {
   @IsEnum(['MATERIAL', 'PRODUCT'])
   type: InventoryItemType;
 
-  @IsEnum(['quantity', 'lot', 'serial'])
+  @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])
   tracking: InventoryTracking;
 
   @IsEnum(['none', 'fifo', 'fefo'])

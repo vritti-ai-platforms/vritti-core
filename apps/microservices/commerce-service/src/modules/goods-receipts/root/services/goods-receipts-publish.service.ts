@@ -60,15 +60,22 @@ export class GoodsReceiptsPublishService {
 
         for (const line of lines) {
           const lineQuantity = Number(line.quantity);
-          if (lineQuantity <= 0 && item.tracking !== InventoryTrackingValues.SERIAL) {
+          const isSerialBearing =
+            item.tracking === InventoryTrackingValues.SERIAL ||
+            item.tracking === InventoryTrackingValues.LOT_SERIAL;
+          const requiresLot =
+            item.tracking === InventoryTrackingValues.LOT ||
+            item.tracking === InventoryTrackingValues.LOT_SERIAL;
+
+          if (lineQuantity <= 0 && !isSerialBearing) {
             throw new BadRequestException(`Line ${line.id} has zero quantity.`);
           }
-          if (item.tracking !== InventoryTrackingValues.QUANTITY && !line.goodsReceiptLotId) {
+          if (requiresLot && !line.goodsReceiptLotId) {
             throw new BadRequestException(`Line ${line.id} requires a lot for tracking=${item.tracking}.`);
           }
 
           const lotInfo =
-            item.tracking !== InventoryTrackingValues.QUANTITY && line.lotNumber
+            requiresLot && line.lotNumber
               ? {
                   lotNumber: line.lotNumber,
                   manufacturingDate: line.lotManufacturingDate ?? null,
@@ -76,39 +83,48 @@ export class GoodsReceiptsPublishService {
                 }
               : undefined;
 
-          const serials =
-            item.tracking === InventoryTrackingValues.SERIAL
-              ? (await this.lineItemsRepository.findByLineId(line.id)).map((li) => li.serialNumber)
-              : undefined;
+          const serials = isSerialBearing
+            ? (await this.lineItemsRepository.findByLineId(line.id)).map((li) => li.serialNumber)
+            : undefined;
 
-          if (item.tracking === InventoryTrackingValues.SERIAL && serials && serials.length === 0) {
+          if (isSerialBearing && serials && serials.length === 0) {
             throw new BadRequestException(`Line ${line.id} has no serials.`);
           }
 
-          const createParams =
-            item.tracking === InventoryTrackingValues.QUANTITY
-              ? {
-                  inventoryItemId: item.inventoryItemId,
-                  locationId: line.locationId,
-                  tracking: InventoryTrackingValues.QUANTITY,
-                  quantity: lineQuantity,
-                }
-              : item.tracking === InventoryTrackingValues.LOT
-                ? {
-                    inventoryItemId: item.inventoryItemId,
-                    locationId: line.locationId,
-                    tracking: InventoryTrackingValues.LOT,
-                    quantity: lineQuantity,
-                    lot: lotInfo!,
-                  }
-                : {
-                    inventoryItemId: item.inventoryItemId,
-                    locationId: line.locationId,
-                    tracking: InventoryTrackingValues.SERIAL,
-                    quantity: lineQuantity,
-                    lot: lotInfo!,
-                    serialNumbers: serials!,
-                  };
+          let createParams: Parameters<typeof this.quantsService.createBatchInTx>[1];
+          if (item.tracking === InventoryTrackingValues.QUANTITY) {
+            createParams = {
+              inventoryItemId: item.inventoryItemId,
+              locationId: line.locationId,
+              tracking: InventoryTrackingValues.QUANTITY,
+              quantity: lineQuantity,
+            };
+          } else if (item.tracking === InventoryTrackingValues.LOT) {
+            createParams = {
+              inventoryItemId: item.inventoryItemId,
+              locationId: line.locationId,
+              tracking: InventoryTrackingValues.LOT,
+              quantity: lineQuantity,
+              lot: lotInfo!,
+            };
+          } else if (item.tracking === InventoryTrackingValues.SERIAL) {
+            createParams = {
+              inventoryItemId: item.inventoryItemId,
+              locationId: line.locationId,
+              tracking: InventoryTrackingValues.SERIAL,
+              quantity: lineQuantity,
+              serialNumbers: serials!,
+            };
+          } else {
+            createParams = {
+              inventoryItemId: item.inventoryItemId,
+              locationId: line.locationId,
+              tracking: InventoryTrackingValues.LOT_SERIAL,
+              quantity: lineQuantity,
+              lot: lotInfo!,
+              serialNumbers: serials!,
+            };
+          }
 
           const { quant, lot: createdLot } = await this.quantsService.createBatchInTx(tx, createParams);
           await this.linesRepository.setResolvedQuantInTx(tx, line.id, quant.id);

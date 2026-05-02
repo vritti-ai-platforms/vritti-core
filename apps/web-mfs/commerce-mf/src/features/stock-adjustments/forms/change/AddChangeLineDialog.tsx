@@ -26,7 +26,7 @@ const AddChangeLineForm = ({
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
-  const isItem = tracking === 'serial';
+  const isItem = tracking === 'serial' || tracking === 'lot_serial';
   const form = useForm<AddChangeLineFormData>({
     resolver: zodResolver(addChangeLineSchema),
     defaultValues: { quantId: '', quantity: isItem ? '0' : '' },

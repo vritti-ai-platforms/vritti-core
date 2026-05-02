@@ -32,15 +32,15 @@ export type CreateQuantParams = {
   locationId: string;
   tracking: InventoryTracking;
   quantity: number;
-  // for tracking='lot' or 'serial': required
+  // for tracking='lot' or 'lot_serial': required
   lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate?: string | null };
-  // for tracking='serial': required, length must equal quantity
+  // for tracking='serial' or 'lot_serial': required, length must equal quantity
   serialNumbers?: string[];
 };
 
 export type AdjustQuantParams =
   | { tracking: 'quantity' | 'lot'; delta: number }
-  | { tracking: 'serial'; serials: string[] };
+  | { tracking: 'serial' | 'lot_serial'; serials: string[] };
 
 @Injectable()
 export class InventoryItemQuantsService {
@@ -71,22 +71,32 @@ export class InventoryItemQuantsService {
   }): Promise<{ batch: InventoryItemQuant }> {
     const result = await this.repository.transaction(async (tx) => {
       const tracking = await this.repository.findItemTrackingInTx(tx, params.inventoryItemId);
-      const createParams: CreateQuantParams =
-        tracking === InventoryTrackingValues.QUANTITY
-          ? {
-              inventoryItemId: params.inventoryItemId,
-              locationId: params.locationId,
-              tracking,
-              quantity: params.quantity,
-            }
-          : {
-              inventoryItemId: params.inventoryItemId,
-              locationId: params.locationId,
-              tracking,
-              quantity: params.quantity,
-              lot: params.lot,
-              serialNumbers: params.serialNumbers,
-            };
+      let createParams: CreateQuantParams;
+      if (tracking === InventoryTrackingValues.QUANTITY) {
+        createParams = {
+          inventoryItemId: params.inventoryItemId,
+          locationId: params.locationId,
+          tracking,
+          quantity: params.quantity,
+        };
+      } else if (tracking === InventoryTrackingValues.SERIAL) {
+        createParams = {
+          inventoryItemId: params.inventoryItemId,
+          locationId: params.locationId,
+          tracking,
+          quantity: params.quantity,
+          serialNumbers: params.serialNumbers,
+        };
+      } else {
+        createParams = {
+          inventoryItemId: params.inventoryItemId,
+          locationId: params.locationId,
+          tracking,
+          quantity: params.quantity,
+          lot: params.lot,
+          serialNumbers: params.serialNumbers,
+        };
+      }
 
       const { quant } = await this.createBatchInTx(tx, createParams);
       await this.ledgerService.createEntryInTx(tx, {
@@ -108,9 +118,10 @@ export class InventoryItemQuantsService {
   }
 
   // Creates or upserts a quant within a transaction. Tracking-aware:
-  //   'quantity': lotId=null, upsert by (item, location)
-  //   'lot':  resolves/creates lot, upsert by (item, location, lotId)
-  //   'serial': resolves/creates lot, upsert quant, then inserts N quant_items with serials
+  //   'quantity':   lotId=null, upsert by (item, location)
+  //   'lot':        resolves/creates lot, upsert by (item, location, lotId)
+  //   'lot_serial': resolves/creates lot, upsert quant, then inserts N quant_items with serials
+  //   'serial':     lotId=null, upsert quant by (item, location), then inserts N quant_items with serials
   // No ledger — caller handles it.
   async createBatchInTx(
     tx: TypedDrizzleClient,
@@ -119,8 +130,11 @@ export class InventoryItemQuantsService {
     this.validateCreateParams(params);
 
     let lot: InventoryItemLot | null = null;
-    if (params.tracking !== InventoryTrackingValues.QUANTITY) {
-      if (!params.lot) throw new BadRequestException('lot is required for tracking != quantity.');
+    if (
+      params.tracking === InventoryTrackingValues.LOT ||
+      params.tracking === InventoryTrackingValues.LOT_SERIAL
+    ) {
+      if (!params.lot) throw new BadRequestException('lot is required for tracking=lot or lot_serial.');
       lot = await this.lotsService.findOrCreateLotInTx(tx, {
         inventoryItemId: params.inventoryItemId,
         lotNumber: params.lot.lotNumber,
@@ -151,7 +165,10 @@ export class InventoryItemQuantsService {
     }
 
     let quantItems: InventoryItemQuantItem[] = [];
-    if (params.tracking === InventoryTrackingValues.SERIAL) {
+    if (
+      params.tracking === InventoryTrackingValues.SERIAL ||
+      params.tracking === InventoryTrackingValues.LOT_SERIAL
+    ) {
       const serials = params.serialNumbers ?? [];
       quantItems = await this.repository.insertQuantItemsInTx(
         tx,
@@ -177,10 +194,17 @@ export class InventoryItemQuantsService {
       }
       return;
     }
-    if (!params.lot?.lotNumber) {
-      throw new BadRequestException('lot.lotNumber is required for tracking=lot or serial.');
+    if (params.tracking === InventoryTrackingValues.LOT) {
+      if (!params.lot?.lotNumber) {
+        throw new BadRequestException('lot.lotNumber is required for tracking=lot.');
+      }
+      if (params.serialNumbers?.length) {
+        throw new BadRequestException('serialNumbers must not be provided for tracking=lot.');
+      }
+      return;
     }
     if (params.tracking === InventoryTrackingValues.SERIAL) {
+      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=serial.');
       const serials = params.serialNumbers ?? [];
       if (serials.length !== params.quantity) {
         throw new BadRequestException(
@@ -191,8 +215,21 @@ export class InventoryItemQuantsService {
       if (unique.size !== serials.length) {
         throw new BadRequestException('serialNumbers must be unique within the same batch creation.');
       }
-    } else if (params.serialNumbers?.length) {
-      throw new BadRequestException('serialNumbers must not be provided for tracking=lot.');
+      return;
+    }
+    // LOT_SERIAL: lot required + serials required
+    if (!params.lot?.lotNumber) {
+      throw new BadRequestException('lot.lotNumber is required for tracking=lot_serial.');
+    }
+    const serials = params.serialNumbers ?? [];
+    if (serials.length !== params.quantity) {
+      throw new BadRequestException(
+        `serialNumbers.length (${serials.length}) must equal quantity (${params.quantity}).`,
+      );
+    }
+    const unique = new Set(serials);
+    if (unique.size !== serials.length) {
+      throw new BadRequestException('serialNumbers must be unique within the same batch creation.');
     }
   }
 
@@ -213,7 +250,7 @@ export class InventoryItemQuantsService {
       const tracking = await this.repository.findItemTrackingInTx(tx, quant.inventoryItemId);
 
       const adjustParams: AdjustQuantParams =
-        tracking === InventoryTrackingValues.SERIAL
+        tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL
           ? { tracking, serials: params.serials ?? [] }
           : { tracking, delta: params.quantity };
 
@@ -237,27 +274,33 @@ export class InventoryItemQuantsService {
   }
 
   // Adjusts a quant within a transaction (no ledger — caller handles it).
-  //   'quantity' | 'lot': delta-based adjustment of quant.quantity
-  //   'serial':       resolves serials → consumes those quant_items; quantity decremented by length
+  //   'quantity' | 'lot':         delta-based adjustment of quant.quantity
+  //   'serial' | 'lot_serial':    resolves serials → consumes those quant_items; quantity decremented by length
   async adjustBatchInTx(
     tx: TypedDrizzleClient,
     batchId: string,
     params: AdjustQuantParams,
   ): Promise<{ quant: InventoryItemQuant; consumedItems: InventoryItemQuantItem[] }> {
-    if (params.tracking === InventoryTrackingValues.SERIAL) {
-      const items = await this.repository.loadAvailableQuantItemsBySerialsInTx(tx, batchId, params.serials);
-      if (items.length !== params.serials.length) {
-        throw new BadRequestException('Some serials are not AVAILABLE or do not belong to the given batch.');
+    switch (params.tracking) {
+      case 'quantity':
+      case 'lot': {
+        const quant = await this.repository.updateQuantityWithTx(tx, batchId, String(params.delta));
+        return { quant, consumedItems: [] };
       }
-      await this.repository.consumeQuantItemsInTx(
-        tx,
-        items.map((i) => i.id),
-      );
-      const quant = await this.repository.updateQuantityWithTx(tx, batchId, String(-items.length));
-      return { quant, consumedItems: items };
+      case 'serial':
+      case 'lot_serial': {
+        const items = await this.repository.loadAvailableQuantItemsBySerialsInTx(tx, batchId, params.serials);
+        if (items.length !== params.serials.length) {
+          throw new BadRequestException('Some serials are not AVAILABLE or do not belong to the given batch.');
+        }
+        await this.repository.consumeQuantItemsInTx(
+          tx,
+          items.map((i) => i.id),
+        );
+        const quant = await this.repository.updateQuantityWithTx(tx, batchId, String(-items.length));
+        return { quant, consumedItems: items };
+      }
     }
-    const quant = await this.repository.updateQuantityWithTx(tx, batchId, String(params.delta));
-    return { quant, consumedItems: [] };
   }
 
   // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.

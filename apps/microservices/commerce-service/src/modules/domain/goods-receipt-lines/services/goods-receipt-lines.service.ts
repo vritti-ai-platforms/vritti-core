@@ -101,7 +101,8 @@ export class GoodsReceiptLinesService {
     const ctx = await this.getItemContext(goodsReceiptId, itemId);
     await this.validateIntent(ctx, data);
 
-    const isSerial = ctx.tracking === InventoryTrackingValues.SERIAL;
+    const isSerial =
+      ctx.tracking === InventoryTrackingValues.SERIAL || ctx.tracking === InventoryTrackingValues.LOT_SERIAL;
     if (!Number.isFinite(data.quantity) || data.quantity < 0 || (data.quantity === 0 && !isSerial)) {
       throw new ValidationException({
         detail: 'Quantity must be a positive number.',
@@ -151,7 +152,8 @@ export class GoodsReceiptLinesService {
     };
     await this.validateIntent(ctx, next);
 
-    const isSerial = ctx.tracking === InventoryTrackingValues.SERIAL;
+    const isSerial =
+      ctx.tracking === InventoryTrackingValues.SERIAL || ctx.tracking === InventoryTrackingValues.LOT_SERIAL;
     if (!isSerial && data.quantity !== undefined) {
       // PO cap re-check using the new quantity (excluding this line's existing contribution)
       await this.validatePoCap(ctx, data.quantity, lineId);
@@ -202,8 +204,8 @@ export class GoodsReceiptLinesService {
   }
 
   // Validate the line shape against item.tracking:
-  //   tracking=quantity: lot must NOT be set
-  //   tracking=lot/serial: lot must be set AND belong to the same item
+  //   tracking=quantity or serial: lot must NOT be set
+  //   tracking=lot or lot_serial:  lot must be set AND belong to the same item
   private async validateIntent(
     ctx: ItemContext,
     data: { goodsReceiptLotId?: string | null; locationId?: string },
@@ -214,18 +216,18 @@ export class GoodsReceiptLinesService {
         errors: [{ field: 'locationId', message: 'Storage location is required.' }],
       });
     }
-    if (ctx.tracking === InventoryTrackingValues.QUANTITY) {
+    if (ctx.tracking === InventoryTrackingValues.QUANTITY || ctx.tracking === InventoryTrackingValues.SERIAL) {
       if (data.goodsReceiptLotId) {
         throw new ValidationException({
-          detail: 'Lot must not be set for items with tracking=quantity.',
-          errors: [{ field: 'goodsReceiptLotId', message: 'Not allowed for tracking=quantity.' }],
+          detail: `Lot must not be set for items with tracking=${ctx.tracking}.`,
+          errors: [{ field: 'goodsReceiptLotId', message: `Not allowed for tracking=${ctx.tracking}.` }],
         });
       }
       return;
     }
     if (!data.goodsReceiptLotId) {
       throw new ValidationException({
-        detail: 'A lot must be selected for items with tracking=lot or tracking=serial.',
+        detail: 'A lot must be selected for items with tracking=lot or tracking=lot_serial.',
         errors: [{ field: 'goodsReceiptLotId', message: 'Lot is required.' }],
       });
     }

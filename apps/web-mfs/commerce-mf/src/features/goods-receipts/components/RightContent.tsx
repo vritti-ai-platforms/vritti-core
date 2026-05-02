@@ -103,14 +103,23 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
   };
 
   // Selected = serial line → SerialsTable
-  if (selection.kind === 'line' && tracking === InventoryTrackingValues.SERIAL) {
+  if (
+    selection.kind === 'line' &&
+    (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL)
+  ) {
     return (
       <SerialsTable
         goodsReceiptId={goodsReceiptId}
         itemId={selection.itemId}
         line={selectedLine}
         isDraft={isDraft}
-        onLineRemoved={() => onSelectionChange({ kind: 'lot', itemId: selection.itemId, lotId: selection.lotId })}
+        onLineRemoved={() =>
+          onSelectionChange(
+            selection.lotId
+              ? { kind: 'lot', itemId: selection.itemId, lotId: selection.lotId }
+              : { kind: 'item', itemId: selection.itemId },
+          )
+        }
       />
     );
   }
@@ -173,7 +182,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
             poRemainingQuantity={poRemaining}
             selectedLineId={null}
             onSelectLine={
-              tracking === InventoryTrackingValues.SERIAL
+              tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL
                 ? (lineId) =>
                     onSelectionChange(
                       lineId
@@ -190,10 +199,10 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
     );
   }
 
-  // Selected = item: render LinesTable scoped to item (only for tracking='quantity').
-  // For lot/serial tracking with no lot selected, show a hint to pick a lot.
+  // Selected = item: render LinesTable scoped to item (for tracking='quantity' and standalone 'serial').
+  // For lot/lot_serial tracking with no lot selected, show a hint to pick a lot.
   if (selection.kind === 'item') {
-    if (tracking === InventoryTrackingValues.QUANTITY) {
+    if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
       return (
         <PageContentDetails>
           <div className="space-y-4">
@@ -241,6 +250,16 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
               isDraft={isDraft}
               uomSymbol={uomSymbol}
               poRemainingQuantity={poRemaining}
+              onSelectLine={
+                tracking === InventoryTrackingValues.SERIAL
+                  ? (lineId) =>
+                      onSelectionChange(
+                        lineId
+                          ? { kind: 'line', itemId: selection.itemId, lotId: null, lineId }
+                          : { kind: 'item', itemId: selection.itemId },
+                      )
+                  : undefined
+              }
             />
           </div>
 
@@ -274,7 +293,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
       );
     }
 
-    // tracking is 'lot' or 'serial' — item is not a leaf; user should pick a lot
+    // tracking is 'lot' or 'lot_serial' — item is not a leaf; user should pick a lot
     return (
       <PageContentDetails>
         <div className="space-y-4">

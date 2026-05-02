@@ -6,7 +6,7 @@ export class StockAdjustmentDto {
   inventoryItemId: string;
   inventoryItemName: string;
   inventoryItemUomSymbol: string;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
   type: StockAdjustmentType;
   totalQuantity: number; // derived from sum(lines.quantity)
   status: StockAdjustmentStatus;
@@ -21,7 +21,7 @@ export class StockAdjustmentDto {
     entity: StockAdjustment & {
       inventoryItemName?: string;
       inventoryItemUomSymbol?: string | null;
-      inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+      inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
       totalQuantity?: number | string | null;
       isPublishable?: boolean;
     },

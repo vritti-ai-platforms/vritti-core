@@ -21,6 +21,7 @@ import { ChangeItemContent } from './components/change/ChangeItemContent';
 import { OpeningItemContent } from './components/opening/OpeningItemContent';
 import { OpeningLotContent } from './components/opening/OpeningLotContent';
 import { OpeningNoneContent } from './components/opening/OpeningNoneContent';
+import { OpeningSerialContent } from './components/opening/OpeningSerialContent';
 import { EditStockAdjustmentDialog } from './forms/EditStockAdjustmentDialog';
 
 const typeConfig: Record<
@@ -86,9 +87,11 @@ export const StockAdjustmentDetailPage = () => {
         return <OpeningNoneContent adjustment={adjustment} isDraft={isDraft} />;
       if (tracking === InventoryTrackingValues.LOT)
         return <OpeningLotContent adjustment={adjustment} isDraft={isDraft} />;
+      if (tracking === InventoryTrackingValues.SERIAL)
+        return <OpeningSerialContent adjustment={adjustment} isDraft={isDraft} />;
       return <OpeningItemContent adjustment={adjustment} isDraft={isDraft} />;
     }
-    if (tracking === InventoryTrackingValues.SERIAL)
+    if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL)
       return <ChangeItemContent adjustment={adjustment} isDraft={isDraft} />;
     return <ChangeContent adjustment={adjustment} isDraft={isDraft} tracking={tracking} />;
   };

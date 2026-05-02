@@ -37,6 +37,7 @@ export const stockAdjustmentStatusConfig: Record<StockAdjustmentStatus, { label:
 export const InventoryTrackingValues = {
   QUANTITY: 'quantity',
   LOT: 'lot',
+  LOT_SERIAL: 'lot_serial',
   SERIAL: 'serial',
 } as const;
 export type InventoryTracking = (typeof InventoryTrackingValues)[keyof typeof InventoryTrackingValues];

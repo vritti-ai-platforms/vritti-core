@@ -35,9 +35,10 @@ export class GoodsReceiptLotsService {
   }
 
   // Builds the unified tree: items as roots, lots/lines as descendants based on item.tracking.
-  // tracking='quantity': item is a leaf.
-  // tracking='lot': item -> lots (lots are leaves).
-  // tracking='serial': item -> lots -> lines (lines are leaves).
+  // tracking='quantity':   item is a leaf (lines hang directly off item via lines table; not in this tree).
+  // tracking='serial':     item is a leaf (no lots; lines hang directly off item; not in this tree).
+  // tracking='lot':        item -> lots (lots are leaves).
+  // tracking='lot_serial': item -> lots -> lines (lines are leaves).
   async findTreeForReceipt(goodsReceiptId: string): Promise<GoodsReceiptTreeNode[]> {
     const receipt = await this.receiptsRepository.findById(goodsReceiptId);
     if (!receipt) throw new NotFoundException('Goods receipt not found.');
@@ -47,13 +48,18 @@ export class GoodsReceiptLotsService {
 
     const lotsByItem = new Map<string, Awaited<ReturnType<typeof this.repository.findByItemId>>>();
     for (const item of items) {
-      if (item.inventoryItemTracking === InventoryTrackingValues.QUANTITY) continue;
+      if (
+        item.inventoryItemTracking === InventoryTrackingValues.QUANTITY ||
+        item.inventoryItemTracking === InventoryTrackingValues.SERIAL
+      ) {
+        continue;
+      }
       lotsByItem.set(item.id, await this.repository.findByItemId(item.id));
     }
 
     const linesByLot = new Map<string, Awaited<ReturnType<typeof this.linesRepository.findByItemId>>>();
     for (const item of items) {
-      if (item.inventoryItemTracking !== InventoryTrackingValues.SERIAL) continue;
+      if (item.inventoryItemTracking !== InventoryTrackingValues.LOT_SERIAL) continue;
       const lines = await this.linesRepository.findByItemId(item.id);
       for (const line of lines) {
         const lotId = line.goodsReceiptLotId;
@@ -83,7 +89,7 @@ export class GoodsReceiptLotsService {
             : null,
         isBalanced: item.unbalancedLinesCount === 0,
       };
-      if (tracking === InventoryTrackingValues.QUANTITY) {
+      if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
         return itemNode;
       }
       const lots = lotsByItem.get(item.id) ?? [];
@@ -97,7 +103,7 @@ export class GoodsReceiptLotsService {
           linesCount: Number(lot.linesCount),
           isBalanced: Number(lot.unbalancedLinesCount) === 0,
         };
-        if (tracking === InventoryTrackingValues.SERIAL) {
+        if (tracking === InventoryTrackingValues.LOT_SERIAL) {
           lotNode.children = (linesByLot.get(lot.id) ?? []).map((line) => ({
             id: line.id,
             name: line.locationName ?? line.locationId ?? '—',
@@ -123,8 +129,8 @@ export class GoodsReceiptLotsService {
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be added to DRAFT goods receipts.');
     }
-    if (tracking === InventoryTrackingValues.QUANTITY) {
-      throw new BadRequestException('Items with tracking=quantity cannot have lots.');
+    if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
+      throw new BadRequestException(`Items with tracking=${tracking} cannot have lots.`);
     }
 
     const lotNumber = data.lotNumber?.trim();

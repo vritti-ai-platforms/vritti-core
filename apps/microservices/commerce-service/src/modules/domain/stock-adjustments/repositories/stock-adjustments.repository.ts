@@ -15,7 +15,7 @@ import {
 export type StockAdjustmentWithRefs = StockAdjustment & {
   inventoryItemName: string;
   inventoryItemUomSymbol: string | null;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial';
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
   totalQuantity: number;
   isPublishable: boolean;
 };

@@ -13,8 +13,8 @@ export class InventoryItemResponseDto {
   @ApiProperty({ enum: ['MATERIAL', 'PRODUCT'] })
   type: string;
 
-  @ApiProperty({ enum: ['quantity', 'lot', 'serial'] })
-  tracking: 'quantity' | 'lot' | 'serial';
+  @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] })
+  tracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
 
   @ApiProperty({ enum: ['none', 'fifo', 'fefo'], default: 'none' })
   pickStrategy: 'none' | 'fifo' | 'fefo';

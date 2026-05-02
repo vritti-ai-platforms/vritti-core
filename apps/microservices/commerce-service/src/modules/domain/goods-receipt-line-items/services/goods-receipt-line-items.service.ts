@@ -66,7 +66,7 @@ export class GoodsReceiptLineItemsService {
     data: { serialNumber: string },
   ): Promise<GoodsReceiptLineItemDto> {
     const ctx = await this.linesService.getItemContext(goodsReceiptId, itemId);
-    if (ctx.tracking !== InventoryTrackingValues.SERIAL) {
+    if (ctx.tracking !== InventoryTrackingValues.SERIAL && ctx.tracking !== InventoryTrackingValues.LOT_SERIAL) {
       throw new BadRequestException('Line items are only allowed on serial-tracked items.');
     }
 
@@ -115,7 +115,7 @@ export class GoodsReceiptLineItemsService {
     data: { serialNumber: string },
   ): Promise<GoodsReceiptLineItemDto> {
     const ctx = await this.linesService.getItemContext(goodsReceiptId, itemId);
-    if (ctx.tracking !== InventoryTrackingValues.SERIAL) {
+    if (ctx.tracking !== InventoryTrackingValues.SERIAL && ctx.tracking !== InventoryTrackingValues.LOT_SERIAL) {
       throw new BadRequestException('Line items are only allowed on serial-tracked items.');
     }
 

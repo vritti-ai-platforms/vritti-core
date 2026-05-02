@@ -87,8 +87,8 @@ export class StockAdjustmentsRootService {
 
     const tracking = adjustment.inventoryItemTracking;
 
-    // For tracking='serial' lines: validate balance (count of line_items === line.quantity)
-    if (tracking === InventoryTrackingValues.SERIAL) {
+    // For serial-bearing lines: validate balance (count of line_items === line.quantity)
+    if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       const validation = await this.linesService.getPublishValidation(id);
       if (!validation.valid) {
         throw new BadRequestException(`Line items mismatch in ${validation.invalidLinesCount} line(s).`);
@@ -100,7 +100,8 @@ export class StockAdjustmentsRootService {
     const lineItemsByLineId = _.groupBy(allLineItems, (li) => li.stockAdjustmentLineId);
 
     const lots =
-      adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK && tracking !== InventoryTrackingValues.QUANTITY
+      adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK &&
+      (tracking === InventoryTrackingValues.LOT || tracking === InventoryTrackingValues.LOT_SERIAL)
         ? await this.lotsRepository.findByAdjustmentId(id)
         : [];
 
@@ -154,6 +155,26 @@ export class StockAdjustmentsRootService {
         tracking,
         quantity: Number(line.quantity),
       };
+    } else if (tracking === InventoryTrackingValues.SERIAL) {
+      if (line.stockAdjustmentLotId) {
+        throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=serial.`);
+      }
+      const serials = lineItems.map((li) => li.serialNumber);
+      if (serials.length !== Number(line.quantity)) {
+        throw new BadRequestException(
+          `Line ${line.id}: expected ${line.quantity} serial numbers, got ${serials.length}.`,
+        );
+      }
+      if (new Set(serials).size !== serials.length) {
+        throw new BadRequestException(`Line ${line.id} has duplicate serial numbers.`);
+      }
+      createParams = {
+        inventoryItemId: adjustment.inventoryItemId,
+        locationId: line.locationId,
+        tracking,
+        quantity: serials.length,
+        serialNumbers: serials,
+      };
     } else {
       if (!line.stockAdjustmentLotId) {
         throw new BadRequestException(`Line ${line.id}: lot is required for tracking=${tracking}.`);
@@ -174,7 +195,7 @@ export class StockAdjustmentsRootService {
           },
         };
       } else {
-        // tracking === 'serial'
+        // tracking === 'lot_serial'
         const serials = lineItems.map((li) => li.serialNumber);
         if (serials.length !== Number(line.quantity)) {
           throw new BadRequestException(
@@ -228,7 +249,7 @@ export class StockAdjustmentsRootService {
     }
 
     let signedDelta: number;
-    if (tracking === InventoryTrackingValues.SERIAL) {
+    if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       const serials = lineItems.map((li) => li.serialNumber);
       if (serials.length !== Number(line.quantity)) {
         throw new BadRequestException(`Line ${line.id}: expected ${line.quantity} serials, got ${serials.length}.`);

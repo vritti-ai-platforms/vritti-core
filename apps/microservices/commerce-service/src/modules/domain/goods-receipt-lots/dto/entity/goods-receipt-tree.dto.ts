@@ -6,7 +6,7 @@ export interface GoodsReceiptTreeNode {
   path: string[];
   kind: 'item' | 'lot' | 'line';
   // item-only:
-  inventoryItemTracking?: 'quantity' | 'lot' | 'serial';
+  inventoryItemTracking?: 'quantity' | 'lot' | 'serial' | 'lot_serial';
   inventoryItemUomSymbol?: string;
   acceptedQuantity?: number;
   rejectedQuantity?: number;
