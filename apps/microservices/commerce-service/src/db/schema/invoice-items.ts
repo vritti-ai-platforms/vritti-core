@@ -7,7 +7,7 @@ export const invoiceItems = coreSchema.table(
   'invoice_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
     description: varchar('description', { length: 255 }).notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),

@@ -1,5 +1,15 @@
-import { boolean, decimal, index, pgPolicy, timestamp, unique, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  boolean,
+  decimal,
+  index,
+  pgPolicy,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 
@@ -7,8 +17,8 @@ export const bom = coreSchema.table(
   'bom',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     isActive: boolean('is_active').notNull().default(true),
@@ -51,9 +61,13 @@ export const bomLines = coreSchema.table(
   'bom_lines',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    bomId: uuid('bom_id').notNull().references(() => bom.id, { onDelete: 'cascade' }),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    bomId: uuid('bom_id')
+      .notNull()
+      .references(() => bom.id, { onDelete: 'cascade' }),
+    inventoryItemId: uuid('inventory_item_id')
+      .notNull()
+      .references(() => inventoryItems.id),
     requiredQuantity: decimal('required_quantity', { precision: 12, scale: 3 }).notNull(),
   },
   (table) => [

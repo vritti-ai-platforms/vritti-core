@@ -8,8 +8,8 @@ export const goodsReceiptItems = coreSchema.table(
   'goods_receipt_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     goodsReceiptId: uuid('goods_receipt_id')
       .notNull()
       .references(() => goodsReceipts.id, { onDelete: 'cascade' }),

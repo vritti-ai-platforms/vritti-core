@@ -10,8 +10,8 @@ export const orders = coreSchema.table(
   'orders',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     orderNumber: varchar('order_number', { length: 50 }).notNull(),
     type: orderTypeEnum('type').notNull(),
     channel: orderSourceEnum('channel').notNull(),
@@ -74,7 +74,7 @@ export const orderItems = coreSchema.table(
   'order_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     orderId: uuid('order_id')
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),
@@ -107,7 +107,7 @@ export const orderItemModifiers = coreSchema.table(
   'order_item_modifiers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     orderItemId: uuid('order_item_id')
       .notNull()
       .references(() => orderItems.id, { onDelete: 'cascade' }),

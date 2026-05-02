@@ -20,8 +20,8 @@ export const suppliers = coreSchema.table(
   'suppliers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
@@ -75,8 +75,8 @@ export const supplierContacts = coreSchema.table(
   'supplier_contacts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id, { onDelete: 'cascade' }),
@@ -129,7 +129,7 @@ export const supplierItems = coreSchema.table(
   'supplier_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id, { onDelete: 'cascade' }),

@@ -19,7 +19,7 @@ export const itemOptions = coreSchema.table(
   'item_options',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     itemId: uuid('item_id').notNull(),
     name: varchar('name', { length: 100 }).notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -34,7 +34,7 @@ export const itemOptionValues = coreSchema.table(
   'item_option_values',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     optionId: uuid('option_id').notNull(),
     value: varchar('value', { length: 100 }).notNull(),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -49,7 +49,7 @@ export const itemVariants = coreSchema.table(
   'item_variants',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     itemId: uuid('item_id').notNull(),
     bomId: uuid('bom_id').references(() => bom.id, { onDelete: 'set null' }),
     sku: varchar('sku', { length: 100 }).notNull(),
@@ -77,7 +77,7 @@ export type NewItemVariant = typeof itemVariants.$inferInsert;
 export const itemVariantOptionValues = coreSchema.table(
   'item_variant_option_values',
   {
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     variantId: uuid('variant_id').notNull(),
     optionValueId: uuid('option_value_id').notNull(),
   },

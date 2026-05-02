@@ -7,8 +7,8 @@ export const itemFieldDefinitions = coreSchema.table(
   'item_field_definitions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     name: varchar('name', { length: 100 }).notNull(),
     fieldType: fieldTypeEnum('field_type').notNull(),
     options: jsonb('options').$type<string[]>().notNull().default([]),

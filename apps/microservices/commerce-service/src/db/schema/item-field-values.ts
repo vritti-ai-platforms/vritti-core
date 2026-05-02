@@ -8,7 +8,7 @@ export const itemFieldValues = coreSchema.table(
   'item_field_values',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     itemId: uuid('item_id').notNull().references(() => items.id, { onDelete: 'cascade' }),
     fieldDefinitionId: uuid('field_definition_id').notNull().references(() => itemFieldDefinitions.id, { onDelete: 'cascade' }),
     value: text('value'),

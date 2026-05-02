@@ -19,8 +19,8 @@ export const modifierGroups = coreSchema.table(
   'modifier_groups',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     name: varchar('name', { length: 255 }).notNull(),
     selectionType: modifierSelectionTypeEnum('selection_type').notNull(),
     minSelections: integer('min_selections').notNull().default(0),
@@ -62,7 +62,7 @@ export const modifierOptions = coreSchema.table(
   'modifier_options',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     groupId: uuid('group_id').notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     additionalPrice: bigint('additional_price', { mode: 'number' }).notNull().default(0),
@@ -83,7 +83,7 @@ export type NewModifierOption = typeof modifierOptions.$inferInsert;
 export const itemModifierGroups = coreSchema.table(
   'item_modifier_groups',
   {
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     itemId: uuid('item_id').notNull(),
     groupId: uuid('group_id').notNull(),
   },

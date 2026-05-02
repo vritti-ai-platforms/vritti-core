@@ -8,7 +8,7 @@ export const stockTransfers = coreSchema.table(
   'stock_transfers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),

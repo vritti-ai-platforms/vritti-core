@@ -20,8 +20,8 @@ export const priceLists = coreSchema.table(
   'price_lists',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
     description: varchar('description', { length: 500 }),
@@ -64,8 +64,8 @@ export type NewPriceList = typeof priceLists.$inferInsert;
 export const priceListItems = coreSchema.table(
   'price_list_items',
   {
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     priceListId: uuid('price_list_id')
       .notNull()
       .references(() => priceLists.id, { onDelete: 'cascade' }),
@@ -114,8 +114,8 @@ export type NewPriceListItem = typeof priceListItems.$inferInsert;
 export const terminalPriceLists = coreSchema.table(
   'terminal_price_lists',
   {
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     terminalId: uuid('terminal_id')
       .notNull()
       .references(() => posTerminals.id, { onDelete: 'cascade' }),

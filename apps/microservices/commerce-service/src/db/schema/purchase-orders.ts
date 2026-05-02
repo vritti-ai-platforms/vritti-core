@@ -9,8 +9,8 @@ export const purchaseOrders = coreSchema.table(
   'purchase_orders',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql`current_setting('app.bu_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id),
@@ -20,7 +20,7 @@ export const purchaseOrders = coreSchema.table(
     conversionRate: decimal('conversion_rate', { precision: 18, scale: 6 }).notNull().default('1'),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
-    timezone: varchar('timezone', { length: 50 }).notNull().default(sql`current_setting('app.bu_timezone')::text`),
+    timezone: varchar('timezone', { length: 50 }).notNull().default(sql.raw("current_setting('app.bu_timezone')::text")),
     notes: text('notes'),
     totalAmount: bigint('total_amount', { mode: 'number' }).notNull().default(0),
     createdBy: uuid('created_by'),
@@ -64,7 +64,7 @@ export const purchaseOrderItems = coreSchema.table(
   'purchase_order_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql`current_setting('app.org_id')::uuid`),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     purchaseOrderId: uuid('purchase_order_id')
       .notNull()
       .references(() => purchaseOrders.id, { onDelete: 'cascade' }),
