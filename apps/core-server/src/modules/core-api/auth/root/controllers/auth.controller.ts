@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Ip,
@@ -74,12 +75,13 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) reply: FastifyReply,
     @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent: string | undefined,
     @RefreshCookieOptions() cookieOptions: CookieSerializeOptions,
     @CookieName() cookieName: string,
   ): Promise<AuthResponseDto> {
     this.logger.log(`POST /auth/login - Email: ${dto.email}`);
 
-    const { refreshToken, ...response } = await this.authService.login(dto, ipAddress);
+    const { refreshToken, ...response } = await this.authService.login(dto, ipAddress, undefined, userAgent);
 
     if (refreshToken) {
       reply.setCookie(cookieName, refreshToken, cookieOptions);
@@ -103,12 +105,17 @@ export class AuthController {
   @Public()
   @SkipCsrf()
   @ApiMobileLogin()
-  async mobileLogin(@Body() dto: MobileLoginDto, @Ip() ipAddress: string) {
+  async mobileLogin(
+    @Body() dto: MobileLoginDto,
+    @Ip() ipAddress: string,
+    @Headers('user-agent') userAgent: string | undefined,
+  ) {
     this.logger.log(`POST /auth/mobile/login - Email: ${dto.email}`);
     const result = await this.authService.login(
       { email: dto.email, password: dto.password, organizationId: dto.organizationId },
       ipAddress,
       SessionTypeValues.MOBILE,
+      userAgent,
     );
     return result;
   }

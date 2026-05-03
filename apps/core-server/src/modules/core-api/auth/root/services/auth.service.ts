@@ -39,6 +39,7 @@ export class AuthService {
     dto: LoginDto,
     ipAddress?: string,
     sessionType: SessionType = SessionTypeValues.NEXUS,
+    userAgent?: string,
   ): Promise<AuthResponseDto & { refreshToken?: string }> {
     const user = dto.organizationId
       ? await this.userService.findByEmailAndOrg(dto.email, dto.organizationId)
@@ -90,6 +91,7 @@ export class AuthService {
       sessionType,
       { organizationId: user.organizationId, subdomain: org.subdomain },
       ipAddress,
+      userAgent,
     );
 
     await this.userService.updateLastLogin(user.id);

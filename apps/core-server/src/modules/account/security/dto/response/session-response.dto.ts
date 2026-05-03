@@ -1,23 +1,31 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { Session } from '@/db/schema';
 
-// Parses a browser name from a user-agent string
+// Extracts "iOS 17.0" / "Android 12" from VrittiCoreApp UAs; returns null for browser UAs.
+function parseMobileDevice(userAgent: string): string | null {
+  const match = /VrittiCoreApp\/[^\s]+ \(([^)]+)\)/i.exec(userAgent);
+  return match ? match[1] : null;
+}
+
+// Parses a browser name from a browser user-agent string
 function parseBrowser(userAgent: string): string {
   if (/Edg\//i.test(userAgent)) return 'Microsoft Edge';
   if (/Chrome\//i.test(userAgent) && !/Chromium/i.test(userAgent)) return 'Chrome';
   if (/Firefox\//i.test(userAgent)) return 'Firefox';
   if (/Safari\//i.test(userAgent) && !/Chrome/i.test(userAgent)) return 'Safari';
   if (/OPR\//i.test(userAgent) || /Opera\//i.test(userAgent)) return 'Opera';
+  if (/CFNetwork/i.test(userAgent)) return 'iOS App';
+  if (/okhttp|Dalvik/i.test(userAgent)) return 'Android App';
   return 'Unknown Browser';
 }
 
-// Parses an OS name from a user-agent string
+// Parses an OS name from a browser user-agent string
 function parseOs(userAgent: string): string {
+  if (/iPhone|iPad|iPod|CFNetwork|\biOS\b/i.test(userAgent)) return 'iOS';
+  if (/Android|Dalvik/i.test(userAgent)) return 'Android';
   if (/Windows/i.test(userAgent)) return 'Windows';
-  if (/Macintosh|Mac OS X/i.test(userAgent)) return 'macOS';
-  if (/Linux/i.test(userAgent) && !/Android/i.test(userAgent)) return 'Linux';
-  if (/Android/i.test(userAgent)) return 'Android';
-  if (/iPhone|iPad|iPod/i.test(userAgent)) return 'iOS';
+  if (/Macintosh|Mac OS X|Darwin/i.test(userAgent)) return 'macOS';
+  if (/Linux/i.test(userAgent)) return 'Linux';
   return 'Unknown OS';
 }
 
@@ -47,7 +55,8 @@ export class SessionResponseDto {
 
     const ua = session.userAgent ?? '';
     if (ua) {
-      dto.device = `${parseBrowser(ua)} on ${parseOs(ua)}`;
+      const mobile = parseMobileDevice(ua);
+      dto.device = mobile ?? `${parseBrowser(ua)} on ${parseOs(ua)}`;
     } else {
       dto.device = 'Unknown Device';
     }
