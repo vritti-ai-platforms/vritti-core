@@ -5,10 +5,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateUomDimension } from '@/hooks/uom-dimensions';
-import {
-  type CreateUomDimensionFormData,
-  createUomDimensionResolver,
-} from '@/schemas/uom-dimensions';
+import { type CreateUomDimensionFormData, createUomDimensionResolver } from '@/schemas/uom-dimensions';
 
 interface AddUomDimensionDialogProps {
   onSuccess: () => void;

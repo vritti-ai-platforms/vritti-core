@@ -92,6 +92,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId, isLoading: pare
                 icon: Pencil,
                 label: 'Edit',
                 onClick: () => openEdit(row.original),
+                disabled: !row.original.canEdit,
               },
               {
                 id: 'delete',

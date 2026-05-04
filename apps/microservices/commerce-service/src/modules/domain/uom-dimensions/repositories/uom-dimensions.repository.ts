@@ -9,6 +9,10 @@ export class UomDimensionsRepository extends PrimaryBaseRepository<typeof uomDim
     super(database, uomDimensions);
   }
 
+  async findByCode(code: string): Promise<UomDimension | undefined> {
+    return this.model.findFirst({ where: { code } });
+  }
+
   // Returns dimensions, optionally filtered by name or code search
   async findAllOrSearch(search?: string): Promise<UomDimension[]> {
     const where = search
@@ -36,11 +40,6 @@ export class UomDimensionsRepository extends PrimaryBaseRepository<typeof uomDim
       inventoryItems: Number(invResult[0]?.count ?? 0),
       supplierItems: Number(suppResult[0]?.count ?? 0),
     };
-  }
-
-  // Returns total UOM dimension count
-  async countAll(): Promise<number> {
-    return this.count();
   }
 
   // Bulk-deletes all UOMs in a dimension (used to cascade on dimension delete)

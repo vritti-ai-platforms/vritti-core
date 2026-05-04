@@ -11,6 +11,7 @@ export interface UomDimensionData {
   code: string;
   name: string;
   description: string | null;
+  canEdit?: boolean;
   canDelete?: boolean;
   createdAt: string;
   updatedAt: string;

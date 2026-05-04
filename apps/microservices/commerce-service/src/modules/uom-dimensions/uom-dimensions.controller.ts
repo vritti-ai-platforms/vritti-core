@@ -2,7 +2,13 @@ import type { UomDimensionDto } from '@domain/uom-dimensions/dto/entity/uom-dime
 import { UomDimensionsService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
+import {
+  CreateResponseDto,
+  RpcBuId,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+} from '@vritti/api-sdk';
 import type { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
 
@@ -21,9 +27,9 @@ export class UomDimensionsController {
 
   // Returns all UOM dimensions, optionally filtered by search
   @MessagePattern({ cmd: 'uom-dimensions.list' })
-  async list(@Payload() data: { search?: string }): Promise<UomDimensionDto[]> {
+  async list(@Payload() data: { search?: string }, @RpcBuId() buId: string): Promise<UomDimensionDto[]> {
     this.logger.log('uom-dimensions.list');
-    return this.service.list(data.search);
+    return this.service.list(data.search, buId);
   }
 
   // Returns paginated UOM dimension options for the select component
@@ -35,16 +41,19 @@ export class UomDimensionsController {
 
   // Finds a UOM dimension by ID
   @MessagePattern({ cmd: 'uom-dimensions.findById' })
-  async findById(@Payload() data: { id: string }): Promise<UomDimensionDto> {
+  async findById(@Payload() data: { id: string }, @RpcBuId() buId: string): Promise<UomDimensionDto> {
     this.logger.log(`uom-dimensions.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
+    return this.service.findById(data.id, buId);
   }
 
   // Creates a new UOM dimension
   @MessagePattern({ cmd: 'uom-dimensions.create' })
-  async create(@Payload() dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionDto>> {
+  async create(
+    @Payload() dto: CreateUomDimensionDto,
+    @RpcBuId() buId: string,
+  ): Promise<CreateResponseDto<UomDimensionDto>> {
     this.logger.log(`uom-dimensions.create — code: ${dto.code}, name: ${dto.name}`);
-    return this.service.create(dto);
+    return this.service.create(dto, buId);
   }
 
   // Updates a UOM dimension by ID

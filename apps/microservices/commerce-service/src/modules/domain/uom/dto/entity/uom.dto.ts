@@ -7,10 +7,11 @@ export class UomDto {
   symbol: string;
   baseUnitId: string | null;
   conversionFactor: number;
+  canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
 
-  static from(entity: Uom, canDelete = true): UomDto {
+  static from(entity: Uom, currentBuId: string, canDelete = true): UomDto {
     const dto = new UomDto();
     dto.id = entity.id;
     dto.dimensionId = entity.dimensionId;
@@ -18,7 +19,8 @@ export class UomDto {
     dto.symbol = entity.symbol;
     dto.baseUnitId = entity.baseUnitId ?? null;
     dto.conversionFactor = entity.conversionFactor;
-    dto.canDelete = canDelete;
+    dto.canEdit = entity.businessUnitId === currentBuId;
+    dto.canDelete = entity.businessUnitId === currentBuId && canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;
   }

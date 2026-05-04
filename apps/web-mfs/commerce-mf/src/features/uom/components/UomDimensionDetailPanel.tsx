@@ -56,7 +56,7 @@ export const UomDimensionDetailPanel: React.FC<UomDimensionDetailPanelProps> = (
             variant="outline"
             size="sm"
             onClick={editDialog.open}
-            disabled={!dimension}
+            disabled={!dimension || !dimension.canEdit}
             startAdornment={<Pencil className="size-3.5" />}
           >
             Edit
