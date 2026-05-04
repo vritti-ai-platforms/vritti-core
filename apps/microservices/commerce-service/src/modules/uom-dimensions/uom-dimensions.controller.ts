@@ -12,6 +12,13 @@ export class UomDimensionsController {
 
   constructor(private readonly service: UomDimensionsService) {}
 
+  // Returns total UOM dimension count
+  @MessagePattern({ cmd: 'uom-dimensions.count' })
+  async count(): Promise<{ count: number }> {
+    this.logger.log('uom-dimensions.count');
+    return this.service.count();
+  }
+
   // Returns all UOM dimensions, optionally filtered by search
   @MessagePattern({ cmd: 'uom-dimensions.list' })
   async list(@Payload() data: { search?: string }): Promise<UomDimensionDto[]> {

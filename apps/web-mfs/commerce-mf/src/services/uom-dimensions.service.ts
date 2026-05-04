@@ -2,9 +2,14 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-res
 import axios from '@vritti/quantum-ui/axios';
 import type {
   CreateUomDimensionData,
+  UomDimensionCountData,
   UomDimensionData,
   UpdateUomDimensionData,
 } from '@/schemas/uom-dimensions';
+
+export function getUomDimensionCount(): Promise<UomDimensionCountData> {
+  return axios.get<UomDimensionCountData>('commerce-api/uom-dimensions/count').then((r) => r.data);
+}
 
 export function listUomDimensions(search?: string): Promise<UomDimensionData[]> {
   return axios

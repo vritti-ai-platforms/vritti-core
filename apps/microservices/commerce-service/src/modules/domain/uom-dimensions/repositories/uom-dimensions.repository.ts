@@ -38,6 +38,11 @@ export class UomDimensionsRepository extends PrimaryBaseRepository<typeof uomDim
     };
   }
 
+  // Returns total UOM dimension count
+  async countAll(): Promise<number> {
+    return this.count();
+  }
+
   // Bulk-deletes all UOMs in a dimension (used to cascade on dimension delete)
   async deleteUomsByDimensionId(id: string): Promise<void> {
     await this.db.delete(uom).where(eq(uom.dimensionId, id));

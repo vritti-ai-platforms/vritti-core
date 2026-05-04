@@ -7,18 +7,20 @@ import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Plus, Ruler } from 'lucide-react';
 import { useState } from 'react';
 import { UomDimensionDetailPanel } from './components/UomDimensionDetailPanel';
+import { useUomDimensionCount } from '@/hooks/uom-dimensions';
 import { UomDimensionsPanel } from './components/UomDimensionsPanel';
 import { AddUomDimensionDialog } from './forms/AddUomDimensionDialog';
 
 export const UomPage = () => {
   const [selectedDimensionId, setSelectedDimensionId] = useState<string | null>(null);
   const addDimensionDialog = useDialog();
+  const { data: dimensionCount } = useUomDimensionCount();
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Units of Measure"
-        description="Group units by dimension. Each dimension defines a base unit and any number of derived units."
+        description={`${dimensionCount.count} dimension${dimensionCount.count === 1 ? '' : 's'}`}
         actions={
           <Button onClick={addDimensionDialog.open} startAdornment={<Plus className="size-4" />}>
             Add Dimension
@@ -30,10 +32,7 @@ export const UomPage = () => {
         <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
         <PageContentDetails className="flex flex-col">
           {selectedDimensionId ? (
-            <UomDimensionDetailPanel
-              dimensionId={selectedDimensionId}
-              onDeleted={() => setSelectedDimensionId(null)}
-            />
+            <UomDimensionDetailPanel dimensionId={selectedDimensionId} onDeleted={() => setSelectedDimensionId(null)} />
           ) : (
             <Empty
               icon={<Ruler />}

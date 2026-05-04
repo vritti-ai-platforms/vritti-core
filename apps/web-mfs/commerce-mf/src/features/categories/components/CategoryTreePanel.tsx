@@ -16,7 +16,6 @@ interface CategoryTreePanelProps {
 
 export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId, onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [inputValue, setInputValue] = useState('');
   const { data: treeData = [], isFetching } = useCategoryTree(searchQuery);
   const reorderMutation = useReorderCategories();
   const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
@@ -32,40 +31,30 @@ export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId
 
   return (
     <PageContentPanel
-      contentClassName={!isFetching && treeData.length === 0 ? 'flex items-center justify-center p-3' : undefined}
-      header={
-        <SearchBar
-          placeholder="Search categories..."
-          value={inputValue}
-          onChange={setInputValue}
-          onDebouncedChange={setSearchQuery}
-          debounceMs={250}
+      header={<SearchBar placeholder="Search categories..." onDebouncedChange={setSearchQuery} debounceMs={250} />}
+      headerClassName="shrink-0"
+      isLoading={isFetching}
+      isEmpty={treeData.length === 0}
+      emptyState={
+        <Empty
+          icon={<FolderTree />}
+          title={searchQuery ? 'No results' : 'No categories'}
+          description={searchQuery ? 'Try a different search term' : 'Add a category to get started'}
         />
       }
-      headerClassName="shrink-0"
-      content={
-        !isFetching && treeData.length === 0 ? (
-          <Empty
-            icon={<FolderTree />}
-            title={searchQuery ? 'No results' : 'No categories'}
-            description={searchQuery ? 'Try a different search term' : 'Add a category to get started'}
-            className="py-12"
-          />
-        ) : (
-          <TreeView
-            data={treeData}
-            isLoading={isFetching}
-            initialSelectedItemId={selectedId ?? undefined}
-            onSelectChange={(item) => onSelect(item?.id ?? null)}
-            onReorder={handleReorder}
-            defaultDraggable={dragEnabled}
-            defaultDroppable={dragEnabled}
-            renderItem={(params) => <CategoryRow {...params} />}
-            defaultNodeIcon={FolderOpen}
-            defaultLeafIcon={Folder}
-          />
-        )
-      }
-    />
+    >
+      <TreeView
+        data={treeData}
+        isLoading={isFetching}
+        initialSelectedItemId={selectedId ?? undefined}
+        onSelectChange={(item) => onSelect(item?.id ?? null)}
+        onReorder={handleReorder}
+        defaultDraggable={dragEnabled}
+        defaultDroppable={dragEnabled}
+        renderItem={(params) => <CategoryRow {...params} />}
+        defaultNodeIcon={FolderOpen}
+        defaultLeafIcon={Folder}
+      />
+    </PageContentPanel>
   );
 };

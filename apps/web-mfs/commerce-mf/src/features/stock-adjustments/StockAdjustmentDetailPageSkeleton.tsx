@@ -1,4 +1,4 @@
-import { PageContent, PageContentDetails, PageContentPanel } from '@vritti/quantum-ui/PageContent';
+import { PageContent, PageContentDetails, PageContentPanel, PanelSkeleton } from '@vritti/quantum-ui/PageContent';
 import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 

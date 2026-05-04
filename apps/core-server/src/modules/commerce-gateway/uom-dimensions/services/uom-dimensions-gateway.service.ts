@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateUomDimensionDto } from '../dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from '../dto/request/update-uom-dimension.dto';
+import type { UomDimensionCountResponseDto } from '../dto/response/uom-dimension-count-response.dto';
 import type { UomDimensionResponseDto } from '../dto/response/uom-dimension-response.dto';
 
 @Injectable()
@@ -9,6 +10,12 @@ export class UomDimensionsGatewayService {
   private readonly logger = new Logger(UomDimensionsGatewayService.name);
 
   constructor(private readonly nats: NatsClientService) {}
+
+  // Returns total UOM dimension count
+  async count(): Promise<UomDimensionCountResponseDto> {
+    this.logger.log('uom-dimensions.count');
+    return this.nats.send('commerce', 'uom-dimensions.count', {});
+  }
 
   // Returns dimensions, optionally filtered by search
   async list(search?: string): Promise<UomDimensionResponseDto[]> {

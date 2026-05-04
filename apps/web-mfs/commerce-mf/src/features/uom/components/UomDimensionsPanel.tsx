@@ -14,8 +14,7 @@ interface UomDimensionsPanelProps {
 
 export const UomDimensionsPanel: React.FC<UomDimensionsPanelProps> = ({ selectedId, onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [inputValue, setInputValue] = useState('');
-  const { data: dimensions } = useUomDimensions(searchQuery);
+  const { data: dimensions = [], isFetching } = useUomDimensions(searchQuery);
 
   // Auto-select the first dimension on initial mount only — never re-select after a delete clears selection.
   const hasAutoSelected = useRef(false);
@@ -29,44 +28,31 @@ export const UomDimensionsPanel: React.FC<UomDimensionsPanelProps> = ({ selected
 
   return (
     <PageContentPanel
-      header={<Typography variant="overline">Dimensions</Typography>}
-      contentClassName="flex flex-col p-0"
-    >
-      <div className="p-3 border-b shrink-0">
-        <SearchBar
-          placeholder="Search dimensions..."
-          value={inputValue}
-          onChange={setInputValue}
-          onDebouncedChange={setSearchQuery}
-          debounceMs={250}
+      header={<SearchBar placeholder="Search dimensions..." onDebouncedChange={setSearchQuery} debounceMs={250} />}
+      headerClassName="shrink-0"
+      isLoading={isFetching}
+      isEmpty={dimensions.length === 0}
+      emptyState={
+        <Empty
+          icon={<Layers />}
+          title={searchQuery ? 'No results' : 'No dimensions'}
+          description={searchQuery ? 'Try a different search term' : 'Add a dimension to get started'}
         />
+      }
+    >
+      <div className="p-2 space-y-1">
+        {dimensions.map((dimension) => (
+          <SidePanelListItem
+            key={dimension.id}
+            active={selectedId === dimension.id}
+            onClick={() => onSelect(dimension.id)}
+          >
+            <Typography variant="body2" className="truncate font-medium">
+              {dimension.name}
+            </Typography>
+          </SidePanelListItem>
+        ))}
       </div>
-
-      <div className="flex-1 overflow-auto">
-        {dimensions.length === 0 ? (
-          <Empty
-            icon={<Layers />}
-            title={searchQuery ? 'No results' : 'No dimensions'}
-            description={searchQuery ? 'Try a different search term' : 'Add a dimension to get started'}
-            className="py-12"
-          />
-        ) : (
-          <div className="p-2 space-y-1">
-            {dimensions.map((dimension) => (
-              <SidePanelListItem
-                key={dimension.id}
-                active={selectedId === dimension.id}
-                onClick={() => onSelect(dimension.id)}
-              >
-                <Typography variant="body2" className="truncate font-medium">
-                  {dimension.name}
-                </Typography>
-              </SidePanelListItem>
-            ))}
-          </div>
-        )}
-      </div>
-
     </PageContentPanel>
   );
 };

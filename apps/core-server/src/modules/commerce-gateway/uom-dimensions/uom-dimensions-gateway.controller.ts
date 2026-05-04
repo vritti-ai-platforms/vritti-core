@@ -11,6 +11,7 @@ import { SessionTypeValues } from '@/db/schema';
 import { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
 import { UomDimensionsQueryDto } from './dto/request/uom-dimensions-query.dto';
 import { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
+import type { UomDimensionCountResponseDto } from './dto/response/uom-dimension-count-response.dto';
 import type { UomDimensionResponseDto } from './dto/response/uom-dimension-response.dto';
 import { UomDimensionsGatewayService } from './services/uom-dimensions-gateway.service';
 
@@ -35,6 +36,13 @@ export class UomDimensionsGatewayController {
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/uom-dimensions/select');
     return this.service.findForSelect(query);
+  }
+
+  // Returns total UOM dimension count
+  @Get('count')
+  count(): Promise<UomDimensionCountResponseDto> {
+    this.logger.log('GET /commerce-api/uom-dimensions/count');
+    return this.service.count();
   }
 
   // Returns a dimension by ID

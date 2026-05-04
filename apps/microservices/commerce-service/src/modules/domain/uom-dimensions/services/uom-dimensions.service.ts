@@ -18,6 +18,12 @@ export class UomDimensionsService {
 
   constructor(private readonly repository: UomDimensionsRepository) {}
 
+  // Returns total UOM dimension count
+  async count(): Promise<{ count: number }> {
+    const total = await this.repository.countAll();
+    return { count: total };
+  }
+
   // Returns all dimensions, optionally filtered by name or code
   async list(search?: string): Promise<UomDimensionDto[]> {
     const rows = await this.repository.findAllOrSearch(search);

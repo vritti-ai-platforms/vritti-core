@@ -11043,6 +11043,25 @@
         ]
       }
     },
+    "/commerce-api/uom-dimensions/count": {
+      "get": {
+        "operationId": "UomDimensionsGatewayController_count",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce › UOM Dimensions"
+        ]
+      }
+    },
     "/commerce-api/uom-dimensions/{id}": {
       "get": {
         "operationId": "UomDimensionsGatewayController_findById",

@@ -16,7 +16,6 @@ interface LocationTreePanelProps {
 
 export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId, onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [inputValue, setInputValue] = useState('');
   const { data: treeData = [], isFetching } = useLocationTree(searchQuery);
   const reorderMutation = useReorderLocations();
   const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
@@ -32,40 +31,30 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
 
   return (
     <PageContentPanel
-      contentClassName={!isFetching && treeData.length === 0 ? 'flex items-center justify-center p-3' : undefined}
-      header={
-        <SearchBar
-          placeholder="Search locations..."
-          value={inputValue}
-          onChange={setInputValue}
-          onDebouncedChange={setSearchQuery}
-          debounceMs={250}
+      header={<SearchBar placeholder="Search locations..." onDebouncedChange={setSearchQuery} debounceMs={250} />}
+      headerClassName="shrink-0"
+      isLoading={isFetching}
+      isEmpty={treeData.length === 0}
+      emptyState={
+        <Empty
+          icon={<FolderTree />}
+          title={searchQuery ? 'No results' : 'No locations'}
+          description={searchQuery ? 'Try a different search term' : 'Add a location to get started'}
         />
       }
-      headerClassName="shrink-0"
-      content={
-        !isFetching && treeData.length === 0 ? (
-          <Empty
-            icon={<FolderTree />}
-            title={searchQuery ? 'No results' : 'No locations'}
-            description={searchQuery ? 'Try a different search term' : 'Add a location to get started'}
-            className="py-12"
-          />
-        ) : (
-          <TreeView
-            data={treeData}
-            isLoading={isFetching}
-            initialSelectedItemId={selectedId ?? undefined}
-            onSelectChange={(item) => onSelect(item?.id ?? null)}
-            onReorder={handleReorder}
-            defaultDraggable={dragEnabled}
-            defaultDroppable={dragEnabled}
-            renderItem={(params) => <LocationRow {...params} />}
-            defaultNodeIcon={MapPinCheck}
-            defaultLeafIcon={MapPin}
-          />
-        )
-      }
-    />
+    >
+      <TreeView
+        data={treeData}
+        isLoading={isFetching}
+        initialSelectedItemId={selectedId ?? undefined}
+        onSelectChange={(item) => onSelect(item?.id ?? null)}
+        onReorder={handleReorder}
+        defaultDraggable={dragEnabled}
+        defaultDroppable={dragEnabled}
+        renderItem={(params) => <LocationRow {...params} />}
+        defaultNodeIcon={MapPinCheck}
+        defaultLeafIcon={MapPin}
+      />
+    </PageContentPanel>
   );
 };
