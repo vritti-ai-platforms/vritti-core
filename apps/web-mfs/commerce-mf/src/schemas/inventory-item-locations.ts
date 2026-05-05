@@ -1,7 +1,7 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { z } from 'zod';
 
-export interface StorageLocationConfigData {
+export interface InventoryItemLocationData {
   id: string;
   inventoryItemId: string;
   locationId: string;
@@ -14,16 +14,16 @@ export interface StorageLocationConfigData {
   updatedAt: string;
 }
 
-export const createStorageLocationConfigSchema = z.object({
+export const createInventoryItemLocationSchema = z.object({
   locationId: z.uuid('Location is required'),
   reorderLevel: z.coerce.number<number>().min(0, 'Must be 0 or more'),
 });
 
-export const updateStorageLocationConfigSchema = z.object({
+export const updateInventoryItemLocationSchema = z.object({
   reorderLevel: z.coerce.number<number>().min(0, 'Must be 0 or more'),
 });
 
-export type CreateStorageLocationConfigFormData = z.infer<typeof createStorageLocationConfigSchema>;
-export type UpdateStorageLocationConfigFormData = z.infer<typeof updateStorageLocationConfigSchema>;
+export type CreateInventoryItemLocationFormData = z.infer<typeof createInventoryItemLocationSchema>;
+export type UpdateInventoryItemLocationFormData = z.infer<typeof updateInventoryItemLocationSchema>;
 
-export type StorageLocationConfigsTableResponse = TableResponse<StorageLocationConfigData>;
+export type InventoryItemLocationsTableResponse = TableResponse<InventoryItemLocationData>;

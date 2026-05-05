@@ -5252,9 +5252,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-items/{id}/storage-location-configs/table": {
+    "/commerce-api/inventory-items/{id}/locations/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getStorageLocationConfigsTable",
+        "operationId": "InventoryItemsGatewayController_getLocationsTable",
         "parameters": [
           {
             "name": "id",
@@ -5280,9 +5280,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-items/{id}/storage-location-configs": {
+    "/commerce-api/inventory-items/{id}/locations": {
       "post": {
-        "operationId": "InventoryItemsGatewayController_createStorageLocationConfig",
+        "operationId": "InventoryItemsGatewayController_createLocation",
         "parameters": [
           {
             "name": "id",
@@ -5298,7 +5298,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateStorageLocationConfigDto"
+                "$ref": "#/components/schemas/CreateInventoryItemLocationDto"
               }
             }
           }
@@ -5318,9 +5318,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-items/{id}/storage-location-configs/{configId}": {
+    "/commerce-api/inventory-items/{id}/locations/{locationConfigId}": {
       "patch": {
-        "operationId": "InventoryItemsGatewayController_updateStorageLocationConfig",
+        "operationId": "InventoryItemsGatewayController_updateLocation",
         "parameters": [
           {
             "name": "id",
@@ -5331,7 +5331,7 @@
             }
           },
           {
-            "name": "configId",
+            "name": "locationConfigId",
             "required": true,
             "in": "path",
             "schema": {
@@ -5344,7 +5344,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateStorageLocationConfigDto"
+                "$ref": "#/components/schemas/UpdateInventoryItemLocationDto"
               }
             }
           }
@@ -5364,7 +5364,7 @@
         ]
       },
       "delete": {
-        "operationId": "InventoryItemsGatewayController_deleteStorageLocationConfig",
+        "operationId": "InventoryItemsGatewayController_deleteLocation",
         "parameters": [
           {
             "name": "id",
@@ -5375,7 +5375,7 @@
             }
           },
           {
-            "name": "configId",
+            "name": "locationConfigId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13391,8 +13391,11 @@
             "type": "string",
             "description": "Item type",
             "enum": [
-              "MATERIAL",
-              "PRODUCT"
+              "RAW_MATERIAL",
+              "SEMI_FINISHED",
+              "FINISHED_GOOD",
+              "PACKAGING",
+              "CONSUMABLE"
             ]
           },
           "tracking": {
@@ -13438,7 +13441,7 @@
           "uomId"
         ]
       },
-      "CreateStorageLocationConfigDto": {
+      "CreateInventoryItemLocationDto": {
         "type": "object",
         "properties": {
           "locationId": {
@@ -13455,7 +13458,7 @@
           "reorderLevel"
         ]
       },
-      "UpdateStorageLocationConfigDto": {
+      "UpdateInventoryItemLocationDto": {
         "type": "object",
         "properties": {
           "reorderLevel": {
@@ -13511,8 +13514,11 @@
             "type": "string",
             "description": "Item type",
             "enum": [
-              "MATERIAL",
-              "PRODUCT"
+              "RAW_MATERIAL",
+              "SEMI_FINISHED",
+              "FINISHED_GOOD",
+              "PACKAGING",
+              "CONSUMABLE"
             ]
           },
           "categoryId": {

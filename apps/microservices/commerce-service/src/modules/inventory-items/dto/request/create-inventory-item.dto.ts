@@ -17,7 +17,7 @@ export class CreateInventoryItemDto {
   })
   code: string;
 
-  @IsEnum(['MATERIAL', 'PRODUCT'])
+  @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type: InventoryItemType;
 
   @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])

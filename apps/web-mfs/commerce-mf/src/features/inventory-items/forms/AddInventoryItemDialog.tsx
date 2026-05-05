@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Form } from '@vritti/quantum-ui/Form';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { Select } from '@vritti/quantum-ui/Select';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -9,17 +10,16 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useCreateInventoryItem } from '@/hooks/inventory-items';
-import { type CreateInventoryItemFormData, createInventoryItemSchema } from '@/schemas/inventory-items';
+import {
+  type CreateInventoryItemFormData,
+  createInventoryItemSchema,
+  inventoryItemTypeOptions,
+} from '@/schemas/inventory-items';
 
 interface AddInventoryItemDialogProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
-
-const typeOptions = [
-  { value: 'MATERIAL', label: 'Material' },
-  { value: 'PRODUCT', label: 'Product' },
-];
 
 const trackingOptions = [
   { value: 'quantity', label: 'Quantity — bulk fungible (e.g. office supplies)' },
@@ -40,7 +40,7 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
     defaultValues: {
       name: '',
       code: '',
-      type: 'MATERIAL',
+      type: 'RAW_MATERIAL',
       tracking: 'lot',
       pickStrategy: 'none',
       categoryId: '',
@@ -54,17 +54,34 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
 
   return (
     <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
-      <RadioGroup name="type" label="Type" options={typeOptions} orientation="horizontal" />
-      <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
-      <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
-      <RadioGroup name="tracking" label="Tracking" options={trackingOptions} />
-      {tracking !== 'quantity' && (
-        <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
-      )}
-      <CategorySelector name="categoryId" />
-      <TextArea name="description" label="Description" placeholder="Optional description" />
-      <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <div className="flex flex-col gap-6">
+        <FormSection title="Basic Info">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
+            <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
+            <Select name="type" label="Type" placeholder="Select type" options={inventoryItemTypeOptions} />
+            <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
+            <div className="sm:col-span-2">
+              <CategorySelector name="categoryId" />
+            </div>
+          </div>
+        </FormSection>
+
+        <FormSection title="Tracking" description="How stock is identified and picked from inventory.">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <RadioGroup name="tracking" label="Tracking Method" options={trackingOptions} />
+            {tracking !== 'quantity' && (
+              <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
+            )}
+          </div>
+        </FormSection>
+
+        <FormSection title="Notes">
+          <TextArea name="description" label="Description" placeholder="Optional description" />
+        </FormSection>
+      </div>
+
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-6">
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>

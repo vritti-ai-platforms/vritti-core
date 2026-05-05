@@ -4,8 +4,8 @@ import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 import { storageLocations } from './storage-locations';
 
-export const storageLocationConfigs = coreSchema.table(
-  'storage_location_configs',
+export const inventoryItemLocations = coreSchema.table(
+  'inventory_item_locations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
@@ -24,9 +24,9 @@ export const storageLocationConfigs = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_storage_location_configs').on(table.inventoryItemId, table.locationId),
-    index('idx_storage_location_configs_item').on(table.inventoryItemId),
-    index('idx_storage_location_configs_location').on(table.locationId),
+    unique('uq_inventory_item_locations').on(table.inventoryItemId, table.locationId),
+    index('idx_inventory_item_locations_item').on(table.inventoryItemId),
+    index('idx_inventory_item_locations_location').on(table.locationId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
@@ -50,5 +50,5 @@ export const storageLocationConfigs = coreSchema.table(
   ],
 );
 
-export type StorageLocationConfig = typeof storageLocationConfigs.$inferSelect;
-export type NewStorageLocationConfig = typeof storageLocationConfigs.$inferInsert;
+export type InventoryItemLocation = typeof inventoryItemLocations.$inferSelect;
+export type NewInventoryItemLocation = typeof inventoryItemLocations.$inferInsert;

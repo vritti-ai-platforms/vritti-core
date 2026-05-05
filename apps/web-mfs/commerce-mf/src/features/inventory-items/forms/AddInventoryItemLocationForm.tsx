@@ -5,29 +5,29 @@ import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-loca
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateStorageLocationConfig } from '@/hooks/inventory-items';
+import { useCreateInventoryItemLocation } from '@/hooks/inventory-items';
 import {
-  type CreateStorageLocationConfigFormData,
-  createStorageLocationConfigSchema,
-} from '@/schemas/storage-location-configs';
+  type CreateInventoryItemLocationFormData,
+  createInventoryItemLocationSchema,
+} from '@/schemas/inventory-item-locations';
 
-interface AddStorageLocationConfigFormProps {
+interface AddInventoryItemLocationFormProps {
   itemId: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddStorageLocationConfigForm: React.FC<AddStorageLocationConfigFormProps> = ({
+export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationFormProps> = ({
   itemId,
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<CreateStorageLocationConfigFormData>({
-    resolver: zodResolver(createStorageLocationConfigSchema),
+  const form = useForm<CreateInventoryItemLocationFormData>({
+    resolver: zodResolver(createInventoryItemLocationSchema),
     defaultValues: { locationId: '', reorderLevel: 0 },
   });
 
-  const createMutation = useCreateStorageLocationConfig(itemId, { onSuccess });
+  const createMutation = useCreateInventoryItemLocation(itemId, { onSuccess });
 
   return (
     <Form form={form} mutation={createMutation} onCancel={onCancel}>

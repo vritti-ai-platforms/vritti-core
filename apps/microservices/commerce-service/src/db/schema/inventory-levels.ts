@@ -1,7 +1,7 @@
-import { sql, eq } from '@vritti/api-sdk/drizzle-orm';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
+import { inventoryItemLocations } from './inventory-item-locations';
 import { inventoryItemQuants } from './inventory-item-quants';
-import { storageLocationConfigs } from './storage-location-configs';
 
 export const inventoryLevels = coreSchema.view('inventory_levels').as((qb) =>
   qb
@@ -11,14 +11,14 @@ export const inventoryLevels = coreSchema.view('inventory_levels').as((qb) =>
       stockedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.quantity}) AS TEXT)`.as('stocked_quantity'),
       reservedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.reservedQuantity}) AS TEXT)`.as('reserved_quantity'),
       availableQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.quantity} - ${inventoryItemQuants.reservedQuantity}) AS TEXT)`.as('available_quantity'),
-      reorderLevel: storageLocationConfigs.reorderLevel,
+      reorderLevel: inventoryItemLocations.reorderLevel,
     })
     .from(inventoryItemQuants)
     .leftJoin(
-      storageLocationConfigs,
-      sql`${inventoryItemQuants.inventoryItemId} = ${storageLocationConfigs.inventoryItemId} AND ${inventoryItemQuants.locationId} = ${storageLocationConfigs.locationId}`,
+      inventoryItemLocations,
+      sql`${inventoryItemQuants.inventoryItemId} = ${inventoryItemLocations.inventoryItemId} AND ${inventoryItemQuants.locationId} = ${inventoryItemLocations.locationId}`,
     )
-    .groupBy(inventoryItemQuants.inventoryItemId, inventoryItemQuants.locationId, storageLocationConfigs.reorderLevel),
+    .groupBy(inventoryItemQuants.inventoryItemId, inventoryItemQuants.locationId, inventoryItemLocations.reorderLevel),
 );
 
 export type InventoryLevelView = typeof inventoryLevels.$inferSelect;

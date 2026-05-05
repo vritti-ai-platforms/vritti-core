@@ -8,13 +8,13 @@ import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import {
-  STORAGE_LOCATION_CONFIGS_KEY,
-  useDeleteStorageLocationConfig,
-  useStorageLocationConfigsTable,
+  INVENTORY_ITEM_LOCATIONS_KEY,
+  useDeleteInventoryItemLocation,
+  useInventoryItemLocationsTable,
 } from '@/hooks/inventory-items';
-import type { StorageLocationConfigData } from '@/schemas/storage-location-configs';
-import { AddStorageLocationConfigForm } from '../forms/AddStorageLocationConfigForm';
-import { EditStorageLocationConfigForm } from '../forms/EditStorageLocationConfigForm';
+import type { InventoryItemLocationData } from '@/schemas/inventory-item-locations';
+import { AddInventoryItemLocationForm } from '../forms/AddInventoryItemLocationForm';
+import { EditInventoryItemLocationForm } from '../forms/EditInventoryItemLocationForm';
 
 interface StorageLocationsTabProps {
   itemId: string;
@@ -25,11 +25,11 @@ export const StorageLocationsTab: React.FC<StorageLocationsTabProps> = ({ itemId
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addDialog = useDialog();
-  const { data: response, isLoading } = useStorageLocationConfigsTable(itemId);
-  const deleteMutation = useDeleteStorageLocationConfig(itemId);
+  const { data: response, isLoading } = useInventoryItemLocationsTable(itemId);
+  const deleteMutation = useDeleteInventoryItemLocation(itemId);
 
   const handleDelete = useCallback(
-    async (row: StorageLocationConfigData) => {
+    async (row: InventoryItemLocationData) => {
       const confirmed = await confirm({
         title: 'Remove config?',
         description: `Remove minimum stock level for "${row.locationName ?? 'this location'}"?`,
@@ -41,7 +41,7 @@ export const StorageLocationsTab: React.FC<StorageLocationsTabProps> = ({ itemId
     [confirm, deleteMutation],
   );
 
-  const columns = useMemo<ColumnDef<StorageLocationConfigData>[]>(
+  const columns = useMemo<ColumnDef<InventoryItemLocationData>[]>(
     () => [
       {
         accessorKey: 'locationName',
@@ -108,9 +108,9 @@ export const StorageLocationsTab: React.FC<StorageLocationsTabProps> = ({ itemId
                   title: 'Edit Min. Stock Level',
                   description: `Update the reorder threshold for ${row.original.locationName ?? 'this location'}.`,
                   content: (close) => (
-                    <EditStorageLocationConfigForm
+                    <EditInventoryItemLocationForm
                       itemId={itemId}
-                      configId={row.original.id}
+                      locationConfigId={row.original.id}
                       locationName={row.original.locationName}
                       currentReorderLevel={row.original.reorderLevel}
                       uomSymbol={uomSymbol}
@@ -140,11 +140,11 @@ export const StorageLocationsTab: React.FC<StorageLocationsTabProps> = ({ itemId
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-storage-location-configs`,
+    slug: `inventory-item-${itemId}-locations`,
     label: 'config',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...STORAGE_LOCATION_CONFIGS_KEY(itemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LOCATIONS_KEY(itemId)] }),
   });
 
   return (
@@ -176,7 +176,7 @@ export const StorageLocationsTab: React.FC<StorageLocationsTabProps> = ({ itemId
         handle={addDialog}
         title="Add Storage Location"
         description="Set a minimum stock level for a storage location."
-        content={(close) => <AddStorageLocationConfigForm itemId={itemId} onSuccess={close} onCancel={close} />}
+        content={(close) => <AddInventoryItemLocationForm itemId={itemId} onSuccess={close} onCancel={close} />}
       />
     </>
   );

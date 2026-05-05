@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
-import { Form } from '@vritti/quantum-ui/Form';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { Select } from '@vritti/quantum-ui/Select';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -11,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { useUpdateInventoryItem } from '@/hooks/inventory-items';
 import {
   type InventoryItemData,
+  inventoryItemTypeOptions,
   type UpdateInventoryItemFormData,
   updateInventoryItemSchema,
 } from '@/schemas/inventory-items';
@@ -20,11 +22,6 @@ interface EditInventoryItemFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
-
-const typeOptions = [
-  { value: 'MATERIAL', label: 'Material' },
-  { value: 'PRODUCT', label: 'Product' },
-];
 
 const pickStrategyOptions = [
   { value: 'none', label: 'None — free pick' },
@@ -52,23 +49,34 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
-      transformSubmit={(data) => ({
-        id: item.id,
-        data,
-      })}
+      transformSubmit={(data) => ({ id: item.id, data })}
     >
-      <RadioGroup name="type" label="Type" options={typeOptions} orientation="horizontal" />
-      {item.tracking !== 'quantity' && (
-        <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
-      )}
-      <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
-      <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
-      <CategorySelector name="categoryId" />
-      <TextArea name="description" label="Description" placeholder="Optional description" />
-      <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <div className="flex flex-col gap-6">
+        <FormSection title="Basic Info">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
+            <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
+            <Select name="type" label="Type" placeholder="Select type" options={inventoryItemTypeOptions} />
+            <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
+            <div className="sm:col-span-2">
+              <CategorySelector name="categoryId" />
+            </div>
+          </div>
+        </FormSection>
+
+        {item.tracking !== 'quantity' && (
+          <FormSection title="Picking" description="Order in which stock is consumed from inventory.">
+            <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
+          </FormSection>
+        )}
+
+        <FormSection title="Notes">
+          <TextArea name="description" label="Description" placeholder="Optional description" />
+        </FormSection>
+      </div>
+
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-6">
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>

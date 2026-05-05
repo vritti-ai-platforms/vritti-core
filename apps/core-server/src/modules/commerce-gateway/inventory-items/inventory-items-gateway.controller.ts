@@ -10,11 +10,11 @@ import {
 import { SessionTypeValues } from '@/db/schema';
 import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
 import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
-import { CreateStorageLocationConfigDto } from './dto/request/create-storage-location-config.dto';
+import { CreateInventoryItemLocationDto } from './dto/request/create-inventory-item-location.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
-import { UpdateStorageLocationConfigDto } from './dto/request/update-storage-location-config.dto';
+import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
 import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from './dto/response/inventory-item-uom-conversion-response.dto';
@@ -109,37 +109,37 @@ export class InventoryItemsGatewayController {
     return this.service.findBatchesForTable(id, userId);
   }
 
-  // Returns paginated storage location configs for an inventory item
-  @Get(':id/storage-location-configs/table')
-  getStorageLocationConfigsTable(@Param('id') id: string, @UserId() userId: string) {
-    this.logger.log(`GET /commerce-api/inventory-items/${id}/storage-location-configs/table`);
-    return this.service.findStorageLocationConfigsForTable(id, userId);
+  // Returns paginated item-location configs for an inventory item
+  @Get(':id/locations/table')
+  getLocationsTable(@Param('id') id: string, @UserId() userId: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/locations/table`);
+    return this.service.findItemLocationsForTable(id, userId);
   }
 
-  // Creates a storage location config for an inventory item
-  @Post(':id/storage-location-configs')
+  // Creates an item-location config for an inventory item
+  @Post(':id/locations')
   @HttpCode(HttpStatus.CREATED)
-  async createStorageLocationConfig(@Param('id') id: string, @Body() dto: CreateStorageLocationConfigDto) {
-    this.logger.log(`POST /commerce-api/inventory-items/${id}/storage-location-configs`);
-    return this.service.createStorageLocationConfig(id, dto);
+  async createLocation(@Param('id') id: string, @Body() dto: CreateInventoryItemLocationDto) {
+    this.logger.log(`POST /commerce-api/inventory-items/${id}/locations`);
+    return this.service.createItemLocation(id, dto);
   }
 
-  // Updates a storage location config
-  @Patch(':id/storage-location-configs/:configId')
-  updateStorageLocationConfig(
+  // Updates an item-location config
+  @Patch(':id/locations/:locationConfigId')
+  updateLocation(
     @Param('id') id: string,
-    @Param('configId') configId: string,
-    @Body() dto: UpdateStorageLocationConfigDto,
+    @Param('locationConfigId') locationConfigId: string,
+    @Body() dto: UpdateInventoryItemLocationDto,
   ) {
-    this.logger.log(`PATCH /commerce-api/inventory-items/${id}/storage-location-configs/${configId}`);
-    return this.service.updateStorageLocationConfig(configId, dto);
+    this.logger.log(`PATCH /commerce-api/inventory-items/${id}/locations/${locationConfigId}`);
+    return this.service.updateItemLocation(locationConfigId, dto);
   }
 
-  // Deletes a storage location config
-  @Delete(':id/storage-location-configs/:configId')
-  deleteStorageLocationConfig(@Param('id') id: string, @Param('configId') configId: string) {
-    this.logger.log(`DELETE /commerce-api/inventory-items/${id}/storage-location-configs/${configId}`);
-    return this.service.deleteStorageLocationConfig(configId);
+  // Deletes an item-location config
+  @Delete(':id/locations/:locationConfigId')
+  deleteLocation(@Param('id') id: string, @Param('locationConfigId') locationConfigId: string) {
+    this.logger.log(`DELETE /commerce-api/inventory-items/${id}/locations/${locationConfigId}`);
+    return this.service.deleteItemLocation(locationConfigId);
   }
 
   // Returns paginated UOM conversion overrides for an inventory item

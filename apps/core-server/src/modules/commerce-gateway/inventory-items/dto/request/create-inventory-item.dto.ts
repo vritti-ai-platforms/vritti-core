@@ -19,8 +19,8 @@ export class CreateInventoryItemDto {
   })
   code: string;
 
-  @ApiProperty({ description: 'Item type', enum: ['MATERIAL', 'PRODUCT'] })
-  @IsEnum(['MATERIAL', 'PRODUCT'])
+  @ApiProperty({ description: 'Item type', enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] })
+  @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type: string;
 
   @ApiProperty({

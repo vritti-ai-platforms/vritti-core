@@ -1,7 +1,7 @@
 import type { InventoryItemQuantDto, LocationStockDto } from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
-import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
+import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/dto/entity/inventory-item-location.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
@@ -76,40 +76,40 @@ export class InventoryItemsController {
     return this.service.findLocationStock(data.itemId);
   }
 
-  // Returns paginated storage location configs for an inventory item
-  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.table' })
-  async storageLocationConfigsTable(
+  // Returns paginated item-location configs for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.locations.table' })
+  async locationsTable(
     @Payload() data: { itemId: string } & TableViewState,
-  ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
-    this.logger.log(`inventoryItems.storageLocationConfigs.table — itemId: ${data.itemId}`);
-    return this.service.findStorageLocationConfigs(data.itemId, data);
+  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
+    this.logger.log(`inventoryItems.locations.table — itemId: ${data.itemId}`);
+    return this.service.findItemLocations(data.itemId, data);
   }
 
-  // Creates a storage location config for an inventory item
-  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.create' })
-  async createStorageLocationConfig(
+  // Creates an item-location config for an inventory item
+  @MessagePattern({ cmd: 'inventoryItems.locations.create' })
+  async createLocation(
     @Payload() data: { itemId: string; locationId: string; reorderLevel: number },
-  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
-    this.logger.log(`inventoryItems.storageLocationConfigs.create — itemId: ${data.itemId}`);
-    return this.service.createStorageLocationConfig(data.itemId, { locationId: data.locationId, reorderLevel: data.reorderLevel });
+  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
+    this.logger.log(`inventoryItems.locations.create — itemId: ${data.itemId}`);
+    return this.service.createItemLocation(data.itemId, { locationId: data.locationId, reorderLevel: data.reorderLevel });
   }
 
-  // Updates a storage location config
-  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.update' })
-  async updateStorageLocationConfig(
+  // Updates an item-location config
+  @MessagePattern({ cmd: 'inventoryItems.locations.update' })
+  async updateLocation(
     @Payload() data: { id: string; reorderLevel: number },
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.storageLocationConfigs.update — id: ${data.id}`);
-    return this.service.updateStorageLocationConfig(data.id, { reorderLevel: data.reorderLevel });
+    this.logger.log(`inventoryItems.locations.update — id: ${data.id}`);
+    return this.service.updateItemLocation(data.id, { reorderLevel: data.reorderLevel });
   }
 
-  // Deletes a storage location config
-  @MessagePattern({ cmd: 'inventoryItems.storageLocationConfigs.delete' })
-  async deleteStorageLocationConfig(
+  // Deletes an item-location config
+  @MessagePattern({ cmd: 'inventoryItems.locations.delete' })
+  async deleteLocation(
     @Payload() data: { id: string },
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.storageLocationConfigs.delete — id: ${data.id}`);
-    return this.service.deleteStorageLocationConfig(data.id);
+    this.logger.log(`inventoryItems.locations.delete — id: ${data.id}`);
+    return this.service.deleteItemLocation(data.id);
   }
 
   // Updates an inventory item

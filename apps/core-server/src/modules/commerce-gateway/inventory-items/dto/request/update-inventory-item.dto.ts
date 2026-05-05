@@ -19,9 +19,9 @@ export class UpdateInventoryItemDto {
   })
   code?: string;
 
-  @ApiPropertyOptional({ description: 'Item type', enum: ['MATERIAL', 'PRODUCT'] })
+  @ApiPropertyOptional({ description: 'Item type', enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] })
   @IsOptional()
-  @IsEnum(['MATERIAL', 'PRODUCT'])
+  @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type?: string;
 
   @ApiPropertyOptional({ description: 'Category ID' })

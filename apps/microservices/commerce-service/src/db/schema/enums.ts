@@ -168,8 +168,20 @@ export const TaxIdTypeValues = {
 };
 export type TaxIdType = (typeof taxIdTypeEnum.enumValues)[number];
 
-export const inventoryItemTypeEnum = coreSchema.enum('inventory_item_type', ['MATERIAL', 'PRODUCT']);
-export const InventoryItemTypeValues = { MATERIAL: 'MATERIAL' as const, PRODUCT: 'PRODUCT' as const };
+export const inventoryItemTypeEnum = coreSchema.enum('inventory_item_type', [
+  'RAW_MATERIAL',
+  'SEMI_FINISHED',
+  'FINISHED_GOOD',
+  'PACKAGING',
+  'CONSUMABLE',
+]);
+export const InventoryItemTypeValues = {
+  RAW_MATERIAL: 'RAW_MATERIAL' as const,
+  SEMI_FINISHED: 'SEMI_FINISHED' as const,
+  FINISHED_GOOD: 'FINISHED_GOOD' as const,
+  PACKAGING: 'PACKAGING' as const,
+  CONSUMABLE: 'CONSUMABLE' as const,
+};
 export type InventoryItemType = (typeof inventoryItemTypeEnum.enumValues)[number];
 
 export const inventoryTrackingEnum = coreSchema.enum('inventory_tracking', ['quantity', 'lot', 'lot_serial', 'serial']);

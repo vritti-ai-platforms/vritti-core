@@ -121,36 +121,36 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns paginated storage location configs for an inventory item
-  async findStorageLocationConfigsForTable(itemId: string, userId: string) {
-    this.logger.log('inventoryItems.storageLocationConfigs.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-${itemId}-storage-location-configs`);
+  // Returns paginated item-location configs for an inventory item
+  async findItemLocationsForTable(itemId: string, userId: string) {
+    this.logger.log('inventoryItems.locations.table');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-${itemId}-locations`);
 
     const { result, count } = await this.nats.send<{ result: any[]; count: number }>(
       'commerce',
-      'inventoryItems.storageLocationConfigs.table',
+      'inventoryItems.locations.table',
       { itemId, ...state },
     );
 
     return { result, count, state, activeViewId };
   }
 
-  // Creates a storage location config for an inventory item
-  async createStorageLocationConfig(itemId: string, dto: { locationId: string; reorderLevel: number }) {
-    this.logger.log(`inventoryItems.storageLocationConfigs.create — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.storageLocationConfigs.create', { itemId, ...dto });
+  // Creates an item-location config for an inventory item
+  async createItemLocation(itemId: string, dto: { locationId: string; reorderLevel: number }) {
+    this.logger.log(`inventoryItems.locations.create — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'inventoryItems.locations.create', { itemId, ...dto });
   }
 
-  // Updates a storage location config
-  async updateStorageLocationConfig(id: string, dto: { reorderLevel: number }) {
-    this.logger.log(`inventoryItems.storageLocationConfigs.update — id: ${id}`);
-    return this.nats.send('commerce', 'inventoryItems.storageLocationConfigs.update', { id, ...dto });
+  // Updates an item-location config
+  async updateItemLocation(id: string, dto: { reorderLevel: number }) {
+    this.logger.log(`inventoryItems.locations.update — id: ${id}`);
+    return this.nats.send('commerce', 'inventoryItems.locations.update', { id, ...dto });
   }
 
-  // Deletes a storage location config
-  async deleteStorageLocationConfig(id: string) {
-    this.logger.log(`inventoryItems.storageLocationConfigs.delete — id: ${id}`);
-    return this.nats.send('commerce', 'inventoryItems.storageLocationConfigs.delete', { id });
+  // Deletes an item-location config
+  async deleteItemLocation(id: string) {
+    this.logger.log(`inventoryItems.locations.delete — id: ${id}`);
+    return this.nats.send('commerce', 'inventoryItems.locations.delete', { id });
   }
 
   // Returns paginated UOM conversion overrides for an inventory item

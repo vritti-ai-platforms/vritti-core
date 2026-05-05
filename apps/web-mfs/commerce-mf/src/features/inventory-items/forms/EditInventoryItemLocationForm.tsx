@@ -4,15 +4,15 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useUpdateStorageLocationConfig } from '@/hooks/inventory-items';
+import { useUpdateInventoryItemLocation } from '@/hooks/inventory-items';
 import {
-  type UpdateStorageLocationConfigFormData,
-  updateStorageLocationConfigSchema,
-} from '@/schemas/storage-location-configs';
+  type UpdateInventoryItemLocationFormData,
+  updateInventoryItemLocationSchema,
+} from '@/schemas/inventory-item-locations';
 
-interface EditStorageLocationConfigFormProps {
+interface EditInventoryItemLocationFormProps {
   itemId: string;
-  configId: string;
+  locationConfigId: string;
   locationName: string | null;
   currentReorderLevel: number;
   uomSymbol: string | null;
@@ -20,29 +20,28 @@ interface EditStorageLocationConfigFormProps {
   onCancel: () => void;
 }
 
-export const EditStorageLocationConfigForm: React.FC<EditStorageLocationConfigFormProps> = ({
+export const EditInventoryItemLocationForm: React.FC<EditInventoryItemLocationFormProps> = ({
   itemId,
-  configId,
+  locationConfigId,
   locationName,
   currentReorderLevel,
   uomSymbol,
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<UpdateStorageLocationConfigFormData>({
-    resolver: zodResolver(updateStorageLocationConfigSchema),
+  const form = useForm<UpdateInventoryItemLocationFormData>({
+    resolver: zodResolver(updateInventoryItemLocationSchema),
     defaultValues: { reorderLevel: currentReorderLevel },
   });
 
-  const updateMutation = useUpdateStorageLocationConfig(itemId, { onSuccess });
+  const updateMutation = useUpdateInventoryItemLocation(itemId, { onSuccess });
 
   return (
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
-      transformSubmit={(data) => ({ configId, reorderLevel: data.reorderLevel })}
+      transformSubmit={(data) => ({ locationConfigId, reorderLevel: data.reorderLevel })}
     >
       <p className="text-sm text-muted-foreground">
         Set the minimum stock level for <span className="font-medium text-foreground">{locationName}</span>.

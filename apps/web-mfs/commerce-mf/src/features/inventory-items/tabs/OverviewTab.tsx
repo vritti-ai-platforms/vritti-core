@@ -1,14 +1,14 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { useStorageLocationConfigsTable } from '@/hooks/inventory-items';
-import type { InventoryItemData } from '@/schemas/inventory-items';
+import { useInventoryItemLocationsTable } from '@/hooks/inventory-items';
+import { type InventoryItemData, inventoryItemTypeConfig } from '@/schemas/inventory-items';
 
 interface OverviewTabProps {
   item: InventoryItemData;
 }
 
 export const OverviewTab = ({ item }: OverviewTabProps) => {
-  const { data: response } = useStorageLocationConfigsTable(item.id);
+  const { data: response } = useInventoryItemLocationsTable(item.id);
   const configs = response?.result ?? [];
 
   const totalStocked = configs.reduce((sum, row) => sum + row.stockedQuantity, 0);
@@ -25,8 +25,8 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <p className="text-sm text-muted-foreground">Type</p>
-              <Badge variant="outline" className="mt-1">
-                {item.type === 'MATERIAL' ? 'Material' : 'Product'}
+              <Badge variant={inventoryItemTypeConfig[item.type].variant} className="mt-1">
+                {inventoryItemTypeConfig[item.type].label}
               </Badge>
             </div>
             <div>

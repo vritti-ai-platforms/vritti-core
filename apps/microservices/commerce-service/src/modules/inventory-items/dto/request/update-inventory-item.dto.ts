@@ -18,7 +18,7 @@ export class UpdateInventoryItemDto {
   code?: string;
 
   @IsOptional()
-  @IsEnum(['MATERIAL', 'PRODUCT'])
+  @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type?: InventoryItemType;
 
   @IsOptional()

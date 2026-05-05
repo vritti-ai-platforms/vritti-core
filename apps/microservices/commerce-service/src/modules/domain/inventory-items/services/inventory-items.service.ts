@@ -4,8 +4,8 @@ import type {
   LocationStockDto,
 } from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import type { StorageLocationConfigDto } from '@domain/storage-location-configs/dto/entity/storage-location-config.dto';
-import { StorageLocationConfigsService } from '@domain/storage-location-configs/services/storage-location-configs.service';
+import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/dto/entity/inventory-item-location.dto';
+import { InventoryItemLocationsService } from '@domain/inventory-item-locations/services/inventory-item-locations.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
@@ -42,7 +42,7 @@ export class InventoryItemsService {
   constructor(
     private readonly repository: InventoryItemsRepository,
     private readonly batchesService: InventoryItemQuantsService,
-    private readonly storageLocationConfigsService: StorageLocationConfigsService,
+    private readonly itemLocationsService: InventoryItemLocationsService,
     private readonly categoriesService: CategoriesService,
   ) {}
 
@@ -173,34 +173,34 @@ export class InventoryItemsService {
     return this.batchesService.findLocationStockByItemId(itemId);
   }
 
-  // Returns paginated storage location configs for an item
-  async findStorageLocationConfigs(
+  // Returns paginated item-location configs for an item
+  async findItemLocations(
     itemId: string,
     state: TableViewState,
-  ): Promise<{ result: StorageLocationConfigDto[]; count: number }> {
+  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.storageLocationConfigsService.findForTable(itemId, state);
+    return this.itemLocationsService.findForTable(itemId, state);
   }
 
-  // Creates a storage location config for an item
-  async createStorageLocationConfig(
+  // Creates an item-location config
+  async createItemLocation(
     itemId: string,
     data: { locationId: string; reorderLevel: number },
-  ): Promise<CreateResponseDto<StorageLocationConfigDto>> {
+  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.storageLocationConfigsService.create(itemId, data);
+    return this.itemLocationsService.create(itemId, data);
   }
 
-  // Updates a storage location config
-  async updateStorageLocationConfig(id: string, data: { reorderLevel: number }): Promise<SuccessResponseDto> {
-    return this.storageLocationConfigsService.update(id, data);
+  // Updates an item-location config
+  async updateItemLocation(id: string, data: { reorderLevel: number }): Promise<SuccessResponseDto> {
+    return this.itemLocationsService.update(id, data);
   }
 
-  // Deletes a storage location config
-  async deleteStorageLocationConfig(id: string): Promise<SuccessResponseDto> {
-    return this.storageLocationConfigsService.delete(id);
+  // Deletes an item-location config
+  async deleteItemLocation(id: string): Promise<SuccessResponseDto> {
+    return this.itemLocationsService.delete(id);
   }
 
   // Updates an inventory item. Tracking is set at creation and cannot be changed.

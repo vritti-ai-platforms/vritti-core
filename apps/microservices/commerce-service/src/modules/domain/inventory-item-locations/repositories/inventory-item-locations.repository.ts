@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type InventoryItemLocation,
+  inventoryItemLocations,
   inventoryItemQuants,
-  type StorageLocationConfig,
-  storageLocationConfigs,
   storageLocations,
 } from '@/db/schema';
 
 @Injectable()
-export class StorageLocationConfigsRepository extends PrimaryBaseRepository<typeof storageLocationConfigs> {
+export class InventoryItemLocationsRepository extends PrimaryBaseRepository<typeof inventoryItemLocations> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, storageLocationConfigs);
+    super(database, inventoryItemLocations);
   }
 
   // Returns paginated configs for an item with location name and aggregated stock
@@ -19,30 +19,30 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
     itemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{
-    result: (StorageLocationConfig & {
+    result: (InventoryItemLocation & {
       locationName: string | null;
       stockedQuantity: string | null;
       reservedQuantity: string | null;
     })[];
     count: number;
   }> {
-    const baseWhere = eq(storageLocationConfigs.inventoryItemId, itemId);
+    const baseWhere = eq(inventoryItemLocations.inventoryItemId, itemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
-    const { result, count } = await this.findAllAndCount<StorageLocationConfig & { locationName: string | null }>({
+    const { result, count } = await this.findAllAndCount<InventoryItemLocation & { locationName: string | null }>({
       select: {
-        id: storageLocationConfigs.id,
-        organizationId: storageLocationConfigs.organizationId,
-        businessUnitId: storageLocationConfigs.businessUnitId,
-        inventoryItemId: storageLocationConfigs.inventoryItemId,
-        locationId: storageLocationConfigs.locationId,
-        reorderLevel: storageLocationConfigs.reorderLevel,
-        createdAt: storageLocationConfigs.createdAt,
-        updatedAt: storageLocationConfigs.updatedAt,
+        id: inventoryItemLocations.id,
+        organizationId: inventoryItemLocations.organizationId,
+        businessUnitId: inventoryItemLocations.businessUnitId,
+        inventoryItemId: inventoryItemLocations.inventoryItemId,
+        locationId: inventoryItemLocations.locationId,
+        reorderLevel: inventoryItemLocations.reorderLevel,
+        createdAt: inventoryItemLocations.createdAt,
+        updatedAt: inventoryItemLocations.updatedAt,
         locationName: storageLocations.name,
       },
-      leftJoins: [{ table: storageLocations, on: eq(storageLocationConfigs.locationId, storageLocations.id) }],
+      leftJoins: [{ table: storageLocations, on: eq(inventoryItemLocations.locationId, storageLocations.id) }],
       where: combinedWhere,
-      orderBy: options.orderBy?.length ? options.orderBy : [desc(storageLocationConfigs.createdAt)],
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(inventoryItemLocations.createdAt)],
       limit: options.limit,
       offset: options.offset,
     });
@@ -84,7 +84,7 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
 
   // Returns a single config by ID with location name and aggregated stock
   async findByIdWithLocation(id: string): Promise<
-    | (StorageLocationConfig & {
+    | (InventoryItemLocation & {
         locationName: string | null;
         stockedQuantity: string | null;
         reservedQuantity: string | null;
@@ -107,31 +107,31 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
 
     const rows = await this.db
       .select({
-        id: storageLocationConfigs.id,
-        organizationId: storageLocationConfigs.organizationId,
-        businessUnitId: storageLocationConfigs.businessUnitId,
-        inventoryItemId: storageLocationConfigs.inventoryItemId,
-        locationId: storageLocationConfigs.locationId,
-        reorderLevel: storageLocationConfigs.reorderLevel,
-        createdAt: storageLocationConfigs.createdAt,
-        updatedAt: storageLocationConfigs.updatedAt,
+        id: inventoryItemLocations.id,
+        organizationId: inventoryItemLocations.organizationId,
+        businessUnitId: inventoryItemLocations.businessUnitId,
+        inventoryItemId: inventoryItemLocations.inventoryItemId,
+        locationId: inventoryItemLocations.locationId,
+        reorderLevel: inventoryItemLocations.reorderLevel,
+        createdAt: inventoryItemLocations.createdAt,
+        updatedAt: inventoryItemLocations.updatedAt,
         locationName: storageLocations.name,
         stockedQuantity: stockAgg.stockedQuantity,
         reservedQuantity: stockAgg.reservedQuantity,
       })
-      .from(storageLocationConfigs)
-      .leftJoin(storageLocations, eq(storageLocationConfigs.locationId, storageLocations.id))
+      .from(inventoryItemLocations)
+      .leftJoin(storageLocations, eq(inventoryItemLocations.locationId, storageLocations.id))
       .leftJoin(
         stockAgg,
         and(
-          eq(storageLocationConfigs.inventoryItemId, stockAgg.inventoryItemId),
-          eq(storageLocationConfigs.locationId, stockAgg.locationId),
+          eq(inventoryItemLocations.inventoryItemId, stockAgg.inventoryItemId),
+          eq(inventoryItemLocations.locationId, stockAgg.locationId),
         ),
       )
-      .where(eq(storageLocationConfigs.id, id));
+      .where(eq(inventoryItemLocations.id, id));
 
     return rows[0] as
-      | (StorageLocationConfig & {
+      | (InventoryItemLocation & {
           locationName: string | null;
           stockedQuantity: string | null;
           reservedQuantity: string | null;
@@ -140,7 +140,7 @@ export class StorageLocationConfigsRepository extends PrimaryBaseRepository<type
   }
 
   // Returns a config by composite key (item + location)
-  async findByCompositeKey(itemId: string, locationId: string): Promise<StorageLocationConfig | undefined> {
+  async findByCompositeKey(itemId: string, locationId: string): Promise<InventoryItemLocation | undefined> {
     return this.model.findFirst({
       where: { inventoryItemId: itemId, locationId },
     });

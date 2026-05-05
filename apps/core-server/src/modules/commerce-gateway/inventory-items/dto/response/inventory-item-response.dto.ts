@@ -10,7 +10,7 @@ export class InventoryItemResponseDto {
   @ApiProperty()
   code: string;
 
-  @ApiProperty({ enum: ['MATERIAL', 'PRODUCT'] })
+  @ApiProperty({ enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] })
   type: string;
 
   @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] })

@@ -1,6 +1,6 @@
-import type { StorageLocationConfig } from '@/db/schema';
+import type { InventoryItemLocation } from '@/db/schema';
 
-export class StorageLocationConfigDto {
+export class InventoryItemLocationDto {
   id: string;
   inventoryItemId: string;
   locationId: string;
@@ -12,15 +12,15 @@ export class StorageLocationConfigDto {
   createdAt: string;
   updatedAt: string;
 
-  // Maps a StorageLocationConfig entity to a DTO
+  // Maps an InventoryItemLocation entity to a DTO
   static from(
-    row: StorageLocationConfig & {
+    row: InventoryItemLocation & {
       locationName?: string | null;
       stockedQuantity?: string | null;
       reservedQuantity?: string | null;
     },
-  ): StorageLocationConfigDto {
-    const dto = new StorageLocationConfigDto();
+  ): InventoryItemLocationDto {
+    const dto = new InventoryItemLocationDto();
     dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;
     dto.locationId = row.locationId;
