@@ -36,7 +36,7 @@ export class OrganizationController {
     @Param('id') id: string,
     @Body() dto: UpdateOrganizationWebhookDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /api/organizations/webhook/${id}`);
+    this.logger.log(`PATCH /organizations/webhook/${id}`);
     return this.organizationService.updateFromWebhook(id, dto);
   }
 
