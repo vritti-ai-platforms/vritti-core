@@ -9,12 +9,15 @@ import {
 } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
+import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import { CreateStorageLocationConfigDto } from './dto/request/create-storage-location-config.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
+import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 import { UpdateStorageLocationConfigDto } from './dto/request/update-storage-location-config.dto';
 import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
+import type { InventoryItemUomConversionResponseDto } from './dto/response/inventory-item-uom-conversion-response.dto';
 import type { InventoryLedgerTableResponseDto } from './dto/response/inventory-ledger-table-response.dto';
 import type { InventoryLevelTableResponseDto } from './dto/response/inventory-level-table-response.dto';
 import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
@@ -137,6 +140,45 @@ export class InventoryItemsGatewayController {
   deleteStorageLocationConfig(@Param('id') id: string, @Param('configId') configId: string) {
     this.logger.log(`DELETE /commerce-api/inventory-items/${id}/storage-location-configs/${configId}`);
     return this.service.deleteStorageLocationConfig(configId);
+  }
+
+  // Returns paginated UOM conversion overrides for an inventory item
+  @Get(':id/uom-conversions/table')
+  getUomConversionsTable(@Param('id') id: string, @UserId() userId: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/uom-conversions/table`);
+    return this.service.findUomConversionsForTable(id, userId);
+  }
+
+  // Creates a UOM conversion override for an inventory item
+  @Post(':id/uom-conversions')
+  @HttpCode(HttpStatus.CREATED)
+  createUomConversion(
+    @Param('id') id: string,
+    @Body() dto: CreateInventoryItemUomConversionDto,
+  ): Promise<CreateResponseDto<InventoryItemUomConversionResponseDto>> {
+    this.logger.log(`POST /commerce-api/inventory-items/${id}/uom-conversions`);
+    return this.service.createUomConversion(id, dto);
+  }
+
+  // Updates a UOM conversion override
+  @Patch(':id/uom-conversions/:conversionId')
+  updateUomConversion(
+    @Param('id') id: string,
+    @Param('conversionId') conversionId: string,
+    @Body() dto: UpdateInventoryItemUomConversionDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/inventory-items/${id}/uom-conversions/${conversionId}`);
+    return this.service.updateUomConversion(conversionId, dto);
+  }
+
+  // Deletes a UOM conversion override
+  @Delete(':id/uom-conversions/:conversionId')
+  deleteUomConversion(
+    @Param('id') id: string,
+    @Param('conversionId') conversionId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/inventory-items/${id}/uom-conversions/${conversionId}`);
+    return this.service.deleteUomConversion(conversionId);
   }
 
   // Updates an inventory item

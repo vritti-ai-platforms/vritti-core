@@ -1,9 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, DataTableStateService, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
+import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
+import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
 import type { InventoryItemTableResponseDto } from '../dto/response/inventory-item-table-response.dto';
+import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
 import type { InventoryLedgerResponseDto } from '../dto/response/inventory-ledger-response.dto';
 import type { InventoryLedgerTableResponseDto } from '../dto/response/inventory-ledger-table-response.dto';
 import type { InventoryLevelResponseDto } from '../dto/response/inventory-level-response.dto';
@@ -148,6 +151,41 @@ export class InventoryItemsGatewayService {
   async deleteStorageLocationConfig(id: string) {
     this.logger.log(`inventoryItems.storageLocationConfigs.delete — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.storageLocationConfigs.delete', { id });
+  }
+
+  // Returns paginated UOM conversion overrides for an inventory item
+  async findUomConversionsForTable(itemId: string, userId: string) {
+    this.logger.log(`inventoryItems.uomConversions.table — itemId: ${itemId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `inventory-item-${itemId}-uom-overrides`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: InventoryItemUomConversionResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.uomConversions.table',
+      { itemId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Creates a per-item UOM conversion override
+  async createUomConversion(itemId: string, dto: CreateInventoryItemUomConversionDto): Promise<CreateResponseDto<InventoryItemUomConversionResponseDto>> {
+    this.logger.log(`inventoryItems.uomConversions.create — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'inventoryItems.uomConversions.create', { itemId, ...dto });
+  }
+
+  // Updates a per-item UOM conversion override
+  async updateUomConversion(conversionId: string, dto: UpdateInventoryItemUomConversionDto): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.uomConversions.update — id: ${conversionId}`);
+    return this.nats.send('commerce', 'inventoryItems.uomConversions.update', { id: conversionId, ...dto });
+  }
+
+  // Deletes a per-item UOM conversion override
+  async deleteUomConversion(conversionId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.uomConversions.delete — id: ${conversionId}`);
+    return this.nats.send('commerce', 'inventoryItems.uomConversions.delete', { id: conversionId });
   }
 
   // Updates an inventory item

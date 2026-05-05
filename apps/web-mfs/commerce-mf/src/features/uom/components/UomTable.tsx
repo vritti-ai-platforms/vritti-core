@@ -4,6 +4,8 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { SelectFilter } from '@vritti/quantum-ui/Select';
+import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { Pencil, Plus, Ruler, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { UOM_TABLE_KEY, useDeleteUom, useUomTable } from '@/hooks/uom';
@@ -76,10 +78,26 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId, isLoading: pare
         enableSorting: false,
       },
       {
+        id: 'baseUnit',
+        header: 'Base',
+        cell: ({ row }) => (
+          <span className="font-mono text-muted-foreground">{row.original.baseUnitSymbol ?? '—'}</span>
+        ),
+        enableSorting: false,
+      },
+      {
         accessorKey: 'conversionFactor',
         header: 'Factor',
         enableSorting: true,
-        cell: ({ row }) => <span className="font-mono">{row.original.conversionFactor}</span>,
+        cell: ({ row }) => {
+          const { conversionFactor, baseUnitSymbol } = row.original;
+          return (
+            <span className="font-mono">
+              {conversionFactor}
+              {baseUnitSymbol ? ` ${baseUnitSymbol}` : ''}
+            </span>
+          );
+        },
       },
       {
         id: 'actions',
@@ -129,6 +147,18 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId, isLoading: pare
         table={table}
         isLoading={isLoading}
         mode="compact"
+        filters={[
+          <SelectFilter
+            key="kind"
+            name="kind"
+            label="Kind"
+            options={[
+              { label: 'Base', value: 'base' },
+              { label: 'Derived', value: 'derived' },
+            ]}
+          />,
+          <UomFilter key="baseUnitId" name="baseUnitId" label="Base Unit" params={{ baseOnly: true }} />,
+        ]}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={addDialog.open} startAdornment={<Plus className="size-4" />}>

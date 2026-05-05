@@ -6,18 +6,20 @@ export class UomDto {
   name: string;
   symbol: string;
   baseUnitId: string | null;
+  baseUnitSymbol: string | null;
   conversionFactor: number;
   canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
 
-  static from(entity: Uom, currentBuId: string, canDelete = true): UomDto {
+  static from(entity: Uom, currentBuId: string, canDelete = true, baseUnitSymbol: string | null = null): UomDto {
     const dto = new UomDto();
     dto.id = entity.id;
     dto.dimensionId = entity.dimensionId;
     dto.name = entity.name;
     dto.symbol = entity.symbol;
     dto.baseUnitId = entity.baseUnitId ?? null;
+    dto.baseUnitSymbol = baseUnitSymbol;
     dto.conversionFactor = entity.conversionFactor;
     dto.canEdit = entity.businessUnitId === currentBuId;
     dto.canDelete = entity.businessUnitId === currentBuId && canDelete;

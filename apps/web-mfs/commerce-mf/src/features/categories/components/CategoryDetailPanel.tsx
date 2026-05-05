@@ -5,6 +5,7 @@ import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/Data
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { formatCategoryPath } from '@vritti/quantum-ui/selects/category';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Folder, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -133,7 +134,11 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
         <DetailField label="Sort Order" value={category?.sortOrder} loading={!category} />
         <DetailField label="Child Categories" value={childrenResponse?.count ?? 0} loading={!category} />
-        <DetailField label="Parent" value={category?.parentId ?? '—'} loading={!category} />
+        <DetailField
+          label="Parent"
+          value={category?.path ? formatCategoryPath(category.path) || '—' : '—'}
+          loading={!category}
+        />
       </div>
 
       <div>

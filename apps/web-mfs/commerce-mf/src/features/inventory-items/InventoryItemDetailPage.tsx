@@ -13,6 +13,7 @@ import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { BatchesTab } from './tabs/BatchesTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { StorageLocationsTab } from './tabs/StorageLocationsTab';
+import { UomOverridesTab } from './tabs/UomOverridesTab';
 
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
@@ -71,6 +72,11 @@ export const InventoryItemDetailPage = () => {
             value: 'storage-locations',
             label: 'Storage Locations',
             content: <StorageLocationsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+          },
+          {
+            value: 'uom-overrides',
+            label: 'UOM Overrides',
+            content: <UomOverridesTab itemId={item.id} />,
           },
           {
             value: 'batches',

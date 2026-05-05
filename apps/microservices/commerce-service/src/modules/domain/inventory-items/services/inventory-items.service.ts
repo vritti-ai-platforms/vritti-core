@@ -1,3 +1,4 @@
+import { CategoriesService } from '@domain/categories/services/categories.service';
 import type {
   InventoryItemQuantDto,
   LocationStockDto,
@@ -42,6 +43,7 @@ export class InventoryItemsService {
     private readonly repository: InventoryItemsRepository,
     private readonly batchesService: InventoryItemQuantsService,
     private readonly storageLocationConfigsService: StorageLocationConfigsService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   // Returns paginated, filtered, and sorted inventory items for the data table
@@ -123,6 +125,7 @@ export class InventoryItemsService {
 
   // Creates a new inventory item
   async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+    await this.categoriesService.assertIsLeaf(data.categoryId);
     const entity = await this.repository.create({
       name: data.name,
       code: data.code,
@@ -204,6 +207,9 @@ export class InventoryItemsService {
   async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
+    if (data.categoryId !== undefined) {
+      await this.categoriesService.assertIsLeaf(data.categoryId);
+    }
     if (data.description !== undefined) data.description = data.description || null;
     const updated = await this.repository.update(id, data);
     this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);

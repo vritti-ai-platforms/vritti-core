@@ -1,3 +1,4 @@
+import { CategoriesService } from '@domain/categories/services/categories.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type FieldMap,
@@ -27,7 +28,10 @@ export class ItemsService {
     categoryId: { column: items.categoryId, type: 'string' },
   };
 
-  constructor(private readonly itemsRepository: ItemsRepository) {}
+  constructor(
+    private readonly itemsRepository: ItemsRepository,
+    private readonly categoriesService: CategoriesService,
+  ) {}
 
   // Returns paginated, filtered, and sorted items (RLS scopes to org + BU ancestors)
   async findForTable(state: TableViewState): Promise<{ result: ItemDto[]; count: number }> {
@@ -49,6 +53,7 @@ export class ItemsService {
 
   // Creates a new catalog item, auto-generating code if not provided
   async create(data: CreateItemDto): Promise<ItemDto> {
+    if (data.categoryId) await this.categoriesService.assertIsLeaf(data.categoryId);
     const code = data.code || (await this.itemsRepository.generateCode());
     const entity = await this.itemsRepository.create({
       categoryId: data.categoryId ?? null,
@@ -96,6 +101,8 @@ export class ItemsService {
   async update(id: string, data: UpdateItemDto): Promise<ItemDto> {
     const existing = await this.itemsRepository.findById(id);
     if (!existing) throw new NotFoundException('Item not found.');
+
+    if (data.categoryId) await this.categoriesService.assertIsLeaf(data.categoryId);
 
     const updatePayload: Record<string, unknown> = {};
     if (data.categoryId !== undefined) updatePayload.categoryId = data.categoryId;

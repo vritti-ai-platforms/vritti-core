@@ -27,6 +27,8 @@ export interface CategoryData {
   businessUnitId: string;
   name: string;
   parentId: string | null;
+  pathLabel: string;
+  path: string;
   sortOrder: number;
   isActive: boolean;
   canDelete: boolean;

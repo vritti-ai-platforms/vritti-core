@@ -11,7 +11,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, isNotNull, isNull, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { uom } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
@@ -25,12 +25,18 @@ export class UomService {
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: uom.name, type: 'string' },
     symbol: { column: uom.symbol, type: 'string' },
+    baseUnitId: { column: uom.baseUnitId, type: 'string' },
+    // Virtual field: 'base' → base_unit_id IS NULL; 'derived' → base_unit_id IS NOT NULL
+    kind: {
+      type: 'string',
+      expression: (value) => (value === 'base' ? isNull(uom.baseUnitId) : isNotNull(uom.baseUnitId)),
+    },
     conversionFactor: { column: uom.conversionFactor, type: 'number' },
   };
 
   constructor(private readonly uomRepository: UomRepository) {}
 
-  // Returns paginated UOMs for the data table, scoped to a dimension
+  // Returns paginated UOMs for the data table, scoped to a dimension; joined with base unit symbol
   async findForTable(state: TableViewState & { dimensionId: string }, currentBuId: string): Promise<{ result: UomDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, UomService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, UomService.FIELD_MAP);
@@ -39,7 +45,7 @@ export class UomService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, UomService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result: rows, count } = await this.uomRepository.findAllAndCount({
+    const { result: rows, count } = await this.uomRepository.findForTableWithBase({
       where: where || undefined,
       orderBy: orderBy.length > 0 ? orderBy : [desc(uom.createdAt)],
       limit,
@@ -48,7 +54,7 @@ export class UomService {
 
     const referencedIds = await this.uomRepository.findReferencedIds(rows.map((r) => r.id));
     return {
-      result: rows.map((row) => UomDto.from(row, currentBuId, !referencedIds.has(row.id))),
+      result: rows.map((row) => UomDto.from(row, currentBuId, !referencedIds.has(row.id), row.baseUnitSymbol)),
       count,
     };
   }
@@ -70,7 +76,14 @@ export class UomService {
   }
 
   // Returns paginated UOM options for select dropdowns
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  findForSelect(
+    query: SelectOptionsQueryDto,
+    options?: { derivedOnly?: boolean; baseOnly?: boolean },
+  ): Promise<SelectQueryResult> {
+    const conditions: SQL[] = [];
+    if (options?.derivedOnly) conditions.push(isNotNull(uom.baseUnitId));
+    if (options?.baseOnly) conditions.push(isNull(uom.baseUnitId));
+
     return this.uomRepository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
@@ -84,6 +97,7 @@ export class UomService {
       excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
+      ...(conditions.length > 0 && { conditions }),
     });
   }
 
@@ -162,6 +176,7 @@ export class UomService {
       [refs.inventoryItems, 'inventory item'],
       [refs.supplierItems, 'supplier item'],
       [refs.derivedUnits, 'derived unit'],
+      [refs.uomOverrides, 'per-item override'],
     ];
     const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
     if (parts.length > 0) {

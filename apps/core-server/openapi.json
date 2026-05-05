@@ -5398,6 +5398,152 @@
         ]
       }
     },
+    "/commerce-api/inventory-items/{id}/uom-conversions/table": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_getUomConversionsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/uom-conversions": {
+      "post": {
+        "operationId": "InventoryItemsGatewayController_createUomConversion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInventoryItemUomConversionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/uom-conversions/{conversionId}": {
+      "patch": {
+        "operationId": "InventoryItemsGatewayController_updateUomConversion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "conversionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInventoryItemUomConversionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      },
+      "delete": {
+        "operationId": "InventoryItemsGatewayController_deleteUomConversion",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "conversionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/storage-locations/count": {
       "get": {
         "operationId": "StorageLocationsGatewayController_count",
@@ -10699,6 +10845,24 @@
                 "desc"
               ]
             }
+          },
+          {
+            "name": "derivedOnly",
+            "required": false,
+            "in": "query",
+            "description": "When true, only derived units (non-base) are returned",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "baseOnly",
+            "required": false,
+            "in": "query",
+            "description": "When true, only base units are returned",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -12779,6 +12943,16 @@
             "description": "Parent category ID, or null for root-level categories",
             "nullable": true
           },
+          "pathLabel": {
+            "type": "string",
+            "description": "Slugified name segment used inside the ltree path",
+            "example": "antibiotics"
+          },
+          "path": {
+            "type": "string",
+            "description": "Full ltree path from root to this category",
+            "example": "medicines.prescription.antibiotics"
+          },
           "createdAt": {
             "type": "string",
             "description": "ISO timestamp of creation"
@@ -12792,6 +12966,8 @@
           "isActive",
           "canDelete",
           "parentId",
+          "pathLabel",
+          "path",
           "createdAt"
         ]
       },
@@ -13289,6 +13465,35 @@
         },
         "required": [
           "reorderLevel"
+        ]
+      },
+      "CreateInventoryItemUomConversionDto": {
+        "type": "object",
+        "properties": {
+          "uomId": {
+            "type": "string",
+            "description": "ID of the derived unit of measure"
+          },
+          "conversionFactor": {
+            "type": "number",
+            "description": "Per-item conversion factor overriding the global default"
+          }
+        },
+        "required": [
+          "uomId",
+          "conversionFactor"
+        ]
+      },
+      "UpdateInventoryItemUomConversionDto": {
+        "type": "object",
+        "properties": {
+          "conversionFactor": {
+            "type": "number",
+            "description": "Updated per-item conversion factor"
+          }
+        },
+        "required": [
+          "conversionFactor"
         ]
       },
       "UpdateInventoryItemDto": {

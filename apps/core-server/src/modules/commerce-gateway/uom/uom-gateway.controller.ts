@@ -3,7 +3,6 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   type CreateResponseDto,
   RequireSession,
-  SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   UserId,
@@ -11,6 +10,7 @@ import {
 import { SessionTypeValues } from '@/db/schema';
 import { CreateUomDto } from './dto/request/create-uom.dto';
 import { UomBaseQueryDto } from './dto/request/uom-base-query.dto';
+import { UomSelectQueryDto } from './dto/request/uom-select-query.dto';
 import { UpdateUomDto } from './dto/request/update-uom.dto';
 import type { UomResponseDto } from './dto/response/uom-response.dto';
 import type { UomTableResponseDto } from './dto/response/uom-table-response.dto';
@@ -39,9 +39,9 @@ export class UomGatewayController {
     return this.uomGatewayService.findDerivedUnits(id);
   }
 
-  // Returns paginated UOM options for select dropdowns
+  // Returns paginated UOM options for select dropdowns; pass derivedOnly=true to filter to derived units only
   @Get('select')
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  select(@Query() query: UomSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/uom/select');
     return this.uomGatewayService.select(query);
   }

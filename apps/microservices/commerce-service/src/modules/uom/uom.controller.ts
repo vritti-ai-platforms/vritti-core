@@ -50,9 +50,11 @@ export class UomController {
 
   // Returns paginated UOM options for the select component
   @MessagePattern({ cmd: 'uom.select' })
-  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  async select(
+    @Payload() data: SelectOptionsQueryDto & { derivedOnly?: boolean; baseOnly?: boolean },
+  ): Promise<SelectQueryResult> {
     this.logger.log('uom.select');
-    return this.uomService.findForSelect(data);
+    return this.uomService.findForSelect(data, { derivedOnly: data.derivedOnly, baseOnly: data.baseOnly });
   }
 
   // Creates a new UOM

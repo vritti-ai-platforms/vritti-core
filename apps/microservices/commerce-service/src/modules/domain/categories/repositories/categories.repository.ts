@@ -229,4 +229,43 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   async updateSortOrder(id: string, sortOrder: number): Promise<void> {
     await this.db.update(categories).set({ sortOrder }).where(eq(categories.id, id));
   }
+
+  // Sets the ltree path for a single category (used for the two-phase create pattern)
+  async updatePath(id: string, path: string): Promise<void> {
+    await this.db
+      .update(categories)
+      .set({ path: sql`cast(${path} as vritti_core.ltree)` })
+      .where(eq(categories.id, id));
+  }
+
+  // Rewrites path prefix for a moved/renamed subtree: oldPath -> newPath
+  async rewriteSubtreePath(oldPath: string, newPath: string): Promise<void> {
+    await this.db.execute(sql`
+      UPDATE ${categories}
+      SET path = CASE
+        WHEN path = cast(${oldPath} as vritti_core.ltree) THEN cast(${newPath} as vritti_core.ltree)
+        ELSE cast(${newPath} as vritti_core.ltree) || subpath(path, nlevel(cast(${oldPath} as vritti_core.ltree)))
+      END
+      WHERE path <@ cast(${oldPath} as vritti_core.ltree)
+    `);
+  }
+
+  // Counts items + inventory items linked directly to a category (used to block child creation)
+  async countItemsForCategory(categoryId: string): Promise<number> {
+    const [itemRefs] = await this.db.select({ count: sql<number>`count(*)` }).from(items).where(eq(items.categoryId, categoryId));
+    const [inventoryItemRefs] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryItems)
+      .where(eq(inventoryItems.categoryId, categoryId));
+    return Number(itemRefs?.count ?? 0) + Number(inventoryItemRefs?.count ?? 0);
+  }
+
+  // Counts direct children of a category (used by assertIsLeaf)
+  async countChildren(categoryId: string): Promise<number> {
+    const [result] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(categories)
+      .where(eq(categories.parentId, categoryId));
+    return Number(result?.count ?? 0);
+  }
 }

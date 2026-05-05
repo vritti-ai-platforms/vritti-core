@@ -64,6 +64,7 @@ export interface UomData {
   symbol: string;
   dimensionId: string;
   baseUnitId: string | null;
+  baseUnitSymbol: string | null;
   conversionFactor: number;
   canEdit: boolean;
   canDelete: boolean;

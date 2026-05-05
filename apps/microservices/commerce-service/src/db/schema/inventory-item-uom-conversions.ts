@@ -1,36 +1,22 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  boolean,
-  customType,
-  index,
-  integer,
-  pgPolicy,
-  timestamp,
-  unique,
-  uuid,
-  varchar,
-} from '@vritti/api-sdk/drizzle-pg-core';
+import { doublePrecision, index, pgPolicy, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { inventoryItems } from './inventory-items';
+import { uom } from './uom';
 
-const ltreeType = customType<{ data: string }>({
-  dataType() {
-    return 'vritti_core.ltree';
-  },
-});
-
-export const categories = coreSchema.table(
-  'categories',
+export const inventoryItemUomConversions = coreSchema.table(
+  'inventory_item_uom_conversions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
-    name: varchar('name', { length: 255 }).notNull(),
-    image: varchar('image', { length: 255 }),
-    parentId: uuid('parent_id'),
-    pathLabel: varchar('path_label', { length: 255 }).notNull(),
-    path: ltreeType('path').notNull(),
-    isActive: boolean('is_active').notNull().default(true),
-    sortOrder: integer('sort_order').notNull().default(0),
+    inventoryItemId: uuid('inventory_item_id')
+      .notNull()
+      .references(() => inventoryItems.id, { onDelete: 'cascade' }),
+    uomId: uuid('uom_id')
+      .notNull()
+      .references(() => uom.id, { onDelete: 'restrict' }),
+    conversionFactor: doublePrecision('conversion_factor').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -38,10 +24,9 @@ export const categories = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_categories_parent_path_label').on(table.parentId, table.pathLabel),
-    index('idx_categories_bu').on(table.organizationId, table.businessUnitId),
-    index('idx_categories_parent').on(table.parentId),
-    index('idx_categories_path').using('gist', table.path.asc()),
+    uniqueIndex('uq_iiuc_item_uom').on(table.inventoryItemId, table.uomId),
+    index('idx_iiuc_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_iiuc_item').on(table.inventoryItemId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
@@ -65,5 +50,5 @@ export const categories = coreSchema.table(
   ],
 );
 
-export type Category = typeof categories.$inferSelect;
-export type NewCategory = typeof categories.$inferInsert;
+export type InventoryItemUomConversion = typeof inventoryItemUomConversions.$inferSelect;
+export type NewInventoryItemUomConversion = typeof inventoryItemUomConversions.$inferInsert;
