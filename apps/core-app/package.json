@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@callstack/liquid-glass": "^0.7.1",
+    "@lodev09/react-native-true-sheet": "^3.10.1",
     "@hookform/resolvers": "^5.2.2",
     "@module-federation/enhanced": "0.22.1",
     "@react-native-vector-icons/material-icons": "^12.3.0",

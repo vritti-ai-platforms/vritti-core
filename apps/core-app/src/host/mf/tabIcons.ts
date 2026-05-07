@@ -6,18 +6,18 @@ const defaultIcon: TabIcon = {
 };
 
 const commerceTabIcons: Record<string, TabIcon> = {
-  Items: { sfSymbol: 'square.grid.2x2' },
-  './Items': { sfSymbol: 'square.grid.2x2' },
-  Categories: { sfSymbol: 'rectangle.grid.2x2' },
-  './Categories': { sfSymbol: 'rectangle.grid.2x2' },
-  Modifiers: { sfSymbol: 'slider.horizontal.3' },
-  './Modifiers': { sfSymbol: 'slider.horizontal.3' },
-  POSTerminals: { sfSymbol: 'desktopcomputer' },
-  './POSTerminals': { sfSymbol: 'desktopcomputer' },
-  PriceLists: { sfSymbol: 'list.bullet.rectangle' },
-  './PriceLists': { sfSymbol: 'list.bullet.rectangle' },
-  POSBilling: { sfSymbol: 'cart' },
-  './POSBilling': { sfSymbol: 'cart' },
+  Items: { sfSymbol: 'square.grid.2x2', materialSymbol: 'grid_view' },
+  './Items': { sfSymbol: 'square.grid.2x2', materialSymbol: 'grid_view' },
+  Categories: { sfSymbol: 'rectangle.grid.2x2', materialSymbol: 'category' },
+  './Categories': { sfSymbol: 'rectangle.grid.2x2', materialSymbol: 'category' },
+  Modifiers: { sfSymbol: 'slider.horizontal.3', materialSymbol: 'tune' },
+  './Modifiers': { sfSymbol: 'slider.horizontal.3', materialSymbol: 'tune' },
+  POSTerminals: { sfSymbol: 'desktopcomputer', materialSymbol: 'computer' },
+  './POSTerminals': { sfSymbol: 'desktopcomputer', materialSymbol: 'computer' },
+  PriceLists: { sfSymbol: 'list.bullet.rectangle', materialSymbol: 'list_alt' },
+  './PriceLists': { sfSymbol: 'list.bullet.rectangle', materialSymbol: 'list_alt' },
+  POSBilling: { sfSymbol: 'cart', materialSymbol: 'shopping_cart' },
+  './POSBilling': { sfSymbol: 'cart', materialSymbol: 'shopping_cart' },
 };
 
 export const getCommerceTabIcon = (key: string): TabIcon => {

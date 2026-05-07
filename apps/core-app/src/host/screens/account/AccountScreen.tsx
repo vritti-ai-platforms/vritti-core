@@ -1,10 +1,14 @@
 import { usePushNavigator } from '@vritti/quantum-ui-native';
+import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
 import { Card } from '@vritti/quantum-ui-native/Card';
+import { useTheme } from '@vritti/quantum-ui-native/hooks';
 import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { ListItem } from '@vritti/quantum-ui-native/ListItem';
+import { RadioGroup, RadioGroupItem } from '@vritti/quantum-ui-native/RadioGroup';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Text } from '@vritti/quantum-ui-native/Typography';
+import { useRef } from 'react';
 import { Alert as NativeAlert, View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
 import type { HostAppRoute } from '../../routes';
@@ -13,6 +17,8 @@ import { getInitials } from './utils';
 export const AccountScreen = () => {
   const { user, org, logout } = useAuth();
   const { push } = usePushNavigator<HostAppRoute>();
+  const { isDark, colorScheme, themePreference, setThemePreference } = useTheme();
+  const themeSheetRef = useRef<BottomSheetRef>(null);
 
   const handleLogout = () => {
     NativeAlert.alert('Sign out', 'Are you sure you want to sign out of this session?', [
@@ -76,7 +82,7 @@ export const AccountScreen = () => {
           <ListItem
             title="Theme"
             description="Choose system, light, or dark appearance"
-            onPress={() => push('AccountTheme')}
+            onPress={() => void themeSheetRef.current?.present()}
           />
         </View>
       </View>
@@ -94,6 +100,30 @@ export const AccountScreen = () => {
           You can always sign back in with your organization and existing credentials.
         </Text>
       </View>
+
+      <BottomSheet ref={themeSheetRef} detents={['auto']}>
+        <View className="gap-4 px-4 pb-8 pt-2">
+          <View className="gap-1">
+            <Text className="text-base font-semibold text-foreground">Theme</Text>
+            <Text className="text-sm text-muted-foreground">
+              Current appearance is {isDark ? 'Dark' : 'Light'} ({colorScheme} mode).
+            </Text>
+          </View>
+          <RadioGroup
+            value={themePreference}
+            onValueChange={(value) => void setThemePreference(value as 'system' | 'light' | 'dark')}
+          >
+            <View className="gap-4">
+              <RadioGroupItem value="system" label="System" />
+              <RadioGroupItem value="light" label="Light" />
+              <RadioGroupItem value="dark" label="Dark" />
+            </View>
+          </RadioGroup>
+          <Text className="text-sm leading-6 text-muted-foreground">
+            Use System follows your device setting. Light and Dark force the app into a fixed appearance.
+          </Text>
+        </View>
+      </BottomSheet>
     </ScreenContainer>
   );
 };
