@@ -12,6 +12,17 @@
 		7FD2FE943694C6B7FCF4FC06 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 21A5D5EC39385058AA0D2FD6 /* PrivacyInfo.xcprivacy */; };
 		C207E853ABB7DD2659726FA7 /* libPods-coreapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30A8E7B3BF60491B3C8EA9 /* libPods-coreapp.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		FD842B2BC6AB44C1A14CEBD5 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E666BF4C907A43ACAF37A0ED /* JetBrainsMono-Bold.ttf */; };
+		454D6187C2D54E658D05CF71 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 40FC717B42164D25AE8A2CF5 /* JetBrainsMono-Regular.ttf */; };
+		377D3CD62FD54CE4BA098469 /* IBMPlexSans-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5B43AB0D364B48E594B1A642 /* IBMPlexSans-SemiBoldItalic.ttf */; };
+		41718824262A4900B2E37622 /* IBMPlexSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FC8888397B6642B5AC9348CF /* IBMPlexSans-Medium.ttf */; };
+		C82C15B5D96B401982758E59 /* IBMPlexSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5ECC159DC6524E168EA42377 /* IBMPlexSans-SemiBold.ttf */; };
+		7B75922B29764D768978208F /* IBMPlexSans-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DC15F7EC773A416AAD7A7BA1 /* IBMPlexSans-MediumItalic.ttf */; };
+		F0A9A1B9959341B5AF7AB768 /* IBMPlexSans-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 89BC3EF58A6B4DCA9474A972 /* IBMPlexSans-BoldItalic.ttf */; };
+		0CEA7B85EEBF411B860FAB4D /* IBMPlexSans-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 335477C66302445B8F544AAD /* IBMPlexSans-Italic.ttf */; };
+		65BCB858DB5B4CFEA10DDE93 /* IBMPlexSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C482B0F7647842B9860D59FF /* IBMPlexSans-Regular.ttf */; };
+		762508DEABA847A39ADE4041 /* PlayfairDisplay.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 144F127A82854FECAA317A24 /* PlayfairDisplay.ttf */; };
+		1B5159DF89A54A2BB0F90895 /* IBMPlexSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 29B53BC3C3184D77A8925D24 /* IBMPlexSans-Bold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +37,17 @@
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = coreapp/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* coreapp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "coreapp-Bridging-Header.h"; path = "coreapp/coreapp-Bridging-Header.h"; sourceTree = "<group>"; };
 		F8E3C35D24B98654CFF68BC1 /* Pods-coreapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-coreapp.release.xcconfig"; path = "Target Support Files/Pods-coreapp/Pods-coreapp.release.xcconfig"; sourceTree = "<group>"; };
+		E666BF4C907A43ACAF37A0ED /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; name = "JetBrainsMono-Bold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		40FC717B42164D25AE8A2CF5 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; name = "JetBrainsMono-Regular.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		5B43AB0D364B48E594B1A642 /* IBMPlexSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-SemiBoldItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		FC8888397B6642B5AC9348CF /* IBMPlexSans-Medium.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-Medium.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		5ECC159DC6524E168EA42377 /* IBMPlexSans-SemiBold.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-SemiBold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DC15F7EC773A416AAD7A7BA1 /* IBMPlexSans-MediumItalic.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-MediumItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-MediumItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		89BC3EF58A6B4DCA9474A972 /* IBMPlexSans-BoldItalic.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-BoldItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-BoldItalic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		335477C66302445B8F544AAD /* IBMPlexSans-Italic.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-Italic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Italic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		C482B0F7647842B9860D59FF /* IBMPlexSans-Regular.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-Regular.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		144F127A82854FECAA317A24 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; name = "PlayfairDisplay.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/PlayfairDisplay.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		29B53BC3C3184D77A8925D24 /* IBMPlexSans-Bold.ttf */ = {isa = PBXFileReference; name = "IBMPlexSans-Bold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +108,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				3BA7382B24F629DE1651D22B /* Pods */,
+				5A548DF8317D484AA590E673 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -99,6 +122,25 @@
 			);
 			name = Products;
 			sourceTree = "<group>";
+		};
+		5A548DF8317D484AA590E673 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				E666BF4C907A43ACAF37A0ED /* JetBrainsMono-Bold.ttf */,
+				40FC717B42164D25AE8A2CF5 /* JetBrainsMono-Regular.ttf */,
+				5B43AB0D364B48E594B1A642 /* IBMPlexSans-SemiBoldItalic.ttf */,
+				FC8888397B6642B5AC9348CF /* IBMPlexSans-Medium.ttf */,
+				5ECC159DC6524E168EA42377 /* IBMPlexSans-SemiBold.ttf */,
+				DC15F7EC773A416AAD7A7BA1 /* IBMPlexSans-MediumItalic.ttf */,
+				89BC3EF58A6B4DCA9474A972 /* IBMPlexSans-BoldItalic.ttf */,
+				335477C66302445B8F544AAD /* IBMPlexSans-Italic.ttf */,
+				C482B0F7647842B9860D59FF /* IBMPlexSans-Regular.ttf */,
+				144F127A82854FECAA317A24 /* PlayfairDisplay.ttf */,
+				29B53BC3C3184D77A8925D24 /* IBMPlexSans-Bold.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -164,6 +206,17 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				7FD2FE943694C6B7FCF4FC06 /* PrivacyInfo.xcprivacy in Resources */,
+				FD842B2BC6AB44C1A14CEBD5 /* JetBrainsMono-Bold.ttf in Resources */,
+				454D6187C2D54E658D05CF71 /* JetBrainsMono-Regular.ttf in Resources */,
+				377D3CD62FD54CE4BA098469 /* IBMPlexSans-SemiBoldItalic.ttf in Resources */,
+				41718824262A4900B2E37622 /* IBMPlexSans-Medium.ttf in Resources */,
+				C82C15B5D96B401982758E59 /* IBMPlexSans-SemiBold.ttf in Resources */,
+				7B75922B29764D768978208F /* IBMPlexSans-MediumItalic.ttf in Resources */,
+				F0A9A1B9959341B5AF7AB768 /* IBMPlexSans-BoldItalic.ttf in Resources */,
+				0CEA7B85EEBF411B860FAB4D /* IBMPlexSans-Italic.ttf in Resources */,
+				65BCB858DB5B4CFEA10DDE93 /* IBMPlexSans-Regular.ttf in Resources */,
+				762508DEABA847A39ADE4041 /* PlayfairDisplay.ttf in Resources */,
+				1B5159DF89A54A2BB0F90895 /* IBMPlexSans-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
