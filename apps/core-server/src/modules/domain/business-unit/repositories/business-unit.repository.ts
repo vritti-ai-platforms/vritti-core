@@ -24,12 +24,15 @@ export class BusinessUnitRepository extends PrimaryBaseRepository<typeof busines
     });
   }
 
-  // Finds all descendants of a business unit using ltree descendant-of operator
+  // Finds all descendants of a business unit using ltree descendant-of operator.
+  // RLS scopes the query to the current org via app.org_id; results are ordered so the queried
+  // root comes first (depth ASC), then descendants by depth + sort order.
   async findSubtree(path: string): Promise<BusinessUnit[]> {
     const rows = await this.db
       .select()
       .from(businessUnits)
-      .where(sql`${businessUnits.path} <@ cast(${path} as ltree)`);
+      .where(sql`${businessUnits.path} <@ cast(${path} as ltree)`)
+      .orderBy(businessUnits.depth, businessUnits.sortOrder);
     return rows as BusinessUnit[];
   }
 

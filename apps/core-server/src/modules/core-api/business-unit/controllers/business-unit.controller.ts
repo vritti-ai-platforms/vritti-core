@@ -11,10 +11,12 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf, SuccessResponseDto } from '@vritti/api-sdk';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
+import { WebhookSessionInterceptor } from '@/common/interceptors/webhook-session.interceptor';
 import {
   ApiCreateBusinessUnitWebhook,
   ApiDeleteBusinessUnitWebhook,
@@ -34,6 +36,7 @@ import { BusinessUnitApiService } from '../services/business-unit-api.service';
 @Public()
 @SkipCsrf()
 @UseGuards(WebhookSecretGuard)
+@UseInterceptors(WebhookSessionInterceptor)
 export class BusinessUnitController {
   private readonly logger = new Logger(BusinessUnitController.name);
 

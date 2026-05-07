@@ -1,4 +1,5 @@
-import { boolean, customType, index, integer, jsonb, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { boolean, customType, index, integer, jsonb, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { buTypeEnum } from './enums';
 import { organizations } from './organizations';
@@ -45,6 +46,10 @@ export const businessUnits = coreSchema.table(
   (table) => [
     index('business_units_organization_id_idx').on(table.organizationId),
     index('business_units_parent_id_idx').on(table.parentId),
+    pgPolicy('org_isolation', {
+      for: 'all',
+      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
+    }),
   ],
 );
 

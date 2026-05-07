@@ -20,6 +20,12 @@ interface CreatePurchaseOrderDialogProps {
   onCancel: () => void;
 }
 
+// Renders "<code> · <payment terms>" under the supplier name in the dropdown
+const formatSupplierDescription = (code: string, option: SelectOption): string => {
+  const paymentTerms = option.additionals?.paymentTerms;
+  return paymentTerms ? `${code} · ${paymentTerms}` : code;
+};
+
 export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps> = ({ onSuccess, onCancel }) => {
   const form = useForm<CreatePurchaseOrderFormData>({
     resolver: zodResolver(createPurchaseOrderSchema),
@@ -79,7 +85,13 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
         name="supplierId"
         label="Supplier"
         placeholder="Select supplier"
-        fieldKeys={{ valueKey: 'id', labelKey: 'name', additionalKeys: 'currencyCode' }}
+        fieldKeys={{
+          valueKey: 'id',
+          labelKey: 'name',
+          descriptionKey: 'code',
+          additionalKeys: 'currencyCode,paymentTerms',
+        }}
+        transformDescription={formatSupplierDescription}
         onOptionSelect={handleSupplierSelect}
       />
       <CurrencySelector name="currencyCode" label="PO Currency" placeholder="Select currency" />
