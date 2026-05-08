@@ -14,6 +14,7 @@ import {
 
 export type GoodsReceiptLineWithRefs = GoodsReceiptLine & {
   locationName: string | null;
+  locationPath: string | null;
   // Lot detail (for tracking='lot' or 'serial' lines):
   lotNumber: string | null;
   lotManufacturingDate: string | null;
@@ -182,6 +183,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         createdAt: goodsReceiptLines.createdAt,
         updatedAt: goodsReceiptLines.updatedAt,
         locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
         lotNumber: goodsReceiptLots.lotNumber,
         lotManufacturingDate: goodsReceiptLots.manufacturingDate,
         lotExpiryDate: goodsReceiptLots.expiryDate,

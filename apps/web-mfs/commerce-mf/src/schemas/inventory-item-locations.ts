@@ -6,6 +6,7 @@ export interface InventoryItemLocationData {
   inventoryItemId: string;
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   reorderLevel: number;
   stockedQuantity: number;
   reservedQuantity: number;

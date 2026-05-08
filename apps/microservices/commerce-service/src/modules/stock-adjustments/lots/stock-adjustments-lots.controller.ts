@@ -30,7 +30,7 @@ export class StockAdjustmentsLotsController {
       adjustmentId: string;
       lotNumber: string;
       manufacturingDate?: string | null;
-      expiryDate?: string | null;
+      expiryDate: string;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${data.adjustmentId}`);
@@ -45,7 +45,7 @@ export class StockAdjustmentsLotsController {
       lotId: string;
       lotNumber?: string;
       manufacturingDate?: string | null;
-      expiryDate?: string | null;
+      expiryDate?: string;
     },
   ): Promise<StockAdjustmentLotDto> {
     this.logger.log(`stockAdjustments.updateLot — lot: ${data.lotId}`);

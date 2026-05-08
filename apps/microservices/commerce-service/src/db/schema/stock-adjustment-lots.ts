@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { check, index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItemLots } from './inventory-item-lots';
 import { stockAdjustments } from './stock-adjustments';
@@ -15,7 +15,7 @@ export const stockAdjustmentLots = coreSchema.table(
       .references(() => stockAdjustments.id, { onDelete: 'cascade' }),
     lotNumber: varchar('lot_number', { length: 100 }).notNull(),
     manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
-    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }),
+    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }).notNull(),
     resolvedLotId: uuid('resolved_lot_id').references(() => inventoryItemLots.id, { onDelete: 'set null' }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -28,6 +28,10 @@ export const stockAdjustmentLots = coreSchema.table(
     unique('uq_stock_adjustment_lots_adj_lot').on(table.stockAdjustmentId, table.lotNumber),
     index('idx_stock_adjustment_lots_adj').on(table.stockAdjustmentId),
     index('idx_stock_adjustment_lots_resolved').on(table.resolvedLotId),
+    check(
+      'ck_stock_adjustment_lots_expiry_after_mfg',
+      sql`${table.manufacturingDate} IS NULL OR ${table.expiryDate} > ${table.manufacturingDate}`,
+    ),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

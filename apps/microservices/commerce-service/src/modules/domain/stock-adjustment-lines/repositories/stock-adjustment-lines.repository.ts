@@ -13,10 +13,12 @@ import {
 
 export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
   locationName: string | null;
+  locationPath: string | null;
   // Source quant detail (for deduct lines):
   quantLotNumber: string | null;
   quantLocationId: string | null;
   quantLocationName: string | null;
+  quantLocationPath: string | null;
   quantTotalQuantity: string | null;
   quantReservedQuantity: string | null;
   // Lot detail (for OPENING+lot/item lines):
@@ -170,6 +172,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         createdAt: stockAdjustmentLines.createdAt,
         updatedAt: stockAdjustmentLines.updatedAt,
         locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
         // Lot info (for OPENING register lines):
         lotNumber: stockAdjustmentLots.lotNumber,
         lotManufacturingDate: stockAdjustmentLots.manufacturingDate,
@@ -179,6 +182,9 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         quantLocationId: inventoryItemQuants.locationId,
         quantLocationName: sql<string | null>`(
           SELECT name FROM vritti_core.locations WHERE id = ${inventoryItemQuants.locationId}
+        )`,
+        quantLocationPath: sql<string | null>`(
+          SELECT path_breadcrumb FROM vritti_core.locations WHERE id = ${inventoryItemQuants.locationId}
         )`,
         quantTotalQuantity: inventoryItemQuants.quantity,
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,

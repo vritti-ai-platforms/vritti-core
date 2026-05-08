@@ -21,7 +21,9 @@ import {
 import { AddLineForm } from '../forms/AddLineForm';
 import { EditLineForm } from '../forms/EditLineForm';
 
-type LinesScope = { kind: 'item'; itemId: string } | { kind: 'lot'; itemId: string; lotId: string };
+type LinesScope =
+  | { kind: 'item'; itemId: string; inventoryItemId: string }
+  | { kind: 'lot'; itemId: string; inventoryItemId: string; lotId: string };
 
 interface LinesTableProps {
   goodsReceiptId: string;
@@ -88,6 +90,14 @@ export const LinesTable = ({
         enableSorting: true,
       },
       {
+        accessorKey: 'locationPath',
+        header: 'Path',
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
+        ),
+        enableSorting: false,
+      },
+      {
         accessorKey: 'quantity',
         header: 'Quantity',
         cell: ({ row }) => (
@@ -133,6 +143,7 @@ export const LinesTable = ({
                           <EditLineForm
                             goodsReceiptId={goodsReceiptId}
                             itemId={scope.itemId}
+                            inventoryItemId={scope.inventoryItemId}
                             line={row.original}
                             tracking={tracking}
                             onSuccess={close}
@@ -228,6 +239,7 @@ export const LinesTable = ({
           <AddLineForm
             goodsReceiptId={goodsReceiptId}
             itemId={scope.itemId}
+            inventoryItemId={scope.inventoryItemId}
             goodsReceiptLotId={lotId}
             tracking={tracking}
             poRemainingQuantity={poRemainingQuantity}

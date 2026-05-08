@@ -76,6 +76,7 @@ export class GoodsReceiptLotsService {
         name: item.inventoryItemName ?? item.inventoryItemId,
         path: [item.id],
         kind: 'item',
+        inventoryItemId: item.inventoryItemId,
         inventoryItemTracking: tracking,
         inventoryItemUomSymbol: item.inventoryItemUomSymbol ?? undefined,
         acceptedQuantity: Number(item.acceptedQuantity),
@@ -122,7 +123,7 @@ export class GoodsReceiptLotsService {
   async addLot(
     goodsReceiptId: string,
     itemId: string,
-    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate?: string | null },
+    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     const { receipt, item, tracking } = await this.ensureItem(goodsReceiptId, itemId);
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
@@ -160,7 +161,7 @@ export class GoodsReceiptLotsService {
       goodsReceiptItemId: itemId,
       lotNumber,
       manufacturingDate: data.manufacturingDate ?? null,
-      expiryDate: data.expiryDate ?? null,
+      expiryDate: data.expiryDate,
     });
 
     this.logger.log(`Added lot ${lotNumber} to goods-receipt-item ${itemId}`);
@@ -179,7 +180,7 @@ export class GoodsReceiptLotsService {
     goodsReceiptId: string,
     itemId: string,
     lotId: string,
-    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string | null },
+    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string },
   ): Promise<GoodsReceiptLotDto> {
     const { receipt, item } = await this.ensureItem(goodsReceiptId, itemId);
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
@@ -214,7 +215,7 @@ export class GoodsReceiptLotsService {
     await this.repository.update(lotId, {
       ...(data.lotNumber !== undefined ? { lotNumber: data.lotNumber.trim() } : {}),
       ...(data.manufacturingDate !== undefined ? { manufacturingDate: data.manufacturingDate ?? null } : {}),
-      ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate ?? null } : {}),
+      ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate } : {}),
     });
 
     const refreshed = (await this.repository.findByItemId(itemId)).find((r) => r.id === lotId);
@@ -241,7 +242,7 @@ export class GoodsReceiptLotsService {
       inventoryItemId,
       lotNumber: gr.lotNumber,
       manufacturingDate: gr.manufacturingDate ?? null,
-      expiryDate: gr.expiryDate ?? null,
+      expiryDate: gr.expiryDate,
     });
     await this.repository.setResolvedLotId(lotId, inserted.id);
     return inserted;

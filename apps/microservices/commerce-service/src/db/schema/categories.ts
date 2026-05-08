@@ -5,6 +5,7 @@ import {
   index,
   integer,
   pgPolicy,
+  text,
   timestamp,
   unique,
   uuid,
@@ -29,6 +30,8 @@ export const categories = coreSchema.table(
     parentId: uuid('parent_id'),
     pathLabel: varchar('path_label', { length: 255 }).notNull(),
     path: ltreeType('path').notNull(),
+    // Human-readable breadcrumb of the ltree path; computed at DB level via format_ltree_path.
+    pathBreadcrumb: text('path_breadcrumb').generatedAlwaysAs(sql`vritti_core.format_ltree_path(path)`),
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

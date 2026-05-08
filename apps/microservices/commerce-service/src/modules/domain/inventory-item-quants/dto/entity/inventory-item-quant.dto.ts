@@ -5,6 +5,7 @@ export class InventoryItemQuantDto {
   inventoryItemId: string;
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   lotId: string | null;
   lotNumber: string | null;
   quantity: number;
@@ -19,6 +20,7 @@ export class InventoryItemQuantDto {
   static from(
     row: InventoryItemQuant & {
       locationName?: string | null;
+      locationPath?: string | null;
       lotNumber?: string | null;
       manufacturingDate?: string | null;
       expiryDate?: string | null;
@@ -30,6 +32,7 @@ export class InventoryItemQuantDto {
     dto.inventoryItemId = row.inventoryItemId;
     dto.locationId = row.locationId;
     dto.locationName = row.locationName ?? null;
+    dto.locationPath = row.locationPath ?? null;
     dto.lotId = row.lotId ?? null;
     dto.lotNumber = row.lotNumber ?? null;
     dto.quantity = Number(row.quantity);
@@ -47,6 +50,7 @@ export class InventoryItemQuantDto {
 export class LocationStockDto {
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   stockedQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;

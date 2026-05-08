@@ -24,6 +24,7 @@ import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';
 
 interface LotDetailPanelProps {
   adjustmentId: string;
+  inventoryItemId: string;
   lotId: string | null;
   tracking: InventoryTracking;
   isDraft: boolean;
@@ -35,6 +36,7 @@ interface LotDetailPanelProps {
 
 export const LotDetailPanel = ({
   adjustmentId,
+  inventoryItemId,
   lotId,
   tracking,
   isDraft,
@@ -88,6 +90,14 @@ export const LotDetailPanel = ({
         enableSorting: true,
       },
       {
+        accessorKey: 'locationPath',
+        header: 'Path',
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
+        ),
+        enableSorting: false,
+      },
+      {
         accessorKey: 'quantity',
         header: 'Quantity',
         cell: ({ row }) => (
@@ -132,6 +142,7 @@ export const LotDetailPanel = ({
                         content: (close) => (
                           <EditOpeningLineForm
                             adjustmentId={adjustmentId}
+                            inventoryItemId={inventoryItemId}
                             line={row.original}
                             tracking={tracking}
                             onSuccess={close}
@@ -269,6 +280,7 @@ export const LotDetailPanel = ({
         content={(close) => (
           <AddOpeningLineForm
             adjustmentId={adjustmentId}
+            inventoryItemId={inventoryItemId}
             stockAdjustmentLotId={lot.id}
             tracking={tracking}
             onSuccess={close}

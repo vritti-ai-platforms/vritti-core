@@ -49,6 +49,14 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
         enableSorting: true,
       },
       {
+        accessorKey: 'locationPath',
+        header: 'Path',
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
+        ),
+        enableSorting: false,
+      },
+      {
         accessorKey: 'quantity',
         header: 'Quantity',
         cell: ({ row }) => (
@@ -76,6 +84,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
                         content: (close) => (
                           <EditOpeningLineForm
                             adjustmentId={adjustment.id}
+                            inventoryItemId={adjustment.inventoryItemId}
                             line={row.original}
                             tracking="quantity"
                             onSuccess={close}
@@ -148,6 +157,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
         content={(close) => (
           <AddOpeningLineForm
             adjustmentId={adjustment.id}
+            inventoryItemId={adjustment.inventoryItemId}
             stockAdjustmentLotId={null}
             tracking="quantity"
             onSuccess={close}

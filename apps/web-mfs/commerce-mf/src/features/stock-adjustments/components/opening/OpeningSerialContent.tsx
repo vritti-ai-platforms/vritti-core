@@ -92,6 +92,7 @@ export const OpeningSerialContent = ({ adjustment, isDraft }: OpeningSerialConte
                         content: (close) => (
                           <EditOpeningLineForm
                             adjustmentId={adjustment.id}
+                            inventoryItemId={adjustment.inventoryItemId}
                             line={row.original}
                             tracking="serial"
                             onSuccess={close}
@@ -167,6 +168,7 @@ export const OpeningSerialContent = ({ adjustment, isDraft }: OpeningSerialConte
           content={(close) => (
             <AddOpeningLineForm
               adjustmentId={adjustment.id}
+              inventoryItemId={adjustment.inventoryItemId}
               stockAdjustmentLotId={null}
               tracking="serial"
               onSuccess={close}
@@ -179,6 +181,7 @@ export const OpeningSerialContent = ({ adjustment, isDraft }: OpeningSerialConte
       {selectedLineId ? (
         <SerialsTable
           adjustmentId={adjustment.id}
+          inventoryItemId={adjustment.inventoryItemId}
           line={selectedLine}
           isDraft={isDraft}
           onLineRemoved={() => setSelectedLineId(null)}

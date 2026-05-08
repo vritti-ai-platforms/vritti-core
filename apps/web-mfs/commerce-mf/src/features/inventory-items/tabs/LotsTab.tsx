@@ -49,6 +49,14 @@ export const LotsTab: React.FC<LotsTabProps> = ({ itemId, uomSymbol }) => {
         cell: ({ row }) => row.original.locationName ?? '—',
       },
       {
+        accessorKey: 'locationPath',
+        header: 'Path',
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
+        ),
+        enableSorting: false,
+      },
+      {
         accessorKey: 'quantity',
         header: 'Qty',
         cell: ({ row }) => (

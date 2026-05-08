@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { check, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 
@@ -14,7 +14,7 @@ export const inventoryItemLots = coreSchema.table(
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     lotNumber: varchar('lot_number', { length: 100 }).notNull(),
     manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
-    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }),
+    expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -25,6 +25,10 @@ export const inventoryItemLots = coreSchema.table(
     unique('uq_inventory_item_lots_org_item_number').on(table.organizationId, table.inventoryItemId, table.lotNumber),
     index('idx_inventory_item_lots_item').on(table.inventoryItemId),
     index('idx_inventory_item_lots_expiry').on(table.expiryDate),
+    check(
+      'ck_inventory_item_lots_expiry_after_mfg',
+      sql`${table.manufacturingDate} IS NULL OR ${table.expiryDate} > ${table.manufacturingDate}`,
+    ),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

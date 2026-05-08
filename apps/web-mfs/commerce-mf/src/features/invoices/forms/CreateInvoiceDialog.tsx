@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
+import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -70,8 +71,8 @@ export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ onSucc
         ]}
       />
       <TextField name="partyName" label="Party Name" placeholder="Enter party name" />
-      <TextField name="issuedDate" label="Issued Date" type="date" />
-      <TextField name="dueDate" label="Due Date" type="date" />
+      <DatePicker name="issuedDate" label="Issued Date" />
+      <DatePicker name="dueDate" label="Due Date" />
       <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

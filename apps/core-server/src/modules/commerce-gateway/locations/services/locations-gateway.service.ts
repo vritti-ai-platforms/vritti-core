@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, DataTableStateService, NatsClientService, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
-import type { SelectOptionsQueryDto } from '@vritti/api-sdk';
 import type { CreateLocationDto } from '../dto/request/create-location.dto';
+import type { LocationsSelectQueryDto } from '../dto/request/locations-select-query.dto';
 import type { ReorderLocationsDto } from '../dto/request/reorder-locations.dto';
 import type { UpdateLocationDto } from '../dto/request/update-location.dto';
 import type { LocationChildrenTableResponseDto } from '../dto/response/location-children-table-response.dto';
@@ -50,8 +50,12 @@ export class LocationsGatewayService {
   }
 
   // Returns paginated location options for select dropdowns
-  async select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('locations.select');
+  async select(params: LocationsSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(
+      `locations.select${params.locationRoles ? ` — locationRoles: ${params.locationRoles}` : ''}${
+        params.inventoryItemId ? ` — inventoryItemId: ${params.inventoryItemId}` : ''
+      }`,
+    );
     return this.nats.send('commerce', 'locations.select', params);
   }
 

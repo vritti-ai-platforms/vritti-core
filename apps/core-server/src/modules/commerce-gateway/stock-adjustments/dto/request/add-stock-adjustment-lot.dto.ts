@@ -13,8 +13,8 @@ export class AddStockAdjustmentLotDto {
   @IsDateString()
   manufacturingDate?: string | null;
 
-  @ApiPropertyOptional({ description: 'Expiry date' })
-  @IsOptional()
+  @ApiProperty({ description: 'Expiry date (required)' })
   @IsDateString()
-  expiryDate?: string | null;
+  @IsNotEmpty()
+  expiryDate: string;
 }

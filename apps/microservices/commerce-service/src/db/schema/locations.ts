@@ -30,6 +30,8 @@ export const locations = coreSchema.table(
     code: varchar('code', { length: 50 }).notNull(),
     parentId: uuid('parent_id'),
     path: ltreeType('path').notNull(),
+    // Human-readable breadcrumb of the ltree path: "main.sales.rack_a" → "Main › Sales › Rack A"
+    pathBreadcrumb: text('path_breadcrumb').generatedAlwaysAs(sql`vritti_core.format_ltree_path(path)`),
     sortOrder: integer('sort_order').notNull().default(1),
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),
@@ -43,7 +45,7 @@ export const locations = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_locations_bu_code').on(table.businessUnitId, table.code),
+    unique('uq_locations_bu_parent_code').on(table.businessUnitId, table.parentId, table.code),
     index('idx_locations_bu').on(table.organizationId, table.businessUnitId),
     index('idx_locations_parent').on(table.parentId),
     pgPolicy('org_isolation', {

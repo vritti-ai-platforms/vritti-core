@@ -20,12 +20,20 @@ import { EditLineForm } from '../forms/EditLineForm';
 interface SerialsTableProps {
   goodsReceiptId: string;
   itemId: string;
+  inventoryItemId: string;
   line: GoodsReceiptLineData | null;
   isDraft: boolean;
   onLineRemoved?: () => void;
 }
 
-export const SerialsTable = ({ goodsReceiptId, itemId, line, isDraft, onLineRemoved }: SerialsTableProps) => {
+export const SerialsTable = ({
+  goodsReceiptId,
+  itemId,
+  inventoryItemId,
+  line,
+  isDraft,
+  onLineRemoved,
+}: SerialsTableProps) => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const addSerialDialog = useDialog();
@@ -210,6 +218,7 @@ export const SerialsTable = ({ goodsReceiptId, itemId, line, isDraft, onLineRemo
           <EditLineForm
             goodsReceiptId={goodsReceiptId}
             itemId={itemId}
+            inventoryItemId={inventoryItemId}
             line={line}
             tracking="serial"
             onSuccess={close}

@@ -3,13 +3,13 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   type CreateResponseDto,
   RequireSession,
-  SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   UserId,
 } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateLocationDto } from './dto/request/create-location.dto';
+import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
 import { ReorderLocationsDto } from './dto/request/reorder-locations.dto';
 import { UpdateLocationDto } from './dto/request/update-location.dto';
 import type { LocationChildrenTableResponseDto } from './dto/response/location-children-table-response.dto';
@@ -53,7 +53,7 @@ export class LocationsGatewayController {
 
   // Returns paginated location options for select dropdowns
   @Get('select')
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  select(@Query() query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/locations/select');
     return this.locationsGatewayService.select(query);
   }

@@ -1,6 +1,6 @@
 export const LocationRoleValues = {
   STORAGE: 'STORAGE' as const,
-  POS: 'POS' as const,
+  RESERVED_STORAGE: 'RESERVED_STORAGE' as const,
   ZONE: 'ZONE' as const,
 };
 

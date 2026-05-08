@@ -4,15 +4,27 @@ import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import type { Resolver } from 'react-hook-form';
 import { z } from 'zod';
 
-export const locationRoleValues = ['ZONE', 'STORAGE', 'POS'] as const;
-export type LocationRole = (typeof locationRoleValues)[number];
+export const LocationRoleValues = {
+	STORAGE: 'STORAGE',
+	RESERVED_STORAGE: 'RESERVED_STORAGE',
+	ZONE: 'ZONE',
+} as const;
+export type LocationRole = (typeof LocationRoleValues)[keyof typeof LocationRoleValues];
+
+export const LocationRoleLabels: Record<LocationRole, string> = {
+	STORAGE: 'Storage',
+	RESERVED_STORAGE: 'Reserved Storage',
+	ZONE: 'Zone',
+};
+
+const locationRoleEnumValues = Object.values(LocationRoleValues) as [LocationRole, ...LocationRole[]];
 
 const _locationSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(100),
 	code: z.string().min(1, 'Code is required').max(50),
 	parentId: z.string().optional().nullable(),
 	sortOrder: z.coerce.number().int().min(1, 'Sort order must be at least 1'),
-	locationRole: z.enum(locationRoleValues),
+	locationRole: z.enum(locationRoleEnumValues),
 	isActive: z.boolean(),
 	area: z.string().max(100).optional().or(z.literal('')),
 	managerId: z.string().max(100).optional().or(z.literal('')),

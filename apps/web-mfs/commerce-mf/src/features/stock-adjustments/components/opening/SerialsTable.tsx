@@ -19,6 +19,7 @@ import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';
 
 interface SerialsTableProps {
   adjustmentId: string;
+  inventoryItemId: string;
   line: StockAdjustmentLineData | null;
   isDraft: boolean;
   onLineRemoved?: () => void;
@@ -26,7 +27,13 @@ interface SerialsTableProps {
 
 // Right column for OPENING + serial flow: line items (serials) rendered as a DataTable.
 // Edit / Remove of the selected LINE live in this panel's toolbar so the side rail stays clean.
-export const SerialsTable = ({ adjustmentId, line, isDraft, onLineRemoved }: SerialsTableProps) => {
+export const SerialsTable = ({
+  adjustmentId,
+  inventoryItemId,
+  line,
+  isDraft,
+  onLineRemoved,
+}: SerialsTableProps) => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const addSerialDialog = useDialog();
@@ -207,6 +214,7 @@ export const SerialsTable = ({ adjustmentId, line, isDraft, onLineRemoved }: Ser
         content={(close) => (
           <EditOpeningLineForm
             adjustmentId={adjustmentId}
+            inventoryItemId={inventoryItemId}
             line={line}
             tracking="serial"
             onSuccess={close}

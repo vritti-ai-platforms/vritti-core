@@ -111,6 +111,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
       <SerialsTable
         goodsReceiptId={goodsReceiptId}
         itemId={selection.itemId}
+        inventoryItemId={itemNode!.inventoryItemId!}
         line={selectedLine}
         isDraft={isDraft}
         onLineRemoved={() =>
@@ -174,7 +175,12 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
 
           <LinesTable
             goodsReceiptId={goodsReceiptId}
-            scope={{ kind: 'lot', itemId: selection.itemId, lotId: selection.lotId }}
+            scope={{
+              kind: 'lot',
+              itemId: selection.itemId,
+              inventoryItemId: itemNode!.inventoryItemId!,
+              lotId: selection.lotId,
+            }}
             tracking={tracking}
             isDraft={isDraft}
             uomSymbol={uomSymbol}
@@ -243,7 +249,11 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
 
             <LinesTable
               goodsReceiptId={goodsReceiptId}
-              scope={{ kind: 'item', itemId: selection.itemId }}
+              scope={{
+                kind: 'item',
+                itemId: selection.itemId,
+                inventoryItemId: itemNode!.inventoryItemId!,
+              }}
               tracking={tracking}
               isDraft={isDraft}
               uomSymbol={uomSymbol}
@@ -268,7 +278,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                 ? {
                     id: itemNode.id,
                     goodsReceiptId,
-                    inventoryItemId: itemNode.id,
+                    inventoryItemId: itemNode.inventoryItemId!,
                     inventoryItemName: itemNode.name,
                     inventoryItemTracking: tracking,
                     inventoryItemUomSymbol: uomSymbol,
@@ -353,7 +363,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
               ? {
                   id: itemNode.id,
                   goodsReceiptId,
-                  inventoryItemId: itemNode.id,
+                  inventoryItemId: itemNode.inventoryItemId!,
                   inventoryItemName: itemNode.name,
                   inventoryItemTracking: tracking,
                   inventoryItemUomSymbol: uomSymbol,

@@ -141,6 +141,9 @@ export class ConversionsService {
     }
 
     // Create output batches. Auto-generates a lot number for tracking='lot' outputs.
+    // TODO: conversion UX should let operators capture expiry per output lot (typically derived from
+    // shortest input expiry). Until then we synthesize a 1-year-out placeholder.
+    const placeholderExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
     for (const output of outputs) {
       const autoLot = `CONV-${id.slice(0, 8)}-${output.inventoryItemId.slice(0, 8)}`;
       await this.batchesService.createBatch({
@@ -148,9 +151,8 @@ export class ConversionsService {
         locationId,
         quantity: Number(output.quantity),
         // For tracking='quantity' the service will reject `lot`; we let the service decide based on tracking.
-        // Conversions don't surface lot/serial UX yet, so for 'lot' we synthesize a number.
         // Items with tracking='serial' will fail here — conversion of serialized goods is a follow-up.
-        lot: { lotNumber: autoLot },
+        lot: { lotNumber: autoLot, expiryDate: placeholderExpiry },
         type: InventoryLedgerTypeValues.CONVERSION_OUTPUT,
         referenceType: InventoryLedgerReferenceTypeValues.CONVERSION,
         referenceId: id,

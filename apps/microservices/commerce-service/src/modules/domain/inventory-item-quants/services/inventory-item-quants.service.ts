@@ -32,7 +32,7 @@ export type CreateQuantParams = {
   tracking: InventoryTracking;
   quantity: number;
   // for tracking='lot' or 'lot_serial': required
-  lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate?: string | null };
+  lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
   // for tracking='serial' or 'lot_serial': required, length must equal quantity
   serialNumbers?: string[];
 };
@@ -61,7 +61,7 @@ export class InventoryItemQuantsService {
     inventoryItemId: string;
     locationId: string;
     quantity: number;
-    lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate?: string | null };
+    lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
     serialNumbers?: string[];
     type: InventoryLedgerType;
     referenceType?: InventoryLedgerReferenceType;
@@ -134,7 +134,7 @@ export class InventoryItemQuantsService {
         inventoryItemId: params.inventoryItemId,
         lotNumber: params.lot.lotNumber,
         manufacturingDate: params.lot.manufacturingDate ?? null,
-        expiryDate: params.lot.expiryDate ?? null,
+        expiryDate: params.lot.expiryDate,
       });
     }
 
@@ -364,6 +364,7 @@ export class InventoryItemQuantsService {
       const dto = new LocationStockDto();
       dto.locationId = row.locationId;
       dto.locationName = row.locationName ?? null;
+      dto.locationPath = row.locationPath ?? null;
       dto.stockedQuantity = Number(row.stockedQuantity);
       dto.reservedQuantity = Number(row.reservedQuantity);
       dto.availableQuantity = Number(row.availableQuantity);

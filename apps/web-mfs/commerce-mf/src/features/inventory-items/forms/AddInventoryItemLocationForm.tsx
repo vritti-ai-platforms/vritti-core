@@ -10,6 +10,7 @@ import {
   type CreateInventoryItemLocationFormData,
   createInventoryItemLocationSchema,
 } from '@/schemas/inventory-item-locations';
+import { LocationRoleValues } from '@/schemas/locations';
 
 interface AddInventoryItemLocationFormProps {
   itemId: string;
@@ -31,7 +32,12 @@ export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationForm
 
   return (
     <Form form={form} mutation={createMutation} onCancel={onCancel}>
-      <LocationSelector name="locationId" label="Location" placeholder="Select location" />
+      <LocationSelector
+        name="locationId"
+        label="Location"
+        placeholder="Select location"
+        params={{ locationRoles: LocationRoleValues.STORAGE }}
+      />
       <TextField name="reorderLevel" label="Min. Stock Level" type="number" min={0} step="any" />
       <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" data-cancel>

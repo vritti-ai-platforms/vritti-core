@@ -47,8 +47,14 @@ export class LocationsController {
 
   // Returns paginated location options for select dropdowns
   @MessagePattern({ cmd: 'locations.select' })
-  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('locations.select');
+  async select(
+    @Payload() data: SelectOptionsQueryDto & { locationRoles?: string; inventoryItemId?: string },
+  ): Promise<SelectQueryResult> {
+    this.logger.log(
+      `locations.select${data.locationRoles ? ` — locationRoles: ${data.locationRoles}` : ''}${
+        data.inventoryItemId ? ` — inventoryItemId: ${data.inventoryItemId}` : ''
+      }${data.groupIdKey ? ` — groupIdKey: ${data.groupIdKey}` : ''}`,
+    );
     return this.locationsService.findForSelect(data);
   }
 

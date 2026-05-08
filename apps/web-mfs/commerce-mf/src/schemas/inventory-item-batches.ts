@@ -7,6 +7,7 @@ export interface InventoryItemBatchData {
   inventoryItemId: string;
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   batchNumber: string | null;
   quantity: number;
   reservedQuantity: number;

@@ -22,6 +22,9 @@ export class PosTerminalResponseDto {
   @ApiPropertyOptional({ description: 'Linked storage location name', nullable: true })
   locationName: string | null;
 
+  @ApiPropertyOptional({ description: 'Human-readable breadcrumb of the location path', nullable: true })
+  locationPath: string | null;
+
   @ApiPropertyOptional({ description: 'Terminal description', nullable: true })
   description: string | null;
 

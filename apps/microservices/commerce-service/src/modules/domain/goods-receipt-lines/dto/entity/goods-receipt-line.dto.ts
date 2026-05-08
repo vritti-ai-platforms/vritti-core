@@ -6,6 +6,7 @@ export class GoodsReceiptLineDto {
   goodsReceiptLotId: string | null;
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   // Lot info (denormalized from goods_receipt_lots — for display)
   lotNumber: string | null;
   manufacturingDate: string | null;
@@ -24,6 +25,7 @@ export class GoodsReceiptLineDto {
     dto.goodsReceiptLotId = row.goodsReceiptLotId ?? null;
     dto.locationId = row.locationId;
     dto.locationName = row.locationName ?? null;
+    dto.locationPath = row.locationPath ?? null;
     dto.lotNumber = row.lotNumber ?? null;
     dto.manufacturingDate = row.lotManufacturingDate ?? null;
     dto.expiryDate = row.lotExpiryDate ?? null;

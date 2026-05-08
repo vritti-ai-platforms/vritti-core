@@ -60,10 +60,18 @@ export const PosTerminalsTab = () => {
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
-        accessorKey: 'storageLocationName',
+        accessorKey: 'locationName',
         header: 'Linked Location',
         enableSorting: true,
-        cell: ({ row }) => row.original.storageLocationName ?? '—',
+        cell: ({ row }) => row.original.locationName ?? '—',
+      },
+      {
+        accessorKey: 'locationPath',
+        header: 'Path',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
+        ),
       },
       {
         accessorKey: 'isActive',
@@ -135,7 +143,7 @@ export const PosTerminalsTab = () => {
           columns: [
             { id: 'name', label: 'Terminal' },
             { id: 'code', label: 'Code' },
-            { id: 'storageLocationName', label: 'Linked Location' },
+            { id: 'locationName', label: 'Linked Location' },
           ],
           searchAll: true,
         }}

@@ -146,10 +146,10 @@ export const fieldTypeEnum = coreSchema.enum('field_type', ['text', 'number', 'b
 export const FieldTypeValues = { TEXT: 'text', NUMBER: 'number', BOOLEAN: 'boolean', SELECT: 'select' } as const;
 export type FieldType = (typeof fieldTypeEnum.enumValues)[number];
 
-export const locationRoleEnum = coreSchema.enum('location_role', ['STORAGE', 'POS', 'ZONE']);
+export const locationRoleEnum = coreSchema.enum('location_role', ['STORAGE', 'RESERVED_STORAGE', 'ZONE']);
 export const LocationRoleValues = {
   STORAGE: 'STORAGE' as const,
-  POS: 'POS' as const,
+  RESERVED_STORAGE: 'RESERVED_STORAGE' as const,
   ZONE: 'ZONE' as const,
 };
 export type LocationRole = (typeof locationRoleEnum.enumValues)[number];

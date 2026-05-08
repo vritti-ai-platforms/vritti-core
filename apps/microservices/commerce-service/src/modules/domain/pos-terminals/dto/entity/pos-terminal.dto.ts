@@ -8,12 +8,13 @@ export class PosTerminalDto {
   code: string;
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   description: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 
-  static from(entity: PosTerminal & { locationName?: string | null }): PosTerminalDto {
+  static from(entity: PosTerminal & { locationName?: string | null; locationPath?: string | null }): PosTerminalDto {
     const dto = new PosTerminalDto();
     dto.id = entity.id;
     dto.organizationId = entity.organizationId;
@@ -22,6 +23,7 @@ export class PosTerminalDto {
     dto.code = entity.code;
     dto.locationId = entity.locationId;
     dto.locationName = entity.locationName ?? null;
+    dto.locationPath = entity.locationPath ?? null;
     dto.description = entity.description ?? null;
     dto.isActive = entity.isActive;
     dto.createdAt = entity.createdAt.toISOString();

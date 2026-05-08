@@ -21,6 +21,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
   ): Promise<{
     result: (InventoryItemLocation & {
       locationName: string | null;
+      locationPath: string | null;
       stockedQuantity: string | null;
       reservedQuantity: string | null;
     })[];
@@ -28,7 +29,9 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
   }> {
     const baseWhere = eq(inventoryItemLocations.inventoryItemId, itemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
-    const { result, count } = await this.findAllAndCount<InventoryItemLocation & { locationName: string | null }>({
+    const { result, count } = await this.findAllAndCount<
+      InventoryItemLocation & { locationName: string | null; locationPath: string | null }
+    >({
       select: {
         id: inventoryItemLocations.id,
         organizationId: inventoryItemLocations.organizationId,
@@ -39,6 +42,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
         createdAt: inventoryItemLocations.createdAt,
         updatedAt: inventoryItemLocations.updatedAt,
         locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
       },
       leftJoins: [{ table: locations, on: eq(inventoryItemLocations.locationId, locations.id) }],
       where: combinedWhere,
@@ -86,6 +90,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
   async findByIdWithLocation(id: string): Promise<
     | (InventoryItemLocation & {
         locationName: string | null;
+        locationPath: string | null;
         stockedQuantity: string | null;
         reservedQuantity: string | null;
       })
@@ -116,6 +121,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
         createdAt: inventoryItemLocations.createdAt,
         updatedAt: inventoryItemLocations.updatedAt,
         locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
         stockedQuantity: stockAgg.stockedQuantity,
         reservedQuantity: stockAgg.reservedQuantity,
       })
@@ -133,6 +139,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
     return rows[0] as
       | (InventoryItemLocation & {
           locationName: string | null;
+          locationPath: string | null;
           stockedQuantity: string | null;
           reservedQuantity: string | null;
         })

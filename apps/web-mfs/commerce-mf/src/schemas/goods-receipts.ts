@@ -97,6 +97,7 @@ export interface GoodsReceiptLineData {
   goodsReceiptLotId: string | null;
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   // denormalized lot info (display only):
   lotNumber: string | null;
   manufacturingDate: string | null;
@@ -124,6 +125,7 @@ export interface GoodsReceiptTreeNode {
   path: string[];
   kind: 'item' | 'lot' | 'line';
   // item-only:
+  inventoryItemId?: string;
   inventoryItemTracking?: InventoryTracking;
   inventoryItemUomSymbol?: string;
   acceptedQuantity?: number;
@@ -157,11 +159,16 @@ export const updateGoodsReceiptItemSchema = z.object({
 });
 export type UpdateGoodsReceiptItemFormData = z.infer<typeof updateGoodsReceiptItemSchema>;
 
-export const addGoodsReceiptLotSchema = z.object({
-  lotNumber: z.string().min(1, 'Lot number is required').max(100),
-  manufacturingDate: z.string().optional(),
-  expiryDate: z.string().optional(),
-});
+export const addGoodsReceiptLotSchema = z
+  .object({
+    lotNumber: z.string().min(1, 'Lot number is required').max(100),
+    manufacturingDate: z.string().optional(),
+    expiryDate: z.string().min(1, 'Expiry date is required'),
+  })
+  .refine(
+    (data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate),
+    { message: 'Expiry date must be after manufacturing date', path: ['expiryDate'] },
+  );
 export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema>;
 
 export const addGoodsReceiptLineSchema = z.object({

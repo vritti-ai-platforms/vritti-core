@@ -5,6 +5,7 @@ export class InventoryItemLocationDto {
   inventoryItemId: string;
   locationId: string;
   locationName: string | null;
+  locationPath: string | null;
   reorderLevel: number;
   stockedQuantity: number;
   reservedQuantity: number;
@@ -16,6 +17,7 @@ export class InventoryItemLocationDto {
   static from(
     row: InventoryItemLocation & {
       locationName?: string | null;
+      locationPath?: string | null;
       stockedQuantity?: string | null;
       reservedQuantity?: string | null;
     },
@@ -25,6 +27,7 @@ export class InventoryItemLocationDto {
     dto.inventoryItemId = row.inventoryItemId;
     dto.locationId = row.locationId;
     dto.locationName = row.locationName ?? null;
+    dto.locationPath = row.locationPath ?? null;
     dto.reorderLevel = Number(row.reorderLevel);
     dto.stockedQuantity = Number(row.stockedQuantity ?? 0);
     dto.reservedQuantity = Number(row.reservedQuantity ?? 0);

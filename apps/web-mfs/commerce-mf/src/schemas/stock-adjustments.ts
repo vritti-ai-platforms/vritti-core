@@ -65,6 +65,7 @@ export interface StockAdjustmentLineData {
   stockAdjustmentLotId: string | null;
   locationId: string | null;
   locationName: string | null;
+  locationPath: string | null;
   // Lot info (denormalized from stock_adjustment_lots — for display)
   lotNumber: string | null;
   manufacturingDate: string | null;
@@ -75,6 +76,7 @@ export interface StockAdjustmentLineData {
   quantLotNumber: string | null;
   quantLocationId: string | null;
   quantLocationName: string | null;
+  quantLocationPath: string | null;
   quantTotalQuantity: number | null;
   quantReservedQuantity: number | null;
   quantAvailableQuantity: number | null;
@@ -142,11 +144,16 @@ export const createStockAdjustmentSchema = z.object({
 });
 export type CreateStockAdjustmentFormData = z.infer<typeof createStockAdjustmentSchema>;
 
-export const addStockAdjustmentLotSchema = z.object({
-  lotNumber: z.string().min(1, 'Lot number is required').max(100),
-  manufacturingDate: z.string().optional(),
-  expiryDate: z.string().optional(),
-});
+export const addStockAdjustmentLotSchema = z
+  .object({
+    lotNumber: z.string().min(1, 'Lot number is required').max(100),
+    manufacturingDate: z.string().optional(),
+    expiryDate: z.string().min(1, 'Expiry date is required'),
+  })
+  .refine(
+    (data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate),
+    { message: 'Expiry date must be after manufacturing date', path: ['expiryDate'] },
+  );
 export type AddStockAdjustmentLotFormData = z.infer<typeof addStockAdjustmentLotSchema>;
 
 // OPENING_STOCK lines (register intent)

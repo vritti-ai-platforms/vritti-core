@@ -15,7 +15,7 @@ export class InventoryItemLotsService {
     inventoryItemId: string;
     lotNumber: string;
     manufacturingDate?: string | null;
-    expiryDate?: string | null;
+    expiryDate: string;
   }): Promise<InventoryItemLot> {
     const existing = await this.repository.findByItemAndNumber(params.inventoryItemId, params.lotNumber);
     if (existing) return existing;
@@ -24,7 +24,7 @@ export class InventoryItemLotsService {
       inventoryItemId: params.inventoryItemId,
       lotNumber: params.lotNumber,
       manufacturingDate: params.manufacturingDate ?? null,
-      expiryDate: params.expiryDate ?? null,
+      expiryDate: params.expiryDate,
     });
   }
 

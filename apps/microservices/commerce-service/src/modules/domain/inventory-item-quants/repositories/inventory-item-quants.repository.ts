@@ -17,6 +17,7 @@ import {
 
 export type InventoryItemQuantWithRefs = InventoryItemQuant & {
   locationName: string | null;
+  locationPath: string | null;
   lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
@@ -47,6 +48,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         createdAt: inventoryItemQuants.createdAt,
         updatedAt: inventoryItemQuants.updatedAt,
         locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
@@ -76,6 +78,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         createdAt: inventoryItemQuants.createdAt,
         updatedAt: inventoryItemQuants.updatedAt,
         locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
@@ -227,6 +230,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     {
       locationId: string;
       locationName: string | null;
+      locationPath: string | null;
       stockedQuantity: string;
       reservedQuantity: string;
       availableQuantity: string;
@@ -237,6 +241,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       .select({
         locationId: inventoryLevels.locationId,
         locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
         stockedQuantity: inventoryLevels.stockedQuantity,
         reservedQuantity: inventoryLevels.reservedQuantity,
         availableQuantity: inventoryLevels.availableQuantity,

@@ -72,7 +72,7 @@ export class StockAdjustmentLotsService {
 
   async addLot(
     adjustmentId: string,
-    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate?: string | null },
+    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     const adjustment = await this.ensureAdjustment(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -115,7 +115,7 @@ export class StockAdjustmentLotsService {
       stockAdjustmentId: adjustmentId,
       lotNumber,
       manufacturingDate: data.manufacturingDate ?? null,
-      expiryDate: data.expiryDate ?? null,
+      expiryDate: data.expiryDate,
     });
 
     this.logger.log(`Added lot ${lotNumber} to adjustment ${adjustmentId}`);
@@ -134,7 +134,7 @@ export class StockAdjustmentLotsService {
   async updateLot(
     adjustmentId: string,
     lotId: string,
-    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string | null },
+    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string },
   ): Promise<StockAdjustmentLotDto> {
     const adjustment = await this.ensureAdjustment(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -173,7 +173,7 @@ export class StockAdjustmentLotsService {
     await this.repository.update(lotId, {
       ...(data.lotNumber !== undefined ? { lotNumber: data.lotNumber.trim() } : {}),
       ...(data.manufacturingDate !== undefined ? { manufacturingDate: data.manufacturingDate ?? null } : {}),
-      ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate ?? null } : {}),
+      ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate } : {}),
     });
 
     const rowsWithStats = await this.repository.findByAdjustmentId(adjustmentId);

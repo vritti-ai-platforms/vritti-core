@@ -10,7 +10,7 @@ import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateLocation } from '@/hooks/locations';
 import type { LocationData } from '@/schemas/locations';
-import { locationRoleValues, type LocationFormData, locationFormResolver } from '@/schemas/locations';
+import { LocationRoleLabels, LocationRoleValues, type LocationFormData, locationFormResolver } from '@/schemas/locations';
 
 interface EditLocationDialogProps {
   location: LocationData;
@@ -19,7 +19,7 @@ interface EditLocationDialogProps {
 }
 
 export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location, onSuccess, onCancel }) => {
-  const roleOptions = locationRoleValues.map((value) => ({ value, label: value }));
+  const roleOptions = Object.values(LocationRoleValues).map((value) => ({ value, label: LocationRoleLabels[value] }));
   const form = useForm<LocationFormData>({
     resolver: locationFormResolver,
     defaultValues: {

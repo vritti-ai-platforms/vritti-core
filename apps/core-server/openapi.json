@@ -5808,6 +5808,26 @@
                 "desc"
               ]
             }
+          },
+          {
+            "name": "locationRoles",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated location roles to filter options by",
+            "schema": {
+              "example": "STORAGE,RESERVED_STORAGE",
+              "type": "string"
+            }
+          },
+          {
+            "name": "inventoryItemId",
+            "required": false,
+            "in": "query",
+            "description": "When provided alongside RESERVED_STORAGE in locationRoles, restricts reserved bins to those linked to this inventory item via inventory_item_locations. Without this param, RESERVED_STORAGE bins are excluded entirely.",
+            "schema": {
+              "example": "b3f9a8c4-1234-4567-89ab-cdef01234567",
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -13392,12 +13412,13 @@
             "description": "Manufacturing date"
           },
           "expiryDate": {
-            "type": "object",
-            "description": "Expiry date"
+            "type": "string",
+            "description": "Expiry date (required)"
           }
         },
         "required": [
-          "lotNumber"
+          "lotNumber",
+          "expiryDate"
         ]
       },
       "UpdateGoodsReceiptLotDto": {
@@ -13413,9 +13434,8 @@
             "nullable": true
           },
           "expiryDate": {
-            "type": "object",
-            "description": "Expiry date",
-            "nullable": true
+            "type": "string",
+            "description": "Expiry date (cannot be cleared once set)"
           }
         }
       },
@@ -13729,7 +13749,7 @@
             "description": "Location role",
             "enum": [
               "STORAGE",
-              "POS",
+              "RESERVED_STORAGE",
               "ZONE"
             ],
             "default": "STORAGE"
@@ -13783,7 +13803,7 @@
             "description": "Updated location role",
             "enum": [
               "STORAGE",
-              "POS",
+              "RESERVED_STORAGE",
               "ZONE"
             ]
           },
@@ -15381,6 +15401,11 @@
             "description": "Linked storage location name",
             "nullable": true
           },
+          "locationPath": {
+            "type": "object",
+            "description": "Human-readable breadcrumb of the location path",
+            "nullable": true
+          },
           "description": {
             "type": "object",
             "description": "Terminal description",
@@ -15698,12 +15723,13 @@
             "description": "Manufacturing date"
           },
           "expiryDate": {
-            "type": "object",
-            "description": "Expiry date"
+            "type": "string",
+            "description": "Expiry date (required)"
           }
         },
         "required": [
-          "lotNumber"
+          "lotNumber",
+          "expiryDate"
         ]
       },
       "UpdateStockAdjustmentLotDto": {
@@ -15718,8 +15744,8 @@
             "description": "Manufacturing date"
           },
           "expiryDate": {
-            "type": "object",
-            "description": "Expiry date"
+            "type": "string",
+            "description": "Expiry date (cannot be cleared once set)"
           }
         }
       },

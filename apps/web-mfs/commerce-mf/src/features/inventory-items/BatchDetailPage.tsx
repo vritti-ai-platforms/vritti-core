@@ -71,7 +71,11 @@ export const BatchDetailPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={`Batch ${batch.batchNumber ?? 'Auto'}`}
-        description={`Location: ${batch.locationName ?? '—'}`}
+        description={
+          batch.locationPath
+            ? `${batch.locationPath} › ${batch.locationName ?? ''}`
+            : (batch.locationName ?? '—')
+        }
         actions={
           batch.canDelete ? (
             <Button
@@ -102,6 +106,9 @@ export const BatchDetailPage = () => {
                     <div>
                       <dt className="text-sm text-muted-foreground">Location</dt>
                       <dd className="mt-1 font-medium">{batch.locationName ?? '—'}</dd>
+                      {batch.locationPath && (
+                        <dd className="text-xs text-muted-foreground">{batch.locationPath}</dd>
+                      )}
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Batch Number</dt>

@@ -3,30 +3,28 @@ import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
+import { LocationsTab } from './tabs/LocationsTab';
 import { LotsTab } from './tabs/LotsTab';
 import { OverviewTab } from './tabs/OverviewTab';
-import { LocationsTab } from './tabs/LocationsTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
 import { UomConversionsTab } from './tabs/UomConversionsTab';
 
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
   const navigate = useNavigate();
-  const { data: item, isLoading } = useInventoryItem(id ?? null);
+  const { data: item } = useInventoryItem(id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = useDeleteInventoryItem();
 
   const handleDelete = async () => {
-    if (!item) return;
     const confirmed = await confirm({
       title: `Delete "${item.name}"?`,
       description: 'This inventory item and all its batches and ledger entries will be permanently removed.',
@@ -35,20 +33,6 @@ export const InventoryItemDetailPage = () => {
     });
     if (confirmed) deleteMutation.mutate(item.id, { onSuccess: () => navigate('..') });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (!item) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">Inventory item not found.</div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -77,9 +61,7 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'uom-conversions',
             label: 'UOM Conversions',
-            content: (
-              <UomConversionsTab itemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol ?? ''} />
-            ),
+            content: <UomConversionsTab itemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol ?? ''} />,
           },
           {
             value: 'suppliers',

@@ -94,7 +94,7 @@ export class PosTerminalsService {
       values: query.values,
       excludeIds: query.excludeIds,
       where: {
-        locationRole: LocationRoleValues.POS,
+        locationRole: LocationRoleValues.RESERVED_STORAGE,
       },
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
@@ -157,8 +157,8 @@ export class PosTerminalsService {
     const location = await this.locationsRepository.findById(locationId);
     if (!location) throw new NotFoundException('Storage location not found.');
 
-    if (location.locationRole !== LocationRoleValues.POS) {
-      throw new BadRequestException('POS terminal must be linked to a POS storage location.');
+    if (location.locationRole !== LocationRoleValues.RESERVED_STORAGE) {
+      throw new BadRequestException('POS terminal must be linked to a reserved storage location.');
     }
 
     if (!location.isActive) {

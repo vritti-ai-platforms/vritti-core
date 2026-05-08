@@ -1,10 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLine } from '@/hooks/stock-adjustments';
+import { LocationRoleValues } from '@/schemas/locations';
 import {
   type AddOpeningStockLineFormData,
   addOpeningStockLineSchema,
@@ -13,6 +15,7 @@ import {
 
 interface AddOpeningLineFormProps {
   adjustmentId: string;
+  inventoryItemId: string;
   stockAdjustmentLotId: string | null;
   tracking: InventoryTracking;
   onSuccess: () => void;
@@ -21,6 +24,7 @@ interface AddOpeningLineFormProps {
 
 export const AddOpeningLineForm = ({
   adjustmentId,
+  inventoryItemId,
   stockAdjustmentLotId,
   tracking,
   onSuccess,
@@ -52,12 +56,15 @@ export const AddOpeningLineForm = ({
         quantity: Number(data.quantity || 0),
       })}
     >
-      <LocationSelector name="locationId" label="Location" placeholder="Select location" />
+      <LocationSelector
+        name="locationId"
+        label="Location"
+        placeholder="Select location"
+        params={{ locationRoles: LocationRoleValues.STORAGE, inventoryItemId }}
+      />
       {!isItem && <TextField name="quantity" label="Quantity" type="number" positive nonZero />}
       {isItem && (
-        <p className="text-xs text-muted-foreground">
-          Quantity is derived from the number of serials added to this line.
-        </p>
+        <Alert variant="info" description="Quantity is derived from the number of serials added to this line." />
       )}
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

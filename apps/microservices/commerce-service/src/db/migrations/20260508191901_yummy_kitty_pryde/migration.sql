@@ -1,0 +1,2 @@
+ALTER TABLE "vritti_core"."locations" DROP CONSTRAINT "uq_locations_bu_code";--> statement-breakpoint
+ALTER TABLE "vritti_core"."locations" ADD CONSTRAINT "uq_locations_bu_parent_code" UNIQUE("business_unit_id","parent_id","code");

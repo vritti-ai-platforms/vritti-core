@@ -9,6 +9,7 @@ export class StockAdjustmentLineDto {
   stockAdjustmentLotId: string | null;
   locationId: string | null;
   locationName: string | null;
+  locationPath: string | null;
 
   // Lot info (denormalized from stock_adjustment_lots — for display)
   lotNumber: string | null;
@@ -21,6 +22,7 @@ export class StockAdjustmentLineDto {
   quantLotNumber: string | null;
   quantLocationId: string | null;
   quantLocationName: string | null;
+  quantLocationPath: string | null;
   quantTotalQuantity: number | null;
   quantReservedQuantity: number | null;
   quantAvailableQuantity: number | null;
@@ -40,6 +42,7 @@ export class StockAdjustmentLineDto {
     dto.stockAdjustmentLotId = row.stockAdjustmentLotId ?? null;
     dto.locationId = row.locationId ?? null;
     dto.locationName = row.locationName ?? null;
+    dto.locationPath = row.locationPath ?? null;
     dto.lotNumber = row.lotNumber ?? null;
     dto.manufacturingDate = row.lotManufacturingDate ?? null;
     dto.expiryDate = row.lotExpiryDate ?? null;
@@ -47,6 +50,7 @@ export class StockAdjustmentLineDto {
     dto.quantLotNumber = row.quantLotNumber ?? null;
     dto.quantLocationId = row.quantLocationId ?? null;
     dto.quantLocationName = row.quantLocationName ?? null;
+    dto.quantLocationPath = row.quantLocationPath ?? null;
     dto.quantTotalQuantity = row.quantTotalQuantity != null ? Number(row.quantTotalQuantity) : null;
     dto.quantReservedQuantity = row.quantReservedQuantity != null ? Number(row.quantReservedQuantity) : null;
     dto.quantAvailableQuantity =

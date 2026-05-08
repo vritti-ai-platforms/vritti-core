@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateGoodsReceiptLotDto {
   @ApiPropertyOptional({ description: 'Lot number' })
@@ -13,8 +13,9 @@ export class UpdateGoodsReceiptLotDto {
   @IsDateString()
   manufacturingDate?: string | null;
 
-  @ApiPropertyOptional({ description: 'Expiry date', nullable: true })
+  @ApiPropertyOptional({ description: 'Expiry date (cannot be cleared once set)' })
   @IsOptional()
   @IsDateString()
-  expiryDate?: string | null;
+  @IsNotEmpty()
+  expiryDate?: string;
 }

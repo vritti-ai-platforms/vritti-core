@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  inventoryItemLocations,
   inventoryItemQuants,
   type LocationRole,
   locations,
@@ -17,6 +18,15 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
   async countAll(): Promise<number> {
     const [result] = await this.db.select({ count: sql<number>`count(*)` }).from(locations);
     return Number(result?.count ?? 0);
+  }
+
+  // Returns a subquery resolving to the location IDs the given inventory item is allowed to use,
+  // based on inventory_item_locations rows. Used by the RESERVED_STORAGE filter in findForSelect.
+  allowedReservedLocationIdsSubquery(inventoryItemId: string) {
+    return this.db
+      .select({ id: inventoryItemLocations.locationId })
+      .from(inventoryItemLocations)
+      .where(eq(inventoryItemLocations.inventoryItemId, inventoryItemId));
   }
 
   // Returns hierarchy rows ordered in tree order using a recursive CTE

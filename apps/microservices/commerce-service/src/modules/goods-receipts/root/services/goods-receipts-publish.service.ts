@@ -73,11 +73,16 @@ export class GoodsReceiptsPublishService {
 
         const lotInfo =
           requiresLot && line.lotNumber
-            ? {
-                lotNumber: line.lotNumber,
-                manufacturingDate: line.lotManufacturingDate ?? null,
-                expiryDate: line.lotExpiryDate ?? null,
-              }
+            ? (() => {
+                if (!line.lotExpiryDate) {
+                  throw new BadRequestException(`Line ${line.id} lot is missing expiry date.`);
+                }
+                return {
+                  lotNumber: line.lotNumber,
+                  manufacturingDate: line.lotManufacturingDate ?? null,
+                  expiryDate: line.lotExpiryDate,
+                };
+              })()
             : undefined;
 
         const serials = isSerialBearing

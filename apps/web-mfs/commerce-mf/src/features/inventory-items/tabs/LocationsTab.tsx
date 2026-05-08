@@ -50,6 +50,14 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol })
         enableSorting: true,
       },
       {
+        accessorKey: 'locationPath',
+        header: 'Path',
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
+        ),
+        enableSorting: false,
+      },
+      {
         accessorKey: 'reorderLevel',
         header: 'Min. Stock Level',
         cell: ({ row }) => (

@@ -20,7 +20,8 @@ export interface PosTerminalData {
   name: string;
   code: string;
   locationId: string;
-  storageLocationName: string | null;
+  locationName: string | null;
+  locationPath: string | null;
   description: string | null;
   isActive: boolean;
   createdAt: string;

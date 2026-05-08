@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
+import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
@@ -44,12 +45,12 @@ const EditLotForm = ({
       transformSubmit={(data) => ({
         lotNumber: data.lotNumber.trim(),
         manufacturingDate: data.manufacturingDate?.trim() || null,
-        expiryDate: data.expiryDate?.trim() || null,
+        expiryDate: data.expiryDate.trim(),
       })}
     >
       <TextField name="lotNumber" label="Lot Number" placeholder="e.g. ABC-2024-001" />
-      <TextField name="manufacturingDate" label="Manufacturing Date" type="date" />
-      <TextField name="expiryDate" label="Expiry Date" type="date" />
+      <DatePicker name="manufacturingDate" label="Manufacturing Date" />
+      <DatePicker name="expiryDate" label="Expiry Date" />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>

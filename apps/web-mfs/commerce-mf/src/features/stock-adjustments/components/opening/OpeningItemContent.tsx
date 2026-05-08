@@ -36,6 +36,7 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
       {selectedLineId ? (
         <SerialsTable
           adjustmentId={adjustment.id}
+          inventoryItemId={adjustment.inventoryItemId}
           line={selectedLine}
           isDraft={isDraft}
           onLineRemoved={() => setSelectedLineId(null)}
@@ -44,6 +45,7 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
         <PageContentDetails>
           <LotDetailPanel
             adjustmentId={adjustment.id}
+            inventoryItemId={adjustment.inventoryItemId}
             lotId={selectedLotId}
             tracking="lot_serial"
             isDraft={isDraft}

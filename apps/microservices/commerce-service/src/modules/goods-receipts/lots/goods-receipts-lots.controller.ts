@@ -24,7 +24,7 @@ export class GoodsReceiptsLotsController {
       itemId: string;
       lotNumber: string;
       manufacturingDate?: string | null;
-      expiryDate?: string | null;
+      expiryDate: string;
     },
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     this.logger.log(`goodsReceipts.addLot — item: ${data.itemId}`);
@@ -44,7 +44,7 @@ export class GoodsReceiptsLotsController {
       lotId: string;
       lotNumber?: string;
       manufacturingDate?: string | null;
-      expiryDate?: string | null;
+      expiryDate?: string;
     },
   ): Promise<GoodsReceiptLotDto> {
     this.logger.log(`goodsReceipts.updateLot — lot: ${data.lotId}`);
