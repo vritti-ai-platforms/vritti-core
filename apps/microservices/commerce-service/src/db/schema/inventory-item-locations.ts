@@ -2,7 +2,7 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { decimal, index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
-import { storageLocations } from './storage-locations';
+import { locations } from './locations';
 
 export const inventoryItemLocations = coreSchema.table(
   'inventory_item_locations',
@@ -15,7 +15,7 @@ export const inventoryItemLocations = coreSchema.table(
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     locationId: uuid('location_id')
       .notNull()
-      .references(() => storageLocations.id, { onDelete: 'cascade' }),
+      .references(() => locations.id, { onDelete: 'cascade' }),
     reorderLevel: decimal('reorder_level', { precision: 12, scale: 3 }).notNull().default('0'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

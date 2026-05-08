@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const posTerminalFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   code: z.string().min(1, 'Code is required').max(50, 'Code cannot exceed 50 characters'),
-  storageLocationId: z.string().min(1, 'POS storage location is required'),
+  locationId: z.string().min(1, 'POS storage location is required'),
   // form-only, not in DTO
   priceListId: z.string().optional(),
   description: z.string().max(500, 'Description cannot exceed 500 characters').optional(),
@@ -19,7 +19,7 @@ export interface PosTerminalData {
   businessUnitId: string;
   name: string;
   code: string;
-  storageLocationId: string;
+  locationId: string;
   storageLocationName: string | null;
   description: string | null;
   isActive: boolean;
@@ -33,7 +33,7 @@ export type CreatePosTerminalResponse = CreateResponse<PosTerminalData>;
 export interface CreatePosTerminalData {
   name: string;
   code: string;
-  storageLocationId: string;
+  locationId: string;
   description?: string;
   isActive?: boolean;
 }
@@ -41,7 +41,7 @@ export interface CreatePosTerminalData {
 export interface UpdatePosTerminalData {
   name?: string;
   code?: string;
-  storageLocationId?: string;
+  locationId?: string;
   description?: string | null;
   isActive?: boolean;
 }

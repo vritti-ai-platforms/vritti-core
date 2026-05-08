@@ -5,7 +5,7 @@ import {
   type InventoryItemLocation,
   inventoryItemLocations,
   inventoryItemQuants,
-  storageLocations,
+  locations,
 } from '@/db/schema';
 
 @Injectable()
@@ -38,9 +38,9 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
         reorderLevel: inventoryItemLocations.reorderLevel,
         createdAt: inventoryItemLocations.createdAt,
         updatedAt: inventoryItemLocations.updatedAt,
-        locationName: storageLocations.name,
+        locationName: locations.name,
       },
-      leftJoins: [{ table: storageLocations, on: eq(inventoryItemLocations.locationId, storageLocations.id) }],
+      leftJoins: [{ table: locations, on: eq(inventoryItemLocations.locationId, locations.id) }],
       where: combinedWhere,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(inventoryItemLocations.createdAt)],
       limit: options.limit,
@@ -115,12 +115,12 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
         reorderLevel: inventoryItemLocations.reorderLevel,
         createdAt: inventoryItemLocations.createdAt,
         updatedAt: inventoryItemLocations.updatedAt,
-        locationName: storageLocations.name,
+        locationName: locations.name,
         stockedQuantity: stockAgg.stockedQuantity,
         reservedQuantity: stockAgg.reservedQuantity,
       })
       .from(inventoryItemLocations)
-      .leftJoin(storageLocations, eq(inventoryItemLocations.locationId, storageLocations.id))
+      .leftJoin(locations, eq(inventoryItemLocations.locationId, locations.id))
       .leftJoin(
         stockAgg,
         and(

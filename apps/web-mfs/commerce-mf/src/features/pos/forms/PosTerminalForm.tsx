@@ -26,14 +26,14 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
       ? {
           name: terminal.name,
           code: terminal.code,
-          storageLocationId: terminal.storageLocationId,
+          locationId: terminal.locationId,
           description: terminal.description ?? '',
           isActive: terminal.isActive,
         }
       : {
           name: '',
           code: '',
-          storageLocationId: '',
+          locationId: '',
           priceListId: '',
           description: '',
           isActive: true,
@@ -50,7 +50,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
         id: terminal!.id,
         data: {
           name: data.name,
-          storageLocationId: data.storageLocationId,
+          locationId: data.locationId,
           description: data.description?.trim() ? data.description.trim() : null,
           isActive: data.isActive,
         },
@@ -61,7 +61,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
     const result = await createMutation.mutateAsync({
       name: data.name,
       code: data.code,
-      storageLocationId: data.storageLocationId,
+      locationId: data.locationId,
       description: data.description?.trim() ? data.description.trim() : undefined,
     });
 
@@ -84,11 +84,11 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
         </div>
 
         <Select
-          name="storageLocationId"
-          label="POS Storage Location"
+          name="locationId"
+          label="POS Location"
           placeholder="Select location"
           searchable
-          optionsEndpoint="commerce-api/pos-terminals/storage-locations/select"
+          optionsEndpoint="commerce-api/pos-terminals/locations/select"
           fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
           description="Only storage locations with role POS are listed."
         />

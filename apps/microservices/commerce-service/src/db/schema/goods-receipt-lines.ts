@@ -4,7 +4,7 @@ import { coreSchema } from './core-schema';
 import { goodsReceiptItems } from './goods-receipt-items';
 import { goodsReceiptLots } from './goods-receipt-lots';
 import { inventoryItemQuants } from './inventory-item-quants';
-import { storageLocations } from './storage-locations';
+import { locations } from './locations';
 
 export const goodsReceiptLines = coreSchema.table(
   'goods_receipt_lines',
@@ -19,7 +19,7 @@ export const goodsReceiptLines = coreSchema.table(
     goodsReceiptLotId: uuid('goods_receipt_lot_id').references(() => goodsReceiptLots.id, { onDelete: 'cascade' }),
     locationId: uuid('location_id')
       .notNull()
-      .references(() => storageLocations.id),
+      .references(() => locations.id),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),

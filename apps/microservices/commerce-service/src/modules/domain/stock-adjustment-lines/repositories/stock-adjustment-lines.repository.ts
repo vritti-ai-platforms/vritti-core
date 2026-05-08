@@ -8,7 +8,7 @@ import {
   type StockAdjustmentLine,
   stockAdjustmentLines,
   stockAdjustmentLots,
-  storageLocations,
+  locations,
 } from '@/db/schema';
 
 export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
@@ -169,7 +169,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         metadata: stockAdjustmentLines.metadata,
         createdAt: stockAdjustmentLines.createdAt,
         updatedAt: stockAdjustmentLines.updatedAt,
-        locationName: storageLocations.name,
+        locationName: locations.name,
         // Lot info (for OPENING register lines):
         lotNumber: stockAdjustmentLots.lotNumber,
         lotManufacturingDate: stockAdjustmentLots.manufacturingDate,
@@ -178,7 +178,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         quantLotNumber: inventoryItemLots.lotNumber,
         quantLocationId: inventoryItemQuants.locationId,
         quantLocationName: sql<string | null>`(
-          SELECT name FROM vritti_core.storage_locations WHERE id = ${inventoryItemQuants.locationId}
+          SELECT name FROM vritti_core.locations WHERE id = ${inventoryItemQuants.locationId}
         )`,
         quantTotalQuantity: inventoryItemQuants.quantity,
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,
@@ -186,7 +186,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
       })
       .from(stockAdjustmentLines)
       .leftJoin(stockAdjustmentLots, eq(stockAdjustmentLines.stockAdjustmentLotId, stockAdjustmentLots.id))
-      .leftJoin(storageLocations, eq(stockAdjustmentLines.locationId, storageLocations.id))
+      .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
       .leftJoin(inventoryItemQuants, eq(stockAdjustmentLines.quantId, inventoryItemQuants.id))
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
       .where(where ?? sql`TRUE`)

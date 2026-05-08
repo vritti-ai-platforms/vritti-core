@@ -33,7 +33,7 @@ export function ApiSelect() {
   );
 }
 
-export function ApiSelectStorageLocations() {
+export function ApiSelectLocations() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get POS-role storage location select options',

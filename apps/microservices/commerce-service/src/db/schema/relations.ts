@@ -72,7 +72,7 @@ export const relations = defineRelations(schema, (r) => ({
     stockTransfers: r.many.stockTransfers(),
     inventoryItemLocations: r.many.inventoryItemLocations(),
   },
-  storageLocations: {
+  locations: {
     inventoryItemQuants: r.many.inventoryItemQuants(),
     inventoryItemLocations: r.many.inventoryItemLocations(),
     stockAdjustmentLines: r.many.stockAdjustmentLines(),
@@ -80,9 +80,9 @@ export const relations = defineRelations(schema, (r) => ({
     posTerminals: r.many.posTerminals(),
   },
   posTerminals: {
-    location: r.one.storageLocations({
-      from: r.posTerminals.storageLocationId,
-      to: r.storageLocations.id,
+    location: r.one.locations({
+      from: r.posTerminals.locationId,
+      to: r.locations.id,
     }),
     terminalPriceLists: r.many.terminalPriceLists(),
   },
@@ -115,9 +115,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItemQuants.inventoryItemId,
       to: r.inventoryItems.id,
     }),
-    location: r.one.storageLocations({
+    location: r.one.locations({
       from: r.inventoryItemQuants.locationId,
-      to: r.storageLocations.id,
+      to: r.locations.id,
     }),
     lot: r.one.inventoryItemLots({
       from: r.inventoryItemQuants.lotId,
@@ -246,9 +246,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.goodsReceiptLines.goodsReceiptLotId,
       to: r.goodsReceiptLots.id,
     }),
-    location: r.one.storageLocations({
+    location: r.one.locations({
       from: r.goodsReceiptLines.locationId,
-      to: r.storageLocations.id,
+      to: r.locations.id,
     }),
     resolvedQuant: r.one.inventoryItemQuants({
       from: r.goodsReceiptLines.resolvedQuantId,
@@ -322,9 +322,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.stockAdjustmentLines.quantId,
       to: r.inventoryItemQuants.id,
     }),
-    location: r.one.storageLocations({
+    location: r.one.locations({
       from: r.stockAdjustmentLines.locationId,
-      to: r.storageLocations.id,
+      to: r.locations.id,
     }),
     resolvedQuant: r.one.inventoryItemQuants({
       from: r.stockAdjustmentLines.resolvedQuantId,
@@ -413,9 +413,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItemLocations.inventoryItemId,
       to: r.inventoryItems.id,
     }),
-    location: r.one.storageLocations({
+    location: r.one.locations({
       from: r.inventoryItemLocations.locationId,
-      to: r.storageLocations.id,
+      to: r.locations.id,
     }),
   },
 }));

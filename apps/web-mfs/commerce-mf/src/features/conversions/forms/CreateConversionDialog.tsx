@@ -3,7 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { BomSelector } from '@vritti/quantum-ui/selects/bom';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
-import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
+import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { Plus, Trash2 } from 'lucide-react';
@@ -60,7 +60,7 @@ export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ 
       })}
     >
       <BomSelector name="bomId" label="BOM (Optional)" placeholder="Select BOM" />
-      <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
+      <LocationSelector name="locationId" label="Location" placeholder="Select location" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
 
       <div className="space-y-3">

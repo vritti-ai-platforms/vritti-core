@@ -5600,9 +5600,9 @@
         ]
       }
     },
-    "/commerce-api/storage-locations/count": {
+    "/commerce-api/locations/count": {
       "get": {
-        "operationId": "StorageLocationsGatewayController_count",
+        "operationId": "LocationsGatewayController_count",
         "parameters": [],
         "responses": {
           "200": {
@@ -5619,9 +5619,9 @@
         ]
       }
     },
-    "/commerce-api/storage-locations/tree": {
+    "/commerce-api/locations/tree": {
       "get": {
-        "operationId": "StorageLocationsGatewayController_findTree",
+        "operationId": "LocationsGatewayController_findTree",
         "parameters": [
           {
             "name": "search",
@@ -5647,9 +5647,9 @@
         ]
       }
     },
-    "/commerce-api/storage-locations/{parentId}/children/table": {
+    "/commerce-api/locations/{parentId}/children/table": {
       "get": {
-        "operationId": "StorageLocationsGatewayController_childrenTable",
+        "operationId": "LocationsGatewayController_childrenTable",
         "parameters": [
           {
             "name": "parentId",
@@ -5675,9 +5675,9 @@
         ]
       }
     },
-    "/commerce-api/storage-locations/select": {
+    "/commerce-api/locations/select": {
       "get": {
-        "operationId": "StorageLocationsGatewayController_select",
+        "operationId": "LocationsGatewayController_select",
         "parameters": [
           {
             "name": "search",
@@ -5825,16 +5825,16 @@
         ]
       }
     },
-    "/commerce-api/storage-locations/reorder": {
+    "/commerce-api/locations/reorder": {
       "post": {
-        "operationId": "StorageLocationsGatewayController_reorder",
+        "operationId": "LocationsGatewayController_reorder",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReorderStorageLocationsDto"
+                "$ref": "#/components/schemas/ReorderLocationsDto"
               }
             }
           }
@@ -5854,9 +5854,9 @@
         ]
       }
     },
-    "/commerce-api/storage-locations/{id}": {
+    "/commerce-api/locations/{id}": {
       "get": {
-        "operationId": "StorageLocationsGatewayController_findById",
+        "operationId": "LocationsGatewayController_findById",
         "parameters": [
           {
             "name": "id",
@@ -5882,7 +5882,7 @@
         ]
       },
       "patch": {
-        "operationId": "StorageLocationsGatewayController_update",
+        "operationId": "LocationsGatewayController_update",
         "parameters": [
           {
             "name": "id",
@@ -5898,7 +5898,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateStorageLocationDto"
+                "$ref": "#/components/schemas/UpdateLocationDto"
               }
             }
           }
@@ -5918,7 +5918,7 @@
         ]
       },
       "delete": {
-        "operationId": "StorageLocationsGatewayController_delete",
+        "operationId": "LocationsGatewayController_delete",
         "parameters": [
           {
             "name": "id",
@@ -5944,16 +5944,16 @@
         ]
       }
     },
-    "/commerce-api/storage-locations": {
+    "/commerce-api/locations": {
       "post": {
-        "operationId": "StorageLocationsGatewayController_create",
+        "operationId": "LocationsGatewayController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateStorageLocationDto"
+                "$ref": "#/components/schemas/CreateLocationDto"
               }
             }
           }
@@ -7930,10 +7930,10 @@
         ]
       }
     },
-    "/commerce-api/pos-terminals/storage-locations/select": {
+    "/commerce-api/pos-terminals/locations/select": {
       "get": {
         "description": "Returns paginated POS-role storage location options for select dropdowns.",
-        "operationId": "PosTerminalsGatewayController_selectStorageLocations",
+        "operationId": "PosTerminalsGatewayController_selectLocations",
         "parameters": [
           {
             "name": "search",
@@ -13668,7 +13668,7 @@
           }
         }
       },
-      "ReorderStorageLocationsDto": {
+      "ReorderLocationsDto": {
         "type": "object",
         "properties": {
           "parentId": {
@@ -13688,7 +13688,7 @@
           "orderedIds"
         ]
       },
-      "CreateStorageLocationDto": {
+      "CreateLocationDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -13746,7 +13746,7 @@
           "locationRole"
         ]
       },
-      "UpdateStorageLocationDto": {
+      "UpdateLocationDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -15372,11 +15372,11 @@
             "description": "Terminal code",
             "example": "POS-CTR-1"
           },
-          "storageLocationId": {
+          "locationId": {
             "type": "string",
             "description": "Linked storage location ID"
           },
-          "storageLocationName": {
+          "locationName": {
             "type": "object",
             "description": "Linked storage location name",
             "nullable": true
@@ -15405,7 +15405,7 @@
           "businessUnitId",
           "name",
           "code",
-          "storageLocationId",
+          "locationId",
           "isActive",
           "createdAt",
           "updatedAt"
@@ -15451,7 +15451,7 @@
             "description": "POS terminal code",
             "example": "POS-CTR-1"
           },
-          "storageLocationId": {
+          "locationId": {
             "type": "string",
             "description": "Linked POS storage location ID"
           },
@@ -15469,7 +15469,7 @@
         "required": [
           "name",
           "code",
-          "storageLocationId"
+          "locationId"
         ]
       },
       "UpdatePosTerminalDto": {
@@ -15485,7 +15485,7 @@
             "description": "POS terminal code",
             "example": "POS-CTR-1"
           },
-          "storageLocationId": {
+          "locationId": {
             "type": "string",
             "description": "Linked POS storage location ID"
           },

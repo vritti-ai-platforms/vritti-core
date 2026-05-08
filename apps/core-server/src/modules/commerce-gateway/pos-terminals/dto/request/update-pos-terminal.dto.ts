@@ -20,7 +20,7 @@ export class UpdatePosTerminalDto {
   @ApiPropertyOptional({ description: 'Linked POS storage location ID' })
   @IsOptional()
   @IsUUID()
-  storageLocationId?: string;
+  locationId?: string;
 
   @ApiPropertyOptional({ description: 'Terminal description', nullable: true })
   @IsOptional()

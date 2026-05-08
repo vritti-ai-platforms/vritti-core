@@ -9,7 +9,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItemLocations, storageLocations } from '@/db/schema';
+import { inventoryItemLocations, locations } from '@/db/schema';
 import { InventoryItemLocationDto } from '../dto/entity/inventory-item-location.dto';
 import { InventoryItemLocationsRepository } from '../repositories/inventory-item-locations.repository';
 
@@ -18,7 +18,7 @@ export class InventoryItemLocationsService {
   private readonly logger = new Logger(InventoryItemLocationsService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
-    locationName: { column: storageLocations.name, type: 'string' },
+    locationName: { column: locations.name, type: 'string' },
     reorderLevel: { column: inventoryItemLocations.reorderLevel, type: 'string' },
   };
 

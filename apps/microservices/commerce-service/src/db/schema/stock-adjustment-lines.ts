@@ -4,7 +4,7 @@ import { coreSchema } from './core-schema';
 import { inventoryItemQuants } from './inventory-item-quants';
 import { stockAdjustmentLots } from './stock-adjustment-lots';
 import { stockAdjustments } from './stock-adjustments';
-import { storageLocations } from './storage-locations';
+import { locations } from './locations';
 
 export const stockAdjustmentLines = coreSchema.table(
   'stock_adjustment_lines',
@@ -20,7 +20,7 @@ export const stockAdjustmentLines = coreSchema.table(
     stockAdjustmentLotId: uuid('stock_adjustment_lot_id').references(() => stockAdjustmentLots.id, {
       onDelete: 'cascade',
     }),
-    locationId: uuid('location_id').references(() => storageLocations.id),
+    locationId: uuid('location_id').references(() => locations.id),
     // Change intent (deduct + CORRECTION):
     quantId: uuid('quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     // Always set:

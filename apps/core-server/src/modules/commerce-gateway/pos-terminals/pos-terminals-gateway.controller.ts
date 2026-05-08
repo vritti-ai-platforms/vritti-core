@@ -14,7 +14,7 @@ import {
   ApiDelete,
   ApiFindById,
   ApiSelect,
-  ApiSelectStorageLocations,
+  ApiSelectLocations,
   ApiTable,
   ApiUpdate,
 } from './docs/pos-terminals-gateway.docs';
@@ -50,11 +50,11 @@ export class PosTerminalsGatewayController {
   }
 
   // Returns POS-role storage location options for select dropdowns
-  @Get('storage-locations/select')
-  @ApiSelectStorageLocations()
-  selectStorageLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/pos-terminals/storage-locations/select');
-    return this.posTerminalsGatewayService.selectPosStorageLocations(query);
+  @Get('locations/select')
+  @ApiSelectLocations()
+  selectLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('GET /commerce-api/pos-terminals/locations/select');
+    return this.posTerminalsGatewayService.selectPosLocations(query);
   }
 
   // Returns a single POS terminal by ID

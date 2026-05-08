@@ -15,7 +15,7 @@ export class UpdatePosTerminalDto {
 
   @IsOptional()
   @IsUUID()
-  storageLocationId?: string;
+  locationId?: string;
 
   @IsOptional()
   @IsString()

@@ -3,7 +3,7 @@ import { decimal, index, pgPolicy, timestamp, uuid } from '@vritti/api-sdk/drizz
 import { coreSchema } from './core-schema';
 import { inventoryItemLots } from './inventory-item-lots';
 import { inventoryItems } from './inventory-items';
-import { storageLocations } from './storage-locations';
+import { locations } from './locations';
 import { suppliers } from './suppliers';
 
 export const inventoryItemQuants = coreSchema.table(
@@ -17,7 +17,7 @@ export const inventoryItemQuants = coreSchema.table(
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     locationId: uuid('location_id')
       .notNull()
-      .references(() => storageLocations.id),
+      .references(() => locations.id),
     lotId: uuid('lot_id').references(() => inventoryItemLots.id, { onDelete: 'restrict' }),
     supplierId: uuid('supplier_id').references(() => suppliers.id, { onDelete: 'restrict' }),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull().default('0'),

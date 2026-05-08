@@ -21,7 +21,7 @@ import {
   type InventoryLedgerType,
   type InventoryTracking,
   InventoryTrackingValues,
-  storageLocations,
+  locations,
 } from '@/db/schema';
 import { InventoryItemQuantDto, LocationStockDto } from '../dto/entity/inventory-item-quant.dto';
 import { InventoryItemQuantsRepository } from '../repositories/inventory-item-quants.repository';
@@ -46,7 +46,7 @@ export class InventoryItemQuantsService {
   private readonly logger = new Logger(InventoryItemQuantsService.name);
 
   private static readonly BATCHES_FIELD_MAP: FieldMap = {
-    locationName: { column: storageLocations.name, type: 'string' },
+    locationName: { column: locations.name, type: 'string' },
   };
 
   constructor(
@@ -387,16 +387,16 @@ export class InventoryItemQuantsService {
       orderByKey: query.orderByKey || 'createdAt',
       orderDirection: query.orderDirection || 'desc',
       where: { inventoryItemId: query.inventoryItemId },
-      groupTable: query.groupIdKey === 'locationId' ? storageLocations : undefined,
+      groupTable: query.groupIdKey === 'locationId' ? locations : undefined,
       groupIdKey: query.groupIdKey === 'locationId' ? 'id' : undefined,
       groupLabelKey: query.groupIdKey === 'locationId' ? 'name' : undefined,
       joins: [
-        { table: storageLocations, on: eq(inventoryItemQuants.locationId, storageLocations.id), type: 'left' },
+        { table: locations, on: eq(inventoryItemQuants.locationId, locations.id), type: 'left' },
         { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id), type: 'left' },
       ],
       conditions: search
         ? [
-            or(ilike(storageLocations.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL,
+            or(ilike(locations.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL,
           ]
         : undefined,
     });

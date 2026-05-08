@@ -42,9 +42,9 @@ export class PosTerminalsGatewayService {
   }
 
   // Returns POS-role storage location options for select dropdowns
-  selectPosStorageLocations(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('posTerminals.storageLocationsSelect');
-    return this.nats.send('commerce', 'posTerminals.storageLocationsSelect', query);
+  selectPosLocations(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('posTerminals.locationsSelect');
+    return this.nats.send('commerce', 'posTerminals.locationsSelect', query);
   }
 
   // Returns a single POS terminal by ID

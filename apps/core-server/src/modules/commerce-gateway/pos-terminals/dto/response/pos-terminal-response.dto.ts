@@ -17,10 +17,10 @@ export class PosTerminalResponseDto {
   code: string;
 
   @ApiProperty({ description: 'Linked storage location ID' })
-  storageLocationId: string;
+  locationId: string;
 
   @ApiPropertyOptional({ description: 'Linked storage location name', nullable: true })
-  storageLocationName: string | null;
+  locationName: string | null;
 
   @ApiPropertyOptional({ description: 'Terminal description', nullable: true })
   description: string | null;

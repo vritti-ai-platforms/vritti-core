@@ -12,7 +12,7 @@ import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/inventory-item
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { LotsTab } from './tabs/LotsTab';
 import { OverviewTab } from './tabs/OverviewTab';
-import { StorageLocationsTab } from './tabs/StorageLocationsTab';
+import { LocationsTab } from './tabs/LocationsTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
 import { UomConversionsTab } from './tabs/UomConversionsTab';
 
@@ -70,9 +70,9 @@ export const InventoryItemDetailPage = () => {
             content: <OverviewTab item={item} />,
           },
           {
-            value: 'storage-locations',
-            label: 'Storage Locations',
-            content: <StorageLocationsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+            value: 'locations',
+            label: 'Locations',
+            content: <LocationsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'uom-conversions',

@@ -33,10 +33,10 @@ export class PosTerminalsController {
   }
 
   // Returns POS-role storage location options for select dropdowns
-  @MessagePattern({ cmd: 'posTerminals.storageLocationsSelect' })
-  async storageLocationsSelect(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('posTerminals.storageLocationsSelect');
-    return this.posTerminalsService.findPosStorageLocationsForSelect(data);
+  @MessagePattern({ cmd: 'posTerminals.locationsSelect' })
+  async locationsSelect(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('posTerminals.locationsSelect');
+    return this.posTerminalsService.findPosLocationsForSelect(data);
   }
 
   // Returns a single POS terminal by ID

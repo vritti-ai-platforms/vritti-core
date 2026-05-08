@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { StorageLocationSelector } from '@vritti/quantum-ui/selects/storage-location';
+import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { useForm } from 'react-hook-form';
 import { useUpdateStockAdjustmentLine } from '@/hooks/stock-adjustments';
@@ -49,7 +49,7 @@ export const EditOpeningLineForm = ({
         ...(isItem ? {} : { quantity: Number(data.quantity || 0) }),
       })}
     >
-      <StorageLocationSelector name="locationId" label="Storage Location" placeholder="Select location" />
+      <LocationSelector name="locationId" label="Location" placeholder="Select location" />
       {!isItem && <TextField name="quantity" label="Quantity" type="number" positive nonZero />}
       {isItem && (
         <p className="text-xs text-muted-foreground">

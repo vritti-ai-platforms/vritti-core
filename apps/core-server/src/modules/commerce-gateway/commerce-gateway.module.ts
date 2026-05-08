@@ -21,8 +21,8 @@ import { GoodsReceiptsGatewayController } from './goods-receipts/goods-receipts-
 import { GoodsReceiptsGatewayService } from './goods-receipts/services/goods-receipts-gateway.service';
 import { InventoryItemsGatewayController } from './inventory-items/inventory-items-gateway.controller';
 import { InventoryItemsGatewayService } from './inventory-items/services/inventory-items-gateway.service';
-import { StorageLocationsGatewayController } from './storage-locations/storage-locations-gateway.controller';
-import { StorageLocationsGatewayService } from './storage-locations/services/storage-locations-gateway.service';
+import { LocationsGatewayController } from './locations/locations-gateway.controller';
+import { LocationsGatewayService } from './locations/services/locations-gateway.service';
 import { InvoicesGatewayController } from './invoices/invoices-gateway.controller';
 import { InvoicesGatewayService } from './invoices/services/invoices-gateway.service';
 import { ItemsGatewayController } from './items/items-gateway.controller';
@@ -65,7 +65,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     CustomersGatewayController,
     GoodsReceiptsGatewayController,
     InventoryItemsGatewayController,
-    StorageLocationsGatewayController,
+    LocationsGatewayController,
     InvoicesGatewayController,
     ItemsGatewayController,
     ModifierGroupsGatewayController,
@@ -92,7 +92,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     CustomersGatewayService,
     GoodsReceiptsGatewayService,
     InventoryItemsGatewayService,
-    StorageLocationsGatewayService,
+    LocationsGatewayService,
     InvoicesGatewayService,
     ItemsGatewayService,
     ModifierGroupsGatewayService,

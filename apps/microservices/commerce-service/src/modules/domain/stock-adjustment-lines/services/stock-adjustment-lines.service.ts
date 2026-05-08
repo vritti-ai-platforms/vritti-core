@@ -18,7 +18,7 @@ import {
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
   stockAdjustmentLines,
-  storageLocations,
+  locations,
 } from '@/db/schema';
 import { StockAdjustmentLineDto } from '../dto/entity/stock-adjustment-line.dto';
 import { StockAdjustmentLinesRepository } from '../repositories/stock-adjustment-lines.repository';
@@ -37,7 +37,7 @@ export class StockAdjustmentLinesService {
   private readonly logger = new Logger(StockAdjustmentLinesService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
-    locationName: { column: storageLocations.name, type: 'string' },
+    locationName: { column: locations.name, type: 'string' },
     quantity: { column: stockAdjustmentLines.quantity, type: 'number' },
   };
 

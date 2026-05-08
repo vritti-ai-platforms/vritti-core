@@ -12,7 +12,7 @@ export class CreatePosTerminalDto {
   code: string;
 
   @IsUUID()
-  storageLocationId: string;
+  locationId: string;
 
   @IsOptional()
   @IsString()

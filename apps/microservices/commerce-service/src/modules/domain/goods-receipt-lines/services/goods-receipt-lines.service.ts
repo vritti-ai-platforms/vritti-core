@@ -18,7 +18,7 @@ import {
   type InventoryTracking,
   InventoryTrackingValues,
   goodsReceiptLines,
-  storageLocations,
+  locations,
 } from '@/db/schema';
 import { GoodsReceiptLineDto } from '../dto/entity/goods-receipt-line.dto';
 import { GoodsReceiptLinesRepository } from '../repositories/goods-receipt-lines.repository';
@@ -38,7 +38,7 @@ export class GoodsReceiptLinesService {
   private readonly logger = new Logger(GoodsReceiptLinesService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
-    locationName: { column: storageLocations.name, type: 'string' },
+    locationName: { column: locations.name, type: 'string' },
     quantity: { column: goodsReceiptLines.quantity, type: 'number' },
   };
 

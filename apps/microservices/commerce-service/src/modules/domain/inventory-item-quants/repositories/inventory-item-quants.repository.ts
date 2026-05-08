@@ -12,7 +12,7 @@ import {
   inventoryLevels,
   type InventoryTracking,
   QuantItemStatusValues,
-  storageLocations,
+  locations,
 } from '@/db/schema';
 
 export type InventoryItemQuantWithRefs = InventoryItemQuant & {
@@ -46,13 +46,13 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         reservedQuantity: inventoryItemQuants.reservedQuantity,
         createdAt: inventoryItemQuants.createdAt,
         updatedAt: inventoryItemQuants.updatedAt,
-        locationName: storageLocations.name,
+        locationName: locations.name,
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
       },
       leftJoins: [
-        { table: storageLocations, on: eq(inventoryItemQuants.locationId, storageLocations.id) },
+        { table: locations, on: eq(inventoryItemQuants.locationId, locations.id) },
         { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
       ],
       where: combinedWhere,
@@ -75,13 +75,13 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         reservedQuantity: inventoryItemQuants.reservedQuantity,
         createdAt: inventoryItemQuants.createdAt,
         updatedAt: inventoryItemQuants.updatedAt,
-        locationName: storageLocations.name,
+        locationName: locations.name,
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
       })
       .from(inventoryItemQuants)
-      .leftJoin(storageLocations, eq(inventoryItemQuants.locationId, storageLocations.id))
+      .leftJoin(locations, eq(inventoryItemQuants.locationId, locations.id))
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
       .where(eq(inventoryItemQuants.id, id));
 
@@ -236,14 +236,14 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return this.db
       .select({
         locationId: inventoryLevels.locationId,
-        locationName: storageLocations.name,
+        locationName: locations.name,
         stockedQuantity: inventoryLevels.stockedQuantity,
         reservedQuantity: inventoryLevels.reservedQuantity,
         availableQuantity: inventoryLevels.availableQuantity,
         reorderLevel: inventoryLevels.reorderLevel,
       })
       .from(inventoryLevels)
-      .leftJoin(storageLocations, eq(inventoryLevels.locationId, storageLocations.id))
+      .leftJoin(locations, eq(inventoryLevels.locationId, locations.id))
       .where(eq(inventoryLevels.inventoryItemId, itemId));
   }
 }

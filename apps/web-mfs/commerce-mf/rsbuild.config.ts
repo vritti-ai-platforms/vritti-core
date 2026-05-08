@@ -31,7 +31,7 @@ export default defineConfig({
         './Customers': './src/features/customers/index.tsx',
         './GoodsReceipts': './src/features/goods-receipts/index.tsx',
         './InventoryItems': './src/features/inventory-items/index.tsx',
-        './StorageLocations': './src/features/storage-locations/index.tsx',
+        './Locations': './src/features/locations/index.tsx',
         './Invoices': './src/features/invoices/index.tsx',
         './Items': './src/features/items/index.tsx',
         './Modifiers': './src/features/modifiers/index.tsx',

@@ -1,5 +1,5 @@
 // Tree node for the unified GR UI: items → lots → lines, depth varies per item.tracking.
-// Mirrors the storage-locations / SA tree pattern (path-encoded depth).
+// Mirrors the locations / SA tree pattern (path-encoded depth).
 export interface GoodsReceiptTreeNode {
   id: string;
   name: string;

@@ -17,7 +17,7 @@ export class CreatePosTerminalDto {
 
   @ApiProperty({ description: 'Linked POS storage location ID' })
   @IsUUID()
-  storageLocationId: string;
+  locationId: string;
 
   @ApiPropertyOptional({ description: 'Terminal description', nullable: true })
   @IsOptional()

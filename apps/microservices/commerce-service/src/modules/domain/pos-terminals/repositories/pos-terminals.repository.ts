@@ -6,7 +6,7 @@ import {
   type SelectQueryResult,
 } from '@vritti/api-sdk';
 import { eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type PosTerminal, posTerminals, storageLocations } from '@/db/schema';
+import { type PosTerminal, posTerminals, locations } from '@/db/schema';
 
 @Injectable()
 export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerminals> {
@@ -25,22 +25,22 @@ export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerm
     orderBy?: SQL[];
     limit: number;
     offset: number;
-  }): Promise<{ result: (PosTerminal & { storageLocationName: string | null })[]; count: number }> {
-    return this.findAllAndCount<PosTerminal & { storageLocationName: string | null }>({
+  }): Promise<{ result: (PosTerminal & { locationName: string | null })[]; count: number }> {
+    return this.findAllAndCount<PosTerminal & { locationName: string | null }>({
       select: {
         id: posTerminals.id,
         organizationId: posTerminals.organizationId,
         businessUnitId: posTerminals.businessUnitId,
         name: posTerminals.name,
         code: posTerminals.code,
-        storageLocationId: posTerminals.storageLocationId,
+        locationId: posTerminals.locationId,
         description: posTerminals.description,
         isActive: posTerminals.isActive,
         createdAt: posTerminals.createdAt,
         updatedAt: posTerminals.updatedAt,
-        storageLocationName: storageLocations.name,
+        locationName: locations.name,
       },
-      leftJoins: [{ table: storageLocations, on: eq(posTerminals.storageLocationId, storageLocations.id) }],
+      leftJoins: [{ table: locations, on: eq(posTerminals.locationId, locations.id) }],
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
@@ -49,7 +49,7 @@ export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerm
   }
 
   // Returns a POS terminal with joined storage location name
-  async findByIdWithLocationName(id: string): Promise<(PosTerminal & { storageLocationName: string | null }) | undefined> {
+  async findByIdWithLocationName(id: string): Promise<(PosTerminal & { locationName: string | null }) | undefined> {
     const rows = await this.db
       .select({
         id: posTerminals.id,
@@ -57,17 +57,17 @@ export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerm
         businessUnitId: posTerminals.businessUnitId,
         name: posTerminals.name,
         code: posTerminals.code,
-        storageLocationId: posTerminals.storageLocationId,
+        locationId: posTerminals.locationId,
         description: posTerminals.description,
         isActive: posTerminals.isActive,
         createdAt: posTerminals.createdAt,
         updatedAt: posTerminals.updatedAt,
-        storageLocationName: storageLocations.name,
+        locationName: locations.name,
       })
       .from(posTerminals)
-      .leftJoin(storageLocations, eq(posTerminals.storageLocationId, storageLocations.id))
+      .leftJoin(locations, eq(posTerminals.locationId, locations.id))
       .where(eq(posTerminals.id, id));
 
-    return rows[0] as (PosTerminal & { storageLocationName: string | null }) | undefined;
+    return rows[0] as (PosTerminal & { locationName: string | null }) | undefined;
   }
 }

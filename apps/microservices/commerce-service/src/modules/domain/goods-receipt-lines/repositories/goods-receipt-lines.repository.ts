@@ -9,7 +9,7 @@ import {
   goodsReceiptLots,
   inventoryItems,
   InventoryTrackingValues,
-  storageLocations,
+  locations,
 } from '@/db/schema';
 
 export type GoodsReceiptLineWithRefs = GoodsReceiptLine & {
@@ -181,7 +181,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         metadata: goodsReceiptLines.metadata,
         createdAt: goodsReceiptLines.createdAt,
         updatedAt: goodsReceiptLines.updatedAt,
-        locationName: storageLocations.name,
+        locationName: locations.name,
         lotNumber: goodsReceiptLots.lotNumber,
         lotManufacturingDate: goodsReceiptLots.manufacturingDate,
         lotExpiryDate: goodsReceiptLots.expiryDate,
@@ -189,7 +189,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       })
       .from(goodsReceiptLines)
       .leftJoin(goodsReceiptLots, eq(goodsReceiptLines.goodsReceiptLotId, goodsReceiptLots.id))
-      .leftJoin(storageLocations, eq(goodsReceiptLines.locationId, storageLocations.id))
+      .leftJoin(locations, eq(goodsReceiptLines.locationId, locations.id))
       .where(where ?? sql`TRUE`)
       .orderBy(...(orderBy?.length ? orderBy : [desc(goodsReceiptLines.createdAt)]));
 

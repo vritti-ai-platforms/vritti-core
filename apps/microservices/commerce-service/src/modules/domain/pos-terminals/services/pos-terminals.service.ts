@@ -1,4 +1,4 @@
-import { StorageLocationsRepository } from '@domain/storage-locations/repositories/storage-locations.repository';
+import { LocationsRepository } from '@domain/locations/repositories/locations.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -12,7 +12,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
-import { posTerminals, storageLocations, StorageLocationRoleValues } from '@/db/schema';
+import { posTerminals, locations, LocationRoleValues } from '@/db/schema';
 import type { CreatePosTerminalDto } from '@/modules/pos-terminals/dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from '@/modules/pos-terminals/dto/request/update-pos-terminal.dto';
 import { PosTerminalDto } from '../dto/entity/pos-terminal.dto';
@@ -25,13 +25,13 @@ export class PosTerminalsService {
   private static readonly FIELD_MAP: FieldMap = {
     name: { column: posTerminals.name, type: 'string' },
     code: { column: posTerminals.code, type: 'string' },
-    storageLocationName: { column: storageLocations.name, type: 'string' },
+    locationName: { column: locations.name, type: 'string' },
     isActive: { column: posTerminals.isActive, type: 'boolean' },
   };
 
   constructor(
     private readonly repository: PosTerminalsRepository,
-    private readonly storageLocationsRepository: StorageLocationsRepository,
+    private readonly locationsRepository: LocationsRepository,
   ) {}
 
   // Returns paginated, filtered, and sorted POS terminals for the data table
@@ -81,8 +81,8 @@ export class PosTerminalsService {
   }
 
   // Returns POS-role storage location options for select dropdowns
-  findPosStorageLocationsForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.storageLocationsRepository.findForSelect({
+  findPosLocationsForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.locationsRepository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
@@ -94,7 +94,7 @@ export class PosTerminalsService {
       values: query.values,
       excludeIds: query.excludeIds,
       where: {
-        locationRole: StorageLocationRoleValues.POS,
+        locationRole: LocationRoleValues.POS,
       },
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
@@ -103,12 +103,12 @@ export class PosTerminalsService {
 
   // Creates a new POS terminal
   async create(data: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
-    await this.assertValidStorageLocation(data.storageLocationId);
+    await this.assertValidLocation(data.locationId);
 
     const entity = await this.repository.create({
       name: data.name,
       code: data.code,
-      storageLocationId: data.storageLocationId,
+      locationId: data.locationId,
       description: data.description || null,
       isActive: data.isActive ?? true,
     });
@@ -129,8 +129,8 @@ export class PosTerminalsService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('POS terminal not found.');
 
-    if (data.storageLocationId) {
-      await this.assertValidStorageLocation(data.storageLocationId);
+    if (data.locationId) {
+      await this.assertValidLocation(data.locationId);
     }
 
     const updated = await this.repository.update(id, {
@@ -153,11 +153,11 @@ export class PosTerminalsService {
   }
 
   // Validates that the storage location exists, is active, and has POS role
-  private async assertValidStorageLocation(storageLocationId: string): Promise<void> {
-    const location = await this.storageLocationsRepository.findById(storageLocationId);
+  private async assertValidLocation(locationId: string): Promise<void> {
+    const location = await this.locationsRepository.findById(locationId);
     if (!location) throw new NotFoundException('Storage location not found.');
 
-    if (location.locationRole !== StorageLocationRoleValues.POS) {
+    if (location.locationRole !== LocationRoleValues.POS) {
       throw new BadRequestException('POS terminal must be linked to a POS storage location.');
     }
 

@@ -37,7 +37,7 @@ export * from './stock-adjustment-lines';
 export * from './stock-adjustment-lots';
 export * from './stock-adjustments';
 export * from './stock-transfers';
-export * from './storage-locations';
+export * from './locations';
 export * from './suppliers';
 export * from './tax-groups';
 export * from './tax-rates';
