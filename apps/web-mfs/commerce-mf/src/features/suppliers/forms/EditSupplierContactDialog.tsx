@@ -7,7 +7,7 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useUpdateSupplierContact } from '@/hooks/useUpdateSupplierContact';
+import { useUpdateSupplierContact } from '@/hooks/suppliers';
 import type { SupplierContactData, UpdateSupplierContactFormData } from '@/schemas/suppliers';
 import { updateSupplierContactSchema } from '@/schemas/suppliers';
 

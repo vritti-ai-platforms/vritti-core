@@ -8,7 +8,7 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle } from 'lucide-react';
 import { useState } from 'react';
-import { useConversion } from '@/hooks/useConversion';
+import { useConversion } from '@/hooks/conversions';
 import type { ConversionStatus } from '@/schemas/conversions';
 import { CompleteConversionDialog } from './forms/CompleteConversionDialog';
 

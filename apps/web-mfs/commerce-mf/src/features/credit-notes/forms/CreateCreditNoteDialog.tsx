@@ -6,7 +6,7 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateCreditNote } from '@/hooks/useCreateCreditNote';
+import { useCreateCreditNote } from '@/hooks/credit-notes';
 import { type CreateCreditNoteFormData, createCreditNoteSchema } from '@/schemas/credit-notes';
 
 interface CreateCreditNoteDialogProps {

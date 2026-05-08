@@ -7,8 +7,8 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useSaveTerminalPriceLists } from '@/hooks/price-lists';
 import { useCreatePosTerminal, useUpdatePosTerminal } from '@/hooks/pos-terminals';
+import { useSaveTerminalPriceLists } from '@/hooks/price-lists';
 import { type PosTerminalData, type PosTerminalFormData, posTerminalFormSchema } from '@/schemas/pos-terminals';
 
 interface PosTerminalFormProps {

@@ -9,7 +9,7 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, FlaskConical, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CONVERSIONS_TABLE_KEY, useConversionsTable } from '@/hooks/useConversionsTable';
+import { CONVERSIONS_TABLE_KEY, useConversionsTable } from '@/hooks/conversions';
 import type { ConversionData, ConversionStatus } from '@/schemas/conversions';
 import { CreateConversionDialog } from './forms/CreateConversionDialog';
 

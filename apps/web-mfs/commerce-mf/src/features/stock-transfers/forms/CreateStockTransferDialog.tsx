@@ -7,7 +7,7 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateStockTransfer } from '@/hooks/useCreateStockTransfer';
+import { useCreateStockTransfer } from '@/hooks/stock-transfers';
 import { type CreateStockTransferFormData, createStockTransferSchema } from '@/schemas/stock-transfers';
 
 interface CreateStockTransferDialogProps {

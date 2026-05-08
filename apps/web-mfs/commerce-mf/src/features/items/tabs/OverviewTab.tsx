@@ -2,7 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import type React from 'react';
-import { useTaxGroups } from '@/hooks/useTaxGroups';
+import { useTaxGroups } from '@/hooks/tax-groups';
 import type { ItemDetail } from '@/schemas/items';
 import { getPriceSummary } from '@/utils/items';
 

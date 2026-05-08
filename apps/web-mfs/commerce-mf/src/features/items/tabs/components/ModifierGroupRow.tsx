@@ -5,7 +5,7 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import type React from 'react';
 import { useState } from 'react';
-import { useModifierGroup } from '@/hooks/useModifierGroup';
+import { useModifierGroup } from '@/hooks/modifiers';
 import type { ItemModifierGroup, ModifierGroupData } from '@/schemas/items';
 import { ModifierOptionRow } from './ModifierOptionRow';
 

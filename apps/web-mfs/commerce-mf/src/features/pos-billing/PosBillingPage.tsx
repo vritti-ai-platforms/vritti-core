@@ -11,7 +11,7 @@ import { Monitor } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTerminalSellableItems } from '@/hooks/price-lists';
 import { usePosTerminal } from '@/hooks/pos-terminals/usePosTerminal';
-import { useCreateOrder } from '@/hooks/useCreateOrder';
+import { useCreateOrder } from '@/hooks/orders';
 import type { PosTerminalSellableItemData } from '@/schemas/price-lists';
 import { getErrorMessage } from '@/utils/error';
 import { Cart } from './components/Cart';

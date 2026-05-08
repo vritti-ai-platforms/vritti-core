@@ -5,7 +5,7 @@ import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateBom } from '@/hooks/useCreateBom';
+import { useCreateBom } from '@/hooks/bom';
 import { type CreateBomFormData, createBomSchema } from '@/schemas/bom';
 
 interface AddBomDialogProps {

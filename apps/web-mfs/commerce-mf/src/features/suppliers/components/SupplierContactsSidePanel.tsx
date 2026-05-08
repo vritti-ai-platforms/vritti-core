@@ -6,7 +6,7 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { ClipboardList, Plus } from 'lucide-react';
 import { useEffect } from 'react';
-import { useSupplierContacts } from '@/hooks/useSupplierContacts';
+import { useSupplierContacts } from '@/hooks/suppliers';
 import { AddSupplierContactDialog } from '../forms/AddSupplierContactDialog';
 
 interface SupplierContactsSidePanelProps {

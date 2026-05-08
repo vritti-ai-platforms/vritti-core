@@ -8,7 +8,7 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, FileText, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useCreditNotesTable } from '@/hooks/useCreditNotesTable';
+import { useCreditNotesTable } from '@/hooks/credit-notes';
 import { CreateCreditNoteDialog } from './forms/CreateCreditNoteDialog';
 
 const statusVariant = (status: string): { variant: 'secondary' | 'outline' | 'destructive'; className?: string } => {

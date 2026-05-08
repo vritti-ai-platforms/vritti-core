@@ -11,8 +11,8 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus, Trash2 } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteItem } from '@/hooks/useDeleteItem';
-import { ITEMS_TABLE_KEY, useItemsTable } from '@/hooks/useItemsTable';
+import { useDeleteItem } from '@/hooks/items';
+import { ITEMS_TABLE_KEY, useItemsTable } from '@/hooks/items';
 import { ITEM_TYPE_OPTIONS, type ItemData } from '@/schemas/items';
 import { AddItemDialog } from './forms/AddItemDialog';
 

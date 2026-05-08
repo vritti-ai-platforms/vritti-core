@@ -8,7 +8,7 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { FileCheck } from 'lucide-react';
 import { useState } from 'react';
-import { useCreditNote } from '@/hooks/useCreditNote';
+import { useCreditNote } from '@/hooks/credit-notes';
 import { ApplyCreditNoteDialog } from './forms/ApplyCreditNoteDialog';
 
 const statusVariant = (status: string): { variant: 'secondary' | 'outline' | 'destructive'; className?: string } => {

@@ -9,7 +9,7 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, ShoppingCart } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ORDERS_TABLE_KEY, useOrdersTable } from '@/hooks/useOrdersTable';
+import { ORDERS_TABLE_KEY, useOrdersTable } from '@/hooks/orders';
 import type { OrderChannel, OrderData, OrderStatus, OrderType } from '@/schemas/orders';
 import { CreateOrderDialog } from './forms/CreateOrderDialog';
 

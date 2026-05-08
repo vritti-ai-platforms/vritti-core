@@ -5,7 +5,7 @@ import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useCompleteConversion } from '@/hooks/useCompleteConversion';
+import { useCompleteConversion } from '@/hooks/conversions';
 
 interface CompleteConversionDialogProps {
   conversionId: string;

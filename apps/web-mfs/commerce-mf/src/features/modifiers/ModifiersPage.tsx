@@ -18,14 +18,14 @@ import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
-import { useCreateModifierGroup } from '@/hooks/useCreateModifierGroup';
-import { useCreateModifierOption } from '@/hooks/useCreateModifierOption';
-import { useDeleteModifierGroup } from '@/hooks/useDeleteModifierGroup';
-import { useDeleteModifierOption } from '@/hooks/useDeleteModifierOption';
-import { useModifierGroup } from '@/hooks/useModifierGroup';
-import { useModifierGroups } from '@/hooks/useModifierGroups';
-import { useUpdateModifierGroup } from '@/hooks/useUpdateModifierGroup';
-import { useUpdateModifierOption } from '@/hooks/useUpdateModifierOption';
+import { useCreateModifierGroup } from '@/hooks/modifiers';
+import { useCreateModifierOption } from '@/hooks/modifiers';
+import { useDeleteModifierGroup } from '@/hooks/modifiers';
+import { useDeleteModifierOption } from '@/hooks/modifiers';
+import { useModifierGroup } from '@/hooks/modifiers';
+import { useModifierGroups } from '@/hooks/modifiers';
+import { useUpdateModifierGroup } from '@/hooks/modifiers';
+import { useUpdateModifierOption } from '@/hooks/modifiers';
 import type { ModifierGroupData, ModifierOptionData } from '@/schemas/items';
 import {
   type CreateModifierGroupFormData,

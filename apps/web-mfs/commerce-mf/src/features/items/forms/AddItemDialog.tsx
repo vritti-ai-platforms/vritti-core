@@ -8,8 +8,8 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateItem } from '@/hooks/useCreateItem';
-import { useTaxGroups } from '@/hooks/useTaxGroups';
+import { useCreateItem } from '@/hooks/items';
+import { useTaxGroups } from '@/hooks/tax-groups';
 import { type CreateItemFormData, createItemSchema, ITEM_TYPE_OPTIONS } from '@/schemas/items';
 
 interface AddItemDialogProps {

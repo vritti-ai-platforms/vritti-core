@@ -5,7 +5,7 @@ import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useUpdateBom } from '@/hooks/useUpdateBom';
+import { useUpdateBom } from '@/hooks/bom';
 import { type BomDetail, type BomLineFormData, bomLineSchema } from '@/schemas/bom';
 
 interface AddBomLineDialogProps {

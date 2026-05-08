@@ -6,7 +6,7 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreatePayment } from '@/hooks/useCreatePayment';
+import { useCreatePayment } from '@/hooks/payments';
 import { type CreatePaymentFormData, createPaymentSchema } from '@/schemas/invoices';
 
 interface RecordPaymentDialogProps {

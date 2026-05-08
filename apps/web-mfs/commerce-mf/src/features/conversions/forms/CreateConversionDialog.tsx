@@ -9,7 +9,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { useCreateConversion } from '@/hooks/useCreateConversion';
+import { useCreateConversion } from '@/hooks/conversions';
 import { type CreateConversionFormData, createConversionSchema } from '@/schemas/conversions';
 
 interface CreateConversionDialogProps {
