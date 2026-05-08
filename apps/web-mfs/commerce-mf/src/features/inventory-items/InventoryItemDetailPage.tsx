@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
-import { BatchesTab } from './tabs/BatchesTab';
+import { LotsTab } from './tabs/LotsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { StorageLocationsTab } from './tabs/StorageLocationsTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
@@ -86,11 +86,15 @@ export const InventoryItemDetailPage = () => {
             label: 'Suppliers',
             content: <SuppliersTab itemId={item.id} />,
           },
-          {
-            value: 'batches',
-            label: 'Batches',
-            content: <BatchesTab itemId={item.id} uomSymbol={item.uomSymbol} />,
-          },
+          ...(item.tracking === 'lot' || item.tracking === 'lot_serial'
+            ? [
+                {
+                  value: 'lots',
+                  label: 'Lots',
+                  content: <LotsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+                },
+              ]
+            : []),
         ]}
         value={activeTab}
         onValueChange={setActiveTab}

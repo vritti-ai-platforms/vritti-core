@@ -9,7 +9,7 @@ export class InventoryItemQuantItemsGatewayService {
 
   // Returns paginated AVAILABLE quant items (physical units) for a given quant
   async select(query: SelectOptionsQueryDto & { quantId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItemQuantItems.select — quantId: ${query.quantId}`);
-    return this.nats.send('commerce', 'inventoryItemQuantItems.select', query);
+    this.logger.log(`inventoryItems.selectQuantItems — quantId: ${query.quantId}`);
+    return this.nats.send('commerce', 'inventoryItems.selectQuantItems', query);
   }
 }

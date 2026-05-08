@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { INVENTORY_ITEM_BATCHES_KEY, useInventoryItemBatchesTable } from '@/hooks/inventory-items';
 import type { InventoryItemBatchData, InventoryItemBatchStatus } from '@/schemas/inventory-item-batches';
 
-interface BatchesTabProps {
+interface LotsTabProps {
   itemId: string;
   uomSymbol: string | null;
 }
@@ -31,7 +31,7 @@ const STATUS_CONFIG: Record<
   FRESH: { label: 'Fresh', variant: 'default' },
 };
 
-export const BatchesTab: React.FC<BatchesTabProps> = ({ itemId, uomSymbol }) => {
+export const LotsTab: React.FC<LotsTabProps> = ({ itemId, uomSymbol }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: response, isLoading } = useInventoryItemBatchesTable(itemId);
@@ -40,7 +40,7 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({ itemId, uomSymbol }) => 
     () => [
       {
         accessorKey: 'batchNumber',
-        header: 'Batch #',
+        header: 'Lot #',
         cell: ({ row }) => <span className="font-mono">{row.original.batchNumber ?? '—'}</span>,
       },
       {
@@ -117,8 +117,8 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({ itemId, uomSymbol }) => 
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-batches`,
-    label: 'batch',
+    slug: `inventory-item-${itemId}-lots`,
+    label: 'lot',
     enableRowSelection: false,
     enableSorting: true,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_BATCHES_KEY(itemId)] }),
@@ -131,8 +131,8 @@ export const BatchesTab: React.FC<BatchesTabProps> = ({ itemId, uomSymbol }) => 
       isLoading={isLoading}
       emptyStateConfig={{
         icon: Boxes,
-        title: 'No batches',
-        description: 'Stock batches are created when goods are received or opening stock is added.',
+        title: 'No lots',
+        description: 'Lot-tracked stock is created when goods are received or opening stock is added.',
       }}
     />
   );

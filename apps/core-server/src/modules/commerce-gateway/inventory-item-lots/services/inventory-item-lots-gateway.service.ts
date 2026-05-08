@@ -9,7 +9,7 @@ export class InventoryItemLotsGatewayService {
 
   // Returns paginated lot options for a given inventory item
   async select(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItemLots.select — inventoryItemId: ${query.inventoryItemId}`);
-    return this.nats.send('commerce', 'inventoryItemLots.select', query);
+    this.logger.log(`inventoryItems.selectLots — inventoryItemId: ${query.inventoryItemId}`);
+    return this.nats.send('commerce', 'inventoryItems.selectLots', query);
   }
 }

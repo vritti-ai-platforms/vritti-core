@@ -7,38 +7,38 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 
 @Controller()
-export class InventoryItemQuantsController {
-  private readonly logger = new Logger(InventoryItemQuantsController.name);
+export class InventoryItemsQuantsController {
+  private readonly logger = new Logger(InventoryItemsQuantsController.name);
 
   constructor(
     private readonly service: InventoryItemQuantsService,
     private readonly ledgerService: InventoryLedgerService,
   ) {}
 
-  @MessagePattern({ cmd: 'inventoryItemQuants.findById' })
+  @MessagePattern({ cmd: 'inventoryItems.findQuantById' })
   async findById(@Payload() data: { id: string }): Promise<InventoryItemQuantDto> {
-    this.logger.log(`inventoryItemQuants.findById — id: ${data.id}`);
+    this.logger.log(`inventoryItems.findQuantById — id: ${data.id}`);
     return this.service.findBatchById(data.id);
   }
 
-  @MessagePattern({ cmd: 'inventoryItemQuants.delete' })
+  @MessagePattern({ cmd: 'inventoryItems.removeQuant' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItemQuants.delete — id: ${data.id}`);
+    this.logger.log(`inventoryItems.removeQuant — id: ${data.id}`);
     await this.service.deleteBatch(data.id);
     return { success: true, message: 'Batch deleted successfully.' };
   }
 
-  @MessagePattern({ cmd: 'inventoryItemQuants.ledgerTable' })
+  @MessagePattern({ cmd: 'inventoryItems.quantLedgerTable' })
   async ledgerTable(
     @Payload() data: { batchId: string } & TableViewState,
   ): Promise<{ result: InventoryLedgerDto[]; count: number }> {
-    this.logger.log(`inventoryItemQuants.ledgerTable — batchId: ${data.batchId}`);
+    this.logger.log(`inventoryItems.quantLedgerTable — batchId: ${data.batchId}`);
     return this.ledgerService.findByBatch(data.batchId, data);
   }
 
-  @MessagePattern({ cmd: 'inventoryItemQuants.select' })
+  @MessagePattern({ cmd: 'inventoryItems.selectQuants' })
   async select(@Payload() data: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItemQuants.select — inventoryItemId: ${data.inventoryItemId}`);
+    this.logger.log(`inventoryItems.selectQuants — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findForSelect(data);
   }
 }

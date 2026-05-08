@@ -4,15 +4,15 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk';
 
 @Controller()
-export class InventoryItemQuantItemsController {
-  private readonly logger = new Logger(InventoryItemQuantItemsController.name);
+export class InventoryItemsQuantItemsController {
+  private readonly logger = new Logger(InventoryItemsQuantItemsController.name);
 
   constructor(private readonly service: InventoryItemQuantItemsService) {}
 
   // Returns paginated AVAILABLE quant items (physical units) for a given quant
-  @MessagePattern({ cmd: 'inventoryItemQuantItems.select' })
+  @MessagePattern({ cmd: 'inventoryItems.selectQuantItems' })
   async select(@Payload() data: SelectOptionsQueryDto & { quantId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItemQuantItems.select — quantId: ${data.quantId}`);
+    this.logger.log(`inventoryItems.selectQuantItems — quantId: ${data.quantId}`);
     return this.service.findForSelect(data);
   }
 }

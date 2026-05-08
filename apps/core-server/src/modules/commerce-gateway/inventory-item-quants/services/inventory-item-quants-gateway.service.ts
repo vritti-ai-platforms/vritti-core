@@ -13,24 +13,24 @@ export class InventoryItemQuantsGatewayService {
 
   // Returns a single inventory batch by ID
   async findById(id: string): Promise<InventoryBatchResponseDto> {
-    this.logger.log(`inventoryItemQuants.findById — id: ${id}`);
-    return this.nats.send('commerce', 'inventoryItemQuants.findById', { id });
+    this.logger.log(`inventoryItems.findQuantById — id: ${id}`);
+    return this.nats.send('commerce', 'inventoryItems.findQuantById', { id });
   }
 
   // Deletes an inventory batch
   async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItemQuants.delete — id: ${id}`);
-    return this.nats.send('commerce', 'inventoryItemQuants.delete', { id });
+    this.logger.log(`inventoryItems.removeQuant — id: ${id}`);
+    return this.nats.send('commerce', 'inventoryItems.removeQuant', { id });
   }
 
   // Returns paginated ledger entries for a batch data table
   async findLedgerTable(batchId: string, userId: string) {
-    this.logger.log('inventoryItemQuants.ledgerTable');
+    this.logger.log('inventoryItems.quantLedgerTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-quant-${batchId}-ledger`);
 
     const { result, count } = await this.nats.send<{ result: any[]; count: number }>(
       'commerce',
-      'inventoryItemQuants.ledgerTable',
+      'inventoryItems.quantLedgerTable',
       { batchId, ...state },
     );
 
@@ -38,8 +38,8 @@ export class InventoryItemQuantsGatewayService {
   }
 
   async select(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItemQuants.select — inventoryItemId: ${query.inventoryItemId}`);
-    return this.nats.send('commerce', 'inventoryItemQuants.select', query);
+    this.logger.log(`inventoryItems.selectQuants — inventoryItemId: ${query.inventoryItemId}`);
+    return this.nats.send('commerce', 'inventoryItems.selectQuants', query);
   }
 
 }

@@ -1,11 +1,3 @@
-import { CategoriesService } from '@domain/categories/services/categories.service';
-import type {
-  InventoryItemQuantDto,
-  LocationStockDto,
-} from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/dto/entity/inventory-item-location.dto';
-import { InventoryItemLocationsService } from '@domain/inventory-item-locations/services/inventory-item-locations.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
@@ -20,8 +12,8 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems } from '@/db/schema';
-import type { CreateInventoryItemDto } from '@/modules/inventory-items/dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from '@/modules/inventory-items/dto/request/update-inventory-item.dto';
+import type { CreateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/create-inventory-item.dto';
+import type { UpdateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/update-inventory-item.dto';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
 
@@ -39,12 +31,7 @@ export class InventoryItemsService {
     uomId: { column: inventoryItems.uomId, type: 'string' },
   };
 
-  constructor(
-    private readonly repository: InventoryItemsRepository,
-    private readonly batchesService: InventoryItemQuantsService,
-    private readonly itemLocationsService: InventoryItemLocationsService,
-    private readonly categoriesService: CategoriesService,
-  ) {}
+  constructor(private readonly repository: InventoryItemsRepository) {}
 
   // Returns paginated, filtered, and sorted inventory items for the data table
   async findForTable(state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
@@ -125,7 +112,6 @@ export class InventoryItemsService {
 
   // Creates a new inventory item
   async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
-    await this.categoriesService.assertIsLeaf(data.categoryId);
     const entity = await this.repository.create({
       name: data.name,
       code: data.code,
@@ -156,16 +142,6 @@ export class InventoryItemsService {
     return InventoryItemDto.from(entity, entity.uomSymbol, !referencedIds.has(id), entity.categoryName);
   }
 
-  // Returns paginated batches for an inventory item
-  async findBatchesForTable(
-    itemId: string,
-    state: TableViewState,
-  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
-    const entity = await this.repository.findById(itemId);
-    if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.batchesService.findBatchesForTable(itemId, state);
-  }
-
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
   async findAllowedUomIds(itemId: string): Promise<string[]> {
     const entity = await this.repository.findById(itemId);
@@ -173,50 +149,10 @@ export class InventoryItemsService {
     return this.repository.findAllowedUomIds(itemId);
   }
 
-  // Returns location-wise stock aggregates from the inventoryLevels view
-  async findLocationStock(itemId: string): Promise<LocationStockDto[]> {
-    const entity = await this.repository.findById(itemId);
-    if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.batchesService.findLocationStockByItemId(itemId);
-  }
-
-  // Returns paginated item-location configs for an item
-  async findItemLocations(
-    itemId: string,
-    state: TableViewState,
-  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
-    const entity = await this.repository.findById(itemId);
-    if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.itemLocationsService.findForTable(itemId, state);
-  }
-
-  // Creates an item-location config
-  async createItemLocation(
-    itemId: string,
-    data: { locationId: string; reorderLevel: number },
-  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
-    const entity = await this.repository.findById(itemId);
-    if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.itemLocationsService.create(itemId, data);
-  }
-
-  // Updates an item-location config
-  async updateItemLocation(id: string, data: { reorderLevel: number }): Promise<SuccessResponseDto> {
-    return this.itemLocationsService.update(id, data);
-  }
-
-  // Deletes an item-location config
-  async deleteItemLocation(id: string): Promise<SuccessResponseDto> {
-    return this.itemLocationsService.delete(id);
-  }
-
   // Updates an inventory item. Tracking is set at creation and cannot be changed.
   async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
-    if (data.categoryId !== undefined) {
-      await this.categoriesService.assertIsLeaf(data.categoryId);
-    }
     if (data.description !== undefined) data.description = data.description || null;
     const updated = await this.repository.update(id, data);
     this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);

@@ -150,12 +150,12 @@ export class InventoryItemsGatewayService {
 
   // Returns paginated item-location configs for an inventory item
   async findItemLocationsForTable(itemId: string, userId: string) {
-    this.logger.log('inventoryItems.locations.table');
+    this.logger.log('inventoryItems.locationsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, `inventory-item-${itemId}-locations`);
 
     const { result, count } = await this.nats.send<{ result: any[]; count: number }>(
       'commerce',
-      'inventoryItems.locations.table',
+      'inventoryItems.locationsTable',
       { itemId, ...state },
     );
 
@@ -164,25 +164,25 @@ export class InventoryItemsGatewayService {
 
   // Creates an item-location config for an inventory item
   async createItemLocation(itemId: string, dto: { locationId: string; reorderLevel: number }) {
-    this.logger.log(`inventoryItems.locations.create — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.locations.create', { itemId, ...dto });
+    this.logger.log(`inventoryItems.addLocation — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'inventoryItems.addLocation', { itemId, ...dto });
   }
 
   // Updates an item-location config
   async updateItemLocation(id: string, dto: { reorderLevel: number }) {
-    this.logger.log(`inventoryItems.locations.update — id: ${id}`);
-    return this.nats.send('commerce', 'inventoryItems.locations.update', { id, ...dto });
+    this.logger.log(`inventoryItems.updateLocation — id: ${id}`);
+    return this.nats.send('commerce', 'inventoryItems.updateLocation', { id, ...dto });
   }
 
   // Deletes an item-location config
   async deleteItemLocation(id: string) {
-    this.logger.log(`inventoryItems.locations.delete — id: ${id}`);
-    return this.nats.send('commerce', 'inventoryItems.locations.delete', { id });
+    this.logger.log(`inventoryItems.removeLocation — id: ${id}`);
+    return this.nats.send('commerce', 'inventoryItems.removeLocation', { id });
   }
 
   // Returns paginated UOM conversion overrides for an inventory item
   async findUomConversionsForTable(itemId: string, userId: string) {
-    this.logger.log(`inventoryItems.uomConversions.table — itemId: ${itemId}`);
+    this.logger.log(`inventoryItems.uomConversionsTable — itemId: ${itemId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `inventory-item-${itemId}-uom-overrides`,
@@ -190,7 +190,7 @@ export class InventoryItemsGatewayService {
 
     const { result, count } = await this.nats.send<{ result: InventoryItemUomConversionResponseDto[]; count: number }>(
       'commerce',
-      'inventoryItems.uomConversions.table',
+      'inventoryItems.uomConversionsTable',
       { itemId, ...state },
     );
 
@@ -199,20 +199,20 @@ export class InventoryItemsGatewayService {
 
   // Creates a per-item UOM conversion override
   async createUomConversion(itemId: string, dto: CreateInventoryItemUomConversionDto): Promise<CreateResponseDto<InventoryItemUomConversionResponseDto>> {
-    this.logger.log(`inventoryItems.uomConversions.create — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.uomConversions.create', { itemId, ...dto });
+    this.logger.log(`inventoryItems.addUomConversion — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'inventoryItems.addUomConversion', { itemId, ...dto });
   }
 
   // Updates a per-item UOM conversion override
   async updateUomConversion(conversionId: string, dto: UpdateInventoryItemUomConversionDto): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.uomConversions.update — id: ${conversionId}`);
-    return this.nats.send('commerce', 'inventoryItems.uomConversions.update', { id: conversionId, ...dto });
+    this.logger.log(`inventoryItems.updateUomConversion — id: ${conversionId}`);
+    return this.nats.send('commerce', 'inventoryItems.updateUomConversion', { id: conversionId, ...dto });
   }
 
   // Deletes a per-item UOM conversion override
   async deleteUomConversion(conversionId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.uomConversions.delete — id: ${conversionId}`);
-    return this.nats.send('commerce', 'inventoryItems.uomConversions.delete', { id: conversionId });
+    this.logger.log(`inventoryItems.removeUomConversion — id: ${conversionId}`);
+    return this.nats.send('commerce', 'inventoryItems.removeUomConversion', { id: conversionId });
   }
 
   // Updates an inventory item

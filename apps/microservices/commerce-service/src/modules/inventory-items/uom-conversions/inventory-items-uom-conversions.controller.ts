@@ -7,48 +7,48 @@ import type { CreateInventoryItemUomConversionDto } from './dto/request/create-i
 import type { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 
 @Controller()
-export class InventoryItemUomConversionsController {
-  private readonly logger = new Logger(InventoryItemUomConversionsController.name);
+export class InventoryItemsUomConversionsController {
+  private readonly logger = new Logger(InventoryItemsUomConversionsController.name);
 
   constructor(private readonly service: InventoryItemUomConversionsService) {}
 
   // Returns paginated UOM conversion overrides for an inventory item
-  @MessagePattern({ cmd: 'inventoryItems.uomConversions.table' })
+  @MessagePattern({ cmd: 'inventoryItems.uomConversionsTable' })
   async table(
     @Payload() data: { itemId: string } & TableViewState,
     @RpcBuId() buId: string,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
     const { itemId, ...state } = data;
-    this.logger.log(`inventoryItems.uomConversions.table — itemId: ${itemId}`);
+    this.logger.log(`inventoryItems.uomConversionsTable — itemId: ${itemId}`);
     return this.service.findForTable(itemId, state, buId);
   }
 
   // Creates a per-item UOM conversion override
-  @MessagePattern({ cmd: 'inventoryItems.uomConversions.create' })
+  @MessagePattern({ cmd: 'inventoryItems.addUomConversion' })
   async create(
     @Payload() data: { itemId: string } & CreateInventoryItemUomConversionDto,
     @RpcBuId() buId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     const { itemId, ...dto } = data;
-    this.logger.log(`inventoryItems.uomConversions.create — itemId: ${itemId}, uomId: ${dto.uomId}`);
+    this.logger.log(`inventoryItems.addUomConversion — itemId: ${itemId}, uomId: ${dto.uomId}`);
     return this.service.create(itemId, dto, buId);
   }
 
   // Updates the conversion factor of an existing UOM override
-  @MessagePattern({ cmd: 'inventoryItems.uomConversions.update' })
+  @MessagePattern({ cmd: 'inventoryItems.updateUomConversion' })
   async update(
     @Payload() data: { id: string } & UpdateInventoryItemUomConversionDto,
     @RpcBuId() buId: string,
   ): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
-    this.logger.log(`inventoryItems.uomConversions.update — id: ${id}`);
+    this.logger.log(`inventoryItems.updateUomConversion — id: ${id}`);
     return this.service.update(id, dto, buId);
   }
 
   // Deletes a UOM conversion override
-  @MessagePattern({ cmd: 'inventoryItems.uomConversions.delete' })
+  @MessagePattern({ cmd: 'inventoryItems.removeUomConversion' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.uomConversions.delete — id: ${data.id}`);
+    this.logger.log(`inventoryItems.removeUomConversion — id: ${data.id}`);
     return this.service.delete(data.id);
   }
 }
