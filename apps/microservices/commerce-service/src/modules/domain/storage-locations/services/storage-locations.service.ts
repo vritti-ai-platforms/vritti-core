@@ -115,7 +115,7 @@ export class StorageLocationsService {
     return this.storageLocationsRepository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
-      description: query.descriptionKey,
+      description: query.descriptionKey || 'path',
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
       search: query.search,

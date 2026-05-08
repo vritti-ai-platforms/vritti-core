@@ -162,7 +162,7 @@ export const StorageLocationsTab: React.FC<StorageLocationsTabProps> = ({ itemId
         }}
         emptyStateConfig={{
           icon: MapPin,
-          title: 'No storage location configs',
+          title: 'No Storage Locations Allocated for this item',
           description: 'Add a location to set minimum stock levels for this item.',
           action: (
             <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
