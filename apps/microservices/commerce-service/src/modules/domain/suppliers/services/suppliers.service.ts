@@ -14,8 +14,8 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { suppliers } from '@/db/schema';
-import type { CreateSupplierDto } from '@/modules/suppliers/dto/request/create-supplier.dto';
-import type { UpdateSupplierDto } from '@/modules/suppliers/dto/request/update-supplier.dto';
+import type { CreateSupplierDto } from '@/modules/suppliers/root/dto/request/create-supplier.dto';
+import type { UpdateSupplierDto } from '@/modules/suppliers/root/dto/request/update-supplier.dto';
 import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
 import { SuppliersRepository } from '../repositories/suppliers.repository';
 

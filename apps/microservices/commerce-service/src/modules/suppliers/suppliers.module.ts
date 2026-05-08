@@ -1,9 +1,21 @@
+import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
+import { SupplierContactsDomainModule } from '@domain/supplier-contacts/supplier-contacts.module';
+import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
 import { Module } from '@nestjs/common';
-import { SuppliersController } from './suppliers.controller';
+import { SuppliersContactsController } from './contacts/suppliers-contacts.controller';
+import { SuppliersItemsService } from './items/services/suppliers-items.service';
+import { SuppliersItemsController } from './items/suppliers-items.controller';
+import { SuppliersRootController } from './root/suppliers-root.controller';
 
 @Module({
-  imports: [SuppliersDomainModule],
-  controllers: [SuppliersController],
+  imports: [
+    SuppliersDomainModule,
+    SupplierContactsDomainModule,
+    SupplierItemsDomainModule,
+    InventoryItemsDomainModule,
+  ],
+  controllers: [SuppliersRootController, SuppliersContactsController, SuppliersItemsController],
+  providers: [SuppliersItemsService],
 })
 export class SuppliersModule {}

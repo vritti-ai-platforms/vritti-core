@@ -14,8 +14,8 @@ import {
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
-import type { LinkSupplierItemDto } from '@/modules/suppliers/dto/request/link-supplier-item.dto';
-import type { UpdateSupplierItemDto } from '@/modules/suppliers/dto/request/update-supplier-item.dto';
+import type { LinkSupplierItemDto } from '@/modules/suppliers/items/dto/request/link-supplier-item.dto';
+import type { UpdateSupplierItemDto } from '@/modules/suppliers/items/dto/request/update-supplier-item.dto';
 import { InventoryItemSupplierDto, SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { SupplierItemsRepository } from '../repositories/supplier-items.repository';
 
@@ -103,6 +103,13 @@ export class SupplierItemsService {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
     return this.repository.findItemIdsBySupplierId(supplierId);
+  }
+
+  // Returns the inventory_item_id that owns a given supplier_items row, or null if not found.
+  // Used by top-level cross-domain validation (no inventory-items dependency in this domain).
+  async findInventoryItemIdFor(supplierItemId: string): Promise<string | null> {
+    const row = await this.repository.findSupplierItemById(supplierItemId);
+    return row?.inventoryItemId ?? null;
   }
 
   async linkItem(supplierId: string, data: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {

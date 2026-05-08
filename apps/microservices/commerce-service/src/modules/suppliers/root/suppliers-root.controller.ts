@@ -7,8 +7,8 @@ import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 
 @Controller()
-export class SuppliersController {
-  private readonly logger = new Logger(SuppliersController.name);
+export class SuppliersRootController {
+  private readonly logger = new Logger(SuppliersRootController.name);
 
   constructor(private readonly service: SuppliersService) {}
 
