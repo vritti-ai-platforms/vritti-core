@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UomSelectQueryDto extends SelectOptionsQueryDto {
@@ -15,4 +15,9 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   baseOnly?: boolean;
+
+  @ApiPropertyOptional({ description: 'Filter to UOMs sharing the given dimension' })
+  @IsOptional()
+  @IsUUID()
+  dimensionId?: string;
 }

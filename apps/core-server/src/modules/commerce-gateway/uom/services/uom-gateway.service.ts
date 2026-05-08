@@ -34,7 +34,9 @@ export class UomGatewayService {
   }
 
   // Returns paginated UOM options for select dropdowns
-  async select(params: SelectOptionsQueryDto & { derivedOnly?: boolean; baseOnly?: boolean }): Promise<SelectQueryResult> {
+  async select(
+    params: SelectOptionsQueryDto & { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string },
+  ): Promise<SelectQueryResult> {
     this.logger.log('uom.select');
     return this.nats.send('commerce', 'uom.select', params);
   }

@@ -5,6 +5,10 @@ import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
+import type {
+  InventoryItemSupplierResponseDto,
+  InventoryItemSupplierTableResponseDto,
+} from '../dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '../dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
 import type { InventoryLedgerResponseDto } from '../dto/response/inventory-ledger-response.dto';
@@ -53,6 +57,29 @@ export class InventoryItemsGatewayService {
   async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
     this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'inventoryItems.create', dto);
+  }
+
+  // Returns supplier links for a given inventory item, table-shaped
+  async findSuppliersTable(itemId: string, userId: string): Promise<InventoryItemSupplierTableResponseDto> {
+    this.logger.log(`inventoryItems.suppliersTable — itemId: ${itemId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `commerce-inventory-item-${itemId}-suppliers`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: InventoryItemSupplierResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.suppliersTable',
+      { inventoryItemId: itemId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns the UOM IDs allowed to transact for a given inventory item
+  async findAllowedUomIds(id: string): Promise<string[]> {
+    this.logger.log(`inventoryItems.allowedUomIds — id: ${id}`);
+    return this.nats.send('commerce', 'inventoryItems.allowedUomIds', { id });
   }
 
   // Returns a single inventory item

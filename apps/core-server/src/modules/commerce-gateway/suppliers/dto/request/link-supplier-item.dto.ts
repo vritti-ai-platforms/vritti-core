@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class LinkSupplierItemDto {
   @ApiProperty({ description: 'Inventory item ID to link' })
@@ -25,7 +25,7 @@ export class LinkSupplierItemDto {
 
   @ApiPropertyOptional({ description: 'Minimum order quantity', example: 10 })
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 4 })
+  @IsInt()
   @Min(0)
   minOrderQuantity?: number;
 

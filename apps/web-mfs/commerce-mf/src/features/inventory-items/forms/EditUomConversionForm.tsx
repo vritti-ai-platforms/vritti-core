@@ -10,31 +10,34 @@ import {
   updateInventoryItemUomConversionSchema,
 } from '@/schemas/inventory-item-uom-conversions';
 
-interface EditUomOverrideFormProps {
+interface EditUomConversionFormProps {
   itemId: string;
   conversionId: string;
   uomSymbol: string;
-  baseUomSymbol: string | null;
-  currentFactor: number;
+  itemUomSymbol: string;
+  currentNumerator: number;
+  currentDenominator: number;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const EditUomOverrideForm: React.FC<EditUomOverrideFormProps> = ({
+export const EditUomConversionForm: React.FC<EditUomConversionFormProps> = ({
   itemId,
   conversionId,
   uomSymbol,
-  baseUomSymbol,
-  currentFactor,
+  itemUomSymbol,
+  currentNumerator,
+  currentDenominator,
   onSuccess,
   onCancel,
 }) => {
   const form = useForm<UpdateInventoryItemUomConversionFormData>({
     resolver: zodResolver(updateInventoryItemUomConversionSchema),
-    defaultValues: { conversionFactor: currentFactor },
+    defaultValues: { numerator: currentNumerator, denominator: currentDenominator },
   });
 
-  const conversionFactor = useWatch({ control: form.control, name: 'conversionFactor' });
+  const numerator = useWatch({ control: form.control, name: 'numerator' });
+  const denominator = useWatch({ control: form.control, name: 'denominator' });
 
   const updateMutation = useUpdateInventoryItemUomConversion(itemId, { onSuccess });
 
@@ -43,21 +46,18 @@ export const EditUomOverrideForm: React.FC<EditUomOverrideFormProps> = ({
       form={form}
       mutation={updateMutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ conversionId, conversionFactor: data.conversionFactor })}
+      transformSubmit={(data) => ({ conversionId, numerator: data.numerator, denominator: data.denominator })}
     >
       <p className="text-sm text-muted-foreground">
-        Overriding the conversion factor for <span className="font-medium text-foreground">{uomSymbol}</span>.
+        Updating the conversion ratio for <span className="font-medium text-foreground">{uomSymbol}</span>.
       </p>
       <div className="flex flex-col gap-1">
-        <TextField
-          name="conversionFactor"
-          label="Override Factor"
-          type="number"
-          min={0.0000001}
-          step="any"
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <TextField name="numerator" label={`Count of ${uomSymbol}`} type="number" min={1} step="1" />
+          <TextField name="denominator" label={`Count of ${itemUomSymbol}`} type="number" min={1} step="1" />
+        </div>
         <p className="text-sm text-muted-foreground">
-          1 {uomSymbol} = {conversionFactor} {baseUomSymbol ?? ''}
+          {numerator} {uomSymbol} = {denominator} {itemUomSymbol}
         </p>
       </div>
       <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">

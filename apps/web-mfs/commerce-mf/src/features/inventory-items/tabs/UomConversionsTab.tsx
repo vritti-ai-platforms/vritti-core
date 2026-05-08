@@ -12,14 +12,16 @@ import {
   useInventoryItemUomConversionsTable,
 } from '@/hooks/inventory-items';
 import type { InventoryItemUomConversionData } from '@/schemas/inventory-item-uom-conversions';
-import { AddUomOverrideForm } from '../forms/AddUomOverrideForm';
-import { EditUomOverrideForm } from '../forms/EditUomOverrideForm';
+import { AddUomConversionForm } from '../forms/AddUomConversionForm';
+import { EditUomConversionForm } from '../forms/EditUomConversionForm';
 
-interface UomOverridesTabProps {
+interface UomConversionsTabProps {
   itemId: string;
+  itemUomId: string;
+  itemUomSymbol: string;
 }
 
-export const UomOverridesTab: React.FC<UomOverridesTabProps> = ({ itemId }) => {
+export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, itemUomId, itemUomSymbol }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addDialog = useDialog();
@@ -29,8 +31,8 @@ export const UomOverridesTab: React.FC<UomOverridesTabProps> = ({ itemId }) => {
   const handleDelete = useCallback(
     async (row: InventoryItemUomConversionData) => {
       const confirmed = await confirm({
-        title: 'Remove override?',
-        description: `Remove the UOM override for "${row.uomName} (${row.uomSymbol})"?`,
+        title: 'Remove conversion?',
+        description: `Remove the UOM conversion for "${row.uomName} (${row.uomSymbol})"?`,
         confirmLabel: 'Remove',
         variant: 'destructive',
       });
@@ -48,30 +50,13 @@ export const UomOverridesTab: React.FC<UomOverridesTabProps> = ({ itemId }) => {
         enableSorting: true,
       },
       {
-        id: 'base',
-        header: 'Base',
-        cell: ({ row }) => <span className="font-mono">{row.original.baseUomSymbol ?? '—'}</span>,
-      },
-      {
-        id: 'default',
-        header: 'Default',
+        id: 'conversion',
+        header: 'Conversion',
         cell: ({ row }) => (
           <span className="font-mono">
-            1 {row.original.uomSymbol} = {row.original.defaultConversionFactor} {row.original.baseUomSymbol ?? ''}
+            {row.original.numerator} {row.original.uomSymbol} = {row.original.denominator} {itemUomSymbol}
           </span>
         ),
-      },
-      {
-        id: 'override',
-        header: 'Override',
-        cell: ({ row }) => {
-          const differs = row.original.conversionFactor !== row.original.defaultConversionFactor;
-          return (
-            <span className={differs ? 'font-mono font-semibold text-warning' : 'font-mono'}>
-              1 {row.original.uomSymbol} = {row.original.conversionFactor} {row.original.baseUomSymbol ?? ''}
-            </span>
-          );
-        },
       },
       {
         id: 'actions',
@@ -85,15 +70,16 @@ export const UomOverridesTab: React.FC<UomOverridesTabProps> = ({ itemId }) => {
                 label: 'Edit',
                 disabled: !row.original.canEdit,
                 dialog: {
-                  title: 'Edit UOM Override',
-                  description: `Update the conversion factor for ${row.original.uomName} (${row.original.uomSymbol}).`,
+                  title: 'Edit UOM Conversion',
+                  description: `Update the conversion ratio for ${row.original.uomName} (${row.original.uomSymbol}).`,
                   content: (close) => (
-                    <EditUomOverrideForm
+                    <EditUomConversionForm
                       itemId={itemId}
                       conversionId={row.original.id}
                       uomSymbol={row.original.uomSymbol}
-                      baseUomSymbol={row.original.baseUomSymbol}
-                      currentFactor={row.original.conversionFactor}
+                      itemUomSymbol={itemUomSymbol}
+                      currentNumerator={row.original.numerator}
+                      currentDenominator={row.original.denominator}
                       onSuccess={close}
                       onCancel={close}
                     />
@@ -115,14 +101,14 @@ export const UomOverridesTab: React.FC<UomOverridesTabProps> = ({ itemId }) => {
         enableHiding: false,
       },
     ],
-    [itemId, handleDelete],
+    [itemId, handleDelete, itemUomSymbol],
   );
 
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-uom-overrides`,
-    label: 'override',
+    slug: `inventory-item-${itemId}-uom-conversions`,
+    label: 'conversion',
     enableRowSelection: false,
     enableSorting: true,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId)] }),
@@ -137,17 +123,17 @@ export const UomOverridesTab: React.FC<UomOverridesTabProps> = ({ itemId }) => {
         toolbarActions={{
           actions: (
             <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
-              Add Override
+              Add Conversion
             </Button>
           ),
         }}
         emptyStateConfig={{
           icon: ArrowLeftRight,
-          title: 'No UOM overrides',
-          description: 'This item uses BU-wide UOM defaults. Add an override to specify a custom conversion.',
+          title: 'No UOM conversions',
+          description: 'No per-item UOM conversions defined. Add one to specify how an alternative UOM relates to this item.',
           action: (
             <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
-              Add Override
+              Add Conversion
             </Button>
           ),
         }}
@@ -155,9 +141,17 @@ export const UomOverridesTab: React.FC<UomOverridesTabProps> = ({ itemId }) => {
 
       <Dialog
         handle={addDialog}
-        title="Add UOM Override"
-        description="Specify a custom conversion factor for this inventory item."
-        content={(close) => <AddUomOverrideForm itemId={itemId} onSuccess={close} onCancel={close} />}
+        title="Add UOM Conversion"
+        description="Specify a conversion factor for this inventory item."
+        content={(close) => (
+          <AddUomConversionForm
+            itemId={itemId}
+            itemUomId={itemUomId}
+            itemUomSymbol={itemUomSymbol}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
       />
     </>
   );

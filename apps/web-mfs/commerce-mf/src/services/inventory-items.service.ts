@@ -2,6 +2,7 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-res
 import axios from '@vritti/quantum-ui/axios';
 import type { InventoryItemBatchesTableResponse } from '@/schemas/inventory-item-batches';
 import type { CreateInventoryItemFormData, InventoryItemData, InventoryItemsTableResponse, UpdateInventoryItemFormData } from '@/schemas/inventory-items';
+import type { InventoryItemSuppliersTableResponse } from '@/schemas/suppliers';
 
 export function getInventoryItemsTable(): Promise<InventoryItemsTableResponse> {
   return axios.get<InventoryItemsTableResponse>('commerce-api/inventory-items/table').then((r) => r.data);
@@ -25,4 +26,18 @@ export function updateInventoryItem({ id, data }: { id: string; data: UpdateInve
 
 export function deleteInventoryItem(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/inventory-items/${id}`).then((r) => r.data);
+}
+
+export function getAllowedUomIds(id: string): Promise<string[]> {
+  return axios
+    .get<string[]>(`commerce-api/inventory-items/${id}/allowed-uom-ids`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function getInventoryItemSuppliersTable(id: string): Promise<InventoryItemSuppliersTableResponse> {
+  return axios
+    .get<InventoryItemSuppliersTableResponse>(`commerce-api/inventory-items/${id}/suppliers/table`, {
+      showSuccessToast: false,
+    })
+    .then((r) => r.data);
 }

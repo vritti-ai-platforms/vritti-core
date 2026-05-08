@@ -2,7 +2,6 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   bigint,
   boolean,
-  decimal,
   index,
   integer,
   pgPolicy,
@@ -138,10 +137,11 @@ export const supplierItems = coreSchema.table(
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     supplierItemCode: varchar('supplier_item_code', { length: 100 }),
     unitPrice: bigint('unit_price', { mode: 'number' }),
+    currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
-    minOrderQuantity: decimal('min_order_quantity', { precision: 12, scale: 3 }),
+    minOrderQuantity: integer('min_order_quantity'),
     leadTimeDays: integer('lead_time_days'),
     isPreferred: boolean('is_preferred').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
@@ -153,6 +153,9 @@ export const supplierItems = coreSchema.table(
   },
   (table) => [
     uniqueIndex('uq_supplier_items_supplier_item').on(table.supplierId, table.inventoryItemId),
+    uniqueIndex('uq_supplier_items_preferred')
+      .on(table.inventoryItemId)
+      .where(sql`is_preferred = true`),
     index('idx_supplier_items_supplier').on(table.supplierId),
   ],
 );

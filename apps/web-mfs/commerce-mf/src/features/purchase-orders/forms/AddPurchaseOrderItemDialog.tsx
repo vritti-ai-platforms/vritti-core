@@ -1,6 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { UseMutationResult } from '@tanstack/react-query';
-import type { CreateResponse } from '@vritti/quantum-ui/api-response';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
@@ -8,18 +6,17 @@ import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import type { AxiosError } from 'axios';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import type { PurchaseOrderData, PurchaseOrderDetail } from '@/schemas/purchase-orders';
-import { type AddPurchaseOrderItemPayload } from '@/services/purchase-orders.service';
+import { useAddPurchaseOrderItem } from '@/hooks/purchase-orders';
+import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 
 interface AddPurchaseOrderItemDialogProps {
   purchaseOrder: PurchaseOrderDetail;
   existingItemIds: string[];
-  mutation: UseMutationResult<CreateResponse<PurchaseOrderData>, AxiosError, AddPurchaseOrderItemPayload>;
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
@@ -72,9 +69,11 @@ const baseAddLineItemSchema = z
 export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({
   purchaseOrder,
   existingItemIds,
-  mutation,
+  onSuccess,
   onCancel,
 }) => {
+  const mutation = useAddPurchaseOrderItem({ onSuccess });
+
   // Raw supplier unit price number from the inventory item option
   const [supplierUnitPrice, setSupplierUnitPrice] = useState<number | null>(null);
   const convertedSupplierUnitPrice =

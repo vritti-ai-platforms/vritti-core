@@ -13,6 +13,7 @@ import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { LinkSupplierItemDto } from '../dto/request/link-supplier-item.dto';
 import type { UpdateSupplierContactDto } from '../dto/request/update-supplier-contact.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
+import type { UpdateSupplierItemDto } from '../dto/request/update-supplier-item.dto';
 import type { SupplierContactResponseDto } from '../dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from '../dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from '../dto/response/supplier-item-table-response.dto';
@@ -105,6 +106,12 @@ export class SuppliersGatewayService {
   async linkItem(supplierId: string, dto: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemResponseDto>> {
     this.logger.log(`suppliers.linkItem — item: ${dto.inventoryItemId}`);
     return this.nats.send('commerce', 'suppliers.linkItem', { supplierId, ...dto });
+  }
+
+  // Updates a supplier item link
+  async updateItem(supplierId: string, supplierItemId: string, dto: UpdateSupplierItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`suppliers.updateItem — id: ${supplierItemId}`);
+    return this.nats.send('commerce', 'suppliers.updateItem', { supplierId, supplierItemId, ...dto });
   }
 
   // Unlinks an inventory item from a supplier

@@ -13,7 +13,8 @@ import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { BatchesTab } from './tabs/BatchesTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { StorageLocationsTab } from './tabs/StorageLocationsTab';
-import { UomOverridesTab } from './tabs/UomOverridesTab';
+import { SuppliersTab } from './tabs/SuppliersTab';
+import { UomConversionsTab } from './tabs/UomConversionsTab';
 
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
@@ -74,9 +75,16 @@ export const InventoryItemDetailPage = () => {
             content: <StorageLocationsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
-            value: 'uom-overrides',
-            label: 'UOM Overrides',
-            content: <UomOverridesTab itemId={item.id} />,
+            value: 'uom-conversions',
+            label: 'UOM Conversions',
+            content: (
+              <UomConversionsTab itemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol ?? ''} />
+            ),
+          },
+          {
+            value: 'suppliers',
+            label: 'Suppliers',
+            content: <SuppliersTab itemId={item.id} />,
           },
           {
             value: 'batches',

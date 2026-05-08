@@ -12,7 +12,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc, eq, isNotNull, isNull, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { uom } from '@/db/schema';
+import { uom, uomDimensions } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
 import { UomDto } from '../dto/entity/uom.dto';
@@ -37,7 +37,10 @@ export class UomService {
   constructor(private readonly uomRepository: UomRepository) {}
 
   // Returns paginated UOMs for the data table, scoped to a dimension; joined with base unit symbol
-  async findForTable(state: TableViewState & { dimensionId: string }, currentBuId: string): Promise<{ result: UomDto[]; count: number }> {
+  async findForTable(
+    state: TableViewState & { dimensionId: string },
+    currentBuId: string,
+  ): Promise<{ result: UomDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, UomService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, UomService.FIELD_MAP);
     const dimensionWhere = eq(uom.dimensionId, state.dimensionId);
@@ -78,11 +81,12 @@ export class UomService {
   // Returns paginated UOM options for select dropdowns
   findForSelect(
     query: SelectOptionsQueryDto,
-    options?: { derivedOnly?: boolean; baseOnly?: boolean },
+    options?: { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
     if (options?.derivedOnly) conditions.push(isNotNull(uom.baseUnitId));
     if (options?.baseOnly) conditions.push(isNull(uom.baseUnitId));
+    if (options?.dimensionId) conditions.push(eq(uom.dimensionId, options.dimensionId));
 
     return this.uomRepository.findForSelect({
       value: query.valueKey || 'id',
@@ -90,6 +94,7 @@ export class UomService {
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
+      ...(query.groupIdKey === 'dimensionId' ? { groupTable: uomDimensions } : {}),
       search: query.search,
       limit: query.limit,
       offset: query.offset,

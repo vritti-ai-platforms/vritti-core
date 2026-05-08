@@ -2,6 +2,8 @@ import type { InventoryItemQuantDto, LocationStockDto } from '@domain/inventory-
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/dto/entity/inventory-item-location.dto';
+import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
+import type { InventoryItemSupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
@@ -12,7 +14,10 @@ import type { UpdateInventoryItemDto } from './dto/request/update-inventory-item
 export class InventoryItemsController {
   private readonly logger = new Logger(InventoryItemsController.name);
 
-  constructor(private readonly service: InventoryItemsService) {}
+  constructor(
+    private readonly service: InventoryItemsService,
+    private readonly supplierItemsService: SupplierItemsService,
+  ) {}
 
   // Returns paginated inventory items for the data table
   @MessagePattern({ cmd: 'inventoryItems.table' })
@@ -51,6 +56,23 @@ export class InventoryItemsController {
   async create(@Payload() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
     this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
     return this.service.create(dto);
+  }
+
+  // Returns the UOM IDs allowed to transact for a given inventory item
+  @MessagePattern({ cmd: 'inventoryItems.allowedUomIds' })
+  async allowedUomIds(@Payload() data: { id: string }): Promise<string[]> {
+    this.logger.log(`inventoryItems.allowedUomIds — id: ${data.id}`);
+    return this.service.findAllowedUomIds(data.id);
+  }
+
+  // Returns suppliers carrying this inventory item, table-shaped
+  @MessagePattern({ cmd: 'inventoryItems.suppliersTable' })
+  async suppliersTable(
+    @Payload() data: { inventoryItemId: string } & TableViewState,
+  ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
+    const { inventoryItemId, ...state } = data;
+    this.logger.log(`inventoryItems.suppliersTable — itemId: ${inventoryItemId}`);
+    return this.supplierItemsService.findSuppliersForItem(inventoryItemId, state);
   }
 
   // Returns a single inventory item

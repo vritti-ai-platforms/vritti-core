@@ -54,6 +54,16 @@ export interface LinkSupplierItemPayload {
   isPreferred?: boolean;
 }
 
+export interface UpdateSupplierItemPayload {
+  supplierItemCode?: string | null;
+  unitPrice?: { currency: string; value: string } | null;
+  uomId?: string;
+  minOrderQuantity?: number | null;
+  leadTimeDays?: number | null;
+  isPreferred?: boolean;
+  isActive?: boolean;
+}
+
 export interface CreateSupplierContactPayload {
   name: string;
   phone: string;
@@ -136,6 +146,21 @@ export function linkSupplierItem({
   return axios
     .post<CreateResponse<SupplierItemData>>(`commerce-api/suppliers/${supplierId}/items`, data)
     .then((r) => r.data.data);
+}
+
+// Updates a supplier item link
+export function updateSupplierItem({
+  supplierId,
+  itemId,
+  data,
+}: {
+  supplierId: string;
+  itemId: string;
+  data: UpdateSupplierItemPayload;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/${itemId}`, data)
+    .then((r) => r.data);
 }
 
 // Unlinks an inventory item from a supplier

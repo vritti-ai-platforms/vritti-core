@@ -13,7 +13,7 @@ export function getInventoryItemUomConversionsTable(itemId: string): Promise<Inv
 
 export function createInventoryItemUomConversion(
   itemId: string,
-  data: { uomId: string; conversionFactor: number },
+  data: { uomId: string; numerator: number; denominator: number },
 ): Promise<CreateResponse<InventoryItemUomConversionData>> {
   return axios
     .post<CreateResponse<InventoryItemUomConversionData>>(
@@ -26,7 +26,7 @@ export function createInventoryItemUomConversion(
 export function updateInventoryItemUomConversion(
   itemId: string,
   conversionId: string,
-  data: { conversionFactor: number },
+  data: { numerator: number; denominator: number },
 ): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/inventory-items/${itemId}/uom-conversions/${conversionId}`, data)

@@ -3,9 +3,6 @@ import type { InventoryItemUomConversion } from '@/db/schema';
 type ConversionRow = InventoryItemUomConversion & {
   uomName: string | null;
   uomSymbol: string | null;
-  uomConversionFactor: number | null;
-  uomBaseUnitId: string | null;
-  baseUomSymbol: string | null;
 };
 
 export class InventoryItemUomConversionDto {
@@ -14,10 +11,8 @@ export class InventoryItemUomConversionDto {
   uomId: string;
   uomName: string;
   uomSymbol: string;
-  baseUomId: string | null;
-  baseUomSymbol: string | null;
-  defaultConversionFactor: number;
-  conversionFactor: number;
+  numerator: number;
+  denominator: number;
   canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
@@ -30,10 +25,8 @@ export class InventoryItemUomConversionDto {
     dto.uomId = row.uomId;
     dto.uomName = row.uomName ?? '';
     dto.uomSymbol = row.uomSymbol ?? '';
-    dto.baseUomId = row.uomBaseUnitId ?? null;
-    dto.baseUomSymbol = row.baseUomSymbol ?? null;
-    dto.defaultConversionFactor = row.uomConversionFactor ?? 1;
-    dto.conversionFactor = row.conversionFactor;
+    dto.numerator = row.numerator;
+    dto.denominator = row.denominator;
     dto.canEdit = row.businessUnitId === currentBuId;
     dto.canDelete = row.businessUnitId === currentBuId;
     dto.createdAt = row.createdAt.toISOString();

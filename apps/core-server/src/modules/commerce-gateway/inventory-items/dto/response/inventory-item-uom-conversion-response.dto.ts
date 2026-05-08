@@ -6,10 +6,8 @@ export class InventoryItemUomConversionResponseDto {
   @ApiProperty() uomId: string;
   @ApiProperty() uomName: string;
   @ApiProperty() uomSymbol: string;
-  @ApiProperty({ nullable: true }) baseUomId: string | null;
-  @ApiProperty({ nullable: true }) baseUomSymbol: string | null;
-  @ApiProperty() defaultConversionFactor: number;
-  @ApiProperty() conversionFactor: number;
+  @ApiProperty() numerator: number;
+  @ApiProperty() denominator: number;
   @ApiProperty() canEdit: boolean;
   @ApiProperty() canDelete: boolean;
   @ApiProperty() createdAt: string;

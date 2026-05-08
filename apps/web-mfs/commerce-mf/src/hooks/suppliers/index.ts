@@ -15,3 +15,4 @@ export { useSupplierItemsTable } from './useSupplierItemsTable';
 export { useSuppliersTable } from './useSuppliersTable';
 export { useUnlinkSupplierItem } from './useUnlinkSupplierItem';
 export { useUpdateSupplier } from './useUpdateSupplier';
+export { useUpdateSupplierItem } from './useUpdateSupplierItem';

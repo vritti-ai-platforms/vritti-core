@@ -7,7 +7,9 @@ import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { useAllowedUomIds } from '@/hooks/inventory-items';
 import { useLinkSupplierItem } from '@/hooks/suppliers';
 import { type LinkSupplierItemFormData, linkSupplierItemSchema } from '@/schemas/suppliers';
 
@@ -40,9 +42,16 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
   });
 
   const linkMutation = useLinkSupplierItem(supplierId, { onSuccess });
+  const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
+  const { data: allowedUomIds, isFetching: isLoadingAllowed } = useAllowedUomIds(inventoryItemId || null);
 
-  // Exclude already linked items
+  // Reset UOM when item changes so a stale selection doesn't survive into the new allowed set
+  useEffect(() => {
+    form.setValue('uomId', '');
+  }, [form]);
+
   const existingItemIds = existingInventoryItemIds.join(',');
+  const uomDisabled = !inventoryItemId || isLoadingAllowed || !allowedUomIds;
 
   return (
     <Form
@@ -67,9 +76,15 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         params={{ excludeIds: existingItemIds }}
       />
       <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
-      <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
+      <UomSelector
+        name="uomId"
+        label="Unit of Measure"
+        placeholder={inventoryItemId ? 'Select unit' : 'Select inventory item first'}
+        disabled={uomDisabled}
+        params={allowedUomIds ? { values: allowedUomIds.join(',') } : undefined}
+      />
       <div className="grid grid-cols-2 gap-4">
-        <CurrencyField name="unitPrice" label="Unit Price" currencyCode={supplierCurrencyCode} />
+        <CurrencyField name="unitPrice" label="Unit Price" defaultCurrencyCode={supplierCurrencyCode} />
         <TextField name="minOrderQuantity" label="Min Order Qty" type="number" placeholder="e.g. 100" />
       </div>
       <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" />

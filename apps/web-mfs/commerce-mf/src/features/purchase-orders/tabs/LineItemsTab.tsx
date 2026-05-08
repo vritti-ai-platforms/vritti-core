@@ -7,7 +7,6 @@ import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   PURCHASE_ORDER_ITEMS_TABLE_KEY,
-  useAddPurchaseOrderItem,
   usePurchaseOrderItemsTable,
   useRemovePurchaseOrderItem,
 } from '@/hooks/purchase-orders';
@@ -27,9 +26,6 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
   const confirm = useConfirm();
   const addItemDialog = useDialog();
   const { data: response, isLoading } = usePurchaseOrderItemsTable(purchaseOrderId);
-  const addItemMutation = useAddPurchaseOrderItem({
-    onSuccess: () => addItemDialog.close(),
-  });
   const removeItemMutation = useRemovePurchaseOrderItem();
 
   const handleRemoveItem = useCallback(
@@ -171,7 +167,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
           <AddPurchaseOrderItemDialog
             purchaseOrder={purchaseOrder}
             existingItemIds={existingItemIds}
-            mutation={addItemMutation}
+            onSuccess={close}
             onCancel={close}
           />
         )}

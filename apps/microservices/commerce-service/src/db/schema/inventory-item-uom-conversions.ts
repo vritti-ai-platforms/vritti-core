@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { doublePrecision, index, pgPolicy, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { check, index, integer, pgPolicy, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 import { uom } from './uom';
@@ -16,7 +16,8 @@ export const inventoryItemUomConversions = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
-    conversionFactor: doublePrecision('conversion_factor').notNull(),
+    numerator: integer('numerator').notNull(),
+    denominator: integer('denominator').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -27,6 +28,8 @@ export const inventoryItemUomConversions = coreSchema.table(
     uniqueIndex('uq_iiuc_item_uom').on(table.inventoryItemId, table.uomId),
     index('idx_iiuc_bu').on(table.organizationId, table.businessUnitId),
     index('idx_iiuc_item').on(table.inventoryItemId),
+    check('chk_iiuc_num_positive', sql`${table.numerator} > 0`),
+    check('chk_iiuc_denom_positive', sql`${table.denominator} > 0`),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

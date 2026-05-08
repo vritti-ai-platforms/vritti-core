@@ -120,11 +120,22 @@ export const linkSupplierItemSchema = z.object({
   isPreferred: z.boolean().optional(),
 });
 
+export const updateSupplierItemSchema = z.object({
+  supplierItemCode: z.string().max(100).optional(),
+  unitPrice: z.object({ currency: z.string(), value: z.string() }).optional(),
+  uomId: z.uuid('Unit of measure is required'),
+  minOrderQuantity: z.string().optional(),
+  leadTimeDays: z.string().optional(),
+  isPreferred: z.boolean().optional(),
+  isActive: z.boolean().optional(),
+});
+
 export type CreateSupplierFormData = z.infer<typeof createSupplierSchema>;
 export type UpdateSupplierFormData = z.infer<typeof updateSupplierSchema>;
 export type CreateSupplierContactFormData = z.infer<typeof createSupplierContactSchema>;
 export type UpdateSupplierContactFormData = z.infer<typeof updateSupplierContactSchema>;
 export type LinkSupplierItemFormData = z.infer<typeof linkSupplierItemSchema>;
+export type UpdateSupplierItemFormData = z.infer<typeof updateSupplierItemSchema>;
 export type SuppliersTableResponse = TableResponse<SupplierData>;
 export type SupplierItemsTableResponse = TableResponse<SupplierItemData>;
 
@@ -161,6 +172,23 @@ export interface SupplierItemData {
   isPreferred: boolean;
   isActive: boolean;
 }
+
+export interface InventoryItemSupplierData {
+  id: string;
+  supplierId: string;
+  supplierName: string | null;
+  supplierCode: string | null;
+  supplierItemCode: string | null;
+  unitPrice: { currency: string; value: string } | null;
+  uomId: string;
+  uomSymbol: string;
+  minOrderQuantity: number | null;
+  leadTimeDays: number | null;
+  isPreferred: boolean;
+  isActive: boolean;
+}
+
+export type InventoryItemSuppliersTableResponse = TableResponse<InventoryItemSupplierData>;
 
 export type SupplierDetail = SupplierData;
 

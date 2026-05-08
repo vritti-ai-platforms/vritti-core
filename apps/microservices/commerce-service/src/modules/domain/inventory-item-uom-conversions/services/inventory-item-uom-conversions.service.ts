@@ -22,7 +22,8 @@ export class InventoryItemUomConversionsService {
   private static readonly FIELD_MAP: FieldMap = {
     uomName: { column: uom.name, type: 'string' },
     uomSymbol: { column: uom.symbol, type: 'string' },
-    conversionFactor: { column: inventoryItemUomConversions.conversionFactor, type: 'number' },
+    numerator: { column: inventoryItemUomConversions.numerator, type: 'number' },
+    denominator: { column: inventoryItemUomConversions.denominator, type: 'number' },
   };
 
   constructor(
@@ -30,7 +31,7 @@ export class InventoryItemUomConversionsService {
     private readonly uomRepository: UomRepository,
   ) {}
 
-  // Returns paginated, filtered, sorted UOM overrides for an inventory item
+  // Returns paginated, filtered, sorted UOM conversions for an inventory item
   async findForTable(
     itemId: string,
     state: TableViewState,
@@ -52,73 +53,105 @@ export class InventoryItemUomConversionsService {
     return { result: result.map((row) => InventoryItemUomConversionDto.from(row, currentBuId)), count };
   }
 
-  // Creates a per-item UOM override after validating the UOM is a derived unit and no duplicate exists
+  // Creates a per-item UOM conversion. Only base UOMs (no global derivation) are eligible —
+  // derived UOMs already have a universal global factor and should not have per-item conversions.
   async create(
     itemId: string,
-    dto: { uomId: string; conversionFactor: number },
+    dto: { uomId: string; numerator: number; denominator: number },
     currentBuId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     const uomEntity = await this.uomRepository.findById(dto.uomId);
     if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
 
-    if (uomEntity.baseUnitId === null) {
+    if (uomEntity.baseUnitId !== null) {
       throw new BadRequestException({
-        label: 'Base Unit',
-        detail: 'Only derived units can have per-item overrides.',
+        label: 'Derived Unit',
+        detail: 'Per-item conversions are only allowed for base UOMs. Derived UOMs use the global conversion factor.',
       });
     }
 
-    if (dto.conversionFactor <= 0) {
-      throw new BadRequestException('Conversion factor must be greater than zero.');
+    const itemPrimaryUomId = await this.repository.findItemPrimaryUomId(itemId);
+    if (!itemPrimaryUomId) throw new NotFoundException('Inventory item not found.');
+    if (itemPrimaryUomId === dto.uomId) {
+      throw new BadRequestException({
+        label: 'Primary UOM',
+        detail: "An item's primary UOM cannot have a per-item conversion (it would be 1:1 with itself).",
+      });
+    }
+
+    if (!Number.isInteger(dto.numerator) || dto.numerator <= 0) {
+      throw new BadRequestException('Numerator must be a positive integer.');
+    }
+    if (!Number.isInteger(dto.denominator) || dto.denominator <= 0) {
+      throw new BadRequestException('Denominator must be a positive integer.');
     }
 
     const existing = await this.repository.findByItemAndUom(itemId, dto.uomId);
     if (existing) {
       throw new ConflictException({
-        label: 'Duplicate Override',
-        detail: 'An override for this unit already exists on this item.',
+        label: 'Duplicate Conversion',
+        detail: 'A conversion for this unit already exists on this item.',
       });
     }
 
-    await this.repository.create({ inventoryItemId: itemId, uomId: dto.uomId, conversionFactor: dto.conversionFactor });
+    await this.repository.create({
+      inventoryItemId: itemId,
+      uomId: dto.uomId,
+      numerator: dto.numerator,
+      denominator: dto.denominator,
+    });
     const created = await this.repository.findByItemAndUom(itemId, dto.uomId);
     const row = await this.repository.findById(created!.id);
-    this.logger.log(`Created UOM override for item ${itemId}: uomId=${dto.uomId}, factor=${dto.conversionFactor}`);
+    this.logger.log(
+      `Created UOM conversion for item ${itemId}: uomId=${dto.uomId}, ${dto.numerator}/${dto.denominator}`,
+    );
     return {
       success: true,
-      message: 'UOM override created successfully.',
+      message: 'UOM conversion created successfully.',
       data: InventoryItemUomConversionDto.from(row!, currentBuId),
     };
   }
 
-  // Updates the conversion factor of an existing override
-  async update(id: string, dto: { conversionFactor: number }, currentBuId: string): Promise<SuccessResponseDto> {
+  // Updates an existing UOM conversion's ratio
+  async update(
+    id: string,
+    dto: { numerator: number; denominator: number },
+    _currentBuId: string,
+  ): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('UOM override not found.');
+    if (!existing) throw new NotFoundException('UOM conversion not found.');
 
-    if (dto.conversionFactor <= 0) {
-      throw new BadRequestException('Conversion factor must be greater than zero.');
+    if (!Number.isInteger(dto.numerator) || dto.numerator <= 0) {
+      throw new BadRequestException('Numerator must be a positive integer.');
+    }
+    if (!Number.isInteger(dto.denominator) || dto.denominator <= 0) {
+      throw new BadRequestException('Denominator must be a positive integer.');
     }
 
-    await this.repository.update(id, { conversionFactor: dto.conversionFactor, updatedAt: new Date() });
-    this.logger.log(`Updated UOM override ${id}: factor=${dto.conversionFactor}`);
-    return { success: true, message: 'UOM override updated successfully.' };
+    await this.repository.update(id, {
+      numerator: dto.numerator,
+      denominator: dto.denominator,
+      updatedAt: new Date(),
+    });
+    this.logger.log(`Updated UOM conversion ${id}: ${dto.numerator}/${dto.denominator}`);
+    return { success: true, message: 'UOM conversion updated successfully.' };
   }
 
   // Deletes a UOM conversion override by ID
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('UOM override not found.');
+    if (!existing) throw new NotFoundException('UOM conversion not found.');
 
     await this.repository.delete(id);
-    this.logger.log(`Deleted UOM override ${id}`);
-    return { success: true, message: 'UOM override deleted successfully.' };
+    this.logger.log(`Deleted UOM conversion ${id}`);
+    return { success: true, message: 'UOM conversion deleted successfully.' };
   }
 
-  // Resolves the effective conversion factor: item override if present, otherwise the UOM's global default
+  // Resolves the effective conversion factor (1 alt = factor × primary):
+  // per-item conversion if present (denominator/numerator), else the UOM's global default
   async resolveFactor(itemId: string, uomId: string): Promise<number> {
     const override = await this.repository.findByItemAndUom(itemId, uomId);
-    if (override) return override.conversionFactor;
+    if (override) return override.denominator / override.numerator;
     const uomEntity = await this.uomRepository.findById(uomId);
     return uomEntity?.conversionFactor ?? 1;
   }

@@ -25,12 +25,15 @@ export function useInventoryItemUomConversionsTable(
   });
 }
 
+type CreatePayload = { uomId: string; numerator: number; denominator: number };
+type UpdatePayload = { conversionId: string; numerator: number; denominator: number };
+
 export function useCreateInventoryItemUomConversion(
   itemId: string,
-  options?: UseMutationOptions<CreateResponse<InventoryItemUomConversionData>, AxiosError, { uomId: string; conversionFactor: number }>,
+  options?: UseMutationOptions<CreateResponse<InventoryItemUomConversionData>, AxiosError, CreatePayload>,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<InventoryItemUomConversionData>, AxiosError, { uomId: string; conversionFactor: number }>({
+  return useMutation<CreateResponse<InventoryItemUomConversionData>, AxiosError, CreatePayload>({
     mutationFn: (data) => createInventoryItemUomConversion(itemId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId) });
@@ -41,12 +44,12 @@ export function useCreateInventoryItemUomConversion(
 
 export function useUpdateInventoryItemUomConversion(
   itemId: string,
-  options?: UseMutationOptions<SuccessResponse, AxiosError, { conversionId: string; conversionFactor: number }>,
+  options?: UseMutationOptions<SuccessResponse, AxiosError, UpdatePayload>,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<SuccessResponse, AxiosError, { conversionId: string; conversionFactor: number }>({
-    mutationFn: ({ conversionId, conversionFactor }) =>
-      updateInventoryItemUomConversion(itemId, conversionId, { conversionFactor }),
+  return useMutation<SuccessResponse, AxiosError, UpdatePayload>({
+    mutationFn: ({ conversionId, numerator, denominator }) =>
+      updateInventoryItemUomConversion(itemId, conversionId, { numerator, denominator }),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId) });
       options?.onSuccess?.(...args);

@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."supplier_items" ALTER COLUMN "min_order_quantity" SET DATA TYPE integer USING "min_order_quantity"::integer;

@@ -1,9 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
 
 export class UpdateInventoryItemUomConversionDto {
-  @ApiProperty({ description: 'Updated per-item conversion factor' })
-  @IsNumber()
-  @Min(0.0000001)
-  conversionFactor: number;
+  @ApiProperty({ description: 'Numerator: count of the alternative UOM in the ratio', example: 1 })
+  @IsInt()
+  @Min(1)
+  numerator: number;
+
+  @ApiProperty({ description: 'Denominator: count of the item primary UOM in the ratio', example: 10 })
+  @IsInt()
+  @Min(1)
+  denominator: number;
 }

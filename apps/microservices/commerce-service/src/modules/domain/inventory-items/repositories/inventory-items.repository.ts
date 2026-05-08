@@ -12,6 +12,7 @@ import {
   conversionInputs,
   conversionOutputs,
   inventoryItems,
+  inventoryItemUomConversions,
   purchaseOrderItems,
   stockAdjustments,
   stockTransfers,
@@ -23,6 +24,14 @@ import {
 export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inventoryItems> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItems);
+  }
+
+  // Returns paginated inventory item options with uom joined so dimensionId is reachable as additionalKey
+  findForSelectWithUom(config: FindForSelectConfig): Promise<SelectQueryResult> {
+    return super.findForSelect({
+      ...config,
+      joins: [{ table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' }],
+    });
   }
 
   // Returns paginated inventory item options filtered by supplier via inner join on supplier_items
@@ -51,6 +60,30 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions: [eq(purchaseOrderItems.purchaseOrderId, poId)],
     });
+  }
+
+  // Returns the set of UOM IDs allowed to transact for a given inventory item:
+  //  - the item's primary UOM
+  //  - every per-item conversion override
+  //  - every UOM in the same global "family" (sharing COALESCE(base_unit_id, id) with the primary)
+  async findAllowedUomIds(itemId: string): Promise<string[]> {
+    const result = await this.db.execute<{ id: string }>(sql`
+      WITH p AS (
+        SELECT COALESCE(base_unit_id, id) AS family_root
+        FROM ${uom}
+        WHERE id = (SELECT uom_id FROM ${inventoryItems} WHERE id = ${itemId})
+      )
+      SELECT DISTINCT id FROM (
+        SELECT uom_id AS id
+        FROM ${inventoryItemUomConversions}
+        WHERE inventory_item_id = ${itemId}
+        UNION
+        SELECT u.id
+        FROM ${uom} u, p
+        WHERE COALESCE(u.base_unit_id, u.id) = p.family_root
+      ) sub;
+    `);
+    return ((result as unknown as { rows: { id: string }[] }).rows ?? []).map((r) => r.id);
   }
 
   // Returns paginated inventory items with UOM symbol via LEFT JOIN

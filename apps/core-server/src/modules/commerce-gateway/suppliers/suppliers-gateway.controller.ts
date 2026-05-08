@@ -14,6 +14,7 @@ import { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
+import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
 import type { SupplierContactResponseDto } from './dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from './dto/response/supplier-item-response.dto';
@@ -119,6 +120,17 @@ export class SuppliersGatewayController {
   ): Promise<CreateResponseDto<SupplierItemResponseDto>> {
     this.logger.log(`POST /commerce-api/suppliers/${supplierId}/items`);
     return this.suppliersGatewayService.linkItem(supplierId, dto);
+  }
+
+  // Updates a supplier item link
+  @Patch(':id/items/:itemId')
+  updateItem(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: UpdateSupplierItemDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/suppliers/${supplierId}/items/${itemId}`);
+    return this.suppliersGatewayService.updateItem(supplierId, itemId, dto);
   }
 
   // Unlinks an inventory item from a supplier

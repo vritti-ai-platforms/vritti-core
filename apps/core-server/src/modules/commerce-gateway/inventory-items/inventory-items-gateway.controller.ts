@@ -67,6 +67,20 @@ export class InventoryItemsGatewayController {
     return this.service.findById(id);
   }
 
+  // Returns UOM IDs the item can transact in (primary + per-item conversions + globally derivable family)
+  @Get(':id/allowed-uom-ids')
+  findAllowedUomIds(@Param('id') id: string): Promise<string[]> {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/allowed-uom-ids`);
+    return this.service.findAllowedUomIds(id);
+  }
+
+  // Returns suppliers carrying this item, table-shaped
+  @Get(':id/suppliers/table')
+  getSuppliersTable(@Param('id') id: string, @UserId() userId: string) {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/suppliers/table`);
+    return this.service.findSuppliersTable(id, userId);
+  }
+
   // Returns stock levels for an inventory item
   @Get(':id/levels')
   findLevels(@Param('id') id: string) {

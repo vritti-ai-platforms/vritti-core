@@ -4,11 +4,12 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ClipboardList, Plus, Trash2 } from 'lucide-react';
+import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { SUPPLIER_ITEMS_TABLE_KEY, useSupplierItemsTable, useUnlinkSupplierItem } from '@/hooks/suppliers';
 import type { SupplierItemData } from '@/schemas/suppliers';
 import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
+import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
 
 interface ItemsTabProps {
   supplierId: string;
@@ -55,7 +56,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
       },
       {
         accessorKey: 'unitPrice',
-        header: supplierCurrencyCode ? `Unit Price (${supplierCurrencyCode})` : 'Unit Price',
+        header: 'Unit Price',
         cell: ({ row }) => (row.original.unitPrice != null ? `${row.original.unitPrice.currency} ${row.original.unitPrice.value}` : '—'),
       },
       {
@@ -83,6 +84,24 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
             disabledAll={unlinkMutation.isPending}
             actions={[
               {
+                id: 'edit',
+                icon: Pencil,
+                label: 'Edit',
+                dialog: {
+                  title: 'Edit Supplier Item',
+                  description: 'Update pricing, UOM, and terms for this linked item.',
+                  content: (close) => (
+                    <UpdateSupplierItemDialog
+                      supplierId={supplierId}
+                      supplierCurrencyCode={supplierCurrencyCode}
+                      item={row.original}
+                      onSuccess={close}
+                      onCancel={close}
+                    />
+                  ),
+                },
+              },
+              {
                 id: 'unlink',
                 icon: Trash2,
                 label: 'Unlink',
@@ -96,7 +115,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
         enableHiding: false,
       },
     ],
-    [handleUnlinkItem, unlinkMutation.isPending, supplierCurrencyCode],
+    [handleUnlinkItem, unlinkMutation.isPending, supplierId, supplierCurrencyCode],
   );
 
   const { table: linkedItemsTable } = useDataTable({

@@ -5084,6 +5084,62 @@
         ]
       }
     },
+    "/commerce-api/inventory-items/{id}/allowed-uom-ids": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_findAllowedUomIds",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/suppliers/table": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_getSuppliersTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/inventory-items/{id}/levels": {
       "get": {
         "operationId": "InventoryItemsGatewayController_findLevels",
@@ -10285,6 +10341,50 @@
       }
     },
     "/commerce-api/suppliers/{id}/items/{itemId}": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_updateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      },
       "delete": {
         "operationId": "SuppliersGatewayController_unlinkItem",
         "parameters": [
@@ -10862,6 +10962,15 @@
             "description": "When true, only base units are returned",
             "schema": {
               "type": "boolean"
+            }
+          },
+          {
+            "name": "dimensionId",
+            "required": false,
+            "in": "query",
+            "description": "Filter to UOMs sharing the given dimension",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -13475,28 +13584,42 @@
         "properties": {
           "uomId": {
             "type": "string",
-            "description": "ID of the derived unit of measure"
+            "description": "ID of the alternative UOM"
           },
-          "conversionFactor": {
+          "numerator": {
             "type": "number",
-            "description": "Per-item conversion factor overriding the global default"
+            "description": "Numerator: count of the alternative UOM in the ratio (e.g. 100 in \"100 ml = 1 vial\")",
+            "example": 1
+          },
+          "denominator": {
+            "type": "number",
+            "description": "Denominator: count of the item primary UOM in the ratio (e.g. 1 in \"100 ml = 1 vial\")",
+            "example": 10
           }
         },
         "required": [
           "uomId",
-          "conversionFactor"
+          "numerator",
+          "denominator"
         ]
       },
       "UpdateInventoryItemUomConversionDto": {
         "type": "object",
         "properties": {
-          "conversionFactor": {
+          "numerator": {
             "type": "number",
-            "description": "Updated per-item conversion factor"
+            "description": "Numerator: count of the alternative UOM in the ratio",
+            "example": 1
+          },
+          "denominator": {
+            "type": "number",
+            "description": "Denominator: count of the item primary UOM in the ratio",
+            "example": 10
           }
         },
         "required": [
-          "conversionFactor"
+          "numerator",
+          "denominator"
         ]
       },
       "UpdateInventoryItemDto": {
@@ -15979,6 +16102,45 @@
           "inventoryItemId",
           "uomId"
         ]
+      },
+      "UpdateSupplierItemDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemCode": {
+            "type": "object",
+            "description": "Supplier-specific item code"
+          },
+          "unitPrice": {
+            "description": "Unit price from this supplier",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "uomId": {
+            "type": "string",
+            "description": "UOM ID for pricing"
+          },
+          "minOrderQuantity": {
+            "type": "object",
+            "description": "Minimum order quantity",
+            "example": 10
+          },
+          "leadTimeDays": {
+            "type": "object",
+            "description": "Lead time in days for this item",
+            "example": 5
+          },
+          "isPreferred": {
+            "type": "boolean",
+            "description": "Whether this is the preferred supplier for this item"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether this supplier link is active"
+          }
+        }
       },
       "CreateSupplierContactDto": {
         "type": "object",

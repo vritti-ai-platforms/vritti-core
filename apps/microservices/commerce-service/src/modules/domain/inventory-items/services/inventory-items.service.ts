@@ -71,7 +71,7 @@ export class InventoryItemsService {
 
   // Returns paginated inventory item options for select dropdowns
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
+    return this.repository.findForSelectWithUom({
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
@@ -164,6 +164,13 @@ export class InventoryItemsService {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     return this.batchesService.findBatchesForTable(itemId, state);
+  }
+
+  // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
+  async findAllowedUomIds(itemId: string): Promise<string[]> {
+    const entity = await this.repository.findById(itemId);
+    if (!entity) throw new NotFoundException('Inventory item not found.');
+    return this.repository.findAllowedUomIds(itemId);
   }
 
   // Returns location-wise stock aggregates from the inventoryLevels view

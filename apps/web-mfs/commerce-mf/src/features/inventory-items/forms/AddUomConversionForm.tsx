@@ -13,29 +13,36 @@ import {
   createInventoryItemUomConversionSchema,
 } from '@/schemas/inventory-item-uom-conversions';
 
-interface AddUomOverrideFormProps {
+interface AddUomConversionFormProps {
   itemId: string;
+  itemUomId: string;
+  itemUomSymbol: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export const AddUomOverrideForm: React.FC<AddUomOverrideFormProps> = ({ itemId, onSuccess, onCancel }) => {
+export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
+  itemId,
+  itemUomId,
+  itemUomSymbol,
+  onSuccess,
+  onCancel,
+}) => {
   const [selectedUomSymbol, setSelectedUomSymbol] = useState<string | null>(null);
-  const [selectedBaseSymbol, setSelectedBaseSymbol] = useState<string | null>(null);
 
   const form = useForm<CreateInventoryItemUomConversionFormData>({
     resolver: zodResolver(createInventoryItemUomConversionSchema),
-    defaultValues: { uomId: '', conversionFactor: 1 },
+    defaultValues: { uomId: '', numerator: 1, denominator: 1 },
   });
 
-  const conversionFactor = useWatch({ control: form.control, name: 'conversionFactor' });
+  const numerator = useWatch({ control: form.control, name: 'numerator' });
+  const denominator = useWatch({ control: form.control, name: 'denominator' });
   const uomId = useWatch({ control: form.control, name: 'uomId' });
 
   const createMutation = useCreateInventoryItemUomConversion(itemId, { onSuccess });
 
   function handleOptionSelect(option: SelectOption | null) {
     setSelectedUomSymbol((option?.additionals?.symbol as string | undefined) ?? null);
-    setSelectedBaseSymbol((option?.additionals?.baseUomSymbol as string | undefined) ?? null);
   }
 
   const showPreview = !!uomId && !!selectedUomSymbol;
@@ -46,20 +53,32 @@ export const AddUomOverrideForm: React.FC<AddUomOverrideFormProps> = ({ itemId, 
         name="uomId"
         label="UOM"
         placeholder="Select unit of measure"
-        params={{ derivedOnly: true }}
+        fieldKeys={{ valueKey: 'id', labelKey: 'name', groupIdKey: 'dimensionId', additionalKeys: 'symbol' }}
+        params={{ baseOnly: true, excludeIds: itemUomId }}
         onOptionSelect={handleOptionSelect}
       />
       <div className="flex flex-col gap-1">
-        <TextField
-          name="conversionFactor"
-          label="Override Factor"
-          type="number"
-          min={0.0000001}
-          step="any"
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <TextField
+            name="numerator"
+            label={`Count of ${selectedUomSymbol ?? 'alt UOM'}`}
+            type="number"
+            min={1}
+            step="1"
+            disabled={!uomId}
+          />
+          <TextField
+            name="denominator"
+            label={`Count of ${itemUomSymbol}`}
+            type="number"
+            min={1}
+            step="1"
+            disabled={!uomId}
+          />
+        </div>
         {showPreview && (
           <p className="text-sm text-muted-foreground">
-            1 {selectedUomSymbol} = {conversionFactor} {selectedBaseSymbol ?? ''}
+            {numerator} {selectedUomSymbol} = {denominator} {itemUomSymbol}
           </p>
         )}
       </div>
@@ -68,7 +87,7 @@ export const AddUomOverrideForm: React.FC<AddUomOverrideFormProps> = ({ itemId, 
           Cancel
         </Button>
         <Button type="submit" loadingText="Adding...">
-          Add Override
+          Add Conversion
         </Button>
       </div>
     </Form>

@@ -7,10 +7,8 @@ export interface InventoryItemUomConversionData {
   uomId: string;
   uomName: string;
   uomSymbol: string;
-  baseUomId: string | null;
-  baseUomSymbol: string | null;
-  defaultConversionFactor: number;
-  conversionFactor: number;
+  numerator: number;
+  denominator: number;
   canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
@@ -19,13 +17,17 @@ export interface InventoryItemUomConversionData {
 
 export type InventoryItemUomConversionsTableResponse = TableResponse<InventoryItemUomConversionData>;
 
+const positiveInt = z.coerce.number<number>().int('Must be a whole number').min(1, 'Must be at least 1');
+
 export const createInventoryItemUomConversionSchema = z.object({
   uomId: z.string().uuid('UOM is required'),
-  conversionFactor: z.coerce.number<number>().min(0.0000001, 'Must be greater than 0'),
+  numerator: positiveInt,
+  denominator: positiveInt,
 });
 
 export const updateInventoryItemUomConversionSchema = z.object({
-  conversionFactor: z.coerce.number<number>().min(0.0000001, 'Must be greater than 0'),
+  numerator: positiveInt,
+  denominator: positiveInt,
 });
 
 export type CreateInventoryItemUomConversionFormData = z.infer<typeof createInventoryItemUomConversionSchema>;

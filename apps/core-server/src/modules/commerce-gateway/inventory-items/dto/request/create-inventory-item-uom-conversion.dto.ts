@@ -1,13 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsUUID, Min } from 'class-validator';
+import { IsInt, IsUUID, Min } from 'class-validator';
 
 export class CreateInventoryItemUomConversionDto {
-  @ApiProperty({ description: 'ID of the derived unit of measure' })
+  @ApiProperty({ description: 'ID of the alternative UOM' })
   @IsUUID()
   uomId: string;
 
-  @ApiProperty({ description: 'Per-item conversion factor overriding the global default' })
-  @IsNumber()
-  @Min(0.0000001)
-  conversionFactor: number;
+  @ApiProperty({
+    description: 'Numerator: count of the alternative UOM in the ratio (e.g. 100 in "100 ml = 1 vial")',
+    example: 1,
+  })
+  @IsInt()
+  @Min(1)
+  numerator: number;
+
+  @ApiProperty({
+    description: 'Denominator: count of the item primary UOM in the ratio (e.g. 1 in "100 ml = 1 vial")',
+    example: 10,
+  })
+  @IsInt()
+  @Min(1)
+  denominator: number;
 }
