@@ -28,9 +28,10 @@ export const LotSidePanel = ({
   const { data: lots = [] } = useStockAdjustmentLots(adjustmentId);
   const addLotDialog = useDialog();
 
+  // Clear the selection if the currently-selected lot no longer exists (e.g., it was deleted).
+  // No auto-select on initial load — the right pane shows an Empty asking the user to pick a lot.
   useEffect(() => {
-    if (!selectedLotId && lots.length > 0) onSelectLot(lots[0].id);
-    if (selectedLotId && !lots.some((lot) => lot.id === selectedLotId)) onSelectLot(lots[0]?.id ?? null);
+    if (selectedLotId && !lots.some((lot) => lot.id === selectedLotId)) onSelectLot(null);
   }, [lots, selectedLotId, onSelectLot]);
 
   return (
