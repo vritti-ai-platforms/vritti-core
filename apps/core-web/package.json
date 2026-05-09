@@ -8,8 +8,10 @@
     "check": "biome check --write .",
     "dev": "rsbuild dev --host local.vrittiai.com",
     "dev:ssl": "USE_HTTPS=true rsbuild dev --host local.vrittiai.com",
+    "dev:ssl:w": "cross-env USE_HTTPS=true rsbuild dev --host local.vrittiai.com",
     "dev:cloud": "rsbuild dev --host cloud.local.vrittiai.com",
     "dev:cloud:ssl": "USE_HTTPS=true rsbuild dev --host cloud.local.vrittiai.com",
+    "dev:cloud:ssl:w": "cross-env USE_HTTPS=true rsbuild dev --host cloud.local.vrittiai.com",
     "format": "biome format --write .",
     "lint": "biome lint .",
     "preview": "rsbuild preview"
@@ -39,6 +41,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-router-dom": "^5.3.3",
     "autoprefixer": "^10.4.23",
+    "cross-env": "^10.1.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3"
   }
