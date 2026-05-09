@@ -1,11 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { MapPin, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { LOCATIONS_KEY, useLocationCount } from '@/hooks/locations';
 import { LocationDetailPanel, LocationTreePanel } from './components';
@@ -31,19 +30,7 @@ export const LocationsPage = () => {
 
       <PageContent>
         <LocationTreePanel selectedId={selectedId} onSelect={setSelectedId} />
-
-        <PageContentDetails className="flex flex-col">
-          {selectedId ? (
-            <LocationDetailPanel selectedId={selectedId} onSelectLocation={setSelectedId} />
-          ) : (
-            <Empty
-              icon={<MapPin />}
-              title="Select a location"
-              description="Pick a location from the tree to view details and child locations."
-              className="h-full"
-            />
-          )}
-        </PageContentDetails>
+        <LocationDetailPanel selectedId={selectedId} onSelectLocation={setSelectedId} />
       </PageContent>
 
       <Dialog

@@ -15,14 +15,12 @@ import { EditUomDialog } from '../forms/EditUomDialog';
 
 interface UomTableProps {
   dimensionId: string;
-  isLoading?: boolean;
 }
 
-export const UomTable: React.FC<UomTableProps> = ({ dimensionId, isLoading: parentLoading = false }) => {
+export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const { data: response, isLoading: tableLoading } = useUomTable(dimensionId);
-  const isLoading = parentLoading || tableLoading;
+  const { data: response, isLoading } = useUomTable(dimensionId);
   const deleteMutation = useDeleteUom();
   const addDialog = useDialog();
   const editDialog = useDialog();

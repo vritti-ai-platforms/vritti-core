@@ -5,6 +5,8 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -18,6 +20,7 @@ import {
   type InventoryTracking,
   InventoryTrackingValues,
   type StockAdjustmentLineData,
+  type StockAdjustmentLotDetailData,
 } from '@/schemas/stock-adjustments';
 import { AddOpeningLineForm } from '../../forms/opening/AddOpeningLineForm';
 import { EditLotDialog } from '../../forms/opening/EditLotDialog';
@@ -35,24 +38,84 @@ interface LotDetailPanelProps {
   onLotRemoved?: () => void;
 }
 
-export const LotDetailPanel = ({
+export const LotDetailPanel = ({ lotId, ...rest }: LotDetailPanelProps) => {
+  const { data: lot, isLoading } = useStockAdjustmentLotDetail(rest.adjustmentId, lotId);
+
+  return (
+    <PageContentDetails
+      isLoading={!!lotId && (isLoading || !lot)}
+      loadingContent={<LotDetailPanelSkeleton />}
+      isEmpty={!lotId}
+      emptyState={
+        <Empty icon={<Boxes />} title="No lot selected" description="Select a lot from the left panel." />
+      }
+    >
+      {lot ? <LotDetailContent {...rest} lot={lot} /> : null}
+    </PageContentDetails>
+  );
+};
+
+function LotDetailPanelSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <Skeleton className="h-7 w-44" />
+          <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-24 rounded-md" />
+          <Skeleton className="h-8 w-28 rounded-md" />
+        </div>
+      </div>
+      <div className="rounded-md border">
+        <Skeleton className="h-10 w-full rounded-none border-b" />
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton
+            // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list, not dynamic>
+            key={`lot-detail-row-${i}`}
+            className="h-12 w-full rounded-none border-b last:border-b-0"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface LotDetailContentProps {
+  adjustmentId: string;
+  inventoryItemId: string;
+  tracking: InventoryTracking;
+  isDraft: boolean;
+  uomSymbol: string;
+  selectedLineId?: string | null;
+  onSelectLine?: (lineId: string | null) => void;
+  onLotRemoved?: () => void;
+  lot: StockAdjustmentLotDetailData;
+}
+
+const LotDetailContent = ({
   adjustmentId,
   inventoryItemId,
-  lotId,
   tracking,
   isDraft,
   uomSymbol,
   selectedLineId,
   onSelectLine,
   onLotRemoved,
-}: LotDetailPanelProps) => {
+  lot,
+}: LotDetailContentProps) => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const editLotDialog = useDialog();
   const addLineDialog = useDialog();
 
-  const { data: lot } = useStockAdjustmentLotDetail(adjustmentId, lotId);
-  const { data: response, isLoading } = useStockAdjustmentLinesByLotTable(adjustmentId, lotId);
+  const { data: response, isLoading: isLinesLoading } = useStockAdjustmentLinesByLotTable(adjustmentId, lot.id);
 
   const removeLotMutation = useRemoveStockAdjustmentLot(adjustmentId, {
     onSuccess: () => onLotRemoved?.(),
@@ -170,23 +233,13 @@ export const LotDetailPanel = ({
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `stock-adjustment-${adjustmentId}-lot-${lotId ?? 'none'}-lines`,
+    slug: `stock-adjustment-${adjustmentId}-lot-${lot.id}-lines`,
     label: 'line',
     enableRowSelection: false,
     onStatePush: () => {
-      if (lotId) {
-        queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY(adjustmentId, lotId) });
-      }
+      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY(adjustmentId, lot.id) });
     },
   });
-
-  if (!lotId || !lot) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Empty icon={<Boxes />} title="No lot selected" description="Select a lot from the left panel." />
-      </div>
-    );
-  }
 
   const handleRemoveLot = async () => {
     const confirmed = await confirm({
@@ -242,7 +295,7 @@ export const LotDetailPanel = ({
       <DataTable
         table={table}
         mode="compact"
-        isLoading={isLoading}
+        isLoading={isLinesLoading}
         onRowClick={onSelectLine ? (row) => onSelectLine(row.id) : undefined}
         selectedRowId={selectedLineId ?? null}
         toolbarActions={

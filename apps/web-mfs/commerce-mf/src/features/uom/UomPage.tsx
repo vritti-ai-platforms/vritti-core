@@ -1,10 +1,9 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Plus, Ruler } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { UomDimensionDetailPanel } from './components/UomDimensionDetailPanel';
 import { useUomDimensionCount } from '@/hooks/uom-dimensions';
@@ -30,18 +29,10 @@ export const UomPage = () => {
 
       <PageContent>
         <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
-        <PageContentDetails className="flex flex-col">
-          {selectedDimensionId ? (
-            <UomDimensionDetailPanel dimensionId={selectedDimensionId} onDeleted={() => setSelectedDimensionId(null)} />
-          ) : (
-            <Empty
-              icon={<Ruler />}
-              title="Pick a dimension"
-              description="Select a dimension from the side panel to manage its units."
-              className="flex-1"
-            />
-          )}
-        </PageContentDetails>
+        <UomDimensionDetailPanel
+          dimensionId={selectedDimensionId}
+          onDeleted={() => setSelectedDimensionId(null)}
+        />
       </PageContent>
 
       <Dialog

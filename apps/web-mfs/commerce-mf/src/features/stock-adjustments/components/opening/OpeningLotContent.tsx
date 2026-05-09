@@ -1,4 +1,4 @@
-import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { useState } from 'react';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { LotDetailPanel } from './LotDetailPanel';
@@ -21,17 +21,15 @@ export const OpeningLotContent = ({ adjustment, isDraft }: OpeningLotContentProp
         selectedLotId={selectedLotId}
         onSelectLot={setSelectedLotId}
       />
-      <PageContentDetails>
-        <LotDetailPanel
-          adjustmentId={adjustment.id}
-          inventoryItemId={adjustment.inventoryItemId}
-          lotId={selectedLotId}
-          tracking="lot"
-          isDraft={isDraft}
-          uomSymbol={adjustment.inventoryItemUomSymbol}
-          onLotRemoved={() => setSelectedLotId(null)}
-        />
-      </PageContentDetails>
+      <LotDetailPanel
+        adjustmentId={adjustment.id}
+        inventoryItemId={adjustment.inventoryItemId}
+        lotId={selectedLotId}
+        tracking="lot"
+        isDraft={isDraft}
+        uomSymbol={adjustment.inventoryItemUomSymbol}
+        onLotRemoved={() => setSelectedLotId(null)}
+      />
     </PageContent>
   );
 };

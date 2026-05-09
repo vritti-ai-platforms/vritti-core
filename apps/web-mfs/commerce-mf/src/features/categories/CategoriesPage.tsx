@@ -1,11 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { FolderTree, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { CATEGORIES_KEY, useCategoryCount } from '@/hooks/categories';
 import { CategoryDetailPanel, CategoryTreePanel } from './components';
@@ -31,19 +30,7 @@ export const CategoriesPage = () => {
 
       <PageContent>
         <CategoryTreePanel selectedId={selectedId} onSelect={setSelectedId} />
-
-        <PageContentDetails className="flex flex-col">
-          {selectedId ? (
-            <CategoryDetailPanel categoryId={selectedId} onSelectCategory={setSelectedId} />
-          ) : (
-            <Empty
-              icon={<FolderTree />}
-              title="Select a category"
-              description="Click a category in the tree to view its details"
-              className="flex-1"
-            />
-          )}
-        </PageContentDetails>
+        <CategoryDetailPanel categoryId={selectedId} onSelectCategory={setSelectedId} />
       </PageContent>
 
       <Dialog

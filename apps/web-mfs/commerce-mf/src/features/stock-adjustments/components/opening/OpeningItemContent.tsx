@@ -8,6 +8,7 @@ import { LotDetailPanel } from './LotDetailPanel';
 import { LotsTreePanel } from './LotsTreePanel';
 import { SerialsTable } from './SerialsTable';
 
+
 interface OpeningItemContentProps {
   adjustment: StockAdjustmentData;
   isDraft: boolean;
@@ -42,21 +43,22 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
           onLineRemoved={() => setSelectedLineId(null)}
         />
       ) : selectedLotId ? (
-        <PageContentDetails>
-          <LotDetailPanel
-            adjustmentId={adjustment.id}
-            inventoryItemId={adjustment.inventoryItemId}
-            lotId={selectedLotId}
-            tracking="lot_serial"
-            isDraft={isDraft}
-            uomSymbol={adjustment.inventoryItemUomSymbol}
-            onLotRemoved={() => setSelectedLotId(null)}
-          />
-        </PageContentDetails>
+        <LotDetailPanel
+          adjustmentId={adjustment.id}
+          inventoryItemId={adjustment.inventoryItemId}
+          lotId={selectedLotId}
+          tracking="lot_serial"
+          isDraft={isDraft}
+          uomSymbol={adjustment.inventoryItemUomSymbol}
+          onLotRemoved={() => setSelectedLotId(null)}
+        />
       ) : (
-        <PageContentDetails className="flex items-center justify-center">
-          <Empty icon={<Boxes />} title="Pick a lot or line" description="Select an entry from the tree." />
-        </PageContentDetails>
+        <PageContentDetails
+          isEmpty
+          emptyState={
+            <Empty icon={<Boxes />} title="Pick a lot or line" description="Select an entry from the tree." />
+          }
+        />
       )}
     </PageContent>
   );

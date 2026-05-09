@@ -4,11 +4,13 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { formatCategoryPath } from '@vritti/quantum-ui/selects/category';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Folder, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Folder, FolderTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import {
@@ -22,18 +24,73 @@ import { AddCategoryDialog } from '../forms/AddCategoryDialog';
 import { EditCategoryDialog } from '../forms/EditCategoryDialog';
 
 interface CategoryDetailPanelProps {
-  categoryId: string;
+  categoryId: string | null;
   onSelectCategory: (id: string | null) => void;
 }
 
 export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ categoryId, onSelectCategory }) => {
+  const { data: category, isLoading } = useCategoryById(categoryId);
+
+  return (
+    <PageContentDetails
+      className="flex flex-col"
+      isLoading={!!categoryId && (isLoading || !category)}
+      loadingContent={<CategoryDetailPanelSkeleton />}
+      isEmpty={!categoryId}
+      emptyState={
+        <Empty
+          icon={<FolderTree />}
+          title="Select a category"
+          description="Click a category in the tree to view its details"
+        />
+      }
+    >
+      {category ? <CategoryDetailContent category={category} onSelectCategory={onSelectCategory} /> : null}
+    </PageContentDetails>
+  );
+};
+
+function CategoryDetailPanelSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-6 w-16" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-20 rounded-md" />
+          <Skeleton className="h-8 w-20 rounded-md" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list, not dynamic>
+            key={`category-detail-field-${i}`}
+            className="space-y-2"
+          >
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface CategoryDetailContentProps {
+  category: CategoryData;
+  onSelectCategory: (id: string | null) => void;
+}
+
+const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category, onSelectCategory }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addChildDialog = useDialog();
   const editDialog = useDialog();
   const deleteMutation = useDeleteCategory();
-  const { data: category, isLoading } = useCategoryById(categoryId);
-  const { data: childrenResponse, isLoading: isChildrenLoading } = useCategoryChildrenTable(categoryId);
+  const { data: childrenResponse, isLoading: isChildrenLoading } = useCategoryChildrenTable(category.id);
 
   const columns = useMemo<ColumnDef<CategoryData>[]>(
     () => [
@@ -68,14 +125,13 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
   const { table } = useDataTable({
     columns,
     serverState: childrenResponse,
-    slug: `category-${categoryId}-children`,
+    slug: `category-${category.id}-children`,
     label: 'child category',
     enableRowSelection: false,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: CATEGORY_CHILDREN_TABLE_KEY(categoryId) }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: CATEGORY_CHILDREN_TABLE_KEY(category.id) }),
   });
 
   const handleDelete = async () => {
-    if (!category) return;
     const confirmed = await confirm({
       title: `Delete "${category.name}"?`,
       description: 'This category will be permanently removed.',
@@ -92,28 +148,20 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
-        {category ? (
-          <div className="flex items-center gap-3 flex-wrap">
-            <Typography variant="h3">{category.name}</Typography>
-            <Badge
-              variant={category.isActive ? 'secondary' : 'outline'}
-              className={category.isActive ? 'bg-success/15 text-success' : ''}
-            >
-              {category.isActive ? 'Active' : 'Inactive'}
-            </Badge>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-6 w-16" />
-          </div>
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Typography variant="h3">{category.name}</Typography>
+          <Badge
+            variant={category.isActive ? 'secondary' : 'outline'}
+            className={category.isActive ? 'bg-success/15 text-success' : ''}
+          >
+            {category.isActive ? 'Active' : 'Inactive'}
+          </Badge>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={editDialog.open}
-            disabled={!category}
             startAdornment={<Pencil className="size-3.5" />}
           >
             Edit
@@ -122,7 +170,7 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
             variant="destructive"
             size="sm"
             onClick={handleDelete}
-            disabled={!category || !category.canDelete || deleteMutation.isPending}
+            disabled={!category.canDelete || deleteMutation.isPending}
             isLoading={deleteMutation.isPending}
             startAdornment={<Trash2 className="size-3.5" />}
           >
@@ -132,13 +180,9 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
       </div>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        <DetailField label="Sort Order" value={category?.sortOrder} loading={!category} />
-        <DetailField label="Child Categories" value={childrenResponse?.count ?? 0} loading={!category} />
-        <DetailField
-          label="Parent"
-          value={category?.path ? formatCategoryPath(category.path) || '—' : '—'}
-          loading={!category}
-        />
+        <DetailField label="Sort Order" value={category.sortOrder} />
+        <DetailField label="Child Categories" value={childrenResponse?.count ?? 0} />
+        <DetailField label="Parent" value={category.path ? formatCategoryPath(category.path) || '—' : '—'} />
       </div>
 
       <div>
@@ -148,15 +192,10 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
         <DataTable
           table={table}
           mode="compact"
-          isLoading={isLoading || isChildrenLoading}
+          isLoading={isChildrenLoading}
           toolbarActions={{
             actions: (
-              <Button
-                size="sm"
-                disabled={!category}
-                startAdornment={<Plus className="size-4" />}
-                onClick={addChildDialog.open}
-              >
+              <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
                 Add Child Category
               </Button>
             ),
@@ -169,32 +208,28 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
         />
       </div>
 
-      {category ? (
-        <>
-          <Dialog
-            handle={addChildDialog}
-            title="Add Child Category"
-            description={`Add a child category under "${category.name}".`}
-            content={(close) => (
-              <AddCategoryDialog
-                defaultParentId={category.id}
-                onSuccess={() => {
-                  queryClient.invalidateQueries({ queryKey: CATEGORY_CHILDREN_TABLE_KEY(category.id) });
-                  close();
-                }}
-                onCancel={close}
-              />
-            )}
+      <Dialog
+        handle={addChildDialog}
+        title="Add Child Category"
+        description={`Add a child category under "${category.name}".`}
+        content={(close) => (
+          <AddCategoryDialog
+            defaultParentId={category.id}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: CATEGORY_CHILDREN_TABLE_KEY(category.id) });
+              close();
+            }}
+            onCancel={close}
           />
+        )}
+      />
 
-          <Dialog
-            handle={editDialog}
-            title="Edit Category"
-            description="Update the details for this category."
-            content={(close) => <EditCategoryDialog category={category} onSuccess={close} onCancel={close} />}
-          />
-        </>
-      ) : null}
+      <Dialog
+        handle={editDialog}
+        title="Edit Category"
+        description="Update the details for this category."
+        content={(close) => <EditCategoryDialog category={category} onSuccess={close} onCancel={close} />}
+      />
     </div>
   );
 };

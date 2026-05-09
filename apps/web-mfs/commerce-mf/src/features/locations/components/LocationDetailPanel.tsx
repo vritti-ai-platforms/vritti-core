@@ -6,6 +6,8 @@ import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
@@ -26,15 +28,71 @@ interface LocationDetailPanelProps {
 }
 
 export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ selectedId, onSelectLocation }) => {
+  const { data: location, isLoading } = useLocationById(selectedId);
+
+  return (
+    <PageContentDetails
+      className="flex flex-col"
+      isLoading={!!selectedId && (isLoading || !location)}
+      loadingContent={<LocationDetailPanelSkeleton />}
+      isEmpty={!selectedId}
+      emptyState={
+        <Empty
+          icon={<MapPin />}
+          title="Select a location"
+          description="Pick a location from the tree to view details and child locations."
+        />
+      }
+    >
+      {location ? <LocationDetailContent location={location} onSelectLocation={onSelectLocation} /> : null}
+    </PageContentDetails>
+  );
+};
+
+function LocationDetailPanelSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-6 w-16" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-20 rounded-md" />
+          <Skeleton className="h-8 w-20 rounded-md" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list, not dynamic>
+            key={`location-detail-field-${i}`}
+            className="space-y-2"
+          >
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface LocationDetailContentProps {
+  location: LocationData;
+  onSelectLocation: (id: string | null) => void;
+}
+
+const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location, onSelectLocation }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addChildDialog = useDialog();
   const editDialog = useDialog();
   const deleteMutation = useDeleteLocation();
-  const { data: location, isLoading: isLocationLoading } = useLocationById(selectedId);
-  const locationId = location?.id ?? null;
-  const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(locationId);
-  const canAddChild = location?.locationRole === 'ZONE';
+  const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(location.id);
+  const canAddChild = location.locationRole === 'ZONE';
 
   const columns = useMemo<ColumnDef<LocationData>[]>(
     () => [
@@ -78,30 +136,13 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
   const { table } = useDataTable({
     columns,
     serverState: childrenResponse,
-    slug: `location-${selectedId ?? 'none'}-children`,
+    slug: `location-${location.id}-children`,
     label: 'child location',
     enableRowSelection: false,
     onStatePush: () => {
-      if (locationId) {
-        queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(locationId) });
-      }
+      queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(location.id) });
     },
   });
-
-  if (selectedId && isLocationLoading) {
-    return <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Loading…</div>;
-  }
-
-  if (!location) {
-    return (
-      <Empty
-        icon={<MapPin />}
-        title="Select a location"
-        description="Pick a location from the tree to view details and child locations."
-        className="h-full"
-      />
-    );
-  }
 
   const handleDelete = async () => {
     const confirmed = await confirm({
@@ -199,9 +240,7 @@ export const LocationDetailPanel: React.FC<LocationDetailPanelProps> = ({ select
           <AddLocationDialog
             defaultParentId={location.id}
             onSuccess={() => {
-              if (locationId) {
-                queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(locationId) });
-              }
+              queryClient.invalidateQueries({ queryKey: LOCATION_CHILDREN_TABLE_KEY(location.id) });
               close();
             }}
             onCancel={close}
