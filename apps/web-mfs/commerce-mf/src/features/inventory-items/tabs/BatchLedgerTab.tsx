@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { ScrollText } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -34,7 +35,7 @@ export const BatchLedgerTab: React.FC<BatchLedgerTabProps> = ({ batchId, uomSymb
         accessorKey: 'createdAt',
         header: 'Date',
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{new Date(row.original.createdAt).toLocaleDateString()}</span>
+          <FormattedDate value={row.original.createdAt} dateFormat="P" className="text-muted-foreground" />
         ),
         enableSorting: true,
       },

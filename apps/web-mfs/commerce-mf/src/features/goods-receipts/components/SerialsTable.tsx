@@ -3,6 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
@@ -81,7 +82,7 @@ export const SerialsTable = ({
       {
         accessorKey: 'createdAt',
         header: 'Added',
-        cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+        cell: ({ row }) => <FormattedDate value={row.original.createdAt} dateFormat="P" />,
         enableSorting: true,
       },
       ...(isDraft

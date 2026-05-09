@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -135,11 +136,11 @@ export const StockTransferDetailPage = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Created</p>
-              <p className="mt-1">{new Date(transfer.createdAt).toLocaleString()}</p>
+              <p className="mt-1"><FormattedDate value={transfer.createdAt} /></p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Last Updated</p>
-              <p className="mt-1">{new Date(transfer.updatedAt).toLocaleString()}</p>
+              <p className="mt-1"><FormattedDate value={transfer.updatedAt} /></p>
             </div>
             <div className="col-span-2">
               <p className="text-sm text-muted-foreground">Notes</p>

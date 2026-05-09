@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -11,16 +12,13 @@ import {
   useRemoveGoodsReceiptItem,
   useRemoveGoodsReceiptLot,
 } from '@/hooks/goods-receipts';
-import {
-  type GoodsReceiptTreeNode,
-  InventoryTrackingValues,
-} from '@/schemas/goods-receipts';
+import { type GoodsReceiptTreeNode, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { AddLotDialog } from '../forms/AddLotDialog';
 import { EditItemDialog } from '../forms/EditItemDialog';
 import { EditLotDialog } from '../forms/EditLotDialog';
+import type { TreeSelection } from './GoodsReceiptTreePanel';
 import { LinesTable } from './LinesTable';
 import { SerialsTable } from './SerialsTable';
-import type { TreeSelection } from './GoodsReceiptTreePanel';
 
 interface RightContentProps {
   goodsReceiptId: string;
@@ -56,7 +54,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
   // Lots for the selected item — needed when selection.kind='lot' to derive lot details for the EditLot dialog
   const { data: lots = [] } = useGoodsReceiptLots(goodsReceiptId, itemId);
   const selectedLot = useMemo(
-    () => (selection?.kind === 'lot' ? lots.find((l) => l.id === selection.lotId) ?? null : null),
+    () => (selection?.kind === 'lot' ? (lots.find((l) => l.id === selection.lotId) ?? null) : null),
     [lots, selection],
   );
 
@@ -135,14 +133,10 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
               <h3 className="text-xl font-semibold">{selectedLot?.lotNumber ?? '—'}</h3>
               <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
                 <div>
-                  Mfg:{' '}
-                  {selectedLot?.manufacturingDate
-                    ? new Date(selectedLot.manufacturingDate).toLocaleDateString()
-                    : '—'}
+                  Mfg: <FormattedDate value={selectedLot?.manufacturingDate} dateFormat="P" />
                 </div>
                 <div>
-                  Exp:{' '}
-                  {selectedLot?.expiryDate ? new Date(selectedLot.expiryDate).toLocaleDateString() : '—'}
+                  Exp: <FormattedDate value={selectedLot?.expiryDate} dateFormat="P" />
                 </div>
                 <div>
                   Total: {selectedLot?.totalQuantity ?? 0} {uomSymbol ?? ''}
@@ -199,7 +193,12 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
           />
         </div>
 
-        <EditLotDialog goodsReceiptId={goodsReceiptId} itemId={selection.itemId} lot={selectedLot} handle={editLotDialog} />
+        <EditLotDialog
+          goodsReceiptId={goodsReceiptId}
+          itemId={selection.itemId}
+          lot={selectedLot}
+          handle={editLotDialog}
+        />
       </PageContentDetails>
     );
   }
@@ -286,7 +285,6 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                     rejectedQuantity: itemNode.rejectedQuantity ?? 0,
                     lotsCount: 0,
                     linesCount: 0,
-                    isBalanced: itemNode.isBalanced,
                     poOrderedQuantity: itemNode.poOrderedQuantity ?? null,
                     poReceivedQuantity: itemNode.poReceivedQuantity ?? null,
                     poRemainingQuantity: itemNode.poRemainingQuantity ?? null,
@@ -371,7 +369,6 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                   rejectedQuantity: itemNode.rejectedQuantity ?? 0,
                   lotsCount: 0,
                   linesCount: 0,
-                  isBalanced: itemNode.isBalanced,
                   poOrderedQuantity: itemNode.poOrderedQuantity ?? null,
                   poReceivedQuantity: itemNode.poReceivedQuantity ?? null,
                   poRemainingQuantity: itemNode.poRemainingQuantity ?? null,

@@ -51,9 +51,15 @@ export interface StockAdjustmentLotData {
   resolvedLotId: string | null;
   linesCount: number;
   totalQuantity: number;
-  isBalanced: boolean;
   metadata: Record<string, unknown>;
   createdAt: string;
+}
+
+export interface StockAdjustmentLotDetailData extends StockAdjustmentLotData {
+  // Distinct location ids already used by lines under this lot — used to drive AddLine excludeIds.
+  locationIds: string[];
+  // Line ids under this lot, ordered by createdAt.
+  lineIds: string[];
 }
 
 export interface StockAdjustmentLineData {

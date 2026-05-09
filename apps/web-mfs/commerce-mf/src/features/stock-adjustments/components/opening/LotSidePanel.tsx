@@ -1,5 +1,7 @@
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { Boxes, Plus } from 'lucide-react';
@@ -50,42 +52,41 @@ export const LotSidePanel = ({
             </Button>
           ) : null
         }
-        contentClassName={lots.length === 0 ? 'flex items-center justify-center p-3' : undefined}
-        content={
-          lots.length === 0 ? (
-            <Empty
-              icon={<Boxes />}
-              title="No lots"
-              description={isDraft ? 'Add the first lot to begin distributing.' : 'No lots in this adjustment.'}
-            />
-          ) : (
-            <div className="p-2 space-y-2">
-              {lots.map((lot: StockAdjustmentLotData) => (
-                <SidePanelListItem
-                  key={lot.id}
-                  active={selectedLotId === lot.id}
-                  onClick={() => onSelectLot(lot.id)}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-sm font-medium truncate">{lot.lotNumber}</div>
-                    <span
-                      className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
-                        lot.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
-                      }`}
-                    >
-                      {lot.totalQuantity} {uomSymbol}
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {lot.linesCount} {lot.linesCount === 1 ? 'line' : 'lines'}
-                    {lot.expiryDate ? ` • exp ${new Date(lot.expiryDate).toLocaleDateString()}` : ''}
-                  </div>
-                </SidePanelListItem>
-              ))}
-            </div>
-          )
+        isEmpty={lots.length === 0}
+        emptyState={
+          <Empty
+            icon={<Boxes />}
+            title="No lots"
+            description={isDraft ? 'Add the first lot to begin distributing.' : 'No lots in this adjustment.'}
+          />
         }
-      />
+      >
+        <div className="p-2 space-y-2">
+          {lots.map((lot: StockAdjustmentLotData) => (
+            <SidePanelListItem
+              key={lot.id}
+              active={selectedLotId === lot.id}
+              onClick={() => onSelectLot(lot.id)}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-medium truncate">{lot.lotNumber}</div>
+                <Badge variant="secondary" className="shrink-0 bg-success/15 text-success">
+                  {lot.totalQuantity} {uomSymbol}
+                </Badge>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {lot.linesCount} {lot.linesCount === 1 ? 'line' : 'lines'}
+                {lot.expiryDate ? (
+                  <>
+                    {' • exp '}
+                    <FormattedDate value={lot.expiryDate} dateOnly />
+                  </>
+                ) : null}
+              </div>
+            </SidePanelListItem>
+          ))}
+        </div>
+      </PageContentPanel>
 
       <AddLotDialog adjustmentId={adjustmentId} handle={addLotDialog} />
     </>

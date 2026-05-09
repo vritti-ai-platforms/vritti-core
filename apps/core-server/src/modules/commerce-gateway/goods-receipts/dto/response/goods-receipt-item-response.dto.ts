@@ -13,7 +13,6 @@ export class GoodsReceiptItemResponseDto {
   @ApiProperty() rejectedQuantity: number;
   @ApiProperty() lotsCount: number;
   @ApiProperty() linesCount: number;
-  @ApiProperty() isBalanced: boolean;
   @ApiPropertyOptional({ nullable: true }) poOrderedQuantity: number | null;
   @ApiPropertyOptional({ nullable: true }) poReceivedQuantity: number | null;
   @ApiPropertyOptional({ nullable: true }) poRemainingQuantity: number | null;

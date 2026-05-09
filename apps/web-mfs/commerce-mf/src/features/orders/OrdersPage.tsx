@@ -3,6 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
@@ -86,7 +87,7 @@ export const OrdersPage = () => {
       {
         accessorKey: 'placedAt',
         header: 'Placed At',
-        cell: ({ row }) => new Date(row.original.placedAt).toLocaleString(),
+        cell: ({ row }) => <FormattedDate value={row.original.placedAt} />,
         enableSorting: true,
       },
       {

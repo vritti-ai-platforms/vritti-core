@@ -1,7 +1,6 @@
-import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
-import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
-import { GoodsReceiptLinesRepository } from '@domain/goods-receipt-lines/repositories/goods-receipt-lines.repository';
-import { InventoryItemLotsRepository } from '@domain/inventory-item-lots/repositories/inventory-item-lots.repository';
+import { GoodsReceiptItemsService } from '@domain/goods-receipts/services/goods-receipt-items.service';
+import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -12,7 +11,6 @@ import {
 } from '@vritti/api-sdk';
 import { GoodsReceiptStatusValues, type InventoryItemLot, InventoryTrackingValues } from '@/db/schema';
 import { GoodsReceiptLotDto } from '../dto/entity/goods-receipt-lot.dto';
-import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
 import { GoodsReceiptLotsRepository } from '../repositories/goods-receipt-lots.repository';
 
 @Injectable()
@@ -21,10 +19,9 @@ export class GoodsReceiptLotsService {
 
   constructor(
     private readonly repository: GoodsReceiptLotsRepository,
-    private readonly linesRepository: GoodsReceiptLinesRepository,
-    private readonly itemsRepository: GoodsReceiptItemsRepository,
-    private readonly receiptsRepository: GoodsReceiptsRepository,
-    private readonly inventoryLotsRepository: InventoryItemLotsRepository,
+    private readonly itemsService: GoodsReceiptItemsService,
+    private readonly receiptsService: GoodsReceiptsService,
+    private readonly inventoryItemLotsService: InventoryItemLotsService,
   ) {}
 
   async listByItem(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLotDto[]> {
@@ -33,104 +30,20 @@ export class GoodsReceiptLotsService {
     return rows.map(GoodsReceiptLotDto.from);
   }
 
-  // Builds the unified tree: items as roots, lots/lines as descendants based on item.tracking.
-  // tracking='quantity':   item is a leaf (lines hang directly off item via lines table; not in this tree).
-  // tracking='serial':     item is a leaf (no lots; lines hang directly off item; not in this tree).
-  // tracking='lot':        item -> lots (lots are leaves).
-  // tracking='lot_serial': item -> lots -> lines (lines are leaves).
-  async findTreeForReceipt(goodsReceiptId: string): Promise<GoodsReceiptTreeNode[]> {
-    const receipt = await this.receiptsRepository.findById(goodsReceiptId);
-    if (!receipt) throw new NotFoundException('Goods receipt not found.');
-
-    const items = await this.itemsRepository.findByReceiptId(goodsReceiptId);
-    if (items.length === 0) return [];
-
-    const lotsByItem = new Map<string, Awaited<ReturnType<typeof this.repository.findByItemId>>>();
-    for (const item of items) {
-      if (
-        item.inventoryItemTracking === InventoryTrackingValues.QUANTITY ||
-        item.inventoryItemTracking === InventoryTrackingValues.SERIAL
-      ) {
-        continue;
-      }
-      lotsByItem.set(item.id, await this.repository.findByItemId(item.id));
-    }
-
-    const linesByLot = new Map<string, Awaited<ReturnType<typeof this.linesRepository.findByItemId>>>();
-    for (const item of items) {
-      if (item.inventoryItemTracking !== InventoryTrackingValues.LOT_SERIAL) continue;
-      const lines = await this.linesRepository.findByItemId(item.id);
-      for (const line of lines) {
-        const lotId = line.goodsReceiptLotId;
-        if (!lotId) continue;
-        const bucket = linesByLot.get(lotId) ?? [];
-        bucket.push(line);
-        linesByLot.set(lotId, bucket);
-      }
-    }
-
-    return items.map((item): GoodsReceiptTreeNode => {
-      const tracking = item.inventoryItemTracking;
-      const itemNode: GoodsReceiptTreeNode = {
-        id: item.id,
-        name: item.inventoryItemName ?? item.inventoryItemId,
-        path: [item.id],
-        kind: 'item',
-        inventoryItemId: item.inventoryItemId,
-        inventoryItemTracking: tracking,
-        inventoryItemUomSymbol: item.inventoryItemUomSymbol ?? undefined,
-        acceptedQuantity: Number(item.acceptedQuantity),
-        rejectedQuantity: Number(item.rejectedQuantity),
-        poOrderedQuantity: item.poOrderedQuantity != null ? Number(item.poOrderedQuantity) : null,
-        poReceivedQuantity: item.poReceivedQuantity != null ? Number(item.poReceivedQuantity) : null,
-        poRemainingQuantity:
-          item.poOrderedQuantity != null
-            ? Number(item.poOrderedQuantity) - Number(item.poReceivedQuantity ?? 0)
-            : null,
-        isBalanced: item.unbalancedLinesCount === 0,
-      };
-      if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
-        return itemNode;
-      }
-      const lots = lotsByItem.get(item.id) ?? [];
-      itemNode.children = lots.map((lot): GoodsReceiptTreeNode => {
-        const lotNode: GoodsReceiptTreeNode = {
-          id: lot.id,
-          name: lot.lotNumber,
-          path: [item.id, lot.id],
-          kind: 'lot',
-          totalQuantity: Number(lot.totalQuantity),
-          linesCount: Number(lot.linesCount),
-          isBalanced: Number(lot.unbalancedLinesCount) === 0,
-        };
-        if (tracking === InventoryTrackingValues.LOT_SERIAL) {
-          lotNode.children = (linesByLot.get(lot.id) ?? []).map((line) => ({
-            id: line.id,
-            name: line.locationName ?? line.locationId ?? '—',
-            path: [item.id, lot.id, line.id],
-            kind: 'line' as const,
-            quantity: Number(line.quantity),
-            lineItemsCount: line.lineItemsCount,
-            isBalanced: line.isBalanced,
-          }));
-        }
-        return lotNode;
-      });
-      return itemNode;
-    });
-  }
-
   async addLot(
     goodsReceiptId: string,
     itemId: string,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
-    const { receipt, item, tracking } = await this.ensureItem(goodsReceiptId, itemId);
+    const { receipt, item } = await this.ensureItem(goodsReceiptId, itemId);
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be added to DRAFT goods receipts.');
     }
-    if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
-      throw new BadRequestException(`Items with tracking=${tracking} cannot have lots.`);
+    if (
+      item.inventoryItemTracking === InventoryTrackingValues.QUANTITY ||
+      item.inventoryItemTracking === InventoryTrackingValues.SERIAL
+    ) {
+      throw new BadRequestException(`Items with tracking=${item.inventoryItemTracking} cannot have lots.`);
     }
 
     const lotNumber = data.lotNumber?.trim();
@@ -149,7 +62,7 @@ export class GoodsReceiptLotsService {
       });
     }
 
-    const inventoryLot = await this.inventoryLotsRepository.findByItemAndNumber(item.inventoryItemId, lotNumber);
+    const inventoryLot = await this.inventoryItemLotsService.findByItemAndNumber(item.inventoryItemId, lotNumber);
     if (inventoryLot) {
       throw new ValidationException({
         detail: `Lot "${lotNumber}" already exists in inventory. Goods receipts can only register new lots.`,
@@ -203,7 +116,7 @@ export class GoodsReceiptLotsService {
           errors: [{ field: 'lotNumber', message: 'Lot already on this item.' }],
         });
       }
-      const inventoryDup = await this.inventoryLotsRepository.findByItemAndNumber(item.inventoryItemId, trimmed);
+      const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(item.inventoryItemId, trimmed);
       if (inventoryDup) {
         throw new ValidationException({
           detail: `Lot "${trimmed}" already exists in inventory.`,
@@ -238,7 +151,10 @@ export class GoodsReceiptLotsService {
   async resolveInventoryLot(inventoryItemId: string, lotId: string): Promise<InventoryItemLot> {
     const gr = await this.repository.findById(lotId);
     if (!gr) throw new NotFoundException(`Goods receipt lot ${lotId} not found.`);
-    const inserted = await this.inventoryLotsRepository.createLot({
+    if (!gr.expiryDate) {
+      throw new BadRequestException(`Goods receipt lot ${lotId} is missing an expiry date.`);
+    }
+    const inserted = await this.inventoryItemLotsService.createLot({
       inventoryItemId,
       lotNumber: gr.lotNumber,
       manufacturingDate: gr.manufacturingDate ?? null,
@@ -248,14 +164,12 @@ export class GoodsReceiptLotsService {
     return inserted;
   }
 
+  // Validates the receipt + item exist, returns both for downstream guards.
+  // Item DTO carries inventoryItemTracking + inventoryItemId so callers don't need a separate trip.
   private async ensureItem(goodsReceiptId: string, itemId: string) {
-    const receipt = await this.receiptsRepository.findById(goodsReceiptId);
-    if (!receipt) throw new NotFoundException('Goods receipt not found.');
-    const item = await this.itemsRepository.findByReceiptIdAndItemId(goodsReceiptId, itemId);
-    if (!item) throw new NotFoundException('Goods receipt item not found.');
-    const tracking = await this.itemsRepository.getTrackingForItem(itemId);
-    if (!tracking) throw new NotFoundException('Inventory item tracking not found.');
-    return { receipt, item, tracking };
+    const receipt = await this.receiptsService.findById(goodsReceiptId);
+    const item = await this.itemsService.findById(goodsReceiptId, itemId);
+    return { receipt, item };
   }
 
   private async ensureLotBelongsToItem(itemId: string, lotId: string) {

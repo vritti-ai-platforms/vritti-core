@@ -3,6 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -90,7 +91,7 @@ export const PriceListDetailPage = () => {
         stats={[
           { value: priceList.assignedItemsCount, label: 'items' },
           { value: priceList.assignedTerminalsCount, label: 'terminals' },
-          { value: 'Updated', label: new Date(priceList.updatedAt).toLocaleDateString() },
+          { value: 'Updated', label: <FormattedDate value={priceList.updatedAt} dateFormat="P" /> },
         ]}
       />
 

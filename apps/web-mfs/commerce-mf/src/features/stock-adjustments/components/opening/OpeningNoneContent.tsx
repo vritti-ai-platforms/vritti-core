@@ -51,9 +51,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
       {
         accessorKey: 'locationPath',
         header: 'Path',
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>,
         enableSorting: false,
       },
       {
@@ -109,7 +107,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
           ]
         : []),
     ],
-    [adjustment.id, adjustment.inventoryItemUomSymbol, isDraft, handleRemove],
+    [adjustment.id, adjustment.inventoryItemUomSymbol, isDraft, handleRemove, adjustment.inventoryItemId],
   );
 
   const { table } = useDataTable({

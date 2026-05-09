@@ -69,7 +69,6 @@ export interface GoodsReceiptItemData {
   rejectedQuantity: number;
   lotsCount: number;
   linesCount: number;
-  isBalanced: boolean;
   poOrderedQuantity: number | null;
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
@@ -86,7 +85,6 @@ export interface GoodsReceiptLotData {
   resolvedLotId: string | null;
   linesCount: number;
   totalQuantity: number;
-  isBalanced: boolean;
   metadata: Record<string, unknown>;
   createdAt: string;
 }

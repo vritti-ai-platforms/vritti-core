@@ -29,6 +29,7 @@ export { useStockAdjustmentLines } from './useStockAdjustmentLines';
 export { useStockAdjustmentLinesByLot } from './useStockAdjustmentLinesByLot';
 export { useStockAdjustmentLinesByLotTable } from './useStockAdjustmentLinesByLotTable';
 export { useStockAdjustmentLinesTable } from './useStockAdjustmentLinesTable';
+export { useStockAdjustmentLotDetail } from './useStockAdjustmentLotDetail';
 export { useStockAdjustmentLots } from './useStockAdjustmentLots';
 export { useStockAdjustmentTree } from './useStockAdjustmentTree';
 export { useStockAdjustmentsTable } from './useStockAdjustmentsTable';

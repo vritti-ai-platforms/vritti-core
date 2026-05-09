@@ -1,4 +1,5 @@
 import type { GoodsReceiptItemDto } from '@domain/goods-receipts/dto/entity/goods-receipt-item.dto';
+import type { GoodsReceiptTreeNode } from '@domain/goods-receipts/dto/entity/goods-receipt-tree.dto';
 import { GoodsReceiptItemsService } from '@domain/goods-receipts/services/goods-receipt-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -9,6 +10,12 @@ export class GoodsReceiptsItemsController {
   private readonly logger = new Logger(GoodsReceiptsItemsController.name);
 
   constructor(private readonly itemsService: GoodsReceiptItemsService) {}
+
+  @MessagePattern({ cmd: 'goodsReceipts.tree' })
+  tree(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptTreeNode[]> {
+    this.logger.log(`goodsReceipts.tree — receipt: ${data.goodsReceiptId}`);
+    return this.itemsService.findTreeForReceipt(data.goodsReceiptId);
+  }
 
   @MessagePattern({ cmd: 'goodsReceipts.inventoryItemIds' })
   inventoryItemIds(@Payload() data: { goodsReceiptId: string }): Promise<string[]> {

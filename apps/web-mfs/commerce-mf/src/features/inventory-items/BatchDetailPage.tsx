@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -135,13 +136,13 @@ export const BatchDetailPage = () => {
                     <div>
                       <dt className="text-sm text-muted-foreground">Manufacturing Date</dt>
                       <dd className="mt-1 font-mono">
-                        {batch.manufacturingDate ? new Date(batch.manufacturingDate).toLocaleDateString() : '—'}
+                        <FormattedDate value={batch.manufacturingDate} dateFormat="P" />
                       </dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Expiry Date</dt>
                       <dd className="mt-1 font-mono">
-                        {batch.expiryDate ? new Date(batch.expiryDate).toLocaleDateString() : '—'}
+                        <FormattedDate value={batch.expiryDate} dateFormat="P" />
                       </dd>
                     </div>
                     <div>
@@ -150,7 +151,9 @@ export const BatchDetailPage = () => {
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Created</dt>
-                      <dd className="mt-1 text-muted-foreground">{new Date(batch.createdAt).toLocaleDateString()}</dd>
+                      <dd className="mt-1">
+                        <FormattedDate value={batch.createdAt} dateFormat="P" className="text-muted-foreground" />
+                      </dd>
                     </div>
                   </dl>
                 </CardContent>

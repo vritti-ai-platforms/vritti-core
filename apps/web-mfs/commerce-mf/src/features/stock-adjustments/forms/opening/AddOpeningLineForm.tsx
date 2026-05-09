@@ -18,6 +18,8 @@ interface AddOpeningLineFormProps {
   inventoryItemId: string;
   stockAdjustmentLotId: string | null;
   tracking: InventoryTracking;
+  // Locations already used by lines under this lot — excluded from the LocationSelector dropdown.
+  excludeLocationIds?: string[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -27,6 +29,7 @@ export const AddOpeningLineForm = ({
   inventoryItemId,
   stockAdjustmentLotId,
   tracking,
+  excludeLocationIds,
   onSuccess,
   onCancel,
 }: AddOpeningLineFormProps) => {
@@ -60,7 +63,13 @@ export const AddOpeningLineForm = ({
         name="locationId"
         label="Location"
         placeholder="Select location"
-        params={{ locationRoles: LocationRoleValues.STORAGE, inventoryItemId }}
+        params={{
+          locationRoles: LocationRoleValues.STORAGE,
+          inventoryItemId,
+          ...(excludeLocationIds && excludeLocationIds.length > 0
+            ? { excludeIds: excludeLocationIds.join(',') }
+            : {}),
+        }}
       />
       {!isItem && <TextField name="quantity" label="Quantity" type="number" positive nonZero />}
       {isItem && (

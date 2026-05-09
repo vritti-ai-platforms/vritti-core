@@ -2,6 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -159,7 +160,7 @@ export const CreditNoteDetailPage = () => {
                             <tr key={app.id} className="border-b last:border-0">
                               <td className="py-3 font-mono">{app.invoiceId}</td>
                               <td className="py-3 text-right font-mono font-medium">{app.amount.toFixed(2)}</td>
-                              <td className="py-3">{new Date(app.appliedAt).toLocaleDateString()}</td>
+                              <td className="py-3"><FormattedDate value={app.appliedAt} dateFormat="P" /></td>
                             </tr>
                           ))}
                         </tbody>

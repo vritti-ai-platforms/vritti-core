@@ -13,11 +13,7 @@ import {
   useGoodsReceiptLinesTable,
   useRemoveGoodsReceiptLine,
 } from '@/hooks/goods-receipts';
-import {
-  type GoodsReceiptLineData,
-  type InventoryTracking,
-  InventoryTrackingValues,
-} from '@/schemas/goods-receipts';
+import { type GoodsReceiptLineData, type InventoryTracking, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { AddLineForm } from '../forms/AddLineForm';
 import { EditLineForm } from '../forms/EditLineForm';
 
@@ -92,9 +88,7 @@ export const LinesTable = ({
       {
         accessorKey: 'locationPath',
         header: 'Path',
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>,
         enableSorting: false,
       },
       {
@@ -168,7 +162,7 @@ export const LinesTable = ({
           ]
         : []),
     ],
-    [isDraft, isSerial, tracking, uomSymbol, scope.itemId, goodsReceiptId, handleRemoveLine],
+    [isDraft, isSerial, tracking, uomSymbol, scope.itemId, goodsReceiptId, handleRemoveLine, scope.inventoryItemId],
   );
 
   const slug =

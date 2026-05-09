@@ -1,7 +1,5 @@
 import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
-import type { GoodsReceiptTreeNode } from '@domain/goods-receipt-lots/dto/entity/goods-receipt-tree.dto';
-import { GoodsReceiptLotsService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
@@ -15,7 +13,6 @@ export class GoodsReceiptsRootController {
   constructor(
     private readonly service: GoodsReceiptsService,
     private readonly publishService: GoodsReceiptsPublishService,
-    private readonly lotsService: GoodsReceiptLotsService,
   ) {}
 
   @MessagePattern({ cmd: 'goodsReceipts.create' })
@@ -34,12 +31,6 @@ export class GoodsReceiptsRootController {
   findById(@Payload() data: { id: string }): Promise<GoodsReceiptDto> {
     this.logger.log('goodsReceipts.findById');
     return this.service.findById(data.id);
-  }
-
-  @MessagePattern({ cmd: 'goodsReceipts.tree' })
-  tree(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptTreeNode[]> {
-    this.logger.log(`goodsReceipts.tree — receipt: ${data.goodsReceiptId}`);
-    return this.lotsService.findTreeForReceipt(data.goodsReceiptId);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.publish' })

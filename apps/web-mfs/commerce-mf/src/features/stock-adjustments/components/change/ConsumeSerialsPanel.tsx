@@ -39,8 +39,8 @@ export const ConsumeSerialsPanel = ({ adjustmentId, line, isDraft, uomSymbol }: 
       <PageContentPanel
         className={PANEL_CLASSES}
         header="Serials"
-        contentClassName="flex items-center justify-center p-3"
-        content={<Empty icon={<Tags />} title="No line selected" description="Pick a line to consume serials." />}
+        isEmpty
+        emptyState={<Empty icon={<Tags />} title="No line selected" description="Pick a line to consume serials." />}
       />
     );
   }
@@ -67,32 +67,28 @@ export const ConsumeSerialsPanel = ({ adjustmentId, line, isDraft, uomSymbol }: 
             </Button>
           ) : null
         }
-        contentClassName={serials.length === 0 ? 'flex items-center justify-center p-3' : undefined}
-        content={
-          serials.length === 0 ? (
-            <Empty icon={<Tags />} title="No serials picked" description="Pick a serial to consume." />
-          ) : (
-            <ul className="divide-y px-3">
-              {serials.map((serial) => (
-                <li key={serial.id} className="flex items-center justify-between py-2">
-                  <span className="font-mono text-sm">{serial.serialNumber}</span>
-                  {isDraft && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      startAdornment={<Trash2 className="size-3.5" />}
-                      onClick={() => handleRemove(serial.id)}
-                      isLoading={removeMutation.isPending && removeMutation.variables === serial.id}
-                    >
-                      Unpick
-                    </Button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )
-        }
-      />
+        isEmpty={serials.length === 0}
+        emptyState={<Empty icon={<Tags />} title="No serials picked" description="Pick a serial to consume." />}
+      >
+        <ul className="divide-y px-3">
+          {serials.map((serial) => (
+            <li key={serial.id} className="flex items-center justify-between py-2">
+              <span className="font-mono text-sm">{serial.serialNumber}</span>
+              {isDraft && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  startAdornment={<Trash2 className="size-3.5" />}
+                  onClick={() => handleRemove(serial.id)}
+                  isLoading={removeMutation.isPending && removeMutation.variables === serial.id}
+                >
+                  Unpick
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </PageContentPanel>
       <PickSerialDialog adjustmentId={adjustmentId} lineId={lineId} handle={pickDialog} />
     </>
   );

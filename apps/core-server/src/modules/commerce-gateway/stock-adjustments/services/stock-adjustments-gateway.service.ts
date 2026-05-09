@@ -19,6 +19,7 @@ import type { StockAdjustmentLineItemTableResponseDto } from '../dto/response/st
 import type { StockAdjustmentLineResponseDto } from '../dto/response/stock-adjustment-line-response.dto';
 import type { StockAdjustmentLineTableResponseDto } from '../dto/response/stock-adjustment-line-table-response.dto';
 import type { StockAdjustmentLotResponseDto } from '../dto/response/stock-adjustment-lot-response.dto';
+import type { StockAdjustmentLotDetailResponseDto } from '../dto/response/stock-adjustment-lot-detail-response.dto';
 import type { StockAdjustmentTreeNodeResponseDto } from '../dto/response/stock-adjustment-tree-response.dto';
 import type { StockAdjustmentResponseDto } from '../dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from '../dto/response/stock-adjustment-table-response.dto';
@@ -108,6 +109,11 @@ export class StockAdjustmentsGatewayService {
   async findLots(adjustmentId: string): Promise<StockAdjustmentLotResponseDto[]> {
     this.logger.log(`stockAdjustments.lots — adjustment: ${adjustmentId}`);
     return this.nats.send('commerce', 'stockAdjustments.lots', { adjustmentId });
+  }
+
+  async findLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
+    this.logger.log(`stockAdjustments.lotDetail — adjustment: ${adjustmentId}, lot: ${lotId}`);
+    return this.nats.send('commerce', 'stockAdjustments.lotDetail', { adjustmentId, lotId });
   }
 
   async addLot(

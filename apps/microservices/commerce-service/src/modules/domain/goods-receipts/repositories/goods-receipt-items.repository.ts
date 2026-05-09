@@ -9,9 +9,11 @@ import {
   goodsReceipts,
   inventoryItems,
   type InventoryTracking,
+  locations,
   purchaseOrderItems,
   uom,
 } from '@/db/schema';
+import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
 
 export type GoodsReceiptItemWithRefs = GoodsReceiptItem & {
   inventoryItemName: string | null;
@@ -34,6 +36,143 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
 
   async findByReceiptId(goodsReceiptId: string): Promise<GoodsReceiptItemWithRefs[]> {
     return this.runRichSelect(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId));
+  }
+
+  // Returns the unified GR tree (items → lots → lines) as fully-formed GoodsReceiptTreeNode[]
+  // in a single query. SQL emits the wire shape directly via json_build_object/json_agg.
+  // Children depth varies by tracking: quantity/serial → empty array, lot → lots only,
+  // lot_serial → lots with line children.
+  async findTreeNodesByReceiptId(goodsReceiptId: string): Promise<GoodsReceiptTreeNode[]> {
+    // Per-item line aggregations (acceptedQuantity, unbalancedLinesCount).
+    const acceptedQty = sql`(
+      SELECT COALESCE(SUM(quantity), 0)
+      FROM vritti_core.goods_receipt_lines
+      WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
+    )`;
+    const itemUnbalanced = sql`(
+      SELECT COALESCE(SUM(CASE WHEN is_balanced = false THEN 1 ELSE 0 END), 0)
+      FROM vritti_core.goods_receipt_lines
+      WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
+    )`;
+
+    // tracking='lot': lots as leaves (no `children` key).
+    const lotsOnlyJson = sql`(
+      SELECT COALESCE(
+        json_agg(
+          json_build_object(
+            'id', l.id,
+            'name', l.lot_number,
+            'path', json_build_array(${goodsReceiptItems.id}, l.id),
+            'kind', 'lot',
+            'totalQuantity', COALESCE(la.total_quantity, 0),
+            'linesCount', COALESCE(la.lines_count, 0),
+            'isBalanced', COALESCE(la.unbalanced_lines_count, 0) = 0
+          ) ORDER BY l.created_at
+        ),
+        '[]'::json
+      )
+      FROM vritti_core.goods_receipt_lots l
+      LEFT JOIN LATERAL (
+        SELECT
+          SUM(quantity) AS total_quantity,
+          COUNT(*) AS lines_count,
+          SUM(CASE WHEN is_balanced = false THEN 1 ELSE 0 END) AS unbalanced_lines_count
+        FROM vritti_core.goods_receipt_lines
+        WHERE goods_receipt_lot_id = l.id
+      ) la ON TRUE
+      WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
+    )`;
+
+    // tracking='lot_serial': lots with line children.
+    const lotsWithLinesJson = sql`(
+      SELECT COALESCE(
+        json_agg(
+          json_build_object(
+            'id', l.id,
+            'name', l.lot_number,
+            'path', json_build_array(${goodsReceiptItems.id}, l.id),
+            'kind', 'lot',
+            'totalQuantity', COALESCE(la.total_quantity, 0),
+            'linesCount', COALESCE(la.lines_count, 0),
+            'isBalanced', COALESCE(la.unbalanced_lines_count, 0) = 0,
+            'children', COALESCE(lc.lines_json, '[]'::json)
+          ) ORDER BY l.created_at
+        ),
+        '[]'::json
+      )
+      FROM vritti_core.goods_receipt_lots l
+      LEFT JOIN LATERAL (
+        SELECT
+          SUM(quantity) AS total_quantity,
+          COUNT(*) AS lines_count,
+          SUM(CASE WHEN is_balanced = false THEN 1 ELSE 0 END) AS unbalanced_lines_count
+        FROM vritti_core.goods_receipt_lines
+        WHERE goods_receipt_lot_id = l.id
+      ) la ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT json_agg(
+          json_build_object(
+            'id', line.id,
+            'name', COALESCE(loc.name, '—'),
+            'path', json_build_array(${goodsReceiptItems.id}, l.id, line.id),
+            'kind', 'line',
+            'quantity', line.quantity,
+            'lineItemsCount', (
+              SELECT COUNT(*) FROM vritti_core.goods_receipt_line_items li
+              WHERE li.goods_receipt_line_id = line.id
+            ),
+            'isBalanced', line.is_balanced
+          ) ORDER BY line.created_at
+        ) AS lines_json
+        FROM vritti_core.goods_receipt_lines line
+        LEFT JOIN vritti_core.locations loc ON line.location_id = loc.id
+        WHERE line.goods_receipt_lot_id = l.id
+      ) lc ON TRUE
+      WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
+    )`;
+
+    const node = sql<GoodsReceiptTreeNode>`json_build_object(
+      'id', ${goodsReceiptItems.id},
+      'name', COALESCE(${inventoryItems.name}, ${goodsReceiptItems.inventoryItemId}::text),
+      'path', json_build_array(${goodsReceiptItems.id}),
+      'kind', 'item',
+      'inventoryItemId', ${goodsReceiptItems.inventoryItemId},
+      'inventoryItemTracking', ${inventoryItems.tracking},
+      'inventoryItemUomSymbol', ${uom.symbol},
+      'acceptedQuantity', ${acceptedQty},
+      'rejectedQuantity', ${goodsReceiptItems.rejectedQuantity},
+      'poOrderedQuantity', ${purchaseOrderItems.orderedQuantity},
+      'poReceivedQuantity', ${purchaseOrderItems.receivedQuantity},
+      'poRemainingQuantity', CASE
+        WHEN ${purchaseOrderItems.orderedQuantity} IS NOT NULL
+        THEN ${purchaseOrderItems.orderedQuantity} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)
+        ELSE NULL
+      END,
+      'isBalanced', ${itemUnbalanced} = 0,
+      'children', CASE ${inventoryItems.tracking}
+        WHEN 'lot' THEN ${lotsOnlyJson}
+        WHEN 'lot_serial' THEN ${lotsWithLinesJson}
+        ELSE '[]'::json
+      END
+    )`;
+
+    const rows = await this.db
+      .select({ node })
+      .from(goodsReceiptItems)
+      .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
+      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
+      .leftJoin(goodsReceipts, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id))
+      .leftJoin(
+        purchaseOrderItems,
+        and(
+          eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
+          eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
+        ),
+      )
+      .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId))
+      .orderBy(asc(goodsReceiptItems.createdAt));
+
+    return rows.map((r) => r.node);
   }
 
   async findItemById(itemId: string): Promise<GoodsReceiptItem | null> {

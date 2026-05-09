@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -144,7 +145,7 @@ export const OrderDetailPage = () => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Placed At</p>
-                        <p className="mt-1">{new Date(order.placedAt).toLocaleString()}</p>
+                        <p className="mt-1"><FormattedDate value={order.placedAt} /></p>
                       </div>
                       {order.externalOrderId && (
                         <div>

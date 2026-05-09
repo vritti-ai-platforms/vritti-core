@@ -2,16 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  locations,
   stockAdjustmentLineItems,
   stockAdjustmentLines,
   type StockAdjustmentLot,
   stockAdjustmentLots,
 } from '@/db/schema';
+import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
 
 export type StockAdjustmentLotWithStats = StockAdjustmentLot & {
   linesCount: number;
   totalQuantity: number;
-  unbalancedLinesCount: number;
+};
+
+export type StockAdjustmentLotDetailRow = StockAdjustmentLot & {
+  linesCount: number;
+  totalQuantity: number;
+  locationIds: string[];
+  lineIds: string[];
 };
 
 @Injectable()
@@ -36,7 +44,6 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
         totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity}), 0)`,
-        unbalancedLinesCount: sql<number>`COALESCE(SUM(CASE WHEN ${stockAdjustmentLines.isBalanced} = false THEN 1 ELSE 0 END), 0)`,
       })
       .from(stockAdjustmentLots)
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
@@ -48,8 +55,95 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
       ...row,
       linesCount: Number(row.linesCount),
       totalQuantity: Number(row.totalQuantity),
-      unbalancedLinesCount: Number(row.unbalancedLinesCount),
     })) as StockAdjustmentLotWithStats[];
+  }
+
+  // Returns the OPENING+serial tree as fully-formed StockAdjustmentTreeNode rows in one query.
+  // SQL emits the wire shape directly via json_build_object/json_agg — service consumes as-is.
+  async findTreeNodesByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
+    const childrenJson = sql`COALESCE(
+      json_agg(
+        json_build_object(
+          'id', ${stockAdjustmentLines.id},
+          'name', COALESCE(${locations.name}, '—'),
+          'path', json_build_array(${stockAdjustmentLots.id}, ${stockAdjustmentLines.id}),
+          'kind', 'line',
+          'quantity', ${stockAdjustmentLines.quantity},
+          'lineItemsCount', (
+            SELECT COUNT(*) FROM vritti_core.stock_adjustment_line_items li
+            WHERE li.stock_adjustment_line_id = ${stockAdjustmentLines.id}
+          ),
+          'isBalanced', ${stockAdjustmentLines.isBalanced}
+        ) ORDER BY ${stockAdjustmentLines.createdAt}
+      ) FILTER (WHERE ${stockAdjustmentLines.id} IS NOT NULL),
+      '[]'::json
+    )`;
+
+    const node = sql<StockAdjustmentTreeNode>`json_build_object(
+      'id', ${stockAdjustmentLots.id},
+      'name', ${stockAdjustmentLots.lotNumber},
+      'path', json_build_array(${stockAdjustmentLots.id}),
+      'kind', 'lot',
+      'totalQuantity', COALESCE(SUM(${stockAdjustmentLines.quantity}), 0),
+      'linesCount', COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0),
+      'isBalanced', COALESCE(SUM(CASE WHEN ${stockAdjustmentLines.isBalanced} = false THEN 1 ELSE 0 END), 0) = 0,
+      'children', ${childrenJson}
+    )`;
+
+    const rows = await this.db
+      .select({ node })
+      .from(stockAdjustmentLots)
+      .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
+      .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
+      .where(eq(stockAdjustmentLots.stockAdjustmentId, adjustmentId))
+      .groupBy(stockAdjustmentLots.id)
+      .orderBy(asc(stockAdjustmentLots.createdAt));
+
+    return rows.map((r) => r.node);
+  }
+
+  // Single lot's detail — stats + the line-derived helpers (locationIds, lineIds) the FE needs.
+  // Returns undefined if the lot doesn't exist.
+  async findLotDetail(lotId: string): Promise<StockAdjustmentLotDetailRow | undefined> {
+    const rows = await this.db
+      .select({
+        id: stockAdjustmentLots.id,
+        organizationId: stockAdjustmentLots.organizationId,
+        businessUnitId: stockAdjustmentLots.businessUnitId,
+        stockAdjustmentId: stockAdjustmentLots.stockAdjustmentId,
+        lotNumber: stockAdjustmentLots.lotNumber,
+        manufacturingDate: stockAdjustmentLots.manufacturingDate,
+        expiryDate: stockAdjustmentLots.expiryDate,
+        resolvedLotId: stockAdjustmentLots.resolvedLotId,
+        metadata: stockAdjustmentLots.metadata,
+        createdAt: stockAdjustmentLots.createdAt,
+        updatedAt: stockAdjustmentLots.updatedAt,
+        linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity}), 0)`,
+        locationIds: sql<string[]>`COALESCE(
+          ARRAY_AGG(DISTINCT ${stockAdjustmentLines.locationId})
+            FILTER (WHERE ${stockAdjustmentLines.locationId} IS NOT NULL),
+          '{}'::uuid[]
+        )`,
+        lineIds: sql<string[]>`COALESCE(
+          ARRAY_AGG(${stockAdjustmentLines.id} ORDER BY ${stockAdjustmentLines.createdAt})
+            FILTER (WHERE ${stockAdjustmentLines.id} IS NOT NULL),
+          '{}'::uuid[]
+        )`,
+      })
+      .from(stockAdjustmentLots)
+      .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
+      .where(eq(stockAdjustmentLots.id, lotId))
+      .groupBy(stockAdjustmentLots.id)
+      .limit(1);
+
+    const row = rows[0];
+    if (!row) return undefined;
+    return {
+      ...row,
+      linesCount: Number(row.linesCount),
+      totalQuantity: Number(row.totalQuantity),
+    } as StockAdjustmentLotDetailRow;
   }
 
   async findById(lotId: string): Promise<StockAdjustmentLot | undefined> {

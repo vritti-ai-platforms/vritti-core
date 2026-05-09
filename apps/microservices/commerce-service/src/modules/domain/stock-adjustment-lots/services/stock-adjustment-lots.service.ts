@@ -1,6 +1,5 @@
-import { InventoryItemLotsRepository } from '@domain/inventory-item-lots/repositories/inventory-item-lots.repository';
-import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
-import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
+import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -15,6 +14,7 @@ import {
   StockAdjustmentTypeValues,
 } from '@/db/schema';
 import { StockAdjustmentLotDto } from '../dto/entity/stock-adjustment-lot.dto';
+import { StockAdjustmentLotDetailDto } from '../dto/entity/stock-adjustment-lot-detail.dto';
 import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
 import { StockAdjustmentLotsRepository } from '../repositories/stock-adjustment-lots.repository';
 
@@ -24,57 +24,38 @@ export class StockAdjustmentLotsService {
 
   constructor(
     private readonly repository: StockAdjustmentLotsRepository,
-    private readonly linesRepository: StockAdjustmentLinesRepository,
-    private readonly adjustmentsRepository: StockAdjustmentsRepository,
-    private readonly inventoryLotsRepository: InventoryItemLotsRepository,
+    private readonly adjustmentsService: StockAdjustmentsService,
+    private readonly inventoryItemLotsService: InventoryItemLotsService,
   ) {}
 
   async listByAdjustment(adjustmentId: string): Promise<StockAdjustmentLotDto[]> {
-    await this.ensureAdjustment(adjustmentId);
+    await this.adjustmentsService.findById(adjustmentId);
     const rows = await this.repository.findByAdjustmentId(adjustmentId);
     return rows.map(StockAdjustmentLotDto.from);
   }
 
+  // Returns a single lot's detail (stats + already-used location ids + line ids).
+  // Used by the FE when a lot is selected to drive the AddLine excludeIds and the lot header.
+  async getLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailDto> {
+    await this.adjustmentsService.findById(adjustmentId);
+    const row = await this.repository.findLotDetail(lotId);
+    if (!row || row.stockAdjustmentId !== adjustmentId) {
+      throw new NotFoundException('Stock adjustment lot not found.');
+    }
+    return StockAdjustmentLotDetailDto.from(row);
+  }
+
   // Returns lots with their lines as nested children — for the OPENING+serial tree UI.
   async findTreeForAdjustment(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
-    await this.ensureAdjustment(adjustmentId);
-    const [lots, lines] = await Promise.all([
-      this.repository.findByAdjustmentId(adjustmentId),
-      this.linesRepository.findByAdjustmentId(adjustmentId),
-    ]);
-    const linesByLot = new Map<string, typeof lines>();
-    for (const line of lines) {
-      const key = line.stockAdjustmentLotId;
-      if (!key) continue;
-      const bucket = linesByLot.get(key) ?? [];
-      bucket.push(line);
-      linesByLot.set(key, bucket);
-    }
-    return lots.map((lot) => ({
-      id: lot.id,
-      name: lot.lotNumber,
-      path: [lot.id],
-      kind: 'lot' as const,
-      totalQuantity: Number(lot.totalQuantity),
-      linesCount: Number(lot.linesCount),
-      isBalanced: Number(lot.unbalancedLinesCount) === 0,
-      children: (linesByLot.get(lot.id) ?? []).map((line) => ({
-        id: line.id,
-        name: line.locationName ?? line.locationId ?? '—',
-        path: [lot.id, line.id],
-        kind: 'line' as const,
-        quantity: Number(line.quantity),
-        lineItemsCount: line.lineItemsCount,
-        isBalanced: line.isBalanced,
-      })),
-    }));
+    await this.adjustmentsService.findById(adjustmentId);
+    return this.repository.findTreeNodesByAdjustmentId(adjustmentId);
   }
 
   async addLot(
     adjustmentId: string,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
-    const adjustment = await this.ensureAdjustment(adjustmentId);
+    const adjustment = await this.adjustmentsService.findById(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be added to DRAFT adjustments.');
     }
@@ -103,7 +84,7 @@ export class StockAdjustmentLotsService {
     }
 
     // Reject if a lot with the same number already exists in inventory for this item (OPENING_STOCK creates new lots only)
-    const inventoryLot = await this.inventoryLotsRepository.findByItemAndNumber(adjustment.inventoryItemId, lotNumber);
+    const inventoryLot = await this.inventoryItemLotsService.findByItemAndNumber(adjustment.inventoryItemId, lotNumber);
     if (inventoryLot) {
       throw new ValidationException({
         detail: `Lot "${lotNumber}" already exists in inventory. OPENING_STOCK can only register new lots.`,
@@ -136,7 +117,7 @@ export class StockAdjustmentLotsService {
     lotId: string,
     data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string },
   ): Promise<StockAdjustmentLotDto> {
-    const adjustment = await this.ensureAdjustment(adjustmentId);
+    const adjustment = await this.adjustmentsService.findById(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be updated on DRAFT adjustments.');
     }
@@ -158,7 +139,7 @@ export class StockAdjustmentLotsService {
           errors: [{ field: 'lotNumber', message: 'Lot already on this adjustment.' }],
         });
       }
-      const inventoryDup = await this.inventoryLotsRepository.findByItemAndNumber(
+      const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(
         adjustment.inventoryItemId,
         trimmed,
       );
@@ -183,7 +164,7 @@ export class StockAdjustmentLotsService {
   }
 
   async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
-    const adjustment = await this.ensureAdjustment(adjustmentId);
+    const adjustment = await this.adjustmentsService.findById(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be removed from DRAFT adjustments.');
     }
@@ -198,20 +179,17 @@ export class StockAdjustmentLotsService {
   async resolveInventoryLot(inventoryItemId: string, lotId: string): Promise<InventoryItemLot> {
     const sa = await this.repository.findById(lotId);
     if (!sa) throw new NotFoundException(`Stock adjustment lot ${lotId} not found.`);
-    const inserted = await this.inventoryLotsRepository.createLot({
+    if (!sa.expiryDate) {
+      throw new BadRequestException(`Stock adjustment lot ${lotId} is missing an expiry date.`);
+    }
+    const inserted = await this.inventoryItemLotsService.createLot({
       inventoryItemId,
       lotNumber: sa.lotNumber,
       manufacturingDate: sa.manufacturingDate ?? null,
-      expiryDate: sa.expiryDate ?? null,
+      expiryDate: sa.expiryDate,
     });
     await this.repository.setResolvedLotId(lotId, inserted.id);
     return inserted;
-  }
-
-  private async ensureAdjustment(adjustmentId: string) {
-    const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
-    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    return adjustment;
   }
 
   private async ensureLotBelongsToAdjustment(adjustmentId: string, lotId: string) {

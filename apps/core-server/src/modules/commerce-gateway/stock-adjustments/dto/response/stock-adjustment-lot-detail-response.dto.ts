@@ -1,8 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class GoodsReceiptLotResponseDto {
+export class StockAdjustmentLotDetailResponseDto {
   @ApiProperty() id: string;
-  @ApiProperty() goodsReceiptItemId: string;
+  @ApiProperty() stockAdjustmentId: string;
   @ApiProperty() lotNumber: string;
   @ApiPropertyOptional({ nullable: true }) manufacturingDate: string | null;
   @ApiPropertyOptional({ nullable: true }) expiryDate: string | null;
@@ -10,6 +10,10 @@ export class GoodsReceiptLotResponseDto {
   resolvedLotId: string | null;
   @ApiProperty() linesCount: number;
   @ApiProperty() totalQuantity: number;
+  @ApiProperty({ type: [String], description: 'Distinct location ids already used by lines under this lot' })
+  locationIds: string[];
+  @ApiProperty({ type: [String], description: 'Line ids under this lot, ordered by createdAt' })
+  lineIds: string[];
   @ApiProperty() metadata: Record<string, unknown>;
   @ApiProperty() createdAt: string;
 }

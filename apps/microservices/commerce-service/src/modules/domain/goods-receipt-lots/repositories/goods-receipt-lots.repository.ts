@@ -11,7 +11,6 @@ import {
 export type GoodsReceiptLotWithStats = GoodsReceiptLot & {
   linesCount: number;
   totalQuantity: number;
-  unbalancedLinesCount: number;
 };
 
 @Injectable()
@@ -36,7 +35,6 @@ export class GoodsReceiptLotsRepository extends PrimaryBaseRepository<typeof goo
         updatedAt: goodsReceiptLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${goodsReceiptLines.id}), 0)`,
         totalQuantity: sql<string>`COALESCE(SUM(${goodsReceiptLines.quantity}), 0)`,
-        unbalancedLinesCount: sql<number>`COALESCE(SUM(CASE WHEN ${goodsReceiptLines.isBalanced} = false THEN 1 ELSE 0 END), 0)`,
       })
       .from(goodsReceiptLots)
       .leftJoin(goodsReceiptLines, eq(goodsReceiptLots.id, goodsReceiptLines.goodsReceiptLotId))
@@ -48,7 +46,6 @@ export class GoodsReceiptLotsRepository extends PrimaryBaseRepository<typeof goo
       ...row,
       linesCount: Number(row.linesCount),
       totalQuantity: Number(row.totalQuantity),
-      unbalancedLinesCount: Number(row.unbalancedLinesCount),
     })) as GoodsReceiptLotWithStats[];
   }
 

@@ -7,6 +7,7 @@ import type {
   StockAdjustmentLineItemsTableResponse,
   StockAdjustmentLinesTableResponse,
   StockAdjustmentLotData,
+  StockAdjustmentLotDetailData,
   StockAdjustmentTreeNode,
   StockAdjustmentsTableResponse,
   StockAdjustmentType,
@@ -72,6 +73,15 @@ export function getStockAdjustment(id: string): Promise<StockAdjustmentData> {
 
 export function getStockAdjustmentLots(id: string): Promise<StockAdjustmentLotData[]> {
   return axios.get<StockAdjustmentLotData[]>(`commerce-api/stock-adjustments/${id}/lots`).then((r) => r.data);
+}
+
+export function getStockAdjustmentLotDetail(
+  id: string,
+  lotId: string,
+): Promise<StockAdjustmentLotDetailData> {
+  return axios
+    .get<StockAdjustmentLotDetailData>(`commerce-api/stock-adjustments/${id}/lots/${lotId}/detail`)
+    .then((r) => r.data);
 }
 
 export function getStockAdjustmentTree(id: string): Promise<StockAdjustmentTreeNode[]> {

@@ -28,6 +28,27 @@ export class InventoryItemLotsService {
     });
   }
 
+  // Returns the inventory lot for an item if one already exists with this lot number.
+  // Used by adjustment flows to detect duplicates before registering OPENING_STOCK lots.
+  findByItemAndNumber(inventoryItemId: string, lotNumber: string): Promise<InventoryItemLot | undefined> {
+    return this.repository.findByItemAndNumber(inventoryItemId, lotNumber);
+  }
+
+  // Creates a new inventory lot. Used by the publish flow when resolving draft adjustment lots.
+  createLot(data: {
+    inventoryItemId: string;
+    lotNumber: string;
+    manufacturingDate?: string | null;
+    expiryDate: string;
+  }): Promise<InventoryItemLot> {
+    return this.repository.createLot({
+      inventoryItemId: data.inventoryItemId,
+      lotNumber: data.lotNumber,
+      manufacturingDate: data.manufacturingDate ?? null,
+      expiryDate: data.expiryDate,
+    });
+  }
+
   // Returns paginated lot options for the select component
   async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
     if (!query.inventoryItemId) throw new BadRequestException('inventoryItemId is required.');

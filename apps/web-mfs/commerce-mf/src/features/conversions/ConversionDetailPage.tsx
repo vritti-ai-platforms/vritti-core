@@ -2,6 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -91,13 +92,13 @@ export const ConversionDetailPage = () => {
                     <div>
                       <p className="text-sm text-muted-foreground">Started At</p>
                       <p className="mt-1">
-                        {conversion.startedAt ? new Date(conversion.startedAt).toLocaleString() : '—'}
+                        <FormattedDate value={conversion.startedAt} />
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Completed At</p>
                       <p className="mt-1">
-                        {conversion.completedAt ? new Date(conversion.completedAt).toLocaleString() : '—'}
+                        <FormattedDate value={conversion.completedAt} />
                       </p>
                     </div>
                     <div className="col-span-2">

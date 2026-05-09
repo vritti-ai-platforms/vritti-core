@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { Boxes, Eye } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -88,7 +89,7 @@ export const LotsTab: React.FC<LotsTabProps> = ({ itemId, uomSymbol }) => {
           const status = getBatchStatus(expiryDate);
           const colorClass =
             status === 'EXPIRED' ? 'text-destructive' : status === 'EXPIRING_SOON' ? 'text-warning' : '';
-          return <span className={`font-mono ${colorClass}`}>{new Date(expiryDate).toLocaleDateString()}</span>;
+          return <FormattedDate value={expiryDate} dateFormat="P" className={`font-mono ${colorClass}`} />;
         },
       },
       {

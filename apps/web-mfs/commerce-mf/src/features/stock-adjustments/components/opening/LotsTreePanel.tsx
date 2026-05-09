@@ -100,35 +100,33 @@ export const LotsTreePanel = ({
             </Button>
           ) : null
         }
-        contentClassName={!isFetching && tree.length === 0 ? 'flex items-center justify-center p-3' : undefined}
-        content={
-          !isFetching && tree.length === 0 ? (
-            <Empty
-              icon={<Boxes />}
-              title="No lots"
-              description={isDraft ? 'Add the first lot to begin distributing.' : 'No lots in this adjustment.'}
-            />
-          ) : (
-            <TreeView
-              data={treeData}
-              isLoading={isFetching}
-              initialSelectedItemId={selectedId ?? undefined}
-              onSelectChange={(item) => {
-                if (!item) return onSelect(null);
-                const node = item as LotsTreeNodeData;
-                if (node.kind === 'lot') return onSelect({ kind: 'lot', lotId: node.id, lineId: null });
-                // line: parent lot lookup via the source tree
-                const parent = tree.find((lot) => lot.children?.some((line) => line.id === node.id));
-                if (!parent) return onSelect(null);
-                onSelect({ kind: 'line', lotId: parent.id, lineId: node.id });
-              }}
-              renderItem={renderItem}
-              defaultNodeIcon={Boxes}
-              defaultLeafIcon={MapPin}
-            />
-          )
+        isEmpty={!isFetching && tree.length === 0}
+        emptyState={
+          <Empty
+            icon={<Boxes />}
+            title="No lots"
+            description={isDraft ? 'Add the first lot to begin distributing.' : 'No lots in this adjustment.'}
+          />
         }
-      />
+      >
+        <TreeView
+          data={treeData}
+          isLoading={isFetching}
+          initialSelectedItemId={selectedId ?? undefined}
+          onSelectChange={(item) => {
+            if (!item) return onSelect(null);
+            const node = item as LotsTreeNodeData;
+            if (node.kind === 'lot') return onSelect({ kind: 'lot', lotId: node.id, lineId: null });
+            // line: parent lot lookup via the source tree
+            const parent = tree.find((lot) => lot.children?.some((line) => line.id === node.id));
+            if (!parent) return onSelect(null);
+            onSelect({ kind: 'line', lotId: parent.id, lineId: node.id });
+          }}
+          renderItem={renderItem}
+          defaultNodeIcon={Boxes}
+          defaultLeafIcon={MapPin}
+        />
+      </PageContentPanel>
 
       <AddLotDialog adjustmentId={adjustmentId} handle={addLotDialog} />
     </>

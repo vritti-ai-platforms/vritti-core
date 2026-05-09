@@ -11,7 +11,6 @@ export class GoodsReceiptItemDto {
   rejectedQuantity: number;
   lotsCount: number;
   linesCount: number;
-  isBalanced: boolean;
   poOrderedQuantity: number | null;
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
@@ -30,7 +29,6 @@ export class GoodsReceiptItemDto {
     dto.rejectedQuantity = Number(row.rejectedQuantity ?? 0);
     dto.lotsCount = row.lotsCount;
     dto.linesCount = row.linesCount;
-    dto.isBalanced = row.unbalancedLinesCount === 0;
     dto.poOrderedQuantity = row.poOrderedQuantity != null ? Number(row.poOrderedQuantity) : null;
     dto.poReceivedQuantity = row.poReceivedQuantity != null ? Number(row.poReceivedQuantity) : null;
     dto.poRemainingQuantity =

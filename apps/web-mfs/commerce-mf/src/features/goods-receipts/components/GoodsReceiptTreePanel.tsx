@@ -160,40 +160,38 @@ export const GoodsReceiptTreePanel = ({
             </Button>
           ) : null
         }
-        contentClassName={!isFetching && tree.length === 0 ? 'flex items-center justify-center p-3' : undefined}
-        content={
-          !isFetching && tree.length === 0 ? (
-            <Empty
-              icon={<Package />}
-              title="No items"
-              description={isDraft ? 'Add the first item to begin receiving.' : 'No items on this receipt.'}
-            />
-          ) : (
-            <TreeView
-              data={treeData}
-              isLoading={isFetching}
-              initialSelectedItemId={selectedId}
-              onSelectChange={(item) => {
-                if (!item) return onSelect(null);
-                const node = item as TreeNodeData;
-                if (node.kind === 'item') return onSelect({ kind: 'item', itemId: node.id });
-                if (node.kind === 'lot') {
-                  const itemId = itemOfLot.get(node.id);
-                  if (!itemId) return onSelect(null);
-                  return onSelect({ kind: 'lot', itemId, lotId: node.id });
-                }
-                // line
-                const parents = itemAndLotOfLine.get(node.id);
-                if (!parents) return onSelect(null);
-                onSelect({ kind: 'line', itemId: parents.itemId, lotId: parents.lotId ?? null, lineId: node.id });
-              }}
-              renderItem={(params) => <TreeRow {...params} />}
-              defaultNodeIcon={Package}
-              defaultLeafIcon={MapPin}
-            />
-          )
+        isEmpty={!isFetching && tree.length === 0}
+        emptyState={
+          <Empty
+            icon={<Package />}
+            title="No items"
+            description={isDraft ? 'Add the first item to begin receiving.' : 'No items on this receipt.'}
+          />
         }
-      />
+      >
+        <TreeView
+          data={treeData}
+          isLoading={isFetching}
+          initialSelectedItemId={selectedId}
+          onSelectChange={(item) => {
+            if (!item) return onSelect(null);
+            const node = item as TreeNodeData;
+            if (node.kind === 'item') return onSelect({ kind: 'item', itemId: node.id });
+            if (node.kind === 'lot') {
+              const itemId = itemOfLot.get(node.id);
+              if (!itemId) return onSelect(null);
+              return onSelect({ kind: 'lot', itemId, lotId: node.id });
+            }
+            // line
+            const parents = itemAndLotOfLine.get(node.id);
+            if (!parents) return onSelect(null);
+            onSelect({ kind: 'line', itemId: parents.itemId, lotId: parents.lotId ?? null, lineId: node.id });
+          }}
+          renderItem={(params) => <TreeRow {...params} />}
+          defaultNodeIcon={Package}
+          defaultLeafIcon={MapPin}
+        />
+      </PageContentPanel>
 
       <AddItemDialog
         goodsReceiptId={goodsReceiptId}

@@ -4,6 +4,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Monitor, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
@@ -90,7 +91,7 @@ export const PosTerminalsTab = () => {
         accessorKey: 'updatedAt',
         header: 'Updated',
         enableSorting: true,
-        cell: ({ row }) => new Date(row.original.updatedAt).toLocaleDateString(),
+        cell: ({ row }) => <FormattedDate value={row.original.updatedAt} dateFormat="P" />,
       },
       {
         id: 'actions',

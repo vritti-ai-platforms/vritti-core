@@ -1,4 +1,5 @@
 import type { StockAdjustmentLotDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot.dto';
+import type { StockAdjustmentLotDetailDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot-detail.dto';
 import type { StockAdjustmentTreeNode } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-tree.dto';
 import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -21,6 +22,14 @@ export class StockAdjustmentsLotsController {
   tree(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentTreeNode[]> {
     this.logger.log(`stockAdjustments.tree — adjustment: ${data.adjustmentId}`);
     return this.service.findTreeForAdjustment(data.adjustmentId);
+  }
+
+  @MessagePattern({ cmd: 'stockAdjustments.lotDetail' })
+  lotDetail(
+    @Payload() data: { adjustmentId: string; lotId: string },
+  ): Promise<StockAdjustmentLotDetailDto> {
+    this.logger.log(`stockAdjustments.lotDetail — lot: ${data.lotId}`);
+    return this.service.getLotDetail(data.adjustmentId, data.lotId);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.addLot' })

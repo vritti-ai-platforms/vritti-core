@@ -36,41 +36,38 @@ export const SupplierContactsSidePanel = ({
         className="w-80"
         header={`Contacts (${contacts.length})`}
         isLoading={isLoading}
-        contentClassName={!isLoading && contacts.length === 0 ? 'flex items-center justify-center p-3' : undefined}
+        isEmpty={contacts.length === 0}
+        emptyState={
+          <Empty
+            icon={<ClipboardList />}
+            title="No contacts"
+            description="Add your first supplier contact."
+          />
+        }
         actions={
           <Button size="sm" onClick={addContactDialog.open} startAdornment={<Plus className="size-4" />}>
             Add Contact
           </Button>
         }
-        content={
-          contacts.length === 0 ? (
-            <Empty
-              icon={<ClipboardList />}
-              title="No contacts"
-              description="Add your first supplier contact."
-              className="py-12"
-            />
-          ) : (
-            <div className="p-2 space-y-2">
-              {contacts.map((contact) => (
-                <SidePanelListItem
-                  key={contact.id}
-                  active={selectedContactId === contact.id}
-                  onClick={() => onSelectContact(contact.id)}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-sm font-medium truncate">{contact.name}</div>
-                    {contact.isPrimary ? <Badge variant="secondary">Primary</Badge> : null}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1 truncate">
-                    {contact.designation ?? contact.email ?? contact.alternateEmail ?? contact.phone ?? contact.alternatePhone ?? 'No additional details'}
-                  </div>
-                </SidePanelListItem>
-              ))}
-            </div>
-          )
-        }
-      />
+      >
+        <div className="p-2 space-y-2">
+          {contacts.map((contact) => (
+            <SidePanelListItem
+              key={contact.id}
+              active={selectedContactId === contact.id}
+              onClick={() => onSelectContact(contact.id)}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-medium truncate">{contact.name}</div>
+                {contact.isPrimary ? <Badge variant="secondary">Primary</Badge> : null}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1 truncate">
+                {contact.designation ?? contact.email ?? contact.alternateEmail ?? contact.phone ?? contact.alternatePhone ?? 'No additional details'}
+              </div>
+            </SidePanelListItem>
+          ))}
+        </div>
+      </PageContentPanel>
 
       <Dialog
         handle={addContactDialog}

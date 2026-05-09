@@ -3,6 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
@@ -61,13 +62,13 @@ export const ConversionsPage = () => {
       {
         accessorKey: 'startedAt',
         header: 'Started',
-        cell: ({ row }) => (row.original.startedAt ? new Date(row.original.startedAt).toLocaleDateString() : '—'),
+        cell: ({ row }) => <FormattedDate value={row.original.startedAt} dateFormat="P" />,
         enableSorting: true,
       },
       {
         accessorKey: 'completedAt',
         header: 'Completed',
-        cell: ({ row }) => (row.original.completedAt ? new Date(row.original.completedAt).toLocaleDateString() : '—'),
+        cell: ({ row }) => <FormattedDate value={row.original.completedAt} dateFormat="P" />,
       },
       {
         id: 'actions',

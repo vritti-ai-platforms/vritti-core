@@ -7,9 +7,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { CheckCircle2, Pencil, Trash2, UserCircle2 } from 'lucide-react';
 import { useMemo } from 'react';
-import { useDeleteSupplierContact } from '@/hooks/suppliers';
-import { useMarkPrimarySupplierContact } from '@/hooks/suppliers';
-import { useSupplierContacts } from '@/hooks/suppliers';
+import { useDeleteSupplierContact, useMarkPrimarySupplierContact, useSupplierContacts } from '@/hooks/suppliers';
 import { EditSupplierContactDialog } from '../forms/EditSupplierContactDialog';
 
 interface SupplierContactsContentProps {
@@ -89,7 +87,12 @@ export const SupplierContactsContent = ({
               Mark as Primary
             </Button>
           ) : null}
-          <Button size="sm" variant="outline" startAdornment={<Pencil className="size-3.5" />} onClick={editDialog.open}>
+          <Button
+            size="sm"
+            variant="outline"
+            startAdornment={<Pencil className="size-3.5" />}
+            onClick={editDialog.open}
+          >
             Edit Contact
           </Button>
           <Button
@@ -118,7 +121,7 @@ export const SupplierContactsContent = ({
             <DetailField label="Email" value={selectedContact.email ?? '—'} />
             <DetailField label="Alternate Email" value={selectedContact.alternateEmail ?? '—'} />
             <DetailField label="Status" value={selectedContact.isActive ? 'Active' : 'Inactive'} />
-            <DetailField label="Created" value={new Date(selectedContact.createdAt).toLocaleDateString()} />
+            <DetailField label="Created" value={selectedContact.createdAt} dateOnly />
             <div className="col-span-2">
               <DetailField label="Notes" value={selectedContact.notes ?? '—'} />
             </div>

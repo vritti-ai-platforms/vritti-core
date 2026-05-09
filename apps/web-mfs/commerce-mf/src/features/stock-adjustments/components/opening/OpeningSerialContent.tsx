@@ -117,7 +117,7 @@ export const OpeningSerialContent = ({ adjustment, isDraft }: OpeningSerialConte
           ]
         : []),
     ],
-    [adjustment.id, isDraft, handleRemove],
+    [adjustment.id, isDraft, handleRemove, adjustment.inventoryItemId],
   );
 
   const { table } = useDataTable({

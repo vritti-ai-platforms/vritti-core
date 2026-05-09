@@ -9,7 +9,6 @@ export class GoodsReceiptLotDto {
   resolvedLotId: string | null;
   linesCount: number;
   totalQuantity: number;
-  isBalanced: boolean;
   metadata: Record<string, unknown>;
   createdAt: string;
 
@@ -23,7 +22,6 @@ export class GoodsReceiptLotDto {
     dto.resolvedLotId = row.resolvedLotId ?? null;
     dto.linesCount = row.linesCount;
     dto.totalQuantity = row.totalQuantity;
-    dto.isBalanced = row.unbalancedLinesCount === 0;
     dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;
     dto.createdAt = row.createdAt.toISOString();
     return dto;

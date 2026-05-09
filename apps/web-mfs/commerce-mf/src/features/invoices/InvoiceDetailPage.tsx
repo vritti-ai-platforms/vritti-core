@@ -2,6 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -107,11 +108,11 @@ export const InvoiceDetailPage = () => {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Issued Date</p>
-                      <p className="mt-1">{new Date(invoice.issuedDate).toLocaleDateString()}</p>
+                      <p className="mt-1"><FormattedDate value={invoice.issuedDate} dateFormat="P" /></p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Due Date</p>
-                      <p className="mt-1">{invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '—'}</p>
+                      <p className="mt-1"><FormattedDate value={invoice.dueDate} dateFormat="P" /></p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Payment Terms</p>
@@ -247,7 +248,7 @@ export const InvoiceDetailPage = () => {
                         <tbody>
                           {payments.map((payment) => (
                             <tr key={payment.id} className="border-b last:border-0">
-                              <td className="py-3">{new Date(payment.paidAt).toLocaleDateString()}</td>
+                              <td className="py-3"><FormattedDate value={payment.paidAt} dateFormat="P" /></td>
                               <td className="py-3">
                                 <Badge variant="outline">{payment.method}</Badge>
                               </td>

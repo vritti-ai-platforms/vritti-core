@@ -13,6 +13,7 @@ import {
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
+import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
 
@@ -68,6 +69,12 @@ export class GoodsReceiptItemsService {
     const row = await this.itemsRepository.findByReceiptIdAndItemIdWithRefs(goodsReceiptId, itemId);
     if (!row) throw new NotFoundException('Goods receipt item not found.');
     return GoodsReceiptItemDto.from(row);
+  }
+
+  // Returns the unified GR tree: items as roots, lots/lines as descendants per item.tracking.
+  async findTreeForReceipt(goodsReceiptId: string): Promise<GoodsReceiptTreeNode[]> {
+    await this.ensureReceiptExists(goodsReceiptId);
+    return this.itemsRepository.findTreeNodesByReceiptId(goodsReceiptId);
   }
 
   // Add an item to a goods receipt. acceptedQuantity is derived from sum(lines.quantity).

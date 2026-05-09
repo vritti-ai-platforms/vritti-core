@@ -3,6 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
+import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
@@ -11,7 +12,7 @@ import {
   useRemoveStockAdjustmentLine,
   useRemoveStockAdjustmentLot,
   useStockAdjustmentLinesByLotTable,
-  useStockAdjustmentLots,
+  useStockAdjustmentLotDetail,
 } from '@/hooks/stock-adjustments';
 import {
   type InventoryTracking,
@@ -50,10 +51,8 @@ export const LotDetailPanel = ({
   const editLotDialog = useDialog();
   const addLineDialog = useDialog();
 
-  const { data: lots = [] } = useStockAdjustmentLots(adjustmentId);
+  const { data: lot } = useStockAdjustmentLotDetail(adjustmentId, lotId);
   const { data: response, isLoading } = useStockAdjustmentLinesByLotTable(adjustmentId, lotId);
-
-  const lot = lots.find((l) => l.id === lotId) ?? null;
 
   const removeLotMutation = useRemoveStockAdjustmentLot(adjustmentId, {
     onSuccess: () => onLotRemoved?.(),
@@ -92,9 +91,7 @@ export const LotDetailPanel = ({
       {
         accessorKey: 'locationPath',
         header: 'Path',
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>,
         enableSorting: false,
       },
       {
@@ -167,7 +164,7 @@ export const LotDetailPanel = ({
           ]
         : []),
     ],
-    [adjustmentId, isDraft, isSerial, tracking, uomSymbol, handleRemoveLine],
+    [adjustmentId, inventoryItemId, isDraft, isSerial, tracking, uomSymbol, handleRemoveLine],
   );
 
   const { table } = useDataTable({
@@ -183,7 +180,7 @@ export const LotDetailPanel = ({
     },
   });
 
-  if (!lot) {
+  if (!lotId || !lot) {
     return (
       <div className="flex h-full items-center justify-center">
         <Empty icon={<Boxes />} title="No lot selected" description="Select a lot from the left panel." />
@@ -207,8 +204,12 @@ export const LotDetailPanel = ({
         <div>
           <h3 className="text-xl font-semibold">{lot.lotNumber}</h3>
           <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            <div>Mfg: {lot.manufacturingDate ? new Date(lot.manufacturingDate).toLocaleDateString() : '—'}</div>
-            <div>Exp: {lot.expiryDate ? new Date(lot.expiryDate).toLocaleDateString() : '—'}</div>
+            <div>
+              Mfg: <FormattedDate value={lot.manufacturingDate} dateFormat="P" />
+            </div>
+            <div>
+              Exp: <FormattedDate value={lot.expiryDate} dateFormat="P" />
+            </div>
             <div>
               Total: {lot.totalQuantity} {uomSymbol}
             </div>
@@ -283,6 +284,7 @@ export const LotDetailPanel = ({
             inventoryItemId={inventoryItemId}
             stockAdjustmentLotId={lot.id}
             tracking={tracking}
+            excludeLocationIds={lot.locationIds}
             onSuccess={close}
             onCancel={close}
           />
