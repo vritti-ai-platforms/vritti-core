@@ -55,21 +55,25 @@ export const AccountScreen = () => {
 
       <View className="gap-3">
         <SectionHeader title="Account" />
-        <View className="overflow-hidden rounded-xl border border-border bg-card">
+        <View className="rounded-xl bg-card">
           <ListItem
             title="Profile"
+            index={0}
+            total={3}
             description="View your personal and organization details"
             onPress={() => push('AccountProfile')}
-            className="border-b border-border"
           />
           <ListItem
             title="Password"
+            index={1}
+            total={3}
             description="Review password management options"
             onPress={() => push('AccountPassword')}
-            className="border-b border-border"
           />
           <ListItem
             title="Sessions"
+            index={2}
+            total={3}
             description="See active sessions and sign-in activity"
             onPress={() => push('AccountSessions')}
           />
@@ -78,7 +82,7 @@ export const AccountScreen = () => {
 
       <View className="gap-3">
         <SectionHeader title="Preferences" />
-        <View className="overflow-hidden rounded-xl border border-border bg-card">
+        <View className="rounded-xl bg-card">
           <ListItem
             title="Theme"
             description="Choose system, light, or dark appearance"
@@ -89,7 +93,7 @@ export const AccountScreen = () => {
 
       <View className="gap-3">
         <SectionHeader title="Session" />
-        <View className="overflow-hidden rounded-xl border border-border bg-card">
+        <View className="rounded-xl bg-card">
           <ListItem
             title="Logout"
             description="Sign out of this device and return to the login flow"
