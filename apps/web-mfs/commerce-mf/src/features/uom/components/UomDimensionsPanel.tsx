@@ -4,7 +4,7 @@ import { SearchBar } from '@vritti/quantum-ui/SearchBar';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Layers } from 'lucide-react';
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useUomDimensions } from '@/hooks/uom-dimensions';
 
 interface UomDimensionsPanelProps {
@@ -15,16 +15,6 @@ interface UomDimensionsPanelProps {
 export const UomDimensionsPanel: React.FC<UomDimensionsPanelProps> = ({ selectedId, onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const { data: dimensions = [], isFetching } = useUomDimensions(searchQuery);
-
-  // Auto-select the first dimension on initial mount only — never re-select after a delete clears selection.
-  const hasAutoSelected = useRef(false);
-  useEffect(() => {
-    if (hasAutoSelected.current) return;
-    if (!selectedId && dimensions.length > 0) {
-      hasAutoSelected.current = true;
-      onSelect(dimensions[0].id);
-    }
-  }, [selectedId, dimensions, onSelect]);
 
   return (
     <PageContentPanel
