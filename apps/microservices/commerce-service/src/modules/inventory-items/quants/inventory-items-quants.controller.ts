@@ -5,6 +5,7 @@ import { InventoryLedgerService } from '@domain/inventory-ledger/services/invent
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import { InventoryItemsQuantsService } from './services/inventory-items-quants.service';
 
 @Controller()
 export class InventoryItemsQuantsController {
@@ -13,19 +14,28 @@ export class InventoryItemsQuantsController {
   constructor(
     private readonly service: InventoryItemQuantsService,
     private readonly ledgerService: InventoryLedgerService,
+    private readonly itemsQuantsService: InventoryItemsQuantsService,
   ) {}
+
+  @MessagePattern({ cmd: 'inventoryItems.quantsTable' })
+  async quantsTable(
+    @Payload() data: { itemId: string } & TableViewState,
+  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
+    this.logger.log(`inventoryItems.quantsTable — itemId: ${data.itemId}`);
+    return this.itemsQuantsService.findForTable(data.itemId, data);
+  }
 
   @MessagePattern({ cmd: 'inventoryItems.findQuantById' })
   async findById(@Payload() data: { id: string }): Promise<InventoryItemQuantDto> {
     this.logger.log(`inventoryItems.findQuantById — id: ${data.id}`);
-    return this.service.findBatchById(data.id);
+    return this.service.findQuantById(data.id);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.removeQuant' })
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.removeQuant — id: ${data.id}`);
-    await this.service.deleteBatch(data.id);
-    return { success: true, message: 'Batch deleted successfully.' };
+    await this.service.deleteQuant(data.id);
+    return { success: true, message: 'Quant deleted successfully.' };
   }
 
   @MessagePattern({ cmd: 'inventoryItems.quantLedgerTable' })

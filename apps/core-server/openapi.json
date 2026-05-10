@@ -5280,9 +5280,37 @@
         ]
       }
     },
-    "/commerce-api/inventory-items/{id}/batches/table": {
+    "/commerce-api/inventory-items/{id}/quants/table": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getBatchesTable",
+        "operationId": "InventoryItemsGatewayController_getQuantsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/inventory-items/{id}/lots/table": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_getLotsTable",
         "parameters": [
           {
             "name": "id",

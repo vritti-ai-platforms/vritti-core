@@ -1,9 +1,14 @@
 import { type UseQueryOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { InventoryItemBatchesTableResponse } from '@/schemas/inventory-item-batches';
+import type { InventoryItemLotsTableResponse } from '@/schemas/inventory-item-lots';
+import type { InventoryItemQuantsTableResponse } from '@/schemas/inventory-item-quants';
 import type { InventoryItemData } from '@/schemas/inventory-items';
-import { getInventoryItem, getInventoryItemBatchesTable } from '@/services/inventory-items.service';
-import { INVENTORY_ITEM_BATCHES_KEY, INVENTORY_ITEM_KEY } from './keys';
+import {
+  getInventoryItem,
+  getInventoryItemLotsTable,
+  getInventoryItemQuantsTable,
+} from '@/services/inventory-items.service';
+import { INVENTORY_ITEM_KEY, INVENTORY_ITEM_LOTS_KEY, INVENTORY_ITEM_QUANTS_KEY } from './keys';
 
 // Fetches inventory item detail by ID; suspends until data is available
 export function useInventoryItem(id: string) {
@@ -13,13 +18,25 @@ export function useInventoryItem(id: string) {
   });
 }
 
-export function useInventoryItemBatchesTable(
+export function useInventoryItemQuantsTable(
   itemId: string | null,
-  options?: Omit<UseQueryOptions<InventoryItemBatchesTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
+  options?: Omit<UseQueryOptions<InventoryItemQuantsTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
-  return useQuery<InventoryItemBatchesTableResponse, AxiosError>({
-    queryKey: [...INVENTORY_ITEM_BATCHES_KEY(itemId ?? '')],
-    queryFn: () => getInventoryItemBatchesTable(itemId as string),
+  return useQuery<InventoryItemQuantsTableResponse, AxiosError>({
+    queryKey: [...INVENTORY_ITEM_QUANTS_KEY(itemId ?? '')],
+    queryFn: () => getInventoryItemQuantsTable(itemId as string),
+    enabled: !!itemId,
+    ...options,
+  });
+}
+
+export function useInventoryItemLotsTable(
+  itemId: string | null,
+  options?: Omit<UseQueryOptions<InventoryItemLotsTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
+) {
+  return useQuery<InventoryItemLotsTableResponse, AxiosError>({
+    queryKey: [...INVENTORY_ITEM_LOTS_KEY(itemId ?? '')],
+    queryFn: () => getInventoryItemLotsTable(itemId as string),
     enabled: !!itemId,
     ...options,
   });

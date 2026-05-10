@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { BatchDetailPage } from './BatchDetailPage';
 import { InventoryItemDetailPage } from './InventoryItemDetailPage';
 import { InventoryItemDetailPageSkeleton } from './InventoryItemDetailPageSkeleton';
 import { InventoryItemsPage } from './InventoryItemsPage';
+import { QuantDetailPage } from './QuantDetailPage';
 
 const routes: RouteObject[] = [
   { index: true, element: <InventoryItemsPage /> },
@@ -15,7 +15,7 @@ const routes: RouteObject[] = [
       </Suspense>
     ),
   },
-  { path: ':itemSlug/batches/:batchId', element: <BatchDetailPage /> },
+  { path: ':itemSlug/quants/:quantId', element: <QuantDetailPage /> },
 ];
 
 export default routes;

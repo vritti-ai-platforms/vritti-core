@@ -12,6 +12,7 @@ import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { LocationsTab } from './tabs/LocationsTab';
 import { LotsTab } from './tabs/LotsTab';
 import { OverviewTab } from './tabs/OverviewTab';
+import { QuantsTab } from './tabs/QuantsTab';
 import { StockLevelsTab } from './tabs/StockLevelsTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
 import { UomConversionsTab } from './tabs/UomConversionsTab';
@@ -28,7 +29,7 @@ export const InventoryItemDetailPage = () => {
   const handleDelete = async () => {
     const confirmed = await confirm({
       title: `Delete "${item.name}"?`,
-      description: 'This inventory item and all its batches and ledger entries will be permanently removed.',
+      description: 'This inventory item and all its quants and ledger entries will be permanently removed.',
       confirmLabel: 'Delete',
       variant: 'destructive',
     });
@@ -83,6 +84,11 @@ export const InventoryItemDetailPage = () => {
                 },
               ]
             : []),
+          {
+            value: 'quants',
+            label: 'Quants',
+            content: <QuantsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+          },
         ]}
         value={activeTab}
         onValueChange={setActiveTab}
@@ -90,7 +96,7 @@ export const InventoryItemDetailPage = () => {
 
       <DangerZone
         title="Delete this inventory item"
-        description="This action cannot be undone. All batches and ledger entries will be permanently removed."
+        description="This action cannot be undone. All quants and ledger entries will be permanently removed."
         buttonText="Delete Item"
         onClick={handleDelete}
         disabled={!item.canDelete}

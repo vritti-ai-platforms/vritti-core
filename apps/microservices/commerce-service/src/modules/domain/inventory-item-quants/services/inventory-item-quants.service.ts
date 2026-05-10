@@ -45,8 +45,10 @@ export type AdjustQuantParams =
 export class InventoryItemQuantsService {
   private readonly logger = new Logger(InventoryItemQuantsService.name);
 
-  private static readonly BATCHES_FIELD_MAP: FieldMap = {
+  private static readonly QUANTS_FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
+    locationId: { column: inventoryItemQuants.locationId, type: 'string' },
+    lotId: { column: inventoryItemQuants.lotId, type: 'string' },
   };
 
   constructor(
@@ -317,17 +319,17 @@ export class InventoryItemQuantsService {
     return this.repository.updateReservedQuantity(batchId, String(-quantity));
   }
 
-  async findBatchesForTable(
+  async findQuantsForTable(
     itemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsService.BATCHES_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsService.BATCHES_FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsService.QUANTS_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsService.QUANTS_FIELD_MAP);
     const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsService.BATCHES_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsService.QUANTS_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findBatchesForTable(itemId, {
+    const { result, count } = await this.repository.findQuantsForTable(itemId, {
       where,
       orderBy: orderBy.length > 0 ? orderBy : undefined,
       limit,
@@ -344,18 +346,18 @@ export class InventoryItemQuantsService {
     return { result: dtos, count };
   }
 
-  async findBatchById(id: string): Promise<InventoryItemQuantDto> {
+  async findQuantById(id: string): Promise<InventoryItemQuantDto> {
     const row = await this.repository.findById(id);
-    if (!row) throw new NotFoundException('Batch not found.');
+    if (!row) throw new NotFoundException('Quant not found.');
     const canDelete = !(await this.ledgerService.hasNonOpeningEntries(id));
     return InventoryItemQuantDto.from(row, canDelete);
   }
 
-  async deleteBatch(id: string): Promise<void> {
+  async deleteQuant(id: string): Promise<void> {
     const canDelete = !(await this.ledgerService.hasNonOpeningEntries(id));
-    if (!canDelete) throw new BadRequestException('Cannot delete batch — stock has been used.');
-    await this.repository.deleteBatch(id);
-    this.logger.log(`Deleted batch ${id}`);
+    if (!canDelete) throw new BadRequestException('Cannot delete quant — stock has been used.');
+    await this.repository.deleteQuant(id);
+    this.logger.log(`Deleted quant ${id}`);
   }
 
   async findLocationStockByItemId(itemId: string): Promise<LocationStockDto[]> {

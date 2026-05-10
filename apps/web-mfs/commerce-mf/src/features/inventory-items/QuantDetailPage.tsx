@@ -9,11 +9,11 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useDeleteInventoryItemBatch, useInventoryItemBatch } from '@/hooks/inventory-item-batches';
-import type { InventoryItemBatchStatus } from '@/schemas/inventory-item-batches';
-import { BatchLedgerTab } from './tabs/BatchLedgerTab';
+import { useDeleteInventoryItemQuant, useInventoryItemQuant } from '@/hooks/inventory-item-quants';
+import type { InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
+import { QuantLedgerTab } from './tabs/QuantLedgerTab';
 
-function getBatchStatus(expiryDate: string | null): InventoryItemBatchStatus {
+function getQuantStatus(expiryDate: string | null): InventoryItemQuantStatus {
   if (!expiryDate) return 'FRESH';
   const diffMs = new Date(expiryDate).getTime() - Date.now();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -23,7 +23,7 @@ function getBatchStatus(expiryDate: string | null): InventoryItemBatchStatus {
 }
 
 const STATUS_CONFIG: Record<
-  InventoryItemBatchStatus,
+  InventoryItemQuantStatus,
   { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost' }
 > = {
   EXPIRED: { label: 'Expired', variant: 'destructive' },
@@ -31,25 +31,25 @@ const STATUS_CONFIG: Record<
   FRESH: { label: 'Fresh', variant: 'default' },
 };
 
-export const BatchDetailPage = () => {
-  const { batchId } = useParams<{ batchId: string }>();
+export const QuantDetailPage = () => {
+  const { quantId } = useParams<{ quantId: string }>();
   const navigate = useNavigate();
   const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState('overview');
 
-  const { data: batch, isLoading } = useInventoryItemBatch(batchId ?? null);
-  const deleteMutation = useDeleteInventoryItemBatch(batch?.inventoryItemId ?? '');
+  const { data: quant, isLoading } = useInventoryItemQuant(quantId ?? null);
+  const deleteMutation = useDeleteInventoryItemQuant(quant?.inventoryItemId ?? '');
 
   const handleDelete = async () => {
-    if (!batch) return;
+    if (!quant) return;
     const confirmed = await confirm({
-      title: `Delete batch ${batch.batchNumber ?? 'Auto'}?`,
-      description: 'This batch and all its ledger entries will be permanently removed.',
+      title: `Delete quant${quant.lotNumber ? ` from lot ${quant.lotNumber}` : ''}?`,
+      description: 'This quant and all its ledger entries will be permanently removed.',
       confirmLabel: 'Delete',
       variant: 'destructive',
     });
     if (confirmed) {
-      deleteMutation.mutate(batch.id, { onSuccess: () => navigate('..') });
+      deleteMutation.mutate(quant.id, { onSuccess: () => navigate('..') });
     }
   };
 
@@ -61,24 +61,24 @@ export const BatchDetailPage = () => {
     );
   }
 
-  if (!batch) {
-    return <div className="flex items-center justify-center py-20 text-muted-foreground">Batch not found.</div>;
+  if (!quant) {
+    return <div className="flex items-center justify-center py-20 text-muted-foreground">Quant not found.</div>;
   }
 
-  const status = getBatchStatus(batch.expiryDate);
+  const status = getQuantStatus(quant.expiryDate);
   const statusConfig = STATUS_CONFIG[status];
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={`Batch ${batch.batchNumber ?? 'Auto'}`}
+        title={quant.lotNumber ? `Quant · Lot ${quant.lotNumber}` : 'Quant'}
         description={
-          batch.locationPath
-            ? `${batch.locationPath} › ${batch.locationName ?? ''}`
-            : (batch.locationName ?? '—')
+          quant.locationPath
+            ? `${quant.locationPath} › ${quant.locationName ?? ''}`
+            : (quant.locationName ?? '—')
         }
         actions={
-          batch.canDelete ? (
+          quant.canDelete ? (
             <Button
               variant="destructive"
               size="sm"
@@ -86,7 +86,7 @@ export const BatchDetailPage = () => {
               onClick={handleDelete}
               isLoading={deleteMutation.isPending}
             >
-              Delete Batch
+              Delete Quant
             </Button>
           ) : undefined
         }
@@ -100,32 +100,32 @@ export const BatchDetailPage = () => {
             content: (
               <Card>
                 <CardHeader>
-                  <CardTitle>Batch Details</CardTitle>
+                  <CardTitle>Quant Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <dl className="grid grid-cols-2 gap-6">
                     <div>
                       <dt className="text-sm text-muted-foreground">Location</dt>
-                      <dd className="mt-1 font-medium">{batch.locationName ?? '—'}</dd>
-                      {batch.locationPath && (
-                        <dd className="text-xs text-muted-foreground">{batch.locationPath}</dd>
+                      <dd className="mt-1 font-medium">{quant.locationName ?? '—'}</dd>
+                      {quant.locationPath && (
+                        <dd className="text-xs text-muted-foreground">{quant.locationPath}</dd>
                       )}
                     </div>
                     <div>
-                      <dt className="text-sm text-muted-foreground">Batch Number</dt>
-                      <dd className="mt-1 font-mono">{batch.batchNumber ?? '—'}</dd>
+                      <dt className="text-sm text-muted-foreground">Lot Number</dt>
+                      <dd className="mt-1 font-mono">{quant.lotNumber ?? '—'}</dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Quantity</dt>
-                      <dd className="mt-1 font-mono">{batch.quantity}</dd>
+                      <dd className="mt-1 font-mono">{quant.quantity}</dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Reserved</dt>
-                      <dd className="mt-1 font-mono">{batch.reservedQuantity}</dd>
+                      <dd className="mt-1 font-mono">{quant.reservedQuantity}</dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Available</dt>
-                      <dd className="mt-1 font-mono font-semibold text-success">{batch.availableQuantity}</dd>
+                      <dd className="mt-1 font-mono font-semibold text-success">{quant.availableQuantity}</dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Status</dt>
@@ -136,23 +136,19 @@ export const BatchDetailPage = () => {
                     <div>
                       <dt className="text-sm text-muted-foreground">Manufacturing Date</dt>
                       <dd className="mt-1 font-mono">
-                        <FormattedDate value={batch.manufacturingDate} dateFormat="P" />
+                        <FormattedDate value={quant.manufacturingDate} dateFormat="P" />
                       </dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Expiry Date</dt>
                       <dd className="mt-1 font-mono">
-                        <FormattedDate value={batch.expiryDate} dateFormat="P" />
+                        <FormattedDate value={quant.expiryDate} dateFormat="P" />
                       </dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Source</dt>
-                      <dd className="mt-1">{batch.goodsReceiptItemId ? 'Goods Receipt' : 'Manual Entry'}</dd>
                     </div>
                     <div>
                       <dt className="text-sm text-muted-foreground">Created</dt>
                       <dd className="mt-1">
-                        <FormattedDate value={batch.createdAt} dateFormat="P" className="text-muted-foreground" />
+                        <FormattedDate value={quant.createdAt} dateFormat="P" className="text-muted-foreground" />
                       </dd>
                     </div>
                   </dl>
@@ -163,7 +159,7 @@ export const BatchDetailPage = () => {
           {
             value: 'ledger',
             label: 'Ledger',
-            content: <BatchLedgerTab batchId={batch.id} />,
+            content: <QuantLedgerTab quantId={quant.id} />,
           },
         ]}
         value={activeTab}

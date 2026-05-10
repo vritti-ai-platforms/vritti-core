@@ -1,6 +1,7 @@
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { InventoryItemBatchesTableResponse } from '@/schemas/inventory-item-batches';
+import type { InventoryItemLotsTableResponse } from '@/schemas/inventory-item-lots';
+import type { InventoryItemQuantsTableResponse } from '@/schemas/inventory-item-quants';
 import type {
   CreateInventoryItemFormData,
   InventoryItemData,
@@ -22,8 +23,12 @@ export function getInventoryItem(id: string): Promise<InventoryItemData> {
   return axios.get<InventoryItemData>(`commerce-api/inventory-items/${id}`).then((r) => r.data);
 }
 
-export function getInventoryItemBatchesTable(id: string): Promise<InventoryItemBatchesTableResponse> {
-  return axios.get<InventoryItemBatchesTableResponse>(`commerce-api/inventory-items/${id}/batches/table`).then((r) => r.data);
+export function getInventoryItemQuantsTable(id: string): Promise<InventoryItemQuantsTableResponse> {
+  return axios.get<InventoryItemQuantsTableResponse>(`commerce-api/inventory-items/${id}/quants/table`).then((r) => r.data);
+}
+
+export function getInventoryItemLotsTable(id: string): Promise<InventoryItemLotsTableResponse> {
+  return axios.get<InventoryItemLotsTableResponse>(`commerce-api/inventory-items/${id}/lots/table`).then((r) => r.data);
 }
 
 export function getInventoryItemStocks(id: string): Promise<InventoryItemStockData[]> {

@@ -5,11 +5,11 @@ import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { ScrollText } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import { INVENTORY_ITEM_BATCH_LEDGER_KEY, useInventoryItemBatchLedgerTable } from '@/hooks/inventory-item-batches';
-import type { BatchLedgerData } from '@/schemas/inventory-item-batches';
+import { INVENTORY_ITEM_QUANT_LEDGER_KEY, useInventoryItemQuantLedgerTable } from '@/hooks/inventory-item-quants';
+import type { QuantLedgerData } from '@/schemas/inventory-item-quants';
 
-interface BatchLedgerTabProps {
-  batchId: string;
+interface QuantLedgerTabProps {
+  quantId: string;
   uomSymbol?: string | null;
 }
 
@@ -25,11 +25,11 @@ const TYPE_LABELS: Record<string, string> = {
   TRANSFER_IN: 'Transfer In',
 };
 
-export const BatchLedgerTab: React.FC<BatchLedgerTabProps> = ({ batchId, uomSymbol }) => {
+export const QuantLedgerTab: React.FC<QuantLedgerTabProps> = ({ quantId, uomSymbol }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useInventoryItemBatchLedgerTable(batchId);
+  const { data: response, isLoading } = useInventoryItemQuantLedgerTable(quantId);
 
-  const columns = useMemo<ColumnDef<BatchLedgerData>[]>(
+  const columns = useMemo<ColumnDef<QuantLedgerData>[]>(
     () => [
       {
         accessorKey: 'createdAt',
@@ -74,11 +74,11 @@ export const BatchLedgerTab: React.FC<BatchLedgerTabProps> = ({ batchId, uomSymb
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-batch-${batchId}-ledger`,
+    slug: `inventory-quant-${quantId}-ledger`,
     label: 'entry',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_BATCH_LEDGER_KEY(batchId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_QUANT_LEDGER_KEY(quantId)] }),
   });
 
   return (

@@ -29,7 +29,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     super(database, inventoryItemQuants);
   }
 
-  async findBatchesForTable(
+  async findQuantsForTable(
     itemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{ result: InventoryItemQuantWithRefs[]; count: number }> {
@@ -222,7 +222,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return (rows[0] as InventoryItemLot | undefined) ?? null;
   }
 
-  async deleteBatch(id: string): Promise<void> {
+  async deleteQuant(id: string): Promise<void> {
     await this.db.delete(inventoryItemQuants).where(eq(inventoryItemQuants.id, id));
   }
 

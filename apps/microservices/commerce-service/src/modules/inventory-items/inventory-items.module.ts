@@ -8,13 +8,13 @@ import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-it
 import { InventoryLedgerDomainModule } from '@domain/inventory-ledger/inventory-ledger.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { Module } from '@nestjs/common';
-import { InventoryItemsBatchesController } from './batches/inventory-items-batches.controller';
-import { InventoryItemsBatchesService } from './batches/services/inventory-items-batches.service';
 import { InventoryItemsLocationsController } from './locations/inventory-items-locations.controller';
 import { InventoryItemsLocationsService } from './locations/services/inventory-items-locations.service';
 import { InventoryItemsLotsController } from './lots/inventory-items-lots.controller';
+import { InventoryItemsLotsService } from './lots/services/inventory-items-lots.service';
 import { InventoryItemsQuantItemsController } from './quant-items/inventory-items-quant-items.controller';
 import { InventoryItemsQuantsController } from './quants/inventory-items-quants.controller';
+import { InventoryItemsQuantsService } from './quants/services/inventory-items-quants.service';
 import { InventoryItemsRootController } from './root/inventory-items-root.controller';
 import { InventoryItemsRootService } from './root/services/inventory-items-root.service';
 import { InventoryItemsStocksController } from './stocks/inventory-items-stocks.controller';
@@ -38,7 +38,6 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemsRootController,
     InventoryItemsUomConversionsController,
     InventoryItemsLocationsController,
-    InventoryItemsBatchesController,
     InventoryItemsStocksController,
     InventoryItemsSupplierItemsController,
     InventoryItemsLotsController,
@@ -48,8 +47,9 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
   providers: [
     InventoryItemsRootService,
     InventoryItemsLocationsService,
-    InventoryItemsBatchesService,
     InventoryItemsStocksService,
+    InventoryItemsQuantsService,
+    InventoryItemsLotsService,
   ],
 })
 export class InventoryItemsModule {}

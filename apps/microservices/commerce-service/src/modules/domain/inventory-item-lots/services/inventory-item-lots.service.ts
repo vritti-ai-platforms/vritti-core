@@ -1,14 +1,48 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BadRequestException, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
-import { ilike } from '@vritti/api-sdk/drizzle-orm';
+import {
+  BadRequestException,
+  type FieldMap,
+  FilterProcessor,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type TableViewState,
+} from '@vritti/api-sdk';
+import { and, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { type InventoryItemLot, inventoryItemLots } from '@/db/schema';
+import { InventoryItemLotDto } from '../dto/entity/inventory-item-lot.dto';
 import { InventoryItemLotsRepository } from '../repositories/inventory-item-lots.repository';
 
 @Injectable()
 export class InventoryItemLotsService {
   private readonly logger = new Logger(InventoryItemLotsService.name);
 
+  private static readonly LOTS_FIELD_MAP: FieldMap = {
+    lotNumber: { column: inventoryItemLots.lotNumber, type: 'string' },
+    expiryDate: { column: inventoryItemLots.expiryDate, type: 'string' },
+    manufacturingDate: { column: inventoryItemLots.manufacturingDate, type: 'string' },
+  };
+
   constructor(private readonly repository: InventoryItemLotsRepository) {}
+
+  async findLotsForTable(
+    itemId: string,
+    state: TableViewState,
+  ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsService.LOTS_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLotsService.LOTS_FIELD_MAP);
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLotsService.LOTS_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findLotsForTable(itemId, {
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : undefined,
+      limit,
+      offset,
+    });
+
+    return { result: result.map((row) => InventoryItemLotDto.from(row)), count };
+  }
 
   // Returns existing lot or creates a new one. Lot identity is (orgId, itemId, lotNumber).
   async findOrCreateLot(params: {

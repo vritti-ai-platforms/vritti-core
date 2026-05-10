@@ -4,11 +4,11 @@ import { InventoryItemsService } from '@domain/inventory-items/services/inventor
 import { Injectable, Logger } from '@nestjs/common';
 import type { TableViewState } from '@vritti/api-sdk';
 
-// Top-level service for inventory-item batches reads. Asserts parent-item
+// Top-level service for inventory-item per-quant table reads. Asserts parent-item
 // existence before delegating to the quants domain service.
 @Injectable()
-export class InventoryItemsBatchesService {
-  private readonly logger = new Logger(InventoryItemsBatchesService.name);
+export class InventoryItemsQuantsService {
+  private readonly logger = new Logger(InventoryItemsQuantsService.name);
 
   constructor(
     private readonly inventoryItemsService: InventoryItemsService,
@@ -21,6 +21,6 @@ export class InventoryItemsBatchesService {
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
     this.logger.log(`findForTable — itemId=${itemId}`);
     await this.inventoryItemsService.findById(itemId);
-    return this.quantsService.findBatchesForTable(itemId, state);
+    return this.quantsService.findQuantsForTable(itemId, state);
   }
 }

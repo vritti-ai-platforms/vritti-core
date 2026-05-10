@@ -1,28 +1,28 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 
-export type InventoryItemBatchStatus = 'FRESH' | 'EXPIRING_SOON' | 'EXPIRED';
+export type InventoryItemQuantStatus = 'FRESH' | 'EXPIRING_SOON' | 'EXPIRED';
 
-export interface InventoryItemBatchData {
+export interface InventoryItemQuantData {
   id: string;
   inventoryItemId: string;
   locationId: string;
   locationName: string | null;
   locationPath: string | null;
-  batchNumber: string | null;
+  lotId: string | null;
+  lotNumber: string | null;
   quantity: number;
   reservedQuantity: number;
   availableQuantity: number;
   manufacturingDate: string | null;
   expiryDate: string | null;
-  goodsReceiptItemId: string | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface BatchLedgerData {
+export interface QuantLedgerData {
   id: string;
-  batchId: string | null;
+  quantId: string | null;
   type: string;
   quantity: number;
   referenceType: string | null;
@@ -31,5 +31,5 @@ export interface BatchLedgerData {
   createdAt: string;
 }
 
-export type InventoryItemBatchesTableResponse = TableResponse<InventoryItemBatchData>;
-export type BatchLedgerTableResponse = TableResponse<BatchLedgerData>;
+export type InventoryItemQuantsTableResponse = TableResponse<InventoryItemQuantData>;
+export type QuantLedgerTableResponse = TableResponse<QuantLedgerData>;
