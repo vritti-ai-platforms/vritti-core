@@ -16,6 +16,7 @@ import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto'
 import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
 import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
+import type { InventoryItemStockResponseDto } from './dto/response/inventory-item-stock-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from './dto/response/inventory-item-uom-conversion-response.dto';
 import type { InventoryLedgerTableResponseDto } from './dto/response/inventory-ledger-table-response.dto';
@@ -109,11 +110,11 @@ export class InventoryItemsGatewayController {
     return this.service.findLedgerForTable(id, userId);
   }
 
-  // Returns location-wise stock aggregates for an inventory item
-  @Get(':id/location-stock')
-  getLocationStock(@Param('id') id: string) {
-    this.logger.log(`GET /commerce-api/inventory-items/${id}/location-stock`);
-    return this.service.findLocationStock(id);
+  // Returns location-wise stock aggregates for an inventory item (sourced from inventory_item_quants)
+  @Get(':id/stocks')
+  getStocks(@Param('id') id: string): Promise<InventoryItemStockResponseDto[]> {
+    this.logger.log(`GET /commerce-api/inventory-items/${id}/stocks`);
+    return this.service.findStocks(id);
   }
 
   // Returns paginated batches for an inventory item data table

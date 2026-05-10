@@ -1,6 +1,6 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { useInventoryItemLocationsTable } from '@/hooks/inventory-items';
+import { useInventoryItemStocks } from '@/hooks/inventory-items';
 import { type InventoryItemData, inventoryItemTypeConfig } from '@/schemas/inventory-items';
 
 interface OverviewTabProps {
@@ -8,12 +8,11 @@ interface OverviewTabProps {
 }
 
 export const OverviewTab = ({ item }: OverviewTabProps) => {
-  const { data: response } = useInventoryItemLocationsTable(item.id);
-  const configs = response?.result ?? [];
+  const { data: stocks = [] } = useInventoryItemStocks(item.id);
 
-  const totalStocked = configs.reduce((sum, row) => sum + row.stockedQuantity, 0);
-  const totalReserved = configs.reduce((sum, row) => sum + row.reservedQuantity, 0);
-  const totalAvailable = configs.reduce((sum, row) => sum + row.availableQuantity, 0);
+  const totalStocked = stocks.reduce((sum, row) => sum + row.stockedQuantity, 0);
+  const totalReserved = stocks.reduce((sum, row) => sum + row.reservedQuantity, 0);
+  const totalAvailable = stocks.reduce((sum, row) => sum + row.availableQuantity, 0);
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

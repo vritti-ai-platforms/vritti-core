@@ -10,7 +10,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, asc, eq, inArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, inArray, ne, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { type LocationRole, LocationRoleValues, locations } from '@/db/schema';
 import type { CreateLocationDto } from '@/modules/locations/dto/request/create-location.dto';
 import type { UpdateLocationDto } from '@/modules/locations/dto/request/update-location.dto';
@@ -115,28 +115,31 @@ export class LocationsService {
   };
 
   // Returns paginated location options for select dropdowns.
-  // RESERVED_STORAGE bins are gated by inventoryItemId — never via locationRoles. The match is:
-  //   role ∈ generalRoles  OR  (role = RESERVED_STORAGE AND id ∈ inventory_item_locations(itemId))
+  // locationRoles is a comma-separated whitelist against locations.location_role.
+  // When inventoryItemId is provided AND RESERVED_STORAGE is requested, RESERVED_STORAGE bins are
+  // further restricted to those linked to that item via inventory_item_locations.
   findForSelect(
     query: SelectOptionsQueryDto & { locationRoles?: string; inventoryItemId?: string },
   ): Promise<SelectQueryResult> {
-    const generalRoles = (query.locationRoles?.split(',') ?? [])
+    const roles = (query.locationRoles?.split(',') ?? [])
       .map((r) => r.trim())
-      .filter((r): r is LocationRole => !!r && r !== LocationRoleValues.RESERVED_STORAGE);
+      .filter((r): r is LocationRole => !!r);
 
-    const matchGeneral = generalRoles.length > 0 ? inArray(locations.locationRole, generalRoles) : null;
-    const matchReserved = query.inventoryItemId
-      ? and(
-          eq(locations.locationRole, LocationRoleValues.RESERVED_STORAGE),
-          inArray(locations.id, this.locationsRepository.allowedReservedLocationIdsSubquery(query.inventoryItemId)),
-        )
-      : null;
-    const where = or(...[matchGeneral, matchReserved].filter((c): c is SQL => c !== null));
-
-    const groupRoles: LocationRole[] =
-      query.groupIdKey === 'locationRole'
-        ? [...(query.inventoryItemId ? [LocationRoleValues.RESERVED_STORAGE] : []), ...generalRoles]
-        : [];
+    const conditions: SQL[] = [];
+    if (roles.length > 0) {
+      conditions.push(inArray(locations.locationRole, roles));
+    }
+    if (query.inventoryItemId && roles.includes(LocationRoleValues.RESERVED_STORAGE)) {
+      // Non-RESERVED_STORAGE rows are unconstrained; RESERVED_STORAGE rows must be linked to the item.
+      const reservedScope = or(
+        ne(locations.locationRole, LocationRoleValues.RESERVED_STORAGE),
+        inArray(
+          locations.id,
+          this.locationsRepository.allowedReservedLocationIdsSubquery(query.inventoryItemId),
+        ),
+      );
+      if (reservedScope) conditions.push(reservedScope);
+    }
 
     return this.locationsRepository.findForSelect({
       value: query.valueKey || 'id',
@@ -145,15 +148,15 @@ export class LocationsService {
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
       groups:
-        groupRoles.length > 0
-          ? groupRoles.map((role) => ({ id: role, name: LocationsService.LOCATION_ROLE_LABELS[role] }))
+        query.groupIdKey === 'locationRole' && roles.length > 0
+          ? roles.map((role) => ({ id: role, name: LocationsService.LOCATION_ROLE_LABELS[role] }))
           : undefined,
       search: query.search,
       limit: query.limit,
       offset: query.offset,
       values: query.values,
       excludeIds: query.excludeIds,
-      conditions: where ? [where] : undefined,
+      conditions: conditions.length > 0 ? conditions : undefined,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
     });

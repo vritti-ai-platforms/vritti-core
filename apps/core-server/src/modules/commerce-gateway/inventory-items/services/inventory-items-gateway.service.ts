@@ -5,6 +5,7 @@ import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
+import type { InventoryItemStockResponseDto } from '../dto/response/inventory-item-stock-response.dto';
 import type {
   InventoryItemSupplierResponseDto,
   InventoryItemSupplierTableResponseDto,
@@ -128,10 +129,10 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns location-wise stock aggregates for an inventory item
-  async findLocationStock(itemId: string) {
-    this.logger.log(`inventoryItems.locationStock — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.locationStock', { itemId });
+  // Returns location-wise stock aggregates for an inventory item, sourced from inventory_item_quants.
+  async findStocks(itemId: string): Promise<InventoryItemStockResponseDto[]> {
+    this.logger.log(`inventoryItems.stocks — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'inventoryItems.stocks', { itemId });
   }
 
   // Returns paginated batches for an inventory item data table

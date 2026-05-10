@@ -3,6 +3,7 @@ export {
   INVENTORY_ITEM_BATCHES_KEY,
   INVENTORY_ITEM_KEY,
   INVENTORY_ITEM_LOCATIONS_KEY,
+  INVENTORY_ITEM_STOCKS_KEY,
   INVENTORY_ITEM_SUPPLIERS_TABLE_KEY,
   INVENTORY_ITEM_UOM_CONVERSIONS_KEY,
   INVENTORY_ITEMS_TABLE_KEY,
@@ -24,5 +25,6 @@ export {
   useInventoryItemUomConversionsTable,
   useUpdateInventoryItemUomConversion,
 } from './useInventoryItemUomConversions';
+export { useInventoryItemStocks } from './useInventoryItemStocks';
 export { useInventoryItemsTable } from './useInventoryItemsTable';
 export { useUpdateInventoryItem } from './useUpdateInventoryItem';

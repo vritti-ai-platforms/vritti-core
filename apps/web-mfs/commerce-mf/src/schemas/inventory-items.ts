@@ -79,3 +79,15 @@ export interface InventoryItemData {
   createdAt: string;
   updatedAt: string;
 }
+
+// Per-location stock aggregate for an inventory item — sourced from inventory_item_quants.
+// `reorderLevel` is null when the location has stock but no inventory_item_locations row.
+export interface InventoryItemStockData {
+  locationId: string;
+  locationName: string | null;
+  locationPath: string | null;
+  stockedQuantity: number;
+  reservedQuantity: number;
+  availableQuantity: number;
+  reorderLevel: number | null;
+}

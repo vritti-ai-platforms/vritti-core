@@ -9,7 +9,7 @@ import {
   inventoryItemQuantItems,
   inventoryItemQuants,
   inventoryItems,
-  inventoryLevels,
+  inventoryStockLevels,
   type InventoryTracking,
   QuantItemStatusValues,
   locations,
@@ -239,16 +239,16 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
   > {
     return this.db
       .select({
-        locationId: inventoryLevels.locationId,
+        locationId: inventoryStockLevels.locationId,
         locationName: locations.name,
         locationPath: locations.pathBreadcrumb,
-        stockedQuantity: inventoryLevels.stockedQuantity,
-        reservedQuantity: inventoryLevels.reservedQuantity,
-        availableQuantity: inventoryLevels.availableQuantity,
-        reorderLevel: inventoryLevels.reorderLevel,
+        stockedQuantity: inventoryStockLevels.stockedQuantity,
+        reservedQuantity: inventoryStockLevels.reservedQuantity,
+        availableQuantity: inventoryStockLevels.availableQuantity,
+        reorderLevel: inventoryStockLevels.reorderLevel,
       })
-      .from(inventoryLevels)
-      .leftJoin(locations, eq(inventoryLevels.locationId, locations.id))
-      .where(eq(inventoryLevels.inventoryItemId, itemId));
+      .from(inventoryStockLevels)
+      .leftJoin(locations, eq(inventoryStockLevels.locationId, locations.id))
+      .where(eq(inventoryStockLevels.inventoryItemId, itemId));
   }
 }

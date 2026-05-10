@@ -1,4 +1,4 @@
-import type { InventoryItemQuantDto, LocationStockDto } from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
+import type { InventoryItemQuantDto } from '@domain/inventory-item-quants/dto/entity/inventory-item-quant.dto';
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -22,11 +22,5 @@ export class InventoryItemsBatchesService {
     this.logger.log(`findForTable — itemId=${itemId}`);
     await this.inventoryItemsService.findById(itemId);
     return this.quantsService.findBatchesForTable(itemId, state);
-  }
-
-  async findLocationStock(itemId: string): Promise<LocationStockDto[]> {
-    this.logger.log(`findLocationStock — itemId=${itemId}`);
-    await this.inventoryItemsService.findById(itemId);
-    return this.quantsService.findLocationStockByItemId(itemId);
   }
 }

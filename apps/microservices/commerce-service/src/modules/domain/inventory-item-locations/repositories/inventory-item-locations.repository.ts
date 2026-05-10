@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type InventoryItemLocation,
-  inventoryItemLocations,
-  inventoryItemQuants,
-  locations,
-} from '@/db/schema';
+import { and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { type InventoryItemLocation, inventoryItemLocations, locations } from '@/db/schema';
 
 @Injectable()
 export class InventoryItemLocationsRepository extends PrimaryBaseRepository<typeof inventoryItemLocations> {
@@ -14,24 +9,19 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
     super(database, inventoryItemLocations);
   }
 
-  // Returns paginated configs for an item with location name and aggregated stock
+  // Returns paginated configs for an item with location name + path.
+  // The Locations tab is the registry view (reorder thresholds); actual stock figures live on the
+  // Stocks tab via the inventory_stock_levels view.
   async findByItemId(
     itemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{
-    result: (InventoryItemLocation & {
-      locationName: string | null;
-      locationPath: string | null;
-      stockedQuantity: string | null;
-      reservedQuantity: string | null;
-    })[];
+    result: (InventoryItemLocation & { locationName: string | null; locationPath: string | null })[];
     count: number;
   }> {
     const baseWhere = eq(inventoryItemLocations.inventoryItemId, itemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
-    const { result, count } = await this.findAllAndCount<
-      InventoryItemLocation & { locationName: string | null; locationPath: string | null }
-    >({
+    return this.findAllAndCount<InventoryItemLocation & { locationName: string | null; locationPath: string | null }>({
       select: {
         id: inventoryItemLocations.id,
         organizationId: inventoryItemLocations.organizationId,
@@ -50,66 +40,12 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
       limit: options.limit,
       offset: options.offset,
     });
-
-    if (result.length === 0) {
-      return { result: [], count };
-    }
-
-    const locationIds = result.map((row) => row.locationId);
-    const stockRows = await this.db
-      .select({
-        locationId: inventoryItemQuants.locationId,
-        stockedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.quantity}) AS TEXT)`,
-        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.reservedQuantity}) AS TEXT)`,
-      })
-      .from(inventoryItemQuants)
-      .where(and(eq(inventoryItemQuants.inventoryItemId, itemId), inArray(inventoryItemQuants.locationId, locationIds)))
-      .groupBy(inventoryItemQuants.locationId);
-
-    const stockByLocation = new Map(
-      stockRows.map((row) => [
-        row.locationId,
-        {
-          stockedQuantity: row.stockedQuantity,
-          reservedQuantity: row.reservedQuantity,
-        },
-      ]),
-    );
-
-    return {
-      result: result.map((row) => ({
-        ...row,
-        stockedQuantity: stockByLocation.get(row.locationId)?.stockedQuantity ?? null,
-        reservedQuantity: stockByLocation.get(row.locationId)?.reservedQuantity ?? null,
-      })),
-      count,
-    };
   }
 
-  // Returns a single config by ID with location name and aggregated stock
-  async findByIdWithLocation(id: string): Promise<
-    | (InventoryItemLocation & {
-        locationName: string | null;
-        locationPath: string | null;
-        stockedQuantity: string | null;
-        reservedQuantity: string | null;
-      })
-    | undefined
-  > {
-    // Subquery: aggregate stock per (inventoryItemId, locationId)
-    const stockAgg = this.db
-      .select({
-        inventoryItemId: inventoryItemQuants.inventoryItemId,
-        locationId: inventoryItemQuants.locationId,
-        stockedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.quantity}) AS TEXT)`.as('stocked_quantity'),
-        reservedQuantity: sql<string>`CAST(SUM(${inventoryItemQuants.reservedQuantity}) AS TEXT)`.as(
-          'reserved_quantity',
-        ),
-      })
-      .from(inventoryItemQuants)
-      .groupBy(inventoryItemQuants.inventoryItemId, inventoryItemQuants.locationId)
-      .as('stock_agg');
-
+  // Returns a single config by ID with location name + path
+  async findByIdWithLocation(
+    id: string,
+  ): Promise<(InventoryItemLocation & { locationName: string | null; locationPath: string | null }) | undefined> {
     const rows = await this.db
       .select({
         id: inventoryItemLocations.id,
@@ -122,27 +58,13 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
         updatedAt: inventoryItemLocations.updatedAt,
         locationName: locations.name,
         locationPath: locations.pathBreadcrumb,
-        stockedQuantity: stockAgg.stockedQuantity,
-        reservedQuantity: stockAgg.reservedQuantity,
       })
       .from(inventoryItemLocations)
       .leftJoin(locations, eq(inventoryItemLocations.locationId, locations.id))
-      .leftJoin(
-        stockAgg,
-        and(
-          eq(inventoryItemLocations.inventoryItemId, stockAgg.inventoryItemId),
-          eq(inventoryItemLocations.locationId, stockAgg.locationId),
-        ),
-      )
       .where(eq(inventoryItemLocations.id, id));
 
     return rows[0] as
-      | (InventoryItemLocation & {
-          locationName: string | null;
-          locationPath: string | null;
-          stockedQuantity: string | null;
-          reservedQuantity: string | null;
-        })
+      | (InventoryItemLocation & { locationName: string | null; locationPath: string | null })
       | undefined;
   }
 

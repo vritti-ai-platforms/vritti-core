@@ -1,5 +1,4 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -66,41 +65,6 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol })
           </span>
         ),
         enableSorting: true,
-      },
-      {
-        accessorKey: 'stockedQuantity',
-        header: 'Stocked',
-        cell: ({ row }) => (
-          <span className="font-mono">
-            {row.original.stockedQuantity} {uomSymbol}
-          </span>
-        ),
-      },
-      {
-        accessorKey: 'reservedQuantity',
-        header: 'Reserved',
-        cell: ({ row }) => <span className="font-mono">{row.original.reservedQuantity}</span>,
-      },
-      {
-        accessorKey: 'availableQuantity',
-        header: 'Available',
-        cell: ({ row }) => (
-          <span className="font-mono font-semibold">
-            {row.original.availableQuantity} {uomSymbol}
-          </span>
-        ),
-      },
-      {
-        id: 'status',
-        header: 'Status',
-        cell: ({ row }) => {
-          const { stockedQuantity, availableQuantity, reorderLevel } = row.original;
-          if (stockedQuantity === 0) return <Badge variant="destructive">No Stock</Badge>;
-          if (reorderLevel > 0 && availableQuantity <= reorderLevel) {
-            return <Badge variant="secondary">Low Stock</Badge>;
-          }
-          return <Badge variant="default">In Stock</Badge>;
-        },
       },
       {
         id: 'actions',

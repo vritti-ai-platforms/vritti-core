@@ -12,6 +12,7 @@ import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { LocationsTab } from './tabs/LocationsTab';
 import { LotsTab } from './tabs/LotsTab';
 import { OverviewTab } from './tabs/OverviewTab';
+import { StockLevelsTab } from './tabs/StockLevelsTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
 import { UomConversionsTab } from './tabs/UomConversionsTab';
 
@@ -57,6 +58,11 @@ export const InventoryItemDetailPage = () => {
             value: 'locations',
             label: 'Locations',
             content: <LocationsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+          },
+          {
+            value: 'stock-levels',
+            label: 'Stock Levels',
+            content: <StockLevelsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'uom-conversions',

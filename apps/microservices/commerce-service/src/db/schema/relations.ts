@@ -133,7 +133,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     inventoryItemQuants: r.many.inventoryItemQuants(),
   },
-  inventoryLevels: {},
+  inventoryStockLevels: {},
   inventoryLedger: {
     inventoryItem: r.one.inventoryItems({
       from: r.inventoryLedger.inventoryItemId,

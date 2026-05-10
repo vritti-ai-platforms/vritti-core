@@ -17,6 +17,8 @@ import { InventoryItemsQuantItemsController } from './quant-items/inventory-item
 import { InventoryItemsQuantsController } from './quants/inventory-items-quants.controller';
 import { InventoryItemsRootController } from './root/inventory-items-root.controller';
 import { InventoryItemsRootService } from './root/services/inventory-items-root.service';
+import { InventoryItemsStocksController } from './stocks/inventory-items-stocks.controller';
+import { InventoryItemsStocksService } from './stocks/services/inventory-items-stocks.service';
 import { InventoryItemsSupplierItemsController } from './supplier-items/inventory-items-supplier-items.controller';
 import { InventoryItemsUomConversionsController } from './uom-conversions/inventory-items-uom-conversions.controller';
 
@@ -37,6 +39,7 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemsUomConversionsController,
     InventoryItemsLocationsController,
     InventoryItemsBatchesController,
+    InventoryItemsStocksController,
     InventoryItemsSupplierItemsController,
     InventoryItemsLotsController,
     InventoryItemsQuantsController,
@@ -46,6 +49,7 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemsRootService,
     InventoryItemsLocationsService,
     InventoryItemsBatchesService,
+    InventoryItemsStocksService,
   ],
 })
 export class InventoryItemsModule {}

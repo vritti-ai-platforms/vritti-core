@@ -8,7 +8,7 @@ import {
   getInventoryItemLocationsTable,
   updateInventoryItemLocation,
 } from '@/services/inventory-item-locations.service';
-import { INVENTORY_ITEM_LOCATIONS_KEY } from './keys';
+import { INVENTORY_ITEM_LOCATIONS_KEY, INVENTORY_ITEM_STOCKS_KEY } from './keys';
 
 export function useInventoryItemLocationsTable(
   itemId: string | null,
@@ -31,6 +31,9 @@ export function useCreateInventoryItemLocation(
     mutationFn: (data) => createInventoryItemLocation(itemId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
+      // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
+      // so any add/edit/delete here mutates what the Stocks tab sees.
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(itemId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -45,6 +48,9 @@ export function useUpdateInventoryItemLocation(
     mutationFn: ({ locationConfigId, reorderLevel }) => updateInventoryItemLocation(itemId, locationConfigId, { reorderLevel }),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
+      // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
+      // so any add/edit/delete here mutates what the Stocks tab sees.
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(itemId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -59,6 +65,9 @@ export function useDeleteInventoryItemLocation(
     mutationFn: (locationConfigId) => deleteInventoryItemLocation(itemId, locationConfigId),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
+      // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
+      // so any add/edit/delete here mutates what the Stocks tab sees.
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(itemId) });
       options?.onSuccess?.(...args);
     },
   });

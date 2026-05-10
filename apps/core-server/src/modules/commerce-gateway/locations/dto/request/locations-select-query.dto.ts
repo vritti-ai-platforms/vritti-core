@@ -17,8 +17,7 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
   locationRoles?: string;
 
   @ApiPropertyOptional({
-    description:
-      'When provided alongside RESERVED_STORAGE in locationRoles, restricts reserved bins to those linked to this inventory item via inventory_item_locations. Without this param, RESERVED_STORAGE bins are excluded entirely.',
+    description: 'Optional inventory item context (passed through; reserved for future per-item filtering).',
     example: 'b3f9a8c4-1234-4567-89ab-cdef01234567',
   })
   @IsOptional()

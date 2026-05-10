@@ -36,7 +36,7 @@ export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationForm
         name="locationId"
         label="Location"
         placeholder="Select location"
-        params={{ locationRoles: LocationRoleValues.STORAGE }}
+        params={{ locationRoles: LocationRoleValues.RESERVED_STORAGE }}
       />
       <TextField name="reorderLevel" label="Min. Stock Level" type="number" min={0} step="any" />
       <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">

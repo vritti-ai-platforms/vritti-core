@@ -7,9 +7,6 @@ export class InventoryItemLocationDto {
   locationName: string | null;
   locationPath: string | null;
   reorderLevel: number;
-  stockedQuantity: number;
-  reservedQuantity: number;
-  availableQuantity: number;
   createdAt: string;
   updatedAt: string;
 
@@ -18,8 +15,6 @@ export class InventoryItemLocationDto {
     row: InventoryItemLocation & {
       locationName?: string | null;
       locationPath?: string | null;
-      stockedQuantity?: string | null;
-      reservedQuantity?: string | null;
     },
   ): InventoryItemLocationDto {
     const dto = new InventoryItemLocationDto();
@@ -29,9 +24,6 @@ export class InventoryItemLocationDto {
     dto.locationName = row.locationName ?? null;
     dto.locationPath = row.locationPath ?? null;
     dto.reorderLevel = Number(row.reorderLevel);
-    dto.stockedQuantity = Number(row.stockedQuantity ?? 0);
-    dto.reservedQuantity = Number(row.reservedQuantity ?? 0);
-    dto.availableQuantity = dto.stockedQuantity - dto.reservedQuantity;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

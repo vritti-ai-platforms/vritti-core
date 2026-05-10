@@ -6,7 +6,7 @@ export const InventoryItemDetailPageSkeleton = () => (
   <div className="flex flex-col gap-6">
     <PageHeaderSkeleton showDescription showActions />
 
-    <TabsSkeleton count={4} />
+    <TabsSkeleton count={5} />
 
     <div className="space-y-3 rounded-lg border border-border p-6">
       <Skeleton className="h-5 w-44" />

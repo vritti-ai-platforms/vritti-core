@@ -5252,9 +5252,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-items/{id}/location-stock": {
+    "/commerce-api/inventory-items/{id}/stocks": {
       "get": {
-        "operationId": "InventoryItemsGatewayController_getLocationStock",
+        "operationId": "InventoryItemsGatewayController_getStocks",
         "parameters": [
           {
             "name": "id",
@@ -5823,7 +5823,7 @@
             "name": "inventoryItemId",
             "required": false,
             "in": "query",
-            "description": "When provided alongside RESERVED_STORAGE in locationRoles, restricts reserved bins to those linked to this inventory item via inventory_item_locations. Without this param, RESERVED_STORAGE bins are excluded entirely.",
+            "description": "Optional inventory item context (passed through; reserved for future per-item filtering).",
             "schema": {
               "example": "b3f9a8c4-1234-4567-89ab-cdef01234567",
               "type": "string"
