@@ -11,6 +11,8 @@ import type { CreateInventoryItemDto } from '../dto/request/create-inventory-ite
 import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
+import type { InventoryItemLocationResponseDto } from '../dto/response/inventory-item-location-response.dto';
+import type { InventoryItemLocationTableResponseDto } from '../dto/response/inventory-item-location-table-response.dto';
 import type { InventoryItemLotResponseDto } from '../dto/response/inventory-item-lot-response.dto';
 import type { InventoryItemLotTableResponseDto } from '../dto/response/inventory-item-lot-table-response.dto';
 import type { InventoryItemQuantResponseDto } from '../dto/response/inventory-item-quant-response.dto';
@@ -188,18 +190,17 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns paginated item-location configs for an inventory item
-  async findItemLocationsForTable(itemId: string, userId: string) {
+  async findItemLocationsForTable(itemId: string, userId: string): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log('inventoryItems.locationsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `inventory-item-${itemId}-locations`,
     );
 
-    const { result, count } = await this.nats.send<{ result: any[]; count: number }>(
-      'commerce',
-      'inventoryItems.locationsTable',
-      { itemId, ...state },
-    );
+    const { result, count } = await this.nats.send<{
+      result: InventoryItemLocationResponseDto[];
+      count: number;
+    }>('commerce', 'inventoryItems.locationsTable', { itemId, ...state });
 
     return { result, count, state, activeViewId };
   }

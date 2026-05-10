@@ -15,6 +15,7 @@ import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-sele
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
+import type { InventoryItemLocationTableResponseDto } from './dto/response/inventory-item-location-table-response.dto';
 import type { InventoryItemLotTableResponseDto } from './dto/response/inventory-item-lot-table-response.dto';
 import type { InventoryItemQuantTableResponseDto } from './dto/response/inventory-item-quant-table-response.dto';
 import type { InventoryItemResponseDto } from './dto/response/inventory-item-response.dto';
@@ -135,7 +136,10 @@ export class InventoryItemsGatewayController {
 
   // Returns paginated item-location configs for an inventory item
   @Get(':id/locations/table')
-  getLocationsTable(@Param('id') id: string, @UserId() userId: string) {
+  getLocationsTable(
+    @Param('id') id: string,
+    @UserId() userId: string,
+  ): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log(`GET /commerce-api/inventory-items/${id}/locations/table`);
     return this.service.findItemLocationsForTable(id, userId);
   }
