@@ -5,6 +5,7 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
@@ -29,7 +30,10 @@ export class CategoriesService {
     sortOrder: { column: categories.sortOrder, type: 'number' },
   };
 
-  constructor(private readonly categoriesRepository: CategoriesRepository) {}
+  constructor(
+    private readonly database: PrimaryDatabaseService,
+    private readonly categoriesRepository: CategoriesRepository,
+  ) {}
 
   // Throws if the category has children — used by inventory-items / items services to enforce leaf-only links
   async assertIsLeaf(categoryId: string): Promise<void> {
@@ -57,9 +61,7 @@ export class CategoriesService {
       excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
-      conditions: [
-        sql`NOT EXISTS (SELECT 1 FROM ${categories} child WHERE child.parent_id = ${categories}.id)`,
-      ],
+      conditions: [sql`NOT EXISTS (SELECT 1 FROM ${categories} child WHERE child.parent_id = ${categories}.id)`],
     });
   }
 
@@ -123,7 +125,9 @@ export class CategoriesService {
     ]);
 
     return {
-      result: rows.map((row) => CategoryDto.from(row, !referencedIds.has(row.id) && !parentIdsWithChildren.has(row.id))),
+      result: rows.map((row) =>
+        CategoryDto.from(row, !referencedIds.has(row.id) && !parentIdsWithChildren.has(row.id)),
+      ),
       count,
     };
   }
@@ -167,41 +171,40 @@ export class CategoriesService {
 
   // Updates a category, recomputing path on rename/move and rewriting the affected subtree
   async update(id: string, data: UpdateCategoryDto): Promise<CategoryDto> {
-    const existing = await this.requireById(id);
+    return this.database.runInTransaction(async () => {
+      const existing = await this.requireById(id);
 
-    const nextParentId = data.parentId === undefined ? existing.parentId : data.parentId || null;
-    const nextName = data.name ?? existing.name;
-    const parentChanged = nextParentId !== existing.parentId;
-    const nameChanged = nextName !== existing.name;
+      const nextParentId = data.parentId === undefined ? existing.parentId : data.parentId || null;
+      const nextName = data.name ?? existing.name;
+      const parentChanged = nextParentId !== existing.parentId;
+      const nameChanged = nextName !== existing.name;
 
-    const nextParent = await this.resolveNextParent(existing, nextParentId, parentChanged);
+      const nextParent = await this.resolveNextParent(existing, nextParentId, parentChanged);
 
-    if (parentChanged && nextParent) {
-      await this.assertNoCircularReference(id, nextParent.id);
-      await this.assertParentAcceptsChildren(nextParent);
-    }
+      if (parentChanged && nextParent) {
+        await this.assertNoCircularReference(id, nextParent.id);
+        await this.assertParentAcceptsChildren(nextParent);
+      }
 
-    const nextPathLabel = nameChanged ? this.toPathLabel(nextName) : existing.pathLabel;
+      const nextPathLabel = nameChanged ? this.toPathLabel(nextName) : existing.pathLabel;
 
-    const updated = await this.withDuplicateGuard(nextName, () =>
-      this.categoriesRepository.update(id, {
-        ...data,
-        parentId: data.parentId === undefined ? undefined : data.parentId || null,
-        pathLabel: nameChanged ? nextPathLabel : undefined,
-      }),
-    );
+      const updated = await this.withDuplicateGuard(nextName, () =>
+        this.categoriesRepository.update(id, {
+          ...data,
+          parentId: data.parentId === undefined ? undefined : data.parentId || null,
+          pathLabel: nameChanged ? nextPathLabel : undefined,
+        }),
+      );
 
-    if (parentChanged || nameChanged) {
-      const nextPath = this.buildPath(nextParent?.path ?? null, nextPathLabel);
-      await this.categoriesRepository.rewriteSubtreePath(existing.path, nextPath);
-    }
+      if (parentChanged || nameChanged) {
+        const nextPath = this.buildPath(nextParent?.path ?? null, nextPathLabel);
+        await this.categoriesRepository.rewriteSubtreePath(existing.path, nextPath);
+      }
 
-    this.logger.log(`Updated category: ${updated.name} (${updated.id})`);
-    const [refs, fresh] = await Promise.all([
-      this.categoriesRepository.countReferences(id),
-      this.requireById(id),
-    ]);
-    return CategoryDto.from(fresh, this.isUnreferenced(refs));
+      this.logger.log(`Updated category: ${updated.name} (${updated.id})`);
+      const [refs, fresh] = await Promise.all([this.categoriesRepository.countReferences(id), this.requireById(id)]);
+      return CategoryDto.from(fresh, this.isUnreferenced(refs));
+    });
   }
 
   // Reorders all siblings under a parent category using the provided final ID order
@@ -225,7 +228,9 @@ export class CategoriesService {
       throw new BadRequestException('orderedIds contains invalid category IDs for the selected parent.');
     }
 
-    await Promise.all(orderedIds.map((id, index) => this.categoriesRepository.updateSortOrder(id, index + 1)));
+    await this.database.runInTransaction(async () => {
+      await Promise.all(orderedIds.map((id, index) => this.categoriesRepository.updateSortOrder(id, index + 1)));
+    });
 
     this.logger.log(`Reordered ${orderedIds.length} categories under parent ${parentId ?? 'ROOT'}`);
     return { success: true, message: 'Categories reordered successfully.' };

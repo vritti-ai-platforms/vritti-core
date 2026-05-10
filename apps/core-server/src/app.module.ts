@@ -92,6 +92,13 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
 
           // Connection pool configuration
           maxConnections: 10,
+
+          // Used by the webhook path (WebhookSessionInterceptor) — sets app.org_id for RLS.
+          // Other HTTP routes don't stash an RLS context, so this is a no-op for them.
+          applyRlsContext: async (client, ctx) => {
+            const r = ctx as { orgId: string };
+            await client.query("SELECT set_config('app.org_id', $1, true)", [r.orgId]);
+          },
         };
         return options;
       },

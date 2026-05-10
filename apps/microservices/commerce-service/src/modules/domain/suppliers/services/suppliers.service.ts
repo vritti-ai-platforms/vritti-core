@@ -7,6 +7,7 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
@@ -30,6 +31,7 @@ export class SuppliersService {
   };
 
   constructor(
+    private readonly database: PrimaryDatabaseService,
     private readonly repository: SuppliersRepository,
     private readonly supplierContactsRepository: SupplierContactsRepository,
   ) {}
@@ -94,32 +96,35 @@ export class SuppliersService {
       SuppliersService.throwInvalidTaxDetailsError(normalizedTaxId, normalizedTaxIdType);
     }
 
-    const entity = await this.repository.create({
-      name: data.name,
-      code: data.code,
-      currencyCode: data.currencyCode,
-      contactName: data.primaryContact.name,
-      phone: data.primaryContact.phone,
-      email: data.primaryContact.email ?? null,
-      website: data.website ?? null,
-      address: data.address ?? null,
-      taxId: normalizedTaxId,
-      taxIdType: normalizedTaxIdType,
-      paymentTerms: data.paymentTerms ?? null,
-      leadTimeDays: data.leadTimeDays ?? null,
-      notes: data.notes ?? null,
-    });
+    const entity = await this.database.runInTransaction(async () => {
+      const supplier = await this.repository.create({
+        name: data.name,
+        code: data.code,
+        currencyCode: data.currencyCode,
+        contactName: data.primaryContact.name,
+        phone: data.primaryContact.phone,
+        email: data.primaryContact.email ?? null,
+        website: data.website ?? null,
+        address: data.address ?? null,
+        taxId: normalizedTaxId,
+        taxIdType: normalizedTaxIdType,
+        paymentTerms: data.paymentTerms ?? null,
+        leadTimeDays: data.leadTimeDays ?? null,
+        notes: data.notes ?? null,
+      });
 
-    await this.supplierContactsRepository.createContact({
-      supplierId: entity.id,
-      name: data.primaryContact.name,
-      phone: data.primaryContact.phone,
-      alternatePhone: data.primaryContact.alternatePhone ?? null,
-      email: data.primaryContact.email ?? null,
-      alternateEmail: data.primaryContact.alternateEmail ?? null,
-      designation: data.primaryContact.designation ?? null,
-      isPrimary: true,
-      isActive: true,
+      await this.supplierContactsRepository.createContact({
+        supplierId: supplier.id,
+        name: data.primaryContact.name,
+        phone: data.primaryContact.phone,
+        alternatePhone: data.primaryContact.alternatePhone ?? null,
+        email: data.primaryContact.email ?? null,
+        alternateEmail: data.primaryContact.alternateEmail ?? null,
+        designation: data.primaryContact.designation ?? null,
+        isPrimary: true,
+        isActive: true,
+      });
+      return supplier;
     });
 
     this.logger.log(`Created supplier: ${entity.name} (${entity.code})`);

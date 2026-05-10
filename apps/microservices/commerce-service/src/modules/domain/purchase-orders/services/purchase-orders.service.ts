@@ -6,6 +6,7 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
@@ -13,7 +14,13 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor, resolveCurrency } from '@vritti/api-sdk/money';
-import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems, purchaseOrders, suppliers } from '@/db/schema';
+import {
+  type PurchaseOrderStatus,
+  PurchaseOrderStatusValues,
+  purchaseOrderItems,
+  purchaseOrders,
+  suppliers,
+} from '@/db/schema';
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
@@ -60,6 +67,7 @@ export class PurchaseOrdersService {
   };
 
   constructor(
+    private readonly database: PrimaryDatabaseService,
     private readonly repository: PurchaseOrdersRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
     private readonly suppliersService: SuppliersService,
@@ -76,7 +84,10 @@ export class PurchaseOrdersService {
       ?.split(',')
       .map((s) => s.trim())
       .filter(Boolean);
-    const conditions = statusList && statusList.length > 0 ? [inArray(purchaseOrders.status, statusList as PurchaseOrderStatus[])] : undefined;
+    const conditions =
+      statusList && statusList.length > 0
+        ? [inArray(purchaseOrders.status, statusList as PurchaseOrderStatus[])]
+        : undefined;
 
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
@@ -223,16 +234,18 @@ export class PurchaseOrdersService {
 
     const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.orderedQuantity));
 
-    await this.poItemsRepository.create({
-      purchaseOrderId: id,
-      inventoryItemId: data.inventoryItemId,
-      orderedQuantity: String(data.orderedQuantity),
-      supplierUnitPrice: Number(supplierUnitPriceMinor),
-      unitPrice: Number(unitPriceMinor),
-      totalPrice: Number(totalPriceMinor),
-    });
+    await this.database.runInTransaction(async () => {
+      await this.poItemsRepository.create({
+        purchaseOrderId: id,
+        inventoryItemId: data.inventoryItemId,
+        orderedQuantity: String(data.orderedQuantity),
+        supplierUnitPrice: Number(supplierUnitPriceMinor),
+        unitPrice: Number(unitPriceMinor),
+        totalPrice: Number(totalPriceMinor),
+      });
 
-    await this.repository.syncTotalAmount(id);
+      await this.repository.syncTotalAmount(id);
+    });
     this.logger.log(`Added PO item: ${existing.poNumber} (${existing.id})`);
     return {
       success: true,
@@ -313,15 +326,17 @@ export class PurchaseOrdersService {
 
     const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * orderedQuantity));
 
-    await this.poItemsRepository.update(itemId, {
-      inventoryItemId: data.inventoryItemId,
-      orderedQuantity: String(orderedQuantity),
-      supplierUnitPrice: Number(supplierUnitPriceMinor),
-      unitPrice: Number(unitPriceMinor),
-      totalPrice: Number(totalPriceMinor),
-    });
+    await this.database.runInTransaction(async () => {
+      await this.poItemsRepository.update(itemId, {
+        inventoryItemId: data.inventoryItemId,
+        orderedQuantity: String(orderedQuantity),
+        supplierUnitPrice: Number(supplierUnitPriceMinor),
+        unitPrice: Number(unitPriceMinor),
+        totalPrice: Number(totalPriceMinor),
+      });
 
-    await this.repository.syncTotalAmount(id);
+      await this.repository.syncTotalAmount(id);
+    });
     this.logger.log(`Updated PO item: ${existing.poNumber} (${itemId})`);
     return { success: true, message: `Line item updated for purchase order "${existing.poNumber}".` };
   }
@@ -337,8 +352,10 @@ export class PurchaseOrdersService {
     const item = await this.poItemsRepository.findItemById(id, itemId);
     if (!item) throw new NotFoundException('Purchase order line item not found.');
 
-    await this.poItemsRepository.delete(itemId);
-    await this.repository.syncTotalAmount(id);
+    await this.database.runInTransaction(async () => {
+      await this.poItemsRepository.delete(itemId);
+      await this.repository.syncTotalAmount(id);
+    });
     this.logger.log(`Removed PO item: ${existing.poNumber} (${itemId})`);
     return { success: true, message: `Line item removed from purchase order "${existing.poNumber}".` };
   }
@@ -405,16 +422,17 @@ export class PurchaseOrdersService {
     }
 
     const resolvedConversionRate = Number(nextConversionRate ?? 1);
-    await this.repository.updateCurrency(id, {
-      currencyCode,
-      conversionRate: String(resolvedConversionRate),
-    });
-
     const supplierExp = Number(resolveCurrency(supplier.currencyCode as CurrencyCode).exponent);
     const poExp = Number(resolveCurrency(currencyCode as CurrencyCode).exponent);
-    await this.poItemsRepository.recalculateLinePricingByPoId(id, resolvedConversionRate, poExp, supplierExp);
 
-    await this.repository.syncTotalAmount(id);
+    await this.database.runInTransaction(async () => {
+      await this.repository.updateCurrency(id, {
+        currencyCode,
+        conversionRate: String(resolvedConversionRate),
+      });
+      await this.poItemsRepository.recalculateLinePricingByPoId(id, resolvedConversionRate, poExp, supplierExp);
+      await this.repository.syncTotalAmount(id);
+    });
     this.logger.log(`Changed PO currency: ${existing.poNumber} (${id}) -> ${currencyCode}`);
     return {
       success: true,

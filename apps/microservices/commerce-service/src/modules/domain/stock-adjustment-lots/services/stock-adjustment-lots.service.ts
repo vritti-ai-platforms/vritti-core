@@ -5,14 +5,11 @@ import {
   BadRequestException,
   type CreateResponseDto,
   NotFoundException,
+  PrimaryDatabaseService,
   type SuccessResponseDto,
   ValidationException,
 } from '@vritti/api-sdk';
-import {
-  type InventoryItemLot,
-  StockAdjustmentStatusValues,
-  StockAdjustmentTypeValues,
-} from '@/db/schema';
+import { type InventoryItemLot, StockAdjustmentStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 import { StockAdjustmentLotDto } from '../dto/entity/stock-adjustment-lot.dto';
 import { StockAdjustmentLotDetailDto } from '../dto/entity/stock-adjustment-lot-detail.dto';
 import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
@@ -23,6 +20,7 @@ export class StockAdjustmentLotsService {
   private readonly logger = new Logger(StockAdjustmentLotsService.name);
 
   constructor(
+    private readonly database: PrimaryDatabaseService,
     private readonly repository: StockAdjustmentLotsRepository,
     private readonly adjustmentsService: StockAdjustmentsService,
     private readonly inventoryItemLotsService: InventoryItemLotsService,
@@ -139,10 +137,7 @@ export class StockAdjustmentLotsService {
           errors: [{ field: 'lotNumber', message: 'Lot already on this adjustment.' }],
         });
       }
-      const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(
-        adjustment.inventoryItemId,
-        trimmed,
-      );
+      const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(adjustment.inventoryItemId, trimmed);
       if (inventoryDup) {
         throw new ValidationException({
           detail: `Lot "${trimmed}" already exists in inventory.`,
@@ -182,14 +177,16 @@ export class StockAdjustmentLotsService {
     if (!sa.expiryDate) {
       throw new BadRequestException(`Stock adjustment lot ${lotId} is missing an expiry date.`);
     }
-    const inserted = await this.inventoryItemLotsService.createLot({
-      inventoryItemId,
-      lotNumber: sa.lotNumber,
-      manufacturingDate: sa.manufacturingDate ?? null,
-      expiryDate: sa.expiryDate,
+    return this.database.runInTransaction(async () => {
+      const inserted = await this.inventoryItemLotsService.createLot({
+        inventoryItemId,
+        lotNumber: sa.lotNumber,
+        manufacturingDate: sa.manufacturingDate ?? null,
+        expiryDate: sa.expiryDate,
+      });
+      await this.repository.setResolvedLotId(lotId, inserted.id);
+      return inserted;
     });
-    await this.repository.setResolvedLotId(lotId, inserted.id);
-    return inserted;
   }
 
   private async ensureLotBelongsToAdjustment(adjustmentId: string, lotId: string) {

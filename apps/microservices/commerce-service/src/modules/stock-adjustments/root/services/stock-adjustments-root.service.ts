@@ -14,6 +14,7 @@ import {
   BadRequestException,
   type CreateResponseDto,
   NotFoundException,
+  PrimaryDatabaseService,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
@@ -36,6 +37,7 @@ export class StockAdjustmentsRootService {
   private readonly logger = new Logger(StockAdjustmentsRootService.name);
 
   constructor(
+    private readonly database: PrimaryDatabaseService,
     private readonly repository: StockAdjustmentsRepository,
     private readonly linesRepository: StockAdjustmentLinesRepository,
     private readonly lineItemsRepository: StockAdjustmentLineItemsRepository,
@@ -104,22 +106,24 @@ export class StockAdjustmentsRootService {
         ? await this.lotsRepository.findByAdjustmentId(id)
         : [];
 
-    // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
-    for (const lot of lots) {
-      await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id);
-    }
-
-    // Phase B: process each line
-    for (const line of lines) {
-      const lineItems = lineItemsByLineId[line.id] ?? [];
-      if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
-        await this.publishRegisterLine(id, adjustment, tracking, line, lineItems, lots);
-      } else {
-        await this.publishChangeLine(id, adjustment, tracking, line, lineItems);
+    await this.database.runInTransaction(async () => {
+      // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
+      for (const lot of lots) {
+        await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id);
       }
-    }
 
-    await this.repository.updateStatus(id, StockAdjustmentStatusValues.PUBLISHED, new Date());
+      // Phase B: process each line
+      for (const line of lines) {
+        const lineItems = lineItemsByLineId[line.id] ?? [];
+        if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
+          await this.publishRegisterLine(id, adjustment, tracking, line, lineItems, lots);
+        } else {
+          await this.publishChangeLine(id, adjustment, tracking, line, lineItems);
+        }
+      }
+
+      await this.repository.updateStatus(id, StockAdjustmentStatusValues.PUBLISHED, new Date());
+    });
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
     return this.adjustmentsService.findById(id);

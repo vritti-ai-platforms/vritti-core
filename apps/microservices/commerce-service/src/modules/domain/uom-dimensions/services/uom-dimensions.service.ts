@@ -3,6 +3,7 @@ import {
   ConflictException,
   type CreateResponseDto,
   NotFoundException,
+  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
@@ -16,7 +17,10 @@ import { UomDimensionsRepository } from '../repositories/uom-dimensions.reposito
 export class UomDimensionsService {
   private readonly logger = new Logger(UomDimensionsService.name);
 
-  constructor(private readonly repository: UomDimensionsRepository) {}
+  constructor(
+    private readonly database: PrimaryDatabaseService,
+    private readonly repository: UomDimensionsRepository,
+  ) {}
 
   // Returns total UOM dimension count
   async count(): Promise<{ count: number }> {
@@ -58,7 +62,11 @@ export class UomDimensionsService {
   // Creates a new UOM dimension
   async create(data: CreateUomDimensionDto, currentBuId: string): Promise<CreateResponseDto<UomDimensionDto>> {
     const existing = await this.repository.findByCode(data.code);
-    if (existing) throw new ConflictException({ label: 'Duplicate Code', detail: `A dimension with code "${data.code}" already exists.` });
+    if (existing)
+      throw new ConflictException({
+        label: 'Duplicate Code',
+        detail: `A dimension with code "${data.code}" already exists.`,
+      });
 
     const entity = await this.repository.create({
       code: data.code,
@@ -102,8 +110,10 @@ export class UomDimensionsService {
       });
     }
 
-    await this.repository.deleteUomsByDimensionId(id);
-    await this.repository.delete(id);
+    await this.database.runInTransaction(async () => {
+      await this.repository.deleteUomsByDimensionId(id);
+      await this.repository.delete(id);
+    });
     this.logger.log(`Deleted UOM dimension: ${existing.name} (${id}) and cascaded its units`);
     return { success: true, message: `Dimension "${existing.name}" deleted successfully.` };
   }

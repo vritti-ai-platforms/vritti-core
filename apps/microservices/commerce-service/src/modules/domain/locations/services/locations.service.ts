@@ -5,6 +5,7 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
@@ -31,7 +32,10 @@ export class LocationsService {
     area: { column: locations.area, type: 'string' },
   };
 
-  constructor(private readonly locationsRepository: LocationsRepository) {}
+  constructor(
+    private readonly database: PrimaryDatabaseService,
+    private readonly locationsRepository: LocationsRepository,
+  ) {}
 
   private static toPathLabel(code: string): string {
     const normalized = code
@@ -129,9 +133,7 @@ export class LocationsService {
   findForSelect(
     query: SelectOptionsQueryDto & { locationRoles?: string; inventoryItemId?: string },
   ): Promise<SelectQueryResult> {
-    const roles = (query.locationRoles?.split(',') ?? [])
-      .map((r) => r.trim())
-      .filter((r): r is LocationRole => !!r);
+    const roles = (query.locationRoles?.split(',') ?? []).map((r) => r.trim()).filter((r): r is LocationRole => !!r);
 
     const conditions: SQL[] = [];
     if (roles.length > 0) {
@@ -141,10 +143,7 @@ export class LocationsService {
       // Non-RESERVED_STORAGE rows are unconstrained; RESERVED_STORAGE rows must be linked to the item.
       const reservedScope = or(
         ne(locations.locationRole, LocationRoleValues.RESERVED_STORAGE),
-        inArray(
-          locations.id,
-          this.locationsRepository.allowedReservedLocationIdsSubquery(query.inventoryItemId),
-        ),
+        inArray(locations.id, this.locationsRepository.allowedReservedLocationIdsSubquery(query.inventoryItemId)),
       );
       if (reservedScope) conditions.push(reservedScope);
     }
@@ -195,9 +194,11 @@ export class LocationsService {
       throw new BadRequestException('orderedIds contains invalid location IDs for the selected parent.');
     }
 
-    for (let index = 0; index < orderedIds.length; index += 1) {
-      await this.locationsRepository.updateSortOrder(orderedIds[index], index + 1);
-    }
+    await this.database.runInTransaction(async () => {
+      for (let index = 0; index < orderedIds.length; index += 1) {
+        await this.locationsRepository.updateSortOrder(orderedIds[index], index + 1);
+      }
+    });
 
     this.logger.log(`Reordered ${orderedIds.length} storage locations under parent ${parentId ?? 'ROOT'}`);
     return { success: true, message: 'Storage locations reordered successfully.' };
@@ -222,29 +223,33 @@ export class LocationsService {
       throw new BadRequestException('Only ZONE locations can have child locations.');
     }
 
-    const entity = await this.locationsRepository.create({
-      name: data.name,
-      code: data.code,
-      parentId: data.parentId ?? null,
-      path: '__pending__',
-      sortOrder: data.sortOrder ?? 1,
-      area: data.area || null,
-      managerId: data.managerId ?? null,
-      address: data.address || null,
-      locationRole: data.locationRole,
-      isActive: data.isActive,
+    const created = await this.database.runInTransaction(async () => {
+      const entity = await this.locationsRepository.create({
+        name: data.name,
+        code: data.code,
+        parentId: data.parentId ?? null,
+        path: '__pending__',
+        sortOrder: data.sortOrder ?? 1,
+        area: data.area || null,
+        managerId: data.managerId ?? null,
+        address: data.address || null,
+        locationRole: data.locationRole,
+        isActive: data.isActive,
+      });
+
+      const path = LocationsService.buildPath(parentPath, entity.code);
+      await this.locationsRepository.update(entity.id, { path });
+      const fresh = await this.locationsRepository.findById(entity.id);
+      if (!fresh) throw new NotFoundException('Storage location not found.');
+      return { entity, fresh };
     });
 
-    const path = LocationsService.buildPath(parentPath, entity.code);
-    await this.locationsRepository.update(entity.id, { path });
-    const created = await this.locationsRepository.findById(entity.id);
-    if (!created) throw new NotFoundException('Storage location not found.');
-
+    const { entity, fresh: createdRow } = created;
     this.logger.log(`Created storage location: ${entity.name} (${entity.code})`);
     return {
       success: true,
       message: `Storage location "${entity.name}" (${entity.code}) created successfully.`,
-      data: LocationDto.from(created),
+      data: LocationDto.from(createdRow),
     };
   }
 
@@ -280,17 +285,20 @@ export class LocationsService {
       }
     }
 
-    const updated = await this.locationsRepository.update(id, {
-      ...data,
-      parentId: nextParentId,
-      area: data.area !== undefined ? data.area || null : undefined,
-      address: data.address !== undefined ? data.address || null : undefined,
-    });
+    const updated = await this.database.runInTransaction(async () => {
+      const row = await this.locationsRepository.update(id, {
+        ...data,
+        parentId: nextParentId,
+        area: data.area !== undefined ? data.area || null : undefined,
+        address: data.address !== undefined ? data.address || null : undefined,
+      });
 
-    if (parentChanged || codeChanged) {
-      const nextPath = LocationsService.buildPath(nextParentPath, nextCode);
-      await this.locationsRepository.rewriteSubtreePath(existing.path, nextPath);
-    }
+      if (parentChanged || codeChanged) {
+        const nextPath = LocationsService.buildPath(nextParentPath, nextCode);
+        await this.locationsRepository.rewriteSubtreePath(existing.path, nextPath);
+      }
+      return row;
+    });
 
     this.logger.log(`Updated storage location: ${updated.name} (${id})`);
     return { success: true, message: `Storage location "${updated.name}" updated successfully.` };

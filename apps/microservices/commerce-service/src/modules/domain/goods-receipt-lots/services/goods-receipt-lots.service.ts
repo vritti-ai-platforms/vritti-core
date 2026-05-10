@@ -6,6 +6,7 @@ import {
   BadRequestException,
   type CreateResponseDto,
   NotFoundException,
+  PrimaryDatabaseService,
   type SuccessResponseDto,
   ValidationException,
 } from '@vritti/api-sdk';
@@ -18,6 +19,7 @@ export class GoodsReceiptLotsService {
   private readonly logger = new Logger(GoodsReceiptLotsService.name);
 
   constructor(
+    private readonly database: PrimaryDatabaseService,
     private readonly repository: GoodsReceiptLotsRepository,
     private readonly itemsService: GoodsReceiptItemsService,
     private readonly receiptsService: GoodsReceiptsService,
@@ -154,14 +156,16 @@ export class GoodsReceiptLotsService {
     if (!gr.expiryDate) {
       throw new BadRequestException(`Goods receipt lot ${lotId} is missing an expiry date.`);
     }
-    const inserted = await this.inventoryItemLotsService.createLot({
-      inventoryItemId,
-      lotNumber: gr.lotNumber,
-      manufacturingDate: gr.manufacturingDate ?? null,
-      expiryDate: gr.expiryDate,
+    return this.database.runInTransaction(async () => {
+      const inserted = await this.inventoryItemLotsService.createLot({
+        inventoryItemId,
+        lotNumber: gr.lotNumber,
+        manufacturingDate: gr.manufacturingDate ?? null,
+        expiryDate: gr.expiryDate,
+      });
+      await this.repository.setResolvedLotId(lotId, inserted.id);
+      return inserted;
     });
-    await this.repository.setResolvedLotId(lotId, inserted.id);
-    return inserted;
   }
 
   // Validates the receipt + item exist, returns both for downstream guards.

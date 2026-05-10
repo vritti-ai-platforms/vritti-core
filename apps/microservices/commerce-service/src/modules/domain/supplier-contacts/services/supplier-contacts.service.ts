@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { BadRequestException, type CreateResponseDto, NotFoundException, type SuccessResponseDto } from '@vritti/api-sdk';
+import {
+  BadRequestException,
+  type CreateResponseDto,
+  NotFoundException,
+  PrimaryDatabaseService,
+  type SuccessResponseDto,
+} from '@vritti/api-sdk';
 import { SupplierContactDto } from '../dto/entity/supplier-contact.dto';
 import { SupplierContactsRepository } from '../repositories/supplier-contacts.repository';
 
@@ -29,7 +35,10 @@ interface UpdateSupplierContactInput {
 
 @Injectable()
 export class SupplierContactsService {
-  constructor(private readonly repository: SupplierContactsRepository) {}
+  constructor(
+    private readonly database: PrimaryDatabaseService,
+    private readonly repository: SupplierContactsRepository,
+  ) {}
 
   async listBySupplierId(supplierId: string): Promise<SupplierContactDto[]> {
     const supplier = await this.repository.findSupplierById(supplierId);
@@ -38,7 +47,10 @@ export class SupplierContactsService {
     return rows.map(SupplierContactDto.from);
   }
 
-  async createContact(supplierId: string, data: CreateSupplierContactInput): Promise<CreateResponseDto<SupplierContactDto>> {
+  async createContact(
+    supplierId: string,
+    data: CreateSupplierContactInput,
+  ): Promise<CreateResponseDto<SupplierContactDto>> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
@@ -53,28 +65,31 @@ export class SupplierContactsService {
     }
 
     const makePrimary = data.isPrimary === true || totalContacts === 0;
-    if (makePrimary) {
-      await this.repository.clearPrimaryBySupplierId(supplierId);
-    }
-    const created = await this.repository.createContact({
-      supplierId,
-      name: data.name,
-      phone: data.phone,
-      alternatePhone: data.alternatePhone ?? null,
-      email: data.email ?? null,
-      alternateEmail: data.alternateEmail ?? null,
-      designation: data.designation ?? null,
-      notes: data.notes ?? null,
-      isPrimary: makePrimary,
-      isActive: data.isActive ?? true,
-    });
-    if (makePrimary) {
-      await this.repository.syncSupplierPrimaryContact(supplierId, {
-        name: created.name,
-        phone: created.phone,
-        email: created.email ?? null,
+    const created = await this.database.runInTransaction(async () => {
+      if (makePrimary) {
+        await this.repository.clearPrimaryBySupplierId(supplierId);
+      }
+      const row = await this.repository.createContact({
+        supplierId,
+        name: data.name,
+        phone: data.phone,
+        alternatePhone: data.alternatePhone ?? null,
+        email: data.email ?? null,
+        alternateEmail: data.alternateEmail ?? null,
+        designation: data.designation ?? null,
+        notes: data.notes ?? null,
+        isPrimary: makePrimary,
+        isActive: data.isActive ?? true,
       });
-    }
+      if (makePrimary) {
+        await this.repository.syncSupplierPrimaryContact(supplierId, {
+          name: row.name,
+          phone: row.phone,
+          email: row.email ?? null,
+        });
+      }
+      return row;
+    });
 
     return { success: true, message: 'Contact added.', data: SupplierContactDto.from(created) };
   }
@@ -91,28 +106,30 @@ export class SupplierContactsService {
       throw new BadRequestException('Primary contact cannot be unset directly. Mark another contact as primary first.');
     }
 
-    if (data.isPrimary === true) {
-      await this.repository.clearPrimaryBySupplierId(supplierId);
-    }
-    const row = await this.repository.updateContact(contactId, {
-      phone: data.phone,
-      ...(data.name !== undefined ? { name: data.name } : {}),
-      ...(data.alternatePhone !== undefined ? { alternatePhone: data.alternatePhone } : {}),
-      ...(data.email !== undefined ? { email: data.email } : {}),
-      ...(data.alternateEmail !== undefined ? { alternateEmail: data.alternateEmail } : {}),
-      ...(data.designation !== undefined ? { designation: data.designation } : {}),
-      ...(data.notes !== undefined ? { notes: data.notes } : {}),
-      ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
-      ...(data.isPrimary === true ? { isPrimary: true } : {}),
-    });
-
-    if (row.isPrimary) {
-      await this.repository.syncSupplierPrimaryContact(supplierId, {
-        name: row.name,
-        phone: row.phone,
-        email: row.email ?? null,
+    await this.database.runInTransaction(async () => {
+      if (data.isPrimary === true) {
+        await this.repository.clearPrimaryBySupplierId(supplierId);
+      }
+      const row = await this.repository.updateContact(contactId, {
+        phone: data.phone,
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.alternatePhone !== undefined ? { alternatePhone: data.alternatePhone } : {}),
+        ...(data.email !== undefined ? { email: data.email } : {}),
+        ...(data.alternateEmail !== undefined ? { alternateEmail: data.alternateEmail } : {}),
+        ...(data.designation !== undefined ? { designation: data.designation } : {}),
+        ...(data.notes !== undefined ? { notes: data.notes } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+        ...(data.isPrimary === true ? { isPrimary: true } : {}),
       });
-    }
+
+      if (row.isPrimary) {
+        await this.repository.syncSupplierPrimaryContact(supplierId, {
+          name: row.name,
+          phone: row.phone,
+          email: row.email ?? null,
+        });
+      }
+    });
 
     return { success: true, message: 'Contact updated.' };
   }
@@ -121,12 +138,14 @@ export class SupplierContactsService {
     const existing = await this.repository.findBySupplierAndContactId(supplierId, contactId);
     if (!existing) throw new NotFoundException('Supplier contact not found.');
 
-    await this.repository.clearPrimaryBySupplierId(supplierId);
-    const row = await this.repository.updateContact(contactId, { isPrimary: true });
-    await this.repository.syncSupplierPrimaryContact(supplierId, {
-      name: row.name,
-      phone: row.phone,
-      email: row.email ?? null,
+    await this.database.runInTransaction(async () => {
+      await this.repository.clearPrimaryBySupplierId(supplierId);
+      const row = await this.repository.updateContact(contactId, { isPrimary: true });
+      await this.repository.syncSupplierPrimaryContact(supplierId, {
+        name: row.name,
+        phone: row.phone,
+        email: row.email ?? null,
+      });
     });
 
     return { success: true, message: 'Primary contact updated.' };

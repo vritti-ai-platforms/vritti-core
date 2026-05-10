@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConflictException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
+import { ConflictException, NotFoundException, PrimaryDatabaseService, SuccessResponseDto } from '@vritti/api-sdk';
 import type { OrgRole, RoleScope } from '@/db/schema';
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import type { CreateRoleWebhookDto } from '../dto/request/create-role-webhook.dto';
@@ -12,27 +12,25 @@ export class OrgRoleService {
   private readonly logger = new Logger(OrgRoleService.name);
 
   constructor(
+    private readonly database: PrimaryDatabaseService,
     private readonly orgRoleRepository: OrgRoleRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
   ) {}
 
   // Provisions multiple roles for an organization
   async provision(orgId: string, roles: RoleItemDto[]): Promise<SuccessResponseDto> {
-    await this.orgRoleRepository.transaction(async (tx) => {
+    await this.database.runInTransaction(async () => {
       for (const role of roles) {
-        await this.orgRoleRepository.create(
-          {
-            organizationId: orgId,
-            name: role.name,
-            description: role.description,
-            scope: role.scope as RoleScope,
-            sourceRoleId: role.sourceRoleId,
-            isLocked: role.isLocked,
-            appCodes: role.appCodes ?? [],
-            features: role.features,
-          },
-          tx,
-        );
+        await this.orgRoleRepository.create({
+          organizationId: orgId,
+          name: role.name,
+          description: role.description,
+          scope: role.scope as RoleScope,
+          sourceRoleId: role.sourceRoleId,
+          isLocked: role.isLocked,
+          appCodes: role.appCodes ?? [],
+          features: role.features,
+        });
         this.logger.log(`Provisioned role "${role.name}" for org ${orgId}`);
       }
     });

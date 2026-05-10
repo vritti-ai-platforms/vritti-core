@@ -1,8 +1,6 @@
 import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
 import { NatsContext } from '@nestjs/microservices';
-import type { NatsHeaders } from '@vritti/api-sdk';
-import { PrimaryDatabaseService, parseNatsHeaders } from '@vritti/api-sdk';
-import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { type NatsHeaders, PrimaryDatabaseService, parseNatsHeaders } from '@vritti/api-sdk';
 import { from, type Observable } from 'rxjs';
 
 @Injectable()
@@ -11,7 +9,8 @@ export class RlsInterceptor implements NestInterceptor {
 
   constructor(private readonly db: PrimaryDatabaseService) {}
 
-  // Extracts NatsHeaders from NATS message headers and sets PostgreSQL session variables for RLS
+  // Extracts NatsHeaders and stashes them in AsyncLocalStorage so each downstream query
+  // can be auto-wrapped in BEGIN; SET LOCAL app.* ; <query>; COMMIT; by RlsAwarePool.
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const rpcContext = context.switchToRpc().getContext<NatsContext>();
     const rawHeaders = rpcContext?.getHeaders?.();
@@ -26,19 +25,7 @@ export class RlsInterceptor implements NestInterceptor {
     return from(this.executeWithRls(natsHeaders, next));
   }
 
-  // Sets RLS session variables on a single pinned connection for the entire request,
-  // so subsequent repository queries hit the same connection and see app.org_id / app.bu_id.
   private executeWithRls(headers: NatsHeaders, next: CallHandler): Promise<unknown> {
-    return this.db.runWithPinnedConnection(async () => {
-      const client = this.db.drizzleClient;
-      await client.execute(sql`
-        SELECT set_config('app.org_id', ${headers.orgId}, TRUE),
-               set_config('app.bu_id', ${headers.buId}, TRUE),
-               set_config('app.bu_timezone', ${headers.buTimezone}, TRUE),
-               set_config('app.bu_ancestor_ids', ${`{${headers.buAncestorIds.join(',')}}`}, TRUE),
-               set_config('app.bu_descendant_ids', ${`{${headers.buDescendantIds.join(',')}}`}, TRUE)
-      `);
-      return await next.handle().toPromise();
-    });
+    return this.db.runWithRlsContext(headers, async () => next.handle().toPromise());
   }
 }
