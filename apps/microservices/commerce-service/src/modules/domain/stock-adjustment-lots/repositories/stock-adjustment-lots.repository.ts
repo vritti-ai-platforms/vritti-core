@@ -18,7 +18,6 @@ export type StockAdjustmentLotWithStats = StockAdjustmentLot & {
 export type StockAdjustmentLotDetailRow = StockAdjustmentLot & {
   linesCount: number;
   totalQuantity: number;
-  locationIds: string[];
   lineIds: string[];
 };
 
@@ -43,7 +42,7 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
         createdAt: stockAdjustmentLots.createdAt,
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
-        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity}), 0)`,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
       })
       .from(stockAdjustmentLots)
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
@@ -84,7 +83,7 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
       'name', ${stockAdjustmentLots.lotNumber},
       'path', json_build_array(${stockAdjustmentLots.id}),
       'kind', 'lot',
-      'totalQuantity', COALESCE(SUM(${stockAdjustmentLines.quantity}), 0),
+      'totalQuantity', COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0),
       'linesCount', COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0),
       'isBalanced', COALESCE(SUM(CASE WHEN ${stockAdjustmentLines.isBalanced} = false THEN 1 ELSE 0 END), 0) = 0,
       'children', ${childrenJson}
@@ -119,12 +118,7 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
         createdAt: stockAdjustmentLots.createdAt,
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
-        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity}), 0)`,
-        locationIds: sql<string[]>`COALESCE(
-          ARRAY_AGG(DISTINCT ${stockAdjustmentLines.locationId})
-            FILTER (WHERE ${stockAdjustmentLines.locationId} IS NOT NULL),
-          '{}'::uuid[]
-        )`,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
         lineIds: sql<string[]>`COALESCE(
           ARRAY_AGG(${stockAdjustmentLines.id} ORDER BY ${stockAdjustmentLines.createdAt})
             FILTER (WHERE ${stockAdjustmentLines.id} IS NOT NULL),

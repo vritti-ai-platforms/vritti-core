@@ -4,25 +4,19 @@ import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle, Pencil } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteStockAdjustment, usePublishStockAdjustment, useStockAdjustment } from '@/hooks/stock-adjustments';
 import {
-  InventoryTrackingValues,
   type StockAdjustmentStatus,
   StockAdjustmentStatusValues,
   type StockAdjustmentType,
-  StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
-import { StockAdjustmentOverviewCard } from './components';
-import { ChangeContent } from './components/change/ChangeContent';
-import { ChangeItemContent } from './components/change/ChangeItemContent';
-import { OpeningItemContent } from './components/opening/OpeningItemContent';
-import { OpeningLotContent } from './components/opening/OpeningLotContent';
-import { OpeningNoneContent } from './components/opening/OpeningNoneContent';
-import { OpeningSerialContent } from './components/opening/OpeningSerialContent';
 import { EditStockAdjustmentDialog } from './forms/EditStockAdjustmentDialog';
+import { BreakdownTab } from './tabs/BreakdownTab';
+import { OverviewTab } from './tabs/OverviewTab';
 
 const typeConfig: Record<
   StockAdjustmentType,
@@ -46,6 +40,7 @@ export const StockAdjustmentDetailPage = () => {
   const navigate = useNavigate();
   const confirm = useConfirm();
   const editAdjustmentDialog = useDialog();
+  const [activeTab, setActiveTab] = useState('overview');
 
   const { data: adjustment } = useStockAdjustment(id);
   const deleteMutation = useDeleteStockAdjustment();
@@ -75,26 +70,8 @@ export const StockAdjustmentDetailPage = () => {
   }, [id, confirm, deleteMutation, navigate]);
 
   const isDraft = adjustment.status === StockAdjustmentStatusValues.DRAFT;
-  const isOpeningStock = adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK;
-  const tracking = adjustment.inventoryItemTracking;
-
   const typeConf = typeConfig[adjustment.type];
   const statusConf = statusConfig[adjustment.status];
-
-  const renderVariant = () => {
-    if (isOpeningStock) {
-      if (tracking === InventoryTrackingValues.QUANTITY)
-        return <OpeningNoneContent adjustment={adjustment} isDraft={isDraft} />;
-      if (tracking === InventoryTrackingValues.LOT)
-        return <OpeningLotContent adjustment={adjustment} isDraft={isDraft} />;
-      if (tracking === InventoryTrackingValues.SERIAL)
-        return <OpeningSerialContent adjustment={adjustment} isDraft={isDraft} />;
-      return <OpeningItemContent adjustment={adjustment} isDraft={isDraft} />;
-    }
-    if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL)
-      return <ChangeItemContent adjustment={adjustment} isDraft={isDraft} />;
-    return <ChangeContent adjustment={adjustment} isDraft={isDraft} tracking={tracking} />;
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -128,8 +105,25 @@ export const StockAdjustmentDetailPage = () => {
         }
       />
 
-      <StockAdjustmentOverviewCard adjustment={adjustment} typeLabel={typeConf.label} typeVariant={typeConf.variant} />
-      {renderVariant()}
+      <Tabs
+        tabs={[
+          {
+            value: 'overview',
+            label: 'Overview',
+            content: (
+              <OverviewTab adjustment={adjustment} typeLabel={typeConf.label} typeVariant={typeConf.variant} />
+            ),
+          },
+          {
+            value: 'breakdown',
+            label: 'Breakdown',
+            content: <BreakdownTab adjustment={adjustment} isDraft={isDraft} />,
+          },
+        ]}
+        value={activeTab}
+        onValueChange={setActiveTab}
+      />
+
       {isDraft && (
         <DangerZone
           title="Delete this draft adjustment"

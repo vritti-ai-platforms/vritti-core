@@ -11,7 +11,6 @@ export class StockAdjustmentLotDetailDto {
   resolvedLotId: string | null;
   linesCount: number;
   totalQuantity: number;
-  locationIds: string[];
   lineIds: string[];
   metadata: Record<string, unknown>;
   createdAt: string;
@@ -26,7 +25,6 @@ export class StockAdjustmentLotDetailDto {
     dto.resolvedLotId = row.resolvedLotId ?? null;
     dto.linesCount = row.linesCount;
     dto.totalQuantity = row.totalQuantity;
-    dto.locationIds = row.locationIds;
     dto.lineIds = row.lineIds;
     dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;
     dto.createdAt = row.createdAt.toISOString();

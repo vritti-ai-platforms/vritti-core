@@ -24,6 +24,7 @@ export const OpeningLotContent = ({ adjustment, isDraft }: OpeningLotContentProp
       <LotDetailPanel
         adjustmentId={adjustment.id}
         inventoryItemId={adjustment.inventoryItemId}
+        primaryUomId={adjustment.inventoryItemUomId}
         lotId={selectedLotId}
         tracking="lot"
         isDraft={isDraft}

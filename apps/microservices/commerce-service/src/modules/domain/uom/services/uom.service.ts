@@ -11,7 +11,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc, eq, isNotNull, isNull, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, isNotNull, isNull, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { uom, uomDimensions } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
@@ -78,15 +78,19 @@ export class UomService {
     return entities.map((e) => UomDto.from(e, currentBuId, !referencedIds.has(e.id)));
   }
 
-  // Returns paginated UOM options for select dropdowns
+  // Returns paginated UOM options for select dropdowns. When `inventoryItemId` is set, the
+  // result is restricted to that item's allowed-UOMs set (see UomRepository.allowedUomIdsForItemSubquery).
   findForSelect(
     query: SelectOptionsQueryDto,
-    options?: { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string },
+    options?: { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string; inventoryItemId?: string },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
     if (options?.derivedOnly) conditions.push(isNotNull(uom.baseUnitId));
     if (options?.baseOnly) conditions.push(isNull(uom.baseUnitId));
     if (options?.dimensionId) conditions.push(eq(uom.dimensionId, options.dimensionId));
+    if (options?.inventoryItemId) {
+      conditions.push(sql`${uom.id} IN ${this.uomRepository.allowedUomIdsForItemSubquery(options.inventoryItemId)}`);
+    }
 
     return this.uomRepository.findForSelect({
       value: query.valueKey || 'id',

@@ -11056,6 +11056,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "inventoryItemId",
+            "required": false,
+            "in": "query",
+            "description": "Restrict to UOMs the given inventory item is allowed to transact in (primary UOM + per-item conversions + same-family UOMs).",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -15860,12 +15869,17 @@
             "type": "object",
             "description": "Quant ID — the existing stock to adjust (deduct/CORRECTION)"
           },
+          "uomId": {
+            "type": "string",
+            "description": "UOM for the line quantity. Must be in the item allowed-UOM set."
+          },
           "quantity": {
             "type": "number",
             "description": "Line quantity (magnitude — sign comes from adjustment.type)"
           }
         },
         "required": [
+          "uomId",
           "quantity"
         ]
       },
@@ -15887,6 +15901,10 @@
           "quantId": {
             "type": "object",
             "description": "Quant ID"
+          },
+          "uomId": {
+            "type": "string",
+            "description": "UOM for the line quantity"
           }
         }
       },

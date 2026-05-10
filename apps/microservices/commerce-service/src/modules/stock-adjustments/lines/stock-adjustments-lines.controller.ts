@@ -60,6 +60,7 @@ export class StockAdjustmentsLinesController {
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
+      uomId: string;
       quantity: number;
     },
     @RpcNatsHeaders() headers: NatsHeaders,
@@ -80,6 +81,7 @@ export class StockAdjustmentsLinesController {
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
+      uomId?: string;
     },
   ): Promise<StockAdjustmentLineDto> {
     this.logger.log(`stockAdjustments.updateLine — line: ${data.lineId}`);
@@ -88,6 +90,7 @@ export class StockAdjustmentsLinesController {
       stockAdjustmentLotId: data.stockAdjustmentLotId,
       locationId: data.locationId,
       quantId: data.quantId,
+      uomId: data.uomId,
     });
   }
 

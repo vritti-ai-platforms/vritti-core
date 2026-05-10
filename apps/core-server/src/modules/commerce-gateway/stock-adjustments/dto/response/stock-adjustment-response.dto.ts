@@ -5,6 +5,7 @@ export class StockAdjustmentResponseDto {
   @ApiProperty({ example: 'SA-2026-0001' }) code: string;
   @ApiProperty() inventoryItemId: string;
   @ApiProperty() inventoryItemName: string;
+  @ApiProperty() inventoryItemUomId: string;
   @ApiProperty() inventoryItemUomSymbol: string;
   @ApiProperty({ enum: ['quantity', 'lot', 'lot_serial', 'serial'] }) inventoryItemTracking:
     | 'quantity'

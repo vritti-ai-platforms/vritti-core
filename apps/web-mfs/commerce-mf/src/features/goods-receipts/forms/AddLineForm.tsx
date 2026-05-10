@@ -63,7 +63,10 @@ export const AddLineForm = ({
         name="locationId"
         label="Location"
         placeholder="Select location"
-        params={{ locationRoles: LocationRoleValues.STORAGE, inventoryItemId }}
+        params={{
+          locationRoles: `${LocationRoleValues.STORAGE},${LocationRoleValues.RESERVED_STORAGE}`,
+          inventoryItemId,
+        }}
       />
       {!isSerial && (
         <TextField

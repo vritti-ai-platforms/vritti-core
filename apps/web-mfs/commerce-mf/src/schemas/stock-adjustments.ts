@@ -56,8 +56,6 @@ export interface StockAdjustmentLotData {
 }
 
 export interface StockAdjustmentLotDetailData extends StockAdjustmentLotData {
-  // Distinct location ids already used by lines under this lot — used to drive AddLine excludeIds.
-  locationIds: string[];
   // Line ids under this lot, ordered by createdAt.
   lineIds: string[];
 }
@@ -87,6 +85,11 @@ export interface StockAdjustmentLineData {
   quantReservedQuantity: number | null;
   quantAvailableQuantity: number | null;
 
+  uomId: string;
+  uomName: string | null;
+  uomSymbol: string | null;
+  conversionFactor: number;
+
   quantity: number;
   resolvedQuantId: string | null;
   isBalanced: boolean;
@@ -108,6 +111,7 @@ export interface StockAdjustmentData {
   code: string;
   inventoryItemId: string;
   inventoryItemName: string;
+  inventoryItemUomId: string;
   inventoryItemUomSymbol: string;
   inventoryItemTracking: InventoryTracking;
   type: StockAdjustmentType;
@@ -166,6 +170,7 @@ export type AddStockAdjustmentLotFormData = z.infer<typeof addStockAdjustmentLot
 export const addOpeningStockLineSchema = z.object({
   stockAdjustmentLotId: z.string().optional(), // null for tracking='quantity'
   locationId: z.string().min(1, 'Location is required'),
+  uomId: z.string().min(1, 'UOM is required'),
   quantity: z.string().min(1, 'Quantity is required'),
 });
 export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
@@ -173,6 +178,7 @@ export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSche
 // Deduct/CORRECTION lines (change intent)
 export const addChangeLineSchema = z.object({
   quantId: z.string().min(1, 'Quant is required'),
+  uomId: z.string().min(1, 'UOM is required'),
   quantity: z.string().min(1, 'Quantity is required'),
 });
 export type AddChangeLineFormData = z.infer<typeof addChangeLineSchema>;

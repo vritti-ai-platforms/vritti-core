@@ -65,7 +65,7 @@ export const ChangeLinesTable = ({
                   {line.quantAvailableQuantity ?? '—'} {uomSymbol}
                 </td>
                 <td className="px-3 py-2">
-                  {line.quantity} {uomSymbol}
+                  {line.quantity} {line.uomSymbol ?? uomSymbol}
                 </td>
                 {isItem && (
                   <td className="px-3 py-2">

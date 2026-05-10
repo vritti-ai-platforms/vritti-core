@@ -42,6 +42,7 @@ export interface AddStockAdjustmentLinePayload {
   stockAdjustmentLotId?: string | null; // OPENING_STOCK + tracking=lot/item
   locationId?: string | null;            // OPENING_STOCK
   quantId?: string | null;               // deduct/CORRECTION
+  uomId: string;
   quantity: number;
 }
 
@@ -49,6 +50,7 @@ export interface UpdateStockAdjustmentLinePayload {
   stockAdjustmentLotId?: string | null;
   locationId?: string | null;
   quantId?: string | null;
+  uomId?: string;
   quantity?: number;
 }
 

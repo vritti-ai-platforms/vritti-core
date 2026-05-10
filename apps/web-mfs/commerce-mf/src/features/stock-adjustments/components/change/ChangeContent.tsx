@@ -71,12 +71,14 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         <AddChangeLineDialog
           adjustmentId={adjustment.id}
           inventoryItemId={adjustment.inventoryItemId}
+          primaryUomId={adjustment.inventoryItemUomId}
           tracking={tracking}
           handle={addLineDialog}
         />
 
         <EditChangeLineDialog
           adjustmentId={adjustment.id}
+          inventoryItemId={adjustment.inventoryItemId}
           line={editingLine}
           tracking={tracking}
           handle={editLineDialog}

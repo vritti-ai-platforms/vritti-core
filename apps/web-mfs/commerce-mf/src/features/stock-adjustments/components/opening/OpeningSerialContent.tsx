@@ -169,6 +169,7 @@ export const OpeningSerialContent = ({ adjustment, isDraft }: OpeningSerialConte
             <AddOpeningLineForm
               adjustmentId={adjustment.id}
               inventoryItemId={adjustment.inventoryItemId}
+              primaryUomId={adjustment.inventoryItemUomId}
               stockAdjustmentLotId={null}
               tracking="serial"
               onSuccess={close}

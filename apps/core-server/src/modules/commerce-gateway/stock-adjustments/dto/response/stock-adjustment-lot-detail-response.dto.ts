@@ -10,8 +10,6 @@ export class StockAdjustmentLotDetailResponseDto {
   resolvedLotId: string | null;
   @ApiProperty() linesCount: number;
   @ApiProperty() totalQuantity: number;
-  @ApiProperty({ type: [String], description: 'Distinct location ids already used by lines under this lot' })
-  locationIds: string[];
   @ApiProperty({ type: [String], description: 'Line ids under this lot, ordered by createdAt' })
   lineIds: string[];
   @ApiProperty() metadata: Record<string, unknown>;

@@ -14,6 +14,7 @@ import {
 
 export type StockAdjustmentWithRefs = StockAdjustment & {
   inventoryItemName: string;
+  inventoryItemUomId: string;
   inventoryItemUomSymbol: string | null;
   inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
   totalQuantity: number;
@@ -31,7 +32,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     count: number;
   }> {
     const totalQuantitySql = sql<string>`COALESCE((
-      SELECT SUM(quantity) FROM vritti_core.stock_adjustment_lines WHERE stock_adjustment_id = ${stockAdjustments.id}
+      SELECT SUM(quantity * conversion_factor) FROM vritti_core.stock_adjustment_lines WHERE stock_adjustment_id = ${stockAdjustments.id}
     ), 0)`;
     const isPublishableSql = sql<boolean>`(
       ${stockAdjustments.status} = 'DRAFT'
@@ -56,6 +57,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         metadata: stockAdjustments.metadata,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
+        inventoryItemUomId: inventoryItems.uomId,
         inventoryItemUomSymbol: uom.symbol,
         inventoryItemTracking: inventoryItems.tracking,
         totalQuantity: totalQuantitySql,
@@ -88,9 +90,10 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         metadata: stockAdjustments.metadata,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
+        inventoryItemUomId: inventoryItems.uomId,
         inventoryItemUomSymbol: uom.symbol,
         inventoryItemTracking: inventoryItems.tracking,
-        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity}), 0)`,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
         isPublishable: sql<boolean>`(
           ${stockAdjustments.status} = 'DRAFT'
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0
@@ -117,6 +120,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         stockAdjustments.metadata,
         stockAdjustments.createdAt,
         inventoryItems.name,
+        inventoryItems.uomId,
         uom.symbol,
         inventoryItems.tracking,
       )

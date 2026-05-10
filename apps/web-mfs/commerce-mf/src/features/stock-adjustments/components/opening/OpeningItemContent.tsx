@@ -46,6 +46,7 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
         <LotDetailPanel
           adjustmentId={adjustment.id}
           inventoryItemId={adjustment.inventoryItemId}
+          primaryUomId={adjustment.inventoryItemUomId}
           lotId={selectedLotId}
           tracking="lot_serial"
           isDraft={isDraft}

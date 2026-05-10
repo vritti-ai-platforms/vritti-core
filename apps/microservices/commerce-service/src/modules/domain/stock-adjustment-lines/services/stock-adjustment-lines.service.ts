@@ -1,3 +1,5 @@
+import { InventoryItemUomConversionsService } from '@domain/inventory-item-uom-conversions/services/inventory-item-uom-conversions.service';
+import { InventoryItemsRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
 import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger } from '@nestjs/common';
@@ -29,6 +31,7 @@ interface AdjustmentContext {
   status: StockAdjustmentStatus;
   type: StockAdjustmentType;
   inventoryItemId: string;
+  inventoryItemUomId: string;
   inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
 }
 
@@ -45,6 +48,8 @@ export class StockAdjustmentLinesService {
     private readonly repository: StockAdjustmentLinesRepository,
     private readonly adjustmentsRepository: StockAdjustmentsRepository,
     private readonly lotsRepository: StockAdjustmentLotsRepository,
+    private readonly inventoryItemsRepository: InventoryItemsRepository,
+    private readonly uomConversionsService: InventoryItemUomConversionsService,
   ) {}
 
   async findForTable(
@@ -94,6 +99,7 @@ export class StockAdjustmentLinesService {
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
+      uomId: string;
       quantity: number;
     },
   ): Promise<StockAdjustmentLineDto> {
@@ -102,6 +108,8 @@ export class StockAdjustmentLinesService {
     }
 
     await this.validateIntent(adjustment, data);
+    await this.validateUomId(adjustment, data.uomId);
+    await this.assertNoDuplicateLocationUom(adjustment, data);
 
     const isItemTracking =
       adjustment.inventoryItemTracking === 'serial' || adjustment.inventoryItemTracking === 'lot_serial';
@@ -116,6 +124,7 @@ export class StockAdjustmentLinesService {
     }
 
     const initialIsBalanced = isItemTracking ? data.quantity === 0 : true;
+    const conversionFactor = await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId);
 
     const line = await this.repository.create({
       stockAdjustmentId: adjustment.id,
@@ -123,6 +132,8 @@ export class StockAdjustmentLinesService {
       stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
       locationId: data.locationId ?? null,
       quantId: data.quantId ?? null,
+      uomId: data.uomId,
+      conversionFactor: String(conversionFactor),
       quantity: String(data.quantity),
       isBalanced: initialIsBalanced,
     });
@@ -140,6 +151,7 @@ export class StockAdjustmentLinesService {
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
+      uomId: string;
       quantity: number;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
@@ -160,6 +172,7 @@ export class StockAdjustmentLinesService {
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
+      uomId?: string;
     },
   ): Promise<StockAdjustmentLineDto> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -181,11 +194,35 @@ export class StockAdjustmentLinesService {
     };
     await this.validateIntent(adjustment, next);
 
+    if (data.uomId !== undefined) {
+      await this.validateUomId(adjustment, data.uomId);
+    }
+
+    // Re-check the duplicate invariant against the proposed shape. Use existing values when the
+    // caller is partial-updating (uomId/locationId omitted) so a no-op edit doesn't false-positive.
+    await this.assertNoDuplicateLocationUom(
+      adjustment,
+      {
+        stockAdjustmentLotId: next.stockAdjustmentLotId,
+        locationId: next.locationId,
+        uomId: data.uomId !== undefined ? data.uomId : line.uomId,
+      },
+      lineId,
+    );
+
+    // Re-resolve the factor only when uomId changes; otherwise keep the snapshot.
+    const nextConversionFactor =
+      data.uomId !== undefined && data.uomId !== line.uomId
+        ? await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId)
+        : undefined;
+
     await this.repository.update(lineId, {
       ...(data.quantity !== undefined ? { quantity: String(data.quantity) } : {}),
       ...(data.stockAdjustmentLotId !== undefined ? { stockAdjustmentLotId: data.stockAdjustmentLotId } : {}),
       ...(data.locationId !== undefined ? { locationId: data.locationId } : {}),
       ...(data.quantId !== undefined ? { quantId: data.quantId } : {}),
+      ...(data.uomId !== undefined ? { uomId: data.uomId } : {}),
+      ...(nextConversionFactor !== undefined ? { conversionFactor: String(nextConversionFactor) } : {}),
     });
 
     await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
@@ -203,6 +240,7 @@ export class StockAdjustmentLinesService {
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
+      uomId?: string;
     },
   ): Promise<StockAdjustmentLineDto> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
@@ -323,5 +361,60 @@ export class StockAdjustmentLinesService {
     const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return adjustment;
+  }
+
+  // Rejects adding/updating a line that would duplicate an existing (adjustmentId, lotId, locationId, uomId)
+  // tuple. The lot is the audit unit; two lines on the same bin in the same UOM under the same lot carry
+  // no new information. Surfaces as a form-root error (no field set) so the message can name both
+  // location and UOM together.
+  private async assertNoDuplicateLocationUom(
+    adjustment: AdjustmentContext,
+    data: { stockAdjustmentLotId?: string | null; locationId?: string | null; uomId: string },
+    excludeLineId?: string,
+  ): Promise<void> {
+    if (!data.locationId) return; // change-intent lines (quantId set) — invariant doesn't apply
+    const existing = await this.repository.findExistingByLotLocationUom({
+      adjustmentId: adjustment.id,
+      stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
+      locationId: data.locationId,
+      uomId: data.uomId,
+      excludeLineId,
+    });
+    if (existing) {
+      const locationLabel = existing.locationName ?? 'this location';
+      const uomLabel = existing.uomSymbol ?? 'this unit';
+      throw new ValidationException({
+        detail: `${locationLabel} already has a line in ${uomLabel}. Edit that line instead, or pick a different location or UOM.`,
+        errors: [],
+      });
+    }
+  }
+
+  // Validates that the supplied uomId is in the item's allowed set. Serial-tracked items
+  // are restricted to the primary UOM since quants store serials 1:1.
+  private async validateUomId(adjustment: AdjustmentContext, uomId: string): Promise<void> {
+    if (!uomId) {
+      throw new ValidationException({
+        detail: 'UOM is required.',
+        errors: [{ field: 'uomId', message: 'UOM is required.' }],
+      });
+    }
+    const tracking = adjustment.inventoryItemTracking;
+    if (tracking === 'serial' || tracking === 'lot_serial') {
+      if (uomId !== adjustment.inventoryItemUomId) {
+        throw new ValidationException({
+          detail: 'Serial-tracked items must use the primary UOM.',
+          errors: [{ field: 'uomId', message: 'Serial-tracked items must use the primary UOM.' }],
+        });
+      }
+      return;
+    }
+    const allowed = await this.inventoryItemsRepository.findAllowedUomIds(adjustment.inventoryItemId);
+    if (!allowed.includes(uomId)) {
+      throw new ValidationException({
+        detail: 'Selected UOM is not allowed for this inventory item.',
+        errors: [{ field: 'uomId', message: 'UOM not allowed for this item.' }],
+      });
+    }
   }
 }

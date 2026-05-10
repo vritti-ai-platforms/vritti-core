@@ -19,6 +19,10 @@ export class AddStockAdjustmentLineDto {
   @IsUUID()
   quantId?: string | null;
 
+  @ApiProperty({ description: 'UOM for the line quantity. Must be in the item allowed-UOM set.' })
+  @IsUUID()
+  uomId: string;
+
   @ApiProperty({ description: 'Line quantity (magnitude — sign comes from adjustment.type)' })
   @IsNumber()
   quantity: number;

@@ -59,7 +59,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.quantity} {adjustment.inventoryItemUomSymbol}
+            {row.original.quantity} {row.original.uomSymbol ?? adjustment.inventoryItemUomSymbol}
           </span>
         ),
         enableSorting: true,
@@ -156,6 +156,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
           <AddOpeningLineForm
             adjustmentId={adjustment.id}
             inventoryItemId={adjustment.inventoryItemId}
+            primaryUomId={adjustment.inventoryItemUomId}
             stockAdjustmentLotId={null}
             tracking="quantity"
             onSuccess={close}

@@ -59,7 +59,10 @@ export const EditLineForm = ({
         name="locationId"
         label="Location"
         placeholder="Select location"
-        params={{ locationRoles: LocationRoleValues.STORAGE, inventoryItemId }}
+        params={{
+          locationRoles: `${LocationRoleValues.STORAGE},${LocationRoleValues.RESERVED_STORAGE}`,
+          inventoryItemId,
+        }}
       />
       {!isSerial && <TextField name="quantity" label="Quantity" type="number" positive nonZero />}
       {isSerial && (

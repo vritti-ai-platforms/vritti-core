@@ -21,4 +21,9 @@ export class UpdateStockAdjustmentLineDto {
   @IsOptional()
   @IsUUID()
   quantId?: string | null;
+
+  @ApiPropertyOptional({ description: 'UOM for the line quantity' })
+  @IsOptional()
+  @IsUUID()
+  uomId?: string;
 }

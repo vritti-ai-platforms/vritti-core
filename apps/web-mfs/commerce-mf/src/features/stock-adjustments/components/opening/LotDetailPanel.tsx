@@ -29,6 +29,7 @@ import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';
 interface LotDetailPanelProps {
   adjustmentId: string;
   inventoryItemId: string;
+  primaryUomId: string;
   lotId: string | null;
   tracking: InventoryTracking;
   isDraft: boolean;
@@ -90,6 +91,7 @@ function LotDetailPanelSkeleton() {
 interface LotDetailContentProps {
   adjustmentId: string;
   inventoryItemId: string;
+  primaryUomId: string;
   tracking: InventoryTracking;
   isDraft: boolean;
   uomSymbol: string;
@@ -102,6 +104,7 @@ interface LotDetailContentProps {
 const LotDetailContent = ({
   adjustmentId,
   inventoryItemId,
+  primaryUomId,
   tracking,
   isDraft,
   uomSymbol,
@@ -162,7 +165,7 @@ const LotDetailContent = ({
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.quantity} {uomSymbol}
+            {row.original.quantity} {row.original.uomSymbol ?? uomSymbol}
           </span>
         ),
         enableSorting: true,
@@ -335,9 +338,9 @@ const LotDetailContent = ({
           <AddOpeningLineForm
             adjustmentId={adjustmentId}
             inventoryItemId={inventoryItemId}
+            primaryUomId={primaryUomId}
             stockAdjustmentLotId={lot.id}
             tracking={tracking}
-            excludeLocationIds={lot.locationIds}
             onSuccess={close}
             onCancel={close}
           />

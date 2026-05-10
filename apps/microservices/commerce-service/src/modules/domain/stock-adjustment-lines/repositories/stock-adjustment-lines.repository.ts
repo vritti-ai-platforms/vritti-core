@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, asc, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemLots,
   inventoryItemQuants,
@@ -9,11 +9,15 @@ import {
   stockAdjustmentLines,
   stockAdjustmentLots,
   locations,
+  uom,
 } from '@/db/schema';
 
 export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
   locationName: string | null;
   locationPath: string | null;
+  // UOM (always set):
+  uomName: string | null;
+  uomSymbol: string | null;
   // Source quant detail (for deduct lines):
   quantLotNumber: string | null;
   quantLocationId: string | null;
@@ -81,13 +85,51 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     await this.db.delete(stockAdjustmentLines).where(eq(stockAdjustmentLines.id, lineId));
   }
 
+  // Returns an existing OPENING_STOCK line conflicting on (adjustmentId, lotId, locationId, uomId).
+  // Used to enforce that a lot can't have two lines for the same physical bin in the same UOM.
+  async findExistingByLotLocationUom(params: {
+    adjustmentId: string;
+    stockAdjustmentLotId: string | null;
+    locationId: string;
+    uomId: string;
+    excludeLineId?: string;
+  }): Promise<{ id: string; locationName: string | null; uomSymbol: string | null } | undefined> {
+    const lotCondition =
+      params.stockAdjustmentLotId !== null
+        ? eq(stockAdjustmentLines.stockAdjustmentLotId, params.stockAdjustmentLotId)
+        : isNull(stockAdjustmentLines.stockAdjustmentLotId);
+    const conditions = [
+      eq(stockAdjustmentLines.stockAdjustmentId, params.adjustmentId),
+      lotCondition,
+      eq(stockAdjustmentLines.locationId, params.locationId),
+      eq(stockAdjustmentLines.uomId, params.uomId),
+    ];
+    if (params.excludeLineId) {
+      conditions.push(ne(stockAdjustmentLines.id, params.excludeLineId));
+    }
+    const rows = await this.db
+      .select({
+        id: stockAdjustmentLines.id,
+        locationName: locations.name,
+        uomSymbol: uom.symbol,
+      })
+      .from(stockAdjustmentLines)
+      .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
+      .leftJoin(uom, eq(stockAdjustmentLines.uomId, uom.id))
+      .where(and(...conditions))
+      .limit(1);
+    return rows[0];
+  }
+
   async setResolvedQuant(lineId: string, resolvedQuantId: string): Promise<void> {
     await this.db.update(stockAdjustmentLines).set({ resolvedQuantId }).where(eq(stockAdjustmentLines.id, lineId));
   }
 
   async totalQuantityForAdjustment(adjustmentId: string): Promise<number> {
     const [result] = await this.db
-      .select({ total: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity}), 0)` })
+      .select({
+        total: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
+      })
       .from(stockAdjustmentLines)
       .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
     return Number(result?.total ?? 0);
@@ -165,6 +207,10 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         stockAdjustmentLotId: stockAdjustmentLines.stockAdjustmentLotId,
         locationId: stockAdjustmentLines.locationId,
         quantId: stockAdjustmentLines.quantId,
+        uomId: stockAdjustmentLines.uomId,
+        uomName: uom.name,
+        uomSymbol: uom.symbol,
+        conversionFactor: stockAdjustmentLines.conversionFactor,
         quantity: stockAdjustmentLines.quantity,
         resolvedQuantId: stockAdjustmentLines.resolvedQuantId,
         isBalanced: stockAdjustmentLines.isBalanced,
@@ -195,6 +241,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
       .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
       .leftJoin(inventoryItemQuants, eq(stockAdjustmentLines.quantId, inventoryItemQuants.id))
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
+      .leftJoin(uom, eq(stockAdjustmentLines.uomId, uom.id))
       .where(where ?? sql`TRUE`)
       .orderBy(...(orderBy?.length ? orderBy : [desc(stockAdjustmentLines.createdAt)]));
 

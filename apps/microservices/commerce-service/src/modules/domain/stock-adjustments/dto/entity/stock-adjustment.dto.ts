@@ -5,6 +5,7 @@ export class StockAdjustmentDto {
   code: string;
   inventoryItemId: string;
   inventoryItemName: string;
+  inventoryItemUomId: string;
   inventoryItemUomSymbol: string;
   inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
   type: StockAdjustmentType;
@@ -20,6 +21,7 @@ export class StockAdjustmentDto {
   static from(
     entity: StockAdjustment & {
       inventoryItemName?: string;
+      inventoryItemUomId?: string;
       inventoryItemUomSymbol?: string | null;
       inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
       totalQuantity?: number | string | null;
@@ -34,6 +36,10 @@ export class StockAdjustmentDto {
     if (!entity.inventoryItemUomSymbol) {
       throw new Error(`Inventory item UOM symbol missing for stock adjustment ${entity.id}`);
     }
+    if (!entity.inventoryItemUomId) {
+      throw new Error(`Inventory item UOM id missing for stock adjustment ${entity.id}`);
+    }
+    dto.inventoryItemUomId = entity.inventoryItemUomId;
     dto.inventoryItemUomSymbol = entity.inventoryItemUomSymbol;
     dto.inventoryItemTracking = entity.inventoryItemTracking;
     dto.type = entity.type;
@@ -54,6 +60,7 @@ export class StockAdjustmentDto {
     dto.code = entity.code;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = '';
+    dto.inventoryItemUomId = '';
     dto.inventoryItemUomSymbol = '';
     dto.inventoryItemTracking = 'lot';
     dto.type = entity.type;

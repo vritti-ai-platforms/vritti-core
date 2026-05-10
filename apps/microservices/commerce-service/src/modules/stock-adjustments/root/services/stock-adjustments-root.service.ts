@@ -138,6 +138,11 @@ export class StockAdjustmentsRootService {
       throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK.`);
     }
 
+    // Convert the line quantity (in line.uomId) → primary UOM using the snapshot factor stored on
+    // the line at create/update time. Serial tracking is restricted to primary UOM at validation
+    // time, so factor === 1 in those branches by construction.
+    const primaryQty = Number(line.quantity) * Number(line.conversionFactor);
+
     let createParams: Parameters<typeof this.batchesService.createBatchScoped>[0];
     if (tracking === InventoryTrackingValues.QUANTITY) {
       if (line.stockAdjustmentLotId) {
@@ -147,7 +152,7 @@ export class StockAdjustmentsRootService {
         inventoryItemId: adjustment.inventoryItemId,
         locationId: line.locationId,
         tracking,
-        quantity: Number(line.quantity),
+        quantity: primaryQty,
       };
     } else if (tracking === InventoryTrackingValues.SERIAL) {
       if (line.stockAdjustmentLotId) {
@@ -181,7 +186,7 @@ export class StockAdjustmentsRootService {
           inventoryItemId: adjustment.inventoryItemId,
           locationId: line.locationId,
           tracking,
-          quantity: Number(line.quantity),
+          quantity: primaryQty,
           lot: {
             lotNumber: lot.lotNumber,
             manufacturingDate: lot.manufacturingDate ?? null,
@@ -220,7 +225,7 @@ export class StockAdjustmentsRootService {
       inventoryItemId: adjustment.inventoryItemId,
       batchId: quant.id,
       type: InventoryLedgerTypeValues.OPENING_STOCK,
-      quantity: line.quantity,
+      quantity: String(primaryQty),
       referenceType: InventoryLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
       referenceId: adjustmentId,
       notes: adjustment.reason ?? null,
@@ -250,7 +255,9 @@ export class StockAdjustmentsRootService {
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, serials });
       signedDelta = this.isDeductType(adjustment.type) ? -serials.length : serials.length;
     } else {
-      const delta = this.isDeductType(adjustment.type) ? -Math.abs(Number(line.quantity)) : Number(line.quantity);
+      // Convert from line.uomId → primary UOM using the line's snapshot factor.
+      const primaryQty = Number(line.quantity) * Number(line.conversionFactor);
+      const delta = this.isDeductType(adjustment.type) ? -Math.abs(primaryQty) : primaryQty;
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, delta });
       signedDelta = delta;
     }

@@ -20,4 +20,12 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID()
   dimensionId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Restrict to UOMs the given inventory item is allowed to transact in (primary UOM + per-item conversions + same-family UOMs).',
+  })
+  @IsOptional()
+  @IsUUID()
+  inventoryItemId?: string;
 }

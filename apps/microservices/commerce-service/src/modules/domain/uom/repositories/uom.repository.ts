@@ -16,6 +16,29 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
     return this.model.findFirst({ where: { symbol } });
   }
 
+  // Returns a subquery resolving to the UOM IDs an inventory item is allowed to transact in:
+  //   (a) per-item conversion overrides in inventory_item_uom_conversions
+  //   (b) every UOM in the global "family" (sharing COALESCE(base_unit_id, id) with the item's primary)
+  // Used as an inArray filter inside findForSelect.
+  allowedUomIdsForItemSubquery(itemId: string): SQL {
+    return sql`(
+      WITH p AS (
+        SELECT COALESCE(base_unit_id, id) AS family_root
+        FROM ${uom}
+        WHERE id = (SELECT uom_id FROM ${inventoryItems} WHERE id = ${itemId})
+      )
+      SELECT DISTINCT id FROM (
+        SELECT uom_id AS id
+        FROM ${inventoryItemUomConversions}
+        WHERE inventory_item_id = ${itemId}
+        UNION
+        SELECT u.id
+        FROM ${uom} u, p
+        WHERE COALESCE(u.base_unit_id, u.id) = p.family_root
+      ) sub
+    )`;
+  }
+
   // Returns paginated UOMs joined with their base unit symbol (self-join via aliased uom table)
   async findForTableWithBase(options: {
     where?: SQL;

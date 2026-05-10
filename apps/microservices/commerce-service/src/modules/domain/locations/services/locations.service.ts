@@ -114,6 +114,14 @@ export class LocationsService {
     ZONE: 'Zone',
   };
 
+  // Display order for role groups in select dropdowns. Reserved bins surface first since they
+  // are item-scoped and the most relevant choice when both roles are requested together.
+  private static readonly LOCATION_ROLE_GROUP_ORDER: LocationRole[] = [
+    LocationRoleValues.RESERVED_STORAGE,
+    LocationRoleValues.STORAGE,
+    LocationRoleValues.ZONE,
+  ];
+
   // Returns paginated location options for select dropdowns.
   // locationRoles is a comma-separated whitelist against locations.location_role.
   // When inventoryItemId is provided AND RESERVED_STORAGE is requested, RESERVED_STORAGE bins are
@@ -149,7 +157,10 @@ export class LocationsService {
       groupIdKey: query.groupIdKey,
       groups:
         query.groupIdKey === 'locationRole' && roles.length > 0
-          ? roles.map((role) => ({ id: role, name: LocationsService.LOCATION_ROLE_LABELS[role] }))
+          ? LocationsService.LOCATION_ROLE_GROUP_ORDER.filter((role) => roles.includes(role)).map((role) => ({
+              id: role,
+              name: LocationsService.LOCATION_ROLE_LABELS[role],
+            }))
           : undefined,
       search: query.search,
       limit: query.limit,
