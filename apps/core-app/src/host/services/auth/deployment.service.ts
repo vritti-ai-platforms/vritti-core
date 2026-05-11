@@ -1,8 +1,7 @@
 import { axios } from '@vritti/quantum-ui-native/utils';
 import type { CloudDeploymentDto, CloudDeploymentsResponse, Deployment } from '../../types/deployment';
+import { config } from '../../config/env';
 
-const DEPLOYMENTS_API_BASE_URL = __DEPLOYMENTS_API_BASE_URL__;
-const DEV_RAW_CORE_BASE_URL = __DEV_RAW_CORE_BASE_URL__;
 const DEPLOYMENTS_ENDPOINT = 'cloud-api/deployments/all';
 
 interface ParsedApiBaseURL {
@@ -11,15 +10,16 @@ interface ParsedApiBaseURL {
   port: string;
 }
 
-export const getDeployments = async (): Promise<Deployment[]> => {
-  const response = await axios.get<CloudDeploymentsResponse>(DEPLOYMENTS_ENDPOINT, {
-    baseURL: DEPLOYMENTS_API_BASE_URL,
-    public: true,
-  });
-  return response.data.result.map(mapDeployment);
-};
+export function getDeployments(): Promise<Deployment[]> {
+  return axios
+    .get<CloudDeploymentsResponse>(DEPLOYMENTS_ENDPOINT, {
+      baseURL: config.api.deploymentsBaseUrl,
+      public: true,
+    })
+    .then((r) => r.data.result.map(mapDeployment));
+}
 
-export const buildOrganizationApiBaseURL = (deploymentBaseURL: string, subdomain: string): string => {
+export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain: string): string {
   const rawDevBaseURL = getRawDevCoreBaseURL();
   if (rawDevBaseURL) {
     return rawDevBaseURL;
@@ -38,9 +38,9 @@ export const buildOrganizationApiBaseURL = (deploymentBaseURL: string, subdomain
     : `${normalizedSubdomain}.${baseHostname}`;
 
   return formatOrigin(parsed.protocol, tenantHostname, parsed.port);
-};
+}
 
-export const buildPublicApiBaseURL = (deploymentBaseURL: string): string => {
+export function buildPublicApiBaseURL(deploymentBaseURL: string): string {
   const rawDevBaseURL = getRawDevCoreBaseURL();
   if (rawDevBaseURL) {
     return rawDevBaseURL;
@@ -54,7 +54,7 @@ export const buildPublicApiBaseURL = (deploymentBaseURL: string): string => {
   const hostname = parsed.hostname.startsWith('api.') ? parsed.hostname : `api.${parsed.hostname}`;
 
   return formatOrigin(parsed.protocol, hostname, parsed.port);
-};
+}
 
 function mapDeployment(deployment: CloudDeploymentDto): Deployment {
   return {
@@ -91,6 +91,11 @@ function tryParseApiBaseURL(url: string): ParsedApiBaseURL | null {
 }
 
 function getRawDevCoreBaseURL(): string | null {
-  const value = DEV_RAW_CORE_BASE_URL?.trim();
-  return __DEV__ && value ? value : null;
+  if (!config.isDev || !config.api.devRawCoreBaseUrl) {
+    return null;
+  }
+  if (__DEV__) {
+    console.log('[dev] using raw core base URL:', config.api.devRawCoreBaseUrl);
+  }
+  return config.api.devRawCoreBaseUrl;
 }

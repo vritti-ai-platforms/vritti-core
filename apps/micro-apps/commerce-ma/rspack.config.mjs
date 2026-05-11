@@ -1,81 +1,36 @@
-import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
 import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
+import dotenv from 'dotenv';
+import { expand as dotenvExpand } from 'dotenv-expand';
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const workspaceRoot = path.resolve(__dirname, '../../..');
 const quantumUiNative = path.resolve(__dirname, '../../../..', 'quantum-ui-native');
-const coreAppEnvFilePath = path.resolve(workspaceRoot, 'apps/core-app/.env');
 
-function loadCoreAppEnv() {
-  if (!fs.existsSync(coreAppEnvFilePath)) {
-    return;
-  }
+// ---------------------------------------------------------------------------
+// Env loading — shares core-app's .env as single source of truth
+// ---------------------------------------------------------------------------
 
-  const envFile = fs.readFileSync(coreAppEnvFilePath, 'utf8');
+const coreAppDir = path.resolve(workspaceRoot, 'apps/core-app');
+const appEnv = process.env.APP_ENV ?? 'development';
 
-  for (const rawLine of envFile.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith('#')) continue;
-
-    const separatorIndex = line.indexOf('=');
-    if (separatorIndex === -1) continue;
-
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line
-      .slice(separatorIndex + 1)
-      .trim()
-      .replace(/^['"]|['"]$/g, '');
-
-    if (key && process.env[key] === undefined) {
-      process.env[key] = value;
-    }
-  }
+for (const file of [`.env`, `.env.${appEnv}`, `.env.local`, `.env.${appEnv}.local`]) {
+  dotenvExpand(dotenv.config({ path: path.join(coreAppDir, file), override: false }));
 }
 
-function validateDevMfHost(rawValue) {
-  const value = rawValue?.trim();
+const isDev = appEnv === 'development';
+const devHost = process.env.DEV_HOST?.trim();
 
-  if (!value) {
-    throw new Error(
-      `DEV_MF_HOST is required in development. Set it in ${coreAppEnvFilePath} or the shell to your laptop LAN IP or hostname, for example 192.168.1.23`,
-    );
-  }
-
-  if (value.includes('://')) {
-    throw new Error(`DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`);
-  }
-
-  let parsed;
-  try {
-    parsed = new URL(`http://${value}`);
-  } catch {
-    throw new Error(`DEV_MF_HOST must be a valid host or IP. Received: ${value}`);
-  }
-
-  if (parsed.pathname && parsed.pathname !== '/') {
-    throw new Error(
-      `DEV_MF_HOST must not include a path like "${parsed.pathname}". Use only the host or IP, for example 192.168.1.23`,
-    );
-  }
-
-  if (parsed.search || parsed.hash) {
-    throw new Error('DEV_MF_HOST must not include query params or a hash fragment.');
-  }
-
-  if (parsed.port) {
-    throw new Error('DEV_MF_HOST must not include a port. The dev remote ports are configured separately.');
-  }
-
-  return parsed.hostname;
+if (isDev && !devHost) {
+  throw new Error(
+    `DEV_HOST is required in development. Set it in ${path.join(coreAppDir, '.env')} to your LAN IP, for example 192.168.1.57`,
+  );
 }
-
-loadCoreAppEnv();
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)
@@ -139,12 +94,10 @@ const quantumAliases = {
 };
 
 /** @type {(env: import('@callstack/repack').EnvOptions) => import('@rspack/core').Configuration} */
-export default (env) => {
-  const { platform, mode } = env;
+export default (rspackEnv) => {
+  const { platform, mode } = rspackEnv;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
-  const devMfHost =
-    mode === 'development' ? validateDevMfHost(process.env.DEV_MF_HOST) : (process.env.DEV_MF_HOST?.trim() ?? '');
 
   return {
     mode,
@@ -183,7 +136,7 @@ export default (env) => {
     output: {
       path: '[context]/build/[platform]',
       uniqueName: 'commerce_ma',
-      ...(mode === 'development' ? { publicPath: `http://${devMfHost}:9002/[platform]/` } : {}),
+      ...(isDev ? { publicPath: `http://${devHost}:9002/[platform]/` } : {}),
     },
 
     module: {

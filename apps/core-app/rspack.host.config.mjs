@@ -1,182 +1,35 @@
-import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as Repack from '@callstack/repack';
 import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
+import dotenv from 'dotenv';
+import { expand as dotenvExpand } from 'dotenv-expand';
+import { envSchema } from './env.schema.mjs';
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const workspaceRoot = path.resolve(__dirname, '../../');
 const quantumUiNative = path.resolve(__dirname, '../../..', 'quantum-ui-native');
-const envFilePath = path.join(__dirname, '.env');
 
-function loadCoreAppEnv() {
-  if (!fs.existsSync(envFilePath)) {
-    return;
-  }
+// ---------------------------------------------------------------------------
+// Env loading
+// ---------------------------------------------------------------------------
 
-  const envFile = fs.readFileSync(envFilePath, 'utf8');
+const appEnv = process.env.APP_ENV ?? 'development';
 
-  for (const rawLine of envFile.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith('#')) continue;
-
-    const separatorIndex = line.indexOf('=');
-    if (separatorIndex === -1) continue;
-
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line
-      .slice(separatorIndex + 1)
-      .trim()
-      .replace(/^['"]|['"]$/g, '');
-
-    if (key && process.env[key] === undefined) {
-      process.env[key] = value;
-    }
-  }
+// Load cascade: .env → .env.<mode> → .env.local → .env.<mode>.local
+for (const file of [`.env`, `.env.${appEnv}`, `.env.local`, `.env.${appEnv}.local`]) {
+  dotenvExpand(dotenv.config({ path: path.join(__dirname, file), override: false }));
 }
 
-function validateDeploymentsApiBaseUrl() {
-  const rawValue = process.env.DEPLOYMENTS_API_BASE_URL?.trim();
-
-  if (!rawValue) {
-    throw new Error(
-      `DEPLOYMENTS_API_BASE_URL is required. Set it in ${envFilePath} to the cloud server origin, for example https://local.vrittiai.com:3000`,
-    );
-  }
-
-  let parsed;
-  try {
-    parsed = new URL(rawValue);
-  } catch {
-    throw new Error(`DEPLOYMENTS_API_BASE_URL must be a valid absolute http/https URL. Received: ${rawValue}`);
-  }
-
-  if (!['http:', 'https:'].includes(parsed.protocol)) {
-    throw new Error(`DEPLOYMENTS_API_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`);
-  }
-
-  if (parsed.pathname && parsed.pathname !== '/') {
-    throw new Error(
-      `DEPLOYMENTS_API_BASE_URL must be an origin only and must not include a path like "${parsed.pathname}". Use something like https://local.vrittiai.com:3000`,
-    );
-  }
-
-  if (parsed.search || parsed.hash) {
-    throw new Error('DEPLOYMENTS_API_BASE_URL must not include query params or a hash fragment.');
-  }
-
-  return parsed.origin;
-}
-
-function validateDevRawCoreBaseUrl(rawValue) {
-  const value = rawValue?.trim();
-
-  if (!value) {
-    return '';
-  }
-
-  let parsed;
-  try {
-    parsed = new URL(value);
-  } catch {
-    throw new Error(`DEV_RAW_CORE_BASE_URL must be a valid absolute http/https URL. Received: ${value}`);
-  }
-
-  if (!['http:', 'https:'].includes(parsed.protocol)) {
-    throw new Error(`DEV_RAW_CORE_BASE_URL must use http or https. Received protocol: ${parsed.protocol}`);
-  }
-
-  if (parsed.pathname && parsed.pathname !== '/') {
-    throw new Error(
-      `DEV_RAW_CORE_BASE_URL must be an origin only and must not include a path like "${parsed.pathname}". Use something like https://192.168.1.36:3001`,
-    );
-  }
-
-  if (parsed.search || parsed.hash) {
-    throw new Error('DEV_RAW_CORE_BASE_URL must not include query params or a hash fragment.');
-  }
-
-  return parsed.origin;
-}
-
-function validateDevMfHost(rawValue) {
-  const value = rawValue?.trim();
-
-  if (!value) {
-    throw new Error(
-      `DEV_MF_HOST is required in development. Set it in ${envFilePath} to your laptop LAN IP or hostname, for example 192.168.1.23`,
-    );
-  }
-
-  if (value.includes('://')) {
-    throw new Error(`DEV_MF_HOST must be a host or IP only, without a protocol. Received: ${value}`);
-  }
-
-  let parsed;
-  try {
-    parsed = new URL(`http://${value}`);
-  } catch {
-    throw new Error(`DEV_MF_HOST must be a valid host or IP. Received: ${value}`);
-  }
-
-  if (parsed.pathname && parsed.pathname !== '/') {
-    throw new Error(
-      `DEV_MF_HOST must not include a path like "${parsed.pathname}". Use only the host or IP, for example 192.168.1.23`,
-    );
-  }
-
-  if (parsed.search || parsed.hash) {
-    throw new Error('DEV_MF_HOST must not include query params or a hash fragment.');
-  }
-
-  if (parsed.port) {
-    throw new Error('DEV_MF_HOST must not include a port. The dev remote ports are configured separately.');
-  }
-
-  return parsed.hostname;
-}
-
-function validateDevHostPublicHost(rawValue, fallbackHost) {
-  const value = rawValue?.trim();
-
-  if (!value) {
-    return fallbackHost;
-  }
-
-  if (value.includes('://')) {
-    throw new Error(`DEV_HOST_PUBLIC_HOST must be a host or IP only, without a protocol. Received: ${value}`);
-  }
-
-  let parsed;
-  try {
-    parsed = new URL(`http://${value}`);
-  } catch {
-    throw new Error(`DEV_HOST_PUBLIC_HOST must be a valid host or IP. Received: ${value}`);
-  }
-
-  if (parsed.pathname && parsed.pathname !== '/') {
-    throw new Error(
-      `DEV_HOST_PUBLIC_HOST must not include a path like "${parsed.pathname}". Use only the host or IP, for example 192.168.1.23`,
-    );
-  }
-
-  if (parsed.search || parsed.hash) {
-    throw new Error('DEV_HOST_PUBLIC_HOST must not include query params or a hash fragment.');
-  }
-
-  if (parsed.port) {
-    throw new Error('DEV_HOST_PUBLIC_HOST must not include a port. The host dev server port is configured separately.');
-  }
-
-  return parsed.hostname;
-}
-
-loadCoreAppEnv();
-const deploymentsApiBaseUrl = validateDeploymentsApiBaseUrl();
-const devRawCoreBaseUrl = validateDevRawCoreBaseUrl(process.env.DEV_RAW_CORE_BASE_URL);
+// Validate with zod — throws a descriptive error on missing/malformed keys
+const env = envSchema.parse({
+  APP_ENV: process.env.APP_ENV ?? appEnv,
+  DEV_HOST: process.env.DEV_HOST,
+  DEPLOYMENTS_API_BASE_URL: process.env.DEPLOYMENTS_API_BASE_URL,
+});
 
 // ---------------------------------------------------------------------------
 // react-native-css subpath aliases (hoisted monorepo packages)
@@ -249,16 +102,11 @@ const quantumAliases = {
 // ---------------------------------------------------------------------------
 
 /** @type {(env: import('@callstack/repack').EnvOptions) => import('@rspack/core').Configuration} */
-export default (env) => {
-  const { platform, mode } = env;
+export default (rspackEnv) => {
+  const { platform, mode } = rspackEnv;
   const isNative = platform !== 'web';
   const rspack = require('@rspack/core');
-  const devMfHost =
-    mode === 'development' ? validateDevMfHost(process.env.DEV_MF_HOST) : (process.env.DEV_MF_HOST?.trim() ?? '');
-  const devHostPublicHost =
-    mode === 'development'
-      ? validateDevHostPublicHost(process.env.DEV_HOST_PUBLIC_HOST, devMfHost)
-      : (process.env.DEV_HOST_PUBLIC_HOST?.trim() ?? process.env.DEV_MF_HOST?.trim() ?? '');
+  const isDev = env.APP_ENV === 'development';
 
   return {
     mode,
@@ -300,7 +148,7 @@ export default (env) => {
     output: {
       path: '[context]/build/host-app/[platform]',
       uniqueName: 'vritti-core-app',
-      ...(mode === 'development' ? { publicPath: `http://${devHostPublicHost}:8081/[platform]/` } : {}),
+      ...(isDev ? { publicPath: `http://${env.DEV_HOST}:8081/[platform]/` } : {}),
     },
 
     module: {
@@ -345,9 +193,11 @@ export default (env) => {
 
     plugins: [
       new rspack.DefinePlugin({
-        __DEPLOYMENTS_API_BASE_URL__: JSON.stringify(deploymentsApiBaseUrl),
-        __DEV_MF_HOST__: JSON.stringify(devMfHost),
-        __DEV_RAW_CORE_BASE_URL__: JSON.stringify(devRawCoreBaseUrl),
+        __APP_CONFIG__: JSON.stringify({
+          appEnv: env.APP_ENV,
+          devHost: isDev ? env.DEV_HOST : undefined,
+          deploymentsApiBaseUrl: env.DEPLOYMENTS_API_BASE_URL,
+        }),
       }),
       new Repack.RepackPlugin({
         extraChunks: [

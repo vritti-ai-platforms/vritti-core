@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { config } from './env';
 
 export interface RemoteConfig {
   name: string;
@@ -10,11 +11,10 @@ export interface RemoteConfig {
 }
 
 function buildRemoteEntry(devPort: number, prodPath: string) {
-  if (__DEV__) {
-    return `http://${__DEV_MF_HOST__}:${devPort}/${Platform.OS}/mf-manifest.json`;
+  if (config.isDev) {
+    return `http://${config.mf.devHost}:${devPort}/${Platform.OS}/mf-manifest.json`;
   }
-
-  return `https://mf.vrittiai.com/${prodPath}/${Platform.OS}/mf-manifest.json`;
+  return `${config.mf.hostUrl}/${prodPath}/${Platform.OS}/mf-manifest.json`;
 }
 
 export const ALL_REMOTES: RemoteConfig[] = [
@@ -27,20 +27,20 @@ export const ALL_REMOTES: RemoteConfig[] = [
   },
 ];
 
-export const getRemoteConfig = (remoteName: string) => {
+export function getRemoteConfig(remoteName: string) {
   return ALL_REMOTES.find((remote) => remote.name === remoteName);
-};
+}
 
-export const getRemoteConfigByRuntimeName = (runtimeName?: string) => {
+export function getRemoteConfigByRuntimeName(runtimeName?: string) {
   if (!runtimeName) return undefined;
   return ALL_REMOTES.find((remote) => remote.runtimeName === runtimeName);
-};
+}
 
-export const getRemoteAssetBase = (remote: RemoteConfig) => {
+export function getRemoteAssetBase(remote: RemoteConfig) {
   return remote.entry.replace(/\/mf-manifest\.json$/, '/');
-};
+}
 
-export const resolveRemoteName = (remoteEntry?: string) => {
+export function resolveRemoteName(remoteEntry?: string) {
   if (!remoteEntry) return 'commerce-ma';
 
   const matchedRemote = ALL_REMOTES.find((remote) => {
@@ -50,4 +50,4 @@ export const resolveRemoteName = (remoteEntry?: string) => {
   });
 
   return matchedRemote?.name ?? 'commerce-ma';
-};
+}
