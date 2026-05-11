@@ -1,15 +1,13 @@
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   type CreateResponseDto,
   NotFoundException,
-  PrimaryDatabaseService,
   type SuccessResponseDto,
   ValidationException,
 } from '@vritti/api-sdk';
-import { type InventoryItemLot, StockAdjustmentStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
+import { StockAdjustmentStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 import { StockAdjustmentLotDto } from '../dto/entity/stock-adjustment-lot.dto';
 import { StockAdjustmentLotDetailDto } from '../dto/entity/stock-adjustment-lot-detail.dto';
 import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
@@ -20,10 +18,8 @@ export class StockAdjustmentLotsService {
   private readonly logger = new Logger(StockAdjustmentLotsService.name);
 
   constructor(
-    private readonly database: PrimaryDatabaseService,
     private readonly repository: StockAdjustmentLotsRepository,
     private readonly adjustmentsService: StockAdjustmentsService,
-    private readonly inventoryItemLotsService: InventoryItemLotsService,
   ) {}
 
   async listByAdjustment(adjustmentId: string): Promise<StockAdjustmentLotDto[]> {
@@ -81,15 +77,6 @@ export class StockAdjustmentLotsService {
       });
     }
 
-    // Reject if a lot with the same number already exists in inventory for this item (OPENING_STOCK creates new lots only)
-    const inventoryLot = await this.inventoryItemLotsService.findByItemAndNumber(adjustment.inventoryItemId, lotNumber);
-    if (inventoryLot) {
-      throw new ValidationException({
-        detail: `Lot "${lotNumber}" already exists in inventory. OPENING_STOCK can only register new lots.`,
-        errors: [{ field: 'lotNumber', message: 'Lot already exists in inventory.' }],
-      });
-    }
-
     const created = await this.repository.create({
       stockAdjustmentId: adjustmentId,
       lotNumber,
@@ -137,13 +124,6 @@ export class StockAdjustmentLotsService {
           errors: [{ field: 'lotNumber', message: 'Lot already on this adjustment.' }],
         });
       }
-      const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(adjustment.inventoryItemId, trimmed);
-      if (inventoryDup) {
-        throw new ValidationException({
-          detail: `Lot "${trimmed}" already exists in inventory.`,
-          errors: [{ field: 'lotNumber', message: 'Lot already exists in inventory.' }],
-        });
-      }
     }
 
     await this.repository.update(lotId, {
@@ -167,26 +147,6 @@ export class StockAdjustmentLotsService {
     await this.repository.delete(lotId);
     this.logger.log(`Removed lot ${existing.lotNumber} from adjustment ${adjustmentId}`);
     return { success: true, message: `Lot "${existing.lotNumber}" removed successfully.` };
-  }
-
-  // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.
-  // Throws if a lot with the same (item, number) already exists in inventory (cannot reuse).
-  async resolveInventoryLot(inventoryItemId: string, lotId: string): Promise<InventoryItemLot> {
-    const sa = await this.repository.findById(lotId);
-    if (!sa) throw new NotFoundException(`Stock adjustment lot ${lotId} not found.`);
-    if (!sa.expiryDate) {
-      throw new BadRequestException(`Stock adjustment lot ${lotId} is missing an expiry date.`);
-    }
-    return this.database.runInTransaction(async () => {
-      const inserted = await this.inventoryItemLotsService.createLot({
-        inventoryItemId,
-        lotNumber: sa.lotNumber,
-        manufacturingDate: sa.manufacturingDate ?? null,
-        expiryDate: sa.expiryDate,
-      });
-      await this.repository.setResolvedLotId(lotId, inserted.id);
-      return inserted;
-    });
   }
 
   private async ensureLotBelongsToAdjustment(adjustmentId: string, lotId: string) {

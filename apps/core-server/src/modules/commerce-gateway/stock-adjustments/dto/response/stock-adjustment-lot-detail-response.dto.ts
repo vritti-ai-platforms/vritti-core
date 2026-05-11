@@ -12,6 +12,5 @@ export class StockAdjustmentLotDetailResponseDto {
   @ApiProperty() totalQuantity: number;
   @ApiProperty({ type: [String], description: 'Line ids under this lot, ordered by createdAt' })
   lineIds: string[];
-  @ApiProperty() metadata: Record<string, unknown>;
   @ApiProperty() createdAt: string;
 }

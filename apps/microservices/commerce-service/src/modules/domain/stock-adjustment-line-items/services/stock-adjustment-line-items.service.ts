@@ -1,4 +1,3 @@
-import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
@@ -11,16 +10,8 @@ import {
   type TableViewState,
   ValidationException,
 } from '@vritti/api-sdk';
-import { and, eq } from '@vritti/api-sdk/drizzle-orm';
-import {
-  inventoryItemQuantItems,
-  QuantItemStatusValues,
-  type StockAdjustment,
-  StockAdjustmentStatusValues,
-  type StockAdjustmentType,
-  StockAdjustmentTypeValues,
-  stockAdjustmentLineItems,
-} from '@/db/schema';
+import { and } from '@vritti/api-sdk/drizzle-orm';
+import { StockAdjustmentStatusValues, stockAdjustmentLineItems } from '@/db/schema';
 import { StockAdjustmentLineItemDto } from '../dto/entity/stock-adjustment-line-item.dto';
 import { StockAdjustmentLineItemsRepository } from '../repositories/stock-adjustment-line-items.repository';
 
@@ -37,7 +28,6 @@ export class StockAdjustmentLineItemsService {
     private readonly linesRepository: StockAdjustmentLinesRepository,
     private readonly linesService: StockAdjustmentLinesService,
     private readonly adjustmentsRepository: StockAdjustmentsRepository,
-    private readonly quantsRepository: InventoryItemQuantsRepository,
   ) {}
 
   async listByLine(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineItemDto[]> {
@@ -103,8 +93,6 @@ export class StockAdjustmentLineItemsService {
       });
     }
 
-    await this.validateSerialForIntent(adjustment, line.quantId ?? null, trimmed);
-
     const entity = await this.repository.create({
       stockAdjustmentLineId: lineId,
       serialNumber: trimmed,
@@ -151,7 +139,6 @@ export class StockAdjustmentLineItemsService {
           errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
         });
       }
-      await this.validateSerialForIntent(adjustment, line.quantId ?? null, trimmed);
     }
 
     const updated = await this.repository.update(itemId, { serialNumber: trimmed });
@@ -176,73 +163,6 @@ export class StockAdjustmentLineItemsService {
     return { success: true, message: `Serial "${existing.serialNumber}" removed successfully.` };
   }
 
-  // OPENING+item: serial must NOT already exist for this item (would collide with inventory_item_quant_items unique).
-  // Deduct+item: serial must exist on a quant_item where parent_quant = line.quantId AND status=AVAILABLE.
-  private async validateSerialForIntent(
-    adjustment: StockAdjustment & { inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial' },
-    lineQuantId: string | null,
-    serialNumber: string,
-  ): Promise<void> {
-    const isOpening = adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK;
-    if (isOpening) {
-      // Reject collision with existing inventory serial
-      const existing = await this.findInventoryQuantItemBySerial(adjustment.inventoryItemId, serialNumber);
-      if (existing) {
-        throw new ValidationException({
-          detail: `Serial "${serialNumber}" already exists in inventory.`,
-          errors: [{ field: 'serialNumber', message: 'Serial already exists in inventory.' }],
-        });
-      }
-    } else {
-      if (!lineQuantId) {
-        throw new ValidationException({
-          detail: 'Cannot pick units without a quant on the line.',
-          errors: [{ field: 'serialNumber', message: 'Line is missing a quant.' }],
-        });
-      }
-      const existing = await this.findInventoryQuantItemBySerial(adjustment.inventoryItemId, serialNumber);
-      if (!existing) {
-        throw new ValidationException({
-          detail: `Serial "${serialNumber}" does not exist in inventory.`,
-          errors: [{ field: 'serialNumber', message: 'Serial not found in inventory.' }],
-        });
-      }
-      if (existing.inventoryItemQuantId !== lineQuantId) {
-        throw new ValidationException({
-          detail: `Serial "${serialNumber}" does not belong to the selected quant.`,
-          errors: [{ field: 'serialNumber', message: 'Serial belongs to a different quant.' }],
-        });
-      }
-      if (existing.status !== QuantItemStatusValues.AVAILABLE) {
-        throw new ValidationException({
-          detail: `Serial "${serialNumber}" is not AVAILABLE (current status: ${existing.status}).`,
-          errors: [{ field: 'serialNumber', message: 'Serial is not available.' }],
-        });
-      }
-    }
-  }
-
-  private async findInventoryQuantItemBySerial(
-    inventoryItemId: string,
-    serialNumber: string,
-  ): Promise<{ id: string; inventoryItemQuantId: string; status: string } | null> {
-    const rows = await this.quantsRepository['db']
-      .select({
-        id: inventoryItemQuantItems.id,
-        inventoryItemQuantId: inventoryItemQuantItems.inventoryItemQuantId,
-        status: inventoryItemQuantItems.status,
-      })
-      .from(inventoryItemQuantItems)
-      .where(
-        and(
-          eq(inventoryItemQuantItems.inventoryItemId, inventoryItemId),
-          eq(inventoryItemQuantItems.serialNumber, serialNumber),
-        ),
-      )
-      .limit(1);
-    return (rows[0] as { id: string; inventoryItemQuantId: string; status: string } | undefined) ?? null;
-  }
-
   private async ensureLineBelongsToAdjustment(adjustmentId: string, lineId: string): Promise<void> {
     const line = await this.linesRepository.findLineById(lineId);
     if (!line || line.stockAdjustmentId !== adjustmentId) {
@@ -256,5 +176,3 @@ export class StockAdjustmentLineItemsService {
     return adjustment;
   }
 }
-// silence unused import warning if StockAdjustmentType isn't directly referenced
-void ({} as StockAdjustmentType | undefined);

@@ -10,6 +10,5 @@ export class StockAdjustmentLotResponseDto {
   resolvedLotId: string | null;
   @ApiProperty() linesCount: number;
   @ApiProperty() totalQuantity: number;
-  @ApiProperty() metadata: Record<string, unknown>;
   @ApiProperty() createdAt: string;
 }

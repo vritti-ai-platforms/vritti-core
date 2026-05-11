@@ -12,7 +12,6 @@ export class StockAdjustmentLotDetailDto {
   linesCount: number;
   totalQuantity: number;
   lineIds: string[];
-  metadata: Record<string, unknown>;
   createdAt: string;
 
   static from(row: StockAdjustmentLotDetailRow): StockAdjustmentLotDetailDto {
@@ -26,7 +25,6 @@ export class StockAdjustmentLotDetailDto {
     dto.linesCount = row.linesCount;
     dto.totalQuantity = row.totalQuantity;
     dto.lineIds = row.lineIds;
-    dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;
     dto.createdAt = row.createdAt.toISOString();
     return dto;
   }

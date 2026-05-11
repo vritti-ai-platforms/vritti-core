@@ -47,9 +47,7 @@ export const LotDetailPanel = ({ lotId, ...rest }: LotDetailPanelProps) => {
       isLoading={!!lotId && (isLoading || !lot)}
       loadingContent={<LotDetailPanelSkeleton />}
       isEmpty={!lotId}
-      emptyState={
-        <Empty icon={<Boxes />} title="No lot selected" description="Select a lot from the left panel." />
-      }
+      emptyState={<Empty icon={<Boxes />} title="No lot selected" description="Select a lot from the left panel." />}
     >
       {lot ? <LotDetailContent {...rest} lot={lot} /> : null}
     </PageContentDetails>
@@ -59,30 +57,21 @@ export const LotDetailPanel = ({ lotId, ...rest }: LotDetailPanelProps) => {
 function LotDetailPanelSkeleton() {
   return (
     <div className="space-y-6">
+      {/* Header: lot number + stats on the left, Edit/Remove Lot buttons on the right */}
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <Skeleton className="h-7 w-44" />
-          <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-4 w-28" />
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-40" />
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1">
             <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-28" />
             <Skeleton className="h-4 w-20" />
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Skeleton className="h-8 w-24 rounded-md" />
-          <Skeleton className="h-8 w-28 rounded-md" />
+          <Skeleton className="h-8 w-32 rounded-md" />
         </div>
-      </div>
-      <div className="rounded-md border">
-        <Skeleton className="h-10 w-full rounded-none border-b" />
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton
-            // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list, not dynamic>
-            key={`lot-detail-row-${i}`}
-            className="h-12 w-full rounded-none border-b last:border-b-0"
-          />
-        ))}
       </div>
     </div>
   );

@@ -14,8 +14,8 @@ import type { StockAdjustmentLineItemResponseDto } from './dto/response/stock-ad
 import type { StockAdjustmentLineItemTableResponseDto } from './dto/response/stock-adjustment-line-item-table-response.dto';
 import type { StockAdjustmentLineResponseDto } from './dto/response/stock-adjustment-line-response.dto';
 import type { StockAdjustmentLineTableResponseDto } from './dto/response/stock-adjustment-line-table-response.dto';
-import type { StockAdjustmentLotResponseDto } from './dto/response/stock-adjustment-lot-response.dto';
 import type { StockAdjustmentLotDetailResponseDto } from './dto/response/stock-adjustment-lot-detail-response.dto';
+import type { StockAdjustmentLotResponseDto } from './dto/response/stock-adjustment-lot-response.dto';
 import type { StockAdjustmentResponseDto } from './dto/response/stock-adjustment-response.dto';
 import type { StockAdjustmentTableResponseDto } from './dto/response/stock-adjustment-table-response.dto';
 import type { StockAdjustmentTreeNodeResponseDto } from './dto/response/stock-adjustment-tree-response.dto';
@@ -49,10 +49,7 @@ export class StockAdjustmentsGatewayController {
   }
 
   @Get(':id/lots/:lotId/detail')
-  getLotDetail(
-    @Param('id') id: string,
-    @Param('lotId') lotId: string,
-  ): Promise<StockAdjustmentLotDetailResponseDto> {
+  getLotDetail(@Param('id') id: string, @Param('lotId') lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
     this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots/${lotId}/detail`);
     return this.service.findLotDetail(id, lotId);
   }

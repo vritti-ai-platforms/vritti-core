@@ -173,6 +173,29 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results as InventoryItemQuantItem[];
   }
 
+  // Returns the single quant_item row matching (item, serial) along with its parent quant + status.
+  // Used by callers that need to validate serial uniqueness or AVAILABLE-vs-parent-quant binding.
+  async findQuantItemBySerial(
+    inventoryItemId: string,
+    serialNumber: string,
+  ): Promise<{ id: string; inventoryItemQuantId: string; status: string } | null> {
+    const rows = await this.db
+      .select({
+        id: inventoryItemQuantItems.id,
+        inventoryItemQuantId: inventoryItemQuantItems.inventoryItemQuantId,
+        status: inventoryItemQuantItems.status,
+      })
+      .from(inventoryItemQuantItems)
+      .where(
+        and(
+          eq(inventoryItemQuantItems.inventoryItemId, inventoryItemId),
+          eq(inventoryItemQuantItems.serialNumber, serialNumber),
+        ),
+      )
+      .limit(1);
+    return (rows[0] as { id: string; inventoryItemQuantId: string; status: string } | undefined) ?? null;
+  }
+
   // Validate quant items belong to a quant and are AVAILABLE by serial number; returns the rows
   async loadAvailableQuantItemsBySerials(
     quantId: string,

@@ -51,7 +51,6 @@ export interface StockAdjustmentLotData {
   resolvedLotId: string | null;
   linesCount: number;
   totalQuantity: number;
-  metadata: Record<string, unknown>;
   createdAt: string;
 }
 

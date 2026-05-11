@@ -10,12 +10,16 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
+import { StockAdjustmentsLinesService } from './services/stock-adjustments-lines.service';
 
 @Controller()
 export class StockAdjustmentsLinesController {
   private readonly logger = new Logger(StockAdjustmentsLinesController.name);
 
-  constructor(private readonly service: StockAdjustmentLinesService) {}
+  constructor(
+    private readonly service: StockAdjustmentLinesService,
+    private readonly appService: StockAdjustmentsLinesService,
+  ) {}
 
   @MessagePattern({ cmd: 'stockAdjustments.lines' })
   lines(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentLineDto[]> {
@@ -69,7 +73,7 @@ export class StockAdjustmentsLinesController {
     if (!headers.userId) {
       throw new BadRequestException('User ID is required to add adjustment lines.');
     }
-    return this.service.addLineByAdjustmentId(data.adjustmentId, { ...data, createdById: headers.userId });
+    return this.appService.addLine(data.adjustmentId, { ...data, createdById: headers.userId });
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.updateLine' })
@@ -85,7 +89,7 @@ export class StockAdjustmentsLinesController {
     },
   ): Promise<StockAdjustmentLineDto> {
     this.logger.log(`stockAdjustments.updateLine — line: ${data.lineId}`);
-    return this.service.updateLineByAdjustmentId(data.adjustmentId, data.lineId, {
+    return this.appService.updateLine(data.adjustmentId, data.lineId, {
       quantity: data.quantity,
       stockAdjustmentLotId: data.stockAdjustmentLotId,
       locationId: data.locationId,

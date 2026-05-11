@@ -25,7 +25,7 @@ export const LotSidePanel = ({
   selectedLotId,
   onSelectLot,
 }: LotSidePanelProps) => {
-  const { data: lots = [] } = useStockAdjustmentLots(adjustmentId);
+  const { data: lots = [], isLoading } = useStockAdjustmentLots(adjustmentId);
   const addLotDialog = useDialog();
 
   // Clear the selection if the currently-selected lot no longer exists (e.g., it was deleted).
@@ -53,6 +53,7 @@ export const LotSidePanel = ({
             </Button>
           ) : null
         }
+        isLoading={isLoading}
         isEmpty={lots.length === 0}
         emptyState={
           <Empty

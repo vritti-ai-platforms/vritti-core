@@ -5,7 +5,6 @@ import type { StockAdjustmentLineWithRefs } from '@domain/stock-adjustment-lines
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
-import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { type StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
@@ -31,6 +30,7 @@ import {
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
 } from '@/db/schema';
+import { StockAdjustmentsLotsService } from '../../lots/services/stock-adjustments-lots.service';
 
 @Injectable()
 export class StockAdjustmentsRootService {
@@ -42,7 +42,7 @@ export class StockAdjustmentsRootService {
     private readonly linesRepository: StockAdjustmentLinesRepository,
     private readonly lineItemsRepository: StockAdjustmentLineItemsRepository,
     private readonly lotsRepository: StockAdjustmentLotsRepository,
-    private readonly lotsService: StockAdjustmentLotsService,
+    private readonly lotsService: StockAdjustmentsLotsService,
     private readonly linesService: StockAdjustmentLinesService,
     private readonly batchesService: InventoryItemQuantsService,
     private readonly ledgerService: InventoryLedgerService,

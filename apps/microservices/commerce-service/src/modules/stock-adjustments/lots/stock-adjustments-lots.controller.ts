@@ -5,12 +5,16 @@ import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/servic
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
+import { StockAdjustmentsLotsService } from './services/stock-adjustments-lots.service';
 
 @Controller()
 export class StockAdjustmentsLotsController {
   private readonly logger = new Logger(StockAdjustmentsLotsController.name);
 
-  constructor(private readonly service: StockAdjustmentLotsService) {}
+  constructor(
+    private readonly service: StockAdjustmentLotsService,
+    private readonly appService: StockAdjustmentsLotsService,
+  ) {}
 
   @MessagePattern({ cmd: 'stockAdjustments.lots' })
   lots(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentLotDto[]> {
@@ -43,7 +47,7 @@ export class StockAdjustmentsLotsController {
     },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${data.adjustmentId}`);
-    return this.service.addLot(data.adjustmentId, data);
+    return this.appService.addLot(data.adjustmentId, data);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.updateLot' })
@@ -58,7 +62,7 @@ export class StockAdjustmentsLotsController {
     },
   ): Promise<StockAdjustmentLotDto> {
     this.logger.log(`stockAdjustments.updateLot — lot: ${data.lotId}`);
-    return this.service.updateLot(data.adjustmentId, data.lotId, {
+    return this.appService.updateLot(data.adjustmentId, data.lotId, {
       lotNumber: data.lotNumber,
       manufacturingDate: data.manufacturingDate,
       expiryDate: data.expiryDate,
