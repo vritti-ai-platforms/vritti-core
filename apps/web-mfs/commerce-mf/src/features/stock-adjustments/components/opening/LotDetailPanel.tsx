@@ -1,9 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  CompactTableSkeleton,
+  DataTable,
+  RowActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
@@ -57,22 +63,46 @@ export const LotDetailPanel = ({ lotId, ...rest }: LotDetailPanelProps) => {
 function LotDetailPanelSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Header: lot number + stats on the left, Edit/Remove Lot buttons on the right */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <Skeleton className="h-7 w-40" />
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-        </div>
+      {/* Header group: title row + stat plate (mirrors LotDetailContent's `space-y-5` wrapper) */}
+
+      {/* Title row: lot number left, action buttons right */}
+      <div className="flex items-center justify-between gap-4">
+        <Skeleton className="h-6 w-24" />
         <div className="flex items-center gap-2">
           <Skeleton className="h-8 w-24 rounded-md" />
           <Skeleton className="h-8 w-32 rounded-md" />
         </div>
       </div>
+
+      {/* Stat plate: bordered + divided strip with 4 label/value cells */}
+      <div className="inline-flex items-stretch divide-x divide-border rounded-md border bg-muted/40 overflow-hidden">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list>
+            key={`lot-stat-${i}`}
+            className="space-y-1.5 px-4 py-2"
+          >
+            <Skeleton className="h-3 w-10" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
+      </div>
+
+      {/* DataTable toolbar: Add Line anchored right */}
+      <div className="flex items-center justify-end">
+        <Skeleton className="h-8 w-28 rounded-md" />
+      </div>
+
+      {/* Compact DataTable placeholder: Location / Path / Quantity + row actions */}
+      <CompactTableSkeleton
+        rows={5}
+        actions
+        columns={[
+          { headerWidth: 'w-20', cellWidth: 'w-28' },
+          { headerWidth: 'w-12', cellWidth: 'w-44' },
+          { headerWidth: 'w-16', cellWidth: 'w-16' },
+        ]}
+      />
     </div>
   );
 }
@@ -245,22 +275,8 @@ const LotDetailContent = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-xl font-semibold">{lot.lotNumber}</h3>
-          <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            <div>
-              Mfg: <FormattedDate value={lot.manufacturingDate} dateFormat="P" />
-            </div>
-            <div>
-              Exp: <FormattedDate value={lot.expiryDate} dateFormat="P" />
-            </div>
-            <div>
-              Total: {lot.totalQuantity} {uomSymbol}
-            </div>
-            <div>Lines: {lot.linesCount}</div>
-          </div>
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-xl font-semibold leading-none tracking-tight">{lot.lotNumber}</h3>
         {isDraft && (
           <div className="flex items-center gap-2">
             <Button
@@ -282,6 +298,12 @@ const LotDetailContent = ({
             </Button>
           </div>
         )}
+      </div>
+      <div className="inline-flex flex-wrap items-stretch divide-x divide-border rounded-md border bg-muted/40 overflow-hidden">
+        <DetailField className="px-4 py-2" label="Mfg" value={lot.manufacturingDate} dateOnly />
+        <DetailField className="px-4 py-2" label="Exp" value={lot.expiryDate} dateOnly />
+        <DetailField className="px-4 py-2" label="Total" value={`${lot.totalQuantity} ${uomSymbol}`} />
+        <DetailField className="px-4 py-2" label="Lines" value={lot.linesCount} />
       </div>
 
       <DataTable
