@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import { Script, ScriptManager } from '@callstack/repack/client';
 import { lazy, Suspense } from 'react';
 import { AppRegistry } from 'react-native';
