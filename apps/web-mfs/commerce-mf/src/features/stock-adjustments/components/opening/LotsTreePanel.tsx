@@ -3,6 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/TreeView';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { Typography } from '@vritti/quantum-ui/Typography';
@@ -89,7 +90,7 @@ export const LotsTreePanel = ({
           <div className="space-y-1">
             <div className="text-sm font-semibold">Lots</div>
             <div className="text-xs text-muted-foreground">
-              {tree.length} {tree.length === 1 ? 'lot' : 'lots'}
+              {pluralize('lot', tree.length, true)}
             </div>
           </div>
         }

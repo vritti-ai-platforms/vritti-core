@@ -4,6 +4,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Plus } from 'lucide-react';
 import { useEffect } from 'react';
 import { useStockAdjustmentLots } from '@/hooks/stock-adjustments';
@@ -42,7 +43,7 @@ export const LotSidePanel = ({
           <div className="space-y-1">
             <div className="text-sm font-semibold">Lots</div>
             <div className="text-xs text-muted-foreground">
-              {lots.length} {lots.length === 1 ? 'lot' : 'lots'}
+              {pluralize('lot', lots.length, true)}
             </div>
           </div>
         }
@@ -77,7 +78,7 @@ export const LotSidePanel = ({
                 </Badge>
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                {lot.linesCount} {lot.linesCount === 1 ? 'line' : 'lines'}
+                {pluralize('line', lot.linesCount, true)}
                 {lot.expiryDate ? (
                   <>
                     {' • exp '}

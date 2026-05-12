@@ -3,6 +3,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { UomDimensionDetailPanel } from './components/UomDimensionDetailPanel';
@@ -19,7 +20,7 @@ export const UomPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Units of Measure"
-        description={`${dimensionCount.count} dimension${dimensionCount.count === 1 ? '' : 's'}`}
+        description={pluralize('dimension', dimensionCount.count, true)}
         actions={
           <Button onClick={addDimensionDialog.open} startAdornment={<Plus className="size-4" />}>
             Add Dimension

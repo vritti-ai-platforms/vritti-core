@@ -4,6 +4,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Typography } from '@vritti/quantum-ui/Typography';
@@ -96,12 +97,12 @@ export const ItemFormPage = () => {
           </Typography>
         )}
         <Typography variant="body2" intent="muted">
-          <span className="font-medium text-foreground">{item.variants.length}</span> variant
-          {item.variants.length === 1 ? '' : 's'}
+          <span className="font-medium text-foreground">{item.variants.length}</span>{' '}
+          {pluralize('variant', item.variants.length)}
         </Typography>
         <Typography variant="body2" intent="muted">
-          <span className="font-medium text-foreground">{modifierGroups.length}</span> modifier group
-          {modifierGroups.length === 1 ? '' : 's'}
+          <span className="font-medium text-foreground">{modifierGroups.length}</span>{' '}
+          {pluralize('modifier group', modifierGroups.length)}
         </Typography>
       </div>
 

@@ -1,3 +1,4 @@
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import type React from 'react';
 import { UnsavedBar } from '@/components/UnsavedBar';
@@ -19,7 +20,7 @@ export const VariantsEditor: React.FC<VariantsEditorProps> = ({ item }) => {
       <div>
         <Typography variant="subtitle2">Variants</Typography>
         <Typography variant="caption">
-          {item.variants.length} variant{item.variants.length === 1 ? '' : 's'} · Edit price and availability inline.
+          {pluralize('variant', item.variants.length, true)} · Edit price and availability inline.
         </Typography>
       </div>
 
@@ -42,7 +43,7 @@ export const VariantsEditor: React.FC<VariantsEditorProps> = ({ item }) => {
 
       {variants.isDirty && (
         <UnsavedBar
-          message={`${variants.dirtyIds.size} unsaved change${variants.dirtyIds.size === 1 ? '' : 's'}`}
+          message={`${pluralize('unsaved change', variants.dirtyIds.size, true)}`}
           onCancel={variants.discardChanges}
           onSave={variants.saveChanges}
           isSaving={variants.isSaving}

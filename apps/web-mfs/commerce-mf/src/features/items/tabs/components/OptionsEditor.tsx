@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Layers, Plus } from 'lucide-react';
 import type React from 'react';
@@ -62,7 +63,7 @@ export const OptionsEditor: React.FC<OptionsEditorProps> = ({ item }) => {
         <UnsavedBar
           message={
             draft.previewVariantCount > 0
-              ? `${draft.previewVariantCount} variant${draft.previewVariantCount === 1 ? '' : 's'} will be generated${
+              ? `${pluralize('variant', draft.previewVariantCount, true)} will be generated${
                   item.variants.length > 0 ? ', replacing existing variants' : ''
                 }.`
               : 'Add a value to each option to generate variants.'

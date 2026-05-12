@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { CustomerSelector } from '@vritti/quantum-ui/selects/customer';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { CreditCard, Package, Trash2, UserPlus } from 'lucide-react';
@@ -85,7 +86,7 @@ export const Cart = ({
         <div className="flex items-center gap-2">
           <Typography variant="subtitle2">Cart</Typography>
           <Typography variant="caption">
-            {itemCount} {itemCount === 1 ? 'item' : 'items'}
+            {pluralize('item', itemCount, true)}
           </Typography>
         </div>
         {!isEmpty && (
