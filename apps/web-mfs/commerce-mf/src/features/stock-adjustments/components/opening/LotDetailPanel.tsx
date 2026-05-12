@@ -17,8 +17,8 @@ import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY,
+  useDeleteStockAdjustmentLot,
   useRemoveStockAdjustmentLine,
-  useRemoveStockAdjustmentLot,
   useStockAdjustmentLinesByLotTable,
   useStockAdjustmentLotDetail,
 } from '@/hooks/stock-adjustments';
@@ -139,7 +139,7 @@ const LotDetailContent = ({
 
   const { data: response, isLoading: isLinesLoading } = useStockAdjustmentLinesByLotTable(adjustmentId, lot.id);
 
-  const removeLotMutation = useRemoveStockAdjustmentLot(adjustmentId, {
+  const deleteLotMutation = useDeleteStockAdjustmentLot(adjustmentId, {
     onSuccess: () => onLotRemoved?.(),
   });
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustmentId);
@@ -263,14 +263,14 @@ const LotDetailContent = ({
     },
   });
 
-  const handleRemoveLot = async () => {
+  const handleDeleteLot = async () => {
     const confirmed = await confirm({
-      title: `Remove lot ${lot.lotNumber}?`,
-      description: 'This lot and all its lines and serials will be removed.',
-      confirmLabel: 'Remove',
+      title: `Delete lot ${lot.lotNumber}?`,
+      description: 'This lot and all its lines and serials will be deleted.',
+      confirmLabel: 'Delete',
       variant: 'destructive',
     });
-    if (confirmed) removeLotMutation.mutate(lot.id);
+    if (confirmed) deleteLotMutation.mutate(lot.id);
   };
 
   return (
@@ -291,10 +291,10 @@ const LotDetailContent = ({
               size="sm"
               variant="destructive"
               startAdornment={<Trash2 className="size-3.5" />}
-              onClick={handleRemoveLot}
-              isLoading={removeLotMutation.isPending}
+              onClick={handleDeleteLot}
+              isLoading={deleteLotMutation.isPending}
             >
-              Remove Lot
+              Delete Lot
             </Button>
           </div>
         )}

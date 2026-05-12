@@ -20,7 +20,7 @@ export { useDeleteStockAdjustment } from './useDeleteStockAdjustment';
 export { usePublishStockAdjustment } from './usePublishStockAdjustment';
 export { useRemoveStockAdjustmentLine } from './useRemoveStockAdjustmentLine';
 export { useRemoveStockAdjustmentLineItem } from './useRemoveStockAdjustmentLineItem';
-export { useRemoveStockAdjustmentLot } from './useRemoveStockAdjustmentLot';
+export { useDeleteStockAdjustmentLot } from './useDeleteStockAdjustmentLot';
 export { useStockAdjustment } from './useStockAdjustment';
 export { useStockAdjustmentLine } from './useStockAdjustmentLine';
 export { useStockAdjustmentLineItems } from './useStockAdjustmentLineItems';

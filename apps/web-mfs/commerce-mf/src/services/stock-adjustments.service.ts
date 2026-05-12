@@ -168,7 +168,7 @@ export function updateStockAdjustmentLot(
     .then((r) => r.data);
 }
 
-export function removeStockAdjustmentLot(id: string, lotId: string): Promise<SuccessResponse> {
+export function deleteStockAdjustmentLot(id: string, lotId: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/stock-adjustments/${id}/lots/${lotId}`).then((r) => r.data);
 }
 

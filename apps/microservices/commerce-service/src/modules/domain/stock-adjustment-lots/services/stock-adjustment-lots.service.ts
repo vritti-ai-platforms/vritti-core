@@ -141,12 +141,12 @@ export class StockAdjustmentLotsService {
   async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
     const adjustment = await this.adjustmentsService.findById(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
-      throw new BadRequestException('Lots can only be removed from DRAFT adjustments.');
+      throw new BadRequestException('Lots can only be deleted from DRAFT adjustments.');
     }
     const existing = await this.ensureLotBelongsToAdjustment(adjustmentId, lotId);
     await this.repository.delete(lotId);
-    this.logger.log(`Removed lot ${existing.lotNumber} from adjustment ${adjustmentId}`);
-    return { success: true, message: `Lot "${existing.lotNumber}" removed successfully.` };
+    this.logger.log(`Deleted lot ${existing.lotNumber} from adjustment ${adjustmentId}`);
+    return { success: true, message: `Lot "${existing.lotNumber}" deleted successfully.` };
   }
 
   private async ensureLotBelongsToAdjustment(adjustmentId: string, lotId: string) {
