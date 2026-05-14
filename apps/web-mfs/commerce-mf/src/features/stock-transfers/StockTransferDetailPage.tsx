@@ -1,7 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -108,45 +108,16 @@ export const StockTransferDetailPage = () => {
         <CardHeader>
           <CardTitle>Details</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Inventory Item</p>
-              <p className="mt-1 font-medium">{transfer.inventoryItemName ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Quantity</p>
-              <p className="mt-1 font-mono font-medium">{transfer.quantity}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">From</p>
-              <p className="mt-1 font-medium">{transfer.fromBuName ?? transfer.fromBuId}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">To</p>
-              <p className="mt-1 font-medium">{transfer.toBuName ?? transfer.toBuId}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Requested By</p>
-              <p className="mt-1">{transfer.requestedBy ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Received By</p>
-              <p className="mt-1">{transfer.receivedBy ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Created</p>
-              <p className="mt-1"><FormattedDate value={transfer.createdAt} /></p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Last Updated</p>
-              <p className="mt-1"><FormattedDate value={transfer.updatedAt} /></p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-sm text-muted-foreground">Notes</p>
-              <p className="mt-1">{transfer.notes ?? '—'}</p>
-            </div>
-          </div>
+        <CardContent className="grid grid-cols-2 gap-6">
+          <DetailField label="Inventory Item" value={transfer.inventoryItemName} />
+          <DetailField label="Quantity" value={transfer.quantity} number />
+          <DetailField label="From" value={transfer.fromBuName ?? transfer.fromBuId} />
+          <DetailField label="To" value={transfer.toBuName ?? transfer.toBuId} />
+          <DetailField label="Requested By" value={transfer.requestedBy} />
+          <DetailField label="Received By" value={transfer.receivedBy} />
+          <DetailField label="Created" value={transfer.createdAt} />
+          <DetailField label="Last Updated" value={transfer.updatedAt} />
+          <DetailField label="Notes" value={transfer.notes} className="col-span-2" />
         </CardContent>
       </Card>
     </div>

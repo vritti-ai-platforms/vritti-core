@@ -13,7 +13,7 @@ import { Eye, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/inventory-items';
-import { inventoryItemTypeConfig } from '@/schemas/inventory-items';
+import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
 import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
 
@@ -48,6 +48,12 @@ export const InventoryItemsPage = () => {
           const config = inventoryItemTypeConfig[row.original.type];
           return <Badge variant={config.variant}>{config.label}</Badge>;
         },
+      },
+      {
+        accessorKey: 'tracking',
+        header: 'Tracking',
+        enableSorting: true,
+        cell: ({ row }) => inventoryTrackingConfig[row.original.tracking].label,
       },
       {
         accessorKey: 'uomSymbol',
@@ -110,8 +116,15 @@ export const InventoryItemsPage = () => {
             multiple
             options={Object.entries(inventoryItemTypeConfig).map(([value, { label }]) => ({ label, value }))}
           />,
+          <SelectFilter
+            key="tracking"
+            name="tracking"
+            label="Tracking"
+            multiple
+            options={Object.entries(inventoryTrackingConfig).map(([value, { label }]) => ({ label, value }))}
+          />,
           <CategoryFilter key="categoryId" />,
-          <UomFilter key="uomId" />,
+          <UomFilter key="uomId" multiple />,
         ]}
         toolbarActions={{
           actions: (

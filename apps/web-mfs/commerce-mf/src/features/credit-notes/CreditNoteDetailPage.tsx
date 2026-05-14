@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
@@ -81,47 +82,31 @@ export const CreditNoteDetailPage = () => {
                 <CardHeader>
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Credit Note Number</p>
-                      <p className="mt-1 font-mono font-medium">{creditNote.creditNoteNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Party</p>
-                      <p className="mt-1 font-medium">{creditNote.partyName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Party Type</p>
-                      <p className="mt-1">{creditNote.partyType}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge variant={badge.variant} className={`mt-1 ${badge.className ?? ''}`}>
+                <CardContent className="grid grid-cols-2 gap-6">
+                  <DetailField label="Credit Note Number" value={creditNote.creditNoteNumber} number />
+                  <DetailField label="Party" value={creditNote.partyName} />
+                  <DetailField label="Party Type" value={creditNote.partyType} />
+                  <DetailField
+                    label="Status"
+                    value={
+                      <Badge variant={badge.variant} className={badge.className}>
                         {creditNote.status}
                       </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Amount</p>
-                      <p className="mt-1 font-mono font-medium text-lg">{creditNote.amount.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Applied</p>
-                      <p className="mt-1 font-mono">{creditNote.appliedAmount.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Remaining</p>
-                      <p className="mt-1 font-mono font-medium text-success">{creditNote.remaining.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Issued By</p>
-                      <p className="mt-1">{creditNote.issuedBy ?? '—'}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground">Reason</p>
-                      <p className="mt-1">{creditNote.reason}</p>
-                    </div>
-                  </div>
+                    }
+                  />
+                  <DetailField
+                    label="Amount"
+                    number
+                    value={<span className="text-lg font-medium">{creditNote.amount.toFixed(2)}</span>}
+                  />
+                  <DetailField label="Applied" value={creditNote.appliedAmount.toFixed(2)} number />
+                  <DetailField
+                    label="Remaining"
+                    number
+                    value={<span className="font-medium text-success">{creditNote.remaining.toFixed(2)}</span>}
+                  />
+                  <DetailField label="Issued By" value={creditNote.issuedBy} />
+                  <DetailField label="Reason" value={creditNote.reason} className="col-span-2" />
                 </CardContent>
               </Card>
             ),

@@ -57,7 +57,24 @@ export const inventoryItemTypeOptions: { value: InventoryItemType; label: string
   { value: 'CONSUMABLE', label: 'Consumable' },
 ];
 
-export type InventoryTracking = 'quantity' | 'lot' | 'lot_serial' | 'serial';
+export const InventoryTrackingValues = {
+  QUANTITY: 'quantity',
+  LOT: 'lot',
+  SERIAL: 'serial',
+  LOT_SERIAL: 'lot_serial',
+} as const;
+
+export type InventoryTracking = (typeof InventoryTrackingValues)[keyof typeof InventoryTrackingValues];
+
+export const inventoryTrackingConfig: Record<
+  InventoryTracking,
+  { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' }
+> = {
+  quantity:   { label: 'Quantity',     variant: 'outline' },
+  lot:        { label: 'Lot',          variant: 'secondary' },
+  serial:     { label: 'Serial',       variant: 'default' },
+  lot_serial: { label: 'Lot + Serial', variant: 'default' },
+};
 
 export type InventoryPickStrategy = 'none' | 'fifo' | 'fefo';
 

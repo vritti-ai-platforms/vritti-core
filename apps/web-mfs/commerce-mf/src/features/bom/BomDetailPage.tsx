@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
@@ -79,22 +80,19 @@ export const BomDetailPage = () => {
                 <CardHeader>
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Code</p>
-                      <p className="mt-1 font-mono font-medium">{bom.code}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
+                <CardContent className="grid grid-cols-2 gap-6">
+                  <DetailField label="Code" value={bom.code} number />
+                  <DetailField
+                    label="Status"
+                    value={
                       <Badge
                         variant={bom.isActive ? 'secondary' : 'outline'}
-                        className={bom.isActive ? 'mt-1 bg-success/15 text-success' : 'mt-1'}
+                        className={bom.isActive ? 'bg-success/15 text-success' : undefined}
                       >
                         {bom.isActive ? 'Active' : 'Inactive'}
                       </Badge>
-                    </div>
-                  </div>
+                    }
+                  />
                 </CardContent>
               </Card>
             ),

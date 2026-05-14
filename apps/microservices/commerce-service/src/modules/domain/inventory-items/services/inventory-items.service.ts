@@ -27,6 +27,7 @@ export class InventoryItemsService {
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
     type: { column: inventoryItems.type, type: 'string' },
+    tracking: { column: inventoryItems.tracking, type: 'string' },
     categoryId: { column: inventoryItems.categoryId, type: 'string' },
     uomId: { column: inventoryItems.uomId, type: 'string' },
   };

@@ -323,7 +323,7 @@ const LotDetailContent = ({
         }}
         filters={[
           <ValueFilter key="quantity" name="quantity" label="Quantity" fieldType="number" />,
-          <UomFilter key="uomId" name="uomId" params={{ inventoryItemId }} />,
+          <UomFilter key="uomId" params={{ inventoryItemId }} />,
         ]}
         toolbarActions={
           isDraft

@@ -1,8 +1,8 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -73,39 +73,20 @@ export const ConversionDetailPage = () => {
                 <CardHeader>
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">BOM</p>
-                      <p className="mt-1 font-medium">{conversion.bomName ?? '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge variant={badgeConfig.variant} className={`mt-1 ${badgeConfig.className ?? ''}`}>
+                <CardContent className="grid grid-cols-2 gap-6">
+                  <DetailField label="BOM" value={conversion.bomName} />
+                  <DetailField
+                    label="Status"
+                    value={
+                      <Badge variant={badgeConfig.variant} className={badgeConfig.className}>
                         {badgeConfig.label}
                       </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Produced By</p>
-                      <p className="mt-1">{conversion.producedBy ?? '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Started At</p>
-                      <p className="mt-1">
-                        <FormattedDate value={conversion.startedAt} />
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Completed At</p>
-                      <p className="mt-1">
-                        <FormattedDate value={conversion.completedAt} />
-                      </p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-sm text-muted-foreground">Notes</p>
-                      <p className="mt-1">{conversion.notes ?? '—'}</p>
-                    </div>
-                  </div>
+                    }
+                  />
+                  <DetailField label="Produced By" value={conversion.producedBy} />
+                  <DetailField label="Started At" value={conversion.startedAt} />
+                  <DetailField label="Completed At" value={conversion.completedAt} />
+                  <DetailField label="Notes" value={conversion.notes} className="col-span-2" />
                 </CardContent>
               </Card>
             ),

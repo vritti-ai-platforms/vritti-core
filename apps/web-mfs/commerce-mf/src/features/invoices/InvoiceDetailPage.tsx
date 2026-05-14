@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
@@ -86,81 +87,56 @@ export const InvoiceDetailPage = () => {
                 <CardHeader>
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Invoice Number</p>
-                      <p className="mt-1 font-mono font-medium">{invoice.invoiceNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Type</p>
-                      <Badge variant="secondary" className={`mt-1 ${typeBadge.className}`}>
+                <CardContent className="grid grid-cols-2 gap-6">
+                  <DetailField label="Invoice Number" value={invoice.invoiceNumber} number />
+                  <DetailField
+                    label="Type"
+                    value={
+                      <Badge variant="secondary" className={typeBadge.className}>
                         {typeBadge.label}
                       </Badge>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Party</p>
-                      <p className="mt-1 font-medium">{invoice.partyName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Party Type</p>
-                      <p className="mt-1">{invoice.partyType}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Issued Date</p>
-                      <p className="mt-1"><FormattedDate value={invoice.issuedDate} dateFormat="P" /></p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Due Date</p>
-                      <p className="mt-1"><FormattedDate value={invoice.dueDate} dateFormat="P" /></p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Payment Terms</p>
-                      <p className="mt-1">{invoice.paymentTerms ?? '—'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge variant={statusBadge.variant} className={`mt-1 ${statusBadge.className ?? ''}`}>
+                    }
+                  />
+                  <DetailField label="Party" value={invoice.partyName} />
+                  <DetailField label="Party Type" value={invoice.partyType} />
+                  <DetailField label="Issued Date" value={invoice.issuedDate} dateOnly />
+                  <DetailField label="Due Date" value={invoice.dueDate} dateOnly />
+                  <DetailField label="Payment Terms" value={invoice.paymentTerms} />
+                  <DetailField
+                    label="Status"
+                    value={
+                      <Badge variant={statusBadge.variant} className={statusBadge.className}>
                         {statusBadge.label}
                       </Badge>
-                    </div>
-                  </div>
+                    }
+                  />
 
-                  <div className="mt-8 border-t pt-6">
+                  <div className="col-span-2 mt-2 border-t pt-6">
                     <h4 className="mb-4 font-medium">Amounts</h4>
                     <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Subtotal</p>
-                        <p className="mt-1 font-mono font-medium">{invoice.subtotal.toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Tax</p>
-                        <p className="mt-1 font-mono">{invoice.taxAmount.toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Discount</p>
-                        <p className="mt-1 font-mono">{invoice.discountAmount.toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total</p>
-                        <p className="mt-1 font-mono font-medium text-lg">{invoice.totalAmount.toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Paid</p>
-                        <p className="mt-1 font-mono text-success">{invoice.paidAmount.toFixed(2)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Balance</p>
-                        <p className="mt-1 font-mono font-medium text-destructive">{invoice.balance.toFixed(2)}</p>
-                      </div>
+                      <DetailField label="Subtotal" value={invoice.subtotal.toFixed(2)} number />
+                      <DetailField label="Tax" value={invoice.taxAmount.toFixed(2)} number />
+                      <DetailField label="Discount" value={invoice.discountAmount.toFixed(2)} number />
+                      <DetailField
+                        label="Total"
+                        number
+                        value={<span className="text-lg font-medium">{invoice.totalAmount.toFixed(2)}</span>}
+                      />
+                      <DetailField
+                        label="Paid"
+                        number
+                        value={<span className="text-success">{invoice.paidAmount.toFixed(2)}</span>}
+                      />
+                      <DetailField
+                        label="Balance"
+                        number
+                        value={<span className="font-medium text-destructive">{invoice.balance.toFixed(2)}</span>}
+                      />
                     </div>
                   </div>
 
                   {invoice.notes && (
-                    <div className="mt-8 border-t pt-6">
-                      <p className="text-sm text-muted-foreground">Notes</p>
-                      <p className="mt-1">{invoice.notes}</p>
-                    </div>
+                    <DetailField label="Notes" value={invoice.notes} className="col-span-2" />
                   )}
                 </CardContent>
               </Card>

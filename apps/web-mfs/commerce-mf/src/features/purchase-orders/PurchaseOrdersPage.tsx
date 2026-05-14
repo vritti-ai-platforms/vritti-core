@@ -118,7 +118,7 @@ export const PurchaseOrdersPage = () => {
             multiple
             options={Object.entries(purchaseOrderStatusConfig).map(([value, { label }]) => ({ label, value }))}
           />,
-          <SupplierFilter key="supplierId" name="supplierId" />,
+          <SupplierFilter key="supplierId" />,
         ]}
         toolbarActions={{
           actions: (

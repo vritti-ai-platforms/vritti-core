@@ -1,7 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -102,56 +102,30 @@ export const QuantDetailPage = () => {
                 <CardHeader>
                   <CardTitle>Quant Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <dl className="grid grid-cols-2 gap-6">
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Location</dt>
-                      <dd className="mt-1 font-medium">{quant.locationName ?? '—'}</dd>
-                      {quant.locationPath && (
-                        <dd className="text-xs text-muted-foreground">{quant.locationPath}</dd>
-                      )}
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Lot Number</dt>
-                      <dd className="mt-1 font-mono">{quant.lotNumber ?? '—'}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Quantity</dt>
-                      <dd className="mt-1 font-mono">{quant.quantity}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Reserved</dt>
-                      <dd className="mt-1 font-mono">{quant.reservedQuantity}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Available</dt>
-                      <dd className="mt-1 font-mono font-semibold text-success">{quant.availableQuantity}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Status</dt>
-                      <dd className="mt-1">
-                        <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Manufacturing Date</dt>
-                      <dd className="mt-1 font-mono">
-                        <FormattedDate value={quant.manufacturingDate} dateFormat="P" />
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Expiry Date</dt>
-                      <dd className="mt-1 font-mono">
-                        <FormattedDate value={quant.expiryDate} dateFormat="P" />
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm text-muted-foreground">Created</dt>
-                      <dd className="mt-1">
-                        <FormattedDate value={quant.createdAt} dateFormat="P" className="text-muted-foreground" />
-                      </dd>
-                    </div>
-                  </dl>
+                <CardContent className="grid grid-cols-2 gap-6">
+                  <DetailField
+                    label="Location"
+                    value={
+                      quant.locationPath
+                        ? `${quant.locationPath} › ${quant.locationName ?? ''}`
+                        : quant.locationName
+                    }
+                  />
+                  <DetailField label="Lot Number" value={quant.lotNumber} number />
+                  <DetailField label="Quantity" value={quant.quantity} number />
+                  <DetailField label="Reserved" value={quant.reservedQuantity} number />
+                  <DetailField
+                    label="Available"
+                    value={<span className="text-success">{quant.availableQuantity}</span>}
+                    number
+                  />
+                  <DetailField
+                    label="Status"
+                    value={<Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>}
+                  />
+                  <DetailField label="Manufacturing Date" value={quant.manufacturingDate} dateOnly />
+                  <DetailField label="Expiry Date" value={quant.expiryDate} dateOnly />
+                  <DetailField label="Created" value={quant.createdAt} />
                 </CardContent>
               </Card>
             ),

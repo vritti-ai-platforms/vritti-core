@@ -1,7 +1,7 @@
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { useInventoryItemStocks } from '@/hooks/inventory-items';
-import { type InventoryItemData, inventoryItemTypeConfig } from '@/schemas/inventory-items';
+import { type InventoryItemData, inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
 
 interface OverviewTabProps {
   item: InventoryItemData;
@@ -20,29 +20,12 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
         <CardHeader>
           <CardTitle>Details</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Type</p>
-              <Badge variant={inventoryItemTypeConfig[item.type].variant} className="mt-1">
-                {inventoryItemTypeConfig[item.type].label}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Category</p>
-              <p className="mt-1 font-medium">{item.categoryName ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Unit of Measure</p>
-              <p className="mt-1 font-medium">{item.uomSymbol ?? '—'}</p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-sm text-muted-foreground">Description</p>
-              <p className={`mt-1 ${item.description ? '' : 'text-muted-foreground'}`}>
-                {item.description ?? 'No description'}
-              </p>
-            </div>
-          </div>
+        <CardContent className="grid grid-cols-2 gap-4">
+          <DetailField label="Type" value={inventoryItemTypeConfig[item.type].label} />
+          <DetailField label="Category" value={item.categoryName} />
+          <DetailField label="Unit of Measure" value={item.uomSymbol} />
+          <DetailField label="Tracking" value={inventoryTrackingConfig[item.tracking].label} />
+          <DetailField label="Description" value={item.description} className="col-span-2" />
         </CardContent>
       </Card>
 
@@ -50,27 +33,22 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
         <CardHeader>
           <CardTitle>Stock Summary</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Stocked</p>
-              <p className="mt-1 font-mono text-lg font-semibold">
-                {totalStocked} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Reserved</p>
-              <p className="mt-1 font-mono text-lg font-semibold">
-                {totalReserved} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Available</p>
-              <p className="mt-1 font-mono text-lg font-semibold text-success">
-                {totalAvailable} <span className="text-sm font-normal">{item.uomSymbol}</span>
-              </p>
-            </div>
-          </div>
+        <CardContent className="grid grid-cols-3 gap-4">
+          <DetailField
+            label="Total Stocked"
+            number
+            value={<>{totalStocked} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span></>}
+          />
+          <DetailField
+            label="Total Reserved"
+            number
+            value={<>{totalReserved} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span></>}
+          />
+          <DetailField
+            label="Total Available"
+            number
+            value={<span className="text-success">{totalAvailable} <span className="text-sm font-normal">{item.uomSymbol}</span></span>}
+          />
         </CardContent>
       </Card>
     </div>

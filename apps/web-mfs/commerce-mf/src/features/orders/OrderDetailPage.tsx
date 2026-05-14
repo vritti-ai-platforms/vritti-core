@@ -1,7 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
+import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -127,37 +127,18 @@ export const OrderDetailPage = () => {
                   <CardHeader>
                     <CardTitle>Order Info</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Order Number</p>
-                        <p className="mt-1 font-mono font-medium">{order.orderNumber}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Type</p>
-                        <Badge variant="outline" className="mt-1">
-                          {typeLabels[order.type]}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Channel</p>
-                        <p className="mt-1">{channelLabels[order.channel]}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Placed At</p>
-                        <p className="mt-1"><FormattedDate value={order.placedAt} /></p>
-                      </div>
-                      {order.externalOrderId && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">External ID</p>
-                          <p className="mt-1 font-mono text-xs">{order.externalOrderId}</p>
-                        </div>
-                      )}
-                      <div className="col-span-2">
-                        <p className="text-sm text-muted-foreground">Notes</p>
-                        <p className="mt-1">{order.notes ?? '—'}</p>
-                      </div>
-                    </div>
+                  <CardContent className="grid grid-cols-2 gap-6">
+                    <DetailField label="Order Number" value={order.orderNumber} number />
+                    <DetailField
+                      label="Type"
+                      value={<Badge variant="outline">{typeLabels[order.type]}</Badge>}
+                    />
+                    <DetailField label="Channel" value={channelLabels[order.channel]} />
+                    <DetailField label="Placed At" value={order.placedAt} />
+                    {order.externalOrderId && (
+                      <DetailField label="External ID" value={order.externalOrderId} number />
+                    )}
+                    <DetailField label="Notes" value={order.notes} className="col-span-2" />
                   </CardContent>
                 </Card>
 
@@ -165,23 +146,12 @@ export const OrderDetailPage = () => {
                   <CardHeader>
                     <CardTitle>Customer</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Name</p>
-                        <p className="mt-1 font-medium">{order.customerName ?? '—'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Phone</p>
-                        <p className="mt-1">{order.customerPhone ?? '—'}</p>
-                      </div>
-                      {order.deliveryAddress && (
-                        <div className="col-span-2">
-                          <p className="text-sm text-muted-foreground">Delivery Address</p>
-                          <p className="mt-1">{order.deliveryAddress}</p>
-                        </div>
-                      )}
-                    </div>
+                  <CardContent className="grid grid-cols-2 gap-6">
+                    <DetailField label="Name" value={order.customerName} />
+                    <DetailField label="Phone" value={order.customerPhone} />
+                    {order.deliveryAddress && (
+                      <DetailField label="Delivery Address" value={order.deliveryAddress} className="col-span-2" />
+                    )}
                   </CardContent>
                 </Card>
 

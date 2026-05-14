@@ -1,5 +1,6 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { z } from 'zod';
+import type { InventoryTracking } from './inventory-items';
 
 export const StockAdjustmentTypeValues = {
   WASTE: 'WASTE',
@@ -34,13 +35,7 @@ export const stockAdjustmentStatusConfig: Record<StockAdjustmentStatus, { label:
   PUBLISHED: { label: 'Published', variant: 'default' },
 };
 
-export const InventoryTrackingValues = {
-  QUANTITY: 'quantity',
-  LOT: 'lot',
-  LOT_SERIAL: 'lot_serial',
-  SERIAL: 'serial',
-} as const;
-export type InventoryTracking = (typeof InventoryTrackingValues)[keyof typeof InventoryTrackingValues];
+export { InventoryTrackingValues, type InventoryTracking } from './inventory-items';
 
 export interface StockAdjustmentLotData {
   id: string;
