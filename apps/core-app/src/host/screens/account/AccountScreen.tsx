@@ -106,7 +106,7 @@ export const AccountScreen = () => {
         </Text>
       </View>
 
-      <BottomSheet ref={themeSheetRef} detents={['auto']} glass>
+      <BottomSheet ref={themeSheetRef} detents={['auto']}>
         <View className="gap-5 px-4 pb-8 pt-2">
           <View className="gap-1">
             <Text className="text-base font-semibold text-foreground">Appearance</Text>

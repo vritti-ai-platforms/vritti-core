@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
-import { getTheme, PushNavigator, useTheme } from '@vritti/quantum-ui-native';
+import { PushNavigator, THEME_TOKENS, useTheme } from '@vritti/quantum-ui-native';
 import { useMemo } from 'react';
 import { AuthFlowProvider } from '../providers/AuthFlowProvider';
 import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';
@@ -16,7 +16,7 @@ export const AppRender = () => {
       ...(isDark ? DarkTheme : DefaultTheme),
       colors: {
         ...(isDark ? DarkTheme : DefaultTheme).colors,
-        ...getTheme(isDark ? 'dark' : 'light'),
+        ...THEME_TOKENS[isDark ? 'dark' : 'light'].palette,
       },
     }),
     [isDark],
