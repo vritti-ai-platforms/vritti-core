@@ -20,7 +20,7 @@ export const stockAdjustmentTypeConfig: Record<
   WASTE: { label: 'Waste', variant: 'destructive' },
   DAMAGE: { label: 'Damage', variant: 'destructive' },
   THEFT: { label: 'Theft', variant: 'destructive' },
-  EXPIRED: { label: 'Expired', variant: 'secondary' },
+  EXPIRED: { label: 'Expired', variant: 'destructive' },
   CORRECTION: { label: 'Correction', variant: 'outline' },
 };
 

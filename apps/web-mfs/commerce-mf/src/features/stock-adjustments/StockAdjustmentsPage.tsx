@@ -16,6 +16,7 @@ import {
   stockAdjustmentTypeConfig,
   type StockAdjustmentData,
 } from '@/schemas/stock-adjustments';
+import { inventoryTrackingConfig } from '@/schemas/inventory-items';
 import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog';
 
 
@@ -37,6 +38,12 @@ export const StockAdjustmentsPage = () => {
         header: 'Inventory Item',
         cell: ({ row }) => row.original.inventoryItemName ?? '—',
         enableSorting: true,
+      },
+      {
+        accessorKey: 'inventoryItemTracking',
+        header: 'Tracking',
+        cell: ({ row }) => inventoryTrackingConfig[row.original.inventoryItemTracking]?.label ?? '—',
+        enableSorting: false,
       },
       {
         accessorKey: 'type',
