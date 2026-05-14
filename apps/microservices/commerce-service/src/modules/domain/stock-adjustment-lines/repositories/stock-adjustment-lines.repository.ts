@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, asc, desc, eq, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemLots,
   inventoryItemQuants,
-  stockAdjustmentLineItems,
+  locations,
   type StockAdjustmentLine,
+  stockAdjustmentLineItems,
   stockAdjustmentLines,
   stockAdjustmentLots,
-  locations,
   uom,
 } from '@/db/schema';
 
@@ -43,10 +43,6 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     return this.runRichSelect(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
   }
 
-  async findByLotId(lotId: string): Promise<StockAdjustmentLineWithRefs[]> {
-    return this.runRichSelect(eq(stockAdjustmentLines.stockAdjustmentLotId, lotId));
-  }
-
   async findForTable(
     adjustmentId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number; lotId?: string | null },
@@ -58,17 +54,59 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         )
       : eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId);
     const combinedWhere = options.where ? and(scopeWhere, options.where) : scopeWhere;
-    const result = await this.runRichSelect(combinedWhere, options.orderBy, options.limit, options.offset);
-    const [countRow] = await this.db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(stockAdjustmentLines)
-      .where(combinedWhere);
-    return { result, count: Number(countRow?.count ?? 0) };
-  }
-
-  async findLineById(lineId: string): Promise<StockAdjustmentLine | undefined> {
-    const rows = await this.db.select().from(stockAdjustmentLines).where(eq(stockAdjustmentLines.id, lineId));
-    return rows[0] as StockAdjustmentLine | undefined;
+    const lineItemsCountSql = sql<number>`(
+      SELECT COUNT(*) FROM ${stockAdjustmentLineItems}
+      WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
+    )`.mapWith(Number);
+    const { result, count } = await this.findAllAndCount<StockAdjustmentLineWithRefs>({
+      select: {
+        id: stockAdjustmentLines.id,
+        organizationId: stockAdjustmentLines.organizationId,
+        businessUnitId: stockAdjustmentLines.businessUnitId,
+        stockAdjustmentId: stockAdjustmentLines.stockAdjustmentId,
+        createdById: stockAdjustmentLines.createdById,
+        stockAdjustmentLotId: stockAdjustmentLines.stockAdjustmentLotId,
+        locationId: stockAdjustmentLines.locationId,
+        quantId: stockAdjustmentLines.quantId,
+        uomId: stockAdjustmentLines.uomId,
+        uomName: uom.name,
+        uomSymbol: uom.symbol,
+        conversionFactor: stockAdjustmentLines.conversionFactor,
+        quantity: stockAdjustmentLines.quantity,
+        resolvedQuantId: stockAdjustmentLines.resolvedQuantId,
+        isBalanced: stockAdjustmentLines.isBalanced,
+        createdAt: stockAdjustmentLines.createdAt,
+        updatedAt: stockAdjustmentLines.updatedAt,
+        locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
+        lotNumber: stockAdjustmentLots.lotNumber,
+        lotManufacturingDate: stockAdjustmentLots.manufacturingDate,
+        lotExpiryDate: stockAdjustmentLots.expiryDate,
+        quantLotNumber: inventoryItemLots.lotNumber,
+        quantLocationId: inventoryItemQuants.locationId,
+        quantLocationName: sql<string | null>`(
+          SELECT ${locations.name} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
+        )`,
+        quantLocationPath: sql<string | null>`(
+          SELECT ${locations.pathBreadcrumb} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
+        )`,
+        quantTotalQuantity: inventoryItemQuants.quantity,
+        quantReservedQuantity: inventoryItemQuants.reservedQuantity,
+        lineItemsCount: lineItemsCountSql,
+      },
+      leftJoins: [
+        { table: stockAdjustmentLots, on: eq(stockAdjustmentLines.stockAdjustmentLotId, stockAdjustmentLots.id) },
+        { table: locations, on: eq(stockAdjustmentLines.locationId, locations.id) },
+        { table: inventoryItemQuants, on: eq(stockAdjustmentLines.quantId, inventoryItemQuants.id) },
+        { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
+        { table: uom, on: eq(stockAdjustmentLines.uomId, uom.id) },
+      ],
+      where: combinedWhere,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(stockAdjustmentLines.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
+    return { result, count };
   }
 
   async findByAdjustmentIdAndLineId(
@@ -155,8 +193,8 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
       .set({
         quantity: sql<string>`COALESCE((
           SELECT COUNT(*)
-          FROM vritti_core.stock_adjustment_line_items li
-          WHERE li.stock_adjustment_line_id = ${stockAdjustmentLines.id}
+          FROM ${stockAdjustmentLineItems}
+          WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
         ), 0)`,
         isBalanced: true,
       })
@@ -194,9 +232,9 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     offset?: number,
   ): Promise<StockAdjustmentLineWithRefs[]> {
     const lineItemsCountSql = sql<number>`(
-      SELECT COUNT(*) FROM vritti_core.stock_adjustment_line_items li
-      WHERE li.stock_adjustment_line_id = ${stockAdjustmentLines.id}
-    )`;
+      SELECT COUNT(*) FROM ${stockAdjustmentLineItems}
+      WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
+    )`.mapWith(Number);
     const query = this.db
       .select({
         id: stockAdjustmentLines.id,
@@ -226,10 +264,10 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         quantLotNumber: inventoryItemLots.lotNumber,
         quantLocationId: inventoryItemQuants.locationId,
         quantLocationName: sql<string | null>`(
-          SELECT name FROM vritti_core.locations WHERE id = ${inventoryItemQuants.locationId}
+          SELECT ${locations.name} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
         )`,
         quantLocationPath: sql<string | null>`(
-          SELECT path_breadcrumb FROM vritti_core.locations WHERE id = ${inventoryItemQuants.locationId}
+          SELECT ${locations.pathBreadcrumb} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
         )`,
         quantTotalQuantity: inventoryItemQuants.quantity,
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,
@@ -247,12 +285,6 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     const finalQuery = limit !== undefined ? query.limit(limit).offset(offset ?? 0) : query;
     const rows = await finalQuery;
 
-    return rows.map((row) => ({
-      ...row,
-      lineItemsCount: Number(row.lineItemsCount ?? 0),
-    })) as StockAdjustmentLineWithRefs[];
+    return rows as StockAdjustmentLineWithRefs[];
   }
 }
-
-// Suppress unused import warning — `asc` is exported for future ordering needs
-void asc;

@@ -101,11 +101,6 @@ export class StockAdjustmentsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async findLinesByLot(adjustmentId: string, lotId: string): Promise<StockAdjustmentLineResponseDto[]> {
-    this.logger.log(`stockAdjustments.linesByLot — adjustment: ${adjustmentId}, lot: ${lotId}`);
-    return this.nats.send('commerce', 'stockAdjustments.linesByLot', { adjustmentId, lotId });
-  }
-
   async findLots(adjustmentId: string): Promise<StockAdjustmentLotResponseDto[]> {
     this.logger.log(`stockAdjustments.lots — adjustment: ${adjustmentId}`);
     return this.nats.send('commerce', 'stockAdjustments.lots', { adjustmentId });

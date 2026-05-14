@@ -18,12 +18,6 @@ export class StockAdjustmentsLineItemsController {
     return this.service.lineItemsTable(data);
   }
 
-  @MessagePattern({ cmd: 'stockAdjustments.lineItems' })
-  lineItems(@Payload() data: { adjustmentId: string; lineId: string }): Promise<StockAdjustmentLineItemDto[]> {
-    this.logger.log(`stockAdjustments.lineItems — line: ${data.lineId}`);
-    return this.service.lineItems(data.adjustmentId, data.lineId);
-  }
-
   @MessagePattern({ cmd: 'stockAdjustments.addLineItem' })
   addLineItem(
     @Payload() data: { adjustmentId: string; lineId: string; serialNumber: string },

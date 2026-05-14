@@ -36,9 +36,12 @@ interface AdjustmentContext {
 export class StockAdjustmentLinesService {
   private readonly logger = new Logger(StockAdjustmentLinesService.name);
 
-  private static readonly FIELD_MAP: FieldMap = {
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
     locationPath: { column: locations.pathBreadcrumb, type: 'string' },
+  };
+
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
     quantity: { column: stockAdjustmentLines.quantity, type: 'number' },
     uomId: { column: stockAdjustmentLines.uomId, type: 'string' },
   };
@@ -54,13 +57,16 @@ export class StockAdjustmentLinesService {
     state: TableViewState,
     lotId?: string | null,
   ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLinesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLinesService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLinesService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLinesService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
     const { result, count } = await this.repository.findForTable(adjustmentId, {
       where,
-      orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentLinesService.FIELD_MAP),
+      orderBy: FilterProcessor.buildOrderBy(state.sort, {
+        ...StockAdjustmentLinesService.SEARCH_FIELD_MAP,
+        ...StockAdjustmentLinesService.FILTER_FIELD_MAP,
+      }),
       limit,
       offset,
       lotId,
@@ -70,16 +76,6 @@ export class StockAdjustmentLinesService {
 
   async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineDto[]> {
     const rows = await this.repository.findByAdjustmentId(adjustmentId);
-    return rows.map(StockAdjustmentLineDto.from);
-  }
-
-  async findByLotId(adjustmentId: string, lotId: string): Promise<StockAdjustmentLineDto[]> {
-    // Verify lot belongs to adjustment
-    const lot = await this.lotsRepository.findById(lotId);
-    if (!lot || lot.stockAdjustmentId !== adjustmentId) {
-      throw new NotFoundException('Stock adjustment lot not found.');
-    }
-    const rows = await this.repository.findByLotId(lotId);
     return rows.map(StockAdjustmentLineDto.from);
   }
 
@@ -155,7 +151,7 @@ export class StockAdjustmentLinesService {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be updated on DRAFT adjustments.');
     }
-    const line = await this.repository.findLineById(lineId);
+    const line = await this.repository.findById(lineId);
     if (!line) throw new NotFoundException('Stock adjustment line not found.');
     if (line.stockAdjustmentId !== adjustment.id) {
       throw new BadRequestException('Line does not belong to this adjustment.');
@@ -203,7 +199,7 @@ export class StockAdjustmentLinesService {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be removed from DRAFT adjustments.');
     }
-    const line = await this.repository.findLineById(lineId);
+    const line = await this.repository.findById(lineId);
     if (!line) throw new NotFoundException('Stock adjustment line not found.');
     if (line.stockAdjustmentId !== adjustment.id) {
       throw new BadRequestException('Line does not belong to this adjustment.');

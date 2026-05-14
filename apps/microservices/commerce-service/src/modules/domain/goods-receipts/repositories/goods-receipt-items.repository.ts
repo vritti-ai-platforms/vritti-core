@@ -175,11 +175,6 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     return rows.map((r) => r.node);
   }
 
-  async findItemById(itemId: string): Promise<GoodsReceiptItem | null> {
-    const [row] = await this.db.select().from(goodsReceiptItems).where(eq(goodsReceiptItems.id, itemId));
-    return row ?? null;
-  }
-
   async findByReceiptIdAndItemId(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItem | null> {
     const [row] = await this.db
       .select()
@@ -230,12 +225,63 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
   ): Promise<{ result: GoodsReceiptItemWithRefs[]; count: number }> {
     const baseWhere = eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId);
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    const result = await this.runRichSelect(where, options.orderBy, options.limit, options.offset);
-    const [countRow] = await this.db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(goodsReceiptItems)
-      .where(where);
-    return { result, count: Number(countRow?.count ?? 0) };
+    const acceptedQtySql = sql<number>`COALESCE((
+      SELECT SUM(${goodsReceiptLines.quantity})
+      FROM ${goodsReceiptLines}
+      WHERE ${goodsReceiptLines.goodsReceiptItemId} = ${goodsReceiptItems.id}
+    ), 0)`.mapWith(Number);
+    const lotsCountSql = sql<number>`(
+      SELECT COUNT(*) FROM ${goodsReceiptLots}
+      WHERE ${goodsReceiptLots.goodsReceiptItemId} = ${goodsReceiptItems.id}
+    )`.mapWith(Number);
+    const linesCountSql = sql<number>`(
+      SELECT COUNT(*) FROM ${goodsReceiptLines}
+      WHERE ${goodsReceiptLines.goodsReceiptItemId} = ${goodsReceiptItems.id}
+    )`.mapWith(Number);
+    const unbalancedLinesCountSql = sql<number>`(
+      SELECT COUNT(*) FROM ${goodsReceiptLines}
+      WHERE ${goodsReceiptLines.goodsReceiptItemId} = ${goodsReceiptItems.id} AND ${goodsReceiptLines.isBalanced} = false
+    )`.mapWith(Number);
+    const { result, count } = await this.findAllAndCount<GoodsReceiptItemWithRefs>({
+      select: {
+        id: goodsReceiptItems.id,
+        organizationId: goodsReceiptItems.organizationId,
+        businessUnitId: goodsReceiptItems.businessUnitId,
+        goodsReceiptId: goodsReceiptItems.goodsReceiptId,
+        inventoryItemId: goodsReceiptItems.inventoryItemId,
+        rejectedQuantity: goodsReceiptItems.rejectedQuantity,
+        metadata: goodsReceiptItems.metadata,
+        createdAt: goodsReceiptItems.createdAt,
+        updatedAt: goodsReceiptItems.updatedAt,
+        inventoryItemName: inventoryItems.name,
+        inventoryItemTracking: inventoryItems.tracking,
+        inventoryItemUomSymbol: uom.symbol,
+        poItemId: purchaseOrderItems.id,
+        poOrderedQuantity: purchaseOrderItems.orderedQuantity,
+        poReceivedQuantity: purchaseOrderItems.receivedQuantity,
+        acceptedQuantity: acceptedQtySql,
+        lotsCount: lotsCountSql,
+        linesCount: linesCountSql,
+        unbalancedLinesCount: unbalancedLinesCountSql,
+      },
+      leftJoins: [
+        { table: inventoryItems, on: eq(goodsReceiptItems.inventoryItemId, inventoryItems.id) },
+        { table: uom, on: eq(inventoryItems.uomId, uom.id) },
+        { table: goodsReceipts, on: eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id) },
+        {
+          table: purchaseOrderItems,
+          on: and(
+            eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
+            eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
+          ),
+        },
+      ],
+      where,
+      orderBy: options.orderBy?.length ? options.orderBy : [asc(goodsReceiptItems.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
+    return { result, count };
   }
 
   // For a given (receiptId, inventoryItemId), check if a row already exists (for unique enforcement at write time)
@@ -301,23 +347,23 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     limit?: number,
     offset?: number,
   ): Promise<GoodsReceiptItemWithRefs[]> {
-    const acceptedQtySql = sql<string>`COALESCE((
-      SELECT SUM(quantity)
-      FROM vritti_core.goods_receipt_lines gl
-      WHERE gl.goods_receipt_item_id = ${goodsReceiptItems.id}
-    ), 0)`;
+    const acceptedQtySql = sql<number>`COALESCE((
+      SELECT SUM(${goodsReceiptLines.quantity})
+      FROM ${goodsReceiptLines}
+      WHERE ${goodsReceiptLines.goodsReceiptItemId} = ${goodsReceiptItems.id}
+    ), 0)`.mapWith(Number);
     const lotsCountSql = sql<number>`(
-      SELECT COUNT(*) FROM vritti_core.goods_receipt_lots gl
-      WHERE gl.goods_receipt_item_id = ${goodsReceiptItems.id}
-    )`;
+      SELECT COUNT(*) FROM ${goodsReceiptLots}
+      WHERE ${goodsReceiptLots.goodsReceiptItemId} = ${goodsReceiptItems.id}
+    )`.mapWith(Number);
     const linesCountSql = sql<number>`(
-      SELECT COUNT(*) FROM vritti_core.goods_receipt_lines gl
-      WHERE gl.goods_receipt_item_id = ${goodsReceiptItems.id}
-    )`;
+      SELECT COUNT(*) FROM ${goodsReceiptLines}
+      WHERE ${goodsReceiptLines.goodsReceiptItemId} = ${goodsReceiptItems.id}
+    )`.mapWith(Number);
     const unbalancedLinesCountSql = sql<number>`(
-      SELECT COUNT(*) FROM vritti_core.goods_receipt_lines gl
-      WHERE gl.goods_receipt_item_id = ${goodsReceiptItems.id} AND gl.is_balanced = false
-    )`;
+      SELECT COUNT(*) FROM ${goodsReceiptLines}
+      WHERE ${goodsReceiptLines.goodsReceiptItemId} = ${goodsReceiptItems.id} AND ${goodsReceiptLines.isBalanced} = false
+    )`.mapWith(Number);
 
     const query = this.db
       .select({
@@ -358,13 +404,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     const finalQuery = limit !== undefined ? query.limit(limit).offset(offset ?? 0) : query;
     const rows = await finalQuery;
 
-    return rows.map((row) => ({
-      ...row,
-      acceptedQuantity: Number(row.acceptedQuantity),
-      lotsCount: Number(row.lotsCount ?? 0),
-      linesCount: Number(row.linesCount ?? 0),
-      unbalancedLinesCount: Number(row.unbalancedLinesCount ?? 0),
-    })) as GoodsReceiptItemWithRefs[];
+    return rows as GoodsReceiptItemWithRefs[];
   }
 }
 

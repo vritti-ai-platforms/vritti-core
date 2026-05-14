@@ -18,13 +18,7 @@ interface LotSidePanelProps {
   onSelectLot: (lotId: string | null) => void;
 }
 
-export const LotSidePanel = ({
-  adjustmentId,
-  isDraft,
-  uomSymbol,
-  selectedLotId,
-  onSelectLot,
-}: LotSidePanelProps) => {
+export const LotSidePanel = ({ adjustmentId, isDraft, uomSymbol, selectedLotId, onSelectLot }: LotSidePanelProps) => {
   const { data: lots = [], isLoading } = useStockAdjustmentLots(adjustmentId);
   const addLotDialog = useDialog();
 
@@ -35,9 +29,7 @@ export const LotSidePanel = ({
         header={
           <div className="space-y-1">
             <div className="text-sm font-semibold">Lots</div>
-            <div className="text-xs text-muted-foreground">
-              {pluralize('lot', lots.length, true)}
-            </div>
+            <div className="text-xs text-muted-foreground">{pluralize('lot', lots.length, true)}</div>
           </div>
         }
         actions={
@@ -59,14 +51,10 @@ export const LotSidePanel = ({
       >
         <div className="p-2 space-y-2">
           {lots.map((lot: StockAdjustmentLotData) => (
-            <SidePanelListItem
-              key={lot.id}
-              active={selectedLotId === lot.id}
-              onClick={() => onSelectLot(lot.id)}
-            >
+            <SidePanelListItem key={lot.id} active={selectedLotId === lot.id} onClick={() => onSelectLot(lot.id)}>
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm font-medium truncate">{lot.lotNumber}</div>
-                <Badge variant="secondary" className="shrink-0 bg-success/15 text-success">
+                <Badge variant={lot.totalQuantity === 0 ? 'destructive' : 'success'}>
                   {lot.totalQuantity} {uomSymbol}
                 </Badge>
               </div>

@@ -36,7 +36,9 @@ const EditLotForm = ({
   });
 
   const manufacturingDate = form.watch('manufacturingDate');
+  const expiryDate = form.watch('expiryDate');
   const expiryMinDate = manufacturingDate ? new Date(manufacturingDate) : undefined;
+  const mfgMaxDate = expiryDate ? new Date(expiryDate) : undefined;
 
   const mutation = useUpdateStockAdjustmentLot(adjustmentId, lot.id, { onSuccess });
 
@@ -52,7 +54,7 @@ const EditLotForm = ({
       })}
     >
       <TextField name="lotNumber" label="Lot Number" placeholder="e.g. ABC-2024-001" />
-      <DatePicker name="manufacturingDate" label="Manufacturing Date" />
+      <DatePicker name="manufacturingDate" label="Manufacturing Date" maxDate={mfgMaxDate} />
       <DatePicker name="expiryDate" label="Expiry Date" minDate={expiryMinDate} />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

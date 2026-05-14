@@ -9468,42 +9468,6 @@
         ]
       }
     },
-    "/commerce-api/stock-adjustments/{id}/lots/{lotId}/lines": {
-      "get": {
-        "operationId": "StockAdjustmentsGatewayController_getLinesByLot",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "lotId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Stock Adjustments"
-        ]
-      }
-    },
     "/commerce-api/stock-adjustments/{id}/lots/{lotId}/lines/table": {
       "get": {
         "operationId": "StockAdjustmentsGatewayController_getLinesByLotTable",

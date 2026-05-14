@@ -10,13 +10,41 @@ import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteStockAdjustment, usePublishStockAdjustment, useStockAdjustment } from '@/hooks/stock-adjustments';
 import {
+  type InventoryTracking,
+  InventoryTrackingValues,
   type StockAdjustmentStatus,
   StockAdjustmentStatusValues,
   type StockAdjustmentType,
+  StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
 import { EditStockAdjustmentDialog } from './forms/EditStockAdjustmentDialog';
 import { BreakdownTab } from './tabs/BreakdownTab';
 import { OverviewTab } from './tabs/OverviewTab';
+
+function getPublishBlockedTip(type: StockAdjustmentType, tracking: InventoryTracking): string {
+  if (type === StockAdjustmentTypeValues.OPENING_STOCK) {
+    switch (tracking) {
+      case InventoryTrackingValues.QUANTITY:
+        return 'Add at least one line with a location and quantity before publishing.';
+      case InventoryTrackingValues.LOT:
+        return 'Add lots, assign a line with a location and quantity to each lot before publishing.';
+      case InventoryTrackingValues.SERIAL:
+        return 'Add lines and fill in all serial numbers before publishing.';
+      case InventoryTrackingValues.LOT_SERIAL:
+        return 'Add lots, assign lines to each lot, and fill in all serial numbers before publishing.';
+    }
+  }
+  switch (tracking) {
+    case InventoryTrackingValues.QUANTITY:
+      return 'Add at least one line with a stock entry and quantity before publishing.';
+    case InventoryTrackingValues.LOT:
+      return 'Add at least one line with a lot entry selected before publishing.';
+    case InventoryTrackingValues.SERIAL:
+      return 'Select stock entries and fill in all serial numbers before publishing.';
+    case InventoryTrackingValues.LOT_SERIAL:
+      return 'Select lot entries and fill in all serial numbers before publishing.';
+  }
+}
 
 const typeConfig: Record<
   StockAdjustmentType,
@@ -95,6 +123,7 @@ export const StockAdjustmentDetailPage = () => {
                 onClick={handlePublish}
                 isLoading={publishMutation.isPending}
                 disabled={!adjustment.isPublishable}
+                disabledTip={getPublishBlockedTip(adjustment.type, adjustment.inventoryItemTracking)}
               >
                 Publish
               </Button>

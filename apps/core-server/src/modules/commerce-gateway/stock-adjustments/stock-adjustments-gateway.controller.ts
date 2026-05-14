@@ -98,12 +98,6 @@ export class StockAdjustmentsGatewayController {
     return this.service.findLinesTable(id, userId);
   }
 
-  @Get(':id/lots/:lotId/lines')
-  getLinesByLot(@Param('id') id: string, @Param('lotId') lotId: string): Promise<StockAdjustmentLineResponseDto[]> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots/${lotId}/lines`);
-    return this.service.findLinesByLot(id, lotId);
-  }
-
   @Get(':id/lots/:lotId/lines/table')
   getLinesByLotTable(
     @Param('id') id: string,

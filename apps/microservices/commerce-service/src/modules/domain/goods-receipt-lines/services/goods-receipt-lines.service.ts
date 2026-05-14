@@ -37,8 +37,12 @@ interface ItemContext {
 export class GoodsReceiptLinesService {
   private readonly logger = new Logger(GoodsReceiptLinesService.name);
 
-  private static readonly FIELD_MAP: FieldMap = {
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
+    locationPath: { column: locations.pathBreadcrumb, type: 'string' },
+  };
+
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
     quantity: { column: goodsReceiptLines.quantity, type: 'number' },
   };
 
@@ -56,13 +60,16 @@ export class GoodsReceiptLinesService {
     lotId?: string | null,
   ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
     await this.ensureItemBelongsToReceipt(goodsReceiptId, itemId);
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptLinesService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptLinesService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptLinesService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptLinesService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
     const { result, count } = await this.repository.findForTable(itemId, {
       where,
-      orderBy: FilterProcessor.buildOrderBy(state.sort, GoodsReceiptLinesService.FIELD_MAP),
+      orderBy: FilterProcessor.buildOrderBy(state.sort, {
+        ...GoodsReceiptLinesService.SEARCH_FIELD_MAP,
+        ...GoodsReceiptLinesService.FILTER_FIELD_MAP,
+      }),
       limit,
       offset,
       lotId,
@@ -141,7 +148,7 @@ export class GoodsReceiptLinesService {
     data: { goodsReceiptLotId?: string | null; locationId?: string; quantity?: number },
   ): Promise<GoodsReceiptLineDto> {
     const ctx = await this.getItemContext(goodsReceiptId, itemId);
-    const line = await this.repository.findLineById(lineId);
+    const line = await this.repository.findById(lineId);
     if (!line || line.goodsReceiptItemId !== itemId) throw new NotFoundException('Goods receipt line not found.');
 
     const next = {
@@ -174,7 +181,7 @@ export class GoodsReceiptLinesService {
 
   async removeLine(goodsReceiptId: string, itemId: string, lineId: string): Promise<SuccessResponseDto> {
     const ctx = await this.getItemContext(goodsReceiptId, itemId);
-    const line = await this.repository.findLineById(lineId);
+    const line = await this.repository.findById(lineId);
     if (!line || line.goodsReceiptItemId !== itemId) throw new NotFoundException('Goods receipt line not found.');
     void ctx;
     await this.repository.deleteLine(lineId);

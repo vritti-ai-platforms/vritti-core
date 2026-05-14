@@ -30,12 +30,6 @@ export class StockAdjustmentLineItemsService {
     private readonly adjustmentsRepository: StockAdjustmentsRepository,
   ) {}
 
-  async listByLine(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineItemDto[]> {
-    await this.ensureLineBelongsToAdjustment(adjustmentId, lineId);
-    const rows = await this.repository.findByLineId(lineId);
-    return rows.map(StockAdjustmentLineItemDto.from);
-  }
-
   async findForTable(
     adjustmentId: string,
     lineId: string,
@@ -71,7 +65,7 @@ export class StockAdjustmentLineItemsService {
       throw new BadRequestException('Line items are only allowed on serial-tracked adjustments.');
     }
 
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.stockAdjustmentId !== adjustmentId) {
       throw new NotFoundException('Stock adjustment line not found.');
     }
@@ -113,7 +107,7 @@ export class StockAdjustmentLineItemsService {
       throw new BadRequestException('Line items can only be modified on DRAFT adjustments.');
     }
 
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.stockAdjustmentId !== adjustmentId) {
       throw new NotFoundException('Stock adjustment line not found.');
     }
@@ -164,7 +158,7 @@ export class StockAdjustmentLineItemsService {
   }
 
   private async ensureLineBelongsToAdjustment(adjustmentId: string, lineId: string): Promise<void> {
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.stockAdjustmentId !== adjustmentId) {
       throw new NotFoundException('Stock adjustment line not found.');
     }

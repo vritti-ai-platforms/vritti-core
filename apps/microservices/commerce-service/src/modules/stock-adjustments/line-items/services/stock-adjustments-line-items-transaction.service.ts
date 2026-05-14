@@ -18,10 +18,6 @@ export class StockAdjustmentsLineItemsTransactionService {
     private readonly quantsRepository: InventoryItemQuantsRepository,
   ) {}
 
-  lineItems(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineItemDto[]> {
-    return this.lineItemsService.listByLine(adjustmentId, lineId);
-  }
-
   lineItemsTable(
     data: { adjustmentId: string; lineId: string } & TableViewState,
   ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
@@ -68,7 +64,7 @@ export class StockAdjustmentsLineItemsTransactionService {
   ): Promise<void> {
     const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.stockAdjustmentId !== adjustmentId) {
       throw new NotFoundException('Stock adjustment line not found.');
     }

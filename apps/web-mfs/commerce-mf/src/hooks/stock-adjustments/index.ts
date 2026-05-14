@@ -3,7 +3,6 @@ export {
   STOCK_ADJUSTMENT_LINE_ITEMS_KEY,
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   STOCK_ADJUSTMENT_LINE_KEY,
-  STOCK_ADJUSTMENT_LINES_BY_LOT_KEY,
   STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY,
   STOCK_ADJUSTMENT_LINES_KEY,
   STOCK_ADJUSTMENT_LINES_TABLE_KEY,
@@ -26,7 +25,6 @@ export { useStockAdjustmentLine } from './useStockAdjustmentLine';
 export { useStockAdjustmentLineItems } from './useStockAdjustmentLineItems';
 export { useStockAdjustmentLineItemsTable } from './useStockAdjustmentLineItemsTable';
 export { useStockAdjustmentLines } from './useStockAdjustmentLines';
-export { useStockAdjustmentLinesByLot } from './useStockAdjustmentLinesByLot';
 export { useStockAdjustmentLinesByLotTable } from './useStockAdjustmentLinesByLotTable';
 export { useStockAdjustmentLinesTable } from './useStockAdjustmentLinesTable';
 export { useStockAdjustmentLotDetail } from './useStockAdjustmentLotDetail';

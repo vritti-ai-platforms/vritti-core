@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, asc, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptLine,
   goodsReceiptItems,
@@ -59,17 +59,41 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       ? and(eq(goodsReceiptLines.goodsReceiptItemId, itemId), eq(goodsReceiptLines.goodsReceiptLotId, options.lotId))
       : eq(goodsReceiptLines.goodsReceiptItemId, itemId);
     const combinedWhere = options.where ? and(scopeWhere, options.where) : scopeWhere;
-    const result = await this.runRichSelect(combinedWhere, options.orderBy, options.limit, options.offset);
-    const [countRow] = await this.db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(goodsReceiptLines)
-      .where(combinedWhere);
-    return { result, count: Number(countRow?.count ?? 0) };
-  }
-
-  async findLineById(lineId: string): Promise<GoodsReceiptLine | undefined> {
-    const rows = await this.db.select().from(goodsReceiptLines).where(eq(goodsReceiptLines.id, lineId));
-    return rows[0] as GoodsReceiptLine | undefined;
+    const lineItemsCountSql = sql<number>`(
+      SELECT COUNT(*) FROM ${goodsReceiptLineItems}
+      WHERE ${goodsReceiptLineItems.goodsReceiptLineId} = ${goodsReceiptLines.id}
+    )`.mapWith(Number);
+    const { result, count } = await this.findAllAndCount<GoodsReceiptLineWithRefs>({
+      select: {
+        id: goodsReceiptLines.id,
+        organizationId: goodsReceiptLines.organizationId,
+        businessUnitId: goodsReceiptLines.businessUnitId,
+        goodsReceiptItemId: goodsReceiptLines.goodsReceiptItemId,
+        goodsReceiptLotId: goodsReceiptLines.goodsReceiptLotId,
+        locationId: goodsReceiptLines.locationId,
+        quantity: goodsReceiptLines.quantity,
+        resolvedQuantId: goodsReceiptLines.resolvedQuantId,
+        isBalanced: goodsReceiptLines.isBalanced,
+        metadata: goodsReceiptLines.metadata,
+        createdAt: goodsReceiptLines.createdAt,
+        updatedAt: goodsReceiptLines.updatedAt,
+        locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
+        lotNumber: goodsReceiptLots.lotNumber,
+        lotManufacturingDate: goodsReceiptLots.manufacturingDate,
+        lotExpiryDate: goodsReceiptLots.expiryDate,
+        lineItemsCount: lineItemsCountSql,
+      },
+      leftJoins: [
+        { table: goodsReceiptLots, on: eq(goodsReceiptLines.goodsReceiptLotId, goodsReceiptLots.id) },
+        { table: locations, on: eq(goodsReceiptLines.locationId, locations.id) },
+      ],
+      where: combinedWhere,
+      orderBy: options.orderBy?.length ? options.orderBy : [desc(goodsReceiptLines.createdAt)],
+      limit: options.limit,
+      offset: options.offset,
+    });
+    return { result, count };
   }
 
   async findByItemIdAndLineId(itemId: string, lineId: string): Promise<GoodsReceiptLineWithRefs | undefined> {
@@ -118,8 +142,8 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       .set({
         quantity: sql<string>`COALESCE((
           SELECT COUNT(*)
-          FROM vritti_core.goods_receipt_line_items li
-          WHERE li.goods_receipt_line_id = ${goodsReceiptLines.id}
+          FROM ${goodsReceiptLineItems}
+          WHERE ${goodsReceiptLineItems.goodsReceiptLineId} = ${goodsReceiptLines.id}
         ), 0)`,
         isBalanced: true,
       })
@@ -165,9 +189,9 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     offset?: number,
   ): Promise<GoodsReceiptLineWithRefs[]> {
     const lineItemsCountSql = sql<number>`(
-      SELECT COUNT(*) FROM vritti_core.goods_receipt_line_items li
-      WHERE li.goods_receipt_line_id = ${goodsReceiptLines.id}
-    )`;
+      SELECT COUNT(*) FROM ${goodsReceiptLineItems}
+      WHERE ${goodsReceiptLineItems.goodsReceiptLineId} = ${goodsReceiptLines.id}
+    )`.mapWith(Number);
     const query = this.db
       .select({
         id: goodsReceiptLines.id,
@@ -198,11 +222,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     const finalQuery = limit !== undefined ? query.limit(limit).offset(offset ?? 0) : query;
     const rows = await finalQuery;
 
-    return rows.map((row) => ({
-      ...row,
-      lineItemsCount: Number(row.lineItemsCount ?? 0),
-    })) as GoodsReceiptLineWithRefs[];
+    return rows as GoodsReceiptLineWithRefs[];
   }
 }
 
-void asc;

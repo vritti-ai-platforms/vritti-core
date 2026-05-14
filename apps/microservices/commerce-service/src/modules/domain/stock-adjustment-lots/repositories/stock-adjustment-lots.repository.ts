@@ -67,8 +67,8 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
           'kind', 'line',
           'quantity', ${stockAdjustmentLines.quantity},
           'lineItemsCount', (
-            SELECT COUNT(*) FROM vritti_core.stock_adjustment_line_items li
-            WHERE li.stock_adjustment_line_id = ${stockAdjustmentLines.id}
+            SELECT COUNT(*) FROM ${stockAdjustmentLineItems}
+            WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
           ),
           'isBalanced', ${stockAdjustmentLines.isBalanced}
         ) ORDER BY ${stockAdjustmentLines.createdAt}

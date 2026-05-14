@@ -9,15 +9,6 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
     super(database, stockAdjustmentLineItems);
   }
 
-  async findByLineId(lineId: string): Promise<StockAdjustmentLineItem[]> {
-    const rows = await this.db
-      .select()
-      .from(stockAdjustmentLineItems)
-      .where(eq(stockAdjustmentLineItems.stockAdjustmentLineId, lineId))
-      .orderBy(asc(stockAdjustmentLineItems.createdAt));
-    return rows as StockAdjustmentLineItem[];
-  }
-
   async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineItem[]> {
     const rows = await this.db
       .select({

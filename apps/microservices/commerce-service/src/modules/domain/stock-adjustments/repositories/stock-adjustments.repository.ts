@@ -8,6 +8,7 @@ import {
   type StockAdjustmentStatus,
   stockAdjustmentCodeSeq,
   stockAdjustmentLines,
+  stockAdjustmentLots,
   stockAdjustments,
   uom,
 } from '@/db/schema';
@@ -18,7 +19,7 @@ export type StockAdjustmentWithRefs = StockAdjustment & {
   inventoryItemUomSymbol: string | null;
   inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
   totalQuantity: number;
-  isPublishable: boolean;
+  isPublishable?: boolean;
 };
 
 @Injectable()
@@ -32,16 +33,8 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     count: number;
   }> {
     const totalQuantitySql = sql<string>`COALESCE((
-      SELECT SUM(quantity * conversion_factor) FROM vritti_core.stock_adjustment_lines WHERE stock_adjustment_id = ${stockAdjustments.id}
+      SELECT SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}) FROM ${stockAdjustmentLines} WHERE ${stockAdjustmentLines.stockAdjustmentId} = ${stockAdjustments.id}
     ), 0)`;
-    const isPublishableSql = sql<boolean>`(
-      ${stockAdjustments.status} = 'DRAFT'
-      AND EXISTS(SELECT 1 FROM vritti_core.stock_adjustment_lines WHERE stock_adjustment_id = ${stockAdjustments.id})
-      AND NOT EXISTS(
-        SELECT 1 FROM vritti_core.stock_adjustment_lines
-        WHERE stock_adjustment_id = ${stockAdjustments.id} AND is_balanced = false
-      )
-    )`;
     return this.findAllAndCount<StockAdjustmentWithRefs>({
       select: {
         id: stockAdjustments.id,
@@ -60,7 +53,6 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         inventoryItemUomSymbol: uom.symbol,
         inventoryItemTracking: inventoryItems.tracking,
         totalQuantity: totalQuantitySql,
-        isPublishable: isPublishableSql,
       },
       leftJoins: [
         { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
@@ -97,6 +89,14 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) =
               COUNT(DISTINCT CASE WHEN ${stockAdjustmentLines.isBalanced} THEN ${stockAdjustmentLines.id} END)
+          AND NOT EXISTS(
+            SELECT 1 FROM ${stockAdjustmentLots}
+            WHERE ${stockAdjustmentLots.stockAdjustmentId} = ${stockAdjustments.id}
+            AND NOT EXISTS(
+              SELECT 1 FROM ${stockAdjustmentLines}
+              WHERE ${stockAdjustmentLines.stockAdjustmentLotId} = ${stockAdjustmentLots.id}
+            )
+          )
         )`,
       })
       .from(stockAdjustments)

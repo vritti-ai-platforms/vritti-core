@@ -45,12 +45,6 @@ export class StockAdjustmentsLinesController {
     return this.service.findForTable(adjustmentId, state, lotId);
   }
 
-  @MessagePattern({ cmd: 'stockAdjustments.linesByLot' })
-  linesByLot(@Payload() data: { adjustmentId: string; lotId: string }): Promise<StockAdjustmentLineDto[]> {
-    this.logger.log(`stockAdjustments.linesByLot — adjustment: ${data.adjustmentId}, lot: ${data.lotId}`);
-    return this.service.findByLotId(data.adjustmentId, data.lotId);
-  }
-
   @MessagePattern({ cmd: 'stockAdjustments.lineById' })
   lineById(@Payload() data: { adjustmentId: string; lineId: string }): Promise<StockAdjustmentLineDto> {
     this.logger.log(`stockAdjustments.lineById — adjustment: ${data.adjustmentId}, line: ${data.lineId}`);

@@ -7,8 +7,6 @@ export const STOCK_ADJUSTMENT_LOT_KEY = (adjustmentId: string, lotId: string) =>
 export const STOCK_ADJUSTMENT_LINES_KEY = (id: string) => ['commerce', 'stock-adjustments', id, 'lines'] as const;
 export const STOCK_ADJUSTMENT_LINES_TABLE_KEY = (id: string) =>
   ['commerce', 'stock-adjustments', id, 'lines', 'table'] as const;
-export const STOCK_ADJUSTMENT_LINES_BY_LOT_KEY = (adjustmentId: string, lotId: string) =>
-  ['commerce', 'stock-adjustments', adjustmentId, 'lots', lotId, 'lines'] as const;
 export const STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY = (adjustmentId: string, lotId: string) =>
   ['commerce', 'stock-adjustments', adjustmentId, 'lots', lotId, 'lines', 'table'] as const;
 export const STOCK_ADJUSTMENT_LINE_KEY = (adjustmentId: string, lineId: string) =>

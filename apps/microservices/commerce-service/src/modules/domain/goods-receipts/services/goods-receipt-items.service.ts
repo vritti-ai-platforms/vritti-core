@@ -21,8 +21,11 @@ import { GoodsReceiptsRepository } from '../repositories/goods-receipts.reposito
 export class GoodsReceiptItemsService {
   private readonly logger = new Logger(GoodsReceiptItemsService.name);
 
-  private static readonly FIELD_MAP: FieldMap = {
+  private static readonly SEARCH_FIELD_MAP: FieldMap = {
     inventoryItemName: { column: inventoryItems.name, type: 'string' },
+  };
+
+  private static readonly FILTER_FIELD_MAP: FieldMap = {
     rejectedQuantity: { column: goodsReceiptItems.rejectedQuantity, type: 'number' },
   };
 
@@ -49,14 +52,17 @@ export class GoodsReceiptItemsService {
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     await this.ensureReceiptExists(goodsReceiptId);
 
-    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptItemsService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptItemsService.FIELD_MAP);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptItemsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptItemsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.itemsRepository.findForTable(goodsReceiptId, {
       where,
-      orderBy: FilterProcessor.buildOrderBy(state.sort, GoodsReceiptItemsService.FIELD_MAP),
+      orderBy: FilterProcessor.buildOrderBy(state.sort, {
+        ...GoodsReceiptItemsService.SEARCH_FIELD_MAP,
+        ...GoodsReceiptItemsService.FILTER_FIELD_MAP,
+      }),
       limit,
       offset,
     });

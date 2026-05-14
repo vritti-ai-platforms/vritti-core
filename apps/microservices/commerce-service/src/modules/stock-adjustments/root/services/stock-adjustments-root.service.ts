@@ -106,6 +106,17 @@ export class StockAdjustmentsRootService {
         ? await this.lotsRepository.findByAdjustmentId(id)
         : [];
 
+    if (lots.length > 0) {
+      const existingLines = await this.linesRepository.findByAdjustmentId(id);
+      const usedLotIds = new Set(existingLines.map((l) => l.stockAdjustmentLotId).filter(Boolean));
+      const emptyLotCount = lots.filter((lot) => !usedLotIds.has(lot.id)).length;
+      if (emptyLotCount > 0) {
+        throw new BadRequestException(
+          `${emptyLotCount} lot(s) have no lines. Remove them or add lines before publishing.`,
+        );
+      }
+    }
+
     await this.database.runInTransaction(async () => {
       // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
       for (const lot of lots) {

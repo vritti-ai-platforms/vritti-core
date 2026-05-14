@@ -70,7 +70,7 @@ export class GoodsReceiptLineItemsService {
       throw new BadRequestException('Line items are only allowed on serial-tracked items.');
     }
 
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.goodsReceiptItemId !== itemId) {
       throw new NotFoundException('Goods receipt line not found.');
     }
@@ -119,7 +119,7 @@ export class GoodsReceiptLineItemsService {
       throw new BadRequestException('Line items are only allowed on serial-tracked items.');
     }
 
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.goodsReceiptItemId !== itemId) {
       throw new NotFoundException('Goods receipt line not found.');
     }
@@ -160,7 +160,7 @@ export class GoodsReceiptLineItemsService {
     subItemId: string,
   ): Promise<SuccessResponseDto> {
     const ctx = await this.linesService.getItemContext(goodsReceiptId, itemId);
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.goodsReceiptItemId !== itemId) {
       throw new NotFoundException('Goods receipt line not found.');
     }
@@ -197,7 +197,7 @@ export class GoodsReceiptLineItemsService {
 
   private async ensureLineBelongsToItem(goodsReceiptId: string, itemId: string, lineId: string): Promise<void> {
     void goodsReceiptId;
-    const line = await this.linesRepository.findLineById(lineId);
+    const line = await this.linesRepository.findById(lineId);
     if (!line || line.goodsReceiptItemId !== itemId) {
       throw new NotFoundException('Goods receipt line not found.');
     }

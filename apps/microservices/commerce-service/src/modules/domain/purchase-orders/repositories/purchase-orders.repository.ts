@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
+import { purchaseOrderItems, purchaseOrderNumberSeq, purchaseOrders, suppliers } from '@/db/schema';
 
 @Injectable()
 export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purchaseOrders> {
@@ -113,7 +113,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
     await this.db
       .update(purchaseOrders)
       .set({
-        totalAmount: sql`(SELECT COALESCE(SUM(total_price), 0) FROM vritti_core.purchase_order_items WHERE purchase_order_id = ${id})`,
+        totalAmount: sql`(SELECT COALESCE(SUM(${purchaseOrderItems.totalPrice}), 0) FROM ${purchaseOrderItems} WHERE ${purchaseOrderItems.purchaseOrderId} = ${id})`,
       })
       .where(eq(purchaseOrders.id, id));
   }

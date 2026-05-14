@@ -100,12 +100,6 @@ export function getStockAdjustmentLinesTable(id: string): Promise<StockAdjustmen
     .then((r) => r.data);
 }
 
-export function getStockAdjustmentLinesByLot(id: string, lotId: string): Promise<StockAdjustmentLineData[]> {
-  return axios
-    .get<StockAdjustmentLineData[]>(`commerce-api/stock-adjustments/${id}/lots/${lotId}/lines`)
-    .then((r) => r.data);
-}
-
 export function getStockAdjustmentLinesByLotTable(id: string, lotId: string): Promise<StockAdjustmentLinesTableResponse> {
   return axios
     .get<StockAdjustmentLinesTableResponse>(`commerce-api/stock-adjustments/${id}/lots/${lotId}/lines/table`)

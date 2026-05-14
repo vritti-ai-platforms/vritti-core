@@ -7,7 +7,7 @@ import {
   RowActions,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
-import { DetailField } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
@@ -77,7 +77,7 @@ function LotDetailPanelSkeleton() {
       </div>
 
       {/* Stat plate: bordered + divided strip with 4 label/value cells */}
-      <div className="inline-flex items-stretch divide-x divide-border rounded-md border bg-muted/40 overflow-hidden">
+      <DetailSection>
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list>
@@ -88,7 +88,7 @@ function LotDetailPanelSkeleton() {
             <Skeleton className="h-4 w-20" />
           </div>
         ))}
-      </div>
+      </DetailSection>
 
       {/* DataTable toolbar: Add Line anchored right */}
       <div className="flex items-center justify-end">
@@ -301,12 +301,12 @@ const LotDetailContent = ({
           </div>
         )}
       </div>
-      <div className="inline-flex flex-wrap items-stretch divide-x divide-border rounded-md border bg-muted/40 overflow-hidden">
+      <DetailSection wrap>
         <DetailField className="px-4 py-2" label="Mfg" value={lot.manufacturingDate} dateOnly />
         <DetailField className="px-4 py-2" label="Exp" value={lot.expiryDate} dateOnly />
         <DetailField className="px-4 py-2" label="Total" value={`${lot.totalQuantity} ${uomSymbol}`} />
         <DetailField className="px-4 py-2" label="Lines" value={lot.linesCount} />
-      </div>
+      </DetailSection>
 
       <DataTable
         table={table}
