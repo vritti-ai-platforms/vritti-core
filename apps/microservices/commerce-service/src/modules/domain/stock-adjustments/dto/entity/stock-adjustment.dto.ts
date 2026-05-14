@@ -14,7 +14,6 @@ export class StockAdjustmentDto {
   reason: string | null;
   createdById: string;
   isPublishable: boolean;
-  metadata: Record<string, unknown>;
   publishedAt: string | null;
   createdAt: string;
 
@@ -48,7 +47,6 @@ export class StockAdjustmentDto {
     dto.reason = entity.reason ?? null;
     dto.createdById = entity.createdById;
     dto.isPublishable = Boolean(entity.isPublishable);
-    dto.metadata = (entity.metadata ?? {}) as Record<string, unknown>;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;
@@ -69,7 +67,6 @@ export class StockAdjustmentDto {
     dto.reason = entity.reason ?? null;
     dto.createdById = entity.createdById;
     dto.isPublishable = false;
-    dto.metadata = (entity.metadata ?? {}) as Record<string, unknown>;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;

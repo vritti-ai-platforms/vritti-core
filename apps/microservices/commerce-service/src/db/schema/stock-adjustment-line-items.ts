@@ -1,4 +1,4 @@
-import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
 import { stockAdjustmentLines } from './stock-adjustment-lines';
@@ -13,7 +13,6 @@ export const stockAdjustmentLineItems = coreSchema.table(
       .notNull()
       .references(() => stockAdjustmentLines.id, { onDelete: 'cascade' }),
     serialNumber: varchar('serial_number', { length: 100 }).notNull(),
-    metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

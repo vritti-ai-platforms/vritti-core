@@ -6,7 +6,6 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Plus } from 'lucide-react';
-import { useEffect } from 'react';
 import { useStockAdjustmentLots } from '@/hooks/stock-adjustments';
 import type { StockAdjustmentLotData } from '@/schemas/stock-adjustments';
 import { AddLotDialog } from '../../forms/opening/AddLotDialog';
@@ -28,12 +27,6 @@ export const LotSidePanel = ({
 }: LotSidePanelProps) => {
   const { data: lots = [], isLoading } = useStockAdjustmentLots(adjustmentId);
   const addLotDialog = useDialog();
-
-  // Clear the selection if the currently-selected lot no longer exists (e.g., it was deleted).
-  // No auto-select on initial load — the right pane shows an Empty asking the user to pick a lot.
-  useEffect(() => {
-    if (selectedLotId && !lots.some((lot) => lot.id === selectedLotId)) onSelectLot(null);
-  }, [lots, selectedLotId, onSelectLot]);
 
   return (
     <>

@@ -26,7 +26,6 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
         businessUnitId: stockAdjustmentLineItems.businessUnitId,
         stockAdjustmentLineId: stockAdjustmentLineItems.stockAdjustmentLineId,
         serialNumber: stockAdjustmentLineItems.serialNumber,
-        metadata: stockAdjustmentLineItems.metadata,
         createdAt: stockAdjustmentLineItems.createdAt,
         updatedAt: stockAdjustmentLineItems.updatedAt,
       })

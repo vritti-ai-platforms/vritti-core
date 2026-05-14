@@ -77,6 +77,8 @@ export class StockAdjustmentLotsService {
       });
     }
 
+    this.validateDateOrder(data.manufacturingDate ?? null, data.expiryDate);
+
     const created = await this.repository.create({
       stockAdjustmentId: adjustmentId,
       lotNumber,
@@ -126,6 +128,10 @@ export class StockAdjustmentLotsService {
       }
     }
 
+    const effectiveMfgDate = data.manufacturingDate !== undefined ? data.manufacturingDate : existing.manufacturingDate;
+    const effectiveExpiryDate = data.expiryDate !== undefined ? data.expiryDate : existing.expiryDate;
+    this.validateDateOrder(effectiveMfgDate, effectiveExpiryDate);
+
     await this.repository.update(lotId, {
       ...(data.lotNumber !== undefined ? { lotNumber: data.lotNumber.trim() } : {}),
       ...(data.manufacturingDate !== undefined ? { manufacturingDate: data.manufacturingDate ?? null } : {}),
@@ -155,5 +161,15 @@ export class StockAdjustmentLotsService {
       throw new NotFoundException('Stock adjustment lot not found.');
     }
     return lot;
+  }
+
+  private validateDateOrder(manufacturingDate: string | null | undefined, expiryDate: string): void {
+    if (!manufacturingDate) return;
+    if (new Date(expiryDate) <= new Date(manufacturingDate)) {
+      throw new ValidationException({
+        detail: 'Expiry date must be after manufacturing date.',
+        errors: [{ field: 'expiryDate', message: 'Expiry date must be after manufacturing date.' }],
+      });
+    }
   }
 }

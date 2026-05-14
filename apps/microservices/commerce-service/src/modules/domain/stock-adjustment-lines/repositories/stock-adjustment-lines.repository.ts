@@ -214,7 +214,6 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         quantity: stockAdjustmentLines.quantity,
         resolvedQuantId: stockAdjustmentLines.resolvedQuantId,
         isBalanced: stockAdjustmentLines.isBalanced,
-        metadata: stockAdjustmentLines.metadata,
         createdAt: stockAdjustmentLines.createdAt,
         updatedAt: stockAdjustmentLines.updatedAt,
         locationName: locations.name,

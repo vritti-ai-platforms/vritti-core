@@ -3,9 +3,9 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   locations,
+  type StockAdjustmentLot,
   stockAdjustmentLineItems,
   stockAdjustmentLines,
-  type StockAdjustmentLot,
   stockAdjustmentLots,
 } from '@/db/schema';
 import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
@@ -18,7 +18,6 @@ export type StockAdjustmentLotWithStats = StockAdjustmentLot & {
 export type StockAdjustmentLotDetailRow = StockAdjustmentLot & {
   linesCount: number;
   totalQuantity: number;
-  lineIds: string[];
 };
 
 @Injectable()
@@ -100,10 +99,9 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
     return rows.map((r) => r.node);
   }
 
-  // Single lot's detail — stats + the line-derived helpers (locationIds, lineIds) the FE needs.
-  // Returns undefined if the lot doesn't exist.
+  // Single lot's detail — stats for the selected lot header. Returns undefined if the lot doesn't exist.
   async findLotDetail(lotId: string): Promise<StockAdjustmentLotDetailRow | undefined> {
-    const rows = await this.db
+    const [row] = await this.db
       .select({
         id: stockAdjustmentLots.id,
         organizationId: stockAdjustmentLots.organizationId,
@@ -117,11 +115,6 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
         totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
-        lineIds: sql<string[]>`COALESCE(
-          ARRAY_AGG(${stockAdjustmentLines.id} ORDER BY ${stockAdjustmentLines.createdAt})
-            FILTER (WHERE ${stockAdjustmentLines.id} IS NOT NULL),
-          '{}'::uuid[]
-        )`,
       })
       .from(stockAdjustmentLots)
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
@@ -129,7 +122,6 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
       .groupBy(stockAdjustmentLots.id)
       .limit(1);
 
-    const row = rows[0];
     if (!row) return undefined;
     return {
       ...row,
@@ -143,16 +135,11 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
     return rows[0] as StockAdjustmentLot | undefined;
   }
 
-  async findByAdjustmentIdAndNumber(
-    adjustmentId: string,
-    lotNumber: string,
-  ): Promise<StockAdjustmentLot | undefined> {
+  async findByAdjustmentIdAndNumber(adjustmentId: string, lotNumber: string): Promise<StockAdjustmentLot | undefined> {
     const rows = await this.db
       .select()
       .from(stockAdjustmentLots)
-      .where(
-        and(eq(stockAdjustmentLots.stockAdjustmentId, adjustmentId), eq(stockAdjustmentLots.lotNumber, lotNumber)),
-      )
+      .where(and(eq(stockAdjustmentLots.stockAdjustmentId, adjustmentId), eq(stockAdjustmentLots.lotNumber, lotNumber)))
       .limit(1);
     return rows[0] as StockAdjustmentLot | undefined;
   }

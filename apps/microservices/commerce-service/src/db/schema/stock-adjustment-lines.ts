@@ -4,7 +4,6 @@ import {
   check,
   decimal,
   index,
-  jsonb,
   pgPolicy,
   timestamp,
   uniqueIndex,
@@ -45,7 +44,6 @@ export const stockAdjustmentLines = coreSchema.table(
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),
-    metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

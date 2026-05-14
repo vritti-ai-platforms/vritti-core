@@ -35,7 +35,6 @@ export class StockAdjustmentLineDto {
   resolvedQuantId: string | null;
   isBalanced: boolean;
   lineItemsCount: number;
-  metadata: Record<string, unknown>;
   createdAt: string;
 
   static from(row: StockAdjustmentLineWithRefs): StockAdjustmentLineDto {
@@ -69,7 +68,6 @@ export class StockAdjustmentLineDto {
     dto.resolvedQuantId = row.resolvedQuantId ?? null;
     dto.isBalanced = row.isBalanced;
     dto.lineItemsCount = row.lineItemsCount;
-    dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;
     dto.createdAt = row.createdAt.toISOString();
     return dto;
   }

@@ -1,8 +1,9 @@
+import { broadcastQueryClient } from '@tanstack/query-broadcast-client-experimental';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@vritti/quantum-ui/theme';
 import { ConfirmProvider, LayoutModeProvider } from '@vritti/quantum-ui/context';
 import { QueryErrorBoundary } from '@vritti/quantum-ui/ErrorBoundary';
 import { Toaster } from '@vritti/quantum-ui/Sonner';
+import { ThemeProvider } from '@vritti/quantum-ui/theme';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRender, AuthProvider } from './providers';
 import { PermissionProvider } from './providers/PermissionProvider';
@@ -11,12 +12,15 @@ import { PermissionProvider } from './providers/PermissionProvider';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: 'always',
       retry: 1,
       throwOnError: true,
     },
   },
 });
+
+broadcastQueryClient({ queryClient, broadcastChannel: 'vritti-core' });
 
 const App = () => {
   return (

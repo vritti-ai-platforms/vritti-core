@@ -38,7 +38,9 @@ export class StockAdjustmentLinesService {
 
   private static readonly FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
+    locationPath: { column: locations.pathBreadcrumb, type: 'string' },
     quantity: { column: stockAdjustmentLines.quantity, type: 'number' },
+    uomId: { column: stockAdjustmentLines.uomId, type: 'string' },
   };
 
   constructor(

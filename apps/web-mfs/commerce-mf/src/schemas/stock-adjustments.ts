@@ -54,10 +54,7 @@ export interface StockAdjustmentLotData {
   createdAt: string;
 }
 
-export interface StockAdjustmentLotDetailData extends StockAdjustmentLotData {
-  // Line ids under this lot, ordered by createdAt.
-  lineIds: string[];
-}
+export type StockAdjustmentLotDetailData = StockAdjustmentLotData;
 
 export interface StockAdjustmentLineData {
   id: string;

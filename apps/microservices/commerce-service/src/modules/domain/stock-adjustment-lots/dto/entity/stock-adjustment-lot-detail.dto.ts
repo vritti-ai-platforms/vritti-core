@@ -1,7 +1,5 @@
 import type { StockAdjustmentLotDetailRow } from '../../repositories/stock-adjustment-lots.repository';
 
-// Detail view returned for a single lot — lot fields + the line-derived helpers
-// the FE needs (already-used location ids for excludeIds, line ids).
 export class StockAdjustmentLotDetailDto {
   id: string;
   stockAdjustmentId: string;
@@ -11,7 +9,6 @@ export class StockAdjustmentLotDetailDto {
   resolvedLotId: string | null;
   linesCount: number;
   totalQuantity: number;
-  lineIds: string[];
   createdAt: string;
 
   static from(row: StockAdjustmentLotDetailRow): StockAdjustmentLotDetailDto {
@@ -24,7 +21,6 @@ export class StockAdjustmentLotDetailDto {
     dto.resolvedLotId = row.resolvedLotId ?? null;
     dto.linesCount = row.linesCount;
     dto.totalQuantity = row.totalQuantity;
-    dto.lineIds = row.lineIds;
     dto.createdAt = row.createdAt.toISOString();
     return dto;
   }

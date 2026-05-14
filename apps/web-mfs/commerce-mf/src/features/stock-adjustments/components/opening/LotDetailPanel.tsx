@@ -13,6 +13,8 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
+import { UomFilter } from '@vritti/quantum-ui/selects/uom';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -312,6 +314,17 @@ const LotDetailContent = ({
         isLoading={isLinesLoading}
         onRowClick={onSelectLine ? (row) => onSelectLine(row.id) : undefined}
         selectedRowId={selectedLineId ?? null}
+        searchConfig={{
+          columns: [
+            { id: 'locationName', label: 'Location' },
+            { id: 'locationPath', label: 'Path' },
+          ],
+          searchAll: true,
+        }}
+        filters={[
+          <ValueFilter key="quantity" name="quantity" label="Quantity" fieldType="number" />,
+          <UomFilter key="uomId" name="uomId" params={{ inventoryItemId }} />,
+        ]}
         toolbarActions={
           isDraft
             ? {
