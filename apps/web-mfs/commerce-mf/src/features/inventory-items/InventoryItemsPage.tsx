@@ -123,7 +123,7 @@ export const InventoryItemsPage = () => {
             multiple
             options={Object.entries(inventoryTrackingConfig).map(([value, { label }]) => ({ label, value }))}
           />,
-          <CategoryFilter key="categoryId" />,
+          <CategoryFilter key="categoryId" multiple />,
           <UomFilter key="uomId" multiple />,
         ]}
         toolbarActions={{
