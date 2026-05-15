@@ -33,12 +33,15 @@ export class StockAdjustmentsLinesService {
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     await this.validateUomId(adjustment, data.uomId);
-    const conversionFactor = await this.uomConversionsService.resolveFactor(
-      adjustment.inventoryItemId,
-      data.uomId,
-    );
+    const conversionFactor = await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId);
 
-    const line = await this.linesService.addLine(adjustment, { ...data, conversionFactor });
+    // Store quantity in primary UOM; conversionFactor is kept as a snapshot for auditing
+    const quantityInPrimaryUom = data.quantity * conversionFactor;
+    const line = await this.linesService.addLine(adjustment, {
+      ...data,
+      quantity: quantityInPrimaryUom,
+      conversionFactor,
+    });
     return {
       success: true,
       message: `Line added to adjustment "${adjustment.code}" successfully.`,
@@ -66,7 +69,15 @@ export class StockAdjustmentsLinesService {
         ? await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId)
         : undefined;
 
-    return this.linesService.updateLine(adjustment, lineId, { ...data, conversionFactor });
+    // Convert quantity to primary UOM when both quantity and uomId are being updated
+    const quantityInPrimaryUom =
+      data.quantity !== undefined && conversionFactor !== undefined ? data.quantity * conversionFactor : data.quantity;
+
+    return this.linesService.updateLine(adjustment, lineId, {
+      ...data,
+      quantity: quantityInPrimaryUom,
+      conversionFactor,
+    });
   }
 
   private async getAdjustmentContext(adjustmentId: string) {

@@ -1,17 +1,13 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { Button } from '@vritti/quantum-ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
-import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useDeleteInventoryItemQuant, useInventoryItemQuant } from '@/hooks/inventory-item-quants';
+import { useParams } from 'react-router-dom';
+import { useInventoryItemQuant } from '@/hooks/inventory-item-quants';
 import type { InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
-import { QuantLedgerTab } from './tabs/QuantLedgerTab';
 
 function getQuantStatus(expiryDate: string | null): InventoryItemQuantStatus {
   if (!expiryDate) return 'FRESH';
@@ -33,25 +29,9 @@ const STATUS_CONFIG: Record<
 
 export const QuantDetailPage = () => {
   const { quantId } = useParams<{ quantId: string }>();
-  const navigate = useNavigate();
-  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState('overview');
 
   const { data: quant, isLoading } = useInventoryItemQuant(quantId ?? null);
-  const deleteMutation = useDeleteInventoryItemQuant(quant?.inventoryItemId ?? '');
-
-  const handleDelete = async () => {
-    if (!quant) return;
-    const confirmed = await confirm({
-      title: `Delete quant${quant.lotNumber ? ` from lot ${quant.lotNumber}` : ''}?`,
-      description: 'This quant and all its ledger entries will be permanently removed.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) {
-      deleteMutation.mutate(quant.id, { onSuccess: () => navigate('..') });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -76,19 +56,6 @@ export const QuantDetailPage = () => {
           quant.locationPath
             ? `${quant.locationPath} › ${quant.locationName ?? ''}`
             : (quant.locationName ?? '—')
-        }
-        actions={
-          quant.canDelete ? (
-            <Button
-              variant="destructive"
-              size="sm"
-              startAdornment={<Trash2 className="size-4" />}
-              onClick={handleDelete}
-              isLoading={deleteMutation.isPending}
-            >
-              Delete Quant
-            </Button>
-          ) : undefined
         }
       />
 
@@ -129,11 +96,6 @@ export const QuantDetailPage = () => {
                 </CardContent>
               </Card>
             ),
-          },
-          {
-            value: 'ledger',
-            label: 'Ledger',
-            content: <QuantLedgerTab quantId={quant.id} />,
           },
         ]}
         value={activeTab}

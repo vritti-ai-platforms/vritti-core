@@ -2,13 +2,14 @@ import { type UseQueryOptions, useQuery, useSuspenseQuery } from '@tanstack/reac
 import type { AxiosError } from 'axios';
 import type { InventoryItemLotsTableResponse } from '@/schemas/inventory-item-lots';
 import type { InventoryItemQuantsTableResponse } from '@/schemas/inventory-item-quants';
-import type { InventoryItemData } from '@/schemas/inventory-items';
+import type { InventoryItemData, InventoryItemLedgerTableResponse } from '@/schemas/inventory-items';
 import {
   getInventoryItem,
+  getInventoryItemLedgerTable,
   getInventoryItemLotsTable,
   getInventoryItemQuantsTable,
 } from '@/services/inventory-items.service';
-import { INVENTORY_ITEM_KEY, INVENTORY_ITEM_LOTS_KEY, INVENTORY_ITEM_QUANTS_KEY } from './keys';
+import { INVENTORY_ITEM_KEY, INVENTORY_ITEM_LEDGER_KEY, INVENTORY_ITEM_LOTS_KEY, INVENTORY_ITEM_QUANTS_KEY } from './keys';
 
 // Fetches inventory item detail by ID; suspends until data is available
 export function useInventoryItem(id: string) {
@@ -37,6 +38,18 @@ export function useInventoryItemLotsTable(
   return useQuery<InventoryItemLotsTableResponse, AxiosError>({
     queryKey: [...INVENTORY_ITEM_LOTS_KEY(itemId ?? '')],
     queryFn: () => getInventoryItemLotsTable(itemId as string),
+    enabled: !!itemId,
+    ...options,
+  });
+}
+
+export function useInventoryItemLedgerTable(
+  itemId: string | null,
+  options?: Omit<UseQueryOptions<InventoryItemLedgerTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
+) {
+  return useQuery<InventoryItemLedgerTableResponse, AxiosError>({
+    queryKey: [...INVENTORY_ITEM_LEDGER_KEY(itemId ?? '')],
+    queryFn: () => getInventoryItemLedgerTable(itemId as string),
     enabled: !!itemId,
     ...options,
   });

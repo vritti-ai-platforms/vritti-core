@@ -67,7 +67,7 @@ export const relations = defineRelations(schema, (r) => ({
     inventoryItemQuants: r.many.inventoryItemQuants(),
     inventoryItemQuantItems: r.many.inventoryItemQuantItems(),
     inventoryItemLots: r.many.inventoryItemLots(),
-    inventoryLedger: r.many.inventoryLedger(),
+    inventoryItemLedger: r.many.inventoryItemLedger(),
     stockAdjustments: r.many.stockAdjustments(),
     stockTransfers: r.many.stockTransfers(),
     inventoryItemLocations: r.many.inventoryItemLocations(),
@@ -123,7 +123,6 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItemQuants.lotId,
       to: r.inventoryItemLots.id,
     }),
-    inventoryLedger: r.many.inventoryLedger(),
     inventoryItemQuantItems: r.many.inventoryItemQuantItems(),
   },
   inventoryItemLots: {
@@ -134,14 +133,10 @@ export const relations = defineRelations(schema, (r) => ({
     inventoryItemQuants: r.many.inventoryItemQuants(),
   },
   inventoryStockLevels: {},
-  inventoryLedger: {
+  inventoryItemLedger: {
     inventoryItem: r.one.inventoryItems({
-      from: r.inventoryLedger.inventoryItemId,
+      from: r.inventoryItemLedger.inventoryItemId,
       to: r.inventoryItems.id,
-    }),
-    batch: r.one.inventoryItemQuants({
-      from: r.inventoryLedger.batchId,
-      to: r.inventoryItemQuants.id,
     }),
   },
   bom: {

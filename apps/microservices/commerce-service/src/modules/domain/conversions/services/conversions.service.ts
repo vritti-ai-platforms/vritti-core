@@ -12,8 +12,8 @@ import {
   type ConversionStatus,
   ConversionStatusValues,
   conversions,
-  InventoryLedgerReferenceTypeValues,
-  InventoryLedgerTypeValues,
+  InventoryItemLedgerReferenceTypeValues,
+  InventoryItemLedgerTypeValues,
 } from '@/db/schema';
 import type { CreateConversionDto } from '@/modules/conversions/dto/request/create-conversion.dto';
 import {
@@ -132,8 +132,8 @@ export class ConversionsService {
         await this.batchesService.adjustBatch({
           batchId,
           quantity: -totalDeduct,
-          type: InventoryLedgerTypeValues.CONVERSION_INPUT,
-          referenceType: InventoryLedgerReferenceTypeValues.CONVERSION,
+          type: InventoryItemLedgerTypeValues.CONVERSION_INPUT,
+          referenceType: InventoryItemLedgerReferenceTypeValues.CONVERSION,
           referenceId: id,
           notes: `Conversion input (qty: ${input.quantity}, wastage: ${input.wastageQuantity})`,
         });
@@ -153,8 +153,8 @@ export class ConversionsService {
         // For tracking='quantity' the service will reject `lot`; we let the service decide based on tracking.
         // Items with tracking='serial' will fail here — conversion of serialized goods is a follow-up.
         lot: { lotNumber: autoLot, expiryDate: placeholderExpiry },
-        type: InventoryLedgerTypeValues.CONVERSION_OUTPUT,
-        referenceType: InventoryLedgerReferenceTypeValues.CONVERSION,
+        type: InventoryItemLedgerTypeValues.CONVERSION_OUTPUT,
+        referenceType: InventoryItemLedgerReferenceTypeValues.CONVERSION,
         referenceId: id,
         notes: `Conversion output (qty: ${output.quantity})`,
       });

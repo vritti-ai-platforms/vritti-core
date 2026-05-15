@@ -22,7 +22,7 @@ import type { InventoryItemResponseDto } from './dto/response/inventory-item-res
 import type { InventoryItemStockResponseDto } from './dto/response/inventory-item-stock-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from './dto/response/inventory-item-uom-conversion-response.dto';
-import type { InventoryLedgerTableResponseDto } from './dto/response/inventory-ledger-table-response.dto';
+import type { InventoryItemLedgerTableResponseDto } from './dto/response/inventory-item-ledger-table-response.dto';
 import type { InventoryLevelTableResponseDto } from './dto/response/inventory-level-table-response.dto';
 import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
@@ -108,7 +108,7 @@ export class InventoryItemsGatewayController {
 
   // Returns paginated ledger entries for an inventory item data table
   @Get(':id/ledger/table')
-  getLedgerTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryLedgerTableResponseDto> {
+  getLedgerTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log(`GET /commerce-api/inventory-items/${id}/ledger/table`);
     return this.service.findLedgerForTable(id, userId);
   }

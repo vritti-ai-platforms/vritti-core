@@ -9,3 +9,5 @@ export const INVENTORY_ITEM_ALLOWED_UOM_IDS_KEY = (itemId: string) =>
   ['commerce', 'inventory-items', itemId, 'allowed-uom-ids'] as const;
 export const INVENTORY_ITEM_SUPPLIERS_TABLE_KEY = (itemId: string) =>
   ['commerce', 'inventory-items', itemId, 'suppliers'] as const;
+export const INVENTORY_ITEM_LEDGER_KEY = (itemId: string) =>
+  ['commerce', 'inventory-items', itemId, 'ledger'] as const;

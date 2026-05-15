@@ -6,14 +6,14 @@ import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories
 import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryLedgerService } from '@domain/inventory-ledger/services/inventory-ledger.service';
+import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { PurchaseOrderItemsRepository } from '@domain/purchase-orders/repositories/purchase-order-items.repository';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException, NotFoundException, PrimaryDatabaseService } from '@vritti/api-sdk';
 import {
   GoodsReceiptStatusValues,
-  InventoryLedgerReferenceTypeValues,
-  InventoryLedgerTypeValues,
+  InventoryItemLedgerReferenceTypeValues,
+  InventoryItemLedgerTypeValues,
   InventoryTrackingValues,
   PurchaseOrderStatusValues,
 } from '@/db/schema';
@@ -29,7 +29,7 @@ export class GoodsReceiptsPublishService {
     private readonly lineItemsRepository: GoodsReceiptLineItemsRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
     private readonly quantsService: InventoryItemQuantsService,
-    private readonly ledgerService: InventoryLedgerService,
+    private readonly ledgerService: InventoryItemLedgerService,
     private readonly receiptsService: GoodsReceiptsService,
   ) {}
 
@@ -138,10 +138,9 @@ export class GoodsReceiptsPublishService {
 
           await this.ledgerService.createEntry({
             inventoryItemId: item.inventoryItemId,
-            batchId: quant.id,
-            type: InventoryLedgerTypeValues.GOODS_RECEIPT,
+            type: InventoryItemLedgerTypeValues.GOODS_RECEIPT,
             quantity: String(lineQuantity),
-            referenceType: InventoryLedgerReferenceTypeValues.GOODS_RECEIPT,
+            referenceType: InventoryItemLedgerReferenceTypeValues.GOODS_RECEIPT,
             referenceId: receipt.id,
             notes: receipt.notes ?? null,
           });

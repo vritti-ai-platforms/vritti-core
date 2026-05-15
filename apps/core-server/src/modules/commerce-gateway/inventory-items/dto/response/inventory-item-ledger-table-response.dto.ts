@@ -1,11 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { TableViewState } from '@vritti/api-sdk';
 import { TableResponseDto } from '@vritti/api-sdk';
-import { InventoryLedgerResponseDto } from './inventory-ledger-response.dto';
+import { InventoryItemLedgerResponseDto } from './inventory-item-ledger-response.dto';
 
-export class InventoryLedgerTableResponseDto extends TableResponseDto<InventoryLedgerResponseDto> {
-  @ApiProperty({ type: [InventoryLedgerResponseDto] })
-  declare result: InventoryLedgerResponseDto[];
+export class InventoryItemLedgerTableResponseDto extends TableResponseDto<InventoryItemLedgerResponseDto> {
+  @ApiProperty({ type: [InventoryItemLedgerResponseDto] })
+  declare result: InventoryItemLedgerResponseDto[];
 
   @ApiProperty()
   declare count: number;

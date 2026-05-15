@@ -1,6 +1,6 @@
-import { Controller, Delete, Get, Logger, Param, Query } from '@nestjs/common';
+import { Controller, Get, Logger, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
+import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import type { InventoryBatchResponseDto } from './dto/response/inventory-batch-response.dto';
 import { InventoryItemQuantsGatewayService } from './services/inventory-item-quants-gateway.service';
@@ -24,17 +24,5 @@ export class InventoryItemQuantsGatewayController {
   findById(@Param('id') id: string): Promise<InventoryBatchResponseDto> {
     this.logger.log(`GET /commerce-api/inventory-item-quants/${id}`);
     return this.service.findById(id);
-  }
-
-  @Delete(':id')
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/inventory-item-quants/${id}`);
-    return this.service.delete(id);
-  }
-
-  @Get(':id/ledger/table')
-  getLedgerTable(@Param('id') id: string, @UserId() userId: string) {
-    this.logger.log(`GET /commerce-api/inventory-item-quants/${id}/ledger/table`);
-    return this.service.findLedgerTable(id, userId);
   }
 }

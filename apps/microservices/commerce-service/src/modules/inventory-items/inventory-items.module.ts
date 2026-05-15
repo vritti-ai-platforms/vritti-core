@@ -5,9 +5,9 @@ import { InventoryItemQuantItemsDomainModule } from '@domain/inventory-item-quan
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemUomConversionsDomainModule } from '@domain/inventory-item-uom-conversions/inventory-item-uom-conversions.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
-import { InventoryLedgerDomainModule } from '@domain/inventory-ledger/inventory-ledger.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { Module } from '@nestjs/common';
+import { InventoryItemsLedgerModule } from './ledger/inventory-items-ledger.module';
 import { InventoryItemsLocationsController } from './locations/inventory-items-locations.controller';
 import { InventoryItemsLocationsService } from './locations/services/inventory-items-locations.service';
 import { InventoryItemsLotsController } from './lots/inventory-items-lots.controller';
@@ -30,9 +30,9 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemLotsDomainModule,
     InventoryItemQuantsDomainModule,
     InventoryItemQuantItemsDomainModule,
-    InventoryLedgerDomainModule,
     SupplierItemsDomainModule,
     CategoriesDomainModule,
+    InventoryItemsLedgerModule,
   ],
   controllers: [
     InventoryItemsRootController,

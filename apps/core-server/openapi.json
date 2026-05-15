@@ -3216,60 +3216,6 @@
         "tags": [
           "Commerce - Inventory Item Batches"
         ]
-      },
-      "delete": {
-        "operationId": "InventoryItemQuantsGatewayController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Inventory Item Batches"
-        ]
-      }
-    },
-    "/commerce-api/inventory-item-quants/{id}/ledger/table": {
-      "get": {
-        "operationId": "InventoryItemQuantsGatewayController_getLedgerTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Inventory Item Batches"
-        ]
       }
     },
     "/commerce-api/conversions/table": {

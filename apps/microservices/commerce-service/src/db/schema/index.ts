@@ -17,7 +17,7 @@ export * from './inventory-item-quant-items';
 export * from './inventory-item-quants';
 export * from './inventory-item-uom-conversions';
 export * from './inventory-items';
-export * from './inventory-ledger';
+export * from './inventory-item-ledger';
 export * from './inventory-stock-levels';
 export * from './invoice-items';
 export * from './invoices';

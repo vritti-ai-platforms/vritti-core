@@ -12,7 +12,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc, eq, isNotNull, isNull, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { uom, uomDimensions } from '@/db/schema';
+import { inventoryItemUomConversions, uom, uomDimensions } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
 import { UomDto } from '../dto/entity/uom.dto';
@@ -92,11 +92,24 @@ export class UomService {
       conditions.push(sql`${uom.id} IN ${this.uomRepository.allowedUomIdsForItemSubquery(options.inventoryItemId)}`);
     }
 
+    const joins = options?.inventoryItemId
+      ? [{ table: inventoryItemUomConversions, on: and(eq(inventoryItemUomConversions.uomId, uom.id), eq(inventoryItemUomConversions.inventoryItemId, options.inventoryItemId)) as SQL, type: 'left' as const }]
+      : undefined;
+
+    // COALESCE defaults null numerator/denominator to 1 for the primary UOM (no conversion row in the LEFT JOIN)
+    const additionalExpressions = options?.inventoryItemId
+      ? {
+          numerator: sql<number>`COALESCE(${inventoryItemUomConversions.numerator}, 1)`,
+          denominator: sql<number>`COALESCE(${inventoryItemUomConversions.denominator}, 1)`,
+        }
+      : undefined;
+
     return this.uomRepository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
+      additionalExpressions,
       groupIdKey: query.groupIdKey,
       ...(query.groupIdKey === 'dimensionId' ? { groupTable: uomDimensions } : {}),
       search: query.search,
@@ -106,6 +119,7 @@ export class UomService {
       excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
+      ...(joins && { joins }),
       ...(conditions.length > 0 && { conditions }),
     });
   }

@@ -1,5 +1,5 @@
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryLedgerService } from '@domain/inventory-ledger/services/inventory-ledger.service';
+import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
 import type { StockAdjustmentLineWithRefs } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
@@ -19,8 +19,8 @@ import {
 } from '@vritti/api-sdk';
 import _ from '@vritti/api-sdk/lodash';
 import {
-  InventoryLedgerReferenceTypeValues,
-  InventoryLedgerTypeValues,
+  InventoryItemLedgerReferenceTypeValues,
+  InventoryItemLedgerTypeValues,
   type InventoryTracking,
   InventoryTrackingValues,
   type StockAdjustment,
@@ -45,7 +45,7 @@ export class StockAdjustmentsRootService {
     private readonly lotsService: StockAdjustmentsLotsService,
     private readonly linesService: StockAdjustmentLinesService,
     private readonly batchesService: InventoryItemQuantsService,
-    private readonly ledgerService: InventoryLedgerService,
+    private readonly ledgerService: InventoryItemLedgerService,
     private readonly adjustmentsService: StockAdjustmentsService,
   ) {}
 
@@ -238,10 +238,9 @@ export class StockAdjustmentsRootService {
 
     await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
-      batchId: quant.id,
-      type: InventoryLedgerTypeValues.OPENING_STOCK,
+      type: InventoryItemLedgerTypeValues.OPENING_STOCK,
       quantity: String(primaryQty),
-      referenceType: InventoryLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
+      referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
       referenceId: adjustmentId,
       notes: adjustment.reason ?? null,
     });
@@ -279,10 +278,9 @@ export class StockAdjustmentsRootService {
 
     await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
-      batchId: line.quantId,
-      type: InventoryLedgerTypeValues.ADJUSTMENT,
+      type: InventoryItemLedgerTypeValues.ADJUSTMENT,
       quantity: String(signedDelta),
-      referenceType: InventoryLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
+      referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
       referenceId: adjustmentId,
       notes: `${adjustment.type}: ${adjustment.reason ?? ''}`,
     });

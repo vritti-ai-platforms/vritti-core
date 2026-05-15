@@ -1,5 +1,4 @@
 import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
-import { InventoryLedgerService } from '@domain/inventory-ledger/services/inventory-ledger.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -16,13 +15,15 @@ import {
   type InventoryItemLot,
   type InventoryItemQuant,
   type InventoryItemQuantItem,
-  type InventoryLedgerReferenceType,
-  type InventoryLedgerType,
+  type InventoryItemLedgerReferenceType,
+  type InventoryItemLedgerType,
   type InventoryTracking,
   InventoryTrackingValues,
   inventoryItemLots,
   inventoryItemQuants,
+  inventoryItems,
   locations,
+  uom,
 } from '@/db/schema';
 import { InventoryItemQuantDto, LocationStockDto } from '../dto/entity/inventory-item-quant.dto';
 import { InventoryItemQuantsRepository } from '../repositories/inventory-item-quants.repository';
@@ -55,7 +56,6 @@ export class InventoryItemQuantsService {
   constructor(
     private readonly database: PrimaryDatabaseService,
     private readonly repository: InventoryItemQuantsRepository,
-    private readonly ledgerService: InventoryLedgerService,
     private readonly lotsService: InventoryItemLotsService,
   ) {}
 
@@ -67,8 +67,8 @@ export class InventoryItemQuantsService {
     quantity: number;
     lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
     serialNumbers?: string[];
-    type: InventoryLedgerType;
-    referenceType?: InventoryLedgerReferenceType;
+    type: InventoryItemLedgerType;
+    referenceType?: InventoryItemLedgerReferenceType;
     referenceId?: string;
     notes?: string;
   }): Promise<{ batch: InventoryItemQuant }> {
@@ -102,15 +102,6 @@ export class InventoryItemQuantsService {
 
     const quant = await this.database.runInTransaction(async () => {
       const { quant: q } = await this.createBatchScoped(createParams);
-      await this.ledgerService.createEntry({
-        inventoryItemId: params.inventoryItemId,
-        batchId: q.id,
-        type: params.type,
-        quantity: String(params.quantity),
-        referenceType: params.referenceType ?? null,
-        referenceId: params.referenceId ?? null,
-        notes: params.notes ?? null,
-      });
       return q;
     });
 
@@ -233,8 +224,8 @@ export class InventoryItemQuantsService {
     batchId: string;
     quantity: number; // signed; for tracking='serial' should equal -serials.length
     serials?: string[]; // tracking='serial' only
-    type: InventoryLedgerType;
-    referenceType?: InventoryLedgerReferenceType;
+    type: InventoryItemLedgerType;
+    referenceType?: InventoryItemLedgerReferenceType;
     referenceId?: string;
     notes?: string;
   }): Promise<{ batch: InventoryItemQuant }> {
@@ -250,15 +241,6 @@ export class InventoryItemQuantsService {
 
     const updated = await this.database.runInTransaction(async () => {
       const { quant: u } = await this.adjustBatchScoped(params.batchId, adjustParams);
-      await this.ledgerService.createEntry({
-        inventoryItemId: u.inventoryItemId,
-        batchId: u.id,
-        type: params.type,
-        quantity: String(params.quantity),
-        referenceType: params.referenceType ?? null,
-        referenceId: params.referenceId ?? null,
-        notes: params.notes ?? null,
-      });
       return u;
     });
 
@@ -267,8 +249,8 @@ export class InventoryItemQuantsService {
   }
 
   // Adjusts a quant within a transaction (no ledger — caller handles it).
-  //   'quantity' | 'lot':         delta-based adjustment of quant.quantity
-  //   'serial' | 'lot_serial':    resolves serials → consumes those quant_items; quantity decremented by length
+  //   'quantity' | 'lot':         delta-based adjustment; auto-deletes quant when quantity <= 0
+  //   'serial' | 'lot_serial':    resolves serials → consumes those quant_items; auto-deletes at zero
   async adjustBatchScoped(
     batchId: string,
     params: AdjustQuantParams,
@@ -278,6 +260,7 @@ export class InventoryItemQuantsService {
         case 'quantity':
         case 'lot': {
           const quant = await this.repository.updateQuantity(batchId, String(params.delta));
+          if (Number(quant.quantity) <= 0) await this.repository.deleteQuant(batchId);
           return { quant, consumedItems: [] };
         }
         case 'serial':
@@ -288,6 +271,7 @@ export class InventoryItemQuantsService {
           }
           await this.repository.consumeQuantItems(items.map((i) => i.id));
           const quant = await this.repository.updateQuantity(batchId, String(-items.length));
+          if (Number(quant.quantity) <= 0) await this.repository.deleteQuant(batchId);
           return { quant, consumedItems: items };
         }
       }
@@ -340,28 +324,13 @@ export class InventoryItemQuantsService {
       offset,
     });
 
-    const dtos = await Promise.all(
-      result.map(async (row) => {
-        const canDelete = !(await this.ledgerService.hasNonOpeningEntries(row.id));
-        return InventoryItemQuantDto.from(row, canDelete);
-      }),
-    );
-
-    return { result: dtos, count };
+    return { result: result.map((row) => InventoryItemQuantDto.from(row, true)), count };
   }
 
   async findQuantById(id: string): Promise<InventoryItemQuantDto> {
     const row = await this.repository.findById(id);
     if (!row) throw new NotFoundException('Quant not found.');
-    const canDelete = !(await this.ledgerService.hasNonOpeningEntries(id));
-    return InventoryItemQuantDto.from(row, canDelete);
-  }
-
-  async deleteQuant(id: string): Promise<void> {
-    const canDelete = !(await this.ledgerService.hasNonOpeningEntries(id));
-    if (!canDelete) throw new BadRequestException('Cannot delete quant — stock has been used.');
-    await this.repository.deleteQuant(id);
-    this.logger.log(`Deleted quant ${id}`);
+    return InventoryItemQuantDto.from(row, true);
   }
 
   async findLocationStockByItemId(itemId: string): Promise<LocationStockDto[]> {
@@ -379,30 +348,33 @@ export class InventoryItemQuantsService {
     });
   }
 
-  async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    if (!query.inventoryItemId) throw new BadRequestException('inventoryItemId is required.');
+  async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {
     const search = query.search?.trim();
+    const hasItemFilter = !!query.inventoryItemId;
+    // inventoryItems is listed first so resolveColumn('name') resolves to inventoryItems.name, not locations.name
+    const joins = [
+      { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id), type: 'left' as const },
+      { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id), type: 'left' as const },
+      { table: locations, on: eq(inventoryItemQuants.locationId, locations.id), type: 'left' as const },
+      { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' as const },
+    ];
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
-      label: query.labelKey || 'id',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
+      label: query.labelKey || (hasItemFilter ? 'lotNumber' : 'name'),
+      description: query.descriptionKey || (hasItemFilter ? 'pathBreadcrumb' : 'lotNumber'),
+      additionalKeys: query.additionalKeys || (hasItemFilter ? 'quantity,symbol' : 'quantity,pathBreadcrumb'),
       values: query.values,
       excludeIds: query.excludeIds,
       limit: query.limit,
       offset: query.offset,
       orderByKey: query.orderByKey || 'createdAt',
       orderDirection: query.orderDirection || 'desc',
-      where: { inventoryItemId: query.inventoryItemId },
-      groupTable: query.groupIdKey === 'locationId' ? locations : undefined,
-      groupIdKey: query.groupIdKey === 'locationId' ? 'id' : undefined,
-      groupLabelKey: query.groupIdKey === 'locationId' ? 'name' : undefined,
-      joins: [
-        { table: locations, on: eq(inventoryItemQuants.locationId, locations.id), type: 'left' },
-        { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id), type: 'left' },
-      ],
+      where: hasItemFilter ? { inventoryItemId: query.inventoryItemId } : undefined,
+      joins,
       conditions: search
-        ? [or(ilike(locations.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL]
+        ? hasItemFilter
+          ? [or(ilike(locations.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL]
+          : [or(ilike(inventoryItems.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL]
         : undefined,
     });
   }

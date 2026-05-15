@@ -1,25 +1,21 @@
-import type { InventoryLedgerEntry, InventoryLedgerType } from '@/db/schema';
+import type { InventoryItemLedgerEntry, InventoryItemLedgerType } from '@/db/schema';
 
-export class InventoryLedgerDto {
+export class InventoryItemLedgerDto {
   id: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
-  batchId: string | null;
-  batchNumber: string | null;
-  type: InventoryLedgerType;
+  type: InventoryItemLedgerType;
   quantity: number;
   referenceType: string | null;
   referenceId: string | null;
   notes: string | null;
   createdAt: string;
 
-  static from(entry: InventoryLedgerEntry, itemName?: string | null, batchNumber?: string | null): InventoryLedgerDto {
-    const dto = new InventoryLedgerDto();
+  static from(entry: InventoryItemLedgerEntry, itemName?: string | null): InventoryItemLedgerDto {
+    const dto = new InventoryItemLedgerDto();
     dto.id = entry.id;
     dto.inventoryItemId = entry.inventoryItemId;
     dto.inventoryItemName = itemName ?? null;
-    dto.batchId = entry.batchId ?? null;
-    dto.batchNumber = batchNumber ?? null;
     dto.type = entry.type;
     dto.quantity = Number(entry.quantity);
     dto.referenceType = entry.referenceType ?? null;

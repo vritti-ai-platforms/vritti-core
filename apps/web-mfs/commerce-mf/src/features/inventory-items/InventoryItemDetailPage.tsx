@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
+import { LedgerTab } from './tabs/LedgerTab';
 import { LocationsTab } from './tabs/LocationsTab';
 import { LotsTab } from './tabs/LotsTab';
 import { OverviewTab } from './tabs/OverviewTab';
@@ -88,6 +89,11 @@ export const InventoryItemDetailPage = () => {
             value: 'quants',
             label: 'Quants',
             content: <QuantsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+          },
+          {
+            value: 'ledger',
+            label: 'Ledger',
+            content: <LedgerTab itemId={item.id} uomSymbol={item.uomSymbol} />,
           },
         ]}
         value={activeTab}

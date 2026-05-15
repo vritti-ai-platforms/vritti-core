@@ -5,6 +5,7 @@ import type { InventoryItemQuantsTableResponse } from '@/schemas/inventory-item-
 import type {
   CreateInventoryItemFormData,
   InventoryItemData,
+  InventoryItemLedgerTableResponse,
   InventoryItemStockData,
   InventoryItemsTableResponse,
   UpdateInventoryItemFormData,
@@ -54,5 +55,11 @@ export function getInventoryItemSuppliersTable(id: string): Promise<InventoryIte
     .get<InventoryItemSuppliersTableResponse>(`commerce-api/inventory-items/${id}/suppliers/table`, {
       showSuccessToast: false,
     })
+    .then((r) => r.data);
+}
+
+export function getInventoryItemLedgerTable(id: string): Promise<InventoryItemLedgerTableResponse> {
+  return axios
+    .get<InventoryItemLedgerTableResponse>(`commerce-api/inventory-items/${id}/ledger/table`)
     .then((r) => r.data);
 }

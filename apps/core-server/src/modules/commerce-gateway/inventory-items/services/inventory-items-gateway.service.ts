@@ -25,8 +25,8 @@ import type {
 } from '../dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '../dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
-import type { InventoryLedgerResponseDto } from '../dto/response/inventory-ledger-response.dto';
-import type { InventoryLedgerTableResponseDto } from '../dto/response/inventory-ledger-table-response.dto';
+import type { InventoryItemLedgerResponseDto } from '../dto/response/inventory-item-ledger-response.dto';
+import type { InventoryItemLedgerTableResponseDto } from '../dto/response/inventory-item-ledger-table-response.dto';
 import type { InventoryLevelResponseDto } from '../dto/response/inventory-level-response.dto';
 import type { InventoryLevelTableResponseDto } from '../dto/response/inventory-level-table-response.dto';
 
@@ -135,14 +135,14 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns paginated ledger entries for an inventory item data table
-  async findLedgerForTable(itemId: string, userId: string): Promise<InventoryLedgerTableResponseDto> {
+  async findLedgerForTable(itemId: string, userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log('inventoryItems.ledgerTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `inventory-item-${itemId}-ledger`,
     );
 
-    const { result, count } = await this.nats.send<{ result: InventoryLedgerResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: InventoryItemLedgerResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.ledgerTable',
       { itemId, ...state },

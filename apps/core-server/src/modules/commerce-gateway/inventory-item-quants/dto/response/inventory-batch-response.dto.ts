@@ -34,9 +34,6 @@ export class InventoryBatchResponseDto {
   @ApiPropertyOptional({ description: 'Goods receipt item ID linked to this batch', nullable: true })
   goodsReceiptItemId: string | null;
 
-  @ApiProperty({ description: 'Whether the batch can be deleted' })
-  canDelete: boolean;
-
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { PrimaryBaseRepository, PrimaryDatabaseService, type SelectQueryResult } from '@vritti/api-sdk';
+import { and, desc, eq, ilike, inArray, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemLot,
   inventoryItemLots,

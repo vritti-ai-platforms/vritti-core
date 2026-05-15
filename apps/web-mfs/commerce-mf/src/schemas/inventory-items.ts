@@ -108,3 +108,28 @@ export interface InventoryItemStockData {
   availableQuantity: number;
   reorderLevel: number | null;
 }
+
+export type InventoryItemLedgerType =
+  | 'GOODS_RECEIPT'
+  | 'OPENING_STOCK'
+  | 'ORDER_RESERVE'
+  | 'ORDER_DEDUCT'
+  | 'ORDER_CANCEL'
+  | 'ADJUSTMENT'
+  | 'CONVERSION_INPUT'
+  | 'CONVERSION_OUTPUT'
+  | 'TRANSFER_OUT'
+  | 'TRANSFER_IN';
+
+export interface InventoryItemLedgerData {
+  id: string;
+  type: InventoryItemLedgerType;
+  quantity: number;
+  balanceAfter: number;
+  referenceType: string | null;
+  referenceId: string | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export type InventoryItemLedgerTableResponse = TableResponse<InventoryItemLedgerData>;

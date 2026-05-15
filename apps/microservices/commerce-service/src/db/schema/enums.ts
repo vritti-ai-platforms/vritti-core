@@ -209,7 +209,7 @@ export const QuantItemStatusValues = {
 };
 export type QuantItemStatus = (typeof quantItemStatusEnum.enumValues)[number];
 
-export const inventoryLedgerTypeEnum = coreSchema.enum('inventory_ledger_type', [
+export const inventoryItemLedgerTypeEnum = coreSchema.enum('inventory_item_ledger_type', [
   'GOODS_RECEIPT',
   'ORDER_RESERVE',
   'ORDER_DEDUCT',
@@ -221,7 +221,7 @@ export const inventoryLedgerTypeEnum = coreSchema.enum('inventory_ledger_type', 
   'TRANSFER_IN',
   'OPENING_STOCK',
 ]);
-export const InventoryLedgerTypeValues = {
+export const InventoryItemLedgerTypeValues = {
   GOODS_RECEIPT: 'GOODS_RECEIPT' as const,
   ORDER_RESERVE: 'ORDER_RESERVE' as const,
   ORDER_DEDUCT: 'ORDER_DEDUCT' as const,
@@ -233,23 +233,23 @@ export const InventoryLedgerTypeValues = {
   TRANSFER_IN: 'TRANSFER_IN' as const,
   OPENING_STOCK: 'OPENING_STOCK' as const,
 };
-export type InventoryLedgerType = (typeof inventoryLedgerTypeEnum.enumValues)[number];
+export type InventoryItemLedgerType = (typeof inventoryItemLedgerTypeEnum.enumValues)[number];
 
-export const inventoryLedgerReferenceTypeEnum = coreSchema.enum('inventory_ledger_reference_type', [
+export const inventoryItemLedgerReferenceTypeEnum = coreSchema.enum('inventory_item_ledger_reference_type', [
   'GOODS_RECEIPT',
   'STOCK_ADJUSTMENT',
   'CONVERSION',
   'STOCK_TRANSFER',
   'ORDER',
 ]);
-export const InventoryLedgerReferenceTypeValues = {
+export const InventoryItemLedgerReferenceTypeValues = {
   GOODS_RECEIPT: 'GOODS_RECEIPT' as const,
   STOCK_ADJUSTMENT: 'STOCK_ADJUSTMENT' as const,
   CONVERSION: 'CONVERSION' as const,
   STOCK_TRANSFER: 'STOCK_TRANSFER' as const,
   ORDER: 'ORDER' as const,
 };
-export type InventoryLedgerReferenceType = (typeof inventoryLedgerReferenceTypeEnum.enumValues)[number];
+export type InventoryItemLedgerReferenceType = (typeof inventoryItemLedgerReferenceTypeEnum.enumValues)[number];
 
 export const purchaseOrderStatusEnum = coreSchema.enum('purchase_order_status', [
   'DRAFT',

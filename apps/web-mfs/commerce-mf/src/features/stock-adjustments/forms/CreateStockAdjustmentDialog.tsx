@@ -50,7 +50,13 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
         reason: data.reason,
       })}
     >
-      <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />
+      <InventoryItemSelector
+        name="inventoryItemId"
+        label="Inventory Item"
+        placeholder="Select item"
+        fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'tracking' }}
+        transformDescription={(desc) => desc.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' + ')}
+      />
       <Select name="type" label="Adjustment Type" placeholder="Select type" options={adjustmentTypeOptions} />
       <TextArea name="reason" label="Reason" placeholder="Enter reason for adjustment" />
 

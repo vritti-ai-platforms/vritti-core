@@ -9,8 +9,8 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import {
-  InventoryLedgerReferenceTypeValues,
-  InventoryLedgerTypeValues,
+  InventoryItemLedgerReferenceTypeValues,
+  InventoryItemLedgerTypeValues,
   StockTransferStatusValues,
   stockTransfers,
 } from '@/db/schema';
@@ -87,8 +87,8 @@ export class StockTransfersService {
         await this.batchesService.adjustBatch({
           batchId: data.fromBatchId,
           quantity: -Number(entity.quantity),
-          type: InventoryLedgerTypeValues.TRANSFER_OUT,
-          referenceType: InventoryLedgerReferenceTypeValues.STOCK_TRANSFER,
+          type: InventoryItemLedgerTypeValues.TRANSFER_OUT,
+          referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_TRANSFER,
           referenceId: id,
           notes: `Transfer out to location ${data.toLocationId}`,
         });
@@ -111,8 +111,8 @@ export class StockTransfersService {
         locationId: data.toLocationId,
         quantity: Number(entity.quantity),
         lot,
-        type: InventoryLedgerTypeValues.TRANSFER_IN,
-        referenceType: InventoryLedgerReferenceTypeValues.STOCK_TRANSFER,
+        type: InventoryItemLedgerTypeValues.TRANSFER_IN,
+        referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_TRANSFER,
         referenceId: id,
         notes: `Transfer in from location ${data.fromLocationId}`,
       });

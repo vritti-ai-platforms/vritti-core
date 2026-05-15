@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class InventoryLedgerResponseDto {
+export class InventoryItemLedgerResponseDto {
   @ApiProperty()
   id: string;
 
