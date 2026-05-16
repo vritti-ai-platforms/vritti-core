@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import { defineConfig } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const quantumUI = resolve(__dirname, '../../../..', 'quantum-ui');
 
 const useHttps = process.env.USE_HTTPS === 'true';
@@ -11,6 +13,7 @@ const useHttps = process.env.USE_HTTPS === 'true';
 export default defineConfig({
   server: {
     port: 3014,
+    host: '0.0.0.0',
     ...(useHttps && {
       https: {
         key: fs.readFileSync('../../../certs/_wildcard.local.vrittiai.com+4-key.pem'),
@@ -62,7 +65,10 @@ export default defineConfig({
   ],
   tools: {
     rspack: {
-      ignoreWarnings: [/Critical dependency: the request of a dependency is an expression/],
+      ignoreWarnings: [
+        /Critical dependency: the request of a dependency is an expression/,
+        /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+      ],
       watchOptions: {
         ignored: ['**/node_modules/**', '**/dist/**', '**/cloud-server/**'],
       },

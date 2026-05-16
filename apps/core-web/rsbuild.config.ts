@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import { defineConfig, loadEnv } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const quantumUI = resolve(__dirname, '../../..', 'quantum-ui');
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -111,7 +113,10 @@ export default defineConfig({
   ],
   tools: {
     rspack: {
-      ignoreWarnings: [/Critical dependency: the request of a dependency is an expression/],
+      ignoreWarnings: [
+        /Critical dependency: the request of a dependency is an expression/,
+        /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+      ],
       watchOptions: {
         ignored: ['**/node_modules/**', '**/dist/**', '**/cloud-server/**'],
       },
