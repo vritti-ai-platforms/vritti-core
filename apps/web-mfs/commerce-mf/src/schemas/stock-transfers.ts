@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export type StockTransferStatus = 'REQUESTED' | 'IN_TRANSIT' | 'RECEIVED' | 'CANCELLED';
 
@@ -28,7 +28,7 @@ export const createStockTransferSchema = z.object({
   toBuId: z.string().min(1, 'Destination location is required'),
   fromLocationId: z.string().min(1, 'From location is required'),
   toLocationId: z.string().min(1, 'To location is required'),
-  quantity: z.string().min(1, 'Quantity is required'),
+  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
   notes: z.string().optional(),
 });
 

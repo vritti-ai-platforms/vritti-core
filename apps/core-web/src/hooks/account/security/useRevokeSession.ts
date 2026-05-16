@@ -1,8 +1,8 @@
+import type { SuccessResponse } from '@services/account/security.service';
+import { revokeSession } from '@services/account/security.service';
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { SuccessResponse } from '@services/account/security.service';
-import { revokeSession } from '@services/account/security.service';
 import { SESSIONS_QUERY_KEY } from './useSessions';
 
 export function useRevokeSession(

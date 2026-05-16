@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
@@ -6,10 +5,11 @@ import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useTaxGroups } from '@/hooks/tax-groups';
 import { useUpdateItem } from '@/hooks/items';
+import { useTaxGroups } from '@/hooks/tax-groups';
 import { type ItemDetail, type UpdateItemFormData, updateItemSchema } from '@/schemas/items';
 
 interface EditItemFormProps {

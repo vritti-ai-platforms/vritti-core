@@ -29,9 +29,7 @@ export interface CreateModifierGroupPayload {
 
 // Creates a new modifier group
 export function createModifierGroup(data: CreateModifierGroupPayload): Promise<ModifierGroupData> {
-  return axios
-    .post<ModifierGroupData>('commerce-api/modifier-groups', data)
-    .then((r) => r.data);
+  return axios.post<ModifierGroupData>('commerce-api/modifier-groups', data).then((r) => r.data);
 }
 
 export interface UpdateModifierGroupPayload {
@@ -48,16 +46,12 @@ export interface UpdateModifierGroupPayload {
 
 // Updates a modifier group by ID
 export function updateModifierGroup({ id, data }: UpdateModifierGroupPayload): Promise<ModifierGroupData> {
-  return axios
-    .patch<ModifierGroupData>(`commerce-api/modifier-groups/${id}`, data)
-    .then((r) => r.data);
+  return axios.patch<ModifierGroupData>(`commerce-api/modifier-groups/${id}`, data).then((r) => r.data);
 }
 
 // Deletes a modifier group by ID
 export function deleteModifierGroup(id: string): Promise<SuccessResponse> {
-  return axios
-    .delete<SuccessResponse>(`commerce-api/modifier-groups/${id}`)
-    .then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/modifier-groups/${id}`).then((r) => r.data);
 }
 
 export interface CreateModifierOptionPayload {
@@ -71,9 +65,7 @@ export interface CreateModifierOptionPayload {
 
 // Adds an option to a modifier group
 export function createModifierOption({ groupId, data }: CreateModifierOptionPayload): Promise<ModifierOptionData> {
-  return axios
-    .post<ModifierOptionData>(`commerce-api/modifier-groups/${groupId}/options`, data)
-    .then((r) => r.data);
+  return axios.post<ModifierOptionData>(`commerce-api/modifier-groups/${groupId}/options`, data).then((r) => r.data);
 }
 
 export interface DeleteModifierOptionPayload {
@@ -88,7 +80,11 @@ export interface UpdateModifierOptionPayload {
 }
 
 // Updates a modifier option's properties
-export function updateModifierOption({ groupId, optionId, data }: UpdateModifierOptionPayload): Promise<ModifierOptionData> {
+export function updateModifierOption({
+  groupId,
+  optionId,
+  data,
+}: UpdateModifierOptionPayload): Promise<ModifierOptionData> {
   return axios
     .patch<ModifierOptionData>(`commerce-api/modifier-groups/${groupId}/options/${optionId}`, data)
     .then((r) => r.data);

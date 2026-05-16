@@ -1,6 +1,6 @@
+import { resendResetOtp, type SuccessResponse } from '@services/auth.service';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { type SuccessResponse, resendResetOtp } from '@services/auth.service';
 
 type UseResendResetOtpOptions = Omit<UseMutationOptions<SuccessResponse, AxiosError, void>, 'mutationFn'>;
 

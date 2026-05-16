@@ -1,1 +1,1 @@
-export { useProfile, PROFILE_QUERY_KEY } from './useProfile';
+export { PROFILE_QUERY_KEY, useProfile } from './useProfile';

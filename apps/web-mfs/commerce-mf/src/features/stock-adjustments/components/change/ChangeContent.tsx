@@ -157,6 +157,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         inventoryItemId={adjustment.inventoryItemId}
         primaryUomId={adjustment.inventoryItemUomId}
         tracking={tracking}
+        adjustmentType={adjustment.type}
         handle={addLineDialog}
       />
 
@@ -165,6 +166,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         inventoryItemId={adjustment.inventoryItemId}
         line={editingLine}
         tracking={tracking}
+        adjustmentType={adjustment.type}
         handle={editLineDialog}
       />
     </>

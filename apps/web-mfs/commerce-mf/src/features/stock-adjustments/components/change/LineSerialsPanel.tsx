@@ -7,7 +7,7 @@ import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   useRemoveStockAdjustmentLine,
@@ -49,15 +49,18 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
     }
   };
 
-  const handleUnpick = async (item: StockAdjustmentLineItemData) => {
-    const confirmed = await confirm({
-      title: 'Remove this serial?',
-      description: 'This serial will no longer be consumed by this line.',
-      confirmLabel: 'Remove',
-      variant: 'destructive',
-    });
-    if (confirmed) removeItemMutation.mutate(item.id);
-  };
+  const handleUnpick = useCallback(
+    async (item: StockAdjustmentLineItemData) => {
+      const confirmed = await confirm({
+        title: 'Remove this serial?',
+        description: 'This serial will no longer be consumed by this line.',
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (confirmed) removeItemMutation.mutate(item.id);
+    },
+    [confirm, removeItemMutation],
+  );
 
   const columns = useMemo<ColumnDef<StockAdjustmentLineItemData>[]>(
     () => [
@@ -219,6 +222,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
         inventoryItemId={adjustment.inventoryItemId}
         line={line ?? null}
         tracking="serial"
+        adjustmentType={adjustment.type}
         handle={editLineDialog}
       />
     </PageContentDetails>

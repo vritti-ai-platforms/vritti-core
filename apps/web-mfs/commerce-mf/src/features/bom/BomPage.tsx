@@ -9,8 +9,7 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, FileText, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BOM_TABLE_KEY, useBomTable } from '@/hooks/bom';
-import { useDeleteBom } from '@/hooks/bom';
+import { BOM_TABLE_KEY, useBomTable, useDeleteBom } from '@/hooks/bom';
 import type { BomData } from '@/schemas/bom';
 import { AddBomDialog } from './forms/AddBomDialog';
 

@@ -9,8 +9,7 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useBom } from '@/hooks/bom';
-import { useUpdateBom } from '@/hooks/bom';
+import { useBom, useUpdateBom } from '@/hooks/bom';
 import { AddBomLineDialog } from './forms/AddBomLineDialog';
 import { EditBomForm } from './forms/EditBomForm';
 

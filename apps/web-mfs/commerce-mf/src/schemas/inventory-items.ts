@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
 
 const INVENTORY_ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] as const;
 
@@ -70,9 +70,9 @@ export const inventoryTrackingConfig: Record<
   InventoryTracking,
   { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' }
 > = {
-  quantity:   { label: 'Quantity',     variant: 'outline' },
-  lot:        { label: 'Lot',          variant: 'secondary' },
-  serial:     { label: 'Serial',       variant: 'default' },
+  quantity: { label: 'Quantity', variant: 'outline' },
+  lot: { label: 'Lot', variant: 'secondary' },
+  serial: { label: 'Serial', variant: 'default' },
   lot_serial: { label: 'Lot + Serial', variant: 'default' },
 };
 

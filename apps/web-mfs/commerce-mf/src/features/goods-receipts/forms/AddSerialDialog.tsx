@@ -1,15 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useAddGoodsReceiptLineItem } from '@/hooks/goods-receipts';
-import {
-  type AddGoodsReceiptLineItemFormData,
-  addGoodsReceiptLineItemSchema,
-} from '@/schemas/goods-receipts';
+import { type AddGoodsReceiptLineItemFormData, addGoodsReceiptLineItemSchema } from '@/schemas/goods-receipts';
 
 const AddSerialForm = ({
   goodsReceiptId,

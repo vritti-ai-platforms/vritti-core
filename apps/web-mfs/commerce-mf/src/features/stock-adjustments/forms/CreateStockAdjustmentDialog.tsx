@@ -1,9 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateStockAdjustment } from '@/hooks/stock-adjustments';
@@ -55,7 +55,12 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
         label="Inventory Item"
         placeholder="Select item"
         fieldKeys={{ valueKey: 'id', labelKey: 'name', descriptionKey: 'tracking' }}
-        transformDescription={(desc) => desc.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' + ')}
+        transformDescription={(desc) =>
+          desc
+            .split('_')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' + ')
+        }
       />
       <Select name="type" label="Adjustment Type" placeholder="Select type" options={adjustmentTypeOptions} />
       <TextArea name="reason" label="Reason" placeholder="Enter reason for adjustment" />

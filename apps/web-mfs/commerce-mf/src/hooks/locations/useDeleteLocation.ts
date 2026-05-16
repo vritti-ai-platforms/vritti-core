@@ -1,21 +1,21 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { AxiosError } from 'axios';
 import { deleteLocation } from '@/services/locations.service';
 import { LOCATIONS_KEY } from './keys';
 
 export function useDeleteLocation(
-	options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-	return useMutation<SuccessResponse, AxiosError, string>({
-		...options,
-		mutationFn: deleteLocation,
-		onSuccess: (...args) => {
-			queryClient.invalidateQueries({ queryKey: LOCATIONS_KEY });
-			options?.onSuccess?.(...args);
-		},
-	});
+  return useMutation<SuccessResponse, AxiosError, string>({
+    ...options,
+    mutationFn: deleteLocation,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: LOCATIONS_KEY });
+      options?.onSuccess?.(...args);
+    },
+  });
 }

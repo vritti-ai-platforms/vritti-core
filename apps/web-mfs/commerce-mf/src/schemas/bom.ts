@@ -1,9 +1,9 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export const bomLineSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
-  requiredQuantity: z.string().min(1, 'Quantity is required'),
+  requiredQuantity: zodNumericField({ required: 'Quantity is required', positive: true }),
 });
 
 export const createBomSchema = z.object({

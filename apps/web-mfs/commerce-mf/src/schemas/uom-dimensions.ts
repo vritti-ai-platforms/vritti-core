@@ -1,6 +1,5 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { z, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
-import { z } from 'zod';
 
 export interface UomDimensionCountData {
   count: number;

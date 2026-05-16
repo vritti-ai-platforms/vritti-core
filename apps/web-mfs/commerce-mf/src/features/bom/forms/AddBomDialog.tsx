@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateBom } from '@/hooks/bom';
@@ -29,7 +29,6 @@ export const AddBomDialog: React.FC<AddBomDialogProps> = ({ onSuccess, onCancel 
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({

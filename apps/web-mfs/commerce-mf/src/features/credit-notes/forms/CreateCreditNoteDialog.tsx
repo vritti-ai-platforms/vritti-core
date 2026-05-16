@@ -1,9 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateCreditNote } from '@/hooks/credit-notes';
@@ -22,7 +22,7 @@ export const CreateCreditNoteDialog: React.FC<CreateCreditNoteDialogProps> = ({ 
       partyType: undefined,
       partyName: '',
       creditNoteNumber: '',
-      amount: '',
+      amount: 0,
       reason: '',
     },
   });
@@ -33,7 +33,6 @@ export const CreateCreditNoteDialog: React.FC<CreateCreditNoteDialogProps> = ({ 
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -41,7 +40,7 @@ export const CreateCreditNoteDialog: React.FC<CreateCreditNoteDialogProps> = ({ 
         partyType: data.partyType,
         partyName: data.partyName,
         creditNoteNumber: data.creditNoteNumber,
-        amount: Number(data.amount),
+        amount: data.amount,
         reason: data.reason,
       })}
     >

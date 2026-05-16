@@ -7,9 +7,7 @@ import { UOM_DIMENSIONS_KEY } from '../uom-dimensions/keys';
 import { UOM_TABLE_KEY } from './keys';
 
 // Deletes a UOM and invalidates the UOM table
-export function useDeleteUom(
-  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
-) {
+export function useDeleteUom(options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>) {
   const queryClient = useQueryClient();
 
   return useMutation<SuccessResponse, AxiosError, string>({

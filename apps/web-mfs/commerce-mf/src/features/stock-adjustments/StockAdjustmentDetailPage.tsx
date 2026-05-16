@@ -139,9 +139,7 @@ export const StockAdjustmentDetailPage = () => {
           {
             value: 'overview',
             label: 'Overview',
-            content: (
-              <OverviewTab adjustment={adjustment} typeLabel={typeConf.label} typeVariant={typeConf.variant} />
-            ),
+            content: <OverviewTab adjustment={adjustment} typeLabel={typeConf.label} typeVariant={typeConf.variant} />,
           },
           {
             value: 'breakdown',

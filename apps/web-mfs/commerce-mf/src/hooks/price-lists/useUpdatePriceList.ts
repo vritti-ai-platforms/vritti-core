@@ -4,7 +4,7 @@ import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import type { UpdatePriceListData } from '@/schemas/price-lists';
 import { updatePriceList } from '@/services/price-lists.service';
-import { PRICE_LISTS_KEY, PRICE_LIST_KEY } from './keys';
+import { PRICE_LIST_KEY, PRICE_LISTS_KEY } from './keys';
 
 export function useUpdatePriceList(
   options?: Omit<

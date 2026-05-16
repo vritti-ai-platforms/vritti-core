@@ -1,10 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
+import { z, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { useCompleteConversion } from '@/hooks/conversions';
 
 interface CompleteConversionDialogProps {
@@ -37,7 +36,6 @@ export const CompleteConversionDialog: React.FC<CompleteConversionDialogProps> =
     <Form
       form={form}
       mutation={completeMutation}
-     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: conversionId,

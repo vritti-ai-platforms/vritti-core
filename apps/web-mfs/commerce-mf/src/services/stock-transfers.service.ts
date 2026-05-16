@@ -19,9 +19,7 @@ export function getStockTransfersTable(): Promise<StockTransfersTableResponse> {
 }
 
 export function createStockTransfer(data: CreateStockTransferPayload): Promise<StockTransferData> {
-  return axios
-    .post<StockTransferData>('commerce-api/stock-transfers', data)
-    .then((r) => r.data);
+  return axios.post<StockTransferData>('commerce-api/stock-transfers', data).then((r) => r.data);
 }
 
 export function getStockTransfer(id: string): Promise<StockTransferData> {
@@ -30,8 +28,12 @@ export function getStockTransfer(id: string): Promise<StockTransferData> {
     .then((r) => r.data);
 }
 
-export function updateStockTransferStatus({ id, status }: { id: string; status: StockTransferStatus }): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`commerce-api/stock-transfers/${id}/status`, { status })
-    .then((r) => r.data);
+export function updateStockTransferStatus({
+  id,
+  status,
+}: {
+  id: string;
+  status: StockTransferStatus;
+}): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`commerce-api/stock-transfers/${id}/status`, { status }).then((r) => r.data);
 }

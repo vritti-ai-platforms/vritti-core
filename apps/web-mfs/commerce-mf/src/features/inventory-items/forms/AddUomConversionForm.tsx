@@ -1,9 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
+import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';

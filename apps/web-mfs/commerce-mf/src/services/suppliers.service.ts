@@ -158,9 +158,7 @@ export function updateSupplierItem({
   itemId: string;
   data: UpdateSupplierItemPayload;
 }): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/${itemId}`, data)
-    .then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/${itemId}`, data).then((r) => r.data);
 }
 
 // Unlinks an inventory item from a supplier

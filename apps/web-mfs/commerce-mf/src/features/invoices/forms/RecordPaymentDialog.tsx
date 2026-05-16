@@ -1,13 +1,15 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreatePayment } from '@/hooks/payments';
-import { type CreatePaymentFormData, createPaymentSchema } from '@/schemas/invoices';
+import type { CreatePaymentFormData } from '@/schemas/invoices';
+import { createPaymentSchema } from '@/schemas/invoices';
 
 interface RecordPaymentDialogProps {
   invoiceId: string;
@@ -22,11 +24,19 @@ export const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const paymentSchema = useMemo(
+    () =>
+      createPaymentSchema.extend({
+        amount: zodNumericField({ required: 'Amount is required', positive: true, max: balance }),
+      }),
+    [balance],
+  );
+
   const form = useForm<CreatePaymentFormData>({
-    resolver: zodResolver(createPaymentSchema),
+    resolver: zodResolver(paymentSchema),
     defaultValues: {
       invoiceId,
-      amount: '',
+      amount: 0,
       method: undefined,
       reference: '',
       notes: '',
@@ -39,12 +49,11 @@ export const RecordPaymentDialog: React.FC<RecordPaymentDialogProps> = ({
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         invoiceId: data.invoiceId,
-        amount: Number(data.amount),
+        amount: data.amount,
         method: data.method,
         reference: data.reference || undefined,
         notes: data.notes || undefined,

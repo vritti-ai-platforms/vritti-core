@@ -7,8 +7,7 @@ import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { PackageCheck, Send, XCircle } from 'lucide-react';
 import { useCallback } from 'react';
-import { useStockTransfer } from '@/hooks/stock-transfers';
-import { useUpdateStockTransferStatus } from '@/hooks/stock-transfers';
+import { useStockTransfer, useUpdateStockTransferStatus } from '@/hooks/stock-transfers';
 import type { StockTransferStatus } from '@/schemas/stock-transfers';
 
 const statusConfig: Record<

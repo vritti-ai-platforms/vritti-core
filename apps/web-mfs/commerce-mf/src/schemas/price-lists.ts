@@ -1,7 +1,7 @@
 import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
-const integerString = z.string().regex(/^\d+$/, 'Must be a non-negative integer').or(z.literal(''));
+const zOptionalNonNegativeInt = z.number().int().nonnegative().optional().catch(undefined);
 
 export const priceListFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
@@ -12,14 +12,14 @@ export const priceListFormSchema = z.object({
 
 export const priceListItemAssignmentSchema = z.object({
   itemVariantId: z.string().min(1, 'Item variant is required'),
-  sortOrder: integerString.optional(),
+  sortOrder: zOptionalNonNegativeInt,
   isVisible: z.boolean().optional(),
-  priceOverride: integerString.optional(),
+  priceOverride: zOptionalNonNegativeInt,
 });
 
 export const terminalPriceListAssignmentSchema = z.object({
   priceListId: z.string().min(1, 'Price list is required'),
-  priority: integerString.optional(),
+  priority: zodNumericField({ required: 'Priority is required', min: 0 }),
   isDefault: z.boolean().optional(),
 });
 

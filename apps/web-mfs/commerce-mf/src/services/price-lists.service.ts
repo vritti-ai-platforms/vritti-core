@@ -4,10 +4,10 @@ import type { SelectOptionsResponse } from '@vritti/quantum-ui/Select';
 import type {
   CreatePriceListData,
   CreatePriceListResponse,
+  PosTerminalSellableItemData,
   PriceListData,
   PriceListItemData,
   PriceListTableResponse,
-  PosTerminalSellableItemData,
   SavePriceListItemsData,
   SaveTerminalPriceListsData,
   TerminalPriceListData,
@@ -67,9 +67,7 @@ export function saveTerminalPriceLists({
   terminalId: string;
   data: SaveTerminalPriceListsData;
 }): Promise<SuccessResponse> {
-  return axios
-    .put<SuccessResponse>(`commerce-api/price-lists/terminals/${terminalId}`, data)
-    .then((r) => r.data);
+  return axios.put<SuccessResponse>(`commerce-api/price-lists/terminals/${terminalId}`, data).then((r) => r.data);
 }
 
 export function getTerminalSellableItems(terminalId: string): Promise<PosTerminalSellableItemData[]> {

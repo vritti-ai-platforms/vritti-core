@@ -1,5 +1,5 @@
-import type React from 'react';
 import { useSlugParams } from '@vritti/quantum-ui/hooks';
+import type React from 'react';
 import { CategoryForm } from './CategoryForm';
 
 interface AddCategoryDialogProps {

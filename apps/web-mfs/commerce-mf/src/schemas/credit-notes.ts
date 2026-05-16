@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export interface CreditNoteApplicationData {
   id: string;
@@ -33,7 +33,7 @@ export const createCreditNoteSchema = z.object({
   partyType: z.enum(['SUPPLIER', 'CUSTOMER', 'AGGREGATOR'], { message: 'Party type is required' }),
   partyName: z.string().min(1, 'Party name is required'),
   creditNoteNumber: z.string().min(1, 'Credit note number is required'),
-  amount: z.string().min(1, 'Amount is required'),
+  amount: zodNumericField({ required: 'Amount is required', positive: true }),
   reason: z.string().min(1, 'Reason is required'),
 });
 
@@ -41,7 +41,7 @@ export type CreateCreditNoteFormData = z.infer<typeof createCreditNoteSchema>;
 
 export const applyCreditNoteSchema = z.object({
   invoiceId: z.string().min(1, 'Invoice ID is required'),
-  amount: z.string().min(1, 'Amount is required'),
+  amount: zodNumericField({ required: 'Amount is required', positive: true }),
 });
 
 export type ApplyCreditNoteFormData = z.infer<typeof applyCreditNoteSchema>;

@@ -1,10 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateStockTransfer } from '@/hooks/stock-transfers';
@@ -24,7 +24,7 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
       toBuId: '',
       fromLocationId: undefined,
       toLocationId: undefined,
-      quantity: '',
+      quantity: 0,
       notes: '',
     },
   });
@@ -35,7 +35,6 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -44,23 +43,15 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
         toBuId: data.toBuId,
         fromLocationId: data.fromLocationId,
         toLocationId: data.toLocationId,
-        quantity: Number(data.quantity),
+        quantity: data.quantity,
         notes: data.notes || undefined,
       })}
     >
       <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />
       <TextField name="fromBuId" label="From Location (BU ID)" placeholder="Source business unit ID" />
-      <LocationSelector
-        name="fromLocationId"
-        label="From Location"
-        placeholder="Select source location"
-      />
+      <LocationSelector name="fromLocationId" label="From Location" placeholder="Select source location" />
       <TextField name="toBuId" label="To Location (BU ID)" placeholder="Destination business unit ID" />
-      <LocationSelector
-        name="toLocationId"
-        label="To Location"
-        placeholder="Select destination location"
-      />
+      <LocationSelector name="toLocationId" label="To Location" placeholder="Select destination location" />
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 100" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

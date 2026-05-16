@@ -1,13 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateResponse, SuccessResponse, TableResponse } from '@vritti/quantum-ui/api-response';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
-import { z } from 'zod';
 
-// Runtime schema — z.coerce.number() accepts the string that TextField's onChange provides
 const _categorySchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   parentId: z.string().optional().nullable(),
-  sortOrder: z.coerce.number().int().min(1, 'Sort order must be at least 1'),
+  sortOrder: zodNumericField({ required: 'Sort order is required', min: 1 }),
   isActive: z.boolean(),
 });
 

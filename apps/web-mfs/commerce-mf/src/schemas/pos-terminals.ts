@@ -1,5 +1,5 @@
 import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
 
 export const posTerminalFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),

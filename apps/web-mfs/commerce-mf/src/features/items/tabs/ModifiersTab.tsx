@@ -5,9 +5,8 @@ import { Typography } from '@vritti/quantum-ui/Typography';
 import { Sliders } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useItemModifiers } from '@/hooks/items';
+import { useItemModifiers, useSaveItemModifiers } from '@/hooks/items';
 import { useModifierGroups } from '@/hooks/modifiers';
-import { useSaveItemModifiers } from '@/hooks/items';
 import type { ItemDetail } from '@/schemas/items';
 import { ModifierGroupRow } from './components/ModifierGroupRow';
 

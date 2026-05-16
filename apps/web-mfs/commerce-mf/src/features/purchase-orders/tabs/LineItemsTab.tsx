@@ -123,7 +123,14 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
           ]
         : []),
     ],
-    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.conversionRate, purchaseOrder.currencyCode, purchaseOrder.supplierCurrencyCode],
+    [
+      canModifyItems,
+      handleRemoveItem,
+      purchaseOrderId,
+      purchaseOrder.conversionRate,
+      purchaseOrder.currencyCode,
+      purchaseOrder.supplierCurrencyCode,
+    ],
   );
 
   const { table } = useDataTable({

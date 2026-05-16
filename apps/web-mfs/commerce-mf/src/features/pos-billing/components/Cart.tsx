@@ -85,9 +85,7 @@ export const Cart = ({
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <div className="flex items-center gap-2">
           <Typography variant="subtitle2">Cart</Typography>
-          <Typography variant="caption">
-            {pluralize('item', itemCount, true)}
-          </Typography>
+          <Typography variant="caption">{pluralize('item', itemCount, true)}</Typography>
         </div>
         {!isEmpty && (
           <Button

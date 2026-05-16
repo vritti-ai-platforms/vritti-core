@@ -55,7 +55,7 @@ export const AddUomDialog: React.FC<AddUomDialogProps> = ({ dimensionId, onSucce
       {kind === 'derived' ? (
         <>
           <Select name="baseUnitId" label="Base unit" placeholder="Select base unit" options={baseOptions} />
-          <TextField name="conversionFactor" label="Conversion factor" type="number" placeholder="e.g. 1000" />
+          <TextField name="conversionFactor" label="Conversion factor" type="number" placeholder="e.g. 1000" positive />
         </>
       ) : null}
 

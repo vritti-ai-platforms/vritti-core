@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
@@ -6,6 +5,7 @@ import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -35,8 +35,8 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       supplierItemCode: '',
       unitPrice: undefined,
       uomId: '',
-      minOrderQuantity: '',
-      leadTimeDays: '',
+      minOrderQuantity: undefined,
+      leadTimeDays: undefined,
       isPreferred: false,
     },
   });
@@ -64,8 +64,8 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         supplierItemCode: data.supplierItemCode || undefined,
         unitPrice: data.unitPrice ?? undefined,
         uomId: data.uomId,
-        minOrderQuantity: data.minOrderQuantity ? Number(data.minOrderQuantity) : undefined,
-        leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : undefined,
+        minOrderQuantity: data.minOrderQuantity ?? undefined,
+        leadTimeDays: data.leadTimeDays ?? undefined,
         isPreferred: data.isPreferred,
       })}
     >

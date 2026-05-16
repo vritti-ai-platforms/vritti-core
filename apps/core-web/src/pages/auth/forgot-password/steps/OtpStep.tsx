@@ -1,14 +1,14 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import type { PasswordResetFlow } from '@hooks/password-reset';
+import type { OTPFormData } from '@schemas/auth';
+import { otpSchema } from '@schemas/auth';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Field, FieldGroup, Form } from '@vritti/quantum-ui/Form';
 import { OTPField } from '@vritti/quantum-ui/OTPField';
 import { Typography } from '@vritti/quantum-ui/Typography';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { ArrowLeft } from 'lucide-react';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import type { PasswordResetFlow } from '@hooks/password-reset';
-import type { OTPFormData } from '@schemas/auth';
-import { otpSchema } from '@schemas/auth';
 
 interface OtpStepProps {
   email: PasswordResetFlow['email'];
@@ -17,12 +17,7 @@ interface OtpStepProps {
   resendOtpMutation: PasswordResetFlow['resendOtpMutation'];
 }
 
-export const OtpStep: React.FC<OtpStepProps> = ({
-  email,
-  goBack,
-  mutation,
-  resendOtpMutation,
-}) => {
+export const OtpStep: React.FC<OtpStepProps> = ({ email, goBack, mutation, resendOtpMutation }) => {
   const form = useForm<OTPFormData>({
     resolver: zodResolver(otpSchema),
     defaultValues: { code: '' },
@@ -59,32 +54,21 @@ export const OtpStep: React.FC<OtpStepProps> = ({
         </Typography>
       </div>
 
-      <Form
-        form={form}
-        mutation={mutation}
-        transformSubmit={(data) => data.code}
-       
-      >
+      <Form form={form} mutation={mutation} transformSubmit={(data) => data.code}>
         <FieldGroup>
           <div className="flex justify-center">
             <OTPField
               name="code"
               onChange={(value) => {
                 if (value.length === 6 && !mutation.isPending) {
-                  form.handleSubmit((data) =>
-                    mutation.mutateAsync(data.code),
-                  )();
+                  form.handleSubmit((data) => mutation.mutateAsync(data.code))();
                 }
               }}
             />
           </div>
 
           <Field className="pt-2">
-            <Button
-              type="submit"
-              className="w-full bg-primary text-primary-foreground"
-              loadingText="Verifying..."
-            >
+            <Button type="submit" className="w-full bg-primary text-primary-foreground" loadingText="Verifying...">
               Verify
             </Button>
           </Field>

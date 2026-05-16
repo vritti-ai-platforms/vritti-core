@@ -16,7 +16,9 @@ export const purchaseOrderStatusConfig: Record<
 
 // Forward status transition exposed as the primary action button (DRAFT → SENT, SENT → CONFIRMED).
 // Other statuses have no forward action; CONFIRMED's primary button is "Cancel Order".
-export const nextPurchaseOrderStatusAction: Partial<Record<PurchaseOrderStatus, { label: string; status: PurchaseOrderStatus }>> = {
+export const nextPurchaseOrderStatusAction: Partial<
+  Record<PurchaseOrderStatus, { label: string; status: PurchaseOrderStatus }>
+> = {
   DRAFT: { label: 'Mark as Sent', status: 'SENT' },
   SENT: { label: 'Confirm Purchase Order', status: 'CONFIRMED' },
 };

@@ -49,17 +49,13 @@ export function usePriceListItemsState(priceListId: string): PriceListItemsState
 
   const saveOverride = (target: PriceListItemData, priceOverride: number | null, isVisible: boolean) => {
     const next = toAssignments(orderedItems).map((assignment) =>
-      assignment.itemVariantId === target.itemVariantId
-        ? { ...assignment, priceOverride, isVisible }
-        : assignment,
+      assignment.itemVariantId === target.itemVariantId ? { ...assignment, priceOverride, isVisible } : assignment,
     );
     saveMutation.mutate(toSavePayload(next));
   };
 
   const removeItem = (target: PriceListItemData) => {
-    const next = toAssignments(orderedItems).filter(
-      (assignment) => assignment.itemVariantId !== target.itemVariantId,
-    );
+    const next = toAssignments(orderedItems).filter((assignment) => assignment.itemVariantId !== target.itemVariantId);
     saveMutation.mutate(toSavePayload(next));
   };
 

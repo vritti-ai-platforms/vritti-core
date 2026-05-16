@@ -51,9 +51,7 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol })
       {
         accessorKey: 'locationPath',
         header: 'Path',
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>,
         enableSorting: false,
       },
       {

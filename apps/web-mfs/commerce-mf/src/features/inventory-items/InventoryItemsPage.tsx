@@ -13,8 +13,8 @@ import { Eye, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/inventory-items';
-import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
+import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
 import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
 
 export const InventoryItemsPage = () => {

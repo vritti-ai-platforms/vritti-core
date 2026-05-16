@@ -1,6 +1,6 @@
 import type React from 'react';
-import { CategoryForm } from './CategoryForm';
 import type { CategoryData } from '@/schemas/categories';
+import { CategoryForm } from './CategoryForm';
 
 interface EditCategoryDialogProps {
   category: CategoryData;
@@ -9,5 +9,12 @@ interface EditCategoryDialogProps {
 }
 
 export const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({ category, onSuccess, onCancel }) => {
-  return <CategoryForm category={category} businessUnitId={category.businessUnitId} onSuccess={onSuccess} onCancel={onCancel} />;
+  return (
+    <CategoryForm
+      category={category}
+      businessUnitId={category.businessUnitId}
+      onSuccess={onSuccess}
+      onCancel={onCancel}
+    />
+  );
 };

@@ -43,9 +43,7 @@ export const ItemCard = ({ item, cartQuantity, onAdd }: ItemCardProps) => {
             {item.itemVariantName}
           </Typography>
         ) : null}
-        {item.itemVariantSku ? (
-          <Typography variant="caption">{item.itemVariantSku}</Typography>
-        ) : null}
+        {item.itemVariantSku ? <Typography variant="caption">{item.itemVariantSku}</Typography> : null}
       </div>
 
       <div className="flex items-end justify-between gap-2">

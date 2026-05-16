@@ -38,7 +38,11 @@ export const GoodsReceiptOverviewCard = ({ id }: { id: string }) => {
               <DetailField label="Expected By" value={receipt.po.expectedBy} dateFormat="dd/MM/yyyy HH:mm" />
               <DetailField
                 label="Total Amount"
-                value={receipt.po.totalAmount != null ? `${receipt.po.totalAmount.currency} ${receipt.po.totalAmount.value}` : null}
+                value={
+                  receipt.po.totalAmount != null
+                    ? `${receipt.po.totalAmount.currency} ${receipt.po.totalAmount.value}`
+                    : null
+                }
                 number
               />
             </div>

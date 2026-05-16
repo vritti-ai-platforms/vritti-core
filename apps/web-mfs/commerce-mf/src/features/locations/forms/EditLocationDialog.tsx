@@ -10,7 +10,12 @@ import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateLocation } from '@/hooks/locations';
 import type { LocationData } from '@/schemas/locations';
-import { LocationRoleLabels, LocationRoleValues, type LocationFormData, locationFormResolver } from '@/schemas/locations';
+import {
+  type LocationFormData,
+  LocationRoleLabels,
+  LocationRoleValues,
+  locationFormResolver,
+} from '@/schemas/locations';
 
 interface EditLocationDialogProps {
   location: LocationData;
@@ -41,7 +46,6 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: location.id,
@@ -49,7 +53,7 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
           name: data.name,
           code: data.code,
           parentId: data.parentId || null,
-          sortOrder: Number(data.sortOrder),
+          sortOrder: data.sortOrder,
           locationRole: data.locationRole,
           isActive: data.isActive,
           area: data.area,

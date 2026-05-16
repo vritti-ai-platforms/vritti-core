@@ -5,8 +5,8 @@ import { listLocationTree } from '@/services/locations.service';
 import { LOCATION_TREE_KEY } from './keys';
 
 export function useLocationTree(search?: string) {
-	return useQuery<LocationTreeNode[], AxiosError>({
-		queryKey: [...LOCATION_TREE_KEY, search ?? ''],
-		queryFn: () => listLocationTree(search),
-	});
+  return useQuery<LocationTreeNode[], AxiosError>({
+    queryKey: [...LOCATION_TREE_KEY, search ?? ''],
+    queryFn: () => listLocationTree(search),
+  });
 }

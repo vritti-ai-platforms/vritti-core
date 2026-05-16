@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),

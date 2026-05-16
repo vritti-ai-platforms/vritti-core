@@ -38,11 +38,7 @@ export const SupplierContactsSidePanel = ({
         isLoading={isLoading}
         isEmpty={contacts.length === 0}
         emptyState={
-          <Empty
-            icon={<ClipboardList />}
-            title="No contacts"
-            description="Add your first supplier contact."
-          />
+          <Empty icon={<ClipboardList />} title="No contacts" description="Add your first supplier contact." />
         }
         actions={
           <Button size="sm" onClick={addContactDialog.open} startAdornment={<Plus className="size-4" />}>
@@ -62,7 +58,12 @@ export const SupplierContactsSidePanel = ({
                 {contact.isPrimary ? <Badge variant="secondary">Primary</Badge> : null}
               </div>
               <div className="text-xs text-muted-foreground mt-1 truncate">
-                {contact.designation ?? contact.email ?? contact.alternateEmail ?? contact.phone ?? contact.alternatePhone ?? 'No additional details'}
+                {contact.designation ??
+                  contact.email ??
+                  contact.alternateEmail ??
+                  contact.phone ??
+                  contact.alternatePhone ??
+                  'No additional details'}
               </div>
             </SidePanelListItem>
           ))}

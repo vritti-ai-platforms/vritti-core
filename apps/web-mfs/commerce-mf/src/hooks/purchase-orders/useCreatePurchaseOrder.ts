@@ -8,7 +8,10 @@ import { PURCHASE_ORDERS_TABLE_KEY } from './keys';
 
 // Creates a new purchase order and invalidates the table
 export function useCreatePurchaseOrder(
-  options?: Omit<UseMutationOptions<CreateResponse<PurchaseOrderData>, AxiosError, CreatePurchaseOrderPayload>, 'mutationFn'>,
+  options?: Omit<
+    UseMutationOptions<CreateResponse<PurchaseOrderData>, AxiosError, CreatePurchaseOrderPayload>,
+    'mutationFn'
+  >,
 ) {
   const queryClient = useQueryClient();
 

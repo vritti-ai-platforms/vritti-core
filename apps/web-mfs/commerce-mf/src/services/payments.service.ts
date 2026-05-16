@@ -11,9 +11,7 @@ export interface CreatePaymentPayload {
 
 // Creates a payment for an invoice
 export function createPayment(data: CreatePaymentPayload): Promise<PaymentData> {
-  return axios
-    .post<PaymentData>('commerce-api/payments', data)
-    .then((r) => r.data);
+  return axios.post<PaymentData>('commerce-api/payments', data).then((r) => r.data);
 }
 
 // Fetches payments for an invoice

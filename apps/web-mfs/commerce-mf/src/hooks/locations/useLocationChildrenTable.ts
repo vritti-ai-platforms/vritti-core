@@ -5,9 +5,9 @@ import { getLocationChildrenTable } from '@/services/locations.service';
 import { LOCATION_CHILDREN_TABLE_KEY } from './keys';
 
 export function useLocationChildrenTable(parentId: string | null) {
-	return useQuery<LocationChildrenTableResponse, AxiosError>({
-		queryKey: LOCATION_CHILDREN_TABLE_KEY(parentId ?? ''),
-		queryFn: () => getLocationChildrenTable(parentId as string),
-		enabled: !!parentId,
-	});
+  return useQuery<LocationChildrenTableResponse, AxiosError>({
+    queryKey: LOCATION_CHILDREN_TABLE_KEY(parentId ?? ''),
+    queryFn: () => getLocationChildrenTable(parentId as string),
+    enabled: !!parentId,
+  });
 }

@@ -9,8 +9,8 @@ import { Typography } from '@vritti/quantum-ui/Typography';
 import { ListTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
-import type { TerminalPriceListData } from '@/schemas/price-lists';
 import type { PosTerminalData } from '@/schemas/pos-terminals';
+import type { TerminalPriceListData } from '@/schemas/price-lists';
 import { getErrorMessage } from '@/utils/error';
 import { PriceListAssignmentForm } from '../forms/PriceListAssignmentForm';
 import { usePriceListAssignments } from '../hooks/usePriceListAssignments';
@@ -163,7 +163,7 @@ export const TerminalPriceListsPanel: React.FC<TerminalPriceListsPanelProps> = (
         className="max-w-lg"
         content={(close) => (
           <PriceListAssignmentForm
-            defaultValues={{ priceListId: '', priority: String(priceLists.length), isDefault: false }}
+            defaultValues={{ priceListId: '', priority: priceLists.length, isDefault: false }}
             excludedPriceListIds={existingPriceListIds}
             submitLabel="Add Price List"
             onSubmit={(values) => addAssignment(values, close)}
@@ -182,7 +182,7 @@ export const TerminalPriceListsPanel: React.FC<TerminalPriceListsPanelProps> = (
             <PriceListAssignmentForm
               defaultValues={{
                 priceListId: editingPriceList.priceListId,
-                priority: String(editingPriceList.priority),
+                priority: editingPriceList.priority,
                 isDefault: editingPriceList.isDefault,
               }}
               excludedPriceListIds={editExcludedIds}

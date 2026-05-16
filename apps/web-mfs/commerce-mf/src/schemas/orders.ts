@@ -1,5 +1,7 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
+
+const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
 
 export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY';
 export type OrderChannel = 'ONLINE' | 'WALK_IN';
@@ -79,9 +81,9 @@ export const createOrderSchema = z.object({
   customerPhone: z.string().optional(),
   deliveryAddress: z.string().optional(),
   notes: z.string().optional(),
-  serviceCharge: z.string().optional(),
-  deliveryCharge: z.string().optional(),
-  discountAmount: z.string().optional(),
+  serviceCharge: zOptionalNonNegativeNumber,
+  deliveryCharge: zOptionalNonNegativeNumber,
+  discountAmount: zOptionalNonNegativeNumber,
   items: z.array(orderItemSchema).optional(),
 });
 

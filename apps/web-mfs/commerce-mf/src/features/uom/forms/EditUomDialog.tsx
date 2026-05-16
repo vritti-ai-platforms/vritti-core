@@ -59,14 +59,8 @@ export const EditUomDialog: React.FC<EditUomDialogProps> = ({ uom, onSuccess, on
 
       {!isBase ? (
         <>
-          <Select
-            name="baseUnitId"
-            label="Base unit"
-            placeholder="Select base unit"
-            options={baseOptions}
-            disabled
-          />
-          <TextField name="conversionFactor" label="Conversion factor" type="number" placeholder="e.g. 1000" />
+          <Select name="baseUnitId" label="Base unit" placeholder="Select base unit" options={baseOptions} disabled />
+          <TextField name="conversionFactor" label="Conversion factor" type="number" placeholder="e.g. 1000" positive />
         </>
       ) : null}
 

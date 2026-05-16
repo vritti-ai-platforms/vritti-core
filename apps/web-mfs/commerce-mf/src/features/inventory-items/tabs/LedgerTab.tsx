@@ -38,9 +38,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
       {
         accessorKey: 'createdAt',
         header: 'Date',
-        cell: ({ row }) => (
-          <FormattedDate value={row.original.createdAt} dateFormat="Pp" className="font-mono" />
-        ),
+        cell: ({ row }) => <FormattedDate value={row.original.createdAt} dateFormat="Pp" className="font-mono" />,
         enableSorting: true,
       },
       {
@@ -90,9 +88,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
       {
         accessorKey: 'notes',
         header: 'Notes',
-        cell: ({ row }) => (
-          <span className="text-muted-foreground text-sm">{row.original.notes ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-muted-foreground text-sm">{row.original.notes ?? '—'}</span>,
       },
     ],
     [uomSymbol],

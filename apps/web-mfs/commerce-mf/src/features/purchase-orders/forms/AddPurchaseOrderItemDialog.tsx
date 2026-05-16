@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
@@ -6,10 +5,10 @@ import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
 import { useAddPurchaseOrderItem } from '@/hooks/purchase-orders';
 import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 
@@ -24,7 +23,7 @@ const currencyValueSchema = z.object({ currency: z.string(), value: z.string() }
 
 type AddLineItemFormData = {
   inventoryItemId: string;
-  orderedQuantity: string;
+  orderedQuantity: number;
   overridePrice: boolean;
   unitPrice?: { currency: string; value: string } | null;
 };
@@ -32,7 +31,7 @@ type AddLineItemFormData = {
 const baseAddLineItemSchema = z
   .object({
     inventoryItemId: z.string().min(1, 'Item is required'),
-    orderedQuantity: z.string().min(1, 'Quantity is required'),
+    orderedQuantity: zodNumericField({ required: 'Quantity is required', positive: true }),
     overridePrice: z.boolean(),
     unitPrice: currencyValueSchema.optional().nullable(),
   })
@@ -42,15 +41,6 @@ const baseAddLineItemSchema = z
         code: z.ZodIssueCode.custom,
         path: ['unitPrice'],
         message: 'Unit price is required.',
-      });
-    }
-
-    const orderedQuantity = Number(data.orderedQuantity);
-    if (Number.isNaN(orderedQuantity) || orderedQuantity < 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['orderedQuantity'],
-        message: 'Quantity must be a valid non-negative number.',
       });
     }
 
@@ -99,7 +89,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     resolver: zodResolver(addLineItemSchema),
     defaultValues: {
       inventoryItemId: '',
-      orderedQuantity: '',
+      orderedQuantity: 0,
       overridePrice: false,
       unitPrice: null,
     },
@@ -107,9 +97,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 
   const excludeIds = existingItemIds.join(',');
   const unitPriceLabel =
-    supplierUnitPrice != null
-      ? `Unit Price (Supplier: ${supplierUnitPrice.toFixed(2)})`
-      : 'Unit Price';
+    supplierUnitPrice != null ? `Unit Price (Supplier: ${supplierUnitPrice.toFixed(2)})` : 'Unit Price';
 
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
 
@@ -154,16 +142,16 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
         inventoryItemId: data.inventoryItemId,
-        orderedQuantity: Number(data.orderedQuantity),
+        orderedQuantity: data.orderedQuantity,
         supplierUnitPrice: {
           currency: purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode,
           value: String(supplierUnitPrice ?? Number(data.unitPrice?.value ?? '0')),
         },
         unitPrice: data.overridePrice
-          ? data.unitPrice ?? null
+          ? (data.unitPrice ?? null)
           : convertedSupplierUnitPrice != null
             ? { currency: purchaseOrder.currencyCode, value: String(convertedSupplierUnitPrice) }
-            : data.unitPrice ?? null,
+            : (data.unitPrice ?? null),
       })}
     >
       <InventoryItemSelector

@@ -22,7 +22,9 @@ export function getCategoryCount(): Promise<CategoryCountData> {
 }
 
 export function getCategoryChildrenTable(parentId: string): Promise<TableResponse<CategoryData>> {
-  return axios.get<TableResponse<CategoryData>>(`commerce-api/categories/${parentId}/children/table`).then((r) => r.data);
+  return axios
+    .get<TableResponse<CategoryData>>(`commerce-api/categories/${parentId}/children/table`)
+    .then((r) => r.data);
 }
 
 export function getCategoryById(id: string): Promise<CategoryData> {
@@ -37,7 +39,13 @@ export function createCategory(data: CategoryFormData): Promise<CreateResponse<C
   return axios.post<CreateResponse<CategoryData>>('commerce-api/categories', data).then((r) => r.data);
 }
 
-export function updateCategory({ id, data }: { id: string; data: Partial<CategoryFormData> }): Promise<SuccessResponse> {
+export function updateCategory({
+  id,
+  data,
+}: {
+  id: string;
+  data: Partial<CategoryFormData>;
+}): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`commerce-api/categories/${id}`, data).then((r) => r.data);
 }
 

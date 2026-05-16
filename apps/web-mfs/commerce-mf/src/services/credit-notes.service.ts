@@ -18,9 +18,7 @@ export interface ApplyCreditNotePayload {
 
 // Creates a new credit note
 export function createCreditNote(data: CreateCreditNotePayload): Promise<CreditNoteData> {
-  return axios
-    .post<CreditNoteData>('commerce-api/credit-notes', data)
-    .then((r) => r.data);
+  return axios.post<CreditNoteData>('commerce-api/credit-notes', data).then((r) => r.data);
 }
 
 // Fetches credit note detail with applications
@@ -32,14 +30,10 @@ export function getCreditNote(id: string): Promise<CreditNoteDetail> {
 
 // Fetches credit notes for the data table
 export function getCreditNotesTable(): Promise<CreditNoteData[]> {
-  return axios
-    .get<CreditNoteData[]>('commerce-api/credit-notes', { showSuccessToast: false })
-    .then((r) => r.data);
+  return axios.get<CreditNoteData[]>('commerce-api/credit-notes', { showSuccessToast: false }).then((r) => r.data);
 }
 
 // Applies a credit note to an invoice
 export function applyCreditNote({ id, data }: { id: string; data: ApplyCreditNotePayload }): Promise<SuccessResponse> {
-  return axios
-    .post<SuccessResponse>(`commerce-api/credit-notes/${id}/apply`, data)
-    .then((r) => r.data);
+  return axios.post<SuccessResponse>(`commerce-api/credit-notes/${id}/apply`, data).then((r) => r.data);
 }

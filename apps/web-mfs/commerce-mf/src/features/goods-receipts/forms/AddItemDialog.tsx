@@ -1,16 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useAddGoodsReceiptItem } from '@/hooks/goods-receipts';
-import {
-  type AddGoodsReceiptItemFormData,
-  addGoodsReceiptItemSchema,
-} from '@/schemas/goods-receipts';
+import { type AddGoodsReceiptItemFormData, addGoodsReceiptItemSchema } from '@/schemas/goods-receipts';
 
 // Build the params payload for the inventory-item select endpoint.
 // poId takes precedence over supplierId at the gateway, and excludeIds is always allowed.
@@ -43,7 +40,7 @@ const AddItemForm = ({
 }) => {
   const form = useForm<AddGoodsReceiptItemFormData>({
     resolver: zodResolver(addGoodsReceiptItemSchema),
-    defaultValues: { inventoryItemId: '', rejectedQuantity: '' },
+    defaultValues: { inventoryItemId: '', rejectedQuantity: undefined },
   });
   const mutation = useAddGoodsReceiptItem(goodsReceiptId, { onSuccess });
 
@@ -54,7 +51,7 @@ const AddItemForm = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
-        rejectedQuantity: data.rejectedQuantity ? Number(data.rejectedQuantity) : undefined,
+        rejectedQuantity: data.rejectedQuantity,
       })}
     >
       <InventoryItemSelector

@@ -54,9 +54,7 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ itemId, uomSymbol }) => {
       {
         accessorKey: 'locationPath',
         header: 'Path',
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>,
         enableSorting: false,
       },
       {
@@ -140,10 +138,7 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ itemId, uomSymbol }) => {
       table={table}
       mode="compact"
       isLoading={isLoading}
-      filters={[
-        <LocationFilter key="locationId" />,
-        <LotFilter key="lotId" inventoryItemId={itemId} />,
-      ]}
+      filters={[<LocationFilter key="locationId" />, <LotFilter key="lotId" inventoryItemId={itemId} />]}
       emptyStateConfig={{
         icon: Boxes,
         title: 'No quants',

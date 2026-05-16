@@ -1,27 +1,26 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { useUpdateStockAdjustmentLine } from '@/hooks/stock-adjustments';
-import type { InventoryTracking, StockAdjustmentLineData } from '@/schemas/stock-adjustments';
+import {
+  type InventoryTracking,
+  type StockAdjustmentLineData,
+  type StockAdjustmentType,
+  StockAdjustmentTypeValues,
+} from '@/schemas/stock-adjustments';
 
 // Edit allows changing quantity + UOM; quant binding cannot change after creation.
-const schema = z.object({
-  quantity: z.string().min(1, 'Quantity is required'),
-  uomId: z.string().min(1, 'UOM is required'),
-});
-type FormData = z.infer<typeof schema>;
-
 const EditChangeLineForm = ({
   adjustmentId,
   inventoryItemId,
   line,
   tracking,
+  adjustmentType,
   onSuccess,
   onCancel,
 }: {
@@ -29,14 +28,24 @@ const EditChangeLineForm = ({
   inventoryItemId: string;
   line: StockAdjustmentLineData;
   tracking: InventoryTracking;
+  adjustmentType: StockAdjustmentType;
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
   const isItem = tracking === 'serial' || tracking === 'lot_serial';
+  const isCorrection = adjustmentType === StockAdjustmentTypeValues.CORRECTION;
+
+  const schema = z.object({
+    quantity: isCorrection
+      ? zodNumericField({ required: 'Quantity is required' })
+      : zodNumericField({ required: 'Quantity is required', positive: true }),
+    uomId: z.string().min(1, 'UOM is required'),
+  });
+  type FormData = z.infer<typeof schema>;
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { quantity: String(line.quantity ?? ''), uomId: line.uomId },
+    defaultValues: { quantity: line.quantity ?? 0, uomId: line.uomId },
   });
 
   const mutation = useUpdateStockAdjustmentLine(adjustmentId, line.id, { onSuccess });
@@ -46,18 +55,28 @@ const EditChangeLineForm = ({
       form={form}
       mutation={mutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ quantity: Number(data.quantity || 0), uomId: data.uomId })}
+      transformSubmit={(data) => ({ quantity: data.quantity, uomId: data.uomId })}
     >
       <p className="text-sm">
-        <span className="text-muted-foreground">Quant:</span>{' '}
-        {line.quantLotNumber ? `${line.quantLotNumber} @ ` : ''}
+        <span className="text-muted-foreground">Quant:</span> {line.quantLotNumber ? `${line.quantLotNumber} @ ` : ''}
         {line.quantLocationName ?? line.quantLocationId ?? '—'}
       </p>
       {!isItem ? (
-        <div className="grid grid-cols-2 gap-4">
-          <TextField name="quantity" label="Quantity" type="number" positive nonZero />
-          <UomSelector name="uomId" label="Unit" params={{ inventoryItemId }} />
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            <TextField
+              name="quantity"
+              label="Quantity"
+              type="number"
+              positive={!isCorrection}
+              nonZero={!isCorrection}
+            />
+            <UomSelector name="uomId" label="Unit" params={{ inventoryItemId }} />
+          </div>
+          {isCorrection && (
+            <p className="text-xs text-muted-foreground">Positive quantity adds to the quant; negative deducts.</p>
+          )}
+        </>
       ) : (
         <p className="text-xs text-muted-foreground">
           Quantity is derived from the number of serials picked ({line.lineItemsCount}).
@@ -83,12 +102,14 @@ export const EditChangeLineDialog = ({
   inventoryItemId,
   line,
   tracking,
+  adjustmentType,
   handle,
 }: {
   adjustmentId: string;
   inventoryItemId: string;
   line: StockAdjustmentLineData | null;
   tracking: InventoryTracking;
+  adjustmentType: StockAdjustmentType;
   handle: ReturnType<typeof useDialog>;
 }) => (
   <Dialog
@@ -102,6 +123,7 @@ export const EditChangeLineDialog = ({
           inventoryItemId={inventoryItemId}
           line={line}
           tracking={tracking}
+          adjustmentType={adjustmentType}
           onSuccess={close}
           onCancel={close}
         />

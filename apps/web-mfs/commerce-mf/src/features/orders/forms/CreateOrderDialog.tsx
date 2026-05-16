@@ -1,9 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateOrder } from '@/hooks/orders';
@@ -35,9 +35,9 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ onSuccess,
       customerPhone: '',
       deliveryAddress: '',
       notes: '',
-      serviceCharge: '',
-      deliveryCharge: '',
-      discountAmount: '',
+      serviceCharge: undefined,
+      deliveryCharge: undefined,
+      discountAmount: undefined,
     },
   });
 
@@ -48,7 +48,6 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ onSuccess,
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -58,9 +57,9 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ onSuccess,
         customerPhone: data.customerPhone || undefined,
         deliveryAddress: data.deliveryAddress || undefined,
         notes: data.notes || undefined,
-        serviceCharge: data.serviceCharge ? Number(data.serviceCharge) : undefined,
-        deliveryCharge: data.deliveryCharge ? Number(data.deliveryCharge) : undefined,
-        discountAmount: data.discountAmount ? Number(data.discountAmount) : undefined,
+        serviceCharge: data.serviceCharge,
+        deliveryCharge: data.deliveryCharge,
+        discountAmount: data.discountAmount,
       })}
     >
       <RadioGroup name="type" label="Order Type" options={orderTypeOptions} orientation="horizontal" />

@@ -9,7 +9,12 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateLocation } from '@/hooks/locations';
-import { LocationRoleLabels, LocationRoleValues, type LocationFormData, locationFormResolver } from '@/schemas/locations';
+import {
+  type LocationFormData,
+  LocationRoleLabels,
+  LocationRoleValues,
+  locationFormResolver,
+} from '@/schemas/locations';
 
 interface AddLocationDialogProps {
   defaultParentId?: string | null;
@@ -17,7 +22,11 @@ interface AddLocationDialogProps {
   onCancel: () => void;
 }
 
-export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({ defaultParentId = null, onSuccess, onCancel }) => {
+export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
+  defaultParentId = null,
+  onSuccess,
+  onCancel,
+}) => {
   const isParentLocked = !!defaultParentId;
   const roleOptions = Object.values(LocationRoleValues).map((value) => ({ value, label: LocationRoleLabels[value] }));
 

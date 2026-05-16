@@ -1,11 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useApplyCreditNote } from '@/hooks/credit-notes';
-import { type ApplyCreditNoteFormData, applyCreditNoteSchema } from '@/schemas/credit-notes';
+import type { ApplyCreditNoteFormData } from '@/schemas/credit-notes';
+import { applyCreditNoteSchema } from '@/schemas/credit-notes';
 
 interface ApplyCreditNoteDialogProps {
   creditNoteId: string;
@@ -20,11 +22,19 @@ export const ApplyCreditNoteDialog: React.FC<ApplyCreditNoteDialogProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const applySchema = useMemo(
+    () =>
+      applyCreditNoteSchema.extend({
+        amount: zodNumericField({ required: 'Amount is required', positive: true, max: remaining }),
+      }),
+    [remaining],
+  );
+
   const form = useForm<ApplyCreditNoteFormData>({
-    resolver: zodResolver(applyCreditNoteSchema),
+    resolver: zodResolver(applySchema),
     defaultValues: {
       invoiceId: '',
-      amount: '',
+      amount: 0,
     },
   });
 
@@ -34,14 +44,13 @@ export const ApplyCreditNoteDialog: React.FC<ApplyCreditNoteDialogProps> = ({
     <Form
       form={form}
       mutation={applyMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: creditNoteId,
         data: {
           invoiceId: data.invoiceId,
-          amount: Number(data.amount),
+          amount: data.amount,
         },
       })}
     >

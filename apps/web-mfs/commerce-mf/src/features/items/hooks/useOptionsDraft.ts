@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useGenerateVariants } from '@/hooks/items';
-import { useSaveItemOptions } from '@/hooks/items';
+import { useGenerateVariants, useSaveItemOptions } from '@/hooks/items';
 import type { ItemDetail, OptionInput } from '@/schemas/items';
 
 export interface OptionDraft {

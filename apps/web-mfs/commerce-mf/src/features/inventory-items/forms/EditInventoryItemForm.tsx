@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
@@ -7,6 +6,7 @@ import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateInventoryItem } from '@/hooks/inventory-items';
@@ -46,12 +46,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
   const updateMutation = useUpdateInventoryItem({ onSuccess });
 
   return (
-    <Form
-      form={form}
-      mutation={updateMutation}
-      onCancel={onCancel}
-      transformSubmit={(data) => ({ id: item.id, data })}
-    >
+    <Form form={form} mutation={updateMutation} onCancel={onCancel} transformSubmit={(data) => ({ id: item.id, data })}>
       <div className="flex flex-col gap-6">
         <FormSection title="Basic Info">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

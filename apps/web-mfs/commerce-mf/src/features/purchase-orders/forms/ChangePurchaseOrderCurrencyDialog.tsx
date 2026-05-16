@@ -1,12 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { z, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { useChangePurchaseOrderCurrency } from '@/hooks/purchase-orders';
 import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 

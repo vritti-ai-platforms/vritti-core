@@ -1,9 +1,6 @@
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type {
-  StockAdjustmentLineItemData,
-  StockAdjustmentLineItemsTableResponse,
-} from '@/schemas/stock-adjustments';
+import type { StockAdjustmentLineItemData, StockAdjustmentLineItemsTableResponse } from '@/schemas/stock-adjustments';
 import { getStockAdjustmentLineItemsTable } from '@/services/stock-adjustments.service';
 import { STOCK_ADJUSTMENT_LINE_ITEMS_KEY } from './keys';
 

@@ -8,7 +8,6 @@ import { LotDetailPanel } from './LotDetailPanel';
 import { LotsTreePanel } from './LotsTreePanel';
 import { SerialsTable } from './SerialsTable';
 
-
 interface OpeningItemContentProps {
   adjustment: StockAdjustmentData;
   isDraft: boolean;

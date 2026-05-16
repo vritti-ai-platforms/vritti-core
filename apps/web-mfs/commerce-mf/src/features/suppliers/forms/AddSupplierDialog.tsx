@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
@@ -6,6 +5,7 @@ import { Select } from '@vritti/quantum-ui/Select';
 import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateSupplier } from '@/hooks/suppliers';
@@ -34,7 +34,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
       taxId: '',
       taxIdType: undefined,
       paymentTerms: '',
-      leadTimeDays: '',
+      leadTimeDays: undefined,
       notes: '',
     },
   });
@@ -66,7 +66,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
         taxId: data.taxId?.trim() ? data.taxId.trim() : undefined,
         taxIdType: data.taxId?.trim() ? data.taxIdType || undefined : undefined,
         paymentTerms: data.paymentTerms || undefined,
-        leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : undefined,
+        leadTimeDays: data.leadTimeDays ?? undefined,
         notes: data.notes || undefined,
       })}
     >

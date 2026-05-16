@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { InventoryTracking } from './inventory-items';
 
 export const StockAdjustmentTypeValues = {
@@ -30,12 +30,15 @@ export const StockAdjustmentStatusValues = {
 } as const;
 export type StockAdjustmentStatus = (typeof StockAdjustmentStatusValues)[keyof typeof StockAdjustmentStatusValues];
 
-export const stockAdjustmentStatusConfig: Record<StockAdjustmentStatus, { label: string; variant: 'outline' | 'default' }> = {
+export const stockAdjustmentStatusConfig: Record<
+  StockAdjustmentStatus,
+  { label: string; variant: 'outline' | 'default' }
+> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   PUBLISHED: { label: 'Published', variant: 'default' },
 };
 
-export { InventoryTrackingValues, type InventoryTracking } from './inventory-items';
+export { type InventoryTracking, InventoryTrackingValues } from './inventory-items';
 
 export interface StockAdjustmentLotData {
   id: string;
@@ -151,10 +154,10 @@ export const addStockAdjustmentLotSchema = z
     manufacturingDate: z.string().optional(),
     expiryDate: z.string().min(1, 'Expiry date is required'),
   })
-  .refine(
-    (data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate),
-    { message: 'Expiry date must be after manufacturing date', path: ['expiryDate'] },
-  );
+  .refine((data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate), {
+    message: 'Expiry date must be after manufacturing date',
+    path: ['expiryDate'],
+  });
 export type AddStockAdjustmentLotFormData = z.infer<typeof addStockAdjustmentLotSchema>;
 
 // OPENING_STOCK lines (register intent)
@@ -162,7 +165,7 @@ export const addOpeningStockLineSchema = z.object({
   stockAdjustmentLotId: z.string().optional(), // null for tracking='quantity'
   locationId: z.string().min(1, 'Location is required'),
   uomId: z.string().min(1, 'UOM is required'),
-  quantity: z.string().min(1, 'Quantity is required'),
+  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
 });
 export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
 
@@ -170,7 +173,7 @@ export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSche
 export const addChangeLineSchema = z.object({
   quantId: z.string().min(1, 'Quant is required'),
   uomId: z.string().min(1, 'UOM is required'),
-  quantity: z.string().min(1, 'Quantity is required'),
+  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
 });
 export type AddChangeLineFormData = z.infer<typeof addChangeLineSchema>;
 

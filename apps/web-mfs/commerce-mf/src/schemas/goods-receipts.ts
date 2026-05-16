@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export const GoodsReceiptStatus = {
   DRAFT: 'DRAFT',
@@ -146,14 +146,16 @@ export type GoodsReceiptItemsTableResponse = TableResponse<GoodsReceiptItemData>
 export type GoodsReceiptLinesTableResponse = TableResponse<GoodsReceiptLineData>;
 export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineItemData>;
 
+const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
+
 export const addGoodsReceiptItemSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
-  rejectedQuantity: z.string().optional(),
+  rejectedQuantity: zOptionalNonNegativeNumber,
 });
 export type AddGoodsReceiptItemFormData = z.infer<typeof addGoodsReceiptItemSchema>;
 
 export const updateGoodsReceiptItemSchema = z.object({
-  rejectedQuantity: z.string().optional(),
+  rejectedQuantity: zOptionalNonNegativeNumber,
 });
 export type UpdateGoodsReceiptItemFormData = z.infer<typeof updateGoodsReceiptItemSchema>;
 
@@ -163,16 +165,16 @@ export const addGoodsReceiptLotSchema = z
     manufacturingDate: z.string().optional(),
     expiryDate: z.string().min(1, 'Expiry date is required'),
   })
-  .refine(
-    (data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate),
-    { message: 'Expiry date must be after manufacturing date', path: ['expiryDate'] },
-  );
+  .refine((data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate), {
+    message: 'Expiry date must be after manufacturing date',
+    path: ['expiryDate'],
+  });
 export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema>;
 
 export const addGoodsReceiptLineSchema = z.object({
   goodsReceiptLotId: z.string().optional(),
   locationId: z.string().min(1, 'Location is required'),
-  quantity: z.string().min(1, 'Quantity is required'),
+  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
 });
 export type AddGoodsReceiptLineFormData = z.infer<typeof addGoodsReceiptLineSchema>;
 

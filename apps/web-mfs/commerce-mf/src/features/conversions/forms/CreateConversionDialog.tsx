@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { BomSelector } from '@vritti/quantum-ui/selects/bom';
@@ -6,6 +5,7 @@ import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
@@ -17,7 +17,7 @@ interface CreateConversionDialogProps {
   onCancel: () => void;
 }
 
-const emptyLine = { inventoryItemId: '', quantity: '', wastageQuantity: '' };
+const emptyLine = { inventoryItemId: '', quantity: 0, wastageQuantity: undefined as number | undefined };
 
 export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ onSuccess, onCancel }) => {
   const form = useForm<CreateConversionFormData>({
@@ -40,7 +40,6 @@ export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ 
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -49,13 +48,13 @@ export const CreateConversionDialog: React.FC<CreateConversionDialogProps> = ({ 
         notes: data.notes || undefined,
         inputs: data.inputs.map((i) => ({
           inventoryItemId: i.inventoryItemId,
-          quantity: Number(i.quantity),
-          wastageQuantity: i.wastageQuantity ? Number(i.wastageQuantity) : undefined,
+          quantity: i.quantity,
+          wastageQuantity: i.wastageQuantity,
         })),
         outputs: data.outputs.map((o) => ({
           inventoryItemId: o.inventoryItemId,
-          quantity: Number(o.quantity),
-          wastageQuantity: o.wastageQuantity ? Number(o.wastageQuantity) : undefined,
+          quantity: o.quantity,
+          wastageQuantity: o.wastageQuantity,
         })),
       })}
     >

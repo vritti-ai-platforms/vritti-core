@@ -252,9 +252,9 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
   // Updates path for a single location
   async updatePath(id: string, path: string): Promise<void> {
     await this.db
-      .update(storageLocations)
+      .update(locations)
       .set({ path: sql`cast(${path} as vritti_core.ltree)` })
-      .where(eq(storageLocations.id, id));
+      .where(eq(locations.id, id));
   }
 
   // Rewrites path prefix for a moved subtree: oldPath -> newPath

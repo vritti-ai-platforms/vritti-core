@@ -1,10 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplier } from '@/hooks/suppliers';
@@ -33,7 +33,7 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
       taxId: supplier.taxId ?? '',
       taxIdType: supplier.taxIdType ?? null,
       paymentTerms: supplier.paymentTerms ?? '',
-      leadTimeDays: supplier.leadTimeDays != null ? String(supplier.leadTimeDays) : '',
+      leadTimeDays: supplier.leadTimeDays ?? undefined,
       notes: supplier.notes ?? '',
     },
   });
@@ -50,7 +50,7 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
           id: supplier.id,
           data: {
             ...data,
-            leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : null,
+            leadTimeDays: data.leadTimeDays ?? null,
           },
         };
       }}

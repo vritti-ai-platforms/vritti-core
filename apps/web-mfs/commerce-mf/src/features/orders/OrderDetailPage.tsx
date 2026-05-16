@@ -8,8 +8,7 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle, ChefHat, PackageCheck, ThumbsUp, XCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useOrder } from '@/hooks/orders';
-import { useUpdateOrderStatus } from '@/hooks/orders';
+import { useOrder, useUpdateOrderStatus } from '@/hooks/orders';
 import type { OrderChannel, OrderStatus, OrderType } from '@/schemas/orders';
 
 const statusConfig: Record<
@@ -129,15 +128,10 @@ export const OrderDetailPage = () => {
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-6">
                     <DetailField label="Order Number" value={order.orderNumber} number />
-                    <DetailField
-                      label="Type"
-                      value={<Badge variant="outline">{typeLabels[order.type]}</Badge>}
-                    />
+                    <DetailField label="Type" value={<Badge variant="outline">{typeLabels[order.type]}</Badge>} />
                     <DetailField label="Channel" value={channelLabels[order.channel]} />
                     <DetailField label="Placed At" value={order.placedAt} />
-                    {order.externalOrderId && (
-                      <DetailField label="External ID" value={order.externalOrderId} number />
-                    )}
+                    {order.externalOrderId && <DetailField label="External ID" value={order.externalOrderId} number />}
                     <DetailField label="Notes" value={order.notes} className="col-span-2" />
                   </CardContent>
                 </Card>

@@ -1,7 +1,6 @@
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { useEffect, useState } from 'react';
-import { useBatchUpdateVariants } from '@/hooks/items';
-import { useDeleteVariant } from '@/hooks/items';
+import { useBatchUpdateVariants, useDeleteVariant } from '@/hooks/items';
 import type { ItemDetail, ItemVariant } from '@/schemas/items';
 
 export interface VariantEditState {

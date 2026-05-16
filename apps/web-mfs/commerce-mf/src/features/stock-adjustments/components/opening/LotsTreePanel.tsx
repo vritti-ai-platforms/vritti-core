@@ -69,13 +69,7 @@ const TreeRow = ({ uomSymbol }: { uomSymbol: string }) =>
     );
   };
 
-export const LotsTreePanel = ({
-  adjustmentId,
-  isDraft,
-  uomSymbol,
-  selectedId,
-  onSelect,
-}: LotsTreePanelProps) => {
+export const LotsTreePanel = ({ adjustmentId, isDraft, uomSymbol, selectedId, onSelect }: LotsTreePanelProps) => {
   const { data: tree = [], isFetching } = useStockAdjustmentTree(adjustmentId);
   const addLotDialog = useDialog();
 
@@ -89,9 +83,7 @@ export const LotsTreePanel = ({
         header={
           <div className="space-y-1">
             <div className="text-sm font-semibold">Lots</div>
-            <div className="text-xs text-muted-foreground">
-              {pluralize('lot', tree.length, true)}
-            </div>
+            <div className="text-xs text-muted-foreground">{pluralize('lot', tree.length, true)}</div>
           </div>
         }
         actions={

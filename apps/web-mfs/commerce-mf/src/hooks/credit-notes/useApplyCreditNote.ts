@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
-import { type ApplyCreditNotePayload, applyCreditNote } from '@/services/credit-notes.service';
+import type { AxiosError } from 'axios';
 import { INVOICES_TABLE_KEY } from '@/hooks/invoices';
+import { type ApplyCreditNotePayload, applyCreditNote } from '@/services/credit-notes.service';
 import { CREDIT_NOTE_KEY, CREDIT_NOTES_KEY } from './keys';
 
 // Applies a credit note to an invoice and invalidates related queries

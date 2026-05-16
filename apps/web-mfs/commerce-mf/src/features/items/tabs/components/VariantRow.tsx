@@ -18,10 +18,7 @@ interface VariantRowProps {
 
 export const VariantRow: React.FC<VariantRowProps> = ({ variant, edit, isDirty, onFieldChange, onDelete }) => (
   <div
-    className={cn(
-      'grid grid-cols-[1fr_120px_140px_56px_auto] items-center gap-3 px-3 py-2',
-      isDirty && 'bg-warning/5',
-    )}
+    className={cn('grid grid-cols-[1fr_120px_140px_56px_auto] items-center gap-3 px-3 py-2', isDirty && 'bg-warning/5')}
   >
     <div className="flex flex-col min-w-0">
       <Typography variant="subtitle2" className="truncate">

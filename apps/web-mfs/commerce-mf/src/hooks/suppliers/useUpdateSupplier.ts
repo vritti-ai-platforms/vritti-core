@@ -7,7 +7,10 @@ import { SUPPLIER_KEY, SUPPLIERS_TABLE_KEY } from './keys';
 
 // Updates a supplier and invalidates table + detail
 export function useUpdateSupplier(
-  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, { id: string; data: UpdateSupplierPayload }>, 'mutationFn'>,
+  options?: Omit<
+    UseMutationOptions<SuccessResponse, AxiosError, { id: string; data: UpdateSupplierPayload }>,
+    'mutationFn'
+  >,
 ) {
   const queryClient = useQueryClient();
 

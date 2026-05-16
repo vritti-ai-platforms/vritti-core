@@ -5,9 +5,9 @@ import { getLocationById } from '@/services/locations.service';
 import { LOCATIONS_KEY } from './keys';
 
 export function useLocationById(id: string | null) {
-	return useQuery<LocationData, AxiosError>({
-		queryKey: [...LOCATIONS_KEY, 'detail', id],
-		queryFn: () => getLocationById(id as string),
-		enabled: !!id,
-	});
+  return useQuery<LocationData, AxiosError>({
+    queryKey: [...LOCATIONS_KEY, 'detail', id],
+    queryFn: () => getLocationById(id as string),
+    enabled: !!id,
+  });
 }

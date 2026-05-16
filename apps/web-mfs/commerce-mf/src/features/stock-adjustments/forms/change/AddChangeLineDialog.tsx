@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
@@ -6,16 +5,24 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { QuantSelector } from '@vritti/quantum-ui/selects/quant';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { useState } from 'react';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLine } from '@/hooks/stock-adjustments';
-import { type AddChangeLineFormData, addChangeLineSchema, type InventoryTracking } from '@/schemas/stock-adjustments';
+import {
+  type InventoryTracking,
+  type StockAdjustmentType,
+  StockAdjustmentTypeValues,
+} from '@/schemas/stock-adjustments';
+
+type FormData = { quantId: string; uomId: string; quantity: number };
 
 const AddChangeLineForm = ({
   adjustmentId,
   inventoryItemId,
   primaryUomId,
   tracking,
+  adjustmentType,
   onSuccess,
   onCancel,
 }: {
@@ -23,20 +30,33 @@ const AddChangeLineForm = ({
   inventoryItemId: string;
   primaryUomId: string;
   tracking: InventoryTracking;
+  adjustmentType: StockAdjustmentType;
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
   const isItem = tracking === 'serial' || tracking === 'lot_serial';
+  const isCorrection = adjustmentType === StockAdjustmentTypeValues.CORRECTION;
 
   const [availableQty, setAvailableQty] = useState<number | null>(null);
   const [numerator, setNumerator] = useState(1);
   const [denominator, setDenominator] = useState(1);
 
-  const maxQty = availableQty != null ? (availableQty * numerator) / denominator : undefined;
+  const maxQty = !isCorrection && availableQty != null ? (availableQty * numerator) / denominator : undefined;
 
-  const form = useForm<AddChangeLineFormData>({
-    resolver: zodResolver(addChangeLineSchema),
-    defaultValues: { quantId: '', uomId: primaryUomId, quantity: isItem ? '0' : '' },
+  const resolver = useMemo(() => {
+    const schema = z.object({
+      quantId: z.string().min(1, 'Quant is required'),
+      uomId: z.string().min(1, 'UOM is required'),
+      quantity: isCorrection
+        ? zodNumericField({ required: 'Quantity is required' })
+        : zodNumericField({ required: 'Quantity is required', positive: true, max: maxQty }),
+    });
+    return zodResolver(schema);
+  }, [maxQty, isCorrection]);
+
+  const form = useForm<FormData>({
+    resolver,
+    defaultValues: { quantId: '', uomId: primaryUomId, quantity: 0 },
   });
 
   const mutation = useAddStockAdjustmentLine(adjustmentId, { onSuccess });
@@ -50,13 +70,13 @@ const AddChangeLineForm = ({
       transformSubmit={(data) => ({
         quantId: data.quantId,
         uomId: data.uomId,
-        quantity: Number(data.quantity || 0),
+        quantity: data.quantity,
       })}
     >
       <QuantSelector
         name="quantId"
         label="Quant (Lot @ Location)"
-        placeholder="Pick the quant to deduct from"
+        placeholder="Pick the quant"
         params={{ inventoryItemId }}
         onOptionSelect={(option) => {
           const qty = option?.additionals?.quantity;
@@ -65,7 +85,14 @@ const AddChangeLineForm = ({
       />
       {!isItem && (
         <div className="grid grid-cols-2 gap-4">
-          <TextField name="quantity" label="Quantity" type="number" positive nonZero max={maxQty} />
+          <TextField
+            name="quantity"
+            label="Quantity"
+            type="number"
+            positive={!isCorrection}
+            nonZero={!isCorrection}
+            max={maxQty}
+          />
           <UomSelector
             name="uomId"
             label="Unit"
@@ -78,6 +105,9 @@ const AddChangeLineForm = ({
             }}
           />
         </div>
+      )}
+      {isCorrection && !isItem && (
+        <p className="text-xs text-muted-foreground">Positive quantity adds to the quant; negative deducts.</p>
       )}
       {isItem && (
         <p className="text-xs text-muted-foreground">
@@ -100,24 +130,27 @@ export const AddChangeLineDialog = ({
   inventoryItemId,
   primaryUomId,
   tracking,
+  adjustmentType,
   handle,
 }: {
   adjustmentId: string;
   inventoryItemId: string;
   primaryUomId: string;
   tracking: InventoryTracking;
+  adjustmentType: StockAdjustmentType;
   handle: ReturnType<typeof useDialog>;
 }) => (
   <Dialog
     handle={handle}
     title="Add Line"
-    description="Pick the quant to deduct from and enter the quantity."
+    description="Pick the quant and enter the quantity."
     content={(close) => (
       <AddChangeLineForm
         adjustmentId={adjustmentId}
         inventoryItemId={inventoryItemId}
         primaryUomId={primaryUomId}
         tracking={tracking}
+        adjustmentType={adjustmentType}
         onSuccess={close}
         onCancel={close}
       />

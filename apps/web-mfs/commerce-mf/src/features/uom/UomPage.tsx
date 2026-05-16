@@ -6,8 +6,8 @@ import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { UomDimensionDetailPanel } from './components/UomDimensionDetailPanel';
 import { useUomDimensionCount } from '@/hooks/uom-dimensions';
+import { UomDimensionDetailPanel } from './components/UomDimensionDetailPanel';
 import { UomDimensionsPanel } from './components/UomDimensionsPanel';
 import { AddUomDimensionDialog } from './forms/AddUomDimensionDialog';
 
@@ -30,10 +30,7 @@ export const UomPage = () => {
 
       <PageContent>
         <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
-        <UomDimensionDetailPanel
-          dimensionId={selectedDimensionId}
-          onDeleted={() => setSelectedDimensionId(null)}
-        />
+        <UomDimensionDetailPanel dimensionId={selectedDimensionId} onDeleted={() => setSelectedDimensionId(null)} />
       </PageContent>
 
       <Dialog

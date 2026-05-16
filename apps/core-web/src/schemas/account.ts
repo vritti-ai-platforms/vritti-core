@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
 
 // Validation schema for password change form
 export const changePasswordSchema = z

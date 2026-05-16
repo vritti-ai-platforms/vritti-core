@@ -1,9 +1,9 @@
 import type { SessionData } from '@services/account/security.service';
+import { getRelativeTime } from '@utils/getRelativeTime';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { CheckCircle, LogOut, Monitor } from 'lucide-react';
-import { getRelativeTime } from '@utils/getRelativeTime';
 
 interface SessionCardProps {
   session: SessionData;

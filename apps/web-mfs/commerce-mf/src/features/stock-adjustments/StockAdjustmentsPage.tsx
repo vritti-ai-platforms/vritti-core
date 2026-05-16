@@ -11,14 +11,13 @@ import { ClipboardMinus, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { STOCK_ADJUSTMENTS_TABLE_KEY, useStockAdjustmentsTable } from '@/hooks/stock-adjustments';
+import { inventoryTrackingConfig } from '@/schemas/inventory-items';
 import {
+  type StockAdjustmentData,
   stockAdjustmentStatusConfig,
   stockAdjustmentTypeConfig,
-  type StockAdjustmentData,
 } from '@/schemas/stock-adjustments';
-import { inventoryTrackingConfig } from '@/schemas/inventory-items';
 import { CreateStockAdjustmentDialog } from './forms/CreateStockAdjustmentDialog';
-
 
 export const StockAdjustmentsPage = () => {
   const navigate = useNavigate();

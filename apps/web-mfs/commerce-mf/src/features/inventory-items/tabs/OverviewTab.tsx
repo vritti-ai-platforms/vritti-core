@@ -37,17 +37,29 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
           <DetailField
             label="Total Stocked"
             number
-            value={<>{totalStocked} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span></>}
+            value={
+              <>
+                {totalStocked} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span>
+              </>
+            }
           />
           <DetailField
             label="Total Reserved"
             number
-            value={<>{totalReserved} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span></>}
+            value={
+              <>
+                {totalReserved} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span>
+              </>
+            }
           />
           <DetailField
             label="Total Available"
             number
-            value={<span className="text-success">{totalAvailable} <span className="text-sm font-normal">{item.uomSymbol}</span></span>}
+            value={
+              <span className="text-success">
+                {totalAvailable} <span className="text-sm font-normal">{item.uomSymbol}</span>
+              </span>
+            }
           />
         </CardContent>
       </Card>

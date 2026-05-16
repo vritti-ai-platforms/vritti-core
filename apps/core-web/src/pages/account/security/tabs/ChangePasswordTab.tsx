@@ -1,15 +1,15 @@
 import { SecurityTabCard } from '@components/account/security/SecurityTabCard';
 import { useChangePassword } from '@hooks/account/security';
-import type { ChangePasswordFormData } from '@/schemas/account';
-import { changePasswordSchema } from '@/schemas/account';
 import { Button } from '@vritti/quantum-ui/Button';
 import { FieldGroup, Form } from '@vritti/quantum-ui/Form';
 import { PasswordField } from '@vritti/quantum-ui/PasswordField';
 import { Separator } from '@vritti/quantum-ui/Separator';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { Info, Lock } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import type { ChangePasswordFormData } from '@/schemas/account';
+import { changePasswordSchema } from '@/schemas/account';
 
 export const ChangePasswordTab: React.FC = () => {
   const form = useForm<ChangePasswordFormData>({
@@ -42,7 +42,6 @@ export const ChangePasswordTab: React.FC = () => {
           currentPassword: data.currentPassword,
           newPassword: data.newPassword,
         })}
-       
       >
         <FieldGroup>
           <PasswordField

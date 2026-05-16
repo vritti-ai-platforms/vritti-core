@@ -145,7 +145,9 @@ export const CreditNoteDetailPage = () => {
                             <tr key={app.id} className="border-b last:border-0">
                               <td className="py-3 font-mono">{app.invoiceId}</td>
                               <td className="py-3 text-right font-mono font-medium">{app.amount.toFixed(2)}</td>
-                              <td className="py-3"><FormattedDate value={app.appliedAt} dateFormat="P" /></td>
+                              <td className="py-3">
+                                <FormattedDate value={app.appliedAt} dateFormat="P" />
+                              </td>
                             </tr>
                           ))}
                         </tbody>

@@ -25,9 +25,7 @@ export const ModifierGroupRow: React.FC<ModifierGroupRowProps> = ({
   const [open, setOpen] = useState(false);
   const isAssigned = !!assignedData;
   // Fetch on-demand only for unassigned groups when the row is expanded
-  const { data: fetchedDetail, isLoading: isFetchingDetail } = useModifierGroup(
-    open && !isAssigned ? group.id : null,
-  );
+  const { data: fetchedDetail, isLoading: isFetchingDetail } = useModifierGroup(open && !isAssigned ? group.id : null);
   const options = assignedData?.options ?? fetchedDetail?.options ?? [];
   const meta = formatSelectionMeta(group);
 
@@ -37,7 +35,13 @@ export const ModifierGroupRow: React.FC<ModifierGroupRowProps> = ({
       onOpenChange={setOpen}
       headerClassName="px-3 py-2.5"
       leading={<Checkbox checked={isSelected} onCheckedChange={() => onToggleSelect(group.id)} />}
-      trailing={meta ? <Typography variant="caption" className="shrink-0">{meta}</Typography> : null}
+      trailing={
+        meta ? (
+          <Typography variant="caption" className="shrink-0">
+            {meta}
+          </Typography>
+        ) : null
+      }
       trigger={
         <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0 text-left">
           <Typography variant="subtitle2" className="truncate">

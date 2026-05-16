@@ -1,9 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useUpdateGoodsReceiptItem } from '@/hooks/goods-receipts';
 import {
@@ -25,7 +25,7 @@ const EditItemForm = ({
 }) => {
   const form = useForm<UpdateGoodsReceiptItemFormData>({
     resolver: zodResolver(updateGoodsReceiptItemSchema),
-    defaultValues: { rejectedQuantity: String(item.rejectedQuantity) },
+    defaultValues: { rejectedQuantity: item.rejectedQuantity },
   });
   const mutation = useUpdateGoodsReceiptItem(goodsReceiptId, item.id, { onSuccess });
 
@@ -35,7 +35,7 @@ const EditItemForm = ({
       mutation={mutation}
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        rejectedQuantity: data.rejectedQuantity ? Number(data.rejectedQuantity) : 0,
+        rejectedQuantity: data.rejectedQuantity ?? 0,
       })}
     >
       <TextField name="rejectedQuantity" label="Damaged on arrival" type="number" />

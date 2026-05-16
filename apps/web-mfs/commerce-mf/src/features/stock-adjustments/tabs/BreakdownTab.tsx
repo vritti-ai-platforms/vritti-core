@@ -1,5 +1,9 @@
 import type React from 'react';
-import { type StockAdjustmentData, InventoryTrackingValues, StockAdjustmentTypeValues } from '@/schemas/stock-adjustments';
+import {
+  InventoryTrackingValues,
+  type StockAdjustmentData,
+  StockAdjustmentTypeValues,
+} from '@/schemas/stock-adjustments';
 import { ChangeContent } from '../components/change/ChangeContent';
 import { ChangeItemContent } from '../components/change/ChangeItemContent';
 import { OpeningItemContent } from '../components/opening/OpeningItemContent';

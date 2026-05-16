@@ -25,9 +25,7 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ itemId, uomSymbo
       {
         accessorKey: 'locationPath',
         header: 'Path',
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>,
         enableSorting: false,
       },
       {
@@ -82,10 +80,7 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ itemId, uomSymbo
     [uomSymbol],
   );
 
-  const serverState = useMemo(
-    () => ({ result: stocks, count: stocks.length }),
-    [stocks],
-  );
+  const serverState = useMemo(() => ({ result: stocks, count: stocks.length }), [stocks]);
 
   const { table } = useDataTable({
     columns,

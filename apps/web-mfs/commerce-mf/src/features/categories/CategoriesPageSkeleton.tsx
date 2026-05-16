@@ -6,10 +6,7 @@ export const CategoriesPageSkeleton = () => (
   <div className="flex flex-col gap-6">
     <PageHeaderSkeleton showActions />
     <PageContent>
-      <PageContentPanel
-        header={<Skeleton className="h-9 w-full rounded-md" />}
-        headerClassName="shrink-0"
-      >
+      <PageContentPanel header={<Skeleton className="h-9 w-full rounded-md" />} headerClassName="shrink-0">
         <PanelSkeleton />
       </PageContentPanel>
 

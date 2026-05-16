@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import type { AxiosError } from 'axios';
 import { type SendPurchaseOrderEmailPayload, sendPurchaseOrderEmail } from '@/services/purchase-orders.service';
-import { PURCHASE_ORDERS_TABLE_KEY, PURCHASE_ORDER_KEY } from './keys';
+import { PURCHASE_ORDER_KEY, PURCHASE_ORDERS_TABLE_KEY } from './keys';
 
 // Sends a purchase order email and invalidates table + detail
 export function useSendPurchaseOrderEmail(

@@ -4,7 +4,7 @@ import type { SaveTerminalPriceListsData, TerminalPriceListData } from '@/schema
 
 interface AssignmentInput {
   priceListId: string;
-  priority?: string;
+  priority?: number;
   isDefault?: boolean;
 }
 
@@ -43,10 +43,7 @@ export function usePriceListAssignments(terminalId: string): UsePriceListAssignm
   const { data: priceLists = [], isLoading, error } = useTerminalPriceLists(terminalId);
   const saveMutation = useSaveTerminalPriceLists();
 
-  const existingPriceListIds = useMemo(
-    () => priceLists.map((priceList) => priceList.priceListId),
-    [priceLists],
-  );
+  const existingPriceListIds = useMemo(() => priceLists.map((priceList) => priceList.priceListId), [priceLists]);
 
   const persist = (next: SaveTerminalPriceListsData['priceLists'], onDone?: () => void) => {
     saveMutation.mutate({ terminalId, data: { priceLists: next } }, { onSuccess: () => onDone?.() });
@@ -62,24 +59,20 @@ export function usePriceListAssignments(terminalId: string): UsePriceListAssignm
       ...base,
       {
         priceListId: values.priceListId,
-        priority: values.priority ? Number(values.priority) : base.length,
+        priority: values.priority ?? base.length,
         isDefault: values.isDefault ?? false,
       },
     ];
     persist(normalizeDefault(next, values.isDefault ? values.priceListId : null), onDone);
   };
 
-  const updateAssignment = (
-    existingPriceListId: string,
-    values: AssignmentInput,
-    onDone?: () => void,
-  ) => {
+  const updateAssignment = (existingPriceListId: string, values: AssignmentInput, onDone?: () => void) => {
     const base = toAssignments(priceLists);
     const next = base.map((priceList) =>
       priceList.priceListId === existingPriceListId
         ? {
             priceListId: values.priceListId,
-            priority: values.priority ? Number(values.priority) : priceList.priority,
+            priority: values.priority ?? priceList.priority,
             isDefault: values.isDefault ?? false,
           }
         : priceList,

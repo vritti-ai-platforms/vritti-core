@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
 
 export const createItemSchema = z.object({
   type: z.enum(['PRODUCT', 'SERVICE']),

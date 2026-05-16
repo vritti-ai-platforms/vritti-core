@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { INVOICE_KEY, INVOICES_TABLE_KEY } from '@/hooks/invoices';
 import type { PaymentData } from '@/schemas/invoices';
 import { type CreatePaymentPayload, createPayment } from '@/services/payments.service';
-import { INVOICE_KEY, INVOICES_TABLE_KEY } from '@/hooks/invoices';
 import { INVOICE_PAYMENTS_KEY } from './keys';
 
 // Creates a payment and invalidates invoice detail + table

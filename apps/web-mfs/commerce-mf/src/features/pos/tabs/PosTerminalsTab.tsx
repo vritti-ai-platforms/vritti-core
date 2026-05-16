@@ -70,9 +70,7 @@ export const PosTerminalsTab = () => {
         accessorKey: 'locationPath',
         header: 'Path',
         enableSorting: false,
-        cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>
-        ),
+        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.locationPath ?? '—'}</span>,
       },
       {
         accessorKey: 'isActive',

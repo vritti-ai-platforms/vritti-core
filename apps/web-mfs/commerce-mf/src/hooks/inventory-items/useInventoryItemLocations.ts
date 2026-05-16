@@ -1,7 +1,16 @@
-import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
+import {
+  type UseMutationOptions,
+  type UseQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
-import type { InventoryItemLocationData, InventoryItemLocationsTableResponse } from '@/schemas/inventory-item-locations';
+import type { AxiosError } from 'axios';
+import type {
+  InventoryItemLocationData,
+  InventoryItemLocationsTableResponse,
+} from '@/schemas/inventory-item-locations';
 import {
   createInventoryItemLocation,
   deleteInventoryItemLocation,
@@ -24,10 +33,18 @@ export function useInventoryItemLocationsTable(
 
 export function useCreateInventoryItemLocation(
   itemId: string,
-  options?: UseMutationOptions<CreateResponse<InventoryItemLocationData>, AxiosError, { locationId: string; reorderLevel: number }>,
+  options?: UseMutationOptions<
+    CreateResponse<InventoryItemLocationData>,
+    AxiosError,
+    { locationId: string; reorderLevel: number }
+  >,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<InventoryItemLocationData>, AxiosError, { locationId: string; reorderLevel: number }>({
+  return useMutation<
+    CreateResponse<InventoryItemLocationData>,
+    AxiosError,
+    { locationId: string; reorderLevel: number }
+  >({
     mutationFn: (data) => createInventoryItemLocation(itemId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
@@ -45,7 +62,8 @@ export function useUpdateInventoryItemLocation(
 ) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, { locationConfigId: string; reorderLevel: number }>({
-    mutationFn: ({ locationConfigId, reorderLevel }) => updateInventoryItemLocation(itemId, locationConfigId, { reorderLevel }),
+    mutationFn: ({ locationConfigId, reorderLevel }) =>
+      updateInventoryItemLocation(itemId, locationConfigId, { reorderLevel }),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
       // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,

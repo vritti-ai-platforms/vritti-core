@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@vritti/quantum-ui';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
@@ -14,18 +13,21 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation } from 'react-router-dom';
-import { useCreateModifierGroup } from '@/hooks/modifiers';
-import { useCreateModifierOption } from '@/hooks/modifiers';
-import { useDeleteModifierGroup } from '@/hooks/modifiers';
-import { useDeleteModifierOption } from '@/hooks/modifiers';
-import { useModifierGroup } from '@/hooks/modifiers';
-import { useModifierGroups } from '@/hooks/modifiers';
-import { useUpdateModifierGroup } from '@/hooks/modifiers';
-import { useUpdateModifierOption } from '@/hooks/modifiers';
+import {
+  useCreateModifierGroup,
+  useCreateModifierOption,
+  useDeleteModifierGroup,
+  useDeleteModifierOption,
+  useModifierGroup,
+  useModifierGroups,
+  useUpdateModifierGroup,
+  useUpdateModifierOption,
+} from '@/hooks/modifiers';
 import type { ModifierGroupData, ModifierOptionData } from '@/schemas/items';
 import {
   type CreateModifierGroupFormData,
@@ -423,8 +425,8 @@ const CreateGroupForm = ({ businessUnitId, onSuccess, onCancel }: CreateGroupFor
       name: '',
       selectionType: 'SINGLE',
       isRequired: false,
-      minSelections: '0',
-      maxSelections: '',
+      minSelections: 0,
+      maxSelections: undefined,
     },
   });
 
@@ -436,15 +438,14 @@ const CreateGroupForm = ({ businessUnitId, onSuccess, onCancel }: CreateGroupFor
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         businessUnitId,
         name: data.name,
         selectionType: data.selectionType,
-        minSelections: data.isRequired ? Math.max(Number(data.minSelections) || 0, 1) : 0,
-        maxSelections: data.maxSelections ? Number(data.maxSelections) : undefined,
+        minSelections: data.isRequired ? Math.max(data.minSelections ?? 0, 1) : 0,
+        maxSelections: data.maxSelections ?? undefined,
         isActive: true,
       })}
     >
@@ -479,8 +480,8 @@ const EditGroupForm = ({ group, onSuccess, onCancel }: EditGroupFormProps) => {
       name: group.name,
       selectionType: group.selectionType,
       isRequired: group.minSelections > 0,
-      minSelections: String(group.minSelections),
-      maxSelections: group.maxSelections != null ? String(group.maxSelections) : '',
+      minSelections: group.minSelections,
+      maxSelections: group.maxSelections ?? undefined,
     },
   });
 
@@ -490,15 +491,14 @@ const EditGroupForm = ({ group, onSuccess, onCancel }: EditGroupFormProps) => {
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: group.id,
         data: {
           name: data.name,
           selectionType: data.selectionType,
-          minSelections: data.isRequired ? Math.max(Number(data.minSelections) || 0, 1) : 0,
-          maxSelections: data.maxSelections ? Number(data.maxSelections) : null,
+          minSelections: data.isRequired ? Math.max(data.minSelections ?? 0, 1) : 0,
+          maxSelections: data.maxSelections ?? null,
         },
       })}
     >
@@ -531,7 +531,7 @@ const AddOptionForm = ({ groupId, onSuccess, onCancel }: AddOptionFormProps) => 
     resolver: zodResolver(createModifierOptionSchema),
     defaultValues: {
       name: '',
-      additionalPrice: '',
+      additionalPrice: 0,
     },
   });
 
@@ -541,14 +541,13 @@ const AddOptionForm = ({ groupId, onSuccess, onCancel }: AddOptionFormProps) => 
     <Form
       form={form}
       mutation={createMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
         groupId,
         data: {
           name: data.name,
-          additionalPrice: Number(data.additionalPrice),
+          additionalPrice: data.additionalPrice,
         },
       })}
     >
@@ -579,7 +578,7 @@ const EditOptionForm = ({ groupId, option, onSuccess, onCancel }: EditOptionForm
     resolver: zodResolver(createModifierOptionSchema),
     defaultValues: {
       name: option.name,
-      additionalPrice: option.additionalPrice,
+      additionalPrice: Number(option.additionalPrice),
     },
   });
 
@@ -589,14 +588,13 @@ const EditOptionForm = ({ groupId, option, onSuccess, onCancel }: EditOptionForm
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         groupId,
         optionId: option.id,
         data: {
           name: data.name,
-          additionalPrice: Number(data.additionalPrice),
+          additionalPrice: data.additionalPrice,
         },
       })}
     >

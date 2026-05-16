@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export type ConversionStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
@@ -41,8 +41,8 @@ export type ConversionsTableResponse = TableResponse<ConversionData>;
 
 const conversionLineSchema = z.object({
   inventoryItemId: z.string().min(1, 'Item is required'),
-  quantity: z.string().min(1, 'Quantity is required'),
-  wastageQuantity: z.string().optional(),
+  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+  wastageQuantity: z.number().nonnegative().optional().catch(undefined),
 });
 
 export const createConversionSchema = z.object({

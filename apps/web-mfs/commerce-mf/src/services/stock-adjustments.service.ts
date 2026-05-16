@@ -8,8 +8,8 @@ import type {
   StockAdjustmentLinesTableResponse,
   StockAdjustmentLotData,
   StockAdjustmentLotDetailData,
-  StockAdjustmentTreeNode,
   StockAdjustmentsTableResponse,
+  StockAdjustmentTreeNode,
   StockAdjustmentType,
 } from '@/schemas/stock-adjustments';
 
@@ -40,8 +40,8 @@ export interface UpdateStockAdjustmentLotPayload {
 // Lines
 export interface AddStockAdjustmentLinePayload {
   stockAdjustmentLotId?: string | null; // OPENING_STOCK + tracking=lot/item
-  locationId?: string | null;            // OPENING_STOCK
-  quantId?: string | null;               // deduct/CORRECTION
+  locationId?: string | null; // OPENING_STOCK
+  quantId?: string | null; // deduct/CORRECTION
   uomId: string;
   quantity: number;
 }
@@ -77,10 +77,7 @@ export function getStockAdjustmentLots(id: string): Promise<StockAdjustmentLotDa
   return axios.get<StockAdjustmentLotData[]>(`commerce-api/stock-adjustments/${id}/lots`).then((r) => r.data);
 }
 
-export function getStockAdjustmentLotDetail(
-  id: string,
-  lotId: string,
-): Promise<StockAdjustmentLotDetailData> {
+export function getStockAdjustmentLotDetail(id: string, lotId: string): Promise<StockAdjustmentLotDetailData> {
   return axios
     .get<StockAdjustmentLotDetailData>(`commerce-api/stock-adjustments/${id}/lots/${lotId}/detail`)
     .then((r) => r.data);
@@ -100,16 +97,17 @@ export function getStockAdjustmentLinesTable(id: string): Promise<StockAdjustmen
     .then((r) => r.data);
 }
 
-export function getStockAdjustmentLinesByLotTable(id: string, lotId: string): Promise<StockAdjustmentLinesTableResponse> {
+export function getStockAdjustmentLinesByLotTable(
+  id: string,
+  lotId: string,
+): Promise<StockAdjustmentLinesTableResponse> {
   return axios
     .get<StockAdjustmentLinesTableResponse>(`commerce-api/stock-adjustments/${id}/lots/${lotId}/lines/table`)
     .then((r) => r.data);
 }
 
 export function getStockAdjustmentLine(id: string, lineId: string): Promise<StockAdjustmentLineData> {
-  return axios
-    .get<StockAdjustmentLineData>(`commerce-api/stock-adjustments/${id}/lines/${lineId}`)
-    .then((r) => r.data);
+  return axios.get<StockAdjustmentLineData>(`commerce-api/stock-adjustments/${id}/lines/${lineId}`).then((r) => r.data);
 }
 
 export function getStockAdjustmentLineItemsTable(
@@ -143,10 +141,7 @@ export function deleteStockAdjustment(id: string): Promise<SuccessResponse> {
 
 // Writes — lots
 
-export function addStockAdjustmentLot(
-  id: string,
-  data: AddStockAdjustmentLotPayload,
-): Promise<StockAdjustmentLotData> {
+export function addStockAdjustmentLot(id: string, data: AddStockAdjustmentLotPayload): Promise<StockAdjustmentLotData> {
   return axios
     .post<CreateResponse<StockAdjustmentLotData>>(`commerce-api/stock-adjustments/${id}/lots`, data)
     .then((r) => r.data.data);

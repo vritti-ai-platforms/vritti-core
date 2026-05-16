@@ -57,9 +57,7 @@ export const LotsTab: React.FC<LotsTabProps> = ({ itemId, uomSymbol }) => {
           const status = getLotStatus(row.original.expiryDate);
           const colorClass =
             status === 'EXPIRED' ? 'text-destructive' : status === 'EXPIRING_SOON' ? 'text-warning' : '';
-          return (
-            <FormattedDate value={row.original.expiryDate} dateFormat="P" className={`font-mono ${colorClass}`} />
-          );
+          return <FormattedDate value={row.original.expiryDate} dateFormat="P" className={`font-mono ${colorClass}`} />;
         },
         enableSorting: true,
       },

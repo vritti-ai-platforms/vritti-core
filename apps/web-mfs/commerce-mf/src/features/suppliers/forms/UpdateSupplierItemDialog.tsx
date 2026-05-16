@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
@@ -6,6 +5,7 @@ import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useAllowedUomIds } from '@/hooks/inventory-items';
@@ -33,8 +33,8 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
       supplierItemCode: item.supplierItemCode ?? '',
       unitPrice: item.unitPrice ?? undefined,
       uomId: item.uomId,
-      minOrderQuantity: item.minOrderQuantity != null ? String(item.minOrderQuantity) : '',
-      leadTimeDays: item.leadTimeDays != null ? String(item.leadTimeDays) : '',
+      minOrderQuantity: item.minOrderQuantity ?? undefined,
+      leadTimeDays: item.leadTimeDays ?? undefined,
       isPreferred: item.isPreferred,
       isActive: item.isActive,
     },
@@ -54,8 +54,8 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
           supplierItemCode: data.supplierItemCode ? data.supplierItemCode : null,
           unitPrice: data.unitPrice ?? null,
           uomId: data.uomId,
-          minOrderQuantity: data.minOrderQuantity ? Number(data.minOrderQuantity) : null,
-          leadTimeDays: data.leadTimeDays ? Number(data.leadTimeDays) : null,
+          minOrderQuantity: data.minOrderQuantity ?? null,
+          leadTimeDays: data.leadTimeDays ?? null,
           isPreferred: data.isPreferred,
           isActive: data.isActive,
         },

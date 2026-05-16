@@ -1,7 +1,7 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { AxiosError } from 'axios';
 import type { ReorderCategoriesData } from '@/schemas/categories';
 import { reorderCategories } from '@/services/categories.service';
 import { CATEGORIES_KEY } from './keys';

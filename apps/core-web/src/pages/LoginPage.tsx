@@ -1,12 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { FieldGroup, Form } from '@vritti/quantum-ui/Form';
 import { PasswordField } from '@vritti/quantum-ui/PasswordField';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { z, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
 import { useLogin } from '../hooks/useLogin';
 
 const schema = z.object({

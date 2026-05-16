@@ -61,14 +61,11 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
             const locationLabel = line.quantLocationName ?? line.quantLocationId ?? '—';
 
             return (
-              <SidePanelListItem
-                key={line.id}
-                active={selectedLineId === line.id}
-                onClick={() => onSelect(line.id)}
-              >
+              <SidePanelListItem key={line.id} active={selectedLineId === line.id} onClick={() => onSelect(line.id)}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-sm font-medium truncate">
-                    {quantLabel}{locationLabel}
+                    {quantLabel}
+                    {locationLabel}
                   </div>
                   <span
                     className={`shrink-0 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
@@ -79,9 +76,7 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
                   </span>
                 </div>
                 {line.quantAvailableQuantity != null && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {line.quantAvailableQuantity} available
-                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">{line.quantAvailableQuantity} available</div>
                 )}
               </SidePanelListItem>
             );
@@ -94,6 +89,7 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
         inventoryItemId={adjustment.inventoryItemId}
         primaryUomId={adjustment.inventoryItemUomId}
         tracking="serial"
+        adjustmentType={adjustment.type}
         handle={addLineDialog}
       />
     </>

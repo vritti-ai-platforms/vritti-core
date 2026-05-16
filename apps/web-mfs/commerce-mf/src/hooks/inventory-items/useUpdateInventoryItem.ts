@@ -8,7 +8,10 @@ import { INVENTORY_ITEM_KEY, INVENTORY_ITEMS_TABLE_KEY } from './keys';
 
 // Updates an inventory item and invalidates table + detail
 export function useUpdateInventoryItem(
-  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, { id: string; data: UpdateInventoryItemFormData }>, 'mutationFn'>,
+  options?: Omit<
+    UseMutationOptions<SuccessResponse, AxiosError, { id: string; data: UpdateInventoryItemFormData }>,
+    'mutationFn'
+  >,
 ) {
   const queryClient = useQueryClient();
 

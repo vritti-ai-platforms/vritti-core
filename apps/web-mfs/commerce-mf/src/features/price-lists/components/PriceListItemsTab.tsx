@@ -8,9 +8,9 @@ import { ListTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { PriceListData, PriceListItemData } from '@/schemas/price-lists';
 import { getErrorMessage } from '@/utils/error';
-import { usePriceListItemsState } from '../hooks/usePriceListItemsState';
 import { EditPriceListItemDialog } from '../forms/EditPriceListItemDialog';
 import { PriceListItemForm } from '../forms/PriceListItemForm';
+import { usePriceListItemsState } from '../hooks/usePriceListItemsState';
 
 interface PriceListItemsTabProps {
   priceList: PriceListData;
@@ -165,12 +165,7 @@ export const PriceListItemsTab = ({ priceList }: PriceListItemsTabProps) => {
           description={`Adjust price override and visibility for "${editingItem.itemName}".`}
           className="max-w-sm"
           content={(close) => (
-            <EditPriceListItemDialog
-              item={editingItem}
-              isSaving={isSaving}
-              onSave={handleSaveEdit}
-              onCancel={close}
-            />
+            <EditPriceListItemDialog item={editingItem} isSaving={isSaving} onSave={handleSaveEdit} onCancel={close} />
           )}
         />
       )}

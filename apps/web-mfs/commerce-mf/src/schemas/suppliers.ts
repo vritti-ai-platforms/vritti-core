@@ -1,6 +1,8 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { isValidPhoneNumber } from '@vritti/quantum-ui/PhoneField';
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
+
+const zOptionalNonNegativeInt = z.number().int().nonnegative().optional().catch(undefined);
 
 export const TAX_ID_TYPE_OPTIONS = [
   { value: 'GST', label: 'GST' },
@@ -63,7 +65,7 @@ export const createSupplierSchema = z
     taxId: z.string().max(15, 'Tax ID must be at most 15 characters').optional(),
     taxIdType: taxIdTypeSchema.optional(),
     paymentTerms: z.string().max(50, 'Payment terms must be at most 50 characters').optional(),
-    leadTimeDays: z.string().optional(),
+    leadTimeDays: zOptionalNonNegativeInt,
     notes: z.string().optional(),
   })
   .superRefine((data, ctx) => enforceTaxIdPair(data.taxId, data.taxIdType, ctx));
@@ -81,7 +83,7 @@ export const updateSupplierSchema = z
     taxId: z.string().max(15).nullable().optional(),
     taxIdType: taxIdTypeSchema.nullable().optional(),
     paymentTerms: z.string().max(50).nullable().optional(),
-    leadTimeDays: z.string().nullable().optional(),
+    leadTimeDays: z.number().int().nonnegative().nullable().catch(null).optional(),
     notes: z.string().nullable().optional(),
     isActive: z.boolean().optional(),
   })
@@ -115,8 +117,8 @@ export const linkSupplierItemSchema = z.object({
   supplierItemCode: z.string().max(100).optional(),
   unitPrice: z.object({ currency: z.string(), value: z.string() }).optional(),
   uomId: z.uuid('Unit of measure is required'),
-  minOrderQuantity: z.string().optional(),
-  leadTimeDays: z.string().optional(),
+  minOrderQuantity: zOptionalNonNegativeInt,
+  leadTimeDays: zOptionalNonNegativeInt,
   isPreferred: z.boolean().optional(),
 });
 
@@ -124,8 +126,8 @@ export const updateSupplierItemSchema = z.object({
   supplierItemCode: z.string().max(100).optional(),
   unitPrice: z.object({ currency: z.string(), value: z.string() }).optional(),
   uomId: z.uuid('Unit of measure is required'),
-  minOrderQuantity: z.string().optional(),
-  leadTimeDays: z.string().optional(),
+  minOrderQuantity: z.number().int().nonnegative().nullable().catch(null).optional(),
+  leadTimeDays: z.number().int().nonnegative().nullable().catch(null).optional(),
   isPreferred: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });

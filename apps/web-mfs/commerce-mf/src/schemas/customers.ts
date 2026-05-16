@@ -1,6 +1,6 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { isValidPhoneNumber } from '@vritti/quantum-ui/PhoneField';
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui/zod';
 
 const zPhoneNumber = z.string().refine((value) => isValidPhoneNumber(value), {
   message: 'Invalid phone number',

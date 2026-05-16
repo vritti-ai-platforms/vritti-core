@@ -112,9 +112,7 @@ export const SerialsTable = ({
     [isDraft, handleRemoveSerial],
   );
 
-  const tableSlug = lineId
-    ? `gr-${goodsReceiptId}-line-${lineId}-items`
-    : `gr-${goodsReceiptId}-line-none-items`;
+  const tableSlug = lineId ? `gr-${goodsReceiptId}-line-${lineId}-items` : `gr-${goodsReceiptId}-line-none-items`;
 
   const { table } = useDataTable({
     columns,

@@ -17,11 +17,7 @@ interface EditUomDimensionDialogProps {
   onCancel: () => void;
 }
 
-export const EditUomDimensionDialog: React.FC<EditUomDimensionDialogProps> = ({
-  dimension,
-  onSuccess,
-  onCancel,
-}) => {
+export const EditUomDimensionDialog: React.FC<EditUomDimensionDialogProps> = ({ dimension, onSuccess, onCancel }) => {
   const form = useForm<UpdateUomDimensionFormData>({
     resolver: updateUomDimensionResolver,
     defaultValues: {

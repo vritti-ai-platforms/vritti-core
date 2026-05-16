@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateBom } from '@/hooks/bom';
@@ -30,7 +30,6 @@ export const EditBomForm: React.FC<EditBomFormProps> = ({ bom, onSuccess, onCanc
     <Form
       form={form}
       mutation={updateMutation}
-     
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: bom.id,

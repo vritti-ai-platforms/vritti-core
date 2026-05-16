@@ -1,7 +1,6 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/api-response';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
-import { z } from 'zod';
 
 // Unified UOM form schema — supports both base and derived units
 const _uomFormSchema = z
@@ -10,7 +9,9 @@ const _uomFormSchema = z
     symbol: z.string().min(1, 'Symbol is required').max(10),
     kind: z.enum(['base', 'derived']),
     baseUnitId: z.string().optional(),
-    conversionFactor: z.coerce.number().positive('Must be greater than 0').optional(),
+    conversionFactor: zodNumericField({ required: 'Conversion factor is required', positive: true })
+      .optional()
+      .catch(undefined),
   })
   .superRefine((data, ctx) => {
     if (data.kind === 'derived') {

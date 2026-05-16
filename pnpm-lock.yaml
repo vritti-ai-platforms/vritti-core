@@ -153,6 +153,12 @@ importers:
       babel-loader:
         specifier: ^9.2.1
         version: 9.2.1(@babel/core@7.29.0)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.19)))
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.6.1
+      dotenv-expand:
+        specifier: ^12.0.1
+        version: 12.0.3
       lightningcss:
         specifier: 1.30.1
         version: 1.30.1
@@ -331,9 +337,6 @@ importers:
 
   apps/core-web:
     dependencies:
-      '@hookform/resolvers':
-        specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.71.2(react@19.2.3))
       '@module-federation/enhanced':
         specifier: ^0.22.1
         version: 0.22.1(@rspack/core@1.7.11(@swc/helpers@0.5.19))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.19)))
@@ -343,9 +346,12 @@ importers:
       '@module-federation/runtime':
         specifier: ^0.22.1
         version: 0.22.1
+      '@tanstack/query-broadcast-client-experimental':
+        specifier: ^5.100.10
+        version: 5.100.10
       '@tanstack/react-query':
-        specifier: ^5.90.19
-        version: 5.90.21(react@19.2.3)
+        specifier: ^5.100.10
+        version: 5.100.10(react@19.2.3)
       '@vritti/quantum-ui':
         specifier: link:../../../quantum-ui
         version: link:../../../quantum-ui
@@ -370,9 +376,6 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
-      zod:
-        specifier: ^4.3.5
-        version: 4.3.6
     devDependencies:
       '@biomejs/biome':
         specifier: 2.4.2
@@ -398,6 +401,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.27(postcss@8.5.8)
+      cross-env:
+        specifier: ^10.1.0
+        version: 10.1.0
       tailwindcss:
         specifier: ^4.1.18
         version: 4.2.1
@@ -613,9 +619,6 @@ importers:
 
   apps/web-mfs/commerce-mf:
     dependencies:
-      '@hookform/resolvers':
-        specifier: ^5.2.2
-        version: 5.2.2(react-hook-form@7.71.2(react@19.2.3))
       '@module-federation/enhanced':
         specifier: ^0.22.1
         version: 0.22.1(@rspack/core@1.7.11(@swc/helpers@0.5.19))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)(webpack@5.104.1(@swc/core@1.15.18(@swc/helpers@0.5.19)))
@@ -634,9 +637,6 @@ importers:
       axios:
         specifier: ^1.13.2
         version: 1.13.6
-      lodash:
-        specifier: ^4.17.23
-        version: 4.17.23
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.3)
@@ -652,9 +652,6 @@ importers:
       react-router-dom:
         specifier: ^7.12.0
         version: 7.13.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      zod:
-        specifier: ^4.3.5
-        version: 4.3.6
     devDependencies:
       '@biomejs/biome':
         specifier: 2.4.2
@@ -680,6 +677,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.23
         version: 10.4.27(postcss@8.5.8)
+      cross-env:
+        specifier: ^10.1.0
+        version: 10.1.0
       tailwindcss:
         specifier: ^4.1.18
         version: 4.2.1
@@ -4216,8 +4216,19 @@ packages:
   '@tailwindcss/postcss@4.2.2':
     resolution: {integrity: sha512-n4goKQbW8RVXIbNKRB/45LzyUqN451deQK0nzIeauVEqjlI49slUlgKYJM2QyUzap/PcpnS7kzSUmPb1sCRvYQ==}
 
+  '@tanstack/query-broadcast-client-experimental@5.100.10':
+    resolution: {integrity: sha512-CXya2vuSDWaZOHiP4iwGrhjRU8xtnFqh1pqr0PpTSTs9LvsY757r53Z65vqyOtjCyIWhvTtz7+QfKdka6NKMvQ==}
+
+  '@tanstack/query-core@5.100.10':
+    resolution: {integrity: sha512-8UR0yJR+GiQ40m3lPhUr0xbfAupe6GSQiksSBSa9SM2NjezFyxXCIA69/lz8cSoNKZLrw1/PktIyQBJcVeMi3w==}
+
   '@tanstack/query-core@5.90.20':
     resolution: {integrity: sha512-OMD2HLpNouXEfZJWcKeVKUgQ5n+n3A2JFmBaScpNDUqSrQSjiveC7dKMe53uJUg1nDG16ttFPz2xfilz6i2uVg==}
+
+  '@tanstack/react-query@5.100.10':
+    resolution: {integrity: sha512-FLaZf2RCrA/Zgp4aiu5tG3TyasTRO7aZ99skxQpr3Hg/zXOhu6yq5FZCYQ/tRaJtM9ylnoK8tFK7PolXQadv6Q==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tanstack/react-query@5.90.21':
     resolution: {integrity: sha512-0Lu6y5t+tvlTJMTO7oh5NSpJfpg/5D41LlThfepTixPYkJ0sE2Jj0m0f6yYqujBwIXlId87e234+MxG3D3g7kg==}
@@ -5100,6 +5111,9 @@ packages:
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
+
+  broadcast-channel@7.3.0:
+    resolution: {integrity: sha512-UHPhLBQKfQ8OmMFMpmPfO5dRakyA1vsfiDGWTYNvChYol65tbuhivPEGgZZiuetorvExdvxaWiBy/ym1Ty08yA==}
 
   browserslist@4.28.1:
     resolution: {integrity: sha512-ZC5Bd0LgJXgwGqUknZY/vkUQ04r8NXnJZ3yYi4vDmSiZmC/pdSN0NbNRPxZpbtO4uAfDUAFffO8IZoM3Gj8IkA==}
@@ -7778,6 +7792,10 @@ packages:
     resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
     engines: {node: '>= 0.4'}
 
+  oblivious-set@2.0.0:
+    resolution: {integrity: sha512-QOUH5Xrsced9fKXaQTjWoDGKeS/Or7E2jB0FN63N4mkAO4qJdB7WR7e6qWAOHM5nk25FJ8TGjhP7DH4l6vFVLg==}
+    engines: {node: '>=16'}
+
   on-exit-leak-free@2.1.2:
     resolution: {integrity: sha512-0eJJY6hXLGf1udHwfNftBqH+g73EU4B504nZeKpz1sYRKafAghwxEJunB2O7rDZkL4PGfsMVnTXZ2EjibbqcsA==}
     engines: {node: '>=14.0.0'}
@@ -7860,6 +7878,10 @@ packages:
     resolution: {integrity: sha512-mlVgR3PGuzlo0MmTdk4cXqXWlwQDLnONTAg6sm62XkMJEiRxN3GL3SffkYvqwonbkJBcrI7Uvv5Zh9yjvn2iUw==}
     engines: {node: '>=12.20'}
 
+  p-finally@1.0.0:
+    resolution: {integrity: sha512-LICb2p9CB7FS+0eR1oqWnHhp0FljGLZCWBE9aix0Uye9W8LTQPwMTYVGWQWIw9RdQiDg4+epXQODwIYJtSJaow==}
+    engines: {node: '>=4'}
+
   p-limit@2.3.0:
     resolution: {integrity: sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==}
     engines: {node: '>=6'}
@@ -7883,6 +7905,14 @@ packages:
   p-locate@6.0.0:
     resolution: {integrity: sha512-wPrq66Llhl7/4AGC6I+cqxT07LhXvWL08LNXz1fENOw0Ap4sRZZ/gZpTTJ5jpurzzzfS2W/Ge9BY3LgLjCShcw==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  p-queue@6.6.2:
+    resolution: {integrity: sha512-RwFpb72c/BhQLEXIZ5K2e+AhgNVmIejGlTgiB9MzZ0e93GRvqZ7uSi0dvRF7/XIXDeNkra2fNHBxTyPDGySpjQ==}
+    engines: {node: '>=8'}
+
+  p-timeout@3.2.0:
+    resolution: {integrity: sha512-rhIwUycgwwKcP9yTOOFK/AKsAopjjCakVqLHePO3CC6Mir1Z99xT+R63jZxAT5lFZLa2inS5h+ZS2GvR99/FBg==}
+    engines: {node: '>=8'}
 
   p-try@2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
@@ -9200,6 +9230,9 @@ packages:
 
   unix-crypt-td-js@1.1.4:
     resolution: {integrity: sha512-8rMeVYWSIyccIJscb9NdCfZKSRBKYTeVnwmiRYT2ulE3qd1RaDQ0xQDP+rI3ccIWbhu/zuo5cgN8z73belNZgw==}
+
+  unload@2.4.1:
+    resolution: {integrity: sha512-IViSAm8Z3sRBYA+9wc0fLQmU9Nrxb16rcDmIiR6Y9LJSZzI7QY5QsDhqPpKOjAn0O9/kfK1TfNEMMAGPTIraPw==}
 
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
@@ -14807,7 +14840,19 @@ snapshots:
       postcss: 8.5.8
       tailwindcss: 4.2.2
 
+  '@tanstack/query-broadcast-client-experimental@5.100.10':
+    dependencies:
+      '@tanstack/query-core': 5.100.10
+      broadcast-channel: 7.3.0
+
+  '@tanstack/query-core@5.100.10': {}
+
   '@tanstack/query-core@5.90.20': {}
+
+  '@tanstack/react-query@5.100.10(react@19.2.3)':
+    dependencies:
+      '@tanstack/query-core': 5.100.10
+      react: 19.2.3
 
   '@tanstack/react-query@5.90.21(react@19.2.3)':
     dependencies:
@@ -15899,6 +15944,13 @@ snapshots:
   braces@3.0.3:
     dependencies:
       fill-range: 7.1.1
+
+  broadcast-channel@7.3.0:
+    dependencies:
+      '@babel/runtime': 7.28.6
+      oblivious-set: 2.0.0
+      p-queue: 6.6.2
+      unload: 2.4.1
 
   browserslist@4.28.1:
     dependencies:
@@ -18988,6 +19040,8 @@ snapshots:
 
   object-inspect@1.13.4: {}
 
+  oblivious-set@2.0.0: {}
+
   on-exit-leak-free@2.1.2: {}
 
   on-finished@2.3.0:
@@ -19101,6 +19155,8 @@ snapshots:
 
   p-cancelable@3.0.0: {}
 
+  p-finally@1.0.0: {}
+
   p-limit@2.3.0:
     dependencies:
       p-try: 2.2.0
@@ -19124,6 +19180,15 @@ snapshots:
   p-locate@6.0.0:
     dependencies:
       p-limit: 4.0.0
+
+  p-queue@6.6.2:
+    dependencies:
+      eventemitter3: 4.0.7
+      p-timeout: 3.2.0
+
+  p-timeout@3.2.0:
+    dependencies:
+      p-finally: 1.0.0
 
   p-try@2.2.0: {}
 
@@ -20488,6 +20553,8 @@ snapshots:
   universalify@2.0.1: {}
 
   unix-crypt-td-js@1.1.4: {}
+
+  unload@2.4.1: {}
 
   unpipe@1.0.0: {}
 

@@ -9,10 +9,7 @@ import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Boxes, MapPin, Package, Plus } from 'lucide-react';
 import { useGoodsReceiptInventoryItemIds, useGoodsReceiptTree } from '@/hooks/goods-receipts';
-import {
-  type GoodsReceiptTreeNode,
-  InventoryTrackingValues,
-} from '@/schemas/goods-receipts';
+import { type GoodsReceiptTreeNode, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { AddItemDialog } from '../forms/AddItemDialog';
 
 export type TreeSelection =
@@ -149,9 +146,7 @@ export const GoodsReceiptTreePanel = ({
         header={
           <div className="space-y-1">
             <div className="text-sm font-semibold">Items</div>
-            <div className="text-xs text-muted-foreground">
-              {pluralize('item', tree.length, true)}
-            </div>
+            <div className="text-xs text-muted-foreground">{pluralize('item', tree.length, true)}</div>
           </div>
         }
         actions={

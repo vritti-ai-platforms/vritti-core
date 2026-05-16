@@ -25,7 +25,9 @@ export function getInventoryItem(id: string): Promise<InventoryItemData> {
 }
 
 export function getInventoryItemQuantsTable(id: string): Promise<InventoryItemQuantsTableResponse> {
-  return axios.get<InventoryItemQuantsTableResponse>(`commerce-api/inventory-items/${id}/quants/table`).then((r) => r.data);
+  return axios
+    .get<InventoryItemQuantsTableResponse>(`commerce-api/inventory-items/${id}/quants/table`)
+    .then((r) => r.data);
 }
 
 export function getInventoryItemLotsTable(id: string): Promise<InventoryItemLotsTableResponse> {
@@ -36,7 +38,13 @@ export function getInventoryItemStocks(id: string): Promise<InventoryItemStockDa
   return axios.get<InventoryItemStockData[]>(`commerce-api/inventory-items/${id}/stocks`).then((r) => r.data);
 }
 
-export function updateInventoryItem({ id, data }: { id: string; data: UpdateInventoryItemFormData }): Promise<SuccessResponse> {
+export function updateInventoryItem({
+  id,
+  data,
+}: {
+  id: string;
+  data: UpdateInventoryItemFormData;
+}): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`commerce-api/inventory-items/${id}`, data).then((r) => r.data);
 }
 

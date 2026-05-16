@@ -19,7 +19,10 @@ export function useUpdateStockAdjustmentLineItem(
   adjustmentId: string,
   lineId: string,
   itemId: string,
-  options?: Omit<UseMutationOptions<StockAdjustmentLineItemData, AxiosError, AddStockAdjustmentLineItemPayload>, 'mutationFn'>,
+  options?: Omit<
+    UseMutationOptions<StockAdjustmentLineItemData, AxiosError, AddStockAdjustmentLineItemPayload>,
+    'mutationFn'
+  >,
 ) {
   const queryClient = useQueryClient();
 

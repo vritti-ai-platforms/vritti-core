@@ -45,7 +45,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
   const handleSubmit = async (data: CategoryFormData) => {
     const coerced = {
       ...data,
-      sortOrder: Number(data.sortOrder),
+      sortOrder: data.sortOrder,
       parentId: data.parentId || null,
     };
     if (isEditing) {

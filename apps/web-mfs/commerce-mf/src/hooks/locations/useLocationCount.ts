@@ -5,8 +5,8 @@ import { getLocationCount } from '@/services/locations.service';
 import { LOCATION_COUNT_KEY } from './keys';
 
 export function useLocationCount() {
-	return useSuspenseQuery<LocationCountData, AxiosError>({
-		queryKey: LOCATION_COUNT_KEY,
-		queryFn: () => getLocationCount(),
-	});
+  return useSuspenseQuery<LocationCountData, AxiosError>({
+    queryKey: LOCATION_COUNT_KEY,
+    queryFn: () => getLocationCount(),
+  });
 }

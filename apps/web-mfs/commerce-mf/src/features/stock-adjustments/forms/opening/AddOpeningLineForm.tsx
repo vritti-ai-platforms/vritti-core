@@ -1,10 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import { LocationRoleValues } from '@/schemas/locations';
@@ -44,7 +44,7 @@ export const AddOpeningLineForm = ({
       locationId: '',
       uomId: primaryUomId,
       // For tracking='serial', quantity is derived from serials count — start at 0 (server will refresh).
-      quantity: isItem ? '0' : '',
+      quantity: 0,
     },
   });
 
@@ -60,7 +60,7 @@ export const AddOpeningLineForm = ({
         stockAdjustmentLotId: stockAdjustmentLotId ?? undefined,
         locationId: data.locationId,
         uomId: data.uomId,
-        quantity: Number(data.quantity || 0),
+        quantity: data.quantity,
       })}
     >
       <LocationSelector

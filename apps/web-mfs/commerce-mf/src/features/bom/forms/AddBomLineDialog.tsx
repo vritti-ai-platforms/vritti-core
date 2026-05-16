@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateBom } from '@/hooks/bom';
@@ -19,7 +19,7 @@ export const AddBomLineDialog: React.FC<AddBomLineDialogProps> = ({ bom, onSucce
     resolver: zodResolver(bomLineSchema),
     defaultValues: {
       inventoryItemId: '',
-      requiredQuantity: '',
+      requiredQuantity: 0,
     },
   });
 
@@ -32,7 +32,6 @@ export const AddBomLineDialog: React.FC<AddBomLineDialogProps> = ({ bom, onSucce
     <Form
       form={form}
       mutation={updateMutation}
-     
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -45,7 +44,7 @@ export const AddBomLineDialog: React.FC<AddBomLineDialogProps> = ({ bom, onSucce
             })),
             {
               inventoryItemId: data.inventoryItemId,
-              requiredQuantity: Number(data.requiredQuantity),
+              requiredQuantity: data.requiredQuantity,
             },
           ],
         },

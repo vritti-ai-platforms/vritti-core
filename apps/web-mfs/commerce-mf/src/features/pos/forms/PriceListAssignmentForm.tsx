@@ -1,20 +1,21 @@
 // Plain form for assigning or editing a price list on a POS terminal
-import { zodResolver } from '@hookform/resolvers/zod';
+
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import type { z } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import type { z } from 'zod';
 import { terminalPriceListAssignmentSchema } from '@/schemas/price-lists';
 
 type PriceListAssignmentFormData = z.infer<typeof terminalPriceListAssignmentSchema>;
 
 interface PriceListAssignmentFormProps {
-  defaultValues: { priceListId: string; priority: string; isDefault: boolean };
+  defaultValues: { priceListId: string; priority: number; isDefault: boolean };
   excludedPriceListIds: string[];
   submitLabel: string;
   onSubmit: (values: PriceListAssignmentFormData) => void;

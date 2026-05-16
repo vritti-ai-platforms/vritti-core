@@ -1,6 +1,12 @@
-import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
+import {
+  type UseMutationOptions,
+  type UseQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { AxiosError } from 'axios';
 import type {
   InventoryItemUomConversionData,
   InventoryItemUomConversionsTableResponse,
@@ -15,7 +21,10 @@ import { INVENTORY_ITEM_UOM_CONVERSIONS_KEY } from './keys';
 
 export function useInventoryItemUomConversionsTable(
   itemId: string | null,
-  options?: Omit<UseQueryOptions<InventoryItemUomConversionsTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
+  options?: Omit<
+    UseQueryOptions<InventoryItemUomConversionsTableResponse, AxiosError>,
+    'queryKey' | 'queryFn' | 'enabled'
+  >,
 ) {
   return useQuery<InventoryItemUomConversionsTableResponse, AxiosError>({
     queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId ?? '')],

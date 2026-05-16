@@ -33,10 +33,7 @@ export const TerminalCard: React.FC<TerminalCardProps> = ({ terminal, onClick })
       <div className="flex-1 p-3 flex flex-col min-h-0">
         <div className="flex items-center gap-1.5">
           <span
-            className={cn(
-              'size-1.5 rounded-full',
-              terminal.isActive ? 'bg-success' : 'bg-muted-foreground/40',
-            )}
+            className={cn('size-1.5 rounded-full', terminal.isActive ? 'bg-success' : 'bg-muted-foreground/40')}
             aria-hidden
           />
           <Typography variant="subtitle2" className="leading-snug truncate">

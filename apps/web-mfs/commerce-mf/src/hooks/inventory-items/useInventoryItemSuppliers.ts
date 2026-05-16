@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import { getInventoryItemSuppliersTable } from '@/services/inventory-items.service';
 import type { InventoryItemSuppliersTableResponse } from '@/schemas/suppliers';
+import { getInventoryItemSuppliersTable } from '@/services/inventory-items.service';
 import { INVENTORY_ITEM_SUPPLIERS_TABLE_KEY } from './keys';
 
 export function useInventoryItemSuppliersTable(itemId: string | null) {

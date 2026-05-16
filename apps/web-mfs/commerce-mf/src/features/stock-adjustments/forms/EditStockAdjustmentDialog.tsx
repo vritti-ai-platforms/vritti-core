@@ -1,9 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
+import { z, zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { useUpdateStockAdjustment } from '@/hooks/stock-adjustments';
 
 const schema = z.object({

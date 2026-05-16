@@ -131,9 +131,7 @@ export function updateGoodsReceiptItem(
   itemId: string,
   data: UpdateGoodsReceiptItemPayload,
 ): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}`, data)
-    .then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}`, data).then((r) => r.data);
 }
 
 export function removeGoodsReceiptItem(id: string, itemId: string): Promise<SuccessResponse> {
@@ -198,11 +196,7 @@ export function getGoodsReceiptLinesByLotTable(
     .then((r) => r.data);
 }
 
-export function getGoodsReceiptLineById(
-  id: string,
-  itemId: string,
-  lineId: string,
-): Promise<GoodsReceiptLineData> {
+export function getGoodsReceiptLineById(id: string, itemId: string, lineId: string): Promise<GoodsReceiptLineData> {
   return axios
     .get<GoodsReceiptLineData>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}`, {
       showSuccessToast: false,
@@ -259,10 +253,7 @@ export function addGoodsReceiptLineItem(
   data: AddGoodsReceiptLineItemPayload,
 ): Promise<GoodsReceiptLineItemData> {
   return axios
-    .post<GoodsReceiptLineItemData>(
-      `commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items`,
-      data,
-    )
+    .post<GoodsReceiptLineItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items`, data)
     .then((r) => r.data);
 }
 

@@ -1,8 +1,8 @@
+import { resendResetOtp, type SuccessResponse } from '@services/auth.service';
 import { useMutation } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import { scheduleTokenRefresh, setToken } from '@vritti/quantum-ui/axios';
+import type { AxiosError } from 'axios';
 import { useState } from 'react';
-import { type SuccessResponse, resendResetOtp } from '@services/auth.service';
 import { useForgotPassword } from './useForgotPassword';
 import { useResetPassword } from './useResetPassword';
 import { useVerifyResetOtp } from './useVerifyResetOtp';

@@ -135,9 +135,7 @@ export const InvoiceDetailPage = () => {
                     </div>
                   </div>
 
-                  {invoice.notes && (
-                    <DetailField label="Notes" value={invoice.notes} className="col-span-2" />
-                  )}
+                  {invoice.notes && <DetailField label="Notes" value={invoice.notes} className="col-span-2" />}
                 </CardContent>
               </Card>
             ),
@@ -224,7 +222,9 @@ export const InvoiceDetailPage = () => {
                         <tbody>
                           {payments.map((payment) => (
                             <tr key={payment.id} className="border-b last:border-0">
-                              <td className="py-3"><FormattedDate value={payment.paidAt} dateFormat="P" /></td>
+                              <td className="py-3">
+                                <FormattedDate value={payment.paidAt} dateFormat="P" />
+                              </td>
                               <td className="py-3">
                                 <Badge variant="outline">{payment.method}</Badge>
                               </td>

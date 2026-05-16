@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
@@ -7,6 +6,7 @@ import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useCreateInventoryItem } from '@/hooks/inventory-items';

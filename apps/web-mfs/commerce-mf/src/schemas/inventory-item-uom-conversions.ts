@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export interface InventoryItemUomConversionData {
   id: string;
@@ -17,7 +17,7 @@ export interface InventoryItemUomConversionData {
 
 export type InventoryItemUomConversionsTableResponse = TableResponse<InventoryItemUomConversionData>;
 
-const positiveInt = z.coerce.number<number>().int('Must be a whole number').min(1, 'Must be at least 1');
+const positiveInt = zodNumericField({ required: 'Value is required', min: 1 });
 
 export const createInventoryItemUomConversionSchema = z.object({
   uomId: z.string().uuid('UOM is required'),

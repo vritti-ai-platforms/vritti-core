@@ -1,7 +1,7 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { AxiosError } from 'axios';
 import type { OrderStatus } from '@/schemas/orders';
 import { updateOrderStatus } from '@/services/orders.service';
 import { ORDER_KEY, ORDERS_TABLE_KEY } from './keys';

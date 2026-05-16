@@ -1,6 +1,9 @@
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { InventoryItemLocationData, InventoryItemLocationsTableResponse } from '@/schemas/inventory-item-locations';
+import type {
+  InventoryItemLocationData,
+  InventoryItemLocationsTableResponse,
+} from '@/schemas/inventory-item-locations';
 
 export function getInventoryItemLocationsTable(itemId: string): Promise<InventoryItemLocationsTableResponse> {
   return axios

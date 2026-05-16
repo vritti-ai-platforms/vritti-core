@@ -21,9 +21,7 @@ export function getUomDimension(id: string): Promise<UomDimensionData> {
   return axios.get<UomDimensionData>(`commerce-api/uom-dimensions/${id}`).then((r) => r.data);
 }
 
-export function createUomDimension(
-  data: CreateUomDimensionData,
-): Promise<CreateResponse<UomDimensionData>> {
+export function createUomDimension(data: CreateUomDimensionData): Promise<CreateResponse<UomDimensionData>> {
   return axios
     .post<CreateResponse<UomDimensionData>>('commerce-api/uom-dimensions', data, {
       successMessage: 'Dimension created.',

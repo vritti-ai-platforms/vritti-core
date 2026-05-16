@@ -26,9 +26,7 @@ export function getCustomersTable(): Promise<CustomersTableResponse> {
 
 // Fetches a single customer by ID
 export function getCustomer(id: string): Promise<CustomerDetail> {
-  return axios
-    .get<CustomerDetail>(`commerce-api/customers/${id}`, { showSuccessToast: false })
-    .then((r) => r.data);
+  return axios.get<CustomerDetail>(`commerce-api/customers/${id}`, { showSuccessToast: false }).then((r) => r.data);
 }
 
 // Creates a new customer

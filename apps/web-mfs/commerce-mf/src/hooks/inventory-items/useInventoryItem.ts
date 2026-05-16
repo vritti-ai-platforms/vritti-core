@@ -9,7 +9,12 @@ import {
   getInventoryItemLotsTable,
   getInventoryItemQuantsTable,
 } from '@/services/inventory-items.service';
-import { INVENTORY_ITEM_KEY, INVENTORY_ITEM_LEDGER_KEY, INVENTORY_ITEM_LOTS_KEY, INVENTORY_ITEM_QUANTS_KEY } from './keys';
+import {
+  INVENTORY_ITEM_KEY,
+  INVENTORY_ITEM_LEDGER_KEY,
+  INVENTORY_ITEM_LOTS_KEY,
+  INVENTORY_ITEM_QUANTS_KEY,
+} from './keys';
 
 // Fetches inventory item detail by ID; suspends until data is available
 export function useInventoryItem(id: string) {

@@ -1,13 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
 import { useUpdatePurchaseOrderItem } from '@/hooks/purchase-orders';
 import type { PurchaseOrderItemData } from '@/schemas/purchase-orders';
 
@@ -24,14 +23,14 @@ interface UpdatePurchaseOrderItemDialogProps {
 const currencyValueSchema = z.object({ currency: z.string(), value: z.string() });
 
 type UpdateLineItemFormData = {
-  orderedQuantity: string;
+  orderedQuantity: number;
   overridePrice: boolean;
   unitPrice?: { currency: string; value: string } | null;
 };
 
 const baseUpdateLineItemSchema = z
   .object({
-    orderedQuantity: z.string().min(1, 'Quantity is required'),
+    orderedQuantity: zodNumericField({ required: 'Quantity is required', positive: true }),
     overridePrice: z.boolean(),
     unitPrice: currencyValueSchema.optional().nullable(),
   })
@@ -75,13 +74,12 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
     [supplierUnitPriceNum],
   );
 
-  const isOverrideInitial =
-    item.unitPrice != null && item.unitPrice.value !== String(convertedUnitPriceNum);
+  const isOverrideInitial = item.unitPrice != null && item.unitPrice.value !== String(convertedUnitPriceNum);
 
   const form = useForm<UpdateLineItemFormData>({
     resolver: zodResolver(updateLineItemSchema),
     defaultValues: {
-      orderedQuantity: String(item.orderedQuantity),
+      orderedQuantity: item.orderedQuantity,
       overridePrice: isOverrideInitial,
       unitPrice: item.unitPrice ?? convertedUnitPrice,
     },
@@ -105,9 +103,9 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
       transformSubmit={(data) => ({
         id: purchaseOrderId,
         itemId: item.id,
-        orderedQuantity: Number(data.orderedQuantity),
+        orderedQuantity: data.orderedQuantity,
         supplierUnitPrice: item.supplierUnitPrice,
-        unitPrice: data.overridePrice ? data.unitPrice ?? null : convertedUnitPrice,
+        unitPrice: data.overridePrice ? (data.unitPrice ?? null) : convertedUnitPrice,
       })}
     >
       <TextField name="orderedQuantity" label="Ordered Quantity" type="number" placeholder="e.g. 500" />

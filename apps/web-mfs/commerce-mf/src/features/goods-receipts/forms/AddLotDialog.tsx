@@ -1,16 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useAddGoodsReceiptLot } from '@/hooks/goods-receipts';
-import {
-  type AddGoodsReceiptLotFormData,
-  addGoodsReceiptLotSchema,
-} from '@/schemas/goods-receipts';
+import { type AddGoodsReceiptLotFormData, addGoodsReceiptLotSchema } from '@/schemas/goods-receipts';
 
 const AddLotForm = ({
   goodsReceiptId,

@@ -26,7 +26,10 @@ export const OverviewTab = ({ supplier }: OverviewTabProps) => {
           <DetailField label="Tax ID" value={supplier.taxId} number />
           <DetailField label="Tax ID Type" value={supplier.taxIdType ? supplier.taxIdType.replace('_', ' ') : null} />
           <DetailField label="Payment Terms" value={supplier.paymentTerms} />
-          <DetailField label="Lead Time" value={supplier.leadTimeDays != null ? `${supplier.leadTimeDays} days` : null} />
+          <DetailField
+            label="Lead Time"
+            value={supplier.leadTimeDays != null ? `${supplier.leadTimeDays} days` : null}
+          />
           <DetailField
             label="Status"
             value={

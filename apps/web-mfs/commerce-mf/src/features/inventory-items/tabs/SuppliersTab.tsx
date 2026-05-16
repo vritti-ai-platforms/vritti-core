@@ -5,10 +5,7 @@ import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Truck } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import {
-  INVENTORY_ITEM_SUPPLIERS_TABLE_KEY,
-  useInventoryItemSuppliersTable,
-} from '@/hooks/inventory-items';
+import { INVENTORY_ITEM_SUPPLIERS_TABLE_KEY, useInventoryItemSuppliersTable } from '@/hooks/inventory-items';
 import type { InventoryItemSupplierData } from '@/schemas/suppliers';
 
 interface SuppliersTabProps {
@@ -46,9 +43,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ itemId }) => {
         accessorKey: 'unitPrice',
         header: 'Unit Price',
         cell: ({ row }) =>
-          row.original.unitPrice != null
-            ? `${row.original.unitPrice.currency} ${row.original.unitPrice.value}`
-            : '—',
+          row.original.unitPrice != null ? `${row.original.unitPrice.currency} ${row.original.unitPrice.value}` : '—',
       },
       {
         accessorKey: 'minOrderQuantity',
@@ -76,11 +71,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ itemId }) => {
         accessorKey: 'isActive',
         header: 'Active',
         cell: ({ row }) =>
-          row.original.isActive ? (
-            <Badge variant="secondary">Active</Badge>
-          ) : (
-            <Badge variant="outline">Inactive</Badge>
-          ),
+          row.original.isActive ? <Badge variant="secondary">Active</Badge> : <Badge variant="outline">Inactive</Badge>,
       },
     ],
     [],
@@ -93,8 +84,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ itemId }) => {
     label: 'supplier',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () =>
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SUPPLIERS_TABLE_KEY(itemId) }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SUPPLIERS_TABLE_KEY(itemId) }),
   });
 
   return (

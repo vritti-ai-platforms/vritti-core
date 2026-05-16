@@ -1,17 +1,17 @@
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { ModifierGroupData, ModifierOptionData } from './items';
 
 export const createModifierGroupSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   selectionType: z.enum(['SINGLE', 'MULTI']),
   isRequired: z.boolean(),
-  minSelections: z.string(),
-  maxSelections: z.string(),
+  minSelections: zodNumericField({ required: 'Min selections is required', min: 0 }),
+  maxSelections: z.number().nonnegative().optional().catch(undefined),
 });
 
 export const createModifierOptionSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
-  additionalPrice: z.string().min(1, 'Price is required'),
+  additionalPrice: zodNumericField({ required: 'Price is required', min: 0 }),
 });
 
 export type CreateModifierGroupFormData = z.infer<typeof createModifierGroupSchema>;

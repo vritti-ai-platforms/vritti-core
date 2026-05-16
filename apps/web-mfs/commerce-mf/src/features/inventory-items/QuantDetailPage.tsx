@@ -53,9 +53,7 @@ export const QuantDetailPage = () => {
       <PageHeader
         title={quant.lotNumber ? `Quant · Lot ${quant.lotNumber}` : 'Quant'}
         description={
-          quant.locationPath
-            ? `${quant.locationPath} › ${quant.locationName ?? ''}`
-            : (quant.locationName ?? '—')
+          quant.locationPath ? `${quant.locationPath} › ${quant.locationName ?? ''}` : (quant.locationName ?? '—')
         }
       />
 
@@ -73,9 +71,7 @@ export const QuantDetailPage = () => {
                   <DetailField
                     label="Location"
                     value={
-                      quant.locationPath
-                        ? `${quant.locationPath} › ${quant.locationName ?? ''}`
-                        : quant.locationName
+                      quant.locationPath ? `${quant.locationPath} › ${quant.locationName ?? ''}` : quant.locationName
                     }
                   />
                   <DetailField label="Lot Number" value={quant.lotNumber} number />

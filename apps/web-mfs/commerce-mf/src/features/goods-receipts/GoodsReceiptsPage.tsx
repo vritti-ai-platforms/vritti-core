@@ -13,8 +13,8 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GOODS_RECEIPTS_TABLE_KEY } from '@/hooks/goods-receipts/keys';
 import { useGoodsReceiptsTable } from '@/hooks/goods-receipts/useGoodsReceiptsTable';
-import { goodsReceiptStatusConfig } from '@/schemas/goods-receipts';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
+import { goodsReceiptStatusConfig } from '@/schemas/goods-receipts';
 import { CreateGoodsReceiptDialog } from './forms/CreateGoodsReceiptDialog';
 
 export const GoodsReceiptsPage = () => {

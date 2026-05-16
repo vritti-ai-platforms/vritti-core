@@ -1,9 +1,10 @@
 // Unified create/edit form for price lists
-import { zodResolver } from '@hookform/resolvers/zod';
+
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreatePriceList, useUpdatePriceList } from '@/hooks/price-lists';

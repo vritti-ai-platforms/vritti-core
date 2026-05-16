@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { format } from '@vritti/quantum-ui/date-fns';
@@ -6,6 +5,7 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { PurchaseOrderSelector } from '@vritti/quantum-ui/selects/purchase-order';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';

@@ -130,7 +130,8 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, it
         emptyStateConfig={{
           icon: ArrowLeftRight,
           title: 'No UOM conversions',
-          description: 'No per-item UOM conversions defined. Add one to specify how an alternative UOM relates to this item.',
+          description:
+            'No per-item UOM conversions defined. Add one to specify how an alternative UOM relates to this item.',
           action: (
             <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
               Add Conversion

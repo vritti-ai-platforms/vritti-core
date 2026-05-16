@@ -22,25 +22,17 @@ export interface CreateOrderPayload {
 }
 
 export function getOrdersTable(): Promise<OrdersTableResponse> {
-  return axios
-    .get<OrdersTableResponse>('commerce-api/orders/table', { showSuccessToast: false })
-    .then((r) => r.data);
+  return axios.get<OrdersTableResponse>('commerce-api/orders/table', { showSuccessToast: false }).then((r) => r.data);
 }
 
 export function createOrder(data: CreateOrderPayload): Promise<OrderData> {
-  return axios
-    .post<OrderData>('commerce-api/orders', data)
-    .then((r) => r.data);
+  return axios.post<OrderData>('commerce-api/orders', data).then((r) => r.data);
 }
 
 export function getOrder(id: string): Promise<OrderDetail> {
-  return axios
-    .get<OrderDetail>(`commerce-api/orders/${id}`, { showSuccessToast: false })
-    .then((r) => r.data);
+  return axios.get<OrderDetail>(`commerce-api/orders/${id}`, { showSuccessToast: false }).then((r) => r.data);
 }
 
 export function updateOrderStatus({ id, status }: { id: string; status: OrderStatus }): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`commerce-api/orders/${id}/status`, { status })
-    .then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/orders/${id}/status`, { status }).then((r) => r.data);
 }

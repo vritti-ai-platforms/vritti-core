@@ -1,13 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
-import { z } from 'zod';
 
 export const taxRateTypeValues = ['inclusive', 'exclusive'] as const;
 export type TaxRateType = (typeof taxRateTypeValues)[number];
 
 const _taxRateFormSchema = z.object({
   name: z.string().min(1, 'Rate name is required').max(100, 'Rate name cannot exceed 100 characters'),
-  rate: z.coerce.number().min(0, 'Rate must be at least 0').max(100, 'Rate cannot exceed 100'),
+  rate: zodNumericField({ required: 'Rate is required', min: 0, max: 100 }),
   type: z.enum(taxRateTypeValues),
 });
 
@@ -15,7 +14,7 @@ const _taxGroupFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   isDefault: z.boolean(),
   isActive: z.boolean(),
-  sortOrder: z.coerce.number().int().min(0, 'Sort order cannot be negative'),
+  sortOrder: zodNumericField({ required: 'Sort order is required', min: 0 }),
   taxRates: z.array(_taxRateFormSchema).min(1, 'At least one tax rate is required'),
 });
 

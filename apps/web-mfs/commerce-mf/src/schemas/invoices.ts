@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from 'zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export type InvoiceType = 'PAYABLE' | 'RECEIVABLE';
 export type InvoicePartyType = 'SUPPLIER' | 'CUSTOMER' | 'AGGREGATOR';
@@ -72,7 +72,7 @@ export type CreateInvoiceFormData = z.infer<typeof createInvoiceSchema>;
 
 export const createPaymentSchema = z.object({
   invoiceId: z.string().min(1, 'Invoice is required'),
-  amount: z.string().min(1, 'Amount is required'),
+  amount: zodNumericField({ required: 'Amount is required', positive: true }),
   method: z.enum(['CASH', 'CARD', 'UPI', 'BANK_TRANSFER', 'WALLET', 'ONLINE'], { message: 'Method is required' }),
   reference: z.string().optional(),
   notes: z.string().optional(),

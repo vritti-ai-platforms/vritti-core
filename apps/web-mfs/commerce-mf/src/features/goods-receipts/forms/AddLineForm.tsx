@@ -1,9 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useAddGoodsReceiptLine } from '@/hooks/goods-receipts';
 import {
@@ -42,7 +42,7 @@ export const AddLineForm = ({
     defaultValues: {
       goodsReceiptLotId: goodsReceiptLotId ?? undefined,
       locationId: '',
-      quantity: isSerial ? '0' : '',
+      quantity: 0,
     },
   });
   const mutation = useAddGoodsReceiptLine(goodsReceiptId, itemId, { onSuccess });
@@ -56,7 +56,7 @@ export const AddLineForm = ({
       transformSubmit={(data) => ({
         goodsReceiptLotId: goodsReceiptLotId ?? undefined,
         locationId: data.locationId,
-        quantity: Number(data.quantity || 0),
+        quantity: data.quantity,
       })}
     >
       <LocationSelector
