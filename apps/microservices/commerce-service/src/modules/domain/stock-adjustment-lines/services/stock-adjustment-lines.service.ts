@@ -88,7 +88,6 @@ export class StockAdjustmentLinesService {
   async addLine(
     adjustment: AdjustmentContext,
     data: {
-      createdById: string;
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
@@ -120,7 +119,6 @@ export class StockAdjustmentLinesService {
 
     const line = await this.repository.create({
       stockAdjustmentId: adjustment.id,
-      createdById: data.createdById,
       stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
       locationId: data.locationId ?? null,
       quantId: data.quantId ?? null,

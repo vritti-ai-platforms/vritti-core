@@ -12,6 +12,7 @@ const _uomFormSchema = z
     conversionFactor: zodNumericField({ required: 'Conversion factor is required', positive: true })
       .optional()
       .catch(undefined),
+    allowDecimal: z.boolean().default(false),
   })
   .superRefine((data, ctx) => {
     if (data.kind === 'derived') {
@@ -38,6 +39,7 @@ export type UomFormData = {
   kind: 'base' | 'derived';
   baseUnitId?: string;
   conversionFactor?: number;
+  allowDecimal: boolean;
 };
 
 export const uomFormResolver = zodResolver(_uomFormSchema) as unknown as Resolver<UomFormData>;
@@ -51,12 +53,14 @@ export interface CreateUomData {
   dimensionId: string;
   baseUnitId?: string | null;
   conversionFactor?: number;
+  allowDecimal: boolean;
 }
 
 export interface UpdateUomData {
   name?: string;
   symbol?: string;
   conversionFactor?: number;
+  allowDecimal?: boolean;
 }
 
 export interface UomData {
@@ -67,6 +71,7 @@ export interface UomData {
   baseUnitId: string | null;
   baseUnitSymbol: string | null;
   conversionFactor: number;
+  allowDecimal: boolean;
   canEdit: boolean;
   canDelete: boolean;
   createdAt: string;

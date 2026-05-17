@@ -5,6 +5,7 @@ import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/serv
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, NotFoundException, ValidationException } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 
 // App-layer orchestrator for stock-adjustment line writes that need inventory-aggregate awareness.
 // Handles UOM validation against the item's allowed set + conversion-factor resolution before
@@ -23,7 +24,6 @@ export class StockAdjustmentsLinesService {
   async addLine(
     adjustmentId: string,
     data: {
-      createdById: string;
       stockAdjustmentLotId?: string | null;
       locationId?: string | null;
       quantId?: string | null;
@@ -31,12 +31,12 @@ export class StockAdjustmentsLinesService {
       quantity: number;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+    this.logger.log(`addLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.quantity}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     await this.validateUomId(adjustment, data.uomId);
     const conversionFactor = await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId);
 
-    // Store quantity in primary UOM; conversionFactor is kept as a snapshot for auditing
-    const quantityInPrimaryUom = data.quantity * conversionFactor;
+    const quantityInPrimaryUom = new Decimal(data.quantity).times(conversionFactor).toDecimalPlaces(3).toNumber();
     const line = await this.linesService.addLine(adjustment, {
       ...data,
       quantity: quantityInPrimaryUom,
@@ -60,6 +60,7 @@ export class StockAdjustmentsLinesService {
       uomId?: string;
     },
   ): Promise<StockAdjustmentLineDto> {
+    this.logger.log(`updateLine — adjustment: ${adjustmentId}, line: ${lineId}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     if (data.uomId !== undefined) {
       await this.validateUomId(adjustment, data.uomId);
@@ -69,9 +70,10 @@ export class StockAdjustmentsLinesService {
         ? await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId)
         : undefined;
 
-    // Convert quantity to primary UOM when both quantity and uomId are being updated
     const quantityInPrimaryUom =
-      data.quantity !== undefined && conversionFactor !== undefined ? data.quantity * conversionFactor : data.quantity;
+      data.quantity !== undefined && conversionFactor !== undefined
+        ? new Decimal(data.quantity).times(conversionFactor).toDecimalPlaces(3).toNumber()
+        : data.quantity;
 
     return this.linesService.updateLine(adjustment, lineId, {
       ...data,

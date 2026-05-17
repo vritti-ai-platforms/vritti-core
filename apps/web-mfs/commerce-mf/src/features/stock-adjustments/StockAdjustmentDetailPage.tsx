@@ -105,6 +105,7 @@ export const StockAdjustmentDetailPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={adjustment.code}
+        titleSlot={<Badge variant={statusConf.variant}>{statusConf.label}</Badge>}
         description={`${typeConf.label} — ${adjustment.inventoryItemName}`}
         actions={
           isDraft ? (
@@ -128,9 +129,7 @@ export const StockAdjustmentDetailPage = () => {
                 Publish
               </Button>
             </div>
-          ) : (
-            <Badge variant={statusConf.variant}>{statusConf.label}</Badge>
-          )
+          ) : undefined
         }
       />
 

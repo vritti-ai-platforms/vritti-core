@@ -40,6 +40,7 @@ const AddChangeLineForm = ({
   const [availableQty, setAvailableQty] = useState<number | null>(null);
   const [numerator, setNumerator] = useState(1);
   const [denominator, setDenominator] = useState(1);
+  const [allowDecimal, setAllowDecimal] = useState(true);
 
   const maxQty = !isCorrection && availableQty != null ? (availableQty * numerator) / denominator : undefined;
 
@@ -48,7 +49,7 @@ const AddChangeLineForm = ({
       quantId: z.string().min(1, 'Quant is required'),
       uomId: z.string().min(1, 'UOM is required'),
       quantity: isCorrection
-        ? zodNumericField({ required: 'Quantity is required' })
+        ? zodNumericField({ required: 'Quantity is required', nonZero: true })
         : zodNumericField({ required: 'Quantity is required', positive: true, max: maxQty }),
     });
     return zodResolver(schema);
@@ -90,7 +91,8 @@ const AddChangeLineForm = ({
             label="Quantity"
             type="number"
             positive={!isCorrection}
-            nonZero={!isCorrection}
+            nonZero
+            integer={!allowDecimal}
             max={maxQty}
           />
           <UomSelector
@@ -102,6 +104,7 @@ const AddChangeLineForm = ({
               const d = option?.additionals?.denominator;
               setNumerator(n != null ? Number(n) : 1);
               setDenominator(d != null && Number(d) !== 0 ? Number(d) : 1);
+              setAllowDecimal(option?.additionals?.allowDecimal !== false);
             }}
           />
         </div>

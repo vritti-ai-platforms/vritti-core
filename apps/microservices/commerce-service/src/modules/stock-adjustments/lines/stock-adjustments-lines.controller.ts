@@ -3,10 +3,7 @@ import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/serv
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
-  BadRequestException,
   type CreateResponseDto,
-  type NatsHeaders,
-  RpcNatsHeaders,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
@@ -61,13 +58,9 @@ export class StockAdjustmentsLinesController {
       uomId: string;
       quantity: number;
     },
-    @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
     this.logger.log(`stockAdjustments.addLine — adjustment: ${data.adjustmentId}`);
-    if (!headers.userId) {
-      throw new BadRequestException('User ID is required to add adjustment lines.');
-    }
-    return this.appService.addLine(data.adjustmentId, { ...data, createdById: headers.userId });
+    return this.appService.addLine(data.adjustmentId, data);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.updateLine' })

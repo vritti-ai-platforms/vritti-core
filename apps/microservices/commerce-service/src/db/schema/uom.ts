@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { doublePrecision, index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, doublePrecision, index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { uomDimensions } from './uom-dimensions';
 
@@ -16,6 +16,7 @@ export const uom = coreSchema.table(
     symbol: varchar('symbol', { length: 10 }).notNull(),
     baseUnitId: uuid('base_unit_id'),
     conversionFactor: doublePrecision('conversion_factor').notNull().default(1),
+    allowDecimal: boolean('allow_decimal').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

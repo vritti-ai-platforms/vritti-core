@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
   @IsUUID()
@@ -22,4 +22,8 @@ export class CreateUomDto {
   @IsNumber({ maxDecimalPlaces: 6 })
   @IsPositive()
   conversionFactor?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  allowDecimal?: boolean;
 }

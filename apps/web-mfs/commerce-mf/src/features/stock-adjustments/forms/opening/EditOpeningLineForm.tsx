@@ -5,6 +5,7 @@ import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import { LocationRoleValues } from '@/schemas/locations';
@@ -33,6 +34,7 @@ export const EditOpeningLineForm = ({
   onCancel,
 }: EditOpeningLineFormProps) => {
   const isItem = tracking === 'serial' || tracking === 'lot_serial';
+  const [allowDecimal, setAllowDecimal] = useState(true);
 
   const form = useForm<AddOpeningStockLineFormData>({
     resolver: zodResolver(addOpeningStockLineSchema),
@@ -67,8 +69,13 @@ export const EditOpeningLineForm = ({
       />
       {!isItem && (
         <div className="grid grid-cols-2 gap-4">
-          <TextField name="quantity" label="Quantity" type="number" positive nonZero />
-          <UomSelector name="uomId" label="Unit" params={{ inventoryItemId }} />
+          <TextField name="quantity" label="Quantity" type="number" positive nonZero integer={!allowDecimal} />
+          <UomSelector
+            name="uomId"
+            label="Unit"
+            params={{ inventoryItemId }}
+            onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
+          />
         </div>
       )}
       {isItem && (

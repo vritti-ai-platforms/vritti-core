@@ -5,7 +5,6 @@ import {
   NatsClientService,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
-import { UserService } from '@/modules/domain/user/services/user.service';
 import type { AddStockAdjustmentLineDto } from '../dto/request/add-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '../dto/request/add-stock-adjustment-line-item.dto';
 import type { AddStockAdjustmentLotDto } from '../dto/request/add-stock-adjustment-lot.dto';
@@ -31,7 +30,6 @@ export class StockAdjustmentsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
-    private readonly userService: UserService,
   ) {}
 
   async findForTable(userId: string): Promise<StockAdjustmentTableResponseDto> {
@@ -52,11 +50,7 @@ export class StockAdjustmentsGatewayService {
 
   async findById(id: string): Promise<StockAdjustmentResponseDto> {
     this.logger.log(`stockAdjustments.findById — id: ${id}`);
-    const adjustment = await this.nats.send<StockAdjustmentResponseDto>('commerce', 'stockAdjustments.findById', {
-      id,
-    });
-    const user = await this.userService.findById(adjustment.createdById);
-    return { ...adjustment, createdByFullName: user?.fullName ?? 'Unknown User' };
+    return this.nats.send('commerce', 'stockAdjustments.findById', { id });
   }
 
   async findLines(adjustmentId: string): Promise<StockAdjustmentLineResponseDto[]> {

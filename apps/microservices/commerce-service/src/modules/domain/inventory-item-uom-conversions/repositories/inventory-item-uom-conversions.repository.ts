@@ -67,11 +67,11 @@ export class InventoryItemUomConversionsRepository extends PrimaryBaseRepository
 
   // Returns the primary UOM ID for a given inventory item
   async findItemPrimaryUomId(itemId: string): Promise<string | undefined> {
-    const rows = await this.db
+    const [row] = await this.db
       .select({ uomId: inventoryItems.uomId })
       .from(inventoryItems)
       .where(eq(inventoryItems.id, itemId))
       .limit(1);
-    return rows[0]?.uomId;
+    return row?.uomId;
   }
 }

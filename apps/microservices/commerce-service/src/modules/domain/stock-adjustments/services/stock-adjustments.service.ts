@@ -62,13 +62,11 @@ export class StockAdjustmentsService {
     inventoryItemId: string;
     type: StockAdjustmentType;
     reason: string;
-    createdById: string;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
       type: data.type,
       reason: data.reason,
-      createdById: data.createdById,
     });
 
     this.logger.log(`Created DRAFT adjustment ${entity.code} (${data.type}) for item ${data.inventoryItemId}`);

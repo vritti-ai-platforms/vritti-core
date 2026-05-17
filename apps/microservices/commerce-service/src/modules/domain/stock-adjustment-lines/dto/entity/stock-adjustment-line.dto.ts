@@ -3,7 +3,6 @@ import type { StockAdjustmentLineWithRefs } from '../../repositories/stock-adjus
 export class StockAdjustmentLineDto {
   id: string;
   stockAdjustmentId: string;
-  createdById: string;
 
   // Register intent (OPENING_STOCK):
   stockAdjustmentLotId: string | null;
@@ -41,7 +40,6 @@ export class StockAdjustmentLineDto {
     const dto = new StockAdjustmentLineDto();
     dto.id = row.id;
     dto.stockAdjustmentId = row.stockAdjustmentId;
-    dto.createdById = row.createdById;
     dto.stockAdjustmentLotId = row.stockAdjustmentLotId ?? null;
     dto.locationId = row.locationId ?? null;
     dto.locationName = row.locationName ?? null;

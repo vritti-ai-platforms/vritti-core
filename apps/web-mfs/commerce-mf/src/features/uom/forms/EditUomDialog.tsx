@@ -2,6 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -25,6 +26,7 @@ export const EditUomDialog: React.FC<EditUomDialogProps> = ({ uom, onSuccess, on
       kind: isBase ? 'base' : 'derived',
       baseUnitId: uom.baseUnitId ?? undefined,
       conversionFactor: uom.conversionFactor,
+      allowDecimal: uom.allowDecimal,
     },
   });
 
@@ -47,6 +49,7 @@ export const EditUomDialog: React.FC<EditUomDialogProps> = ({ uom, onSuccess, on
           name: data.name,
           symbol: data.symbol,
           conversionFactor: isBase ? 1 : (data.conversionFactor ?? 1),
+          allowDecimal: data.allowDecimal,
         },
       })}
     >
@@ -63,6 +66,12 @@ export const EditUomDialog: React.FC<EditUomDialogProps> = ({ uom, onSuccess, on
           <TextField name="conversionFactor" label="Conversion factor" type="number" placeholder="e.g. 1000" positive />
         </>
       ) : null}
+
+      <Switch
+        name="allowDecimal"
+        label="Allow Decimal"
+        description="Turning on will allow the input of fractional quantities"
+      />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>

@@ -17,20 +17,17 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ adjustment, typeLabel,
     </CardHeader>
     <CardContent>
       <div className="grid grid-cols-2 gap-6">
-        <DetailField
-          label="Inventory Item"
-          value={`${adjustment.inventoryItemName} (${adjustment.inventoryItemUomSymbol})`}
-        />
+        <DetailField label="Inventory Item" value={adjustment.inventoryItemName} />
+        <DetailField label="Unit of Measure" value={adjustment.inventoryItemUomSymbol} />
         <DetailField label="Type" value={<Badge variant={typeVariant}>{typeLabel}</Badge>} />
+        <DetailField label="Tracking" value={<Badge variant="outline">{adjustment.inventoryItemTracking}</Badge>} />
         <DetailField label="Reason" value={adjustment.reason} />
         <DetailField
           label="Total Quantity"
           value={`${adjustment.totalQuantity} ${adjustment.inventoryItemUomSymbol}`}
           number
         />
-        <DetailField label="Tracking" value={<Badge variant="outline">{adjustment.inventoryItemTracking}</Badge>} />
         <DetailField label="Created" value={adjustment.createdAt} />
-        <DetailField label="Created By" value={adjustment.createdByFullName} />
         <DetailField label="Published At" value={adjustment.publishedAt} />
       </div>
     </CardContent>

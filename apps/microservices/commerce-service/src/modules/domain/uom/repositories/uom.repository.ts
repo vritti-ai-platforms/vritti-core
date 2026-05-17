@@ -57,6 +57,7 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
         symbol: uom.symbol,
         baseUnitId: uom.baseUnitId,
         conversionFactor: uom.conversionFactor,
+        allowDecimal: uom.allowDecimal,
         createdAt: uom.createdAt,
         baseUnitSymbol: baseUom.symbol,
       },

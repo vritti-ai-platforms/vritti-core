@@ -5,6 +5,7 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import {
@@ -34,6 +35,7 @@ const EditChangeLineForm = ({
 }) => {
   const isItem = tracking === 'serial' || tracking === 'lot_serial';
   const isCorrection = adjustmentType === StockAdjustmentTypeValues.CORRECTION;
+  const [allowDecimal, setAllowDecimal] = useState(true);
 
   const schema = z.object({
     quantity: isCorrection
@@ -70,8 +72,14 @@ const EditChangeLineForm = ({
               type="number"
               positive={!isCorrection}
               nonZero={!isCorrection}
+              integer={!allowDecimal}
             />
-            <UomSelector name="uomId" label="Unit" params={{ inventoryItemId }} />
+            <UomSelector
+              name="uomId"
+              label="Unit"
+              params={{ inventoryItemId }}
+              onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
+            />
           </div>
           {isCorrection && (
             <p className="text-xs text-muted-foreground">Positive quantity adds to the quant; negative deducts.</p>

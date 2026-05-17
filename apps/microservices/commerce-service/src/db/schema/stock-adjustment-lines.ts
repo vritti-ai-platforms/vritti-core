@@ -25,7 +25,6 @@ export const stockAdjustmentLines = coreSchema.table(
     stockAdjustmentId: uuid('stock_adjustment_id')
       .notNull()
       .references(() => stockAdjustments.id, { onDelete: 'cascade' }),
-    createdById: uuid('created_by_id').notNull(),
     // Register intent (OPENING_STOCK): exactly one of locationId / quantId must be set
     stockAdjustmentLotId: uuid('stock_adjustment_lot_id').references(() => stockAdjustmentLots.id, {
       onDelete: 'cascade',

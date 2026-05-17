@@ -7,6 +7,7 @@ import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAllowedUomIds } from '@/hooks/inventory-items';
 import { useUpdateSupplierItem } from '@/hooks/suppliers';
@@ -42,6 +43,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
 
   const updateMutation = useUpdateSupplierItem(supplierId, { onSuccess });
   const { data: allowedUomIds, isFetching: isLoadingAllowed } = useAllowedUomIds(item.inventoryItemId);
+  const [allowDecimal, setAllowDecimal] = useState(true);
 
   return (
     <Form
@@ -74,10 +76,11 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
         placeholder="Select unit"
         disabled={isLoadingAllowed || !allowedUomIds}
         params={allowedUomIds ? { values: allowedUomIds.join(',') } : undefined}
+        onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
       />
       <div className="grid grid-cols-2 gap-4">
         <CurrencyField name="unitPrice" label="Unit Price" defaultCurrencyCode={supplierCurrencyCode} />
-        <TextField name="minOrderQuantity" label="Min Order Qty" type="number" placeholder="e.g. 100" />
+        <TextField name="minOrderQuantity" label="Min Order Qty" type="number" placeholder="e.g. 100" integer={!allowDecimal} />
       </div>
       <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" />
       <Switch name="isPreferred" label="Preferred Supplier" />

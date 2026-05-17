@@ -3,7 +3,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class StockAdjustmentLineResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() stockAdjustmentId: string;
-  @ApiProperty() createdById: string;
 
   // Register intent (OPENING_STOCK):
   @ApiPropertyOptional({ nullable: true }) stockAdjustmentLotId: string | null;

@@ -61,7 +61,6 @@ export class StockAdjustmentsRootService {
     inventoryItemId: string;
     type: StockAdjustmentType;
     reason: string;
-    createdById: string;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     return this.adjustmentsService.create(data);
   }

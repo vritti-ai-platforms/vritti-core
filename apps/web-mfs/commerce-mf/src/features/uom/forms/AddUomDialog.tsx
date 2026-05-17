@@ -2,6 +2,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -22,7 +23,7 @@ const kindOptions = [
 export const AddUomDialog: React.FC<AddUomDialogProps> = ({ dimensionId, onSuccess, onCancel }) => {
   const form = useForm<UomFormData>({
     resolver: uomFormResolver,
-    defaultValues: { name: '', symbol: '', kind: 'base', baseUnitId: undefined, conversionFactor: 1 },
+    defaultValues: { name: '', symbol: '', kind: 'base', baseUnitId: undefined, conversionFactor: 1, allowDecimal: false },
   });
 
   const kind = useWatch({ control: form.control, name: 'kind' });
@@ -46,6 +47,7 @@ export const AddUomDialog: React.FC<AddUomDialogProps> = ({ dimensionId, onSucce
         dimensionId,
         baseUnitId: data.kind === 'base' ? null : data.baseUnitId,
         conversionFactor: data.kind === 'base' ? 1 : (data.conversionFactor ?? 1),
+        allowDecimal: data.allowDecimal,
       })}
     >
       <RadioGroup name="kind" label="Kind" options={kindOptions} orientation="horizontal" />
@@ -58,6 +60,12 @@ export const AddUomDialog: React.FC<AddUomDialogProps> = ({ dimensionId, onSucce
           <TextField name="conversionFactor" label="Conversion factor" type="number" placeholder="e.g. 1000" positive />
         </>
       ) : null}
+
+      <Switch
+        name="allowDecimal"
+        label="Allow Decimal"
+        description="Turning on will allow the input of fractional quantities"
+      />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>

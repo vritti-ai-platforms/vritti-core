@@ -151,6 +151,7 @@ export class UomService {
       symbol: data.symbol,
       baseUnitId: data.baseUnitId ?? null,
       conversionFactor: data.conversionFactor ?? 1,
+      allowDecimal: data.allowDecimal ?? true,
     });
 
     this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);

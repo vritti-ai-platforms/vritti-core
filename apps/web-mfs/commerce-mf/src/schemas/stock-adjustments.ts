@@ -57,7 +57,6 @@ export type StockAdjustmentLotDetailData = StockAdjustmentLotData;
 export interface StockAdjustmentLineData {
   id: string;
   stockAdjustmentId: string;
-  createdById: string;
 
   // Register intent (OPENING_STOCK)
   stockAdjustmentLotId: string | null;
@@ -112,8 +111,6 @@ export interface StockAdjustmentData {
   totalQuantity: number;
   status: StockAdjustmentStatus;
   reason: string | null;
-  createdById: string;
-  createdByFullName?: string; // populated on detail endpoint only
   isPublishable: boolean;
   metadata: Record<string, unknown>;
   publishedAt: string | null;

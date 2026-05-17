@@ -16,8 +16,6 @@ export class StockAdjustmentResponseDto {
   @ApiProperty({ description: 'Sum of stock_adjustment_lines.quantity' }) totalQuantity: number;
   @ApiProperty({ example: 'DRAFT' }) status: string;
   @ApiPropertyOptional({ nullable: true }) reason: string | null;
-  @ApiProperty() createdById: string;
-  @ApiPropertyOptional({ description: 'Populated on detail endpoints only.' }) createdByFullName?: string;
   @ApiProperty() isPublishable: boolean;
   @ApiProperty() metadata: Record<string, unknown>;
   @ApiPropertyOptional({ nullable: true }) publishedAt: string | null;

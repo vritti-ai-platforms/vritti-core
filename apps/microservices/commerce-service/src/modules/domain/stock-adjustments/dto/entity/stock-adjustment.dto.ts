@@ -12,7 +12,6 @@ export class StockAdjustmentDto {
   totalQuantity: number; // derived from sum(lines.quantity)
   status: StockAdjustmentStatus;
   reason: string | null;
-  createdById: string;
   isPublishable: boolean;
   publishedAt: string | null;
   createdAt: string;
@@ -45,7 +44,6 @@ export class StockAdjustmentDto {
     dto.totalQuantity = Number(entity.totalQuantity ?? 0);
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
-    dto.createdById = entity.createdById;
     dto.isPublishable = Boolean(entity.isPublishable);
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
@@ -65,7 +63,6 @@ export class StockAdjustmentDto {
     dto.totalQuantity = 0;
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
-    dto.createdById = entity.createdById;
     dto.isPublishable = false;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();

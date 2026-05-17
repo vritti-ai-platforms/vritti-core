@@ -2,10 +2,7 @@ import type { StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/st
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
-  BadRequestException,
   type CreateResponseDto,
-  type NatsHeaders,
-  RpcNatsHeaders,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
@@ -33,13 +30,9 @@ export class StockAdjustmentsRootController {
   @MessagePattern({ cmd: 'stockAdjustments.create' })
   create(
     @Payload() data: { inventoryItemId: string; type: StockAdjustmentType; reason: string },
-    @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<StockAdjustmentDto>> {
     this.logger.log(`stockAdjustments.create — item: ${data.inventoryItemId}, type: ${data.type}`);
-    if (!headers.userId) {
-      throw new BadRequestException('User ID is required to create stock adjustments.');
-    }
-    return this.service.create({ ...data, createdById: headers.userId });
+    return this.service.create(data);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.publish' })
