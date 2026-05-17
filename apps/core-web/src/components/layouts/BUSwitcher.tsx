@@ -66,7 +66,7 @@ export const BUSwitcher = ({ currentBuId, currentBuName }: BUSwitcherProps) => {
         </>
       }
       onOptionSelect={(option) => {
-        if (option) {
+        if (option && String(option.value) !== currentBuId) {
           selectBu(String(option.value));
           navigate(`/bu-${buildSlug(String(option.label), String(option.value))}`);
         }
