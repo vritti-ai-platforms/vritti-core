@@ -60,25 +60,25 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
       <div className="flex flex-col gap-1">
         <div className="grid grid-cols-2 gap-3">
           <TextField
-            name="numerator"
+            name="denominator"
             label={`Count of ${selectedUomSymbol ?? 'alt UOM'}`}
             type="number"
-            min={1}
-            step="1"
+            integer
+            positive
             disabled={!uomId}
           />
           <TextField
-            name="denominator"
+            name="numerator"
             label={`Count of ${itemUomSymbol}`}
             type="number"
-            min={1}
-            step="1"
+            integer
+            positive
             disabled={!uomId}
           />
         </div>
         {showPreview && (
           <p className="text-sm text-muted-foreground">
-            {numerator} {selectedUomSymbol} = {denominator} {itemUomSymbol}
+            {denominator} {selectedUomSymbol} = {numerator} {itemUomSymbol}
           </p>
         )}
       </div>

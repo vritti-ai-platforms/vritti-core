@@ -7,7 +7,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useAddStockAdjustmentLine } from '@/hooks/stock-adjustments';
+import { useAddOpeningStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import { LocationRoleValues } from '@/schemas/locations';
 import {
   type AddOpeningStockLineFormData,
@@ -50,7 +50,7 @@ export const AddOpeningLineForm = ({
     },
   });
 
-  const mutation = useAddStockAdjustmentLine(adjustmentId, { onSuccess });
+  const mutation = useAddOpeningStockAdjustmentLine(adjustmentId, { onSuccess });
 
   return (
     <Form

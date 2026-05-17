@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import {
@@ -128,7 +129,14 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         table={table}
         mode="compact"
         isLoading={isLoading}
-        searchConfig={{ columns: [{ id: 'quant', label: 'Quant' }], searchAll: true }}
+        searchConfig={{
+          columns: [
+            { id: 'quant', label: 'Quant' },
+            { id: 'quantLocationName', label: 'Location' },
+          ],
+          searchAll: true,
+        }}
+        filters={[<UomFilter key="uomId" params={{ inventoryItemId: adjustment.inventoryItemId }} />]}
         toolbarActions={
           isDraft
             ? {

@@ -5,7 +5,6 @@ import {
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  gcd,
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
@@ -93,10 +92,10 @@ export class InventoryItemUomConversionsService {
         errors: [{ field: 'denominator', message: 'Must be a positive integer.' }],
       });
     }
-    if (gcd(dto.numerator, dto.denominator) !== dto.denominator) {
+    if (dto.numerator !== 1 && dto.denominator !== 1) {
       throw new ValidationException({
-        detail: 'Numerator must be evenly divisible by the denominator (e.g. 12:1, 6:2).',
-        errors: [{ field: 'numerator', message: 'Must be evenly divisible by the denominator.' }],
+        detail: 'One side of the ratio must be 1 (e.g. 1:10 or 50:1).',
+        errors: [],
       });
     }
 
@@ -148,10 +147,9 @@ export class InventoryItemUomConversionsService {
         errors: [{ field: 'denominator', message: 'Must be a positive integer.' }],
       });
     }
-    if (gcd(dto.numerator, dto.denominator) !== dto.denominator) {
+    if (dto.numerator !== 1 && dto.denominator !== 1) {
       throw new ValidationException({
-        detail: 'Numerator must be evenly divisible by the denominator (e.g. 12:1, 6:2).',
-        errors: [{ field: 'numerator', message: 'Must be evenly divisible by the denominator.' }],
+        detail: 'One side of the ratio must be 1 (e.g. 1:10 or 50:1).',
       });
     }
 
@@ -174,15 +172,18 @@ export class InventoryItemUomConversionsService {
     return { success: true, message: 'UOM conversion deleted successfully.' };
   }
 
-  // Resolves the effective conversion factor (1 alt = factor × primary):
-  // per-item conversion if present (denominator/numerator), else the UOM's global default
-  async resolveFactor(itemId: string, uomId: string): Promise<number> {
+  async resolvePrimaryUomFactor(itemId: string, uomId: string): Promise<number> {
     const conversion = await this.repository.findByItemAndUom(itemId, uomId);
     if (conversion) {
-      return new Decimal(conversion.denominator).dividedBy(conversion.numerator).toNumber();
+      return new Decimal(conversion.numerator).dividedBy(conversion.denominator).toNumber();
     }
     const uomEntity = await this.uomRepository.findById(uomId);
     if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
     return uomEntity.conversionFactor;
+  }
+
+  async resolvePrimaryUomQuantity(itemId: string, uomId: string, quantity: number): Promise<number> {
+    const factor = await this.resolvePrimaryUomFactor(itemId, uomId);
+    return new Decimal(quantity).times(factor).toDecimalPlaces(3).toNumber();
   }
 }

@@ -53,11 +53,11 @@ export const EditUomConversionForm: React.FC<EditUomConversionFormProps> = ({
       </p>
       <div className="flex flex-col gap-1">
         <div className="grid grid-cols-2 gap-3">
-          <TextField name="numerator" label={`Count of ${uomSymbol}`} type="number" min={1} step="1" />
-          <TextField name="denominator" label={`Count of ${itemUomSymbol}`} type="number" min={1} step="1" />
+          <TextField name="denominator" label={`Count of ${uomSymbol}`} type="number" integer positive />
+          <TextField name="numerator" label={`Count of ${itemUomSymbol}`} type="number" integer positive />
         </div>
         <p className="text-sm text-muted-foreground">
-          {numerator} {uomSymbol} = {denominator} {itemUomSymbol}
+          {denominator} {uomSymbol} = {numerator} {itemUomSymbol}
         </p>
       </div>
       <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">

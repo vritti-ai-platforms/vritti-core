@@ -12,6 +12,8 @@ export {
   STOCK_ADJUSTMENTS_TABLE_KEY,
 } from './keys';
 export { useAddStockAdjustmentLine } from './useAddStockAdjustmentLine';
+export { useAddOpeningStockAdjustmentLine } from './useAddOpeningStockAdjustmentLine';
+export { useAddChangeStockAdjustmentLine } from './useAddChangeStockAdjustmentLine';
 export { useAddStockAdjustmentLineItem } from './useAddStockAdjustmentLineItem';
 export { useAddStockAdjustmentLot } from './useAddStockAdjustmentLot';
 export { useCreateStockAdjustment } from './useCreateStockAdjustment';
@@ -33,5 +35,7 @@ export { useStockAdjustmentsTable } from './useStockAdjustmentsTable';
 export { useStockAdjustmentTree } from './useStockAdjustmentTree';
 export { useUpdateStockAdjustment } from './useUpdateStockAdjustment';
 export { useUpdateStockAdjustmentLine } from './useUpdateStockAdjustmentLine';
+export { useUpdateOpeningStockAdjustmentLine } from './useUpdateOpeningStockAdjustmentLine';
+export { useUpdateChangeStockAdjustmentLine } from './useUpdateChangeStockAdjustmentLine';
 export { useUpdateStockAdjustmentLineItem } from './useUpdateStockAdjustmentLineItem';
 export { useUpdateStockAdjustmentLot } from './useUpdateStockAdjustmentLot';

@@ -1,26 +1,21 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsUUID } from 'class-validator';
 
-export class UpdateStockAdjustmentLineDto {
-  @ApiPropertyOptional({ description: 'Line quantity' })
+export class UpdateOpeningStockAdjustmentLineDto {
+  @ApiPropertyOptional({ description: 'Storage location ID' })
   @IsOptional()
-  @IsNumber()
-  quantity?: number;
+  @IsUUID()
+  locationId?: string;
 
   @ApiPropertyOptional({ description: 'Stock adjustment lot draft ID' })
   @IsOptional()
   @IsUUID()
   stockAdjustmentLotId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Storage location ID' })
+  @ApiPropertyOptional({ description: 'Line quantity' })
   @IsOptional()
-  @IsUUID()
-  locationId?: string | null;
-
-  @ApiPropertyOptional({ description: 'Quant ID' })
-  @IsOptional()
-  @IsUUID()
-  quantId?: string | null;
+  @IsNumber()
+  quantity?: number;
 
   @ApiPropertyOptional({ description: 'UOM for the line quantity' })
   @IsOptional()

@@ -48,41 +48,64 @@ export class StockAdjustmentsLinesController {
     return this.service.findById(data.adjustmentId, data.lineId);
   }
 
-  @MessagePattern({ cmd: 'stockAdjustments.addLine' })
-  addLine(
+  @MessagePattern({ cmd: 'stockAdjustments.addOpeningLine' })
+  addOpeningLine(
     @Payload() data: {
       adjustmentId: string;
+      locationId: string;
       stockAdjustmentLotId?: string | null;
-      locationId?: string | null;
-      quantId?: string | null;
-      uomId: string;
       quantity: number;
+      uomId: string;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
-    this.logger.log(`stockAdjustments.addLine — adjustment: ${data.adjustmentId}`);
-    return this.appService.addLine(data.adjustmentId, data);
+    this.logger.log(`stockAdjustments.addOpeningLine — adjustment: ${data.adjustmentId}`);
+    const { adjustmentId, ...rest } = data;
+    return this.appService.addOpeningLine(adjustmentId, rest);
   }
 
-  @MessagePattern({ cmd: 'stockAdjustments.updateLine' })
-  updateLine(
+  @MessagePattern({ cmd: 'stockAdjustments.addChangeLine' })
+  addChangeLine(
+    @Payload() data: {
+      adjustmentId: string;
+      quantId: string;
+      quantity: number;
+      uomId: string;
+    },
+  ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+    this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${data.adjustmentId}`);
+    const { adjustmentId, ...rest } = data;
+    return this.appService.addChangeLine(adjustmentId, rest);
+  }
+
+  @MessagePattern({ cmd: 'stockAdjustments.updateOpeningLine' })
+  updateOpeningLine(
     @Payload() data: {
       adjustmentId: string;
       lineId: string;
-      quantity?: number;
+      locationId?: string;
       stockAdjustmentLotId?: string | null;
-      locationId?: string | null;
-      quantId?: string | null;
+      quantity?: number;
       uomId?: string;
     },
-  ): Promise<StockAdjustmentLineDto> {
-    this.logger.log(`stockAdjustments.updateLine — line: ${data.lineId}`);
-    return this.appService.updateLine(data.adjustmentId, data.lineId, {
-      quantity: data.quantity,
-      stockAdjustmentLotId: data.stockAdjustmentLotId,
-      locationId: data.locationId,
-      quantId: data.quantId,
-      uomId: data.uomId,
-    });
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.updateOpeningLine — line: ${data.lineId}`);
+    const { adjustmentId, lineId, ...rest } = data;
+    return this.appService.updateOpeningLine(adjustmentId, lineId, rest);
+  }
+
+  @MessagePattern({ cmd: 'stockAdjustments.updateChangeLine' })
+  updateChangeLine(
+    @Payload() data: {
+      adjustmentId: string;
+      lineId: string;
+      quantId?: string;
+      quantity?: number;
+      uomId?: string;
+    },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.updateChangeLine — line: ${data.lineId}`);
+    const { adjustmentId, lineId, ...rest } = data;
+    return this.appService.updateChangeLine(adjustmentId, lineId, rest);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.removeLine' })

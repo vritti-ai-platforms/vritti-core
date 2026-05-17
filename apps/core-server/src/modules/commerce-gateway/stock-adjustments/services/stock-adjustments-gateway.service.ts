@@ -5,12 +5,14 @@ import {
   NatsClientService,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
-import type { AddStockAdjustmentLineDto } from '../dto/request/add-stock-adjustment-line.dto';
+import type { AddChangeStockAdjustmentLineDto } from '../dto/request/add-change-stock-adjustment-line.dto';
+import type { AddOpeningStockAdjustmentLineDto } from '../dto/request/add-opening-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '../dto/request/add-stock-adjustment-line-item.dto';
 import type { AddStockAdjustmentLotDto } from '../dto/request/add-stock-adjustment-lot.dto';
 import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjustment.dto';
 import type { UpdateStockAdjustmentDto } from '../dto/request/update-stock-adjustment.dto';
-import type { UpdateStockAdjustmentLineDto } from '../dto/request/update-stock-adjustment-line.dto';
+import type { UpdateChangeStockAdjustmentLineDto } from '../dto/request/update-change-stock-adjustment-line.dto';
+import type { UpdateOpeningStockAdjustmentLineDto } from '../dto/request/update-opening-stock-adjustment-line.dto';
 import type { UpdateStockAdjustmentLineItemDto } from '../dto/request/update-stock-adjustment-line-item.dto';
 import type { UpdateStockAdjustmentLotDto } from '../dto/request/update-stock-adjustment-lot.dto';
 import type { StockAdjustmentLineItemResponseDto } from '../dto/response/stock-adjustment-line-item-response.dto';
@@ -142,17 +144,38 @@ export class StockAdjustmentsGatewayService {
     return this.nats.send('commerce', 'stockAdjustments.update', { id, ...dto });
   }
 
-  async addLine(
+  async addOpeningLine(
     adjustmentId: string,
-    dto: AddStockAdjustmentLineDto,
+    dto: AddOpeningStockAdjustmentLineDto,
   ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
-    this.logger.log(`stockAdjustments.addLine — adjustment: ${adjustmentId}`);
-    return this.nats.send('commerce', 'stockAdjustments.addLine', { adjustmentId, ...dto });
+    this.logger.log(`stockAdjustments.addOpeningLine — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'stockAdjustments.addOpeningLine', { adjustmentId, ...dto });
   }
 
-  async updateLine(adjustmentId: string, lineId: string, dto: UpdateStockAdjustmentLineDto) {
-    this.logger.log(`stockAdjustments.updateLine — line: ${lineId}`);
-    return this.nats.send('commerce', 'stockAdjustments.updateLine', { adjustmentId, lineId, ...dto });
+  async addChangeLine(
+    adjustmentId: string,
+    dto: AddChangeStockAdjustmentLineDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
+    this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'stockAdjustments.addChangeLine', { adjustmentId, ...dto });
+  }
+
+  async updateOpeningLine(
+    adjustmentId: string,
+    lineId: string,
+    dto: UpdateOpeningStockAdjustmentLineDto,
+  ): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`stockAdjustments.updateOpeningLine — line: ${lineId}`);
+    return this.nats.send('commerce', 'stockAdjustments.updateOpeningLine', { adjustmentId, lineId, ...dto });
+  }
+
+  async updateChangeLine(
+    adjustmentId: string,
+    lineId: string,
+    dto: UpdateChangeStockAdjustmentLineDto,
+  ): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`stockAdjustments.updateChangeLine — line: ${lineId}`);
+    return this.nats.send('commerce', 'stockAdjustments.updateChangeLine', { adjustmentId, lineId, ...dto });
   }
 
   async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {

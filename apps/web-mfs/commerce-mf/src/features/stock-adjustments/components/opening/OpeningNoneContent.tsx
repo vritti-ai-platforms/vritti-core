@@ -3,6 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -125,6 +126,8 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
         table={table}
         mode="compact"
         isLoading={isLoading}
+        searchConfig={{ columns: [{ id: 'locationName', label: 'Location' }], searchAll: true }}
+        filters={[<UomFilter key="uomId" params={{ inventoryItemId: adjustment.inventoryItemId }} />]}
         toolbarActions={
           isDraft
             ? {

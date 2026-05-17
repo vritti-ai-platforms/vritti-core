@@ -172,12 +172,44 @@ export function addStockAdjustmentLine(
     .then((r) => r.data.data);
 }
 
+export function addOpeningLine(id: string, data: AddStockAdjustmentLinePayload): Promise<StockAdjustmentLineData> {
+  return axios
+    .post<CreateResponse<StockAdjustmentLineData>>(`commerce-api/stock-adjustments/${id}/opening-lines`, data)
+    .then((r) => r.data.data);
+}
+
+export function addChangeLine(id: string, data: AddStockAdjustmentLinePayload): Promise<StockAdjustmentLineData> {
+  return axios
+    .post<CreateResponse<StockAdjustmentLineData>>(`commerce-api/stock-adjustments/${id}/change-lines`, data)
+    .then((r) => r.data.data);
+}
+
 export function updateStockAdjustmentLine(
   id: string,
   lineId: string,
   data: UpdateStockAdjustmentLinePayload,
 ): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`commerce-api/stock-adjustments/${id}/lines/${lineId}`, data).then((r) => r.data);
+}
+
+export function updateOpeningLine(
+  id: string,
+  lineId: string,
+  data: UpdateStockAdjustmentLinePayload,
+): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/stock-adjustments/${id}/opening-lines/${lineId}`, data)
+    .then((r) => r.data);
+}
+
+export function updateChangeLine(
+  id: string,
+  lineId: string,
+  data: UpdateStockAdjustmentLinePayload,
+): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/stock-adjustments/${id}/change-lines/${lineId}`, data)
+    .then((r) => r.data);
 }
 
 export function removeStockAdjustmentLine(id: string, lineId: string): Promise<SuccessResponse> {

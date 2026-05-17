@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { aliasedTable, and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemLots,
   inventoryItemQuants,
@@ -11,6 +11,9 @@ import {
   stockAdjustmentLots,
   uom,
 } from '@/db/schema';
+
+const quantLocations = aliasedTable(locations, 'quant_locations');
+export { quantLocations };
 
 export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
   locationName: string | null;
@@ -83,12 +86,8 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         lotExpiryDate: stockAdjustmentLots.expiryDate,
         quantLotNumber: inventoryItemLots.lotNumber,
         quantLocationId: inventoryItemQuants.locationId,
-        quantLocationName: sql<string | null>`(
-          SELECT ${locations.name} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
-        )`,
-        quantLocationPath: sql<string | null>`(
-          SELECT ${locations.pathBreadcrumb} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
-        )`,
+        quantLocationName: quantLocations.name,
+        quantLocationPath: quantLocations.pathBreadcrumb,
         quantTotalQuantity: inventoryItemQuants.quantity,
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,
         lineItemsCount: lineItemsCountSql,
@@ -99,6 +98,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         { table: inventoryItemQuants, on: eq(stockAdjustmentLines.quantId, inventoryItemQuants.id) },
         { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
         { table: uom, on: eq(stockAdjustmentLines.uomId, uom.id) },
+        { table: quantLocations, on: eq(inventoryItemQuants.locationId, quantLocations.id) },
       ],
       where: combinedWhere,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(stockAdjustmentLines.createdAt)],
@@ -122,40 +122,20 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     await this.db.delete(stockAdjustmentLines).where(eq(stockAdjustmentLines.id, lineId));
   }
 
-  // Returns an existing OPENING_STOCK line conflicting on (adjustmentId, lotId, locationId, uomId).
-  // Used to enforce that a lot can't have two lines for the same physical bin in the same UOM.
-  async findExistingByLotLocationUom(params: {
+  async findOneByLotLocationUom(params: {
     adjustmentId: string;
     stockAdjustmentLotId: string | null;
     locationId: string;
     uomId: string;
-    excludeLineId?: string;
-  }): Promise<{ id: string; locationName: string | null; uomSymbol: string | null } | undefined> {
-    const lotCondition =
-      params.stockAdjustmentLotId !== null
-        ? eq(stockAdjustmentLines.stockAdjustmentLotId, params.stockAdjustmentLotId)
-        : isNull(stockAdjustmentLines.stockAdjustmentLotId);
-    const conditions = [
-      eq(stockAdjustmentLines.stockAdjustmentId, params.adjustmentId),
-      lotCondition,
-      eq(stockAdjustmentLines.locationId, params.locationId),
-      eq(stockAdjustmentLines.uomId, params.uomId),
-    ];
-    if (params.excludeLineId) {
-      conditions.push(ne(stockAdjustmentLines.id, params.excludeLineId));
-    }
-    const rows = await this.db
-      .select({
-        id: stockAdjustmentLines.id,
-        locationName: locations.name,
-        uomSymbol: uom.symbol,
-      })
-      .from(stockAdjustmentLines)
-      .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
-      .leftJoin(uom, eq(stockAdjustmentLines.uomId, uom.id))
-      .where(and(...conditions))
-      .limit(1);
-    return rows[0];
+  }): Promise<{ id: string } | undefined> {
+    return this.model.findFirst({
+      where: {
+        stockAdjustmentId: params.adjustmentId,
+        stockAdjustmentLotId: params.stockAdjustmentLotId ?? undefined,
+        locationId: params.locationId,
+        uomId: params.uomId,
+      },
+    });
   }
 
   async setResolvedQuant(lineId: string, resolvedQuantId: string): Promise<void> {
@@ -180,22 +160,15 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     return Number(result?.count ?? 0);
   }
 
-  // For tracking='serial' or 'lot_serial': sync quantity to count(line_items); isBalanced is always true.
-  // For other tracking types: isBalanced is always true (no derived count).
   async refreshIsBalanced(lineId: string, tracking: 'quantity' | 'lot' | 'serial' | 'lot_serial'): Promise<void> {
-    if (tracking !== 'serial' && tracking !== 'lot_serial') {
-      await this.db.update(stockAdjustmentLines).set({ isBalanced: true }).where(eq(stockAdjustmentLines.id, lineId));
-      return;
-    }
+    if (tracking !== 'serial' && tracking !== 'lot_serial') return;
     await this.db
       .update(stockAdjustmentLines)
       .set({
-        quantity: sql<string>`COALESCE((
-          SELECT COUNT(*)
-          FROM ${stockAdjustmentLineItems}
+        isBalanced: sql`(
+          SELECT COUNT(*) FROM ${stockAdjustmentLineItems}
           WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
-        ), 0)`,
-        isBalanced: true,
+        ) = ${stockAdjustmentLines.quantity}`,
       })
       .where(eq(stockAdjustmentLines.id, lineId));
   }
@@ -261,12 +234,8 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         // Source quant info (for deduct lines):
         quantLotNumber: inventoryItemLots.lotNumber,
         quantLocationId: inventoryItemQuants.locationId,
-        quantLocationName: sql<string | null>`(
-          SELECT ${locations.name} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
-        )`,
-        quantLocationPath: sql<string | null>`(
-          SELECT ${locations.pathBreadcrumb} FROM ${locations} WHERE ${locations.id} = ${inventoryItemQuants.locationId}
-        )`,
+        quantLocationName: quantLocations.name,
+        quantLocationPath: quantLocations.pathBreadcrumb,
         quantTotalQuantity: inventoryItemQuants.quantity,
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,
         lineItemsCount: lineItemsCountSql,
@@ -277,6 +246,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
       .leftJoin(inventoryItemQuants, eq(stockAdjustmentLines.quantId, inventoryItemQuants.id))
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
       .leftJoin(uom, eq(stockAdjustmentLines.uomId, uom.id))
+      .leftJoin(quantLocations, eq(inventoryItemQuants.locationId, quantLocations.id))
       .where(where ?? sql`TRUE`)
       .orderBy(...(orderBy?.length ? orderBy : [desc(stockAdjustmentLines.createdAt)]));
 

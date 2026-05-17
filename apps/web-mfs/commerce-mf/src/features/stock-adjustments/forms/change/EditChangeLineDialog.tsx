@@ -7,7 +7,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useUpdateStockAdjustmentLine } from '@/hooks/stock-adjustments';
+import { useUpdateChangeStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import {
   type InventoryTracking,
   type StockAdjustmentLineData,
@@ -50,7 +50,7 @@ const EditChangeLineForm = ({
     defaultValues: { quantity: line.quantity ?? 0, uomId: line.uomId },
   });
 
-  const mutation = useUpdateStockAdjustmentLine(adjustmentId, line.id, { onSuccess });
+  const mutation = useUpdateChangeStockAdjustmentLine(adjustmentId, line.id, { onSuccess });
 
   return (
     <Form

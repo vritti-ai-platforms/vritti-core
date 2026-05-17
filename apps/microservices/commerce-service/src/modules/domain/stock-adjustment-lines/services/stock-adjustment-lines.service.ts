@@ -12,15 +12,14 @@ import {
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import {
+  locations,
   type StockAdjustmentStatus,
   StockAdjustmentStatusValues,
   type StockAdjustmentType,
-  StockAdjustmentTypeValues,
   stockAdjustmentLines,
-  locations,
 } from '@/db/schema';
 import { StockAdjustmentLineDto } from '../dto/entity/stock-adjustment-line.dto';
-import { StockAdjustmentLinesRepository } from '../repositories/stock-adjustment-lines.repository';
+import { quantLocations, StockAdjustmentLinesRepository } from '../repositories/stock-adjustment-lines.repository';
 
 interface AdjustmentContext {
   id: string;
@@ -39,6 +38,7 @@ export class StockAdjustmentLinesService {
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
     locationPath: { column: locations.pathBreadcrumb, type: 'string' },
+    quantLocationName: { column: quantLocations.name, type: 'string' },
   };
 
   private static readonly FILTER_FIELD_MAP: FieldMap = {
@@ -85,12 +85,11 @@ export class StockAdjustmentLinesService {
     return StockAdjustmentLineDto.from(line);
   }
 
-  async addLine(
+  async addOpeningLine(
     adjustment: AdjustmentContext,
     data: {
+      locationId: string;
       stockAdjustmentLotId?: string | null;
-      locationId?: string | null;
-      quantId?: string | null;
       uomId: string;
       conversionFactor: number;
       quantity: number;
@@ -100,52 +99,93 @@ export class StockAdjustmentLinesService {
       throw new BadRequestException('Lines can only be added to DRAFT adjustments.');
     }
 
-    await this.validateIntent(adjustment, data);
-    await this.assertNoDuplicateLocationUom(adjustment, data);
+    await this.validateOpeningLineFields(adjustment.inventoryItemTracking, adjustment.id, data.stockAdjustmentLotId);
 
-    const isItemTracking =
-      adjustment.inventoryItemTracking === 'serial' || adjustment.inventoryItemTracking === 'lot_serial';
+    const existing = await this.repository.findOneByLotLocationUom({
+      adjustmentId: adjustment.id,
+      stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
+      locationId: data.locationId,
+      uomId: data.uomId,
+    });
+    if (existing) {
+      throw new ValidationException({
+        detail: 'A line for this location and UOM already exists. Edit that line instead.',
+        errors: [],
+      });
+    }
 
-    // For tracking='serial' or 'lot_serial', quantity is derived from the serial count and starts at 0.
-    // For 'quantity'/'lot' the user enters a quantity which must be non-zero.
-    if (!Number.isFinite(data.quantity) || (data.quantity === 0 && !isItemTracking)) {
+    if (data.quantity === 0) {
       throw new ValidationException({
         detail: 'Quantity must be a non-zero number.',
         errors: [{ field: 'quantity', message: 'Quantity is required.' }],
       });
     }
 
-    const initialIsBalanced = isItemTracking ? data.quantity === 0 : true;
+    const isItemTracking =
+      adjustment.inventoryItemTracking === 'serial' || adjustment.inventoryItemTracking === 'lot_serial';
+    const initialIsBalanced = !isItemTracking;
 
     const line = await this.repository.create({
       stockAdjustmentId: adjustment.id,
       stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
-      locationId: data.locationId ?? null,
-      quantId: data.quantId ?? null,
+      locationId: data.locationId,
+      quantId: null,
       uomId: data.uomId,
-      conversionFactor: String(data.conversionFactor),
-      quantity: String(data.quantity),
+      conversionFactor: data.conversionFactor,
+      quantity: data.quantity,
       isBalanced: initialIsBalanced,
     });
 
-    this.logger.log(`Added line ${line.id} to adjustment ${adjustment.id}`);
-    const refreshed = await this.repository.findByAdjustmentIdAndLineId(adjustment.id, line.id);
-    if (!refreshed) throw new NotFoundException('Line not found after insert.');
-    return StockAdjustmentLineDto.from(refreshed);
+    this.logger.log(`Added opening line ${line.id} to adjustment ${adjustment.id}`);
+    return StockAdjustmentLineDto.from(line);
   }
 
-  async updateLine(
+  async addChangeLine(
+    adjustment: AdjustmentContext,
+    data: {
+      quantId: string;
+      uomId: string;
+      conversionFactor: number;
+      quantity: number;
+    },
+  ): Promise<StockAdjustmentLineDto> {
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
+      throw new BadRequestException('Lines can only be added to DRAFT adjustments.');
+    }
+
+    if (data.quantity === 0) {
+      throw new ValidationException({
+        detail: 'Quantity must be a non-zero number.',
+        errors: [{ field: 'quantity', message: 'Quantity is required.' }],
+      });
+    }
+
+    const line = await this.repository.create({
+      stockAdjustmentId: adjustment.id,
+      stockAdjustmentLotId: null,
+      locationId: null,
+      quantId: data.quantId,
+      uomId: data.uomId,
+      conversionFactor: data.conversionFactor,
+      quantity: data.quantity,
+      isBalanced: true,
+    });
+
+    this.logger.log(`Added change line ${line.id} to adjustment ${adjustment.id}`);
+    return StockAdjustmentLineDto.from(line);
+  }
+
+  async updateOpeningLine(
     adjustment: AdjustmentContext,
     lineId: string,
     data: {
-      quantity?: number;
+      locationId?: string;
       stockAdjustmentLotId?: string | null;
-      locationId?: string | null;
-      quantId?: string | null;
+      quantity?: number;
       uomId?: string;
       conversionFactor?: number;
     },
-  ): Promise<StockAdjustmentLineDto> {
+  ): Promise<void> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be updated on DRAFT adjustments.');
     }
@@ -155,42 +195,67 @@ export class StockAdjustmentLinesService {
       throw new BadRequestException('Line does not belong to this adjustment.');
     }
 
-    // Build the proposed shape and re-validate intent
-    const next = {
-      stockAdjustmentLotId:
-        data.stockAdjustmentLotId !== undefined ? data.stockAdjustmentLotId : line.stockAdjustmentLotId,
-      locationId: data.locationId !== undefined ? data.locationId : line.locationId,
-      quantId: data.quantId !== undefined ? data.quantId : line.quantId,
-      quantity: data.quantity !== undefined ? data.quantity : Number(line.quantity),
-    };
-    await this.validateIntent(adjustment, next);
+    const nextLotId = data.stockAdjustmentLotId !== undefined ? data.stockAdjustmentLotId : line.stockAdjustmentLotId;
+    const nextLocationId = data.locationId ?? line.locationId;
+    const nextUomId = data.uomId ?? line.uomId;
 
-    // Re-check the duplicate invariant against the proposed shape. Use existing values when the
-    // caller is partial-updating (uomId/locationId omitted) so a no-op edit doesn't false-positive.
-    await this.assertNoDuplicateLocationUom(
-      adjustment,
-      {
-        stockAdjustmentLotId: next.stockAdjustmentLotId,
-        locationId: next.locationId,
-        uomId: data.uomId !== undefined ? data.uomId : line.uomId,
-      },
-      lineId,
-    );
+    await this.validateOpeningLineFields(adjustment.inventoryItemTracking, adjustment.id, nextLotId);
 
-    await this.repository.update(lineId, {
-      ...(data.quantity !== undefined ? { quantity: String(data.quantity) } : {}),
-      ...(data.stockAdjustmentLotId !== undefined ? { stockAdjustmentLotId: data.stockAdjustmentLotId } : {}),
-      ...(data.locationId !== undefined ? { locationId: data.locationId } : {}),
-      ...(data.quantId !== undefined ? { quantId: data.quantId } : {}),
-      ...(data.uomId !== undefined ? { uomId: data.uomId } : {}),
-      ...(data.conversionFactor !== undefined ? { conversionFactor: String(data.conversionFactor) } : {}),
+    if (nextLocationId) {
+      const existing = await this.repository.findOneByLotLocationUom({
+        adjustmentId: adjustment.id,
+        stockAdjustmentLotId: nextLotId ?? null,
+        locationId: nextLocationId,
+        uomId: nextUomId,
+      });
+      if (existing && existing.id !== lineId) {
+        throw new ValidationException({
+          detail: 'A line for this location and UOM already exists. Edit that line instead.',
+          errors: [],
+        });
+      }
+    }
+
+    await this.repository.transaction(async () => {
+      await this.repository.update(lineId, {
+        stockAdjustmentLotId: nextLotId,
+        locationId: nextLocationId,
+        uomId: nextUomId,
+        quantity: data.quantity,
+        conversionFactor: data.conversionFactor,
+      });
+      await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
     });
+  }
 
-    await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
+  async updateChangeLine(
+    adjustment: AdjustmentContext,
+    lineId: string,
+    data: {
+      quantId?: string;
+      quantity?: number;
+      uomId?: string;
+      conversionFactor?: number;
+    },
+  ): Promise<void> {
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
+      throw new BadRequestException('Lines can only be updated on DRAFT adjustments.');
+    }
+    const line = await this.repository.findById(lineId);
+    if (!line) throw new NotFoundException('Stock adjustment line not found.');
+    if (line.stockAdjustmentId !== adjustment.id) {
+      throw new BadRequestException('Line does not belong to this adjustment.');
+    }
 
-    const refreshed = await this.repository.findByAdjustmentIdAndLineId(adjustment.id, lineId);
-    if (!refreshed) throw new NotFoundException('Line not found after update.');
-    return StockAdjustmentLineDto.from(refreshed);
+    await this.repository.transaction(async () => {
+      await this.repository.update(lineId, {
+        quantId: data.quantId,
+        uomId: data.uomId,
+        quantity: data.quantity,
+        conversionFactor: data.conversionFactor,
+      });
+      await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
+    });
   }
 
   async removeLine(adjustment: AdjustmentContext, lineId: string): Promise<void> {
@@ -220,87 +285,11 @@ export class StockAdjustmentLinesService {
   // Used at publish time — return mismatched lines for serial-bearing adjustments
   async getPublishValidation(adjustmentId: string): Promise<{ valid: boolean; invalidLinesCount: number }> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
-    if (
-      adjustment.inventoryItemTracking !== 'serial' &&
-      adjustment.inventoryItemTracking !== 'lot_serial'
-    ) {
+    if (adjustment.inventoryItemTracking !== 'serial' && adjustment.inventoryItemTracking !== 'lot_serial') {
       return { valid: true, invalidLinesCount: 0 };
     }
     const errors = await this.repository.findUnbalancedItemLines(adjustmentId);
     return { valid: errors.length === 0, invalidLinesCount: errors.length };
-  }
-
-  // Validates the line shape against (adjustment.type, item.tracking)
-  private async validateIntent(
-    adjustment: AdjustmentContext,
-    data: {
-      stockAdjustmentLotId?: string | null;
-      locationId?: string | null;
-      quantId?: string | null;
-    },
-  ): Promise<void> {
-    const isOpening = adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK;
-    const tracking = adjustment.inventoryItemTracking;
-
-    if (isOpening) {
-      // Register intent: locationId required, quantId forbidden
-      if (!data.locationId) {
-        throw new ValidationException({
-          detail: 'Storage location is required for OPENING_STOCK lines.',
-          errors: [{ field: 'locationId', message: 'Storage location is required.' }],
-        });
-      }
-      if (data.quantId) {
-        throw new ValidationException({
-          detail: 'quantId must not be set on OPENING_STOCK lines.',
-          errors: [{ field: 'quantId', message: 'Not allowed on OPENING_STOCK.' }],
-        });
-      }
-      // tracking=quantity or serial: lot must NOT be set; tracking=lot or lot_serial: lot must be set
-      if (tracking === 'quantity' || tracking === 'serial') {
-        if (data.stockAdjustmentLotId) {
-          throw new ValidationException({
-            detail: `Lot must not be set for items with tracking=${tracking}.`,
-            errors: [{ field: 'stockAdjustmentLotId', message: `Not allowed for tracking=${tracking}.` }],
-          });
-        }
-      } else {
-        if (!data.stockAdjustmentLotId) {
-          throw new ValidationException({
-            detail: 'A lot must be selected for OPENING_STOCK on lot/lot_serial-tracked items.',
-            errors: [{ field: 'stockAdjustmentLotId', message: 'Lot is required.' }],
-          });
-        }
-        // Verify the lot belongs to this adjustment
-        const lot = await this.lotsRepository.findById(data.stockAdjustmentLotId);
-        if (!lot || lot.stockAdjustmentId !== adjustment.id) {
-          throw new ValidationException({
-            detail: 'Lot does not belong to this adjustment.',
-            errors: [{ field: 'stockAdjustmentLotId', message: 'Invalid lot reference.' }],
-          });
-        }
-      }
-    } else {
-      // Change intent: quantId required, locationId/stockAdjustmentLotId forbidden
-      if (!data.quantId) {
-        throw new ValidationException({
-          detail: 'A quant must be selected for deduct/correction lines.',
-          errors: [{ field: 'quantId', message: 'Quant is required.' }],
-        });
-      }
-      if (data.locationId) {
-        throw new ValidationException({
-          detail: 'locationId must not be set on deduct/correction lines.',
-          errors: [{ field: 'locationId', message: 'Not allowed for deduct/correction.' }],
-        });
-      }
-      if (data.stockAdjustmentLotId) {
-        throw new ValidationException({
-          detail: 'stockAdjustmentLotId must not be set on deduct/correction lines.',
-          errors: [{ field: 'stockAdjustmentLotId', message: 'Not allowed for deduct/correction.' }],
-        });
-      }
-    }
   }
 
   private async getAdjustmentContext(adjustmentId: string): Promise<AdjustmentContext> {
@@ -309,31 +298,31 @@ export class StockAdjustmentLinesService {
     return adjustment;
   }
 
-  // Rejects adding/updating a line that would duplicate an existing (adjustmentId, lotId, locationId, uomId)
-  // tuple. The lot is the audit unit; two lines on the same bin in the same UOM under the same lot carry
-  // no new information. Surfaces as a form-root error (no field set) so the message can name both
-  // location and UOM together.
-  private async assertNoDuplicateLocationUom(
-    adjustment: AdjustmentContext,
-    data: { stockAdjustmentLotId?: string | null; locationId?: string | null; uomId: string },
-    excludeLineId?: string,
+  private async validateOpeningLineFields(
+    tracking: AdjustmentContext['inventoryItemTracking'],
+    adjustmentId: string,
+    stockAdjustmentLotId?: string | null,
   ): Promise<void> {
-    if (!data.locationId) return; // change-intent lines (quantId set) — invariant doesn't apply
-    const existing = await this.repository.findExistingByLotLocationUom({
-      adjustmentId: adjustment.id,
-      stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
-      locationId: data.locationId,
-      uomId: data.uomId,
-      excludeLineId,
-    });
-    if (existing) {
-      const locationLabel = existing.locationName ?? 'this location';
-      const uomLabel = existing.uomSymbol ?? 'this unit';
+    if (tracking === 'quantity' || tracking === 'serial') {
+      if (stockAdjustmentLotId) {
+        throw new ValidationException({
+          detail: `Lot must not be set for items with tracking=${tracking}.`,
+          errors: [{ field: 'stockAdjustmentLotId', message: `Not allowed for tracking=${tracking}.` }],
+        });
+      }
+    } else if (!stockAdjustmentLotId) {
       throw new ValidationException({
-        detail: `${locationLabel} already has a line in ${uomLabel}. Edit that line instead, or pick a different location or UOM.`,
-        errors: [],
+        detail: 'A lot must be selected for OPENING_STOCK on lot/lot_serial-tracked items.',
+        errors: [{ field: 'stockAdjustmentLotId', message: 'Lot is required.' }],
       });
+    } else {
+      const lot = await this.lotsRepository.findById(stockAdjustmentLotId);
+      if (!lot || lot.stockAdjustmentId !== adjustmentId) {
+        throw new ValidationException({
+          detail: 'Lot does not belong to this adjustment.',
+          errors: [{ field: 'stockAdjustmentLotId', message: 'Invalid lot reference.' }],
+        });
+      }
     }
   }
-
 }

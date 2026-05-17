@@ -2,12 +2,14 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Pat
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import { AddStockAdjustmentLineDto } from './dto/request/add-stock-adjustment-line.dto';
+import { AddChangeStockAdjustmentLineDto } from './dto/request/add-change-stock-adjustment-line.dto';
+import { AddOpeningStockAdjustmentLineDto } from './dto/request/add-opening-stock-adjustment-line.dto';
 import { AddStockAdjustmentLineItemDto } from './dto/request/add-stock-adjustment-line-item.dto';
 import { AddStockAdjustmentLotDto } from './dto/request/add-stock-adjustment-lot.dto';
 import { CreateStockAdjustmentDto } from './dto/request/create-stock-adjustment.dto';
 import { UpdateStockAdjustmentDto } from './dto/request/update-stock-adjustment.dto';
-import { UpdateStockAdjustmentLineDto } from './dto/request/update-stock-adjustment-line.dto';
+import { UpdateChangeStockAdjustmentLineDto } from './dto/request/update-change-stock-adjustment-line.dto';
+import { UpdateOpeningStockAdjustmentLineDto } from './dto/request/update-opening-stock-adjustment-line.dto';
 import { UpdateStockAdjustmentLineItemDto } from './dto/request/update-stock-adjustment-line-item.dto';
 import { UpdateStockAdjustmentLotDto } from './dto/request/update-stock-adjustment-lot.dto';
 import type { StockAdjustmentLineItemResponseDto } from './dto/response/stock-adjustment-line-item-response.dto';
@@ -127,20 +129,44 @@ export class StockAdjustmentsGatewayController {
     return this.service.update(id, dto);
   }
 
-  @Post(':id/lines')
+  @Post(':id/opening-lines')
   @HttpCode(HttpStatus.CREATED)
-  addLine(
+  addOpeningLine(
     @Param('id') id: string,
-    @Body() dto: AddStockAdjustmentLineDto,
+    @Body() dto: AddOpeningStockAdjustmentLineDto,
   ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
-    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/lines`);
-    return this.service.addLine(id, dto);
+    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/opening-lines`);
+    return this.service.addOpeningLine(id, dto);
   }
 
-  @Patch(':id/lines/:lineId')
-  updateLine(@Param('id') id: string, @Param('lineId') lineId: string, @Body() dto: UpdateStockAdjustmentLineDto) {
-    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/lines/${lineId}`);
-    return this.service.updateLine(id, lineId, dto);
+  @Post(':id/change-lines')
+  @HttpCode(HttpStatus.CREATED)
+  addChangeLine(
+    @Param('id') id: string,
+    @Body() dto: AddChangeStockAdjustmentLineDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
+    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/change-lines`);
+    return this.service.addChangeLine(id, dto);
+  }
+
+  @Patch(':id/opening-lines/:lineId')
+  updateOpeningLine(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: UpdateOpeningStockAdjustmentLineDto,
+  ): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/opening-lines/${lineId}`);
+    return this.service.updateOpeningLine(id, lineId, dto);
+  }
+
+  @Patch(':id/change-lines/:lineId')
+  updateChangeLine(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: UpdateChangeStockAdjustmentLineDto,
+  ): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/change-lines/${lineId}`);
+    return this.service.updateChangeLine(id, lineId, dto);
   }
 
   @Delete(':id/lines/:lineId')

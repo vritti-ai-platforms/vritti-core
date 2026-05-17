@@ -17,10 +17,10 @@ export interface InventoryItemUomConversionData {
 
 export type InventoryItemUomConversionsTableResponse = TableResponse<InventoryItemUomConversionData>;
 
-const positiveInt = zodNumericField({ required: 'Value is required', min: 1 });
+const positiveInt = zodNumericField({ required: 'Value is required', positive: true, integer: true });
 
 export const createInventoryItemUomConversionSchema = z.object({
-  uomId: z.string().uuid('UOM is required'),
+  uomId: z.uuid('UOM is required'),
   numerator: positiveInt,
   denominator: positiveInt,
 });

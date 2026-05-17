@@ -4,8 +4,7 @@ import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, NotFoundException, ValidationException } from '@vritti/api-sdk';
-import Decimal from '@vritti/api-sdk/decimal';
+import { type CreateResponseDto, NotFoundException, type SuccessResponseDto, ValidationException } from '@vritti/api-sdk';
 
 // App-layer orchestrator for stock-adjustment line writes that need inventory-aggregate awareness.
 // Handles UOM validation against the item's allowed set + conversion-factor resolution before
@@ -21,27 +20,23 @@ export class StockAdjustmentsLinesService {
     private readonly uomConversionsService: InventoryItemUomConversionsService,
   ) {}
 
-  async addLine(
+  async addOpeningLine(
     adjustmentId: string,
     data: {
+      locationId: string;
       stockAdjustmentLotId?: string | null;
-      locationId?: string | null;
-      quantId?: string | null;
-      uomId: string;
       quantity: number;
+      uomId: string;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
-    this.logger.log(`addLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.quantity}`);
+    this.logger.log(`addOpeningLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.quantity}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     await this.validateUomId(adjustment, data.uomId);
-    const conversionFactor = await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId);
-
-    const quantityInPrimaryUom = new Decimal(data.quantity).times(conversionFactor).toDecimalPlaces(3).toNumber();
-    const line = await this.linesService.addLine(adjustment, {
-      ...data,
-      quantity: quantityInPrimaryUom,
-      conversionFactor,
-    });
+    const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
+      adjustment.inventoryItemId,
+      data.uomId,
+    );
+    const line = await this.linesService.addOpeningLine(adjustment, { ...data, conversionFactor });
     return {
       success: true,
       message: `Line added to adjustment "${adjustment.code}" successfully.`,
@@ -49,37 +44,80 @@ export class StockAdjustmentsLinesService {
     };
   }
 
-  async updateLine(
+  async addChangeLine(
+    adjustmentId: string,
+    data: {
+      quantId: string;
+      quantity: number;
+      uomId: string;
+    },
+  ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+    this.logger.log(`addChangeLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.quantity}`);
+    const adjustment = await this.getAdjustmentContext(adjustmentId);
+    await this.validateUomId(adjustment, data.uomId);
+    const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
+      adjustment.inventoryItemId,
+      data.uomId,
+    );
+    const line = await this.linesService.addChangeLine(adjustment, { ...data, conversionFactor });
+    return {
+      success: true,
+      message: `Line added to adjustment "${adjustment.code}" successfully.`,
+      data: line,
+    };
+  }
+
+  async updateOpeningLine(
     adjustmentId: string,
     lineId: string,
     data: {
-      quantity?: number;
+      locationId?: string;
       stockAdjustmentLotId?: string | null;
-      locationId?: string | null;
-      quantId?: string | null;
+      quantity?: number;
       uomId?: string;
     },
-  ): Promise<StockAdjustmentLineDto> {
-    this.logger.log(`updateLine — adjustment: ${adjustmentId}, line: ${lineId}`);
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`updateOpeningLine — adjustment: ${adjustmentId}, line: ${lineId}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
-    if (data.uomId !== undefined) {
+
+    if (data.uomId) {
       await this.validateUomId(adjustment, data.uomId);
+      const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
+        adjustment.inventoryItemId,
+        data.uomId,
+      );
+      await this.linesService.updateOpeningLine(adjustment, lineId, { ...data, conversionFactor });
+    } else {
+      await this.linesService.updateOpeningLine(adjustment, lineId, data);
     }
-    const conversionFactor =
-      data.uomId !== undefined
-        ? await this.uomConversionsService.resolveFactor(adjustment.inventoryItemId, data.uomId)
-        : undefined;
 
-    const quantityInPrimaryUom =
-      data.quantity !== undefined && conversionFactor !== undefined
-        ? new Decimal(data.quantity).times(conversionFactor).toDecimalPlaces(3).toNumber()
-        : data.quantity;
+    return { success: true, message: 'Line updated successfully.' };
+  }
 
-    return this.linesService.updateLine(adjustment, lineId, {
-      ...data,
-      quantity: quantityInPrimaryUom,
-      conversionFactor,
-    });
+  async updateChangeLine(
+    adjustmentId: string,
+    lineId: string,
+    data: {
+      quantId?: string;
+      quantity?: number;
+      uomId?: string;
+    },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`updateChangeLine — adjustment: ${adjustmentId}, line: ${lineId}`);
+    const adjustment = await this.getAdjustmentContext(adjustmentId);
+
+    if (data.uomId) {
+      await this.validateUomId(adjustment, data.uomId);
+      const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
+        adjustment.inventoryItemId,
+        data.uomId,
+      );
+      await this.linesService.updateChangeLine(adjustment, lineId, { ...data, conversionFactor });
+    } else {
+      await this.linesService.updateChangeLine(adjustment, lineId, data);
+    }
+
+    return { success: true, message: 'Line updated successfully.' };
   }
 
   private async getAdjustmentContext(adjustmentId: string) {

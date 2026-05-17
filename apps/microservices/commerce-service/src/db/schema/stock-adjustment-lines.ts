@@ -11,9 +11,9 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItemQuants } from './inventory-item-quants';
+import { locations } from './locations';
 import { stockAdjustmentLots } from './stock-adjustment-lots';
 import { stockAdjustments } from './stock-adjustments';
-import { locations } from './locations';
 import { uom } from './uom';
 
 export const stockAdjustmentLines = coreSchema.table(
@@ -39,8 +39,8 @@ export const stockAdjustmentLines = coreSchema.table(
     // Snapshot of the resolved factor (line UOM → item's primary UOM) at the time the line was
     // created/updated. Lets aggregates compute SUM(quantity * conversion_factor) without joining
     // conversion tables, and preserves the factor against future override edits.
-    conversionFactor: decimal('conversion_factor', { precision: 20, scale: 6 }).notNull().default('1'),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    conversionFactor: decimal('conversion_factor', { precision: 20, scale: 6, mode: 'number' }).notNull().default(1),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

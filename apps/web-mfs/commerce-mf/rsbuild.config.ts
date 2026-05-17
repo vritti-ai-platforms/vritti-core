@@ -14,6 +14,7 @@ export default defineConfig({
   server: {
     port: 3014,
     host: '0.0.0.0',
+    historyApiFallback: true,
     ...(useHttps && {
       https: {
         key: fs.readFileSync('../../../certs/_wildcard.local.vrittiai.com+4-key.pem'),

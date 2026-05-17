@@ -1,4 +1,8 @@
+import type { StockAdjustmentLine } from '@/db/schema';
 import type { StockAdjustmentLineWithRefs } from '../../repositories/stock-adjustment-lines.repository';
+
+type StockAdjustmentLineRow = StockAdjustmentLine &
+  Partial<Omit<StockAdjustmentLineWithRefs, keyof StockAdjustmentLine>>;
 
 export class StockAdjustmentLineDto {
   id: string;
@@ -36,7 +40,7 @@ export class StockAdjustmentLineDto {
   lineItemsCount: number;
   createdAt: string;
 
-  static from(row: StockAdjustmentLineWithRefs): StockAdjustmentLineDto {
+  static from(row: StockAdjustmentLineRow): StockAdjustmentLineDto {
     const dto = new StockAdjustmentLineDto();
     dto.id = row.id;
     dto.stockAdjustmentId = row.stockAdjustmentId;
@@ -61,11 +65,11 @@ export class StockAdjustmentLineDto {
     dto.uomId = row.uomId;
     dto.uomName = row.uomName ?? null;
     dto.uomSymbol = row.uomSymbol ?? null;
-    dto.conversionFactor = Number(row.conversionFactor);
-    dto.quantity = Number(row.quantity);
+    dto.conversionFactor = row.conversionFactor;
+    dto.quantity = row.quantity;
     dto.resolvedQuantId = row.resolvedQuantId ?? null;
     dto.isBalanced = row.isBalanced;
-    dto.lineItemsCount = row.lineItemsCount;
+    dto.lineItemsCount = row.lineItemsCount ?? 0;
     dto.createdAt = row.createdAt.toISOString();
     return dto;
   }

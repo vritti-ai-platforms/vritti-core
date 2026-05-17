@@ -9348,42 +9348,6 @@
         "tags": [
           "Commerce - Stock Adjustments"
         ]
-      },
-      "post": {
-        "operationId": "StockAdjustmentsGatewayController_addLine",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AddStockAdjustmentLineDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Stock Adjustments"
-        ]
       }
     },
     "/commerce-api/stock-adjustments/{id}/lines/table": {
@@ -9485,50 +9449,6 @@
           "Commerce - Stock Adjustments"
         ]
       },
-      "patch": {
-        "operationId": "StockAdjustmentsGatewayController_updateLine",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "lineId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateStockAdjustmentLineDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Stock Adjustments"
-        ]
-      },
       "delete": {
         "operationId": "StockAdjustmentsGatewayController_removeLine",
         "parameters": [
@@ -9580,6 +9500,174 @@
         },
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/opening-lines": {
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_addOpeningLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOpeningStockAdjustmentLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/change-lines": {
+      "post": {
+        "operationId": "StockAdjustmentsGatewayController_addChangeLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddChangeStockAdjustmentLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/opening-lines/{lineId}": {
+      "patch": {
+        "operationId": "StockAdjustmentsGatewayController_updateOpeningLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOpeningStockAdjustmentLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
+    "/commerce-api/stock-adjustments/{id}/change-lines/{lineId}": {
+      "patch": {
+        "operationId": "StockAdjustmentsGatewayController_updateChangeLine",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChangeStockAdjustmentLineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -15844,53 +15932,85 @@
           }
         }
       },
-      "AddStockAdjustmentLineDto": {
+      "AddOpeningStockAdjustmentLineDto": {
         "type": "object",
         "properties": {
+          "locationId": {
+            "type": "string",
+            "description": "Storage location ID (required for OPENING_STOCK lines)"
+          },
           "stockAdjustmentLotId": {
             "type": "object",
-            "description": "Stock adjustment lot draft ID (OPENING_STOCK + tracking=lot/serial)"
-          },
-          "locationId": {
-            "type": "object",
-            "description": "Storage location ID (OPENING_STOCK)"
-          },
-          "quantId": {
-            "type": "object",
-            "description": "Quant ID — the existing stock to adjust (deduct/CORRECTION)"
-          },
-          "uomId": {
-            "type": "string",
-            "description": "UOM for the line quantity. Must be in the item allowed-UOM set."
+            "description": "Stock adjustment lot draft ID (required for lot/lot_serial-tracked items)"
           },
           "quantity": {
             "type": "number",
             "description": "Line quantity (magnitude — sign comes from adjustment.type)"
+          },
+          "uomId": {
+            "type": "string",
+            "description": "UOM for the line quantity. Must be in the item allowed-UOM set."
           }
         },
         "required": [
-          "uomId",
-          "quantity"
+          "locationId",
+          "quantity",
+          "uomId"
         ]
       },
-      "UpdateStockAdjustmentLineDto": {
+      "AddChangeStockAdjustmentLineDto": {
         "type": "object",
         "properties": {
+          "quantId": {
+            "type": "string",
+            "description": "Quant ID — the existing stock to adjust (deduct/correction lines)"
+          },
           "quantity": {
             "type": "number",
-            "description": "Line quantity"
+            "description": "Line quantity (magnitude — sign comes from adjustment.type)"
+          },
+          "uomId": {
+            "type": "string",
+            "description": "UOM for the line quantity. Must be in the item allowed-UOM set."
+          }
+        },
+        "required": [
+          "quantId",
+          "quantity",
+          "uomId"
+        ]
+      },
+      "UpdateOpeningStockAdjustmentLineDto": {
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "description": "Storage location ID"
           },
           "stockAdjustmentLotId": {
             "type": "object",
             "description": "Stock adjustment lot draft ID"
           },
-          "locationId": {
-            "type": "object",
-            "description": "Storage location ID"
+          "quantity": {
+            "type": "number",
+            "description": "Line quantity"
           },
+          "uomId": {
+            "type": "string",
+            "description": "UOM for the line quantity"
+          }
+        }
+      },
+      "UpdateChangeStockAdjustmentLineDto": {
+        "type": "object",
+        "properties": {
           "quantId": {
-            "type": "object",
-            "description": "Quant ID"
+            "type": "string",
+            "description": "Quant ID — the existing stock to adjust"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Line quantity"
           },
           "uomId": {
             "type": "string",
