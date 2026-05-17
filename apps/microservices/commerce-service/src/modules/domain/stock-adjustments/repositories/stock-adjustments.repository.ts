@@ -22,10 +22,38 @@ export type StockAdjustmentWithRefs = StockAdjustment & {
   isPublishable?: boolean;
 };
 
+export type StockAdjustmentWithItem = StockAdjustment & {
+  inventoryItemUomId: string;
+  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+};
+
 @Injectable()
 export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof stockAdjustments> {
   constructor(database: PrimaryDatabaseService) {
     super(database, stockAdjustments, { sequence: stockAdjustmentCodeSeq });
+  }
+
+  async findByIdWithItem(id: string): Promise<StockAdjustmentWithItem | undefined> {
+    const [row] = await this.db
+      .select({
+        id: stockAdjustments.id,
+        organizationId: stockAdjustments.organizationId,
+        businessUnitId: stockAdjustments.businessUnitId,
+        inventoryItemId: stockAdjustments.inventoryItemId,
+        code: stockAdjustments.code,
+        type: stockAdjustments.type,
+        status: stockAdjustments.status,
+        reason: stockAdjustments.reason,
+        publishedAt: stockAdjustments.publishedAt,
+        createdAt: stockAdjustments.createdAt,
+        inventoryItemUomId: inventoryItems.uomId,
+        inventoryItemTracking: inventoryItems.tracking,
+      })
+      .from(stockAdjustments)
+      .innerJoin(inventoryItems, eq(stockAdjustments.inventoryItemId, inventoryItems.id))
+      .where(eq(stockAdjustments.id, id))
+      .limit(1);
+    return row as StockAdjustmentWithItem | undefined;
   }
 
   async findAllForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{

@@ -29,14 +29,24 @@ export class StockAdjustmentsLinesService {
       uomId: string;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+    const t0 = Date.now();
     this.logger.log(`addOpeningLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.quantity}`);
+
     const adjustment = await this.getAdjustmentContext(adjustmentId);
+    this.logger.log(`addOpeningLine [getAdjustmentContext] ${Date.now() - t0}ms`);
+
     await this.validateUomId(adjustment, data.uomId);
+    this.logger.log(`addOpeningLine [validateUomId] ${Date.now() - t0}ms`);
+
     const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
       adjustment.inventoryItemId,
       data.uomId,
     );
+    this.logger.log(`addOpeningLine [resolvePrimaryUomFactor] ${Date.now() - t0}ms`);
+
     const line = await this.linesService.addOpeningLine(adjustment, { ...data, conversionFactor });
+    this.logger.log(`addOpeningLine [linesService.addOpeningLine] ${Date.now() - t0}ms`);
+
     return {
       success: true,
       message: `Line added to adjustment "${adjustment.code}" successfully.`,
@@ -121,7 +131,7 @@ export class StockAdjustmentsLinesService {
   }
 
   private async getAdjustmentContext(adjustmentId: string) {
-    const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
+    const adjustment = await this.adjustmentsRepository.findByIdWithItem(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return adjustment;
   }

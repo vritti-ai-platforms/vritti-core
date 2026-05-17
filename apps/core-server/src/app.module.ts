@@ -9,6 +9,7 @@ import { relations } from '@/db/schema';
 import './db/schema.registry';
 
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
+import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import {
   AuthConfigModule,
   DatabaseModule,
@@ -178,19 +179,27 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     // NATS client — gateway mode, resolves BU context from sessionInfo
     NatsClientModule.forRoot({
       imports: [BusinessUnitDomainModule],
-      inject: [ConfigService, BusinessUnitRepository],
-      useFactory: (config: ConfigService, buRepo: BusinessUnitRepository) => ({
+      inject: [ConfigService, BusinessUnitRepository, BuContextCacheService],
+      useFactory: (config: ConfigService, buRepo: BusinessUnitRepository, buContextCache: BuContextCacheService) => ({
         natsUrl: config.get<string>('NATS_URL'),
         services: [{ name: 'commerce' }],
         contextResolver: async (sessionInfo) => {
           const buId = sessionInfo.buId ?? '';
           const orgId = sessionInfo.organizationId ?? '';
+
+          const cached = buContextCache.get(buId);
+          if (cached) {
+            return { orgId, userId: sessionInfo.userId, buId, ...cached };
+          }
+
           const bu = buId ? await buRepo.findById(buId) : null;
           const path = bu?.path ?? '';
           const [buAncestorIds, buDescendantIds] = path
             ? await Promise.all([buRepo.findAncestors(path), buRepo.findDescendants(path)])
             : [[buId], [buId]];
           const buTimezone = bu?.timezone ?? 'UTC';
+
+          buContextCache.set(buId, { buTimezone, buAncestorIds, buDescendantIds });
           return { orgId, userId: sessionInfo.userId, buId, buTimezone, buAncestorIds, buDescendantIds };
         },
       }),

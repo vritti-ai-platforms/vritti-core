@@ -5,6 +5,7 @@ import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
 import type { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
+import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import { BusinessUnitRepository } from '../repositories/business-unit.repository';
 
 // Builds an ltree path by appending a lowercase code to the parent path
@@ -17,7 +18,10 @@ function buildLtreePath(parentPath: string | null, code: string): string {
 export class BusinessUnitService {
   private readonly logger = new Logger(BusinessUnitService.name);
 
-  constructor(private readonly businessUnitRepository: BusinessUnitRepository) {}
+  constructor(
+    private readonly businessUnitRepository: BusinessUnitRepository,
+    private readonly buContextCache: BuContextCacheService,
+  ) {}
 
   // Creates a business unit, computes depth/path from parent, and updates path with new ID
   async create(orgId: string, dto: CreateBusinessUnitWebhookDto): Promise<BusinessUnitDto> {
@@ -89,6 +93,7 @@ export class BusinessUnitService {
       updatedAt: new Date(),
     });
 
+    this.buContextCache.invalidate(id);
     this.logger.log(`Updated business unit ${id}`);
     return { success: true, message: 'Business unit updated successfully.' };
   }
@@ -105,6 +110,7 @@ export class BusinessUnitService {
       updatedAt: new Date(),
     });
 
+    this.buContextCache.invalidate(id);
     this.logger.log(`Updated apps for business unit ${id}: [${dto.appCodes.join(', ')}]`);
     return { success: true, message: 'Business unit apps updated successfully.' };
   }
@@ -124,6 +130,7 @@ export class BusinessUnitService {
 
     await this.businessUnitRepository.delete(id);
 
+    this.buContextCache.invalidate(id);
     this.logger.log(`Deleted business unit "${bu.name}" (${id})`);
     return { success: true, message: 'Business unit deleted successfully.' };
   }

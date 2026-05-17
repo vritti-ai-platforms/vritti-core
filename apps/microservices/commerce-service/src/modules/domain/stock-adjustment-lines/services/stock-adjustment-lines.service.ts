@@ -95,11 +95,14 @@ export class StockAdjustmentLinesService {
       quantity: number;
     },
   ): Promise<StockAdjustmentLineDto> {
+    const t0 = Date.now();
+
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be added to DRAFT adjustments.');
     }
 
     await this.validateOpeningLineFields(adjustment.inventoryItemTracking, adjustment.id, data.stockAdjustmentLotId);
+    this.logger.log(`addOpeningLine [validateOpeningLineFields] ${Date.now() - t0}ms`);
 
     const existing = await this.repository.findOneByLotLocationUom({
       adjustmentId: adjustment.id,
@@ -107,6 +110,7 @@ export class StockAdjustmentLinesService {
       locationId: data.locationId,
       uomId: data.uomId,
     });
+    this.logger.log(`addOpeningLine [findOneByLotLocationUom] ${Date.now() - t0}ms`);
     if (existing) {
       throw new ValidationException({
         detail: 'A line for this location and UOM already exists. Edit that line instead.',
@@ -135,6 +139,7 @@ export class StockAdjustmentLinesService {
       quantity: data.quantity,
       isBalanced: initialIsBalanced,
     });
+    this.logger.log(`addOpeningLine [repository.create] ${Date.now() - t0}ms`);
 
     this.logger.log(`Added opening line ${line.id} to adjustment ${adjustment.id}`);
     return StockAdjustmentLineDto.from(line);
@@ -293,7 +298,7 @@ export class StockAdjustmentLinesService {
   }
 
   private async getAdjustmentContext(adjustmentId: string): Promise<AdjustmentContext> {
-    const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
+    const adjustment = await this.adjustmentsRepository.findByIdWithItem(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return adjustment;
   }

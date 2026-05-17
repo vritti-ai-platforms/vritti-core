@@ -1,4 +1,14 @@
 services:
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: vritti-pgbouncer
+    ports:
+      - "6432:6432"
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    restart: unless-stopped
+
   nats:
     image: nats:2.10-alpine
     container_name: vritti-nats

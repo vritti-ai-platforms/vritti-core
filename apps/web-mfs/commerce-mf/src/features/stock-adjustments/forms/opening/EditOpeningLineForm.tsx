@@ -1,4 +1,3 @@
-import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
@@ -55,7 +54,8 @@ export const EditOpeningLineForm = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         locationId: data.locationId,
-        ...(isItem ? {} : { uomId: data.uomId, quantity: data.quantity }),
+        quantity: data.quantity,
+        ...(isItem ? {} : { uomId: data.uomId }),
       })}
     >
       <LocationSelector
@@ -67,23 +67,16 @@ export const EditOpeningLineForm = ({
           inventoryItemId,
         }}
       />
-      {!isItem && (
-        <div className="grid grid-cols-2 gap-4">
-          <TextField name="quantity" label="Quantity" type="number" positive nonZero integer={!allowDecimal} />
-          <UomSelector
-            name="uomId"
-            label="Unit"
-            params={{ inventoryItemId }}
-            onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
-          />
-        </div>
-      )}
-      {isItem && (
-        <Alert
-          variant="info"
-          description={`Quantity is derived from the number of serials added to this line (${line.lineItemsCount}).`}
+      <div className="grid grid-cols-2 gap-4">
+        <TextField name="quantity" label="Quantity" type="number" positive nonZero integer={isItem || !allowDecimal} />
+        <UomSelector
+          name="uomId"
+          label="Unit"
+          params={{ inventoryItemId }}
+          disabled={isItem}
+          onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
         />
-      )}
+      </div>
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
