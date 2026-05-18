@@ -14,6 +14,7 @@
     "dev:app:android": "pnpm --filter vritti-core-app android",
     "dev:mfs": "pnpm --filter \"./apps/micro-apps/*\" --parallel start",
     "dev:mf:commerce": "pnpm --filter commerce-ma start",
+    "dev:w": "nx run-many --target=dev:ssl:w --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel=5 --output-style=stream",
     "build": "nx run-many --target=build --all",
     "lint": "nx run-many --target=lint --all",
     "test": "nx run-many --target=test --all",
