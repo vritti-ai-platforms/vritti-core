@@ -1,6 +1,3 @@
-import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
-import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
-import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   BadRequestException,
@@ -13,9 +10,22 @@ import {
   ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import { StockAdjustmentStatusValues, stockAdjustmentLineItems } from '@/db/schema';
+import {
+  type InventoryTracking,
+  InventoryTrackingValues,
+  type StockAdjustmentStatus,
+  StockAdjustmentStatusValues,
+  stockAdjustmentLineItems,
+} from '@/db/schema';
 import { StockAdjustmentLineItemDto } from '../dto/entity/stock-adjustment-line-item.dto';
 import { StockAdjustmentLineItemsRepository } from '../repositories/stock-adjustment-line-items.repository';
+
+// Minimal adjustment shape needed by write methods — passed in from app-layer
+interface AdjustmentContext {
+  id: string;
+  status: StockAdjustmentStatus;
+  inventoryItemTracking: InventoryTracking;
+}
 
 @Injectable()
 export class StockAdjustmentLineItemsService {
@@ -25,19 +35,12 @@ export class StockAdjustmentLineItemsService {
     serialNumber: { column: stockAdjustmentLineItems.serialNumber, type: 'string' },
   };
 
-  constructor(
-    private readonly repository: StockAdjustmentLineItemsRepository,
-    private readonly linesRepository: StockAdjustmentLinesRepository,
-    private readonly linesService: StockAdjustmentLinesService,
-    private readonly adjustmentsRepository: StockAdjustmentsRepository,
-  ) {}
+  constructor(private readonly repository: StockAdjustmentLineItemsRepository) {}
 
   async findForTable(
-    adjustmentId: string,
     lineId: string,
     state: TableViewState,
   ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
-    await this.ensureLineBelongsToAdjustment(adjustmentId, lineId);
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLineItemsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLineItemsService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -51,34 +54,26 @@ export class StockAdjustmentLineItemsService {
     return { result: result.map(StockAdjustmentLineItemDto.from), count };
   }
 
+  async countByLineId(lineId: string): Promise<number> {
+    return this.repository.countByLineId(lineId);
+  }
+
   // For tracking='serial' lines:
   //   - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_quant_items for this item
   //   - Deduct types:  consume an EXISTING serial — must be AVAILABLE on the line's quant
   async addLineItem(
-    adjustmentId: string,
+    adjustment: AdjustmentContext,
     lineId: string,
     data: { serialNumber: string },
   ): Promise<CreateResponseDto<StockAdjustmentLineItemDto>> {
-    const adjustment = await this.getAdjustmentContext(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Line items can only be modified on DRAFT adjustments.');
     }
-    if (adjustment.inventoryItemTracking !== 'serial' && adjustment.inventoryItemTracking !== 'lot_serial') {
+    if (
+      adjustment.inventoryItemTracking !== InventoryTrackingValues.SERIAL &&
+      adjustment.inventoryItemTracking !== InventoryTrackingValues.LOT_SERIAL
+    ) {
       throw new BadRequestException('Line items are only allowed on serial-tracked adjustments.');
-    }
-
-    const line = await this.linesRepository.findById(lineId);
-    if (!line || line.stockAdjustmentId !== adjustmentId) {
-      throw new NotFoundException('Stock adjustment line not found.');
-    }
-
-    // Enforce capacity: number of serial items must not exceed the line's quantity
-    const currentCount = await this.repository.countByLineId(lineId);
-    if (currentCount >= line.quantity) {
-      throw new BadRequestException({
-        label: 'Line Capacity Reached',
-        detail: `This line allows ${line.quantity} serial item(s). All slots are already filled.`,
-      });
     }
 
     const trimmed = data.serialNumber?.trim();
@@ -89,7 +84,7 @@ export class StockAdjustmentLineItemsService {
       });
     }
 
-    const dup = await this.repository.findBySerialOnAdjustment(adjustmentId, trimmed);
+    const dup = await this.repository.findBySerialOnAdjustment(adjustment.id, trimmed);
     if (dup) {
       const isSameLine = dup.stockAdjustmentLineId === lineId;
       throw new ConflictException({
@@ -110,7 +105,6 @@ export class StockAdjustmentLineItemsService {
       stockAdjustmentLineId: lineId,
       serialNumber: trimmed,
     });
-    await this.linesService.refreshIsBalanced(adjustmentId, lineId);
     this.logger.log(`Added line item ${entity.id} (serial=${trimmed}) to line ${lineId}`);
 
     return {
@@ -121,19 +115,13 @@ export class StockAdjustmentLineItemsService {
   }
 
   async updateLineItem(
-    adjustmentId: string,
+    adjustment: AdjustmentContext,
     lineId: string,
     itemId: string,
     data: { serialNumber: string },
   ): Promise<SuccessResponseDto> {
-    const adjustment = await this.getAdjustmentContext(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Line items can only be modified on DRAFT adjustments.');
-    }
-
-    const line = await this.linesRepository.findById(lineId);
-    if (!line || line.stockAdjustmentId !== adjustmentId) {
-      throw new NotFoundException('Stock adjustment line not found.');
     }
 
     const existing = await this.repository.findById(itemId);
@@ -150,7 +138,7 @@ export class StockAdjustmentLineItemsService {
     }
 
     if (trimmed !== existing.serialNumber) {
-      const dup = await this.repository.findBySerialOnAdjustment(adjustmentId, trimmed);
+      const dup = await this.repository.findBySerialOnAdjustment(adjustment.id, trimmed);
       if (dup) {
         const isSameLine = dup.stockAdjustmentLineId === lineId;
         throw new ConflictException({
@@ -169,37 +157,20 @@ export class StockAdjustmentLineItemsService {
     }
 
     const updated = await this.repository.update(itemId, { serialNumber: trimmed });
-    await this.linesService.refreshIsBalanced(adjustmentId, lineId);
     return { success: true, message: `Serial "${updated.serialNumber}" updated successfully.` };
   }
 
-  async removeLineItem(adjustmentId: string, lineId: string, itemId: string): Promise<SuccessResponseDto> {
-    const adjustment = await this.getAdjustmentContext(adjustmentId);
+  async removeLineItem(adjustment: AdjustmentContext, itemId: string): Promise<{ serialNumber: string }> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Line items can only be modified on DRAFT adjustments.');
     }
 
-    await this.ensureLineBelongsToAdjustment(adjustmentId, lineId);
     const existing = await this.repository.findById(itemId);
-    if (!existing || existing.stockAdjustmentLineId !== lineId) {
+    if (!existing) {
       throw new NotFoundException('Stock adjustment line item not found.');
     }
 
     await this.repository.delete(itemId);
-    await this.linesService.refreshIsBalanced(adjustmentId, lineId);
-    return { success: true, message: `Serial "${existing.serialNumber}" removed successfully.` };
-  }
-
-  private async ensureLineBelongsToAdjustment(adjustmentId: string, lineId: string): Promise<void> {
-    const line = await this.linesRepository.findById(lineId);
-    if (!line || line.stockAdjustmentId !== adjustmentId) {
-      throw new NotFoundException('Stock adjustment line not found.');
-    }
-  }
-
-  private async getAdjustmentContext(adjustmentId: string) {
-    const adjustment = await this.adjustmentsRepository.findByIdWithItem(adjustmentId);
-    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    return adjustment;
+    return { serialNumber: existing.serialNumber };
   }
 }

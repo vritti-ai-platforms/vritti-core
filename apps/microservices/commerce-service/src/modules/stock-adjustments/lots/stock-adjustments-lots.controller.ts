@@ -72,6 +72,6 @@ export class StockAdjustmentsLotsController {
   @MessagePattern({ cmd: 'stockAdjustments.removeLot' })
   removeLot(@Payload() data: { adjustmentId: string; lotId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.removeLot — lot: ${data.lotId}`);
-    return this.service.removeLot(data.adjustmentId, data.lotId);
+    return this.appService.removeLot(data.adjustmentId, data.lotId);
   }
 }

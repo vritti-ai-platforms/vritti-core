@@ -55,6 +55,11 @@ export class StockAdjustmentsService {
     return StockAdjustmentDto.from(adjustment);
   }
 
+  async ensureExists(id: string): Promise<void> {
+    const exists = await this.repository.existsById(id);
+    if (!exists) throw new NotFoundException('Stock adjustment not found.');
+  }
+
   // Creates a new DRAFT stock adjustment with an auto-generated code.
   // No `quantity` on the header — totals are derived from lines.
   async create(data: {

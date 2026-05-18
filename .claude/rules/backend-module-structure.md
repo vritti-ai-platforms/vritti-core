@@ -23,6 +23,50 @@ export class MfaVerificationModule {}
 export class AuthModule {}
 ```
 
+## Domain module independence
+
+Domain modules (`modules/domain/`) must be fully self-contained. They register only their own providers and export only their own service + repository. **No domain module may import another domain module.**
+
+```typescript
+// WRONG — domain module imports a sibling domain module
+@Module({
+  imports: [StockAdjustmentsDomainModule, StockAdjustmentLotsDomainModule],
+  providers: [StockAdjustmentLinesService, StockAdjustmentLinesRepository],
+  exports: [StockAdjustmentLinesService, StockAdjustmentLinesRepository],
+})
+export class StockAdjustmentLinesDomainModule {}
+
+// CORRECT — domain module is self-contained
+@Module({
+  providers: [StockAdjustmentLinesService, StockAdjustmentLinesRepository],
+  exports: [StockAdjustmentLinesService, StockAdjustmentLinesRepository],
+})
+export class StockAdjustmentLinesDomainModule {}
+```
+
+### Pattern for cross-domain coordination
+
+- **Domain service write methods** accept a pre-fetched context object (e.g., `adjustment: AdjustmentContext`) passed in from the app-layer — they never fetch cross-domain entities internally.
+- **Domain service read methods** do NOT perform existence checks on parent entities — that is the app-layer's responsibility.
+- **App-layer services** (e.g., `StockAdjustmentsLinesService`) import all needed domain modules and handle cross-domain orchestration: context fetching, ownership validation, and result composition.
+- **The app-layer module** (e.g., `StockAdjustmentsModule`) imports all domain modules and wires everything together.
+
+```typescript
+// Domain service — write method takes pre-fetched context
+async addLine(adjustment: AdjustmentContext, data: AddLineData): Promise<LineDto> {
+  if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) { ... }
+  // no cross-domain repo calls here
+}
+
+// App-layer service — fetches context, validates, then calls domain
+async addLine(adjustmentId: string, data: AddLineData) {
+  const adjustment = await this.adjustmentsRepository.findByIdWithItem(adjustmentId);
+  if (!adjustment) throw new NotFoundException('...');
+  await this.validateLotOwnership(adjustmentId, data.stockAdjustmentLotId); // cross-domain check
+  return this.linesService.addLine(adjustment, data);
+}
+```
+
 ## DTOs organized in subfolders
 
 ```

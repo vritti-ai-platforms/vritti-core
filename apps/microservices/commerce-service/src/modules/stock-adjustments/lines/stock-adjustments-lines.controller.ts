@@ -111,6 +111,6 @@ export class StockAdjustmentsLinesController {
   @MessagePattern({ cmd: 'stockAdjustments.removeLine' })
   removeLine(@Payload() data: { adjustmentId: string; lineId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.removeLine — line: ${data.lineId}`);
-    return this.service.removeLineByAdjustmentId(data.adjustmentId, data.lineId);
+    return this.appService.removeLine(data.adjustmentId, data.lineId);
   }
 }

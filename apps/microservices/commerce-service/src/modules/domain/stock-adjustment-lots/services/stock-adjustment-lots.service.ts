@@ -1,4 +1,3 @@
-import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -7,23 +6,35 @@ import {
   type SuccessResponseDto,
   ValidationException,
 } from '@vritti/api-sdk';
-import { StockAdjustmentStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
+import {
+  InventoryTrackingValues,
+  type InventoryTracking,
+  type StockAdjustmentStatus,
+  StockAdjustmentStatusValues,
+  type StockAdjustmentType,
+  StockAdjustmentTypeValues,
+} from '@/db/schema';
 import { StockAdjustmentLotDto } from '../dto/entity/stock-adjustment-lot.dto';
 import { StockAdjustmentLotDetailDto } from '../dto/entity/stock-adjustment-lot-detail.dto';
 import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
 import { StockAdjustmentLotsRepository } from '../repositories/stock-adjustment-lots.repository';
 
+// Minimal adjustment shape required by write methods — passed in from app-layer
+interface AdjustmentContext {
+  id: string;
+  status: StockAdjustmentStatus;
+  type: StockAdjustmentType;
+  inventoryItemTracking: InventoryTracking;
+}
+
 @Injectable()
 export class StockAdjustmentLotsService {
   private readonly logger = new Logger(StockAdjustmentLotsService.name);
 
-  constructor(
-    private readonly repository: StockAdjustmentLotsRepository,
-    private readonly adjustmentsService: StockAdjustmentsService,
-  ) {}
+  constructor(private readonly repository: StockAdjustmentLotsRepository) {}
 
+  // Lists all lots for an adjustment — existence check is the app-layer's responsibility
   async listByAdjustment(adjustmentId: string): Promise<StockAdjustmentLotDto[]> {
-    await this.adjustmentsService.findById(adjustmentId);
     const rows = await this.repository.findByAdjustmentId(adjustmentId);
     return rows.map(StockAdjustmentLotDto.from);
   }
@@ -31,7 +42,6 @@ export class StockAdjustmentLotsService {
   // Returns a single lot's detail (stats + already-used location ids + line ids).
   // Used by the FE when a lot is selected to drive the AddLine excludeIds and the lot header.
   async getLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailDto> {
-    await this.adjustmentsService.findById(adjustmentId);
     const row = await this.repository.findLotDetail(lotId);
     if (!row || row.stockAdjustmentId !== adjustmentId) {
       throw new NotFoundException('Stock adjustment lot not found.');
@@ -41,22 +51,23 @@ export class StockAdjustmentLotsService {
 
   // Returns lots with their lines as nested children — for the OPENING+serial tree UI.
   async findTreeForAdjustment(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
-    await this.adjustmentsService.findById(adjustmentId);
     return this.repository.findTreeNodesByAdjustmentId(adjustmentId);
   }
 
   async addLot(
-    adjustmentId: string,
+    adjustment: AdjustmentContext,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
-    const adjustment = await this.adjustmentsService.findById(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be added to DRAFT adjustments.');
     }
     if (adjustment.type !== StockAdjustmentTypeValues.OPENING_STOCK) {
       throw new BadRequestException('Lots are only allowed on OPENING_STOCK adjustments.');
     }
-    if (adjustment.inventoryItemTracking === 'quantity' || adjustment.inventoryItemTracking === 'serial') {
+    if (
+      adjustment.inventoryItemTracking === InventoryTrackingValues.QUANTITY ||
+      adjustment.inventoryItemTracking === InventoryTrackingValues.SERIAL
+    ) {
       throw new BadRequestException(`Items with tracking=${adjustment.inventoryItemTracking} cannot have lots.`);
     }
 
@@ -69,7 +80,7 @@ export class StockAdjustmentLotsService {
     }
 
     // Reject duplicates within this adjustment (DB also enforces via unique constraint, but we want a clean error)
-    const existing = await this.repository.findByAdjustmentIdAndNumber(adjustmentId, lotNumber);
+    const existing = await this.repository.findByAdjustmentIdAndNumber(adjustment.id, lotNumber);
     if (existing) {
       throw new ValidationException({
         detail: `Lot "${lotNumber}" is already on this adjustment.`,
@@ -80,15 +91,15 @@ export class StockAdjustmentLotsService {
     this.validateDateOrder(data.manufacturingDate ?? null, data.expiryDate);
 
     const created = await this.repository.create({
-      stockAdjustmentId: adjustmentId,
+      stockAdjustmentId: adjustment.id,
       lotNumber,
       manufacturingDate: data.manufacturingDate ?? null,
       expiryDate: data.expiryDate,
     });
 
-    this.logger.log(`Added lot ${lotNumber} to adjustment ${adjustmentId}`);
+    this.logger.log(`Added lot ${lotNumber} to adjustment ${adjustment.id}`);
 
-    const rowsWithStats = await this.repository.findByAdjustmentId(adjustmentId);
+    const rowsWithStats = await this.repository.findByAdjustmentId(adjustment.id);
     const refreshed = rowsWithStats.find((r) => r.id === created.id);
     if (!refreshed) throw new NotFoundException('Lot not found after creation.');
 
@@ -100,16 +111,15 @@ export class StockAdjustmentLotsService {
   }
 
   async updateLot(
-    adjustmentId: string,
+    adjustment: { id: string; status: StockAdjustmentStatus },
     lotId: string,
     data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string },
   ): Promise<StockAdjustmentLotDto> {
-    const adjustment = await this.adjustmentsService.findById(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be updated on DRAFT adjustments.');
     }
 
-    const existing = await this.ensureLotBelongsToAdjustment(adjustmentId, lotId);
+    const existing = await this.ensureLotBelongsToAdjustment(adjustment.id, lotId);
 
     if (data.lotNumber !== undefined && data.lotNumber !== existing.lotNumber) {
       const trimmed = data.lotNumber.trim();
@@ -119,7 +129,7 @@ export class StockAdjustmentLotsService {
           errors: [{ field: 'lotNumber', message: 'Lot number is required.' }],
         });
       }
-      const dup = await this.repository.findByAdjustmentIdAndNumber(adjustmentId, trimmed);
+      const dup = await this.repository.findByAdjustmentIdAndNumber(adjustment.id, trimmed);
       if (dup && dup.id !== lotId) {
         throw new ValidationException({
           detail: `Lot "${trimmed}" is already on this adjustment.`,
@@ -138,20 +148,22 @@ export class StockAdjustmentLotsService {
       ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate } : {}),
     });
 
-    const rowsWithStats = await this.repository.findByAdjustmentId(adjustmentId);
+    const rowsWithStats = await this.repository.findByAdjustmentId(adjustment.id);
     const refreshed = rowsWithStats.find((r) => r.id === lotId);
     if (!refreshed) throw new NotFoundException('Lot not found after update.');
     return StockAdjustmentLotDto.from(refreshed);
   }
 
-  async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
-    const adjustment = await this.adjustmentsService.findById(adjustmentId);
+  async removeLot(
+    adjustment: { id: string; status: StockAdjustmentStatus },
+    lotId: string,
+  ): Promise<SuccessResponseDto> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be deleted from DRAFT adjustments.');
     }
-    const existing = await this.ensureLotBelongsToAdjustment(adjustmentId, lotId);
+    const existing = await this.ensureLotBelongsToAdjustment(adjustment.id, lotId);
     await this.repository.delete(lotId);
-    this.logger.log(`Deleted lot ${existing.lotNumber} from adjustment ${adjustmentId}`);
+    this.logger.log(`Deleted lot ${existing.lotNumber} from adjustment ${adjustment.id}`);
     return { success: true, message: `Lot "${existing.lotNumber}" deleted successfully.` };
   }
 

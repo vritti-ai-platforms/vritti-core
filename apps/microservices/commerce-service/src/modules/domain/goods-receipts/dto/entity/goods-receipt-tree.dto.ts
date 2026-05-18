@@ -1,3 +1,5 @@
+import type { InventoryTracking } from '@/db/schema';
+
 // Tree node for the unified GR UI: items → lots → lines, depth varies per item.tracking.
 // Mirrors the locations / SA tree pattern (path-encoded depth).
 export interface GoodsReceiptTreeNode {
@@ -7,7 +9,7 @@ export interface GoodsReceiptTreeNode {
   kind: 'item' | 'lot' | 'line';
   // item-only:
   inventoryItemId?: string;
-  inventoryItemTracking?: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+  inventoryItemTracking?: InventoryTracking;
   inventoryItemUomSymbol?: string;
   acceptedQuantity?: number;
   rejectedQuantity?: number;

@@ -8,6 +8,7 @@ import {
   type CreateResponseDto,
   NotFoundException,
   PrimaryDatabaseService,
+  type SuccessResponseDto,
   ValidationException,
 } from '@vritti/api-sdk';
 import type { InventoryItemLot } from '@/db/schema';
@@ -43,7 +44,7 @@ export class StockAdjustmentsLotsService {
         });
       }
     }
-    return this.lotsService.addLot(adjustmentId, data);
+    return this.lotsService.addLot(adjustment, data);
   }
 
   async updateLot(
@@ -65,9 +66,17 @@ export class StockAdjustmentsLotsService {
             errors: [{ field: 'lotNumber', message: 'Lot already exists in inventory.' }],
           });
         }
+        return this.lotsService.updateLot(adjustment, lotId, data);
       }
     }
-    return this.lotsService.updateLot(adjustmentId, lotId, data);
+    const adjustment = await this.adjustmentsService.findById(adjustmentId);
+    return this.lotsService.updateLot(adjustment, lotId, data);
+  }
+
+  // Removes a lot from a DRAFT adjustment — fetches the adjustment context then delegates to domain
+  async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
+    const adjustment = await this.adjustmentsService.findById(adjustmentId);
+    return this.lotsService.removeLot(adjustment, lotId);
   }
 
   // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.

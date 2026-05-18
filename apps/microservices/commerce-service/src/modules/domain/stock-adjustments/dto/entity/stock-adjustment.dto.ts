@@ -1,4 +1,4 @@
-import type { StockAdjustment, StockAdjustmentStatus, StockAdjustmentType } from '@/db/schema';
+import type { InventoryTracking, StockAdjustment, StockAdjustmentStatus, StockAdjustmentType } from '@/db/schema';
 
 export class StockAdjustmentDto {
   id: string;
@@ -7,7 +7,7 @@ export class StockAdjustmentDto {
   inventoryItemName: string;
   inventoryItemUomId: string;
   inventoryItemUomSymbol: string;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+  inventoryItemTracking: InventoryTracking;
   type: StockAdjustmentType;
   totalQuantity: number; // derived from sum(lines.quantity)
   status: StockAdjustmentStatus;
@@ -21,7 +21,7 @@ export class StockAdjustmentDto {
       inventoryItemName?: string;
       inventoryItemUomId?: string;
       inventoryItemUomSymbol?: string | null;
-      inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+      inventoryItemTracking: InventoryTracking;
       totalQuantity?: number | string | null;
       isPublishable?: boolean;
     },

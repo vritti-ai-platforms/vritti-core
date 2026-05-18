@@ -7,8 +7,9 @@ import {
   goodsReceiptLineItems,
   goodsReceiptLines,
   goodsReceiptLots,
-  inventoryItems,
+  type InventoryTracking,
   InventoryTrackingValues,
+  inventoryItems,
   locations,
 } from '@/db/schema';
 
@@ -132,7 +133,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
 
   // For tracking='serial' or 'lot_serial': sync quantity to count(line_items); isBalanced is always true.
   // For other tracking types: isBalanced is always true (no derived count).
-  async refreshIsBalanced(lineId: string, tracking: 'quantity' | 'lot' | 'serial' | 'lot_serial'): Promise<void> {
+  async refreshIsBalanced(lineId: string, tracking: InventoryTracking): Promise<void> {
     if (tracking !== 'serial' && tracking !== 'lot_serial') {
       await this.db.update(goodsReceiptLines).set({ isBalanced: true }).where(eq(goodsReceiptLines.id, lineId));
       return;
@@ -225,4 +226,3 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     return rows as GoodsReceiptLineWithRefs[];
   }
 }
-

@@ -3,6 +3,7 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItems,
+  type InventoryTracking,
   type NewStockAdjustment,
   type StockAdjustment,
   type StockAdjustmentStatus,
@@ -17,7 +18,7 @@ export type StockAdjustmentWithRefs = StockAdjustment & {
   inventoryItemName: string;
   inventoryItemUomId: string;
   inventoryItemUomSymbol: string | null;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+  inventoryItemTracking: InventoryTracking;
   totalQuantity: number;
   isPublishable?: boolean;
 };
@@ -25,7 +26,7 @@ export type StockAdjustmentWithRefs = StockAdjustment & {
 export type StockAdjustmentWithItem = StockAdjustment & {
   inventoryItemName: string;
   inventoryItemUomId: string;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+  inventoryItemTracking: InventoryTracking;
 };
 
 @Injectable()
@@ -92,6 +93,15 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       limit: options.limit,
       offset: options.offset,
     });
+  }
+
+  async existsById(id: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: stockAdjustments.id })
+      .from(stockAdjustments)
+      .where(eq(stockAdjustments.id, id))
+      .limit(1);
+    return !!row;
   }
 
   async findById(id: string): Promise<StockAdjustmentWithRefs | undefined> {

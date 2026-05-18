@@ -1,17 +1,16 @@
-import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
-import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
-  type SuccessResponseDto,
   type TableViewState,
   ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type InventoryTracking,
+  InventoryTrackingValues,
   locations,
   type StockAdjustmentStatus,
   StockAdjustmentStatusValues,
@@ -28,7 +27,7 @@ interface AdjustmentContext {
   type: StockAdjustmentType;
   inventoryItemId: string;
   inventoryItemUomId: string;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+  inventoryItemTracking: InventoryTracking;
 }
 
 @Injectable()
@@ -46,11 +45,7 @@ export class StockAdjustmentLinesService {
     uomId: { column: stockAdjustmentLines.uomId, type: 'string' },
   };
 
-  constructor(
-    private readonly repository: StockAdjustmentLinesRepository,
-    private readonly adjustmentsRepository: StockAdjustmentsRepository,
-    private readonly lotsRepository: StockAdjustmentLotsRepository,
-  ) {}
+  constructor(private readonly repository: StockAdjustmentLinesRepository) {}
 
   async findForTable(
     adjustmentId: string,
@@ -127,7 +122,8 @@ export class StockAdjustmentLinesService {
     }
 
     const isItemTracking =
-      adjustment.inventoryItemTracking === 'serial' || adjustment.inventoryItemTracking === 'lot_serial';
+      adjustment.inventoryItemTracking === InventoryTrackingValues.SERIAL ||
+      adjustment.inventoryItemTracking === InventoryTrackingValues.LOT_SERIAL;
     const initialIsBalanced = !isItemTracking;
 
     const line = await this.repository.create({
@@ -277,39 +273,19 @@ export class StockAdjustmentLinesService {
     this.logger.log(`Removed line ${lineId} from adjustment ${adjustment.id}`);
   }
 
-  async removeLineByAdjustmentId(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
-    const adjustment = await this.getAdjustmentContext(adjustmentId);
-    await this.removeLine(adjustment, lineId);
-    return { success: true, message: `Line removed from adjustment "${adjustment.code}" successfully.` };
-  }
-
-  async refreshIsBalanced(adjustmentId: string, lineId: string): Promise<void> {
-    const adjustment = await this.getAdjustmentContext(adjustmentId);
-    await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
-  }
-
   // Used at publish time — return mismatched lines for serial-bearing adjustments
   async getPublishValidation(adjustmentId: string): Promise<{ valid: boolean; invalidLinesCount: number }> {
-    const adjustment = await this.getAdjustmentContext(adjustmentId);
-    if (adjustment.inventoryItemTracking !== 'serial' && adjustment.inventoryItemTracking !== 'lot_serial') {
-      return { valid: true, invalidLinesCount: 0 };
-    }
     const errors = await this.repository.findUnbalancedItemLines(adjustmentId);
     return { valid: errors.length === 0, invalidLinesCount: errors.length };
   }
 
-  private async getAdjustmentContext(adjustmentId: string): Promise<AdjustmentContext> {
-    const adjustment = await this.adjustmentsRepository.findByIdWithItem(adjustmentId);
-    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    return adjustment;
-  }
-
+  // Validates lot constraint based purely on tracking type — app-layer verifies lot ownership separately
   private async validateOpeningLineFields(
     tracking: AdjustmentContext['inventoryItemTracking'],
-    adjustmentId: string,
+    _adjustmentId: string,
     stockAdjustmentLotId?: string | null,
   ): Promise<void> {
-    if (tracking === 'quantity' || tracking === 'serial') {
+    if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
       if (stockAdjustmentLotId) {
         throw new ValidationException({
           detail: `Lot must not be set for items with tracking=${tracking}.`,
@@ -321,14 +297,6 @@ export class StockAdjustmentLinesService {
         detail: 'A lot must be selected for OPENING_STOCK on lot/lot_serial-tracked items.',
         errors: [{ field: 'stockAdjustmentLotId', message: 'Lot is required.' }],
       });
-    } else {
-      const lot = await this.lotsRepository.findById(stockAdjustmentLotId);
-      if (!lot || lot.stockAdjustmentId !== adjustmentId) {
-        throw new ValidationException({
-          detail: 'Lot does not belong to this adjustment.',
-          errors: [{ field: 'stockAdjustmentLotId', message: 'Invalid lot reference.' }],
-        });
-      }
     }
   }
 }

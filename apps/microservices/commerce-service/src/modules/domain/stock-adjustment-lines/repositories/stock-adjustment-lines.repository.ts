@@ -4,6 +4,8 @@ import { aliasedTable, and, desc, eq, type SQL, sql } from '@vritti/api-sdk/driz
 import {
   inventoryItemLots,
   inventoryItemQuants,
+  type InventoryTracking,
+  InventoryTrackingValues,
   locations,
   type StockAdjustmentLine,
   stockAdjustmentLineItems,
@@ -160,8 +162,8 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     return Number(result?.count ?? 0);
   }
 
-  async refreshIsBalanced(lineId: string, tracking: 'quantity' | 'lot' | 'serial' | 'lot_serial'): Promise<void> {
-    if (tracking !== 'serial' && tracking !== 'lot_serial') return;
+  async refreshIsBalanced(lineId: string, tracking: InventoryTracking): Promise<void> {
+    if (tracking !== InventoryTrackingValues.SERIAL && tracking !== InventoryTrackingValues.LOT_SERIAL) return;
     await this.db
       .update(stockAdjustmentLines)
       .set({

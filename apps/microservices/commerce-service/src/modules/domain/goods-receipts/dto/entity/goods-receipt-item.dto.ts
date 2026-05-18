@@ -1,3 +1,4 @@
+import type { InventoryTracking } from '@/db/schema';
 import type { GoodsReceiptItemWithRefs } from '../../repositories/goods-receipt-items.repository';
 
 export class GoodsReceiptItemDto {
@@ -5,7 +6,7 @@ export class GoodsReceiptItemDto {
   goodsReceiptId: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
-  inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
+  inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string | null;
   acceptedQuantity: number;
   rejectedQuantity: number;

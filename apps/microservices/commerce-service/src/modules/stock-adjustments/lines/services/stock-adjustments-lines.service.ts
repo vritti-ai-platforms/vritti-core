@@ -2,9 +2,11 @@ import { InventoryItemUomConversionsService } from '@domain/inventory-item-uom-c
 import { InventoryItemsRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
 import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/entity/stock-adjustment-line.dto';
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
+import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, NotFoundException, type SuccessResponseDto, ValidationException } from '@vritti/api-sdk';
+import { InventoryTrackingValues } from '@/db/schema';
 
 // App-layer orchestrator for stock-adjustment line writes that need inventory-aggregate awareness.
 // Handles UOM validation against the item's allowed set + conversion-factor resolution before
@@ -16,6 +18,7 @@ export class StockAdjustmentsLinesService {
   constructor(
     private readonly linesService: StockAdjustmentLinesService,
     private readonly adjustmentsRepository: StockAdjustmentsRepository,
+    private readonly lotsRepository: StockAdjustmentLotsRepository,
     private readonly inventoryItemsRepository: InventoryItemsRepository,
     private readonly uomConversionsService: InventoryItemUomConversionsService,
   ) {}
@@ -43,6 +46,11 @@ export class StockAdjustmentsLinesService {
       data.uomId,
     );
     this.logger.log(`addOpeningLine [resolvePrimaryUomFactor] ${Date.now() - t0}ms`);
+
+    if (data.stockAdjustmentLotId) {
+      await this.validateLotOwnership(adjustmentId, data.stockAdjustmentLotId);
+      this.logger.log(`addOpeningLine [validateLotOwnership] ${Date.now() - t0}ms`);
+    }
 
     const line = await this.linesService.addOpeningLine(adjustment, { ...data, conversionFactor });
     this.logger.log(`addOpeningLine [linesService.addOpeningLine] ${Date.now() - t0}ms`);
@@ -90,6 +98,10 @@ export class StockAdjustmentsLinesService {
     this.logger.log(`updateOpeningLine — adjustment: ${adjustmentId}, line: ${lineId}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
 
+    if (data.stockAdjustmentLotId) {
+      await this.validateLotOwnership(adjustmentId, data.stockAdjustmentLotId);
+    }
+
     if (data.uomId) {
       await this.validateUomId(adjustment, data.uomId);
       const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
@@ -102,6 +114,14 @@ export class StockAdjustmentsLinesService {
     }
 
     return { success: true, message: 'Line updated successfully.' };
+  }
+
+  // Removes a line from a DRAFT adjustment — fetches the adjustment context then delegates to domain
+  async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`removeLine — adjustment: ${adjustmentId}, line: ${lineId}`);
+    const adjustment = await this.getAdjustmentContext(adjustmentId);
+    await this.linesService.removeLine(adjustment, lineId);
+    return { success: true, message: 'Line removed successfully.' };
   }
 
   async updateChangeLine(
@@ -136,6 +156,17 @@ export class StockAdjustmentsLinesService {
     return adjustment;
   }
 
+  // Verifies the given lot belongs to the specified adjustment — domain trusts tracking-type checks only
+  private async validateLotOwnership(adjustmentId: string, stockAdjustmentLotId: string): Promise<void> {
+    const lot = await this.lotsRepository.findById(stockAdjustmentLotId);
+    if (!lot || lot.stockAdjustmentId !== adjustmentId) {
+      throw new ValidationException({
+        detail: 'Lot does not belong to this adjustment.',
+        errors: [{ field: 'stockAdjustmentLotId', message: 'Invalid lot reference.' }],
+      });
+    }
+  }
+
   // Validates that the supplied uomId is in the item's allowed set. Serial-tracked items
   // are restricted to the primary UOM since quants store serials 1:1.
   private async validateUomId(
@@ -149,7 +180,7 @@ export class StockAdjustmentsLinesService {
       });
     }
     const tracking = adjustment.inventoryItemTracking;
-    if (tracking === 'serial' || tracking === 'lot_serial') {
+    if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       if (uomId !== adjustment.inventoryItemUomId) {
         throw new ValidationException({
           detail: 'Serial-tracked items must use the primary UOM.',
