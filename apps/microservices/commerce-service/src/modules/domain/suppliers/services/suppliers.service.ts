@@ -6,7 +6,6 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
-  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
@@ -29,10 +28,7 @@ export class SuppliersService {
     isActive: { column: suppliers.isActive, type: 'boolean' },
   };
 
-  constructor(
-    private readonly database: PrimaryDatabaseService,
-    private readonly repository: SuppliersRepository,
-  ) {}
+  constructor(private readonly repository: SuppliersRepository) {}
 
   private static throwInvalidTaxDetailsError(nextTaxId: string | null, nextTaxIdType: string | null): never {
     if (nextTaxIdType != null && nextTaxId == null) {
