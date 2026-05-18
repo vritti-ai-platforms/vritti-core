@@ -1,15 +1,18 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
+import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
+  useAddStockAdjustmentLineItem,
   useRemoveStockAdjustmentLine,
   useRemoveStockAdjustmentLineItem,
   useStockAdjustmentLineItemsTable,
@@ -38,6 +41,13 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
   const { data: response, isLoading } = useStockAdjustmentLineItemsTable(adjustmentId, lineId);
   const removeSerialMutation = useRemoveStockAdjustmentLineItem(adjustmentId, lineId ?? '');
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustmentId);
+  const addSerialMutation = useAddStockAdjustmentLineItem(adjustmentId, lineId ?? '');
+
+  const scanner = useBarcodeScanner({
+    mutation: addSerialMutation,
+    toVariables: (code) => ({ serialNumber: code }),
+    enabled: isDraft && !!lineId,
+  });
 
   const handleRemoveSerial = useCallback(
     async (item: StockAdjustmentLineItemData) => {
@@ -148,6 +158,15 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
+                variant={scanner.isActive ? 'default' : 'outline'}
+                startAdornment={<ScanBarcode className="size-4" />}
+                endAdornment={<KbdGroup className="ml-1" shortcut={scanner.toggleShortcut} />}
+                onClick={scanner.toggle}
+              >
+                Scan Barcode
+              </Button>
+              <Button
+                size="sm"
                 variant="outline"
                 startAdornment={<Pencil className="size-4" />}
                 onClick={editLineDialog.open}
@@ -166,6 +185,20 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
             </div>
           )}
         </div>
+
+        {scanner.isActive && (
+          <Alert
+            variant="info"
+            icon={<ScanBarcode className="size-4" />}
+            title="Scan Mode Active"
+            description={`Point your scanner at a barcode — each scan auto-inserts a serial to this line. Press ${formatHotkey(scanner.toggleShortcut).display} to toggle or ${formatHotkey(scanner.exitShortcut).display} to exit.`}
+            action={
+              <Button size="sm" variant="secondary" onClick={scanner.disable} endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}>
+                Exit
+              </Button>
+            }
+          />
+        )}
 
         <DataTable
           table={table}
