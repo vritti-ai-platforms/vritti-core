@@ -10,7 +10,6 @@ import {
   Logger,
   type MessageEvent,
   Post,
-  Req,
   Res,
   Sse,
 } from '@nestjs/common';
@@ -20,13 +19,14 @@ import {
   AccessToken,
   CookieName,
   type CookieSerializeOptions,
+  Hostname,
   Public,
   RefreshCookieOptions,
   RefreshTokenCookie,
   SkipCsrf,
   UserId,
 } from '@vritti/api-sdk';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyReply } from 'fastify';
 import { concat, merge, NEVER, type Observable, of } from 'rxjs';
 import { SessionTypeValues } from '@/db/schema';
 import {
@@ -191,10 +191,8 @@ export class AuthController {
   async getStatus(
     @RefreshTokenCookie() refreshToken: string | undefined,
     @AccessToken() accessToken: string,
-    @Req()
-    request: FastifyRequest,
+    @Hostname() host: string,
   ): Promise<Observable<MessageEvent>> {
-    const host = request.hostname ?? '';
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
     const allowRawIpOrgResolution = this.config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false) && isIP(host) > 0;

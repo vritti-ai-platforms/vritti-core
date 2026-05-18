@@ -56,6 +56,14 @@ export default defineConfig({
         target: process.env.REACT_API_HOST || defaultApiHost,
         changeOrigin: false,
         secure: false, // Allow self-signed certificates in local development
+        on: {
+          proxyReq: (proxyReq, req) => {
+            // HTTP/2 uses :authority instead of Host
+            const rawHost = (req.headers.host ?? req.headers[':authority'] ?? '') as string;
+            const host = rawHost.split(':')[0];
+            if (host) proxyReq.setHeader('x-forwarded-host', host);
+          },
+        },
         pathRewrite: (reqPath) => reqPath.replace(/^\/api/, ''),
       },
     },
