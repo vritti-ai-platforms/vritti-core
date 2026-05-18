@@ -1,4 +1,3 @@
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -9,8 +8,6 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import {
-  InventoryItemLedgerReferenceTypeValues,
-  InventoryItemLedgerTypeValues,
   StockTransferStatusValues,
   stockTransfers,
 } from '@/db/schema';
@@ -27,10 +24,7 @@ export class StockTransfersService {
     status: { column: stockTransfers.status, type: 'string' },
   };
 
-  constructor(
-    private readonly repository: StockTransfersRepository,
-    private readonly batchesService: InventoryItemQuantsService,
-  ) {}
+  constructor(private readonly repository: StockTransfersRepository) {}
 
   // Returns paginated stock transfers for the data table
   async findForTable(state: TableViewState): Promise<{ result: StockTransferDto[]; count: number }> {
@@ -65,15 +59,17 @@ export class StockTransfersService {
     return StockTransferDto.from(entity);
   }
 
-  // Updates transfer status; handles inventory batch changes on IN_TRANSIT and RECEIVED
-  async updateStatus(id: string, data: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
+  // Validates a status transition and returns the transfer entity. App-layer handles batch operations before calling applyStatus().
+  async prepareStatusUpdate(
+    id: string,
+    data: UpdateStockTransferStatusDto,
+  ): Promise<{ transfer: StockTransferDto; currentStatus: string; newStatus: string }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Stock transfer not found.');
 
     const newStatus = data.status;
     const currentStatus = entity.status;
 
-    // Validate status transitions
     if (currentStatus === StockTransferStatusValues.RECEIVED) {
       throw new BadRequestException('Transfer is already received.');
     }
@@ -81,48 +77,19 @@ export class StockTransfersService {
       throw new BadRequestException('Cannot update a cancelled transfer.');
     }
 
-    // On IN_TRANSIT: deduct from source batch
-    if (newStatus === StockTransferStatusValues.IN_TRANSIT && currentStatus === StockTransferStatusValues.REQUESTED) {
-      if (data.fromBatchId) {
-        await this.batchesService.adjustBatch({
-          batchId: data.fromBatchId,
-          quantity: -Number(entity.quantity),
-          type: InventoryItemLedgerTypeValues.TRANSFER_OUT,
-          referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_TRANSFER,
-          referenceId: id,
-          notes: `Transfer out to location ${data.toLocationId}`,
-        });
-      }
-    }
+    return { transfer: StockTransferDto.from(entity), currentStatus, newStatus };
+  }
 
-    // On RECEIVED: create new batch in destination location, preserving source lot identity
-    if (newStatus === StockTransferStatusValues.RECEIVED) {
-      const sourceLot = data.fromBatchId ? await this.batchesService.loadLotByQuantId(data.fromBatchId) : null;
-      const lot = sourceLot
-        ? {
-            lotNumber: sourceLot.lotNumber,
-            manufacturingDate: sourceLot.manufacturingDate ?? null,
-            expiryDate: sourceLot.expiryDate ?? null,
-          }
-        : undefined;
-
-      await this.batchesService.createBatch({
-        inventoryItemId: entity.inventoryItemId,
-        locationId: data.toLocationId,
-        quantity: Number(entity.quantity),
-        lot,
-        type: InventoryItemLedgerTypeValues.TRANSFER_IN,
-        referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_TRANSFER,
-        referenceId: id,
-        notes: `Transfer in from location ${data.fromLocationId}`,
-      });
-    }
-
-    const updatePayload: Record<string, unknown> = { status: newStatus };
+  // Persists the status change. Call after batch operations have been applied by the app-layer.
+  async applyStatus(
+    id: string,
+    data: UpdateStockTransferStatusDto,
+  ): Promise<{ success: boolean; message: string }> {
+    const updatePayload: Record<string, unknown> = { status: data.status };
     if (data.receivedBy) updatePayload.receivedBy = data.receivedBy;
 
     await this.repository.update(id, updatePayload);
-    this.logger.log(`Updated stock transfer ${id} status: ${currentStatus} -> ${newStatus}`);
-    return { success: true, message: `Transfer status updated to ${newStatus}.` };
+    this.logger.log(`Updated stock transfer ${id} status: -> ${data.status}`);
+    return { success: true, message: `Transfer status updated to ${data.status}.` };
   }
 }

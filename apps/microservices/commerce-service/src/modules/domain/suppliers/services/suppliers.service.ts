@@ -1,4 +1,3 @@
-import { SupplierContactsRepository } from '@domain/supplier-contacts/repositories/supplier-contacts.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -33,7 +32,6 @@ export class SuppliersService {
   constructor(
     private readonly database: PrimaryDatabaseService,
     private readonly repository: SuppliersRepository,
-    private readonly supplierContactsRepository: SupplierContactsRepository,
   ) {}
 
   private static throwInvalidTaxDetailsError(nextTaxId: string | null, nextTaxIdType: string | null): never {
@@ -88,7 +86,7 @@ export class SuppliersService {
     });
   }
 
-  // Creates a new supplier
+  // Creates a new supplier. App-layer is responsible for creating the primary contact after creation.
   async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     const normalizedTaxId = data.taxId?.trim() ? data.taxId.trim() : null;
     const normalizedTaxIdType = data.taxIdType ?? null;
@@ -96,35 +94,20 @@ export class SuppliersService {
       SuppliersService.throwInvalidTaxDetailsError(normalizedTaxId, normalizedTaxIdType);
     }
 
-    const entity = await this.database.runInTransaction(async () => {
-      const supplier = await this.repository.create({
-        name: data.name,
-        code: data.code,
-        currencyCode: data.currencyCode,
-        contactName: data.primaryContact.name,
-        phone: data.primaryContact.phone,
-        email: data.primaryContact.email ?? null,
-        website: data.website ?? null,
-        address: data.address ?? null,
-        taxId: normalizedTaxId,
-        taxIdType: normalizedTaxIdType,
-        paymentTerms: data.paymentTerms ?? null,
-        leadTimeDays: data.leadTimeDays ?? null,
-        notes: data.notes ?? null,
-      });
-
-      await this.supplierContactsRepository.createContact({
-        supplierId: supplier.id,
-        name: data.primaryContact.name,
-        phone: data.primaryContact.phone,
-        alternatePhone: data.primaryContact.alternatePhone ?? null,
-        email: data.primaryContact.email ?? null,
-        alternateEmail: data.primaryContact.alternateEmail ?? null,
-        designation: data.primaryContact.designation ?? null,
-        isPrimary: true,
-        isActive: true,
-      });
-      return supplier;
+    const entity = await this.repository.create({
+      name: data.name,
+      code: data.code,
+      currencyCode: data.currencyCode,
+      contactName: data.primaryContact.name,
+      phone: data.primaryContact.phone,
+      email: data.primaryContact.email ?? null,
+      website: data.website ?? null,
+      address: data.address ?? null,
+      taxId: normalizedTaxId,
+      taxIdType: normalizedTaxIdType,
+      paymentTerms: data.paymentTerms ?? null,
+      leadTimeDays: data.leadTimeDays ?? null,
+      notes: data.notes ?? null,
     });
 
     this.logger.log(`Created supplier: ${entity.name} (${entity.code})`);

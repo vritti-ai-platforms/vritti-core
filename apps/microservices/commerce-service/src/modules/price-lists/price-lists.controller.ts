@@ -3,6 +3,7 @@ import type { PriceListItemDto } from '@domain/price-lists/dto/entity/price-list
 import type { TerminalPriceListDto } from '@domain/price-lists/dto/entity/terminal-price-list.dto';
 import type { TerminalSellableItemDto } from '@domain/price-lists/dto/entity/terminal-sellable-item.dto';
 import { PriceListsService } from '@domain/price-lists/services/price-lists.service';
+import { PosTerminalsRepository } from '@domain/pos-terminals/repositories/pos-terminals.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
@@ -12,6 +13,7 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk';
+import { NotFoundException } from '@vritti/api-sdk';
 import type { CreatePriceListDto } from './dto/request/create-price-list.dto';
 import type { SavePriceListItemsDto } from './dto/request/save-price-list-items.dto';
 import type { SaveTerminalPriceListsDto } from './dto/request/save-terminal-price-lists.dto';
@@ -21,7 +23,10 @@ import type { UpdatePriceListDto } from './dto/request/update-price-list.dto';
 export class PriceListsController {
   private readonly logger = new Logger(PriceListsController.name);
 
-  constructor(private readonly priceListsService: PriceListsService) {}
+  constructor(
+    private readonly priceListsService: PriceListsService,
+    private readonly posTerminalsRepository: PosTerminalsRepository,
+  ) {}
 
   // Returns paginated price lists for the data table
   @MessagePattern({ cmd: 'priceLists.table' })
@@ -94,6 +99,8 @@ export class PriceListsController {
   @MessagePattern({ cmd: 'priceLists.terminalPriceLists.list' })
   async listTerminalPriceLists(@Payload() data: { terminalId: string }): Promise<TerminalPriceListDto[]> {
     this.logger.log(`priceLists.terminalPriceLists.list — terminalId: ${data.terminalId}`);
+    const terminal = await this.posTerminalsRepository.findById(data.terminalId);
+    if (!terminal) throw new NotFoundException('POS terminal not found.');
     return this.priceListsService.listTerminalPriceLists(data.terminalId);
   }
 
@@ -106,6 +113,8 @@ export class PriceListsController {
     this.logger.log(
       `priceLists.terminalPriceLists.save — terminalId: ${terminalId}, priceLists: ${dto.priceLists.length}`,
     );
+    const terminal = await this.posTerminalsRepository.findById(terminalId);
+    if (!terminal) throw new NotFoundException('POS terminal not found.');
     return this.priceListsService.saveTerminalPriceLists(terminalId, dto);
   }
 
@@ -113,6 +122,8 @@ export class PriceListsController {
   @MessagePattern({ cmd: 'priceLists.terminalSellableItems.list' })
   async listTerminalSellableItems(@Payload() data: { terminalId: string }): Promise<TerminalSellableItemDto[]> {
     this.logger.log(`priceLists.terminalSellableItems.list — terminalId: ${data.terminalId}`);
+    const terminal = await this.posTerminalsRepository.findById(data.terminalId);
+    if (!terminal) throw new NotFoundException('POS terminal not found.');
     return this.priceListsService.listTerminalSellableItems(data.terminalId);
   }
 }

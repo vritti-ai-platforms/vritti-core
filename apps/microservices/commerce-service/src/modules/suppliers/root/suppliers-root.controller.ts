@@ -5,12 +5,16 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
+import { SuppliersRootService } from './services/suppliers-root.service';
 
 @Controller()
 export class SuppliersRootController {
   private readonly logger = new Logger(SuppliersRootController.name);
 
-  constructor(private readonly service: SuppliersService) {}
+  constructor(
+    private readonly service: SuppliersService,
+    private readonly suppliersRootService: SuppliersRootService,
+  ) {}
 
   @MessagePattern({ cmd: 'suppliers.table' })
   async table(@Payload() state: TableViewState): Promise<{ result: SupplierDto[]; count: number }> {
@@ -27,7 +31,7 @@ export class SuppliersRootController {
   @MessagePattern({ cmd: 'suppliers.create' })
   async create(@Payload() dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     this.logger.log(`suppliers.create — name: ${dto.name}`);
-    return this.service.create(dto);
+    return this.suppliersRootService.create(dto);
   }
 
   @MessagePattern({ cmd: 'suppliers.findById' })

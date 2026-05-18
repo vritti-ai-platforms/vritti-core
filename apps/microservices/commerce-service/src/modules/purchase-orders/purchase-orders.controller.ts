@@ -2,6 +2,7 @@ import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-re
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
+import { SuppliersRepository } from '@domain/suppliers/repositories/suppliers.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
@@ -11,6 +12,7 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk';
+import { NotFoundException } from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
 import type { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
 import type { ChangePurchaseOrderCurrencyDto } from './dto/request/change-purchase-order-currency.dto';
@@ -26,6 +28,7 @@ export class PurchaseOrdersController {
   constructor(
     private readonly service: PurchaseOrdersService,
     private readonly goodsReceiptsService: GoodsReceiptsService,
+    private readonly suppliersRepository: SuppliersRepository,
   ) {}
 
   @MessagePattern({ cmd: 'purchaseOrders.table' })
@@ -43,7 +46,9 @@ export class PurchaseOrdersController {
   @MessagePattern({ cmd: 'purchaseOrders.create' })
   async create(@Payload() dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
-    return this.service.create(dto);
+    const supplier = await this.suppliersRepository.findById(dto.supplierId);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    return this.service.create(dto, supplier.currencyCode);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.findById' })
@@ -83,13 +88,18 @@ export class PurchaseOrdersController {
   @MessagePattern({ cmd: 'purchaseOrders.changeSupplier' })
   async changeSupplier(@Payload() data: { id: string } & ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeSupplier — id: ${data.id}, supplier: ${data.supplierId}`);
-    return this.service.changeSupplier(data.id, data.supplierId);
+    const supplier = await this.suppliersRepository.findById(data.supplierId);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    return this.service.changeSupplier(data.id, data.supplierId, supplier.name);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.changeCurrency' })
   async changeCurrency(@Payload() data: { id: string } & ChangePurchaseOrderCurrencyDto): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeCurrency — id: ${data.id}, currency: ${data.currencyCode}`);
-    return this.service.changeCurrency(data.id, data.currencyCode, data.conversionRate);
+    const po = await this.service.findById(data.id);
+    const supplier = await this.suppliersRepository.findById(po.supplierId);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    return this.service.changeCurrency(data.id, data.currencyCode, supplier.currencyCode, data.conversionRate);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.items' })

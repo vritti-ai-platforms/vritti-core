@@ -1,8 +1,9 @@
 import type { InventoryItemUomConversionDto } from '@domain/inventory-item-uom-conversions/dto/entity/inventory-item-uom-conversion.dto';
 import { InventoryItemUomConversionsService } from '@domain/inventory-item-uom-conversions/services/inventory-item-uom-conversions.service';
+import { UomRepository } from '@domain/uom/repositories/uom.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type CreateResponseDto, RpcBuId, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import { type CreateResponseDto, NotFoundException, RpcBuId, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
 import type { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 
@@ -10,7 +11,10 @@ import type { UpdateInventoryItemUomConversionDto } from './dto/request/update-i
 export class InventoryItemsUomConversionsController {
   private readonly logger = new Logger(InventoryItemsUomConversionsController.name);
 
-  constructor(private readonly service: InventoryItemUomConversionsService) {}
+  constructor(
+    private readonly service: InventoryItemUomConversionsService,
+    private readonly uomRepository: UomRepository,
+  ) {}
 
   // Returns paginated UOM conversion overrides for an inventory item
   @MessagePattern({ cmd: 'inventoryItems.uomConversionsTable' })
@@ -31,7 +35,9 @@ export class InventoryItemsUomConversionsController {
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     const { itemId, ...dto } = data;
     this.logger.log(`inventoryItems.addUomConversion — itemId: ${itemId}, uomId: ${dto.uomId}`);
-    return this.service.create(itemId, dto, buId);
+    const uomEntity = await this.uomRepository.findById(dto.uomId);
+    if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
+    return this.service.create(itemId, dto, { baseUnitId: uomEntity.baseUnitId, name: uomEntity.name, symbol: uomEntity.symbol }, buId);
   }
 
   // Updates the conversion factor of an existing UOM override

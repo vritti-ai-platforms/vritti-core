@@ -5,12 +5,16 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableViewState } from '@vritti/api-sdk';
 import type { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
+import { StockTransfersRootService } from './services/stock-transfers-root.service';
 
 @Controller()
 export class StockTransfersController {
   private readonly logger = new Logger(StockTransfersController.name);
 
-  constructor(private readonly service: StockTransfersService) {}
+  constructor(
+    private readonly service: StockTransfersService,
+    private readonly rootService: StockTransfersRootService,
+  ) {}
 
   @MessagePattern({ cmd: 'stockTransfers.table' })
   async table(
@@ -30,6 +34,6 @@ export class StockTransfersController {
   async updateStatus(@Payload() data: { id: string } & UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
     const { id, ...statusData } = data;
     this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${statusData.status}`);
-    return this.service.updateStatus(id, statusData);
+    return this.rootService.updateStatus(id, statusData);
   }
 }

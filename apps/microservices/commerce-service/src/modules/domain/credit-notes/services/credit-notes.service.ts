@@ -1,4 +1,3 @@
-import { InvoicesRepository } from '@domain/invoices/repositories/invoices.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk';
 import {
@@ -13,14 +12,20 @@ import type { CreateCreditNoteDto } from '@/modules/credit-notes/dto/request/cre
 import { CreditNoteApplicationDto, CreditNoteDetailDto, CreditNoteDto } from '../dto/entity/credit-note.dto';
 import { CreditNotesRepository } from '../repositories/credit-notes.repository';
 
+// Invoice context pre-fetched by the app-layer before apply operations
+export type InvoiceContext = {
+  id: string;
+  invoiceNumber: string;
+  status: string;
+  balance: number;
+  paidAmount: number;
+};
+
 @Injectable()
 export class CreditNotesService {
   private readonly logger = new Logger(CreditNotesService.name);
 
-  constructor(
-    private readonly repository: CreditNotesRepository,
-    private readonly invoicesRepository: InvoicesRepository,
-  ) {}
+  constructor(private readonly repository: CreditNotesRepository) {}
 
   // Creates a new credit note
   async create(data: CreateCreditNoteDto): Promise<CreditNoteDto> {
@@ -51,8 +56,14 @@ export class CreditNotesService {
     return CreditNoteDetailDto.fromDetail(entity, appDtos);
   }
 
-  // Applies a credit note to an invoice
-  async apply(id: string, data: ApplyCreditNoteDto): Promise<{ success: boolean; message: string }> {
+  // Applies a credit note against a pre-validated invoice context.
+  // Returns invoice balance deltas for the app-layer to apply to the invoice.
+  // App-layer is responsible for fetching the invoice, validating its status, and updating it.
+  async apply(
+    id: string,
+    data: ApplyCreditNoteDto,
+    invoice: InvoiceContext,
+  ): Promise<{ newPaidAmount: number; newBalance: number; newInvoiceStatus: string; success: boolean; message: string }> {
     const creditNote = await this.repository.findById(id);
     if (!creditNote) throw new NotFoundException('Credit note not found.');
 
@@ -65,15 +76,11 @@ export class CreditNotesService {
       throw new BadRequestException('Application amount exceeds credit note remaining balance.');
     }
 
-    const invoice = await this.invoicesRepository.findById(data.invoiceId);
-    if (!invoice) throw new NotFoundException('Invoice not found.');
-
     if (invoice.status === InvoiceStatusValues.VOID || invoice.status === InvoiceStatusValues.PAID) {
       throw new BadRequestException('Cannot apply credit note to a voided or fully paid invoice.');
     }
 
-    const invoiceBalance = Number(invoice.balance);
-    if (data.amount > invoiceBalance) {
+    if (data.amount > invoice.balance) {
       throw new BadRequestException('Application amount exceeds invoice balance.');
     }
 
@@ -94,19 +101,13 @@ export class CreditNotesService {
       status: newCnStatus,
     });
 
-    const newInvoiceBalance = invoiceBalance - data.amount;
+    const newBalance = invoice.balance - data.amount;
     const newPaidAmount = Number(invoice.paidAmount) + data.amount;
-    const newInvoiceStatus = newInvoiceBalance <= 0 ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
-
-    await this.invoicesRepository.update(invoice.id, {
-      paidAmount: newPaidAmount,
-      balance: newInvoiceBalance,
-      status: newInvoiceStatus,
-    });
+    const newInvoiceStatus = newBalance <= 0 ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
 
     this.logger.log(
       `Applied ${data.amount} from CN ${creditNote.creditNoteNumber} to invoice ${invoice.invoiceNumber}`,
     );
-    return { success: true, message: 'Credit note applied successfully.' };
+    return { newPaidAmount, newBalance, newInvoiceStatus, success: true, message: 'Credit note applied successfully.' };
   }
 }

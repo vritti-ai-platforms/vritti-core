@@ -7,6 +7,7 @@ import { SuppliersContactsController } from './contacts/suppliers-contacts.contr
 import { SuppliersItemsService } from './items/services/suppliers-items.service';
 import { SuppliersItemsController } from './items/suppliers-items.controller';
 import { SuppliersRootController } from './root/suppliers-root.controller';
+import { SuppliersRootService } from './root/services/suppliers-root.service';
 
 @Module({
   imports: [
@@ -16,6 +17,6 @@ import { SuppliersRootController } from './root/suppliers-root.controller';
     InventoryItemsDomainModule,
   ],
   controllers: [SuppliersRootController, SuppliersContactsController, SuppliersItemsController],
-  providers: [SuppliersItemsService],
+  providers: [SuppliersItemsService, SuppliersRootService],
 })
 export class SuppliersModule {}

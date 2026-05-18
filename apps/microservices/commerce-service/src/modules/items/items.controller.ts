@@ -1,19 +1,23 @@
+import { CategoriesService } from '@domain/categories/services/categories.service';
+import type { ItemDto } from '@domain/items/dto/entity/item.dto';
+import type { ItemDetailDto, ItemVariantDto } from '@domain/items/dto/entity/item-detail.dto';
+import { ItemsService } from '@domain/items/services/items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
-import type { ItemDto } from '@domain/items/dto/entity/item.dto';
-import type { ItemDetailDto, ItemVariantDto } from '@domain/items/dto/entity/item-detail.dto';
 import type { CreateItemDto } from './dto/request/create-item.dto';
-import type { UpdateItemDto } from './dto/request/update-item.dto';
 import type { SaveOptionsDto } from './dto/request/save-options.dto';
+import type { UpdateItemDto } from './dto/request/update-item.dto';
 import type { UpdateVariantDto } from './dto/request/update-variant.dto';
-import { ItemsService } from '@domain/items/services/items.service';
 
 @Controller()
 export class ItemsController {
   private readonly logger = new Logger(ItemsController.name);
 
-  constructor(private readonly itemsService: ItemsService) {}
+  constructor(
+    private readonly itemsService: ItemsService,
+    private readonly categoriesService: CategoriesService,
+  ) {}
 
   // Returns paginated, filtered, and sorted items (RLS scopes to org + BU ancestors)
   @MessagePattern({ cmd: 'items.table' })
@@ -28,6 +32,7 @@ export class ItemsController {
   @MessagePattern({ cmd: 'items.create' })
   async create(@Payload() dto: CreateItemDto): Promise<ItemDto> {
     this.logger.log(`items.create — name: ${dto.name}`);
+    if (dto.categoryId) await this.categoriesService.assertIsLeaf(dto.categoryId);
     return this.itemsService.create(dto);
   }
 
@@ -43,6 +48,7 @@ export class ItemsController {
   async update(@Payload() data: { id: string } & UpdateItemDto): Promise<ItemDto> {
     const { id, ...updateData } = data;
     this.logger.log(`items.update — id: ${id}`);
+    if (updateData.categoryId) await this.categoriesService.assertIsLeaf(updateData.categoryId);
     return this.itemsService.update(id, updateData);
   }
 

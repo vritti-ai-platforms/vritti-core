@@ -7,6 +7,7 @@ import { StockAdjustmentLineItemsDomainModule } from '@domain/stock-adjustment-l
 import { StockAdjustmentLinesDomainModule } from '@domain/stock-adjustment-lines/stock-adjustment-lines.module';
 import { StockAdjustmentLotsDomainModule } from '@domain/stock-adjustment-lots/stock-adjustment-lots.module';
 import { StockAdjustmentsDomainModule } from '@domain/stock-adjustments/stock-adjustments.module';
+import { UomDomainModule } from '@domain/uom/uom.module';
 import { Module } from '@nestjs/common';
 import { StockAdjustmentsLineItemsTransactionService } from './line-items/services/stock-adjustments-line-items-transaction.service';
 import { StockAdjustmentsLineItemsController } from './line-items/stock-adjustments-line-items.controller';
@@ -28,6 +29,7 @@ import { StockAdjustmentsRootController } from './root/stock-adjustments-root.co
     InventoryItemQuantsDomainModule,
     InventoryItemUomConversionsDomainModule,
     InventoryItemLedgerDomainModule,
+    UomDomainModule,
   ],
   controllers: [
     StockAdjustmentsRootController,

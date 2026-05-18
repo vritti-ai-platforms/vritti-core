@@ -1,4 +1,3 @@
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -33,7 +32,9 @@ export type CreateQuantParams = {
   locationId: string;
   tracking: InventoryTracking;
   quantity: number;
-  // for tracking='lot' or 'lot_serial': required
+  // for tracking='lot' or 'lot_serial': lotId must be pre-resolved by the app-layer
+  lotId?: string | null;
+  // retained for backward compat with createBatch callers that pass lot/serialNumbers
   lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
   // for tracking='serial' or 'lot_serial': required, length must equal quantity
   serialNumbers?: string[];
@@ -56,16 +57,17 @@ export class InventoryItemQuantsService {
   constructor(
     private readonly database: PrimaryDatabaseService,
     private readonly repository: InventoryItemQuantsRepository,
-    private readonly lotsService: InventoryItemLotsService,
   ) {}
 
   // Creates a new quant in its own transaction and writes the ledger entry. Tracking-aware.
-  // Caller may pass `lot` and `serialNumbers`; the wrapper drops them if the item is tracking='quantity'.
+  // For lot/lot_serial tracking: caller must pass a pre-resolved `lotId` (app-layer resolves/creates the lot).
+  // For serial tracking: caller may pass `serialNumbers`.
+  // For quantity tracking: neither lotId nor serialNumbers are needed.
   async createBatch(params: {
     inventoryItemId: string;
     locationId: string;
     quantity: number;
-    lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
+    lotId?: string | null;
     serialNumbers?: string[];
     type: InventoryItemLedgerType;
     referenceType?: InventoryItemLedgerReferenceType;
@@ -95,7 +97,7 @@ export class InventoryItemQuantsService {
         locationId: params.locationId,
         tracking,
         quantity: params.quantity,
-        lot: params.lot,
+        lotId: params.lotId,
         serialNumbers: params.serialNumbers,
       };
     }
@@ -113,28 +115,24 @@ export class InventoryItemQuantsService {
 
   // Creates or upserts a quant within a transaction. Tracking-aware:
   //   'quantity':   lotId=null, upsert by (item, location)
-  //   'lot':        resolves/creates lot, upsert by (item, location, lotId)
-  //   'lot_serial': resolves/creates lot, upsert quant, then inserts N quant_items with serials
+  //   'lot':        uses pre-resolved lotId passed by the app-layer, upsert by (item, location, lotId)
+  //   'lot_serial': uses pre-resolved lotId passed by the app-layer, upsert quant, then inserts N quant_items with serials
   //   'serial':     lotId=null, upsert quant by (item, location), then inserts N quant_items with serials
-  // No ledger — caller handles it.
+  // No ledger — caller handles it. App-layer is responsible for resolving/creating the lot and passing lotId.
   async createBatchScoped(
     params: CreateQuantParams,
   ): Promise<{ quant: InventoryItemQuant; lot: InventoryItemLot | null; quantItems: InventoryItemQuantItem[] }> {
     this.validateCreateParams(params);
 
     return this.database.runInTransaction(async () => {
-      let lot: InventoryItemLot | null = null;
-      if (params.tracking === InventoryTrackingValues.LOT || params.tracking === InventoryTrackingValues.LOT_SERIAL) {
-        if (!params.lot) throw new BadRequestException('lot is required for tracking=lot or lot_serial.');
-        lot = await this.lotsService.findOrCreateLot({
-          inventoryItemId: params.inventoryItemId,
-          lotNumber: params.lot.lotNumber,
-          manufacturingDate: params.lot.manufacturingDate ?? null,
-          expiryDate: params.lot.expiryDate,
-        });
+      if (
+        (params.tracking === InventoryTrackingValues.LOT || params.tracking === InventoryTrackingValues.LOT_SERIAL) &&
+        params.lotId == null
+      ) {
+        throw new BadRequestException('lotId is required for tracking=lot or lot_serial. App-layer must resolve the lot.');
       }
 
-      const lotId = lot?.id ?? null;
+      const lotId = params.lotId ?? null;
 
       const existing = await this.repository.findByItemLocationLot(params.inventoryItemId, params.locationId, lotId);
 
@@ -165,7 +163,7 @@ export class InventoryItemQuantsService {
         );
       }
 
-      return { quant, lot, quantItems };
+      return { quant, lot: null, quantItems };
     });
   }
 

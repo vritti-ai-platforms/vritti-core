@@ -1,4 +1,3 @@
-import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -70,7 +69,6 @@ export class PurchaseOrdersService {
     private readonly database: PrimaryDatabaseService,
     private readonly repository: PurchaseOrdersRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
-    private readonly suppliersService: SuppliersService,
   ) {}
 
   // Returns paginated purchase order options for select dropdowns.
@@ -132,10 +130,8 @@ export class PurchaseOrdersService {
     };
   }
 
-  // Creates a new PO with line items
-  async create(data: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    const supplier = await this.suppliersService.findById(data.supplierId);
-    const supplierCurrencyCode = supplier.currencyCode;
+  // Creates a new PO with line items. App-layer fetches the supplier and passes currency context.
+  async create(data: CreatePurchaseOrderDto, supplierCurrencyCode: string): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const isSameCurrency = supplierCurrencyCode === data.currencyCode;
     const conversionRate = isSameCurrency ? 1 : data.conversionRate;
 
@@ -369,12 +365,10 @@ export class PurchaseOrdersService {
     return { success: true, message: `Notes updated for purchase order "${entity.poNumber}".` };
   }
 
-  // Changes supplier on a draft PO with no line items
-  async changeSupplier(id: string, supplierId: string): Promise<SuccessResponseDto> {
+  // Changes supplier on a draft PO with no line items. App-layer fetches the supplier and passes name.
+  async changeSupplier(id: string, supplierId: string, supplierName: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
-    const supplier = await this.suppliersService.findById(supplierId);
-    const supplierName = supplier.name;
     if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({
         label: 'Cannot Change Supplier',
@@ -398,8 +392,9 @@ export class PurchaseOrdersService {
     };
   }
 
-  // Changes currency on a draft PO and recalculates line prices from supplier price
-  async changeCurrency(id: string, currencyCode: string, conversionRate?: number): Promise<SuccessResponseDto> {
+  // Changes currency on a draft PO and recalculates line prices from supplier price.
+  // App-layer fetches the supplier currency and passes it.
+  async changeCurrency(id: string, currencyCode: string, supplierCurrencyCode: string, conversionRate?: number): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
     if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
@@ -409,20 +404,19 @@ export class PurchaseOrdersService {
       });
     }
 
-    const supplier = await this.suppliersService.findById(existing.supplierId);
-    const isSameCurrency = supplier.currencyCode === currencyCode;
+    const isSameCurrency = supplierCurrencyCode === currencyCode;
     const nextConversionRate = isSameCurrency ? 1 : conversionRate;
 
     if (!isSameCurrency && (nextConversionRate == null || nextConversionRate <= 0)) {
       throw new BadRequestException({
         label: 'Invalid Conversion Rate',
-        detail: `Conversion rate is required and must be greater than 0 when supplier currency (${supplier.currencyCode}) differs from PO currency (${currencyCode}).`,
+        detail: `Conversion rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from PO currency (${currencyCode}).`,
         errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
       });
     }
 
     const resolvedConversionRate = Number(nextConversionRate ?? 1);
-    const supplierExp = Number(resolveCurrency(supplier.currencyCode as CurrencyCode).exponent);
+    const supplierExp = Number(resolveCurrency(supplierCurrencyCode as CurrencyCode).exponent);
     const poExp = Number(resolveCurrency(currencyCode as CurrencyCode).exponent);
 
     await this.database.runInTransaction(async () => {

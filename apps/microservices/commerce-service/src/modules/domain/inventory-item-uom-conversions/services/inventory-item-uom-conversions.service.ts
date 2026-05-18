@@ -1,4 +1,3 @@
-import { UomRepository } from '@domain/uom/repositories/uom.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -27,10 +26,7 @@ export class InventoryItemUomConversionsService {
     denominator: { column: inventoryItemUomConversions.denominator, type: 'number' },
   };
 
-  constructor(
-    private readonly repository: InventoryItemUomConversionsRepository,
-    private readonly uomRepository: UomRepository,
-  ) {}
+  constructor(private readonly repository: InventoryItemUomConversionsRepository) {}
 
   // Returns paginated, filtered, sorted UOM conversions for an inventory item
   async findForTable(
@@ -56,15 +52,14 @@ export class InventoryItemUomConversionsService {
 
   // Creates a per-item UOM conversion. Only base UOMs (no global derivation) are eligible —
   // derived UOMs already have a universal global factor and should not have per-item conversions.
+  // App-layer is responsible for validating the UOM exists; caller passes the pre-fetched UOM context.
   async create(
     inventoryItemId: string,
     dto: { uomId: string; numerator: number; denominator: number },
+    uomContext: { baseUnitId: string | null; name: string; symbol: string },
     currentBuId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
-    const uomEntity = await this.uomRepository.findById(dto.uomId);
-    if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
-
-    if (uomEntity.baseUnitId !== null) {
+    if (uomContext.baseUnitId !== null) {
       throw new BadRequestException({
         label: 'Derived Unit',
         detail: 'Per-item conversions are only allowed for base UOMs. Derived UOMs use the global conversion factor.',
@@ -120,7 +115,7 @@ export class InventoryItemUomConversionsService {
       success: true,
       message: 'UOM conversion created successfully.',
       data: InventoryItemUomConversionDto.from(
-        { ...uomConversion, uomName: uomEntity.name, uomSymbol: uomEntity.symbol },
+        { ...uomConversion, uomName: uomContext.name, uomSymbol: uomContext.symbol },
         currentBuId,
       ),
     };
@@ -172,18 +167,18 @@ export class InventoryItemUomConversionsService {
     return { success: true, message: 'UOM conversion deleted successfully.' };
   }
 
-  async resolvePrimaryUomFactor(itemId: string, uomId: string): Promise<number> {
+  // Resolves the per-item UOM factor; falls back to the provided globalConversionFactor if no override exists.
+  // App-layer fetches the global UOM and passes its conversionFactor.
+  async resolvePrimaryUomFactor(itemId: string, uomId: string, globalConversionFactor: number): Promise<number> {
     const conversion = await this.repository.findByItemAndUom(itemId, uomId);
     if (conversion) {
       return new Decimal(conversion.numerator).dividedBy(conversion.denominator).toNumber();
     }
-    const uomEntity = await this.uomRepository.findById(uomId);
-    if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
-    return uomEntity.conversionFactor;
+    return globalConversionFactor;
   }
 
-  async resolvePrimaryUomQuantity(itemId: string, uomId: string, quantity: number): Promise<number> {
-    const factor = await this.resolvePrimaryUomFactor(itemId, uomId);
+  async resolvePrimaryUomQuantity(itemId: string, uomId: string, globalConversionFactor: number, quantity: number): Promise<number> {
+    const factor = await this.resolvePrimaryUomFactor(itemId, uomId, globalConversionFactor);
     return new Decimal(quantity).times(factor).toDecimalPlaces(3).toNumber();
   }
 }

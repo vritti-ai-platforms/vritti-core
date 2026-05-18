@@ -1,4 +1,3 @@
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -12,8 +11,6 @@ import {
   type ConversionStatus,
   ConversionStatusValues,
   conversions,
-  InventoryItemLedgerReferenceTypeValues,
-  InventoryItemLedgerTypeValues,
 } from '@/db/schema';
 import type { CreateConversionDto } from '@/modules/conversions/dto/request/create-conversion.dto';
 import {
@@ -32,10 +29,7 @@ export class ConversionsService {
     status: { column: conversions.status, type: 'string' },
   };
 
-  constructor(
-    private readonly repository: ConversionsRepository,
-    private readonly batchesService: InventoryItemQuantsService,
-  ) {}
+  constructor(private readonly repository: ConversionsRepository) {}
 
   // Returns paginated conversions for the data table
   async findForTable(state: TableViewState): Promise<{ result: ConversionDto[]; count: number }> {
@@ -105,12 +99,11 @@ export class ConversionsService {
     return ConversionDetailDto.fromDetail(entity, inputDtos, outputDtos);
   }
 
-  // Completes a conversion: deducts inputs from batches, creates output batches
-  async complete(
+  // Validates and loads conversion data for completion. App-layer handles batch operations.
+  // Returns the inputs/outputs so the caller can deduct and create batches.
+  async prepareComplete(
     id: string,
-    locationId: string,
-    inputBatchIds?: Record<string, string>,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<{ inputs: { inventoryItemId: string; quantity: string; wastageQuantity: string }[]; outputs: { inventoryItemId: string; quantity: string }[] }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Conversion not found.');
     if (entity.status === ConversionStatusValues.COMPLETED) {
@@ -123,44 +116,14 @@ export class ConversionsService {
     const inputs = await this.repository.findInputsByConversionId(id);
     const outputs = await this.repository.findOutputsByConversionId(id);
 
-    // Deduct inputs from specified batches
-    for (const input of inputs) {
-      const totalDeduct = Number(input.quantity) + Number(input.wastageQuantity);
-      const batchId = inputBatchIds?.[input.inventoryItemId];
+    return {
+      inputs: inputs.map((i) => ({ inventoryItemId: i.inventoryItemId, quantity: i.quantity, wastageQuantity: i.wastageQuantity })),
+      outputs: outputs.map((o) => ({ inventoryItemId: o.inventoryItemId, quantity: o.quantity })),
+    };
+  }
 
-      if (batchId) {
-        await this.batchesService.adjustBatch({
-          batchId,
-          quantity: -totalDeduct,
-          type: InventoryItemLedgerTypeValues.CONVERSION_INPUT,
-          referenceType: InventoryItemLedgerReferenceTypeValues.CONVERSION,
-          referenceId: id,
-          notes: `Conversion input (qty: ${input.quantity}, wastage: ${input.wastageQuantity})`,
-        });
-      }
-    }
-
-    // Create output batches. Auto-generates a lot number for tracking='lot' outputs.
-    // TODO: conversion UX should let operators capture expiry per output lot (typically derived from
-    // shortest input expiry). Until then we synthesize a 1-year-out placeholder.
-    const placeholderExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-    for (const output of outputs) {
-      const autoLot = `CONV-${id.slice(0, 8)}-${output.inventoryItemId.slice(0, 8)}`;
-      await this.batchesService.createBatch({
-        inventoryItemId: output.inventoryItemId,
-        locationId,
-        quantity: Number(output.quantity),
-        // For tracking='quantity' the service will reject `lot`; we let the service decide based on tracking.
-        // Items with tracking='serial' will fail here — conversion of serialized goods is a follow-up.
-        lot: { lotNumber: autoLot, expiryDate: placeholderExpiry },
-        type: InventoryItemLedgerTypeValues.CONVERSION_OUTPUT,
-        referenceType: InventoryItemLedgerReferenceTypeValues.CONVERSION,
-        referenceId: id,
-        notes: `Conversion output (qty: ${output.quantity})`,
-      });
-    }
-
-    // Mark completed
+  // Marks a conversion as completed. Call after batch operations have been applied by the app-layer.
+  async markCompleted(id: string): Promise<{ success: boolean; message: string }> {
     await this.repository.update(id, {
       status: ConversionStatusValues.COMPLETED,
       completedAt: new Date(),

@@ -1,4 +1,3 @@
-import { PosTerminalsRepository } from '@domain/pos-terminals/repositories/pos-terminals.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -33,10 +32,7 @@ export class PriceListsService {
     isActive: { column: priceLists.isActive, type: 'boolean' },
   };
 
-  constructor(
-    private readonly repository: PriceListsRepository,
-    private readonly posTerminalsRepository: PosTerminalsRepository,
-  ) {}
+  constructor(private readonly repository: PriceListsRepository) {}
 
   // Returns paginated, filtered, and sorted price lists for the data table
   async findForTable(state: TableViewState): Promise<{ result: PriceListDto[]; count: number }> {
@@ -183,14 +179,12 @@ export class PriceListsService {
 
   // Returns assigned price lists for a terminal
   async listTerminalPriceLists(terminalId: string): Promise<TerminalPriceListDto[]> {
-    await this.assertTerminalExists(terminalId);
     const rows = await this.repository.findTerminalPriceLists(terminalId);
     return rows.map((row) => TerminalPriceListDto.from(row));
   }
 
-  // Replaces price list assignments for a terminal
+  // Replaces price list assignments for a terminal. App-layer validates the terminal exists.
   async saveTerminalPriceLists(terminalId: string, data: SaveTerminalPriceListsDto): Promise<SuccessResponseDto> {
-    await this.assertTerminalExists(terminalId);
 
     const uniquePriceListIds = new Set(data.priceLists.map((priceList) => priceList.priceListId));
     if (uniquePriceListIds.size !== data.priceLists.length) {
@@ -231,8 +225,6 @@ export class PriceListsService {
 
   // Returns deduplicated sellable inventory items for a terminal from assigned price lists
   async listTerminalSellableItems(terminalId: string): Promise<TerminalSellableItemDto[]> {
-    await this.assertTerminalExists(terminalId);
-
     const rows = await this.repository.findTerminalSellableRows(terminalId);
 
     const dedupedRows = new Map<string, (typeof rows)[number]>();
@@ -249,11 +241,5 @@ export class PriceListsService {
   private async assertPriceListExists(priceListId: string): Promise<void> {
     const priceList = await this.repository.findById(priceListId);
     if (!priceList) throw new NotFoundException('Price list not found.');
-  }
-
-  // Ensures terminal exists before price list assignment operations
-  private async assertTerminalExists(terminalId: string): Promise<void> {
-    const terminal = await this.posTerminalsRepository.findById(terminalId);
-    if (!terminal) throw new NotFoundException('POS terminal not found.');
   }
 }

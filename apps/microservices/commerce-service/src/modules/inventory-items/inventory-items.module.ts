@@ -6,6 +6,7 @@ import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/i
 import { InventoryItemUomConversionsDomainModule } from '@domain/inventory-item-uom-conversions/inventory-item-uom-conversions.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
+import { UomDomainModule } from '@domain/uom/uom.module';
 import { Module } from '@nestjs/common';
 import { InventoryItemsLedgerModule } from './ledger/inventory-items-ledger.module';
 import { InventoryItemsLocationsController } from './locations/inventory-items-locations.controller';
@@ -32,6 +33,7 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemQuantItemsDomainModule,
     SupplierItemsDomainModule,
     CategoriesDomainModule,
+    UomDomainModule,
     InventoryItemsLedgerModule,
   ],
   controllers: [

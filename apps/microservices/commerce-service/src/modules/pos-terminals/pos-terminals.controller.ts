@@ -1,5 +1,6 @@
 import type { PosTerminalDto } from '@domain/pos-terminals/dto/entity/pos-terminal.dto';
 import { PosTerminalsService } from '@domain/pos-terminals/services/pos-terminals.service';
+import { LocationsRepository } from '@domain/locations/repositories/locations.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
@@ -9,6 +10,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk';
+import { NotFoundException } from '@vritti/api-sdk';
+import { LocationRoleValues } from '@/db/schema';
 import type { CreatePosTerminalDto } from './dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from './dto/request/update-pos-terminal.dto';
 
@@ -16,7 +19,10 @@ import type { UpdatePosTerminalDto } from './dto/request/update-pos-terminal.dto
 export class PosTerminalsController {
   private readonly logger = new Logger(PosTerminalsController.name);
 
-  constructor(private readonly posTerminalsService: PosTerminalsService) {}
+  constructor(
+    private readonly posTerminalsService: PosTerminalsService,
+    private readonly locationsRepository: LocationsRepository,
+  ) {}
 
   // Returns paginated POS terminals for the data table
   @MessagePattern({ cmd: 'posTerminals.table' })
@@ -36,7 +42,21 @@ export class PosTerminalsController {
   @MessagePattern({ cmd: 'posTerminals.locationsSelect' })
   async locationsSelect(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('posTerminals.locationsSelect');
-    return this.posTerminalsService.findPosLocationsForSelect(data);
+    return this.locationsRepository.findForSelect({
+      value: data.valueKey || 'id',
+      label: data.labelKey || 'name',
+      description: data.descriptionKey,
+      additionalKeys: data.additionalKeys,
+      groupIdKey: data.groupIdKey,
+      search: data.search,
+      limit: data.limit,
+      offset: data.offset,
+      values: data.values,
+      excludeIds: data.excludeIds,
+      where: { locationRole: LocationRoleValues.RESERVED_STORAGE },
+      orderByKey: data.orderByKey || 'name',
+      orderDirection: data.orderDirection || 'asc',
+    });
   }
 
   // Returns a single POS terminal by ID
@@ -50,7 +70,9 @@ export class PosTerminalsController {
   @MessagePattern({ cmd: 'posTerminals.create' })
   async create(@Payload() dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
     this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
-    return this.posTerminalsService.create(dto);
+    const location = await this.locationsRepository.findById(dto.locationId);
+    if (!location) throw new NotFoundException('Storage location not found.');
+    return this.posTerminalsService.create(dto, location);
   }
 
   // Updates an existing POS terminal
@@ -58,7 +80,13 @@ export class PosTerminalsController {
   async update(@Payload() data: { id: string } & UpdatePosTerminalDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`posTerminals.update — id: ${id}`);
-    return this.posTerminalsService.update(id, updateData);
+    let location: { id: string; locationRole: string; isActive: boolean } | undefined;
+    if (updateData.locationId) {
+      const loc = await this.locationsRepository.findById(updateData.locationId);
+      if (!loc) throw new NotFoundException('Storage location not found.');
+      location = loc;
+    }
+    return this.posTerminalsService.update(id, updateData, location);
   }
 
   // Deletes a POS terminal

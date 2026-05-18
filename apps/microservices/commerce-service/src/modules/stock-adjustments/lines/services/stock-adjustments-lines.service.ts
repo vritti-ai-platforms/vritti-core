@@ -4,6 +4,7 @@ import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { StockAdjustmentLotsRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
+import { UomRepository } from '@domain/uom/repositories/uom.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { type CreateResponseDto, NotFoundException, type SuccessResponseDto, ValidationException } from '@vritti/api-sdk';
 import { InventoryTrackingValues } from '@/db/schema';
@@ -21,6 +22,7 @@ export class StockAdjustmentsLinesService {
     private readonly lotsRepository: StockAdjustmentLotsRepository,
     private readonly inventoryItemsRepository: InventoryItemsRepository,
     private readonly uomConversionsService: InventoryItemUomConversionsService,
+    private readonly uomRepository: UomRepository,
   ) {}
 
   async addOpeningLine(
@@ -41,9 +43,12 @@ export class StockAdjustmentsLinesService {
     await this.validateUomId(adjustment, data.uomId);
     this.logger.log(`addOpeningLine [validateUomId] ${Date.now() - t0}ms`);
 
+    const uomEntity = await this.uomRepository.findById(data.uomId);
+    if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
     const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
       adjustment.inventoryItemId,
       data.uomId,
+      uomEntity.conversionFactor,
     );
     this.logger.log(`addOpeningLine [resolvePrimaryUomFactor] ${Date.now() - t0}ms`);
 
@@ -73,9 +78,12 @@ export class StockAdjustmentsLinesService {
     this.logger.log(`addChangeLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.quantity}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     await this.validateUomId(adjustment, data.uomId);
+    const uomEntity = await this.uomRepository.findById(data.uomId);
+    if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
     const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
       adjustment.inventoryItemId,
       data.uomId,
+      uomEntity.conversionFactor,
     );
     const line = await this.linesService.addChangeLine(adjustment, { ...data, conversionFactor });
     return {
@@ -104,9 +112,12 @@ export class StockAdjustmentsLinesService {
 
     if (data.uomId) {
       await this.validateUomId(adjustment, data.uomId);
+      const uomEntity = await this.uomRepository.findById(data.uomId);
+      if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
       const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
         adjustment.inventoryItemId,
         data.uomId,
+        uomEntity.conversionFactor,
       );
       await this.linesService.updateOpeningLine(adjustment, lineId, { ...data, conversionFactor });
     } else {
@@ -138,9 +149,12 @@ export class StockAdjustmentsLinesService {
 
     if (data.uomId) {
       await this.validateUomId(adjustment, data.uomId);
+      const uomEntity = await this.uomRepository.findById(data.uomId);
+      if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
       const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
         adjustment.inventoryItemId,
         data.uomId,
+        uomEntity.conversionFactor,
       );
       await this.linesService.updateChangeLine(adjustment, lineId, { ...data, conversionFactor });
     } else {

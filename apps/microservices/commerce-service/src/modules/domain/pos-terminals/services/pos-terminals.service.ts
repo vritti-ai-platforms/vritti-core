@@ -1,4 +1,3 @@
-import { LocationsRepository } from '@domain/locations/repositories/locations.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -18,6 +17,13 @@ import type { UpdatePosTerminalDto } from '@/modules/pos-terminals/dto/request/u
 import { PosTerminalDto } from '../dto/entity/pos-terminal.dto';
 import { PosTerminalsRepository } from '../repositories/pos-terminals.repository';
 
+// Location context pre-fetched by the app-layer before write operations
+export type LocationContext = {
+  id: string;
+  locationRole: string;
+  isActive: boolean;
+};
+
 @Injectable()
 export class PosTerminalsService {
   private readonly logger = new Logger(PosTerminalsService.name);
@@ -29,10 +35,7 @@ export class PosTerminalsService {
     isActive: { column: posTerminals.isActive, type: 'boolean' },
   };
 
-  constructor(
-    private readonly repository: PosTerminalsRepository,
-    private readonly locationsRepository: LocationsRepository,
-  ) {}
+  constructor(private readonly repository: PosTerminalsRepository) {}
 
   // Returns paginated, filtered, and sorted POS terminals for the data table
   async findForTable(state: TableViewState): Promise<{ result: PosTerminalDto[]; count: number }> {
@@ -80,30 +83,9 @@ export class PosTerminalsService {
     });
   }
 
-  // Returns POS-role storage location options for select dropdowns
-  findPosLocationsForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.locationsRepository.findForSelect({
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
-      where: {
-        locationRole: LocationRoleValues.RESERVED_STORAGE,
-      },
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
-  }
-
-  // Creates a new POS terminal
-  async create(data: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
-    await this.assertValidLocation(data.locationId);
+  // Creates a new POS terminal. App-layer must pre-validate the location and pass it as context.
+  async create(data: CreatePosTerminalDto, location: LocationContext): Promise<CreateResponseDto<PosTerminalDto>> {
+    this.assertValidLocation(location);
 
     const entity = await this.repository.create({
       name: data.name,
@@ -124,13 +106,13 @@ export class PosTerminalsService {
     };
   }
 
-  // Updates an existing POS terminal
-  async update(id: string, data: UpdatePosTerminalDto): Promise<SuccessResponseDto> {
+  // Updates an existing POS terminal. App-layer must pre-validate the location if provided.
+  async update(id: string, data: UpdatePosTerminalDto, location?: LocationContext): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('POS terminal not found.');
 
-    if (data.locationId) {
-      await this.assertValidLocation(data.locationId);
+    if (location) {
+      this.assertValidLocation(location);
     }
 
     const updated = await this.repository.update(id, {
@@ -152,11 +134,8 @@ export class PosTerminalsService {
     return { success: true, message: `POS terminal "${existing.name}" deleted successfully.` };
   }
 
-  // Validates that the storage location exists, is active, and has POS role
-  private async assertValidLocation(locationId: string): Promise<void> {
-    const location = await this.locationsRepository.findById(locationId);
-    if (!location) throw new NotFoundException('Storage location not found.');
-
+  // Validates that the storage location has POS role and is active
+  private assertValidLocation(location: LocationContext): void {
     if (location.locationRole !== LocationRoleValues.RESERVED_STORAGE) {
       throw new BadRequestException('POS terminal must be linked to a reserved storage location.');
     }
