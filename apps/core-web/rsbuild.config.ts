@@ -1,12 +1,8 @@
 import fs from 'node:fs';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import { defineConfig, loadEnv } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const quantumUI = resolve(__dirname, '../../..', 'quantum-ui');
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -91,22 +87,18 @@ export default defineConfig({
         '@vritti/quantum-ui': {
           singleton: true,
           eager: true,
-          resolve: quantumUI,
         },
         '@vritti/quantum-ui/theme': {
           singleton: true,
           eager: true,
-          resolve: `${quantumUI}/lib/theme`,
         },
         '@vritti/quantum-ui/context': {
           singleton: true,
           eager: true,
-          resolve: `${quantumUI}/lib/context`,
         },
         '@vritti/quantum-ui/hooks': {
           singleton: true,
           eager: true,
-          resolve: `${quantumUI}/lib/hooks`,
         },
         axios: {
           singleton: true,
