@@ -29,7 +29,7 @@ export class StockAdjustmentsLineItemsController {
   @MessagePattern({ cmd: 'stockAdjustments.updateLineItem' })
   updateLineItem(
     @Payload() data: { adjustmentId: string; lineId: string; itemId: string; serialNumber: string },
-  ): Promise<StockAdjustmentLineItemDto> {
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.updateLineItem — item: ${data.itemId}`);
     return this.service.updateLineItem(data);
   }

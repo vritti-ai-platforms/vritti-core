@@ -15,6 +15,7 @@ import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -170,7 +171,12 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
       {line && (
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-4">
-            <h3 className="text-xl font-semibold leading-none tracking-tight">{locationLabel}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xl font-semibold leading-none tracking-tight">{locationLabel}</h3>
+              <Badge variant={line.isBalanced ? 'success' : 'outline'} className={!line.isBalanced ? 'border-warning text-warning' : ''}>
+                {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+              </Badge>
+            </div>
             {isDraft && (
               <div className="flex items-center gap-2">
                 <Button
@@ -219,19 +225,6 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
               value={`${line.quantity} ${adjustment.inventoryItemUomSymbol}`}
             />
             <DetailField className="px-4 py-2" label="Picked" value={line.lineItemsCount} />
-            <DetailField
-              className="px-4 py-2"
-              label="Balanced"
-              value={
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
-                    line.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
-                  }`}
-                >
-                  {line.isBalanced ? 'Yes' : 'No'}
-                </span>
-              }
-            />
           </DetailSection>
 
           {scanner.isActive && (

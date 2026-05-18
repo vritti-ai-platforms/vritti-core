@@ -89,12 +89,20 @@ export class StockAdjustmentLineItemsService {
       });
     }
 
-    // Already on this line?
-    const dup = await this.repository.findBySerialOnLine(lineId, trimmed);
+    const dup = await this.repository.findBySerialOnAdjustment(adjustmentId, trimmed);
     if (dup) {
+      const isSameLine = dup.stockAdjustmentLineId === lineId;
       throw new ConflictException({
-        detail: `Serial "${trimmed}" already added to this line.`,
-        errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
+        label: 'Duplicate Serial',
+        detail: isSameLine
+          ? `Serial "${trimmed}" already added to this line.`
+          : `Serial "${trimmed}" is already used on another line of this adjustment.`,
+        errors: [
+          {
+            field: 'serialNumber',
+            message: isSameLine ? 'Serial already on this line.' : 'Serial already used on another line.',
+          },
+        ],
       });
     }
 
@@ -104,8 +112,12 @@ export class StockAdjustmentLineItemsService {
     });
     await this.linesService.refreshIsBalanced(adjustmentId, lineId);
     this.logger.log(`Added line item ${entity.id} (serial=${trimmed}) to line ${lineId}`);
-    const dto = StockAdjustmentLineItemDto.from(entity);
-    return { success: true, message: `Serial "${dto.serialNumber}" added successfully.`, data: dto };
+
+    return {
+      success: true,
+      message: `Serial "${entity.serialNumber}" added successfully.`,
+      data: StockAdjustmentLineItemDto.from(entity),
+    };
   }
 
   async updateLineItem(
@@ -113,7 +125,7 @@ export class StockAdjustmentLineItemsService {
     lineId: string,
     itemId: string,
     data: { serialNumber: string },
-  ): Promise<StockAdjustmentLineItemDto> {
+  ): Promise<SuccessResponseDto> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Line items can only be modified on DRAFT adjustments.');
@@ -138,18 +150,27 @@ export class StockAdjustmentLineItemsService {
     }
 
     if (trimmed !== existing.serialNumber) {
-      const dup = await this.repository.findBySerialOnLine(lineId, trimmed);
+      const dup = await this.repository.findBySerialOnAdjustment(adjustmentId, trimmed);
       if (dup) {
-        throw new ValidationException({
-          detail: `Serial "${trimmed}" already added to this line.`,
-          errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
+        const isSameLine = dup.stockAdjustmentLineId === lineId;
+        throw new ConflictException({
+          label: 'Duplicate Serial',
+          detail: isSameLine
+            ? `Serial "${trimmed}" already added to this line.`
+            : `Serial "${trimmed}" is already used on another line of this adjustment.`,
+          errors: [
+            {
+              field: 'serialNumber',
+              message: isSameLine ? 'Serial already on this line.' : 'Serial already used on another line.',
+            },
+          ],
         });
       }
     }
 
     const updated = await this.repository.update(itemId, { serialNumber: trimmed });
     await this.linesService.refreshIsBalanced(adjustmentId, lineId);
-    return StockAdjustmentLineItemDto.from(updated);
+    return { success: true, message: `Serial "${updated.serialNumber}" updated successfully.` };
   }
 
   async removeLineItem(adjustmentId: string, lineId: string, itemId: string): Promise<SuccessResponseDto> {

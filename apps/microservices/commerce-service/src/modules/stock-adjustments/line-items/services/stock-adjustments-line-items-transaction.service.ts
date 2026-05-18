@@ -1,11 +1,10 @@
 import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import type { StockAdjustmentLineItemDto } from '@domain/stock-adjustment-line-items/dto/entity/stock-adjustment-line-item.dto';
-import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
 import { StockAdjustmentLineItemsService } from '@domain/stock-adjustment-line-items/services/stock-adjustment-line-items.service';
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ConflictException, type CreateResponseDto, type SuccessResponseDto, type TableViewState, ValidationException } from '@vritti/api-sdk';
+import { type CreateResponseDto, type SuccessResponseDto, type TableViewState, ValidationException } from '@vritti/api-sdk';
 import { QuantItemStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 
 // App-layer service for line-item operations that need to check inventory-aggregate state
@@ -14,7 +13,6 @@ import { QuantItemStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 export class StockAdjustmentsLineItemsTransactionService {
   constructor(
     private readonly lineItemsService: StockAdjustmentLineItemsService,
-    private readonly lineItemsRepository: StockAdjustmentLineItemsRepository,
     private readonly adjustmentsRepository: StockAdjustmentsRepository,
     private readonly linesRepository: StockAdjustmentLinesRepository,
     private readonly quantsRepository: InventoryItemQuantsRepository,
@@ -34,7 +32,6 @@ export class StockAdjustmentsLineItemsTransactionService {
     const trimmed = data.serialNumber?.trim();
     if (trimmed) {
       await this.validateSerialForIntent(data.adjustmentId, data.lineId, trimmed);
-      await this.checkCrossLineDuplicate(data.adjustmentId, trimmed);
     }
     return this.lineItemsService.addLineItem(data.adjustmentId, data.lineId, { serialNumber: data.serialNumber });
   }
@@ -44,11 +41,10 @@ export class StockAdjustmentsLineItemsTransactionService {
     lineId: string;
     itemId: string;
     serialNumber: string;
-  }): Promise<StockAdjustmentLineItemDto> {
+  }): Promise<SuccessResponseDto> {
     const trimmed = data.serialNumber?.trim();
     if (trimmed) {
       await this.validateSerialForIntent(data.adjustmentId, data.lineId, trimmed);
-      await this.checkCrossLineDuplicate(data.adjustmentId, trimmed);
     }
     return this.lineItemsService.updateLineItem(data.adjustmentId, data.lineId, data.itemId, {
       serialNumber: data.serialNumber,
@@ -57,17 +53,6 @@ export class StockAdjustmentsLineItemsTransactionService {
 
   removeLineItem(data: { adjustmentId: string; lineId: string; itemId: string }): Promise<SuccessResponseDto> {
     return this.lineItemsService.removeLineItem(data.adjustmentId, data.lineId, data.itemId);
-  }
-
-  private async checkCrossLineDuplicate(adjustmentId: string, serialNumber: string): Promise<void> {
-    const existing = await this.lineItemsRepository.findBySerialOnAdjustment(adjustmentId, serialNumber);
-    if (existing) {
-      throw new ConflictException({
-        label: 'Duplicate Serial',
-        detail: `Serial "${serialNumber}" is already used on another line of this adjustment.`,
-        errors: [{ field: 'serialNumber', message: 'Serial already used on another line.' }],
-      });
-    }
   }
 
   // OPENING+item: serial must NOT already exist for this item (would collide with inventory_item_quant_items unique).

@@ -233,9 +233,9 @@ export function updateStockAdjustmentLineItem(
   lineId: string,
   itemId: string,
   data: UpdateStockAdjustmentLineItemPayload,
-): Promise<StockAdjustmentLineItemData> {
+): Promise<SuccessResponse> {
   return axios
-    .patch<StockAdjustmentLineItemData>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`, data)
+    .patch<SuccessResponse>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`, data)
     .then((r) => r.data);
 }
 
