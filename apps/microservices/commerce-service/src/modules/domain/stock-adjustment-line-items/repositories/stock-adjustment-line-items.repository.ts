@@ -58,6 +58,21 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
     return new Map(rows.map((r) => [r.lineId, { count: Number(r.count) }]));
   }
 
+  async findBySerialOnAdjustment(adjustmentId: string, serialNumber: string): Promise<StockAdjustmentLineItem | undefined> {
+    const rows = await this.db
+      .select({ id: stockAdjustmentLineItems.id, stockAdjustmentLineId: stockAdjustmentLineItems.stockAdjustmentLineId })
+      .from(stockAdjustmentLineItems)
+      .innerJoin(stockAdjustmentLines, eq(stockAdjustmentLineItems.stockAdjustmentLineId, stockAdjustmentLines.id))
+      .where(
+        and(
+          eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId),
+          eq(stockAdjustmentLineItems.serialNumber, serialNumber),
+        ),
+      )
+      .limit(1);
+    return rows[0] as StockAdjustmentLineItem | undefined;
+  }
+
   async findBySerialOnLine(lineId: string, serialNumber: string): Promise<StockAdjustmentLineItem | undefined> {
     const rows = await this.db
       .select()

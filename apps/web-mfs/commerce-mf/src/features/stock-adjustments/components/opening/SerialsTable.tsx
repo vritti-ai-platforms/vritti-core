@@ -1,7 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, type SelectActions, DataTable, RowActions, getSelectionColumn, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
+import {
+  type ColumnDef,
+  CompactTableSkeleton,
+  DataTable,
+  getSelectionColumn,
+  RowActions,
+  type SelectActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
@@ -9,35 +18,36 @@ import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hoo
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   useAddStockAdjustmentLineItem,
   useRemoveStockAdjustmentLine,
   useRemoveStockAdjustmentLineItem,
+  useStockAdjustmentLine,
   useStockAdjustmentLineItemsTable,
 } from '@/hooks/stock-adjustments';
-import type { StockAdjustmentLineData, StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
+import type { StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
 import { AddSerialDialog } from '../../forms/opening/AddSerialDialog';
 import { EditOpeningLineForm } from '../../forms/opening/EditOpeningLineForm';
 
 interface SerialsTableProps {
   adjustmentId: string;
   inventoryItemId: string;
-  line: StockAdjustmentLineData | null;
+  lineId: string | null;
   isDraft: boolean;
   onLineRemoved?: () => void;
 }
 
 // Right column for OPENING + serial flow: line items (serials) rendered as a DataTable.
 // Edit / Remove of the selected LINE live in this panel's toolbar so the side rail stays clean.
-export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onLineRemoved }: SerialsTableProps) => {
+export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, onLineRemoved }: SerialsTableProps) => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const addSerialDialog = useDialog();
   const editLineDialog = useDialog();
-  const lineId = line?.id ?? null;
 
+  const { data: line, isLoading: lineLoading } = useStockAdjustmentLine(adjustmentId, lineId);
   const { data: response, isLoading } = useStockAdjustmentLineItemsTable(adjustmentId, lineId);
   const removeSerialMutation = useRemoveStockAdjustmentLineItem(adjustmentId, lineId ?? '');
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustmentId);
@@ -48,6 +58,10 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
     toVariables: (code) => ({ serialNumber: code }),
     enabled: isDraft && !!lineId,
   });
+
+  useEffect(() => {
+    if (line?.isBalanced && addSerialDialog.isOpen) addSerialDialog.close();
+  }, [line?.isBalanced, addSerialDialog]);
 
   const handleRemoveSerial = useCallback(
     async (item: StockAdjustmentLineItemData) => {
@@ -149,7 +163,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
     [confirm, removeSerialMutation, table],
   );
 
-  if (!line) {
+  if (!lineId) {
     return (
       <PageContentDetails className="flex items-center justify-center">
         <Empty icon={<Tags />} title="No line selected" description="Pick a line to add serials." />
@@ -159,15 +173,39 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
 
   const lastSerial = response?.result?.[response.result.length - 1]?.serialNumber;
 
+  const skeleton = (
+    <div className="space-y-3 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-3 w-48" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-7 w-28" />
+          <Skeleton className="h-7 w-20" />
+          <Skeleton className="h-7 w-24" />
+        </div>
+      </div>
+      <CompactTableSkeleton
+        columns={[
+          { headerWidth: 'w-4', cellWidth: 'w-4' },
+          { headerWidth: 'w-16', cellWidth: 'w-40' },
+          { headerWidth: 'w-12', cellWidth: 'w-24' },
+        ]}
+        actions
+      />
+    </div>
+  );
+
   return (
-    <PageContentDetails>
+    <PageContentDetails isLoading={lineLoading} loadingContent={skeleton} className="space-y-6">
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-base font-semibold">Serials</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {line.locationName ?? line.locationId ?? '—'} • {line.lineItemsCount} added
-              {line.quantity ? ` of ${line.quantity}` : ''} • {line.isBalanced ? 'balanced' : 'unbalanced'}
+              {line?.locationName ?? line?.locationId ?? '—'} • {line?.lineItemsCount} added
+              {line?.quantity ? ` of ${line.quantity}` : ''} • {line?.isBalanced ? 'balanced' : 'unbalanced'}
             </p>
           </div>
           {isDraft && (
@@ -209,7 +247,12 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
             title="Scan Mode Active"
             description={`Point your scanner at a barcode — each scan auto-inserts a serial to this line. Press ${formatHotkey(scanner.toggleShortcut).display} to toggle or ${formatHotkey(scanner.exitShortcut).display} to exit.`}
             action={
-              <Button size="sm" variant="secondary" onClick={scanner.disable} endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={scanner.disable}
+                endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}
+              >
                 Exit
               </Button>
             }
@@ -235,7 +278,12 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
             isDraft
               ? {
                   actions: (
-                    <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addSerialDialog.open}>
+                    <Button
+                      size="sm"
+                      startAdornment={<Plus className="size-4" />}
+                      onClick={addSerialDialog.open}
+                      disabled={!!line?.isBalanced}
+                    >
                       Add Serial
                     </Button>
                   ),
@@ -246,11 +294,12 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
             icon: Tags,
             title: 'No serials',
             description: 'Add a serial to start filling this line.',
-            action: isDraft ? (
-              <Button startAdornment={<Plus className="size-4" />} onClick={addSerialDialog.open}>
-                Add Serial
-              </Button>
-            ) : undefined,
+            action:
+              isDraft && !line?.isBalanced ? (
+                <Button startAdornment={<Plus className="size-4" />} onClick={addSerialDialog.open}>
+                  Add Serial
+                </Button>
+              ) : undefined,
           }}
         />
       </div>
@@ -261,16 +310,18 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
         handle={editLineDialog}
         title="Edit Line"
         description="Update the storage location for this line."
-        content={(close) => (
-          <EditOpeningLineForm
-            adjustmentId={adjustmentId}
-            inventoryItemId={inventoryItemId}
-            line={line}
-            tracking="serial"
-            onSuccess={close}
-            onCancel={close}
-          />
-        )}
+        content={(close) =>
+          line ? (
+            <EditOpeningLineForm
+              adjustmentId={adjustmentId}
+              inventoryItemId={inventoryItemId}
+              line={line}
+              tracking="serial"
+              onSuccess={close}
+              onCancel={close}
+            />
+          ) : null
+        }
       />
     </PageContentDetails>
   );

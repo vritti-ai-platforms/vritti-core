@@ -7,6 +7,7 @@ import {
   STOCK_ADJUSTMENT_KEY,
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   STOCK_ADJUSTMENT_LINE_KEY,
+  STOCK_ADJUSTMENT_LINES_KEY,
 } from './keys';
 
 export function useRemoveStockAdjustmentLineItem(
@@ -22,6 +23,7 @@ export function useRemoveStockAdjustmentLineItem(
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustmentId, lineId) });
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_KEY(adjustmentId, lineId), exact: true });
+      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_KEY(adjustmentId), exact: true });
       queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_KEY(adjustmentId), exact: true });
 
       options?.onSuccess?.(...args);

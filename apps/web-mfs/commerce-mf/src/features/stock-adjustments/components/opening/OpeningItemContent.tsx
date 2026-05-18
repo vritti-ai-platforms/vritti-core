@@ -2,7 +2,6 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { PageContent, PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Boxes } from 'lucide-react';
 import { useState } from 'react';
-import { useStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { LotDetailPanel } from './LotDetailPanel';
 import { LotsTreePanel } from './LotsTreePanel';
@@ -18,8 +17,6 @@ interface OpeningItemContentProps {
 export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentProps) => {
   const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
-
-  const { data: selectedLine = null } = useStockAdjustmentLine(adjustment.id, selectedLineId);
 
   return (
     <PageContent>
@@ -37,7 +34,7 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
         <SerialsTable
           adjustmentId={adjustment.id}
           inventoryItemId={adjustment.inventoryItemId}
-          line={selectedLine}
+          lineId={selectedLineId}
           isDraft={isDraft}
           onLineRemoved={() => setSelectedLineId(null)}
         />

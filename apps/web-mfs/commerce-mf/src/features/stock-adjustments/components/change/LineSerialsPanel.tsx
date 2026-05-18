@@ -16,7 +16,7 @@ import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hoo
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
   useAddStockAdjustmentLineItem,
@@ -53,6 +53,10 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
     toVariables: (code) => ({ serialNumber: code }),
     enabled: isDraft && !!lineId,
   });
+
+  useEffect(() => {
+    if (line?.isBalanced && pickDialog.isOpen) pickDialog.close();
+  }, [line?.isBalanced, pickDialog]);
 
   const handleRemoveLine = async () => {
     if (!lineId) return;
@@ -268,7 +272,12 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
               isDraft
                 ? {
                     actions: (
-                      <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={pickDialog.open}>
+                      <Button
+                        size="sm"
+                        startAdornment={<Plus className="size-4" />}
+                        onClick={pickDialog.open}
+                        disabled={!!line?.isBalanced}
+                      >
                         Pick Serial
                       </Button>
                     ),
@@ -279,7 +288,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
               icon: Tags,
               title: 'No serials picked',
               description: 'Pick a serial to consume.',
-              action: isDraft ? (
+              action: isDraft && !line?.isBalanced ? (
                 <Button startAdornment={<Plus className="size-4" />} onClick={pickDialog.open}>
                   Pick Serial
                 </Button>
