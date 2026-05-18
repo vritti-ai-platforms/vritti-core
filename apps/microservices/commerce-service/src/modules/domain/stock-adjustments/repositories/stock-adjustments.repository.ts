@@ -23,6 +23,7 @@ export type StockAdjustmentWithRefs = StockAdjustment & {
 };
 
 export type StockAdjustmentWithItem = StockAdjustment & {
+  inventoryItemName: string;
   inventoryItemUomId: string;
   inventoryItemTracking: 'quantity' | 'lot' | 'serial' | 'lot_serial';
 };
@@ -46,6 +47,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         reason: stockAdjustments.reason,
         publishedAt: stockAdjustments.publishedAt,
         createdAt: stockAdjustments.createdAt,
+        inventoryItemName: inventoryItems.name,
         inventoryItemUomId: inventoryItems.uomId,
         inventoryItemTracking: inventoryItems.tracking,
       })
