@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@vritti/quantum-ui/Alert';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
@@ -15,7 +16,6 @@ import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -173,7 +173,10 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-semibold leading-none tracking-tight">{locationLabel}</h3>
-              <Badge variant={line.isBalanced ? 'success' : 'outline'} className={!line.isBalanced ? 'border-warning text-warning' : ''}>
+              <Badge
+                variant={line.isBalanced ? 'success' : 'outline'}
+                className={!line.isBalanced ? 'border-warning text-warning' : ''}
+              >
                 {line.isBalanced ? 'Balanced' : 'Not Balanced'}
               </Badge>
             </div>

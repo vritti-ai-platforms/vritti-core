@@ -35,7 +35,9 @@ export class StockAdjustmentsLineItemsController {
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.removeLineItem' })
-  removeLineItem(@Payload() data: { adjustmentId: string; lineId: string; itemId: string }): Promise<SuccessResponseDto> {
+  removeLineItem(
+    @Payload() data: { adjustmentId: string; lineId: string; itemId: string },
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.removeLineItem — item: ${data.itemId}`);
     return this.service.removeLineItem(data);
   }
