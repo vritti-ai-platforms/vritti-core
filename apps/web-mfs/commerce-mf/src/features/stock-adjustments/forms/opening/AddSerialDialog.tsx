@@ -12,15 +12,21 @@ const AddSerialForm = ({
   adjustmentId,
   lineId,
   suggestedSerial,
+  lineItemsCount,
+  quantity,
   onSuccess,
   onCancel,
 }: {
   adjustmentId: string;
   lineId: string;
   suggestedSerial?: string;
+  lineItemsCount?: number;
+  quantity?: number;
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
+  const isLastSlot = lineItemsCount != null && quantity != null && lineItemsCount === quantity - 1;
+
   const form = useForm<AddStockAdjustmentLineItemFormData>({
     resolver: zodResolver(addStockAdjustmentLineItemSchema),
     defaultValues: { serialNumber: suggestedSerial ?? '' },
@@ -41,10 +47,12 @@ const AddSerialForm = ({
     >
       <TextField name="serialNumber" label="Serial Number" placeholder="e.g. BOT-001" autoFocus />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onSuccess}>
-          Done
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
         </Button>
-        <Button type="submit">Save & Add Another</Button>
+        <Button type="submit" onClick={isLastSlot ? onSuccess : undefined}>
+          {isLastSlot ? 'Save' : 'Save & Add Another'}
+        </Button>
       </div>
     </Form>
   );
@@ -65,23 +73,29 @@ export const AddSerialDialog = ({
   adjustmentId,
   lineId,
   lastSerial,
+  lineItemsCount,
+  quantity,
   handle,
 }: {
   adjustmentId: string;
   lineId: string | null;
   lastSerial?: string;
+  lineItemsCount?: number;
+  quantity?: number;
   handle: ReturnType<typeof useDialog>;
 }) => (
   <Dialog
     handle={handle}
     title="Add Serial"
-    description="Type the serial. The form auto-resets so you can add several in a row."
+    description="Enter the serial number to register it under this line."
     content={(close) =>
       lineId ? (
         <AddSerialForm
           adjustmentId={adjustmentId}
           lineId={lineId}
           suggestedSerial={suggestNextSerial(lastSerial)}
+          lineItemsCount={lineItemsCount}
+          quantity={quantity}
           onSuccess={close}
           onCancel={close}
         />

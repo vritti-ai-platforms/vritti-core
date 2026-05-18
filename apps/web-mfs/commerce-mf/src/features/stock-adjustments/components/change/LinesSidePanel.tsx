@@ -1,3 +1,4 @@
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
@@ -56,26 +57,23 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
       >
         <div className="p-2 space-y-2">
           {lines.map((line) => {
-            const quantLabel = line.quantLotNumber ? `${line.quantLotNumber} @ ` : '';
-            const locationLabel = line.quantLocationName ?? line.quantLocationId ?? '—';
+            const label = [line.quantLotNumber, line.quantLocationName ?? line.quantLocationId].filter(Boolean).join(' @ ') || '—';
 
             return (
               <SidePanelListItem key={line.id} active={selectedLineId === line.id} onClick={() => onSelect(line.id)}>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-medium truncate">
-                    {quantLabel}
-                    {locationLabel}
-                  </div>
-                  <span
-                    className={`shrink-0 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                      line.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
-                    }`}
+                  <div className="text-sm font-medium truncate">{label}</div>
+                  <Badge
+                    variant={line.isBalanced ? 'success' : 'warning'}
                   >
                     {line.lineItemsCount}/{line.quantity}
-                  </span>
+                  </Badge>
                 </div>
+                {line.quantLocationPath && (
+                  <div className="text-xs text-muted-foreground mt-0.5 truncate">{line.quantLocationPath}</div>
+                )}
                 {line.quantAvailableQuantity != null && (
-                  <div className="text-xs text-muted-foreground mt-1">{line.quantAvailableQuantity} available</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{line.quantAvailableQuantity} available</div>
                 )}
               </SidePanelListItem>
             );

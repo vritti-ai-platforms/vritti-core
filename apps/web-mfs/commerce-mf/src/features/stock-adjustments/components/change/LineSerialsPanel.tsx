@@ -157,9 +157,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
 
   const isLoading = !!lineId && (isLineLoading || !line);
   const locationLabel = line
-    ? line.quantLotNumber
-      ? `${line.quantLotNumber} @ ${line.quantLocationName ?? line.quantLocationId ?? '—'}`
-      : (line.quantLocationName ?? line.quantLocationId ?? '—')
+    ? [line.quantLotNumber, line.quantLocationPath ?? line.quantLocationName ?? line.quantLocationId].filter(Boolean).join(' @ ') || '—'
     : '';
 
   return (
@@ -174,10 +172,9 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-semibold leading-none tracking-tight">{locationLabel}</h3>
               <Badge
-                variant={line.isBalanced ? 'success' : 'outline'}
-                className={!line.isBalanced ? 'border-warning text-warning' : ''}
+                variant={line.isBalanced ? 'success' : 'warning'}
               >
-                {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+                {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
               </Badge>
             </div>
             {isDraft && (
@@ -227,7 +224,6 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
               label="Quantity"
               value={`${line.quantity} ${adjustment.inventoryItemUomSymbol}`}
             />
-            <DetailField className="px-4 py-2" label="Picked" value={line.lineItemsCount} />
           </DetailSection>
 
           {scanner.isActive && (

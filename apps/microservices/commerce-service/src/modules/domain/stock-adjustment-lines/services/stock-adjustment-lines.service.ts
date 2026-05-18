@@ -113,6 +113,7 @@ export class StockAdjustmentLinesService {
     this.logger.log(`addOpeningLine [findOneByLotLocationUom] ${Date.now() - t0}ms`);
     if (existing) {
       throw new ValidationException({
+        label: 'Duplicate Line',
         detail: 'A line for this location and UOM already exists. Edit that line instead.',
         errors: [],
       });

@@ -1,8 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@vritti/quantum-ui/Alert';
-import { Button } from '@vritti/quantum-ui/Button';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { Skeleton } from '@vritti/quantum-ui/Skeleton';
+import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
   CompactTableSkeleton,
@@ -18,8 +17,9 @@ import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
+import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
@@ -207,13 +207,15 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold">Serials</h3>
               {line && (
-                <Badge variant={line.isBalanced ? 'success' : 'outline'} className={!line.isBalanced ? 'border-warning text-warning' : ''}>
-                  {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+                <Badge
+                  variant={line.isBalanced ? 'success' : 'warning'}
+                >
+                  {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
                 </Badge>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {line?.locationName ?? line?.locationId ?? '—'} • {line?.lineItemsCount} added{line?.quantity ? ` of ${line.quantity}` : ''}
+              {line?.locationPath ?? line?.locationName ?? line?.locationId ?? '—'}
             </p>
           </div>
           {isDraft && (
@@ -272,9 +274,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
           mode="compact"
           isLoading={isLoading}
           searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
-          filters={[
-            <ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />,
-          ]}
+          filters={[<ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />]}
           selectActions={(rows) => (
             <Button
               size="sm"
@@ -316,7 +316,14 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
         />
       </div>
 
-      <AddSerialDialog adjustmentId={adjustmentId} lineId={lineId} lastSerial={lastSerial} handle={addSerialDialog} />
+      <AddSerialDialog
+        adjustmentId={adjustmentId}
+        lineId={lineId}
+        lastSerial={lastSerial}
+        lineItemsCount={line?.lineItemsCount}
+        quantity={line?.quantity}
+        handle={addSerialDialog}
+      />
 
       <Dialog
         handle={editLineDialog}

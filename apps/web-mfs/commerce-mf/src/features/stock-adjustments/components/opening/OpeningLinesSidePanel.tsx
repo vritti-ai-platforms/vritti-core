@@ -1,3 +1,4 @@
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
@@ -59,17 +60,16 @@ export const OpeningLinesSidePanel = ({ adjustment, isDraft, selectedLineId, onS
           {lines.map((line) => (
             <SidePanelListItem key={line.id} active={selectedLineId === line.id} onClick={() => onSelect(line.id)}>
               <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-medium truncate">
-                  {line.locationName ?? line.locationId ?? '—'}
-                </div>
-                <span
-                  className={`shrink-0 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                    line.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
-                  }`}
+                <div className="text-sm font-medium truncate">{line.locationName ?? line.locationId ?? '—'}</div>
+                <Badge
+                  variant={line.isBalanced ? 'success' : 'warning'}
                 >
                   {line.lineItemsCount}/{line.quantity}
-                </span>
+                </Badge>
               </div>
+              {line.locationPath && (
+                <div className="text-xs text-muted-foreground mt-0.5 truncate">{line.locationPath}</div>
+              )}
             </SidePanelListItem>
           ))}
         </div>
