@@ -4,6 +4,7 @@ import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositori
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   BadRequestException,
+  type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
   type SuccessResponseDto,
@@ -56,7 +57,7 @@ export class StockAdjustmentLineItemsService {
     adjustmentId: string,
     lineId: string,
     data: { serialNumber: string },
-  ): Promise<StockAdjustmentLineItemDto> {
+  ): Promise<CreateResponseDto<StockAdjustmentLineItemDto>> {
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Line items can only be modified on DRAFT adjustments.');
@@ -93,7 +94,8 @@ export class StockAdjustmentLineItemsService {
     });
     await this.linesService.refreshIsBalanced(adjustmentId, lineId);
     this.logger.log(`Added line item ${entity.id} (serial=${trimmed}) to line ${lineId}`);
-    return StockAdjustmentLineItemDto.from(entity);
+    const dto = StockAdjustmentLineItemDto.from(entity);
+    return { success: true, message: `Serial "${dto.serialNumber}" added successfully.`, data: dto };
   }
 
   async updateLineItem(

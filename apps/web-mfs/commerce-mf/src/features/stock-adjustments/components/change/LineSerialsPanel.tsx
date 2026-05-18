@@ -5,11 +5,9 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { useBarcodeScanner } from '@vritti/quantum-ui/hooks';
+import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { toast } from '@vritti/quantum-ui/Sonner';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -41,15 +39,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
   const { data: response, isLoading: isItemsLoading } = useStockAdjustmentLineItemsTable(adjustment.id, lineId);
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
   const removeItemMutation = useRemoveStockAdjustmentLineItem(adjustment.id, lineId ?? '');
-  const addSerialMutation = useAddStockAdjustmentLineItem(adjustment.id, lineId ?? '', {
-    onSuccess: (data) => {
-      toast.success(`Serial picked: ${data.serialNumber}`);
-    },
-    onError: (error) => {
-      const detail = (error.response?.data as { detail?: string } | undefined)?.detail;
-      toast.error(detail ?? 'Failed to pick serial');
-    },
-  });
+  const addSerialMutation = useAddStockAdjustmentLineItem(adjustment.id, lineId ?? '');
 
   const scanner = useBarcodeScanner({
     mutation: addSerialMutation,
@@ -58,6 +48,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
   });
 
   const handleRemoveLine = async () => {
+    if (!lineId) return;
     const confirmed = await confirm({
       title: 'Remove this line?',
       description: 'This line and any picked serials will be removed.',
@@ -65,7 +56,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
       variant: 'destructive',
     });
     if (confirmed) {
-      removeLineMutation.mutate(lineId!, { onSuccess: () => onLineRemoved() });
+      removeLineMutation.mutate(lineId, { onSuccess: () => onLineRemoved() });
     }
   };
 
@@ -222,7 +213,12 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
               title="Scan Mode Active"
               description={`Point your scanner at a barcode — each scan auto-picks a serial for this line. Press ${formatHotkey(scanner.toggleShortcut).display} to toggle or ${formatHotkey(scanner.exitShortcut).display} to exit.`}
               action={
-                <Button size="sm" variant="outline" onClick={scanner.disable} endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={scanner.disable}
+                  endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}
+                >
                   Exit
                 </Button>
               }

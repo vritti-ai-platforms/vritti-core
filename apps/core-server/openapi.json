@@ -9750,7 +9750,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentLineItemResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -9758,6 +9765,7 @@
             "bearer": []
           }
         ],
+        "summary": "Add a serial line item to a stock adjustment line",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -16028,6 +16036,29 @@
         },
         "required": [
           "serialNumber"
+        ]
+      },
+      "StockAdjustmentLineItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stockAdjustmentLineId": {
+            "type": "string"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "stockAdjustmentLineId",
+          "serialNumber",
+          "createdAt"
         ]
       },
       "UpdateStockAdjustmentLineItemDto": {

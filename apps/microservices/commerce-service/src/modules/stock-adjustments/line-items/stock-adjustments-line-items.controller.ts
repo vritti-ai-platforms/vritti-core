@@ -1,7 +1,7 @@
 import type { StockAdjustmentLineItemDto } from '@domain/stock-adjustment-line-items/dto/entity/stock-adjustment-line-item.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 import { StockAdjustmentsLineItemsTransactionService } from './services/stock-adjustments-line-items-transaction.service';
 
 @Controller()
@@ -21,7 +21,7 @@ export class StockAdjustmentsLineItemsController {
   @MessagePattern({ cmd: 'stockAdjustments.addLineItem' })
   addLineItem(
     @Payload() data: { adjustmentId: string; lineId: string; serialNumber: string },
-  ): Promise<StockAdjustmentLineItemDto> {
+  ): Promise<CreateResponseDto<StockAdjustmentLineItemDto>> {
     this.logger.log(`stockAdjustments.addLineItem — line: ${data.lineId}`);
     return this.service.addLineItem(data);
   }

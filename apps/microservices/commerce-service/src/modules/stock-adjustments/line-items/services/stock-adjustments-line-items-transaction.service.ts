@@ -4,7 +4,7 @@ import { StockAdjustmentLineItemsService } from '@domain/stock-adjustment-line-i
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type SuccessResponseDto, type TableViewState, ValidationException } from '@vritti/api-sdk';
+import { type CreateResponseDto, type SuccessResponseDto, type TableViewState, ValidationException } from '@vritti/api-sdk';
 import { QuantItemStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 
 // App-layer service for line-item operations that need to check inventory-aggregate state
@@ -28,7 +28,7 @@ export class StockAdjustmentsLineItemsTransactionService {
     adjustmentId: string;
     lineId: string;
     serialNumber: string;
-  }): Promise<StockAdjustmentLineItemDto> {
+  }): Promise<CreateResponseDto<StockAdjustmentLineItemDto>> {
     const trimmed = data.serialNumber?.trim();
     if (trimmed) {
       await this.validateSerialForIntent(data.adjustmentId, data.lineId, trimmed);

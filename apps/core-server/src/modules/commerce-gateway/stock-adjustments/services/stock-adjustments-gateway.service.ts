@@ -205,8 +205,8 @@ export class StockAdjustmentsGatewayService {
     adjustmentId: string,
     lineId: string,
     dto: AddStockAdjustmentLineItemDto,
-  ): Promise<StockAdjustmentLineItemResponseDto> {
-    this.logger.log(`stockAdjustments.addLineItem — line: ${lineId}`);
+  ): Promise<CreateResponseDto<StockAdjustmentLineItemResponseDto>> {
+    this.logger.log(`stockAdjustments.addLineItem — line: ${lineId}, serial: ${dto.serialNumber}`);
     return this.nats.send('commerce', 'stockAdjustments.addLineItem', { adjustmentId, lineId, ...dto });
   }
 
