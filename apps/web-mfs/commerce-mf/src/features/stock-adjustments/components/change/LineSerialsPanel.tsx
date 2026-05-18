@@ -1,7 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  getSelectionColumn,
+  RowActions,
+  type SelectActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
@@ -75,6 +82,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
 
   const columns = useMemo<ColumnDef<StockAdjustmentLineItemData>[]>(
     () => [
+      ...(isDraft ? [getSelectionColumn<StockAdjustmentLineItemData>()] : []),
       {
         accessorKey: 'serialNumber',
         header: 'Serial Number',
@@ -119,12 +127,27 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
     serverState: response,
     slug: `stock-adjustment-${adjustment.id}-line-${lineId ?? 'none'}-items`,
     label: 'serial',
-    enableRowSelection: false,
+    enableRowSelection: isDraft,
     onStatePush: () => {
       if (lineId)
         queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustment.id, lineId) });
     },
   });
+
+  const handleBulkUnpick = useCallback(
+    async (rows: Parameters<SelectActions<StockAdjustmentLineItemData>>[0]) => {
+      const confirmed = await confirm({
+        title: `Remove ${rows.length} serial${rows.length === 1 ? '' : 's'}?`,
+        description: 'These serials will no longer be consumed by this line.',
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (!confirmed) return;
+      await Promise.all(rows.map((r) => removeItemMutation.mutateAsync(r.original.id)));
+      table.resetRowSelection();
+    },
+    [confirm, removeItemMutation, table],
+  );
 
   const isLoading = !!lineId && (isLineLoading || !line);
   const locationLabel = line
@@ -230,6 +253,17 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
             mode="compact"
             isLoading={isItemsLoading}
             searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
+            selectActions={(rows) => (
+              <Button
+                size="sm"
+                variant="destructive"
+                startAdornment={<Trash2 className="size-3.5" />}
+                onClick={() => handleBulkUnpick(rows)}
+                isLoading={removeItemMutation.isPending}
+              >
+                Remove
+              </Button>
+            )}
             toolbarActions={
               isDraft
                 ? {

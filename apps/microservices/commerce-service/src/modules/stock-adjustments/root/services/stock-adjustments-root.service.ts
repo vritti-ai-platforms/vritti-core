@@ -74,7 +74,7 @@ export class StockAdjustmentsRootService {
   }
 
   async publish(id: string): Promise<StockAdjustmentDto> {
-    const adjustment = await this.repository.findByIdWithItemName(id);
+    const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be published.');

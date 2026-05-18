@@ -71,4 +71,13 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
       .limit(1);
     return rows[0] as StockAdjustmentLineItem | undefined;
   }
+
+  // Returns the number of serial items already registered on a line
+  async countByLineId(lineId: string): Promise<number> {
+    const [result] = await this.db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(stockAdjustmentLineItems)
+      .where(eq(stockAdjustmentLineItems.stockAdjustmentLineId, lineId));
+    return Number(result?.count ?? 0);
+  }
 }

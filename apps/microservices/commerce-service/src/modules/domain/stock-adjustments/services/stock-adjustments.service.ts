@@ -49,9 +49,8 @@ export class StockAdjustmentsService {
     return { result: rows.map((r) => StockAdjustmentDto.from(r)), count };
   }
 
-  // Returns a single stock adjustment by ID with item name
   async findById(id: string): Promise<StockAdjustmentDto> {
-    const adjustment = await this.repository.findByIdWithItemName(id);
+    const adjustment = await this.repository.findById(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return StockAdjustmentDto.from(adjustment);
   }
@@ -79,7 +78,7 @@ export class StockAdjustmentsService {
 
   // Deletes a DRAFT adjustment and all its lines (CASCADE)
   async delete(id: string): Promise<SuccessResponseDto> {
-    const adjustment = await this.repository.findById(id);
+    const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be deleted.');
@@ -91,7 +90,7 @@ export class StockAdjustmentsService {
   }
 
   async updateAdjustment(id: string, data: { reason?: string }): Promise<StockAdjustmentDto> {
-    const adjustment = await this.repository.findById(id);
+    const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be edited.');
@@ -100,7 +99,7 @@ export class StockAdjustmentsService {
     await this.repository.update(id, {
       ...(data.reason !== undefined ? { reason: data.reason } : {}),
     });
-    const updated = await this.repository.findByIdWithItemName(id);
+    const updated = await this.repository.findById(id);
     if (!updated) throw new NotFoundException('Stock adjustment not found.');
     return StockAdjustmentDto.from(updated);
   }

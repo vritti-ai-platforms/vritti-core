@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, type SelectActions, DataTable, RowActions, getSelectionColumn, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
@@ -77,6 +77,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
 
   const columns = useMemo<ColumnDef<StockAdjustmentLineItemData>[]>(
     () => [
+      ...(isDraft ? [getSelectionColumn<StockAdjustmentLineItemData>()] : []),
       {
         accessorKey: 'serialNumber',
         header: 'Serial',
@@ -125,13 +126,28 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
     serverState: response,
     slug: tableSlug,
     label: 'serial',
-    enableRowSelection: false,
+    enableRowSelection: isDraft,
     onStatePush: () => {
       if (lineId) {
         queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustmentId, lineId) });
       }
     },
   });
+
+  const handleBulkRemove = useCallback(
+    async (rows: Parameters<SelectActions<StockAdjustmentLineItemData>>[0]) => {
+      const confirmed = await confirm({
+        title: `Remove ${rows.length} serial${rows.length === 1 ? '' : 's'}?`,
+        description: 'These serials will no longer be part of this line.',
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (!confirmed) return;
+      await Promise.all(rows.map((r) => removeSerialMutation.mutateAsync(r.original.id)));
+      table.resetRowSelection();
+    },
+    [confirm, removeSerialMutation, table],
+  );
 
   if (!line) {
     return (
@@ -204,6 +220,17 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, line, isDraft, onL
           table={table}
           mode="compact"
           isLoading={isLoading}
+          selectActions={(rows) => (
+            <Button
+              size="sm"
+              variant="destructive"
+              startAdornment={<Trash2 className="size-4" />}
+              onClick={() => handleBulkRemove(rows)}
+              isLoading={removeSerialMutation.isPending}
+            >
+              Remove
+            </Button>
+          )}
           toolbarActions={
             isDraft
               ? {

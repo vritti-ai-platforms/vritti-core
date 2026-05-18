@@ -62,7 +62,7 @@ export class StockAdjustmentsLineItemsTransactionService {
     lineId: string,
     serialNumber: string,
   ): Promise<void> {
-    const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
+    const adjustment = await this.adjustmentsRepository.findByIdWithItem(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     const line = await this.linesRepository.findById(lineId);
     if (!line || line.stockAdjustmentId !== adjustmentId) {

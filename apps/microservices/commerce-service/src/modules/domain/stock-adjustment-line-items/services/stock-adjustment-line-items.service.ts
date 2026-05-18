@@ -4,6 +4,7 @@ import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositori
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   BadRequestException,
+  ConflictException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
@@ -71,6 +72,15 @@ export class StockAdjustmentLineItemsService {
       throw new NotFoundException('Stock adjustment line not found.');
     }
 
+    // Enforce capacity: number of serial items must not exceed the line's quantity
+    const currentCount = await this.repository.countByLineId(lineId);
+    if (currentCount >= line.quantity) {
+      throw new BadRequestException({
+        label: 'Line Capacity Reached',
+        detail: `This line allows ${line.quantity} serial item(s). All slots are already filled.`,
+      });
+    }
+
     const trimmed = data.serialNumber?.trim();
     if (!trimmed) {
       throw new ValidationException({
@@ -82,7 +92,7 @@ export class StockAdjustmentLineItemsService {
     // Already on this line?
     const dup = await this.repository.findBySerialOnLine(lineId, trimmed);
     if (dup) {
-      throw new ValidationException({
+      throw new ConflictException({
         detail: `Serial "${trimmed}" already added to this line.`,
         errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
       });
@@ -167,7 +177,7 @@ export class StockAdjustmentLineItemsService {
   }
 
   private async getAdjustmentContext(adjustmentId: string) {
-    const adjustment = await this.adjustmentsRepository.findByIdWithItemName(adjustmentId);
+    const adjustment = await this.adjustmentsRepository.findByIdWithItem(adjustmentId);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     return adjustment;
   }

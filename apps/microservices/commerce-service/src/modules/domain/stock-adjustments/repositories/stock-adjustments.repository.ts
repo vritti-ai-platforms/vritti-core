@@ -92,7 +92,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     });
   }
 
-  async findByIdWithItemName(id: string): Promise<StockAdjustmentWithRefs | undefined> {
+  async findById(id: string): Promise<StockAdjustmentWithRefs | undefined> {
     const rows = await this.db
       .select({
         id: stockAdjustments.id,
