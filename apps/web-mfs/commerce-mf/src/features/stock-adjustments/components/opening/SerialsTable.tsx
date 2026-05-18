@@ -18,6 +18,7 @@ import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hoo
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
@@ -263,6 +264,10 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
           table={table}
           mode="compact"
           isLoading={isLoading}
+          searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
+          filters={[
+            <ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />,
+          ]}
           selectActions={(rows) => (
             <Button
               size="sm"

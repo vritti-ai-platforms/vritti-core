@@ -15,6 +15,7 @@ import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
@@ -257,6 +258,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
             mode="compact"
             isLoading={isItemsLoading}
             searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
+            filters={[<ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />]}
             selectActions={(rows) => (
               <Button
                 size="sm"
@@ -288,11 +290,12 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
               icon: Tags,
               title: 'No serials picked',
               description: 'Pick a serial to consume.',
-              action: isDraft && !line?.isBalanced ? (
-                <Button startAdornment={<Plus className="size-4" />} onClick={pickDialog.open}>
-                  Pick Serial
-                </Button>
-              ) : undefined,
+              action:
+                isDraft && !line?.isBalanced ? (
+                  <Button startAdornment={<Plus className="size-4" />} onClick={pickDialog.open}>
+                    Pick Serial
+                  </Button>
+                ) : undefined,
             }}
           />
         </div>
