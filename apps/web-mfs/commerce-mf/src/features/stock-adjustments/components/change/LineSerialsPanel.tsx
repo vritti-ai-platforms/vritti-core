@@ -156,9 +156,8 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
   );
 
   const isLoading = !!lineId && (isLineLoading || !line);
-  const locationLabel = line
-    ? [line.quantLotNumber, line.quantLocationPath ?? line.quantLocationName ?? line.quantLocationId].filter(Boolean).join(' @ ') || '—'
-    : '';
+  const locationTitle = line?.quantLotNumber ?? null;
+  const locationPath = line?.quantLocationPath ?? null;
 
   return (
     <PageContentDetails
@@ -169,13 +168,18 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
       {line && (
         <div className="space-y-6">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <h3 className="text-xl font-semibold leading-none tracking-tight">{locationLabel}</h3>
-              <Badge
-                variant={line.isBalanced ? 'success' : 'warning'}
-              >
-                {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
-              </Badge>
+            <div className="flex items-start gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  {locationTitle && <h3 className="text-xl font-semibold leading-none tracking-tight">{locationTitle}</h3>}
+                  <Badge variant={line.isBalanced ? 'success' : 'warning'}>
+                    {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+                  </Badge>
+                </div>
+                {locationPath && (
+                  <p className="mt-1 text-sm text-muted-foreground">{locationPath}</p>
+                )}
+              </div>
             </div>
             {isDraft && (
               <div className="flex items-center gap-2">
