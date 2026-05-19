@@ -140,6 +140,10 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     });
   }
 
+  async findByAdjustmentIdAndQuantId(adjustmentId: string, quantId: string): Promise<{ id: string } | undefined> {
+    return this.model.findFirst({ where: { stockAdjustmentId: adjustmentId, quantId } });
+  }
+
   async setResolvedQuant(lineId: string, resolvedQuantId: string): Promise<void> {
     await this.db.update(stockAdjustmentLines).set({ resolvedQuantId }).where(eq(stockAdjustmentLines.id, lineId));
   }

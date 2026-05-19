@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
+  ConflictException,
   type FieldMap,
   FilterProcessor,
   NotFoundException,
@@ -159,6 +160,15 @@ export class StockAdjustmentLinesService {
       throw new ValidationException({
         detail: 'Quantity must be a non-zero number.',
         errors: [{ field: 'quantity', message: 'Quantity is required.' }],
+      });
+    }
+
+    const existing = await this.repository.findByAdjustmentIdAndQuantId(adjustment.id, data.quantId);
+    if (existing) {
+      throw new ConflictException({
+        label: 'Duplicate Quant',
+        detail: 'A line for this quant already exists on the adjustment.',
+        errors: [{ field: 'quantId', message: 'Quant already added.' }],
       });
     }
 

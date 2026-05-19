@@ -2,6 +2,7 @@ import { PurchaseOrderItemsRepository } from '@domain/purchase-orders/repositori
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
+  ConflictException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
@@ -109,11 +110,23 @@ export class GoodsReceiptItemsService {
       this.validateRejectedQuantity(data.rejectedQuantity);
     }
 
-    const entity = await this.itemsRepository.create({
-      goodsReceiptId,
-      inventoryItemId: data.inventoryItemId,
-      rejectedQuantity: String(data.rejectedQuantity ?? 0),
-    });
+    let entity: Awaited<ReturnType<typeof this.itemsRepository.create>>;
+    try {
+      entity = await this.itemsRepository.create({
+        goodsReceiptId,
+        inventoryItemId: data.inventoryItemId,
+        rejectedQuantity: String(data.rejectedQuantity ?? 0),
+      });
+    } catch (error: unknown) {
+      if ((error as { code?: string })?.code === '23505') {
+        throw new ConflictException({
+          label: 'Duplicate Item',
+          detail: 'This inventory item is already on the goods receipt.',
+          errors: [{ field: 'inventoryItemId', message: 'Already added to this goods receipt.' }],
+        });
+      }
+      throw error;
+    }
 
     this.logger.log(`Added item ${entity.id} to goods receipt ${goodsReceiptId}`);
     const dto = await this.findById(goodsReceiptId, entity.id);

@@ -3,6 +3,7 @@ import { GoodsReceiptLinesService } from '@domain/goods-receipt-lines/services/g
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   BadRequestException,
+  ConflictException,
   type FieldMap,
   FilterProcessor,
   type SuccessResponseDto,
@@ -78,29 +79,37 @@ export class GoodsReceiptLineItemsService {
     const trimmed = data.serialNumber?.trim();
     if (!trimmed) {
       throw new ValidationException({
+        label: 'Invalid Serial',
         detail: 'Serial number is required.',
         errors: [{ field: 'serialNumber', message: 'Serial number is required.' }],
       });
     }
 
-    // Already on this line?
     const dup = await this.repository.findBySerialOnLine(lineId, trimmed);
     if (dup) {
-      throw new ValidationException({
+      throw new ConflictException({
+        label: 'Duplicate Serial',
         detail: `Serial "${trimmed}" already added to this line.`,
         errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
       });
     }
 
     await this.validateSerialForRegister(ctx.inventoryItemId, trimmed);
-
-    // PO cap check: each new serial bumps the line quantity which contributes to the item total
     await this.linesService.validatePoCap(ctx, 1, lineId);
 
-    const entity = await this.repository.create({
-      goodsReceiptLineId: lineId,
-      serialNumber: trimmed,
-    });
+    let entity: Awaited<ReturnType<typeof this.repository.create>>;
+    try {
+      entity = await this.repository.create({ goodsReceiptLineId: lineId, serialNumber: trimmed });
+    } catch (error: unknown) {
+      if ((error as { code?: string })?.code === '23505') {
+        throw new ConflictException({
+          label: 'Duplicate Serial',
+          detail: `Serial "${trimmed}" is already on this line.`,
+          errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
+        });
+      }
+      throw error;
+    }
     await this.linesRepository.refreshIsBalanced(lineId, ctx.tracking);
 
     this.logger.log(`Added line item ${entity.id} (serial=${trimmed}) to line ${lineId}`);
@@ -132,6 +141,7 @@ export class GoodsReceiptLineItemsService {
     const trimmed = data.serialNumber?.trim();
     if (!trimmed) {
       throw new ValidationException({
+        label: 'Invalid Serial',
         detail: 'Serial number is required.',
         errors: [{ field: 'serialNumber', message: 'Serial number is required.' }],
       });
@@ -140,7 +150,8 @@ export class GoodsReceiptLineItemsService {
     if (trimmed !== existing.serialNumber) {
       const dup = await this.repository.findBySerialOnLine(lineId, trimmed);
       if (dup) {
-        throw new ValidationException({
+        throw new ConflictException({
+          label: 'Duplicate Serial',
           detail: `Serial "${trimmed}" already added to this line.`,
           errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
         });
@@ -148,7 +159,19 @@ export class GoodsReceiptLineItemsService {
       await this.validateSerialForRegister(ctx.inventoryItemId, trimmed);
     }
 
-    const updated = await this.repository.update(subItemId, { serialNumber: trimmed });
+    let updated: Awaited<ReturnType<typeof this.repository.update>>;
+    try {
+      updated = await this.repository.update(subItemId, { serialNumber: trimmed });
+    } catch (error: unknown) {
+      if ((error as { code?: string })?.code === '23505') {
+        throw new ConflictException({
+          label: 'Duplicate Serial',
+          detail: `Serial "${trimmed}" is already on this line.`,
+          errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
+        });
+      }
+      throw error;
+    }
     await this.linesRepository.refreshIsBalanced(lineId, ctx.tracking);
     return GoodsReceiptLineItemDto.from(updated);
   }
@@ -174,8 +197,7 @@ export class GoodsReceiptLineItemsService {
     return { success: true, message: `Serial "${existing.serialNumber}" removed successfully.` };
   }
 
-  // Goods receipt always REGISTERS new serials. Reject collision with existing inventory_item_quant_items
-  // for this inventory item.
+  // Goods receipt always REGISTERS new serials. Reject collision with existing inventory_item_quant_items.
   private async validateSerialForRegister(inventoryItemId: string, serialNumber: string): Promise<void> {
     const rows = await this.repository['db']
       .select({ id: inventoryItemQuantItems.id })
@@ -188,7 +210,8 @@ export class GoodsReceiptLineItemsService {
       )
       .limit(1);
     if (rows.length > 0) {
-      throw new ValidationException({
+      throw new ConflictException({
+        label: 'Duplicate Serial',
         detail: `Serial "${serialNumber}" already exists in inventory.`,
         errors: [{ field: 'serialNumber', message: 'Serial already exists in inventory.' }],
       });
