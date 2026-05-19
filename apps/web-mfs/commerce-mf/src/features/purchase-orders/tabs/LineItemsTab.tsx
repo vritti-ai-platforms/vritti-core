@@ -98,8 +98,6 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
                           <UpdatePurchaseOrderItemDialog
                             purchaseOrderId={purchaseOrderId}
                             poCurrencyCode={purchaseOrder.currencyCode}
-                            supplierCurrencyCode={purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode}
-                            conversionRate={purchaseOrder.conversionRate}
                             item={row.original}
                             onSuccess={close}
                             onCancel={close}
@@ -127,9 +125,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
       canModifyItems,
       handleRemoveItem,
       purchaseOrderId,
-      purchaseOrder.conversionRate,
       purchaseOrder.currencyCode,
-      purchaseOrder.supplierCurrencyCode,
     ],
   );
 

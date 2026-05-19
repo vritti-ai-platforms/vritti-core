@@ -13,8 +13,6 @@ import type { PurchaseOrderItemData } from '@/schemas/purchase-orders';
 interface UpdatePurchaseOrderItemDialogProps {
   purchaseOrderId: string;
   poCurrencyCode: string;
-  supplierCurrencyCode: string;
-  conversionRate: number;
   item: PurchaseOrderItemData;
   onSuccess: () => void;
   onCancel: () => void;
@@ -26,6 +24,7 @@ type UpdateLineItemFormData = {
   orderedQuantity: number;
   overridePrice: boolean;
   unitPrice?: { currency: string; value: string } | null;
+  conversionRate: string;
 };
 
 const baseUpdateLineItemSchema = z
@@ -33,6 +32,7 @@ const baseUpdateLineItemSchema = z
     orderedQuantity: zodNumericField({ required: 'Quantity is required', positive: true }),
     overridePrice: z.boolean(),
     unitPrice: currencyValueSchema.optional().nullable(),
+    conversionRate: z.string(),
   })
   .superRefine((data, ctx) => {
     if (!data.unitPrice?.value) {
@@ -47,13 +47,14 @@ const baseUpdateLineItemSchema = z
 export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDialogProps> = ({
   purchaseOrderId,
   poCurrencyCode,
-  conversionRate,
   item,
   onSuccess,
   onCancel,
 }) => {
+  const isSameCurrency = item.itemCurrencyCode === poCurrencyCode;
+
   const supplierUnitPriceNum = Number(item.supplierUnitPrice.value);
-  const convertedUnitPriceNum = supplierUnitPriceNum * conversionRate;
+  const convertedUnitPriceNum = supplierUnitPriceNum * item.conversionRate;
   const convertedUnitPrice = { currency: poCurrencyCode, value: String(convertedUnitPriceNum) };
 
   const unitPriceLabel = `Unit Price (Supplier: ${item.supplierUnitPrice.value})`;
@@ -82,6 +83,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
       orderedQuantity: item.orderedQuantity,
       overridePrice: isOverrideInitial,
       unitPrice: item.unitPrice ?? convertedUnitPrice,
+      conversionRate: String(item.conversionRate),
     },
   });
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
@@ -104,11 +106,20 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
         id: purchaseOrderId,
         itemId: item.id,
         orderedQuantity: data.orderedQuantity,
+        conversionRate: isSameCurrency ? item.conversionRate : Number(data.conversionRate),
         supplierUnitPrice: item.supplierUnitPrice,
         unitPrice: data.overridePrice ? (data.unitPrice ?? null) : convertedUnitPrice,
       })}
     >
       <TextField name="orderedQuantity" label="Ordered Quantity" type="number" placeholder="e.g. 500" />
+      {!isSameCurrency && (
+        <TextField
+          name="conversionRate"
+          label={`Conversion Rate (${item.itemCurrencyCode} → ${poCurrencyCode})`}
+          type="number"
+          placeholder="e.g. 1.25"
+        />
+      )}
       <Switch
         name="overridePrice"
         label="Override Price"

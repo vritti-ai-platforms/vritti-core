@@ -18,4 +18,9 @@ export class UpdatePurchaseOrderItemDto {
   @IsOptional()
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  conversionRate?: number;
 }
