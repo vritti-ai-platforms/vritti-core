@@ -3,6 +3,7 @@ import { Alert } from '@vritti/quantum-ui/Alert';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
+  CompactTableSkeleton,
   type ColumnDef,
   DataTable,
   getSelectionColumn,
@@ -16,6 +17,7 @@ import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -27,7 +29,7 @@ import {
   useStockAdjustmentLine,
   useStockAdjustmentLineItemsTable,
 } from '@/hooks/stock-adjustments';
-import type { StockAdjustmentData, StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
+import type { StockAdjustmentData, StockAdjustmentLineData, StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
 import { EditChangeLineDialog } from '../../forms/change/EditChangeLineDialog';
 import { PickSerialDialog } from '../../forms/change/PickSerialDialog';
 
@@ -39,38 +41,65 @@ interface LineSerialsPanelProps {
 }
 
 export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }: LineSerialsPanelProps) => {
+  const { data: line, isLoading } = useStockAdjustmentLine(adjustment.id, lineId);
+
+  return (
+    <PageContentDetails
+      isLoading={!!lineId && (isLoading || !line)}
+      loadingContent={<LineSerialsPanelSkeleton />}
+      isEmpty={!lineId}
+      emptyState={<Empty icon={<Tags />} title="No line selected" description="Select a line from the left panel." />}
+    >
+      {line && lineId ? (
+        <LineSerialsPanelContent
+          adjustment={adjustment}
+          lineId={lineId}
+          line={line}
+          isDraft={isDraft}
+          onLineRemoved={onLineRemoved}
+        />
+      ) : null}
+    </PageContentDetails>
+  );
+};
+
+interface LineSerialsPanelContentProps {
+  adjustment: StockAdjustmentData;
+  lineId: string;
+  line: StockAdjustmentLineData;
+  isDraft: boolean;
+  onLineRemoved: () => void;
+}
+
+function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemoved }: LineSerialsPanelContentProps) {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const pickDialog = useDialog();
   const editLineDialog = useDialog();
 
-  const { data: line, isLoading: isLineLoading } = useStockAdjustmentLine(adjustment.id, lineId);
   const { data: response, isLoading: isItemsLoading } = useStockAdjustmentLineItemsTable(adjustment.id, lineId);
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
-  const removeItemMutation = useRemoveStockAdjustmentLineItem(adjustment.id, lineId ?? '');
-  const addSerialMutation = useAddStockAdjustmentLineItem(adjustment.id, lineId ?? '');
+  const removeItemMutation = useRemoveStockAdjustmentLineItem(adjustment.id, lineId);
+  const addSerialMutation = useAddStockAdjustmentLineItem(adjustment.id, lineId);
 
   const scanner = useBarcodeScanner({
     mutation: addSerialMutation,
     toVariables: (code) => ({ serialNumber: code }),
-    enabled: isDraft && !!lineId,
+    enabled: isDraft,
   });
 
   useEffect(() => {
-    if (line?.isBalanced && pickDialog.isOpen) pickDialog.close();
-  }, [line?.isBalanced, pickDialog]);
+    if (line.isBalanced && pickDialog.isOpen) pickDialog.close();
+  }, [line.isBalanced, pickDialog]);
 
   const handleRemoveLine = async () => {
-    if (!lineId) return;
     const confirmed = await confirm({
       title: 'Remove this line?',
       description: 'This line and any picked serials will be removed.',
       confirmLabel: 'Remove',
       variant: 'destructive',
     });
-    if (confirmed) {
-      removeLineMutation.mutate(lineId, { onSuccess: () => onLineRemoved() });
-    }
+    if (confirmed) removeLineMutation.mutate(lineId, { onSuccess: () => onLineRemoved() });
   };
 
   const handleUnpick = useCallback(
@@ -131,12 +160,11 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `stock-adjustment-${adjustment.id}-line-${lineId ?? 'none'}-items`,
+    slug: `stock-adjustment-${adjustment.id}-line-${lineId}-items`,
     label: 'serial',
     enableRowSelection: isDraft,
     onStatePush: () => {
-      if (lineId)
-        queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustment.id, lineId) });
+      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustment.id, lineId) });
     },
   });
 
@@ -155,164 +183,188 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
     [confirm, removeItemMutation, table],
   );
 
-  const isLoading = !!lineId && (isLineLoading || !line);
-  const locationTitle = line?.quantLotNumber ?? null;
-  const locationPath = line?.quantLocationPath ?? null;
-
   return (
-    <PageContentDetails
-      isLoading={isLoading}
-      isEmpty={!lineId}
-      emptyState={<Empty icon={<Tags />} title="No line selected" description="Select a line from the left panel." />}
-    >
-      {line && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-start gap-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  {locationTitle && <h3 className="text-xl font-semibold leading-none tracking-tight">{locationTitle}</h3>}
-                  <Badge variant={line.isBalanced ? 'success' : 'warning'}>
-                    {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
-                  </Badge>
-                </div>
-                {locationPath && (
-                  <p className="mt-1 text-sm text-muted-foreground">{locationPath}</p>
-                )}
-              </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-start gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              {line.quantLotNumber && (
+                <h3 className="text-xl font-semibold leading-none tracking-tight">{line.quantLotNumber}</h3>
+              )}
+              <Badge variant={line.isBalanced ? 'success' : 'warning'}>
+                {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+              </Badge>
             </div>
-            {isDraft && (
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant={scanner.isActive ? 'default' : 'outline'}
-                  startAdornment={<ScanBarcode className="size-3.5" />}
-                  endAdornment={<KbdGroup className="ml-1" shortcut={scanner.toggleShortcut} />}
-                  onClick={scanner.toggle}
-                >
-                  Scan Barcode
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  startAdornment={<Pencil className="size-3.5" />}
-                  onClick={editLineDialog.open}
-                >
-                  Edit Line
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  startAdornment={<Trash2 className="size-3.5" />}
-                  onClick={handleRemoveLine}
-                  isLoading={removeLineMutation.isPending}
-                >
-                  Remove Line
-                </Button>
-              </div>
+            {line.quantLocationPath && (
+              <p className="mt-1 text-sm text-muted-foreground">{line.quantLocationPath}</p>
             )}
           </div>
+        </div>
+        {isDraft && (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={scanner.isActive ? 'default' : 'outline'}
+              startAdornment={<ScanBarcode className="size-3.5" />}
+              endAdornment={<KbdGroup className="ml-1" shortcut={scanner.toggleShortcut} />}
+              onClick={scanner.toggle}
+            >
+              Scan Barcode
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              startAdornment={<Pencil className="size-3.5" />}
+              onClick={editLineDialog.open}
+            >
+              Edit Line
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              startAdornment={<Trash2 className="size-3.5" />}
+              onClick={handleRemoveLine}
+              isLoading={removeLineMutation.isPending}
+            >
+              Remove Line
+            </Button>
+          </div>
+        )}
+      </div>
 
-          <DetailSection wrap>
-            <DetailField
-              className="px-4 py-2"
-              label="Available"
-              value={
-                line.quantAvailableQuantity != null
-                  ? `${line.quantAvailableQuantity} ${adjustment.inventoryItemUomSymbol}`
-                  : '—'
-              }
-            />
-            <DetailField
-              className="px-4 py-2"
-              label="Quantity"
-              value={`${line.quantity} ${adjustment.inventoryItemUomSymbol}`}
-            />
-          </DetailSection>
+      <DetailSection wrap>
+        <DetailField
+          className="px-4 py-2"
+          label="Available"
+          value={
+            line.quantAvailableQuantity != null
+              ? `${line.quantAvailableQuantity} ${adjustment.inventoryItemUomSymbol}`
+              : '—'
+          }
+        />
+        <DetailField
+          className="px-4 py-2"
+          label="Quantity"
+          value={`${line.quantity} ${adjustment.inventoryItemUomSymbol}`}
+        />
+      </DetailSection>
 
-          {scanner.isActive && (
-            <Alert
-              variant="info"
-              icon={<ScanBarcode className="size-4" />}
-              title="Scan Mode Active"
-              description={`Point your scanner at a barcode — each scan auto-picks a serial for this line. Press ${formatHotkey(scanner.toggleShortcut).display} to toggle or ${formatHotkey(scanner.exitShortcut).display} to exit.`}
-              action={
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={scanner.disable}
-                  endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}
-                >
-                  Exit
-                </Button>
-              }
-            />
-          )}
+      {scanner.isActive && (
+        <Alert
+          variant="info"
+          icon={<ScanBarcode className="size-4" />}
+          title="Scan Mode Active"
+          description={`Point your scanner at a barcode — each scan auto-picks a serial for this line. Press ${formatHotkey(scanner.toggleShortcut).display} to toggle or ${formatHotkey(scanner.exitShortcut).display} to exit.`}
+          action={
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={scanner.disable}
+              endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}
+            >
+              Exit
+            </Button>
+          }
+        />
+      )}
 
-          <DataTable
-            table={table}
-            mode="compact"
-            isLoading={isItemsLoading}
-            searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
-            filters={[<ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />]}
-            selectActions={(rows) => (
-              <Button
-                size="sm"
-                variant="destructive"
-                startAdornment={<Trash2 className="size-3.5" />}
-                onClick={() => handleBulkUnpick(rows)}
-                isLoading={removeItemMutation.isPending}
-              >
-                Remove
-              </Button>
-            )}
-            toolbarActions={
-              isDraft
-                ? {
-                    actions: (
-                      <Button
-                        size="sm"
-                        startAdornment={<Plus className="size-4" />}
-                        onClick={pickDialog.open}
-                        disabled={!!line?.isBalanced || !line?.quantId}
-                      >
-                        Pick Serial
-                      </Button>
-                    ),
-                  }
-                : undefined
-            }
-            emptyStateConfig={{
-              icon: Tags,
-              title: 'No serials picked',
-              description: 'Pick a serial to consume.',
-              action:
-                isDraft && !line?.isBalanced && !!line?.quantId ? (
-                  <Button startAdornment={<Plus className="size-4" />} onClick={pickDialog.open}>
+      <DataTable
+        table={table}
+        mode="compact"
+        isLoading={isItemsLoading}
+        searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
+        filters={[<ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />]}
+        selectActions={(rows) => (
+          <Button
+            size="sm"
+            variant="destructive"
+            startAdornment={<Trash2 className="size-3.5" />}
+            onClick={() => handleBulkUnpick(rows)}
+            isLoading={removeItemMutation.isPending}
+          >
+            Remove
+          </Button>
+        )}
+        toolbarActions={
+          isDraft
+            ? {
+                actions: (
+                  <Button
+                    size="sm"
+                    startAdornment={<Plus className="size-4" />}
+                    onClick={pickDialog.open}
+                    disabled={line.isBalanced || !line.quantId}
+                  >
                     Pick Serial
                   </Button>
-                ) : undefined,
-            }}
-          />
-        </div>
-      )}
+                ),
+              }
+            : undefined
+        }
+        emptyStateConfig={{
+          icon: Tags,
+          title: 'No serials picked',
+          description: 'Pick a serial to consume.',
+          action:
+            isDraft && !line.isBalanced && line.quantId ? (
+              <Button startAdornment={<Plus className="size-4" />} onClick={pickDialog.open}>
+                Pick Serial
+              </Button>
+            ) : undefined,
+        }}
+      />
 
       <PickSerialDialog
         adjustmentId={adjustment.id}
         lineId={lineId}
-        quantId={line?.quantId ?? null}
-        lineItemsCount={line?.lineItemsCount ?? 0}
-        quantity={line?.quantity ?? 0}
+        quantId={line.quantId}
+        lineItemsCount={line.lineItemsCount}
+        quantity={line.quantity}
         handle={pickDialog}
       />
       <EditChangeLineDialog
         adjustmentId={adjustment.id}
         inventoryItemId={adjustment.inventoryItemId}
-        line={line ?? null}
+        line={line}
         tracking="serial"
         adjustmentType={adjustment.type}
         handle={editLineDialog}
       />
-    </PageContentDetails>
+    </div>
   );
-};
+}
+
+function LineSerialsPanelSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-28 rounded-md" />
+          <Skeleton className="h-8 w-24 rounded-md" />
+          <Skeleton className="h-8 w-28 rounded-md" />
+        </div>
+      </div>
+      <DetailSection wrap>
+        {Array.from({ length: 2 }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
+          <div key={i} className="space-y-1.5 px-4 py-2">
+            <Skeleton className="h-3 w-14" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
+      </DetailSection>
+      <CompactTableSkeleton
+        rows={4}
+        columns={[
+          { headerWidth: 'w-24', cellWidth: 'w-36' },
+          { headerWidth: 'w-16', cellWidth: 'w-28' },
+        ]}
+      />
+    </div>
+  );
+}
