@@ -3,8 +3,8 @@ import { Alert } from '@vritti/quantum-ui/Alert';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
-  CompactTableSkeleton,
   type ColumnDef,
+  CompactTableSkeleton,
   DataTable,
   getSelectionColumn,
   RowActions,
@@ -29,7 +29,11 @@ import {
   useStockAdjustmentLine,
   useStockAdjustmentLineItemsTable,
 } from '@/hooks/stock-adjustments';
-import type { StockAdjustmentData, StockAdjustmentLineData, StockAdjustmentLineItemData } from '@/schemas/stock-adjustments';
+import type {
+  StockAdjustmentData,
+  StockAdjustmentLineData,
+  StockAdjustmentLineItemData,
+} from '@/schemas/stock-adjustments';
 import { EditChangeLineDialog } from '../../forms/change/EditChangeLineDialog';
 import { PickSerialDialog } from '../../forms/change/PickSerialDialog';
 
@@ -196,9 +200,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
                 {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
               </Badge>
             </div>
-            {line.quantLocationPath && (
-              <p className="mt-1 text-sm text-muted-foreground">{line.quantLocationPath}</p>
-            )}
+            {line.quantLocationPath && <p className="mt-1 text-sm text-muted-foreground">{line.quantLocationPath}</p>}
           </div>
         </div>
         {isDraft && (
