@@ -84,38 +84,35 @@ const AddChangeLineForm = ({
           setAvailableQty(qty != null ? Number(qty) : null);
         }}
       />
-      {!isItem && (
-        <div className="grid grid-cols-2 gap-4">
-          <TextField
-            name="quantity"
-            label="Quantity"
-            type="number"
-            positive={!isCorrection}
-            nonZero
-            integer={!allowDecimal}
-            max={maxQty}
-          />
-          <UomSelector
-            name="uomId"
-            label="Unit"
-            params={{ inventoryItemId }}
-            onOptionSelect={(option) => {
-              const n = option?.additionals?.numerator;
-              const d = option?.additionals?.denominator;
-              setNumerator(n != null ? Number(n) : 1);
-              setDenominator(d != null && Number(d) !== 0 ? Number(d) : 1);
-              setAllowDecimal(option?.additionals?.allowDecimal !== false);
-            }}
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-2 gap-4">
+        <TextField
+          name="quantity"
+          label="Quantity"
+          type="number"
+          positive={!isCorrection}
+          nonZero
+          integer={!allowDecimal}
+          max={maxQty}
+        />
+        <UomSelector
+          name="uomId"
+          label="Unit"
+          params={{ inventoryItemId }}
+          disabled={isItem}
+          onOptionSelect={(option) => {
+            const n = option?.additionals?.numerator;
+            const d = option?.additionals?.denominator;
+            setNumerator(n != null ? Number(n) : 1);
+            setDenominator(d != null && Number(d) !== 0 ? Number(d) : 1);
+            setAllowDecimal(option?.additionals?.allowDecimal !== false);
+          }}
+        />
+      </div>
       {isCorrection && !isItem && (
         <p className="text-xs text-muted-foreground">Positive quantity adds to the quant; negative deducts.</p>
       )}
       {isItem && (
-        <p className="text-xs text-muted-foreground">
-          Quantity is derived from the number of serials picked under this line.
-        </p>
+        <p className="text-xs text-muted-foreground">Pick serials to fulfill the quantity above.</p>
       )}
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
@@ -146,7 +143,7 @@ export const AddChangeLineDialog = ({
   <Dialog
     handle={handle}
     title="Add Line"
-    description="Pick the quant and enter the quantity."
+    description="Pick a quant and enter the quantity for this line."
     content={(close) => (
       <AddChangeLineForm
         adjustmentId={adjustmentId}

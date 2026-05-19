@@ -2,21 +2,22 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { TextField } from '@vritti/quantum-ui/TextField';
+import { QuantItemSelector } from '@vritti/quantum-ui/selects/quant-item';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLineItem } from '@/hooks/stock-adjustments';
 import { type AddStockAdjustmentLineItemFormData, addStockAdjustmentLineItemSchema } from '@/schemas/stock-adjustments';
 
-// Type-or-scan a serial. Backend validates it belongs to the parent quant AND status='AVAILABLE'.
 const PickSerialForm = ({
   adjustmentId,
   lineId,
+  quantId,
   onSuccess,
   onCancel,
 }: {
   adjustmentId: string;
   lineId: string;
+  quantId: string;
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
@@ -36,9 +37,15 @@ const PickSerialForm = ({
       form={form}
       mutation={mutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ serialNumber: data.serialNumber.trim() })}
+      transformSubmit={(data) => ({ serialNumber: data.serialNumber })}
     >
-      <TextField name="serialNumber" label="Serial Number" placeholder="Type or scan an AVAILABLE serial" autoFocus />
+      <QuantItemSelector
+        name="serialNumber"
+        label="Serial Number"
+        placeholder="Pick an AVAILABLE serial"
+        quantId={quantId}
+        fieldKeys={{ valueKey: 'serialNumber', labelKey: 'serialNumber' }}
+      />
       <p className="text-xs text-muted-foreground">The serial must belong to the picked quant and be AVAILABLE.</p>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onSuccess}>
@@ -53,18 +60,28 @@ const PickSerialForm = ({
 export const PickSerialDialog = ({
   adjustmentId,
   lineId,
+  quantId,
   handle,
 }: {
   adjustmentId: string;
   lineId: string | null;
+  quantId: string | null;
   handle: ReturnType<typeof useDialog>;
 }) => (
   <Dialog
     handle={handle}
     title="Pick Serial"
-    description="Type or scan a serial to consume it from the picked quant."
+    description="Select a serial to consume it from the picked quant."
     content={(close) =>
-      lineId ? <PickSerialForm adjustmentId={adjustmentId} lineId={lineId} onSuccess={close} onCancel={close} /> : null
+      lineId && quantId ? (
+        <PickSerialForm
+          adjustmentId={adjustmentId}
+          lineId={lineId}
+          quantId={quantId}
+          onSuccess={close}
+          onCancel={close}
+        />
+      ) : null
     }
   />
 );

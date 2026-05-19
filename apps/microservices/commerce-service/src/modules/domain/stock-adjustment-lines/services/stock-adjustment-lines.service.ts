@@ -162,6 +162,10 @@ export class StockAdjustmentLinesService {
       });
     }
 
+    const isItemTracking =
+      adjustment.inventoryItemTracking === InventoryTrackingValues.SERIAL ||
+      adjustment.inventoryItemTracking === InventoryTrackingValues.LOT_SERIAL;
+
     const line = await this.repository.create({
       stockAdjustmentId: adjustment.id,
       stockAdjustmentLotId: null,
@@ -170,7 +174,7 @@ export class StockAdjustmentLinesService {
       uomId: data.uomId,
       conversionFactor: data.conversionFactor,
       quantity: data.quantity,
-      isBalanced: true,
+      isBalanced: !isItemTracking,
     });
 
     this.logger.log(`Added change line ${line.id} to adjustment ${adjustment.id}`);

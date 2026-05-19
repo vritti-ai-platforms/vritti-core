@@ -27,8 +27,8 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
         className="w-80"
         header={
           <div className="space-y-1">
-            <div className="text-sm font-semibold">Quants</div>
-            <div className="text-xs text-muted-foreground">{pluralize('quant', lines.length, true)}</div>
+            <div className="text-sm font-semibold">Lines</div>
+            <div className="text-xs text-muted-foreground">{pluralize('line', lines.length, true)}</div>
           </div>
         }
         actions={

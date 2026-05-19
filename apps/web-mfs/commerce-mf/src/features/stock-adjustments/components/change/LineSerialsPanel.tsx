@@ -270,7 +270,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
                         size="sm"
                         startAdornment={<Plus className="size-4" />}
                         onClick={pickDialog.open}
-                        disabled={!!line?.isBalanced}
+                        disabled={!!line?.isBalanced || !line?.quantId}
                       >
                         Pick Serial
                       </Button>
@@ -283,7 +283,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
               title: 'No serials picked',
               description: 'Pick a serial to consume.',
               action:
-                isDraft && !line?.isBalanced ? (
+                isDraft && !line?.isBalanced && !!line?.quantId ? (
                   <Button startAdornment={<Plus className="size-4" />} onClick={pickDialog.open}>
                     Pick Serial
                   </Button>
@@ -293,7 +293,7 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
         </div>
       )}
 
-      <PickSerialDialog adjustmentId={adjustment.id} lineId={lineId} handle={pickDialog} />
+      <PickSerialDialog adjustmentId={adjustment.id} lineId={lineId} quantId={line?.quantId ?? null} handle={pickDialog} />
       <EditChangeLineDialog
         adjustmentId={adjustment.id}
         inventoryItemId={adjustment.inventoryItemId}

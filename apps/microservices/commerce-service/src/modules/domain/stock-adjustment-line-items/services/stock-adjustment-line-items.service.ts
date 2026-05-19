@@ -79,6 +79,7 @@ export class StockAdjustmentLineItemsService {
     const trimmed = data.serialNumber?.trim();
     if (!trimmed) {
       throw new ValidationException({
+        label: 'Invalid Serial',
         detail: 'Serial number is required.',
         errors: [{ field: 'serialNumber', message: 'Serial number is required.' }],
       });
@@ -132,6 +133,7 @@ export class StockAdjustmentLineItemsService {
     const trimmed = data.serialNumber?.trim();
     if (!trimmed) {
       throw new ValidationException({
+        label: 'Invalid Serial',
         detail: 'Serial number is required.',
         errors: [{ field: 'serialNumber', message: 'Serial number is required.' }],
       });

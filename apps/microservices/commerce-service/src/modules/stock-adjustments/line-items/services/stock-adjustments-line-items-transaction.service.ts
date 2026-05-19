@@ -89,6 +89,7 @@ export class StockAdjustmentsLineItemsTransactionService {
       const existing = await this.quantsRepository.findQuantItemBySerial(adjustment.inventoryItemId, serialNumber);
       if (existing) {
         throw new ValidationException({
+          label: 'Duplicate Serial',
           detail: `Serial "${serialNumber}" already exists in inventory.`,
           errors: [{ field: 'serialNumber', message: 'Serial already exists in inventory.' }],
         });
@@ -98,6 +99,7 @@ export class StockAdjustmentsLineItemsTransactionService {
 
     if (!lineQuantId) {
       throw new ValidationException({
+        label: 'Missing Quant',
         detail: 'Cannot pick units without a quant on the line.',
         errors: [{ field: 'serialNumber', message: 'Line is missing a quant.' }],
       });
@@ -105,18 +107,21 @@ export class StockAdjustmentsLineItemsTransactionService {
     const existing = await this.quantsRepository.findQuantItemBySerial(adjustment.inventoryItemId, serialNumber);
     if (!existing) {
       throw new ValidationException({
+        label: 'Serial Not Found',
         detail: `Serial "${serialNumber}" does not exist in inventory.`,
         errors: [{ field: 'serialNumber', message: 'Serial not found in inventory.' }],
       });
     }
     if (existing.inventoryItemQuantId !== lineQuantId) {
       throw new ValidationException({
+        label: 'Wrong Quant',
         detail: `Serial "${serialNumber}" does not belong to the selected quant.`,
         errors: [{ field: 'serialNumber', message: 'Serial belongs to a different quant.' }],
       });
     }
     if (existing.status !== QuantItemStatusValues.AVAILABLE) {
       throw new ValidationException({
+        label: 'Not Available',
         detail: `Serial "${serialNumber}" is not AVAILABLE (current status: ${existing.status}).`,
         errors: [{ field: 'serialNumber', message: 'Serial is not available.' }],
       });
