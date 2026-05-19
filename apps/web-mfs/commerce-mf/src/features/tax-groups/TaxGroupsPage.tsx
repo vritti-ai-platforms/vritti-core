@@ -5,7 +5,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Pencil, Percent, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDeleteTaxGroup, useTaxGroups } from '@/hooks/tax-groups';
 import type { TaxGroupData } from '@/schemas/tax-groups';
 import { AddTaxGroupDialog } from './forms/AddTaxGroupDialog';
@@ -17,8 +17,6 @@ export const TaxGroupsPage = () => {
   const deleteMutation = useDeleteTaxGroup();
   const addDialog = useDialog();
   const confirm = useConfirm();
-  const [editingGroup, setEditingGroup] = useState<TaxGroupData | null>(null);
-  const editDialog = useDialog({ onClose: () => setEditingGroup(null) });
 
   const handleDelete = useCallback(
     async (group: TaxGroupData) => {
@@ -33,14 +31,6 @@ export const TaxGroupsPage = () => {
       }
     },
     [confirm, deleteMutation],
-  );
-
-  const handleEdit = useCallback(
-    (group: TaxGroupData) => {
-      setEditingGroup(group);
-      editDialog.open();
-    },
-    [editDialog],
   );
 
   const columns = useMemo<ColumnDef<TaxGroupData>[]>(
@@ -116,7 +106,14 @@ export const TaxGroupsPage = () => {
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
-                onClick: () => handleEdit(row.original),
+                dialog: {
+                  title: 'Edit Tax Group',
+                  description: 'Update the tax group details and rate structure.',
+                  className: 'max-w-3xl',
+                  content: (close) => (
+                    <EditTaxGroupDialog group={row.original} onSuccess={close} onCancel={close} />
+                  ),
+                },
               },
               {
                 id: 'delete',
@@ -133,7 +130,7 @@ export const TaxGroupsPage = () => {
         enableHiding: false,
       },
     ],
-    [deleteMutation.isPending, handleDelete, handleEdit],
+    [deleteMutation.isPending, handleDelete],
   );
 
   const { table } = useDataTable({
@@ -186,16 +183,6 @@ export const TaxGroupsPage = () => {
         className="max-w-3xl"
         content={(close) => <AddTaxGroupDialog onSuccess={close} onCancel={close} />}
       />
-
-      {editingGroup && (
-        <Dialog
-          handle={editDialog}
-          title="Edit Tax Group"
-          description="Update the tax group details and rate structure."
-          className="max-w-3xl"
-          content={(close) => <EditTaxGroupDialog group={editingGroup} onSuccess={close} onCancel={close} />}
-        />
-      )}
     </div>
   );
 };

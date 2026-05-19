@@ -4,7 +4,7 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINES_TABLE_KEY,
   useRemoveStockAdjustmentLine,
@@ -12,7 +12,7 @@ import {
 } from '@/hooks/stock-adjustments';
 import type { InventoryTracking, StockAdjustmentData, StockAdjustmentLineData } from '@/schemas/stock-adjustments';
 import { AddChangeLineDialog } from '../../forms/change/AddChangeLineDialog';
-import { EditChangeLineDialog } from '../../forms/change/EditChangeLineDialog';
+import { EditChangeLineForm } from '../../forms/change/EditChangeLineDialog';
 
 interface ChangeContentProps {
   adjustment: StockAdjustmentData;
@@ -24,8 +24,6 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const addLineDialog = useDialog();
-  const editLineDialog = useDialog();
-  const [editingLine, setEditingLine] = useState<StockAdjustmentLineData | null>(null);
 
   const uomSymbol = adjustment.inventoryItemUomSymbol;
 
@@ -88,9 +86,20 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
                       id: 'edit',
                       icon: Pencil,
                       label: 'Edit',
-                      onClick: () => {
-                        setEditingLine(row.original);
-                        editLineDialog.open();
+                      dialog: {
+                        title: 'Edit Line',
+                        description: 'Update the quantity for this line.',
+                        content: (close) => (
+                          <EditChangeLineForm
+                            adjustmentId={adjustment.id}
+                            inventoryItemId={adjustment.inventoryItemId}
+                            line={row.original}
+                            tracking={tracking}
+                            adjustmentType={adjustment.type}
+                            onSuccess={close}
+                            onCancel={close}
+                          />
+                        ),
                       },
                     },
                     {
@@ -109,7 +118,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
           ]
         : []),
     ],
-    [isDraft, uomSymbol, handleRemoveLine, editLineDialog],
+    [isDraft, uomSymbol, handleRemoveLine, adjustment, tracking],
   );
 
   const { table } = useDataTable({
@@ -167,15 +176,6 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         tracking={tracking}
         adjustmentType={adjustment.type}
         handle={addLineDialog}
-      />
-
-      <EditChangeLineDialog
-        adjustmentId={adjustment.id}
-        inventoryItemId={adjustment.inventoryItemId}
-        line={editingLine}
-        tracking={tracking}
-        adjustmentType={adjustment.type}
-        handle={editLineDialog}
       />
     </>
   );

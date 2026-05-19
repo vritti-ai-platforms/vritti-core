@@ -16,7 +16,7 @@ import {
 } from '@/schemas/stock-adjustments';
 
 // Edit allows changing quantity + UOM; quant binding cannot change after creation.
-const EditChangeLineForm = ({
+export const EditChangeLineForm = ({
   adjustmentId,
   inventoryItemId,
   line,

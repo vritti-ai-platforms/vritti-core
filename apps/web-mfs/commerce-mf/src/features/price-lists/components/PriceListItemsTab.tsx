@@ -5,7 +5,6 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ListTree, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import type { PriceListData, PriceListItemData } from '@/schemas/price-lists';
 import { getErrorMessage } from '@/utils/error';
 import { EditPriceListItemDialog } from '../forms/EditPriceListItemDialog';
@@ -22,18 +21,6 @@ export const PriceListItemsTab = ({ priceList }: PriceListItemsTabProps) => {
     usePriceListItemsState(priceList.id);
 
   const addDialog = useDialog();
-  const [editingItem, setEditingItem] = useState<PriceListItemData | null>(null);
-  const editDialog = useDialog({ onClose: () => setEditingItem(null) });
-
-  const handleEdit = (item: PriceListItemData) => {
-    setEditingItem(item);
-    editDialog.open();
-  };
-
-  const handleSaveEdit = (item: PriceListItemData, priceOverride: number | null, isVisible: boolean) => {
-    saveOverride(item, priceOverride, isVisible);
-    editDialog.close();
-  };
 
   const handleRemove = async (item: PriceListItemData) => {
     const confirmed = await confirm({
@@ -88,7 +75,28 @@ export const PriceListItemsTab = ({ priceList }: PriceListItemsTabProps) => {
       cell: ({ row }) => (
         <RowActions
           actions={[
-            { id: 'edit', icon: Pencil, label: 'Edit', disabled: isSaving, onClick: () => handleEdit(row.original) },
+            {
+              id: 'edit',
+              icon: Pencil,
+              label: 'Edit',
+              disabled: isSaving,
+              dialog: {
+                title: 'Edit Item',
+                description: `Adjust price override and visibility for "${row.original.itemName}".`,
+                className: 'max-w-sm',
+                content: (close) => (
+                  <EditPriceListItemDialog
+                    item={row.original}
+                    isSaving={isSaving}
+                    onSave={(item, priceOverride, isVisible) => {
+                      saveOverride(item, priceOverride, isVisible);
+                      close();
+                    }}
+                    onCancel={close}
+                  />
+                ),
+              },
+            },
             {
               id: 'remove',
               icon: Trash2,
@@ -158,17 +166,6 @@ export const PriceListItemsTab = ({ priceList }: PriceListItemsTabProps) => {
         )}
       />
 
-      {editingItem && (
-        <Dialog
-          handle={editDialog}
-          title="Edit Item"
-          description={`Adjust price override and visibility for "${editingItem.itemName}".`}
-          className="max-w-sm"
-          content={(close) => (
-            <EditPriceListItemDialog item={editingItem} isSaving={isSaving} onSave={handleSaveEdit} onCancel={close} />
-          )}
-        />
-      )}
     </div>
   );
 };
