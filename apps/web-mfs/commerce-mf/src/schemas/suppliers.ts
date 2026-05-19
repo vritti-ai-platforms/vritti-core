@@ -1,6 +1,6 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { isValidPhoneNumber } from '@vritti/quantum-ui/PhoneField';
-import { z } from '@vritti/quantum-ui/zod';
+import { z, zodCurrencyField } from '@vritti/quantum-ui/zod';
 
 const zOptionalNonNegativeInt = z.number().int().nonnegative().optional().catch(undefined);
 
@@ -115,7 +115,7 @@ export const updateSupplierContactSchema = z.object({
 export const linkSupplierItemSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
   supplierItemCode: z.string().max(100).optional(),
-  unitPrice: z.object({ currency: z.string(), value: z.string() }).optional(),
+  unitPrice: zodCurrencyField({ required: 'Unit price is required' }),
   uomId: z.uuid('Unit of measure is required'),
   minOrderQuantity: zOptionalNonNegativeInt,
   leadTimeDays: zOptionalNonNegativeInt,

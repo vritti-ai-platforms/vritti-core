@@ -3,6 +3,7 @@ import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-rece
 import type { PurchaseOrderDto, PurchaseOrderItemDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { SuppliersRepository } from '@domain/suppliers/repositories/suppliers.repository';
+import { PurchaseOrdersItemsService } from './services/purchase-orders-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
@@ -27,6 +28,7 @@ export class PurchaseOrdersController {
 
   constructor(
     private readonly service: PurchaseOrdersService,
+    private readonly itemsService: PurchaseOrdersItemsService,
     private readonly goodsReceiptsService: GoodsReceiptsService,
     private readonly suppliersRepository: SuppliersRepository,
   ) {}
@@ -62,7 +64,7 @@ export class PurchaseOrdersController {
     @Payload() data: { id: string } & AddPurchaseOrderItemDto,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`purchaseOrders.addItem — id: ${data.id}, inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.addItem(data.id, data);
+    return this.itemsService.addItem(data.id, data);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.updateItem' })

@@ -172,8 +172,8 @@ export class PurchaseOrdersService {
     return PurchaseOrderDto.from(entity, entity.supplierName, entity.supplierCurrencyCode);
   }
 
-  // Adds a line item to a draft PO
-  async addItem(id: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  // Adds a line item to a draft PO. uomId must be resolved by the app layer before calling this.
+  async addItem(id: string, data: AddPurchaseOrderItemDto, uomId: string): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const existing = await this.repository.findByIdWithSupplierName(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
     if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
@@ -242,6 +242,7 @@ export class PurchaseOrdersService {
       await this.poItemsRepository.create({
         purchaseOrderId: id,
         inventoryItemId: data.inventoryItemId,
+        uomId,
         orderedQuantity: String(data.orderedQuantity),
         supplierUnitPrice: Number(supplierUnitPriceMinor),
         unitPrice: Number(unitPriceMinor),

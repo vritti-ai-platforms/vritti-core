@@ -63,7 +63,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
         supplierItemCode: data.supplierItemCode || undefined,
-        unitPrice: data.unitPrice ?? undefined,
+        unitPrice: data.unitPrice,
         uomId: data.uomId,
         minOrderQuantity: data.minOrderQuantity ?? undefined,
         leadTimeDays: data.leadTimeDays ?? undefined,
@@ -87,7 +87,13 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       />
       <div className="grid grid-cols-2 gap-4">
         <CurrencyField name="unitPrice" label="Unit Price" defaultCurrencyCode={supplierCurrencyCode} />
-        <TextField name="minOrderQuantity" label="Min Order Qty" type="number" placeholder="e.g. 100" integer={!allowDecimal} />
+        <TextField
+          name="minOrderQuantity"
+          label="Min Order Qty"
+          type="number"
+          placeholder="e.g. 100"
+          integer={!allowDecimal}
+        />
       </div>
       <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" />
       <Switch name="isPreferred" label="Preferred Supplier" />

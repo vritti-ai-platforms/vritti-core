@@ -4,6 +4,7 @@ import { coreSchema } from './core-schema';
 import { purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 import { suppliers } from './suppliers';
+import { uom } from './uom';
 
 export const purchaseOrders = coreSchema.table(
   'purchase_orders',
@@ -71,6 +72,9 @@ export const purchaseOrderItems = coreSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
+    uomId: uuid('uom_id')
+      .notNull()
+      .references(() => uom.id, { onDelete: 'restrict' }),
     orderedQuantity: decimal('ordered_quantity', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     supplierUnitPrice: bigint('supplier_unit_price', { mode: 'number' }).notNull(),

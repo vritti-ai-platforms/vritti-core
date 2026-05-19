@@ -10,9 +10,8 @@ export class LinkSupplierItemDto {
   @MaxLength(100)
   supplierItemCode?: string;
 
-  @IsOptional()
   @IsCurrency()
-  unitPrice?: CurrencyAmountDto;
+  unitPrice: CurrencyAmountDto;
 
   @IsUUID()
   @IsNotEmpty()

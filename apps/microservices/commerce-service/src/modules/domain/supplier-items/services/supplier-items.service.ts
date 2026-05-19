@@ -116,17 +116,15 @@ export class SupplierItemsService {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
-    let unitPriceMinor: number | null = null;
-    const currencyCode = (data.unitPrice?.currency ?? supplier.currencyCode) as CurrencyCode;
-    if (data.unitPrice != null) {
-      try {
-        unitPriceMinor = Number(majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode));
-      } catch (e) {
-        throw new BadRequestException({
-          label: 'Invalid Price',
-          detail: e instanceof Error ? e.message : 'Invalid price value.',
-        });
-      }
+    const currencyCode = data.unitPrice.currency as CurrencyCode;
+    let unitPriceMinor: number;
+    try {
+      unitPriceMinor = Number(majorToMinor(data.unitPrice.value, currencyCode));
+    } catch (e) {
+      throw new BadRequestException({
+        label: 'Invalid Price',
+        detail: e instanceof Error ? e.message : 'Invalid price value.',
+      });
     }
 
     // If marking as preferred, clear preferred on any other supplier_item for this inventory item first

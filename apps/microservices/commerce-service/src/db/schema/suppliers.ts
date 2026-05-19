@@ -136,7 +136,7 @@ export const supplierItems = coreSchema.table(
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     supplierItemCode: varchar('supplier_item_code', { length: 100 }),
-    unitPrice: bigint('unit_price', { mode: 'number' }),
+    unitPrice: bigint('unit_price', { mode: 'number' }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     uomId: uuid('uom_id')
       .notNull()

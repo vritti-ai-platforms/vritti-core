@@ -66,9 +66,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 }) => {
   const mutation = useAddPurchaseOrderItem({ onSuccess });
 
-  // Raw supplier unit price number from the inventory item option
   const [supplierUnitPrice, setSupplierUnitPrice] = useState<number | null>(null);
-  // Currency code for the selected inventory item
   const [itemCurrencyCode, setItemCurrencyCode] = useState<string | null>(null);
 
   const isSameCurrency = itemCurrencyCode != null && itemCurrencyCode === purchaseOrder.currencyCode;
@@ -133,7 +131,6 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 
     const nextCurrencyCode =
       typeof option?.additionals?.currencyCode === 'string' ? option.additionals.currencyCode : null;
-
     setSupplierUnitPrice(unitPrice);
     setItemCurrencyCode(nextCurrencyCode);
     form.setValue('overridePrice', false);

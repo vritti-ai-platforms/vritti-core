@@ -5,6 +5,7 @@ export class PurchaseOrderItemDto {
   id: string;
   inventoryItemId: string;
   inventoryItemName: string | null;
+  uomId: string;
   orderedQuantity: number;
   receivedQuantity: number;
   conversionRate: number;
@@ -22,6 +23,7 @@ export class PurchaseOrderItemDto {
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? null;
+    dto.uomId = entity.uomId;
     dto.orderedQuantity = Number(entity.orderedQuantity);
     dto.receivedQuantity = Number(entity.receivedQuantity);
     dto.conversionRate = Number(entity.conversionRate);

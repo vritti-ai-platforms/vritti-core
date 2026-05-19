@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RouterModule } from '@nestjs/core';
+import { APP_INTERCEPTOR, RouterModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { isIP } from 'node:net';
 import * as schema from '@/db/schema';
@@ -10,6 +10,7 @@ import './db/schema.registry';
 
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
+import { RlsInterceptor } from '@/common/interceptors/rls.interceptor';
 import {
   AuthConfigModule,
   DatabaseModule,
@@ -217,6 +218,12 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     CommerceGatewayModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RlsInterceptor,
+    },
   ],
 })
 export class AppModule {}
