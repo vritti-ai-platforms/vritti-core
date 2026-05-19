@@ -4,8 +4,14 @@ import { StockAdjustmentLineItemsService } from '@domain/stock-adjustment-line-i
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { BadRequestException, type CreateResponseDto, type SuccessResponseDto, type TableViewState, ValidationException } from '@vritti/api-sdk';
-import { QuantItemStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
+import {
+  BadRequestException,
+  type CreateResponseDto,
+  type SuccessResponseDto,
+  type TableViewState,
+  ValidationException,
+} from '@vritti/api-sdk';
+import { SerialStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 
 @Injectable()
 export class StockAdjustmentsLineItemsTransactionService {
@@ -43,7 +49,9 @@ export class StockAdjustmentsLineItemsTransactionService {
       await this.validateSerialForIntent(adjustment, line, trimmed);
     }
 
-    const result = await this.lineItemsService.addLineItem(adjustment, data.lineId, { serialNumber: data.serialNumber });
+    const result = await this.lineItemsService.addLineItem(adjustment, data.lineId, {
+      serialNumber: data.serialNumber,
+    });
     await this.linesRepository.refreshIsBalanced(data.lineId, adjustment.inventoryItemTracking);
     return result;
   }
@@ -75,8 +83,8 @@ export class StockAdjustmentsLineItemsTransactionService {
     return { success: true, message: `Serial "${serialNumber}" removed successfully.` };
   }
 
-  // OPENING+item: serial must NOT already exist for this item (would collide with inventory_item_quant_items unique).
-  // Deduct+item: serial must exist on a quant_item where parent_quant = line.quantId AND status=AVAILABLE.
+  // OPENING+item: serial must NOT already exist for this item (would collide with inventory_item_serials unique).
+  // Deduct+item: serial must exist on an inventory_item_serial where parent_quant = line.quantId AND status=AVAILABLE.
   private async validateSerialForIntent(
     adjustment: { id: string; type: string; inventoryItemId: string },
     line: { id: string; quantId: string | null },
@@ -86,7 +94,7 @@ export class StockAdjustmentsLineItemsTransactionService {
     const isOpening = adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK;
 
     if (isOpening) {
-      const existing = await this.quantsRepository.findQuantItemBySerial(adjustment.inventoryItemId, serialNumber);
+      const existing = await this.quantsRepository.findSerial(adjustment.inventoryItemId, serialNumber);
       if (existing) {
         throw new ValidationException({
           label: 'Duplicate Serial',
@@ -104,7 +112,7 @@ export class StockAdjustmentsLineItemsTransactionService {
         errors: [{ field: 'serialNumber', message: 'Line is missing a quant.' }],
       });
     }
-    const existing = await this.quantsRepository.findQuantItemBySerial(adjustment.inventoryItemId, serialNumber);
+    const existing = await this.quantsRepository.findSerial(adjustment.inventoryItemId, serialNumber);
     if (!existing) {
       throw new ValidationException({
         label: 'Serial Not Found',
@@ -119,7 +127,7 @@ export class StockAdjustmentsLineItemsTransactionService {
         errors: [{ field: 'serialNumber', message: 'Serial belongs to a different quant.' }],
       });
     }
-    if (existing.status !== QuantItemStatusValues.AVAILABLE) {
+    if (existing.status !== SerialStatusValues.AVAILABLE) {
       throw new ValidationException({
         label: 'Not Available',
         detail: `Serial "${serialNumber}" is not AVAILABLE (current status: ${existing.status}).`,
@@ -134,7 +142,8 @@ export class StockAdjustmentsLineItemsTransactionService {
       this.adjustmentsRepository.findByIdWithItem(adjustmentId),
     ]);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    if (!line || line.stockAdjustmentId !== adjustmentId) throw new NotFoundException('Stock adjustment line not found.');
+    if (!line || line.stockAdjustmentId !== adjustmentId)
+      throw new NotFoundException('Stock adjustment line not found.');
     return { line, adjustment };
   }
 }

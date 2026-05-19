@@ -5,16 +5,16 @@ import {
   type SelectQueryResult,
 } from '@vritti/api-sdk';
 import { eq, ilike } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItemQuantItems, QuantItemStatusValues } from '@/db/schema';
-import { InventoryItemQuantItemsRepository } from '../repositories/inventory-item-quant-items.repository';
+import { inventoryItemSerials, SerialStatusValues } from '@/db/schema';
+import { InventoryItemSerialsRepository } from '../repositories/inventory-item-serials.repository';
 
 @Injectable()
-export class InventoryItemQuantItemsService {
-  private readonly logger = new Logger(InventoryItemQuantItemsService.name);
+export class InventoryItemSerialsService {
+  private readonly logger = new Logger(InventoryItemSerialsService.name);
 
-  constructor(private readonly repository: InventoryItemQuantItemsRepository) {}
+  constructor(private readonly repository: InventoryItemSerialsRepository) {}
 
-  // Returns paginated AVAILABLE quant items (physical units) for a given quant
+  // Returns paginated AVAILABLE serials for a given quant
   async findForSelect(query: SelectOptionsQueryDto & { quantId: string }): Promise<SelectQueryResult> {
     if (!query.quantId) throw new BadRequestException('quantId is required.');
     const search = query.search?.trim();
@@ -31,8 +31,8 @@ export class InventoryItemQuantItemsService {
       orderDirection: query.orderDirection || 'asc',
       where: { inventoryItemQuantId: query.quantId },
       conditions: [
-        eq(inventoryItemQuantItems.status, QuantItemStatusValues.AVAILABLE),
-        ...(search ? [ilike(inventoryItemQuantItems.serialNumber, `%${search}%`)] : []),
+        eq(inventoryItemSerials.status, SerialStatusValues.AVAILABLE),
+        ...(search ? [ilike(inventoryItemSerials.serialNumber, `%${search}%`)] : []),
       ],
     });
   }

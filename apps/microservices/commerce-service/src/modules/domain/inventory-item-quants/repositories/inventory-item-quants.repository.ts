@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type SelectQueryResult } from '@vritti/api-sdk';
-import { and, desc, eq, ilike, inArray, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemLot,
-  inventoryItemLots,
   type InventoryItemQuant,
-  type InventoryItemQuantItem,
-  inventoryItemQuantItems,
+  type InventoryItemSerial,
+  type InventoryTracking,
+  inventoryItemLots,
   inventoryItemQuants,
+  inventoryItemSerials,
   inventoryItems,
   inventoryStockLevels,
-  type InventoryTracking,
-  QuantItemStatusValues,
   locations,
+  SerialStatusValues,
 } from '@/db/schema';
 
 export type InventoryItemQuantWithRefs = InventoryItemQuant & {
@@ -154,74 +154,71 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return rows[0] as InventoryItemQuant | undefined;
   }
 
-  // Inserts one row per serial number into inventory_item_quant_items (status='AVAILABLE')
+  // Inserts one row per serial number into inventory_item_serials (status='AVAILABLE')
   async insertQuantItems(
     items: { inventoryItemQuantId: string; inventoryItemId: string; serialNumber: string }[],
-  ): Promise<InventoryItemQuantItem[]> {
+  ): Promise<InventoryItemSerial[]> {
     if (items.length === 0) return [];
     const results = await this.db
-      .insert(inventoryItemQuantItems)
+      .insert(inventoryItemSerials)
       .values(
         items.map((item) => ({
           inventoryItemQuantId: item.inventoryItemQuantId,
           inventoryItemId: item.inventoryItemId,
           serialNumber: item.serialNumber,
-          status: QuantItemStatusValues.AVAILABLE,
+          status: SerialStatusValues.AVAILABLE,
         })),
       )
       .returning();
-    return results as InventoryItemQuantItem[];
+    return results as InventoryItemSerial[];
   }
 
-  // Returns the single quant_item row matching (item, serial) along with its parent quant + status.
+  // Returns the single serial row matching (item, serial) along with its parent quant + status.
   // Used by callers that need to validate serial uniqueness or AVAILABLE-vs-parent-quant binding.
-  async findQuantItemBySerial(
+  async findSerial(
     inventoryItemId: string,
     serialNumber: string,
-  ): Promise<{ id: string; inventoryItemQuantId: string; status: string } | null> {
+  ): Promise<{ id: string; inventoryItemQuantId: string | null; status: string } | null> {
     const rows = await this.db
       .select({
-        id: inventoryItemQuantItems.id,
-        inventoryItemQuantId: inventoryItemQuantItems.inventoryItemQuantId,
-        status: inventoryItemQuantItems.status,
+        id: inventoryItemSerials.id,
+        inventoryItemQuantId: inventoryItemSerials.inventoryItemQuantId,
+        status: inventoryItemSerials.status,
       })
-      .from(inventoryItemQuantItems)
+      .from(inventoryItemSerials)
       .where(
         and(
-          eq(inventoryItemQuantItems.inventoryItemId, inventoryItemId),
-          eq(inventoryItemQuantItems.serialNumber, serialNumber),
+          eq(inventoryItemSerials.inventoryItemId, inventoryItemId),
+          eq(inventoryItemSerials.serialNumber, serialNumber),
         ),
       )
       .limit(1);
-    return (rows[0] as { id: string; inventoryItemQuantId: string; status: string } | undefined) ?? null;
+    return (rows[0] as { id: string; inventoryItemQuantId: string | null; status: string } | undefined) ?? null;
   }
 
-  // Validate quant items belong to a quant and are AVAILABLE by serial number; returns the rows
-  async loadAvailableQuantItemsBySerials(
-    quantId: string,
-    serials: string[],
-  ): Promise<InventoryItemQuantItem[]> {
+  // Validate serials belong to a quant and are AVAILABLE by serial number; returns the rows
+  async loadAvailableQuantItemsBySerials(quantId: string, serials: string[]): Promise<InventoryItemSerial[]> {
     if (serials.length === 0) return [];
     const rows = await this.db
       .select()
-      .from(inventoryItemQuantItems)
+      .from(inventoryItemSerials)
       .where(
         and(
-          eq(inventoryItemQuantItems.inventoryItemQuantId, quantId),
-          eq(inventoryItemQuantItems.status, QuantItemStatusValues.AVAILABLE),
-          inArray(inventoryItemQuantItems.serialNumber, serials),
+          eq(inventoryItemSerials.inventoryItemQuantId, quantId),
+          eq(inventoryItemSerials.status, SerialStatusValues.AVAILABLE),
+          inArray(inventoryItemSerials.serialNumber, serials),
         ),
       );
-    return rows as InventoryItemQuantItem[];
+    return rows as InventoryItemSerial[];
   }
 
-  // Marks the given quant items as CONSUMED (by id)
+  // Marks the given serials as CONSUMED (by id)
   async consumeQuantItems(quantItemIds: string[]): Promise<void> {
     if (quantItemIds.length === 0) return;
     await this.db
-      .update(inventoryItemQuantItems)
-      .set({ status: QuantItemStatusValues.CONSUMED })
-      .where(inArray(inventoryItemQuantItems.id, quantItemIds));
+      .update(inventoryItemSerials)
+      .set({ status: SerialStatusValues.CONSUMED })
+      .where(inArray(inventoryItemSerials.id, quantItemIds));
   }
 
   // Loads the lot row associated with a quant (null when tracking='quantity')

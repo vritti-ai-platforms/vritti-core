@@ -2,7 +2,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { QuantItemSelector } from '@vritti/quantum-ui/selects/quant-item';
+import { SerialSelector } from '@vritti/quantum-ui/selects/serial';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLineItem } from '@/hooks/stock-adjustments';
@@ -12,15 +12,21 @@ const PickSerialForm = ({
   adjustmentId,
   lineId,
   quantId,
+  lineItemsCount,
+  quantity,
   onSuccess,
   onCancel,
 }: {
   adjustmentId: string;
   lineId: string;
   quantId: string;
+  lineItemsCount: number;
+  quantity: number;
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
+  const isLastSlot = lineItemsCount === quantity - 1;
+
   const form = useForm<AddStockAdjustmentLineItemFormData>({
     resolver: zodResolver(addStockAdjustmentLineItemSchema),
     defaultValues: { serialNumber: '' },
@@ -28,7 +34,11 @@ const PickSerialForm = ({
 
   const mutation = useAddStockAdjustmentLineItem(adjustmentId, lineId, {
     onSuccess: () => {
-      form.reset({ serialNumber: '' });
+      if (isLastSlot) {
+        onSuccess();
+      } else {
+        form.reset({ serialNumber: '' });
+      }
     },
   });
 
@@ -39,7 +49,7 @@ const PickSerialForm = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({ serialNumber: data.serialNumber })}
     >
-      <QuantItemSelector
+      <SerialSelector
         name="serialNumber"
         label="Serial Number"
         placeholder="Pick an AVAILABLE serial"
@@ -51,7 +61,7 @@ const PickSerialForm = ({
         <Button type="button" variant="outline" onClick={onSuccess}>
           Done
         </Button>
-        <Button type="submit">Pick & Add Another</Button>
+        <Button type="submit">{isLastSlot ? 'Pick' : 'Pick & Add Another'}</Button>
       </div>
     </Form>
   );
@@ -61,11 +71,15 @@ export const PickSerialDialog = ({
   adjustmentId,
   lineId,
   quantId,
+  lineItemsCount,
+  quantity,
   handle,
 }: {
   adjustmentId: string;
   lineId: string | null;
   quantId: string | null;
+  lineItemsCount: number;
+  quantity: number;
   handle: ReturnType<typeof useDialog>;
 }) => (
   <Dialog
@@ -78,6 +92,8 @@ export const PickSerialDialog = ({
           adjustmentId={adjustmentId}
           lineId={lineId}
           quantId={quantId}
+          lineItemsCount={lineItemsCount}
+          quantity={quantity}
           onSuccess={close}
           onCancel={close}
         />

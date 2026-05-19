@@ -13,7 +13,7 @@ import {
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import {
   GoodsReceiptStatusValues,
-  inventoryItemQuantItems,
+  inventoryItemSerials,
   InventoryTrackingValues,
   goodsReceiptLineItems,
 } from '@/db/schema';
@@ -197,15 +197,15 @@ export class GoodsReceiptLineItemsService {
     return { success: true, message: `Serial "${existing.serialNumber}" removed successfully.` };
   }
 
-  // Goods receipt always REGISTERS new serials. Reject collision with existing inventory_item_quant_items.
+  // Goods receipt always REGISTERS new serials. Reject collision with existing inventory_item_serials.
   private async validateSerialForRegister(inventoryItemId: string, serialNumber: string): Promise<void> {
     const rows = await this.repository['db']
-      .select({ id: inventoryItemQuantItems.id })
-      .from(inventoryItemQuantItems)
+      .select({ id: inventoryItemSerials.id })
+      .from(inventoryItemSerials)
       .where(
         and(
-          eq(inventoryItemQuantItems.inventoryItemId, inventoryItemId),
-          eq(inventoryItemQuantItems.serialNumber, serialNumber),
+          eq(inventoryItemSerials.inventoryItemId, inventoryItemId),
+          eq(inventoryItemSerials.serialNumber, serialNumber),
         ),
       )
       .limit(1);

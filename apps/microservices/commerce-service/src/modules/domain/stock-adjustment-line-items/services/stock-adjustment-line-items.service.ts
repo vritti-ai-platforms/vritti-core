@@ -59,7 +59,7 @@ export class StockAdjustmentLineItemsService {
   }
 
   // For tracking='serial' lines:
-  //   - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_quant_items for this item
+  //   - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_serials for this item
   //   - Deduct types:  consume an EXISTING serial — must be AVAILABLE on the line's quant
   async addLineItem(
     adjustment: AdjustmentContext,

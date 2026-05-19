@@ -5,8 +5,8 @@ import { BomGatewayController } from './bom/bom-gateway.controller';
 import { BomGatewayService } from './bom/services/bom-gateway.service';
 import { InventoryItemLotsGatewayController } from './inventory-item-lots/inventory-item-lots-gateway.controller';
 import { InventoryItemLotsGatewayService } from './inventory-item-lots/services/inventory-item-lots-gateway.service';
-import { InventoryItemQuantItemsGatewayController } from './inventory-item-quant-items/inventory-item-quant-items-gateway.controller';
-import { InventoryItemQuantItemsGatewayService } from './inventory-item-quant-items/services/inventory-item-quant-items-gateway.service';
+import { InventoryItemSerialsGatewayController } from './inventory-item-serials/inventory-item-serials-gateway.controller';
+import { InventoryItemSerialsGatewayService } from './inventory-item-serials/services/inventory-item-serials-gateway.service';
 import { InventoryItemQuantsGatewayController } from './inventory-item-quants/inventory-item-quants-gateway.controller';
 import { InventoryItemQuantsGatewayService } from './inventory-item-quants/services/inventory-item-quants-gateway.service';
 import { CategoriesGatewayController } from './categories/categories-gateway.controller';
@@ -58,7 +58,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     BomGatewayController,
     CategoriesGatewayController,
     InventoryItemLotsGatewayController,
-    InventoryItemQuantItemsGatewayController,
+    InventoryItemSerialsGatewayController,
     InventoryItemQuantsGatewayController,
     ConversionsGatewayController,
     CreditNotesGatewayController,
@@ -85,7 +85,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     BomGatewayService,
     CategoriesGatewayService,
     InventoryItemLotsGatewayService,
-    InventoryItemQuantItemsGatewayService,
+    InventoryItemSerialsGatewayService,
     InventoryItemQuantsGatewayService,
     ConversionsGatewayService,
     CreditNotesGatewayService,

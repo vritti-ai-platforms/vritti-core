@@ -3152,9 +3152,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-item-quant-items/select": {
+    "/commerce-api/inventory-item-serials/select": {
       "get": {
-        "operationId": "InventoryItemQuantItemsGatewayController_select",
+        "operationId": "InventoryItemSerialsGatewayController_select",
         "parameters": [],
         "responses": {
           "200": {
@@ -3167,7 +3167,7 @@
           }
         ],
         "tags": [
-          "Commerce - Inventory Item Quant Items"
+          "Commerce - Inventory Item Serials"
         ]
       }
     },

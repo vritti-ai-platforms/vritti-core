@@ -1,7 +1,7 @@
 import { CategoriesDomainModule } from '@domain/categories/categories.module';
 import { InventoryItemLocationsDomainModule } from '@domain/inventory-item-locations/inventory-item-locations.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
-import { InventoryItemQuantItemsDomainModule } from '@domain/inventory-item-quant-items/inventory-item-quant-items.module';
+import { InventoryItemSerialsDomainModule } from '@domain/inventory-item-serials/inventory-item-serials.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemUomConversionsDomainModule } from '@domain/inventory-item-uom-conversions/inventory-item-uom-conversions.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
@@ -13,7 +13,7 @@ import { InventoryItemsLocationsController } from './locations/inventory-items-l
 import { InventoryItemsLocationsService } from './locations/services/inventory-items-locations.service';
 import { InventoryItemsLotsController } from './lots/inventory-items-lots.controller';
 import { InventoryItemsLotsService } from './lots/services/inventory-items-lots.service';
-import { InventoryItemsQuantItemsController } from './quant-items/inventory-items-quant-items.controller';
+import { InventoryItemsSerialsController } from './serials/inventory-items-serials.controller';
 import { InventoryItemsQuantsController } from './quants/inventory-items-quants.controller';
 import { InventoryItemsQuantsService } from './quants/services/inventory-items-quants.service';
 import { InventoryItemsRootController } from './root/inventory-items-root.controller';
@@ -30,7 +30,7 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemLocationsDomainModule,
     InventoryItemLotsDomainModule,
     InventoryItemQuantsDomainModule,
-    InventoryItemQuantItemsDomainModule,
+    InventoryItemSerialsDomainModule,
     SupplierItemsDomainModule,
     CategoriesDomainModule,
     UomDomainModule,
@@ -44,7 +44,7 @@ import { InventoryItemsUomConversionsController } from './uom-conversions/invent
     InventoryItemsSupplierItemsController,
     InventoryItemsLotsController,
     InventoryItemsQuantsController,
-    InventoryItemsQuantItemsController,
+    InventoryItemsSerialsController,
   ],
   providers: [
     InventoryItemsRootService,

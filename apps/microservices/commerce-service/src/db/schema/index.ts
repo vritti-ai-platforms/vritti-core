@@ -13,7 +13,7 @@ export * from './goods-receipt-lines';
 export * from './goods-receipt-lots';
 export * from './inventory-item-locations';
 export * from './inventory-item-lots';
-export * from './inventory-item-quant-items';
+export * from './inventory-item-serials';
 export * from './inventory-item-quants';
 export * from './inventory-item-uom-conversions';
 export * from './inventory-items';

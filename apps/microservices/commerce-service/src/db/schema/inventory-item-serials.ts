@@ -1,22 +1,21 @@
 import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { coreSchema } from './core-schema';
-import { quantItemStatusEnum } from './enums';
+import { serialStatusEnum } from './enums';
 import { inventoryItemQuants } from './inventory-item-quants';
 import { inventoryItems } from './inventory-items';
 
-export const inventoryItemQuantItems = coreSchema.table(
-  'inventory_item_quant_items',
+export const inventoryItemSerials = coreSchema.table(
+  'inventory_item_serials',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
     inventoryItemQuantId: uuid('inventory_item_quant_id')
-      .notNull()
-      .references(() => inventoryItemQuants.id, { onDelete: 'cascade' }),
+      .references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id, { onDelete: 'restrict' }),
     serialNumber: varchar('serial_number', { length: 100 }).notNull(),
-    status: quantItemStatusEnum('status').notNull().default('AVAILABLE'),
+    status: serialStatusEnum('status').notNull().default('AVAILABLE'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -24,10 +23,10 @@ export const inventoryItemQuantItems = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_inventory_quant_items_serial').on(table.organizationId, table.inventoryItemId, table.serialNumber),
-    index('idx_inventory_quant_items_quant').on(table.inventoryItemQuantId),
-    index('idx_inventory_quant_items_item').on(table.inventoryItemId),
-    index('idx_inventory_quant_items_quant_status').on(table.inventoryItemQuantId, table.status),
+    unique('uq_inventory_item_serials_serial').on(table.organizationId, table.inventoryItemId, table.serialNumber),
+    index('idx_inventory_item_serials_quant').on(table.inventoryItemQuantId),
+    index('idx_inventory_item_serials_item').on(table.inventoryItemId),
+    index('idx_inventory_item_serials_quant_status').on(table.inventoryItemQuantId, table.status),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
@@ -51,5 +50,5 @@ export const inventoryItemQuantItems = coreSchema.table(
   ],
 );
 
-export type InventoryItemQuantItem = typeof inventoryItemQuantItems.$inferSelect;
-export type NewInventoryItemQuantItem = typeof inventoryItemQuantItems.$inferInsert;
+export type InventoryItemSerial = typeof inventoryItemSerials.$inferSelect;
+export type NewInventoryItemSerial = typeof inventoryItemSerials.$inferInsert;

@@ -13,7 +13,7 @@ import { and, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemLot,
   type InventoryItemQuant,
-  type InventoryItemQuantItem,
+  type InventoryItemSerial,
   type InventoryItemLedgerReferenceType,
   type InventoryItemLedgerType,
   type InventoryTracking,
@@ -121,7 +121,7 @@ export class InventoryItemQuantsService {
   // No ledger — caller handles it. App-layer is responsible for resolving/creating the lot and passing lotId.
   async createBatchScoped(
     params: CreateQuantParams,
-  ): Promise<{ quant: InventoryItemQuant; lot: InventoryItemLot | null; quantItems: InventoryItemQuantItem[] }> {
+  ): Promise<{ quant: InventoryItemQuant; lot: InventoryItemLot | null; quantItems: InventoryItemSerial[] }> {
     this.validateCreateParams(params);
 
     return this.database.runInTransaction(async () => {
@@ -148,7 +148,7 @@ export class InventoryItemQuantsService {
         });
       }
 
-      let quantItems: InventoryItemQuantItem[] = [];
+      let quantItems: InventoryItemSerial[] = [];
       if (
         params.tracking === InventoryTrackingValues.SERIAL ||
         params.tracking === InventoryTrackingValues.LOT_SERIAL
@@ -252,7 +252,7 @@ export class InventoryItemQuantsService {
   async adjustBatchScoped(
     batchId: string,
     params: AdjustQuantParams,
-  ): Promise<{ quant: InventoryItemQuant; consumedItems: InventoryItemQuantItem[] }> {
+  ): Promise<{ quant: InventoryItemQuant; consumedItems: InventoryItemSerial[] }> {
     return this.database.runInTransaction(async () => {
       switch (params.tracking) {
         case 'quantity':

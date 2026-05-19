@@ -293,7 +293,14 @@ export const LineSerialsPanel = ({ adjustment, lineId, isDraft, onLineRemoved }:
         </div>
       )}
 
-      <PickSerialDialog adjustmentId={adjustment.id} lineId={lineId} quantId={line?.quantId ?? null} handle={pickDialog} />
+      <PickSerialDialog
+        adjustmentId={adjustment.id}
+        lineId={lineId}
+        quantId={line?.quantId ?? null}
+        lineItemsCount={line?.lineItemsCount ?? 0}
+        quantity={line?.quantity ?? 0}
+        handle={pickDialog}
+      />
       <EditChangeLineDialog
         adjustmentId={adjustment.id}
         inventoryItemId={adjustment.inventoryItemId}

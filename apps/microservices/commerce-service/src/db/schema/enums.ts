@@ -201,13 +201,13 @@ export const InventoryPickStrategyValues = {
 };
 export type InventoryPickStrategy = (typeof inventoryPickStrategyEnum.enumValues)[number];
 
-export const quantItemStatusEnum = coreSchema.enum('quant_item_status', ['AVAILABLE', 'RESERVED', 'CONSUMED']);
-export const QuantItemStatusValues = {
+export const serialStatusEnum = coreSchema.enum('quant_item_status', ['AVAILABLE', 'RESERVED', 'CONSUMED']);
+export const SerialStatusValues = {
   AVAILABLE: 'AVAILABLE' as const,
   RESERVED: 'RESERVED' as const,
   CONSUMED: 'CONSUMED' as const,
 };
-export type QuantItemStatus = (typeof quantItemStatusEnum.enumValues)[number];
+export type SerialStatus = (typeof serialStatusEnum.enumValues)[number];
 
 export const inventoryItemLedgerTypeEnum = coreSchema.enum('inventory_item_ledger_type', [
   'GOODS_RECEIPT',

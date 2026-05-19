@@ -65,7 +65,7 @@ export const relations = defineRelations(schema, (r) => ({
     purchaseOrderItems: r.many.purchaseOrderItems(),
     goodsReceiptItems: r.many.goodsReceiptItems(),
     inventoryItemQuants: r.many.inventoryItemQuants(),
-    inventoryItemQuantItems: r.many.inventoryItemQuantItems(),
+    inventoryItemSerials: r.many.inventoryItemSerials(),
     inventoryItemLots: r.many.inventoryItemLots(),
     inventoryItemLedger: r.many.inventoryItemLedger(),
     stockAdjustments: r.many.stockAdjustments(),
@@ -123,7 +123,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItemQuants.lotId,
       to: r.inventoryItemLots.id,
     }),
-    inventoryItemQuantItems: r.many.inventoryItemQuantItems(),
+    inventoryItemSerials: r.many.inventoryItemSerials(),
   },
   inventoryItemLots: {
     inventoryItem: r.one.inventoryItems({
@@ -333,13 +333,13 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.stockAdjustmentLines.id,
     }),
   },
-  inventoryItemQuantItems: {
+  inventoryItemSerials: {
     inventoryItemQuant: r.one.inventoryItemQuants({
-      from: r.inventoryItemQuantItems.inventoryItemQuantId,
+      from: r.inventoryItemSerials.inventoryItemQuantId,
       to: r.inventoryItemQuants.id,
     }),
     inventoryItem: r.one.inventoryItems({
-      from: r.inventoryItemQuantItems.inventoryItemId,
+      from: r.inventoryItemSerials.inventoryItemId,
       to: r.inventoryItems.id,
     }),
   },
