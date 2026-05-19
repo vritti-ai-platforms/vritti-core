@@ -165,7 +165,6 @@ export const PriceListItemsTab = ({ priceList }: PriceListItemsTabProps) => {
           />
         )}
       />
-
     </div>
   );
 };
@@ -180,7 +179,7 @@ const PriceCell = ({ item }: { item: PriceListItemData }) => {
 
   return (
     <span className="text-sm">
-      <span className="font-medium">{item.priceOverride!.toLocaleString()}</span>
+      <span className="font-medium">{item.priceOverride?.toLocaleString()}</span>
       <span className="ml-1.5 text-xs text-muted-foreground line-through">{baseLabel}</span>
     </span>
   );
