@@ -11,11 +11,13 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { type SuccessResponseDto, Public, SkipCsrf } from '@vritti/api-sdk';
 import type { OrgRole } from '@/db/schema';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
+import { WebhookSessionInterceptor } from '@/common/interceptors/webhook-session.interceptor';
 import {
   ApiCompatibleRolesWebhook,
   ApiCreateRoleWebhook,
@@ -34,6 +36,7 @@ import { OrgRoleService } from '@domain/organization/services/org-role.service';
 @Public()
 @SkipCsrf()
 @UseGuards(WebhookSecretGuard)
+@UseInterceptors(WebhookSessionInterceptor)
 export class OrgRolesController {
   private readonly logger = new Logger(OrgRolesController.name);
 

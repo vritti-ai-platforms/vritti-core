@@ -9,11 +9,13 @@ import {
   Param,
   Post,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { type SuccessResponseDto, Public, SkipCsrf } from '@vritti/api-sdk';
 import type { UserRoleAssignment } from '@/db/schema';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
+import { WebhookSessionInterceptor } from '@/common/interceptors/webhook-session.interceptor';
 import { ApiAssignRoleWebhook, ApiListUserRolesWebhook, ApiRemoveRoleAssignmentWebhook } from '../docs/user-role.docs';
 import { AssignRoleWebhookDto } from '../dto/request/assign-role-webhook.dto';
 import { UserRoleService } from '@domain/user-role/services/user-role.service';
@@ -23,6 +25,7 @@ import { UserRoleService } from '@domain/user-role/services/user-role.service';
 @Public()
 @SkipCsrf()
 @UseGuards(WebhookSecretGuard)
+@UseInterceptors(WebhookSessionInterceptor)
 export class UserRoleController {
   private readonly logger = new Logger(UserRoleController.name);
 

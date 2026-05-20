@@ -48,7 +48,7 @@ export const businessUnits = coreSchema.table(
     index('business_units_parent_id_idx').on(table.parentId),
     pgPolicy('org_isolation', {
       for: 'all',
-      using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
+      using: sql`organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)`,
     }),
   ],
 );
