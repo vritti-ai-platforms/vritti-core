@@ -75,7 +75,7 @@ export const purchaseOrderItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
-    orderedQuantity: decimal('ordered_quantity', { precision: 12, scale: 3 }).notNull(),
+    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     supplierUnitPrice: bigint('supplier_unit_price', { mode: 'bigint' }).notNull(),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),

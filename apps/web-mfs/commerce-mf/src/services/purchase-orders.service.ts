@@ -20,7 +20,7 @@ export interface CreatePurchaseOrderPayload {
 export interface AddPurchaseOrderItemPayload {
   id: string;
   inventoryItemId: string;
-  orderedQuantity: number;
+  quantity: number;
   supplierUnitPrice: { currency: string; value: string };
   unitPrice?: { currency: string; value: string } | null;
 }
@@ -29,7 +29,7 @@ export interface UpdatePurchaseOrderItemPayload {
   id: string;
   itemId: string;
   inventoryItemId?: string;
-  orderedQuantity?: number;
+  quantity?: number;
   supplierUnitPrice?: { currency: string; value: string };
   unitPrice?: { currency: string; value: string } | null;
 }
@@ -102,14 +102,14 @@ export function downloadPurchaseOrderPdf(id: string): Promise<Blob> {
 export function addPurchaseOrderItem({
   id,
   inventoryItemId,
-  orderedQuantity,
+  quantity,
   supplierUnitPrice,
   unitPrice,
 }: AddPurchaseOrderItemPayload): Promise<CreateResponse<PurchaseOrderData>> {
   return axios
     .post<CreateResponse<PurchaseOrderData>>(`commerce-api/purchase-orders/${id}/items`, {
       inventoryItemId,
-      orderedQuantity,
+      quantity,
       supplierUnitPrice,
       unitPrice,
     })
@@ -121,14 +121,14 @@ export function updatePurchaseOrderItem({
   id,
   itemId,
   inventoryItemId,
-  orderedQuantity,
+  quantity,
   supplierUnitPrice,
   unitPrice,
 }: UpdatePurchaseOrderItemPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/items/${itemId}`, {
       inventoryItemId,
-      orderedQuantity,
+      quantity,
       supplierUnitPrice,
       unitPrice,
     })

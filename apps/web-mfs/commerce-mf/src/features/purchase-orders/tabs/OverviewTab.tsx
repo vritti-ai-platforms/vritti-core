@@ -34,7 +34,7 @@ export const OverviewTab = ({ po, status }: OverviewTabProps) => (
         />
         <DetailField
           label="Total Amount"
-          value={po.totalAmount != null ? `${po.totalAmount.currency} ${po.totalAmount.value}` : null}
+          value={`${po.totalAmount.currency} ${po.totalAmount.value}`}
           number
         />
         <DetailField label="Notes" value={po.notes} className="col-span-2" />

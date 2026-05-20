@@ -33,7 +33,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
       supplierId: '',
       supplierCurrencyCode: '',
       currencyCode: '',
-      conversionRate: '1',
+      conversionRate: 1,
       orderDate: new Date().toISOString().split('T')[0],
       expectedBy: '',
       notes: '',
@@ -51,7 +51,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
   useEffect(() => {
     form.clearErrors('conversionRate');
     if (!needsConversion) {
-      form.setValue('conversionRate', '1');
+      form.setValue('conversionRate', 1);
     }
   }, [needsConversion, form]);
 
@@ -62,7 +62,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
 
     if (nextSupplierCurrencyCode) {
       form.setValue('currencyCode', nextSupplierCurrencyCode);
-      form.setValue('conversionRate', '1');
+      form.setValue('conversionRate', 1);
     }
   };
 
@@ -75,7 +75,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
       transformSubmit={(data) => ({
         supplierId: data.supplierId,
         currencyCode: data.currencyCode,
-        conversionRate: data.currencyCode === data.supplierCurrencyCode ? 1 : Number(data.conversionRate),
+        conversionRate: data.currencyCode === data.supplierCurrencyCode ? 1 : (data.conversionRate ?? 1),
         orderDate: data.orderDate,
         expectedBy: data.expectedBy || undefined,
         notes: data.notes || undefined,
@@ -101,6 +101,8 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
           label={`Conversion Rate (${supplierCurrencyCode} -> ${poCurrencyCode})`}
           type="number"
           placeholder="e.g. 83.250000"
+          positive
+          nonZero
         />
       ) : null}
       <DatePicker name="orderDate" label="Order Date" />

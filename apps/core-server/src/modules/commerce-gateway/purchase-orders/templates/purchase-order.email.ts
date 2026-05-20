@@ -3,7 +3,7 @@ import type { CurrencyAmountDto } from '@vritti/api-sdk';
 export interface PurchaseOrderEmailItem {
   inventoryItemId: string;
   inventoryItemName: string | null;
-  orderedQuantity: number;
+  quantity: number;
   unitPrice: CurrencyAmountDto | null;
   totalPrice: CurrencyAmountDto | null;
 }
@@ -63,7 +63,7 @@ export function buildPurchaseOrderEmailHtml(po: PurchaseOrderEmailData, supplier
         <tr>
           <td style="padding: 8px; border: 1px solid #e5e7eb;">${index + 1}</td>
           <td style="padding: 8px; border: 1px solid #e5e7eb;">${itemName}</td>
-          <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${item.orderedQuantity}</td>
+          <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${item.quantity}</td>
           <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${formatAmount(item.unitPrice)}</td>
           <td style="padding: 8px; border: 1px solid #e5e7eb; text-align: right;">${formatAmount(item.totalPrice)}</td>
         </tr>
@@ -127,7 +127,7 @@ export function buildPurchaseOrderEmailText(po: PurchaseOrderEmailData, supplier
   const itemLines = po.items
     .map((item, index) => {
       const itemName = item.inventoryItemName ?? item.inventoryItemId;
-      return `${index + 1}. ${itemName} | Qty: ${item.orderedQuantity} | Unit: ${formatAmount(item.unitPrice)} | Total: ${formatAmount(item.totalPrice)}`;
+      return `${index + 1}. ${itemName} | Qty: ${item.quantity} | Unit: ${formatAmount(item.unitPrice)} | Total: ${formatAmount(item.totalPrice)}`;
     })
     .join('\n');
 

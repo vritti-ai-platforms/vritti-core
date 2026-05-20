@@ -140,11 +140,11 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       'inventoryItemUomSymbol', ${uom.symbol},
       'acceptedQuantity', ${acceptedQty},
       'rejectedQuantity', ${goodsReceiptItems.rejectedQuantity},
-      'poOrderedQuantity', ${purchaseOrderItems.orderedQuantity},
+      'poOrderedQuantity', ${purchaseOrderItems.quantity},
       'poReceivedQuantity', ${purchaseOrderItems.receivedQuantity},
       'poRemainingQuantity', CASE
-        WHEN ${purchaseOrderItems.orderedQuantity} IS NOT NULL
-        THEN ${purchaseOrderItems.orderedQuantity} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)
+        WHEN ${purchaseOrderItems.quantity} IS NOT NULL
+        THEN ${purchaseOrderItems.quantity} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)
         ELSE NULL
       END,
       'isBalanced', ${itemUnbalanced} = 0,
@@ -256,7 +256,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         inventoryItemTracking: inventoryItems.tracking,
         inventoryItemUomSymbol: uom.symbol,
         poItemId: purchaseOrderItems.id,
-        poOrderedQuantity: purchaseOrderItems.orderedQuantity,
+        poOrderedQuantity: purchaseOrderItems.quantity,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,
         acceptedQuantity: acceptedQtySql,
         lotsCount: lotsCountSql,
@@ -320,7 +320,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         tracking: inventoryItems.tracking,
         poItemId: purchaseOrderItems.id,
-        poOrderedQuantity: purchaseOrderItems.orderedQuantity,
+        poOrderedQuantity: purchaseOrderItems.quantity,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,
       })
       .from(goodsReceiptItems)
@@ -377,7 +377,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         inventoryItemTracking: inventoryItems.tracking,
         inventoryItemUomSymbol: uom.symbol,
         poItemId: purchaseOrderItems.id,
-        poOrderedQuantity: purchaseOrderItems.orderedQuantity,
+        poOrderedQuantity: purchaseOrderItems.quantity,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,
         acceptedQuantity: acceptedQtySql,
         lotsCount: lotsCountSql,

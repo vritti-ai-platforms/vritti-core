@@ -7,7 +7,7 @@ export class AddPurchaseOrderItemDto {
 
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  orderedQuantity: number;
+  quantity: number;
 
   @IsCurrency()
   supplierUnitPrice: CurrencyAmountDto;

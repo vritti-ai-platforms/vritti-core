@@ -31,7 +31,7 @@ export interface GoodsReceiptPoData {
   poNumber: string;
   orderDate: string;
   expectedBy: string | null;
-  totalAmount: { currency: string; value: number };
+  totalAmount: { currency: string; value: string };
 }
 
 export interface GoodsReceiptData {

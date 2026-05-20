@@ -56,9 +56,9 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
         ),
       },
       {
-        accessorKey: 'orderedQuantity',
-        header: 'Ordered',
-        cell: ({ row }) => <span className="font-mono">{row.original.orderedQuantity}</span>,
+        accessorKey: 'quantity',
+        header: 'Quantity',
+        cell: ({ row }) => <span className="font-mono">{row.original.quantity}</span>,
       },
       {
         accessorKey: 'receivedQuantity',
@@ -121,12 +121,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
           ]
         : []),
     ],
-    [
-      canModifyItems,
-      handleRemoveItem,
-      purchaseOrderId,
-      purchaseOrder.currencyCode,
-    ],
+    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode],
   );
 
   const { table } = useDataTable({

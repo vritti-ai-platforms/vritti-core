@@ -2,7 +2,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { z, zodResolver } from '@vritti/quantum-ui/zod';
+import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -19,28 +19,16 @@ const changeCurrencySchema = z
   .object({
     currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
     supplierCurrencyCode: z.string().optional(),
-    conversionRate: z.string().optional(),
+    conversionRate: zodNumericField({ positive: true, nonZero: true }).optional(),
   })
   .superRefine((data, ctx) => {
-    if (!data.supplierCurrencyCode || data.currencyCode === data.supplierCurrencyCode) {
-      return;
-    }
+    if (!data.supplierCurrencyCode || data.currencyCode === data.supplierCurrencyCode) return;
 
-    if (!data.conversionRate) {
+    if (data.conversionRate == null || Number.isNaN(data.conversionRate)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['conversionRate'],
         message: 'Conversion rate is required when PO currency differs from supplier currency.',
-      });
-      return;
-    }
-
-    const parsed = Number(data.conversionRate);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['conversionRate'],
-        message: 'Conversion rate must be greater than 0.',
       });
     }
   });
@@ -57,7 +45,7 @@ export const ChangePurchaseOrderCurrencyDialog: React.FC<ChangePurchaseOrderCurr
     defaultValues: {
       currencyCode: purchaseOrder.currencyCode,
       supplierCurrencyCode: purchaseOrder.supplierCurrencyCode ?? undefined,
-      conversionRate: String(purchaseOrder.conversionRate),
+      conversionRate: purchaseOrder.conversionRate,
     },
   });
 
@@ -69,7 +57,7 @@ export const ChangePurchaseOrderCurrencyDialog: React.FC<ChangePurchaseOrderCurr
   useEffect(() => {
     form.clearErrors('conversionRate');
     if (!needsConversion) {
-      form.setValue('conversionRate', '1');
+      form.setValue('conversionRate', 1);
     }
   }, [needsConversion, form]);
 
@@ -82,7 +70,7 @@ export const ChangePurchaseOrderCurrencyDialog: React.FC<ChangePurchaseOrderCurr
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
         currencyCode: data.currencyCode,
-        conversionRate: data.currencyCode === data.supplierCurrencyCode ? 1 : Number(data.conversionRate),
+        conversionRate: data.currencyCode === data.supplierCurrencyCode ? 1 : (data.conversionRate ?? 1),
       })}
     >
       <CurrencySelector name="currencyCode" label="PO Currency" placeholder="Select currency" />
@@ -92,6 +80,8 @@ export const ChangePurchaseOrderCurrencyDialog: React.FC<ChangePurchaseOrderCurr
           label={`Conversion Rate (${supplierCurrencyCode} -> ${poCurrencyCode})`}
           type="number"
           placeholder="e.g. 83.250000"
+          positive
+          nonZero
         />
       ) : null}
       <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">

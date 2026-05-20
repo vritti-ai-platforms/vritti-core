@@ -15783,7 +15783,7 @@
             "type": "string",
             "description": "Inventory item ID"
           },
-          "orderedQuantity": {
+          "quantity": {
             "type": "number",
             "description": "Ordered quantity",
             "example": 100
@@ -15797,7 +15797,7 @@
         },
         "required": [
           "inventoryItemId",
-          "orderedQuantity",
+          "quantity",
           "supplierUnitPrice"
         ]
       },
@@ -15808,7 +15808,7 @@
             "type": "string",
             "description": "Inventory item ID"
           },
-          "orderedQuantity": {
+          "quantity": {
             "type": "number",
             "description": "Ordered quantity",
             "example": 100

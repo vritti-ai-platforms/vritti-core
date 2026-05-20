@@ -58,7 +58,7 @@ export class PurchaseOrdersService {
 
   private static readonly ITEM_FIELD_MAP: FieldMap = {
     inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
-    orderedQuantity: { column: purchaseOrderItems.orderedQuantity, type: 'number' },
+    quantity: { column: purchaseOrderItems.quantity, type: 'number' },
     receivedQuantity: { column: purchaseOrderItems.receivedQuantity, type: 'number' },
     supplierUnitPrice: { column: purchaseOrderItems.supplierUnitPrice, type: 'number' },
     unitPrice: { column: purchaseOrderItems.unitPrice, type: 'number' },
@@ -236,14 +236,14 @@ export class PurchaseOrdersService {
       });
     }
 
-    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.orderedQuantity));
+    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.quantity));
 
     await this.database.runInTransaction(async () => {
       await this.poItemsRepository.create({
         purchaseOrderId: id,
         inventoryItemId: data.inventoryItemId,
         uomId,
-        orderedQuantity: String(data.orderedQuantity),
+        quantity: String(data.quantity),
         supplierUnitPrice: supplierUnitPriceMinor,
         unitPrice: unitPriceMinor,
         totalPrice: totalPriceMinor,
@@ -289,7 +289,7 @@ export class PurchaseOrdersService {
     const conversionRate =
       data.conversionRate != null && supplierCode !== poCode ? data.conversionRate : Number(item.conversionRate);
 
-    const orderedQuantity = data.orderedQuantity ?? Number(item.orderedQuantity);
+    const orderedQuantity = data.quantity ?? Number(item.quantity);
 
     let supplierUnitPriceMinor: bigint;
     let unitPriceMinor: bigint;
@@ -339,7 +339,7 @@ export class PurchaseOrdersService {
     await this.database.runInTransaction(async () => {
       await this.poItemsRepository.update(itemId, {
         inventoryItemId: data.inventoryItemId,
-        orderedQuantity: String(orderedQuantity),
+        quantity: String(orderedQuantity),
         supplierUnitPrice: supplierUnitPriceMinor,
         unitPrice: unitPriceMinor,
         totalPrice: totalPriceMinor,

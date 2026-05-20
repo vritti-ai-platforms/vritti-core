@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
+import { formatCurrency, formatCurrencyMajor, minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
@@ -23,7 +24,7 @@ const currencyValueSchema = z.object({ currency: z.string(), value: z.string() }
 
 type AddLineItemFormData = {
   inventoryItemId: string;
-  orderedQuantity: number;
+  quantity: number;
   overridePrice: boolean;
   unitPrice?: { currency: string; value: string } | null;
   conversionRate: string;
@@ -32,7 +33,7 @@ type AddLineItemFormData = {
 const baseAddLineItemSchema = z
   .object({
     inventoryItemId: z.string().min(1, 'Item is required'),
-    orderedQuantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+    quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
     overridePrice: z.boolean(),
     unitPrice: currencyValueSchema.optional().nullable(),
     conversionRate: z.string(),
@@ -68,6 +69,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 
   const [supplierUnitPrice, setSupplierUnitPrice] = useState<number | null>(null);
   const [itemCurrencyCode, setItemCurrencyCode] = useState<string | null>(null);
+  const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
 
   const isSameCurrency = itemCurrencyCode != null && itemCurrencyCode === purchaseOrder.currencyCode;
 
@@ -78,7 +80,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         const unitPriceNum = Number(data.unitPrice?.value);
         if (Number.isFinite(unitPriceNum) && supplierUnitPrice != null && unitPriceNum === supplierUnitPrice) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['unitPrice'],
             message: 'Override price must be different from supplier price.',
           });
@@ -91,7 +93,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     resolver: zodResolver(addLineItemSchema),
     defaultValues: {
       inventoryItemId: '',
-      orderedQuantity: 0,
+      quantity: 0,
       overridePrice: false,
       unitPrice: null,
       conversionRate: '1',
@@ -101,38 +103,41 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
   const watchedConversionRate = useWatch({ control: form.control, name: 'conversionRate' });
 
-  const effectiveRate = isSameCurrency
-    ? purchaseOrder.conversionRate
-    : Number(watchedConversionRate) || purchaseOrder.conversionRate;
-
-  const convertedSupplierUnitPrice = supplierUnitPrice != null ? supplierUnitPrice * effectiveRate : null;
-
   const excludeIds = existingItemIds.join(',');
   const unitPriceLabel =
-    supplierUnitPrice != null ? `Unit Price (Supplier: ${supplierUnitPrice.toFixed(2)})` : 'Unit Price';
+    supplierUnitPrice != null && itemCurrencyCode != null
+      ? `Unit Price (Supplier: ${formatCurrencyMajor(supplierUnitPrice, itemCurrencyCode)})`
+      : 'Unit Price';
 
   useEffect(() => {
     form.clearErrors('unitPrice');
     if (!watchedOverridePrice) {
+      const rate = isSameCurrency
+        ? purchaseOrder.conversionRate
+        : Number(watchedConversionRate) || purchaseOrder.conversionRate;
+      const convertedPrice = supplierUnitPrice != null ? supplierUnitPrice * rate : null;
       form.setValue(
         'unitPrice',
-        convertedSupplierUnitPrice != null
-          ? { currency: purchaseOrder.currencyCode, value: String(convertedSupplierUnitPrice) }
+        convertedPrice != null
+          ? { currency: purchaseOrder.currencyCode, value: String(convertedPrice) }
           : null,
       );
     }
-  }, [watchedOverridePrice, convertedSupplierUnitPrice, purchaseOrder.currencyCode, form]);
+  }, [watchedOverridePrice, supplierUnitPrice, isSameCurrency, purchaseOrder.conversionRate, watchedConversionRate, purchaseOrder.currencyCode, form]);
 
   const handleItemSelect = (option: SelectOption | null) => {
-    const nextPrice = option?.additionals?.unitPrice;
-    const parsed =
-      typeof nextPrice === 'number' ? nextPrice : typeof nextPrice === 'string' ? Number(nextPrice) : Number.NaN;
-    const unitPrice = Number.isFinite(parsed) ? parsed : null;
-
     const nextCurrencyCode =
       typeof option?.additionals?.currencyCode === 'string' ? option.additionals.currencyCode : null;
-    setSupplierUnitPrice(unitPrice);
+
+    const rawMinor = option?.additionals?.unitPrice;
+    const unitPrice =
+      rawMinor != null && nextCurrencyCode != null
+        ? Number(minorToMajor(String(rawMinor), nextCurrencyCode))
+        : null;
+
+    setSupplierUnitPrice(Number.isFinite(unitPrice) ? unitPrice : null);
     setItemCurrencyCode(nextCurrencyCode);
+    setAllowDecimal(option?.additionals?.allowDecimal === true);
     form.setValue('overridePrice', false);
     form.setValue('conversionRate', '1');
 
@@ -157,7 +162,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         return {
           id: purchaseOrder.id,
           inventoryItemId: data.inventoryItemId,
-          orderedQuantity: data.orderedQuantity,
+          quantity: data.quantity,
           conversionRate: submitRate,
           supplierUnitPrice: {
             currency: itemCurrencyCode ?? purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode,
@@ -175,11 +180,21 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         name="inventoryItemId"
         label="Inventory Item"
         placeholder="Select item"
-        fieldKeys={{ valueKey: 'id', labelKey: 'name', additionalKeys: 'symbol,unitPrice,currencyCode', groupIdKey: 'categoryId' }}
+        fieldKeys={{
+          valueKey: 'id',
+          labelKey: 'name',
+          additionalKeys: 'symbol,unitPrice,currencyCode,allowDecimal',
+          groupIdKey: 'categoryId',
+        }}
         transformLabel={(label, option) => {
           const baseLabel = label.replace(/\s-\s[^-]+$/, '');
           const uom = typeof option.additionals?.symbol === 'string' ? option.additionals.symbol.trim() : '';
-          const unitPrice = option.additionals?.unitPrice;
+          const rawPrice = option.additionals?.unitPrice;
+          const currencyCode = typeof option.additionals?.currencyCode === 'string' ? option.additionals.currencyCode : null;
+          const unitPrice =
+            rawPrice != null && currencyCode != null
+              ? formatCurrency(String(rawPrice), currencyCode)
+              : null;
 
           if (unitPrice && uom) return `${baseLabel} - ${unitPrice}/${uom}`;
           if (unitPrice) return `${baseLabel} - ${unitPrice}`;
@@ -189,7 +204,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         onOptionSelect={handleItemSelect}
         params={{ excludeIds, supplierId: purchaseOrder.supplierId }}
       />
-      <TextField name="orderedQuantity" label="Ordered Quantity" type="number" placeholder="e.g. 500" />
+      <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 500" integer={!allowDecimal} positive />
       {itemCurrencyCode != null && !isSameCurrency && (
         <TextField
           name="conversionRate"

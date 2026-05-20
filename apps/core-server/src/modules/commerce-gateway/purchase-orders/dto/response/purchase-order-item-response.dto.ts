@@ -12,7 +12,7 @@ export class PurchaseOrderItemResponseDto {
   inventoryItemName: string | null;
 
   @ApiProperty({ description: 'Ordered quantity' })
-  orderedQuantity: number;
+  quantity: number;
 
   @ApiProperty({ description: 'Received quantity' })
   receivedQuantity: number;

@@ -10,7 +10,7 @@ export class AddPurchaseOrderItemDto {
   @ApiProperty({ description: 'Ordered quantity', example: 100 })
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  orderedQuantity: number;
+  quantity: number;
 
   @ApiProperty({ type: CurrencyAmountDto })
   @IsCurrency()

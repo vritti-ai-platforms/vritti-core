@@ -1,36 +1,25 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from '@vritti/quantum-ui/zod';
+import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export const createPurchaseOrderSchema = z
   .object({
     supplierId: z.string().min(1, 'Supplier is required'),
     supplierCurrencyCode: z.string().optional(),
     currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
-    conversionRate: z.string().optional(),
+    conversionRate: zodNumericField({ positive: true, nonZero: true }).optional(),
     orderDate: z.string().min(1, 'Order date is required'),
     expectedBy: z.string().optional(),
     notes: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.supplierCurrencyCode) return;
-
     if (data.currencyCode === data.supplierCurrencyCode) return;
 
-    if (!data.conversionRate) {
+    if (data.conversionRate == null || Number.isNaN(data.conversionRate)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['conversionRate'],
         message: 'Conversion rate is required when PO currency differs from supplier currency.',
-      });
-      return;
-    }
-
-    const parsed = Number(data.conversionRate);
-    if (!Number.isFinite(parsed) || parsed <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['conversionRate'],
-        message: 'Conversion rate must be greater than 0.',
       });
     }
   });
@@ -75,7 +64,7 @@ export interface PurchaseOrderData {
   expectedBy: string | null;
   timezone: string;
   notes: string | null;
-  totalAmount: { currency: string; value: string } | null;
+  totalAmount: { currency: string; value: string };
   createdAt: string;
   updatedAt: string;
 }
@@ -85,7 +74,7 @@ export interface PurchaseOrderItemData {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  orderedQuantity: number;
+  quantity: number;
   receivedQuantity: number;
   itemCurrencyCode: string;
   conversionRate: number;
@@ -105,7 +94,7 @@ export interface GoodsReceiptData {
     poNumber: string;
     orderDate: string;
     expectedBy: string | null;
-    totalAmount: { currency: string; value: number } | null;
+    totalAmount: { currency: string; value: string };
   } | null;
   receivedBy: string | null;
   receivedDate: string;

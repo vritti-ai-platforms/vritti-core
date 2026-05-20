@@ -177,17 +177,17 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       .where(eq(purchaseOrderItems.id, poItemId));
   }
 
-  async getPoTotals(poId: string): Promise<{ orderedQuantity: number; receivedQuantity: number }> {
+  async getPoTotals(poId: string): Promise<{ quantity: number; receivedQuantity: number }> {
     const [row] = await this.db
       .select({
-        orderedQuantity: sql<string>`COALESCE(SUM(${purchaseOrderItems.orderedQuantity}), 0)`,
+        quantity: sql<string>`COALESCE(SUM(${purchaseOrderItems.quantity}), 0)`,
         receivedQuantity: sql<string>`COALESCE(SUM(${purchaseOrderItems.receivedQuantity}), 0)`,
       })
       .from(purchaseOrderItems)
       .where(eq(purchaseOrderItems.purchaseOrderId, poId));
 
     return {
-      orderedQuantity: Number(row?.orderedQuantity ?? 0),
+      quantity: Number(row?.quantity ?? 0),
       receivedQuantity: Number(row?.receivedQuantity ?? 0),
     };
   }

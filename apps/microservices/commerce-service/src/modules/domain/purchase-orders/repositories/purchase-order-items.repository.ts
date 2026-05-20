@@ -18,7 +18,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         purchaseOrderId: purchaseOrderItems.purchaseOrderId,
         inventoryItemId: purchaseOrderItems.inventoryItemId,
         uomId: purchaseOrderItems.uomId,
-        orderedQuantity: purchaseOrderItems.orderedQuantity,
+        quantity: purchaseOrderItems.quantity,
         receivedQuantity: purchaseOrderItems.receivedQuantity,
         supplierUnitPrice: purchaseOrderItems.supplierUnitPrice,
         unitPrice: purchaseOrderItems.unitPrice,
@@ -62,7 +62,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         purchaseOrderId: purchaseOrderItems.purchaseOrderId,
         inventoryItemId: purchaseOrderItems.inventoryItemId,
         uomId: purchaseOrderItems.uomId,
-        orderedQuantity: purchaseOrderItems.orderedQuantity,
+        quantity: purchaseOrderItems.quantity,
         receivedQuantity: purchaseOrderItems.receivedQuantity,
         supplierUnitPrice: purchaseOrderItems.supplierUnitPrice,
         unitPrice: purchaseOrderItems.unitPrice,
@@ -123,7 +123,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
       .set({
         conversionRate: String(conversionRate),
         unitPrice: sql`ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor})::bigint`,
-        totalPrice: sql`ROUND(${purchaseOrderItems.orderedQuantity}::numeric * ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor}))::bigint`,
+        totalPrice: sql`ROUND(${purchaseOrderItems.quantity}::numeric * ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor}))::bigint`,
       })
       .where(eq(purchaseOrderItems.id, itemId));
   }

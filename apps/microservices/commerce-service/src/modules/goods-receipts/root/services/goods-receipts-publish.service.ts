@@ -165,8 +165,8 @@ export class GoodsReceiptsPublishService {
       if (receipt.purchaseOrderId) {
         const totals = await this.receiptsRepository.getPoTotals(receipt.purchaseOrderId);
         if (
-          this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.orderedQuantity) &&
-          totals.orderedQuantity > 0
+          this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.quantity) &&
+          totals.quantity > 0
         ) {
           await this.receiptsRepository.updatePoStatus(receipt.purchaseOrderId, PurchaseOrderStatusValues.RECEIVED);
         } else if (totals.receivedQuantity > 0) {

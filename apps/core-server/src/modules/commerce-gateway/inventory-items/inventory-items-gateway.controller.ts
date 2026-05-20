@@ -9,12 +9,13 @@ import {
 } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
-import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import { CreateInventoryItemLocationDto } from './dto/request/create-inventory-item-location.dto';
+import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
-import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
+import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
+import type { InventoryItemLedgerTableResponseDto } from './dto/response/inventory-item-ledger-table-response.dto';
 import type { InventoryItemLocationTableResponseDto } from './dto/response/inventory-item-location-table-response.dto';
 import type { InventoryItemLotTableResponseDto } from './dto/response/inventory-item-lot-table-response.dto';
 import type { InventoryItemQuantTableResponseDto } from './dto/response/inventory-item-quant-table-response.dto';
@@ -22,7 +23,6 @@ import type { InventoryItemResponseDto } from './dto/response/inventory-item-res
 import type { InventoryItemStockResponseDto } from './dto/response/inventory-item-stock-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from './dto/response/inventory-item-uom-conversion-response.dto';
-import type { InventoryItemLedgerTableResponseDto } from './dto/response/inventory-item-ledger-table-response.dto';
 import type { InventoryLevelTableResponseDto } from './dto/response/inventory-level-table-response.dto';
 import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
@@ -136,10 +136,7 @@ export class InventoryItemsGatewayController {
 
   // Returns paginated item-location configs for an inventory item
   @Get(':id/locations/table')
-  getLocationsTable(
-    @Param('id') id: string,
-    @UserId() userId: string,
-  ): Promise<InventoryItemLocationTableResponseDto> {
+  getLocationsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log(`GET /commerce-api/inventory-items/${id}/locations/table`);
     return this.service.findItemLocationsForTable(id, userId);
   }

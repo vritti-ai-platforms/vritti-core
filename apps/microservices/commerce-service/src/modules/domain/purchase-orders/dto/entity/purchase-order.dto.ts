@@ -6,7 +6,7 @@ export class PurchaseOrderItemDto {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  orderedQuantity: number;
+  quantity: number;
   receivedQuantity: number;
   conversionRate: number;
   itemCurrencyCode: string;
@@ -24,7 +24,7 @@ export class PurchaseOrderItemDto {
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? '';
     dto.uomId = entity.uomId;
-    dto.orderedQuantity = Number(entity.orderedQuantity);
+    dto.quantity = Number(entity.quantity);
     dto.receivedQuantity = Number(entity.receivedQuantity);
     dto.conversionRate = Number(entity.conversionRate);
     dto.itemCurrencyCode = entity.itemCurrencyCode;
@@ -52,7 +52,7 @@ export class PurchaseOrderDto {
   expectedBy: string | null;
   timezone: string;
   notes: string | null;
-  totalAmount: CurrencyAmountDto | null;
+  totalAmount: CurrencyAmountDto;
   createdAt: string;
   updatedAt: string;
 

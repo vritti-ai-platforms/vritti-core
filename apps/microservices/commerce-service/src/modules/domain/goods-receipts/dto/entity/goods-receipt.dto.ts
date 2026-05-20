@@ -1,3 +1,4 @@
+import { CurrencyAmountDto } from '@vritti/api-sdk';
 import type { GoodsReceipt } from '@/db/schema';
 
 export class GoodsReceiptDto {
@@ -12,7 +13,7 @@ export class GoodsReceiptDto {
     poNumber: string;
     orderDate: string;
     expectedBy: string | null;
-    totalAmount: { currency: string; value: number };
+    totalAmount: CurrencyAmountDto;
   } | null;
   receivedBy: string | null;
   receivedDate: string;
@@ -46,10 +47,7 @@ export class GoodsReceiptDto {
             poNumber: refs.poNumber,
             orderDate: refs.poOrderDate ?? '',
             expectedBy: refs.poExpectedBy ?? null,
-            totalAmount: {
-              currency: refs.poCurrencyCode ?? '',
-              value: Number(refs.poTotalAmount ?? 0n),
-            },
+            totalAmount: CurrencyAmountDto.from(refs.poTotalAmount ?? 0n, refs.poCurrencyCode ?? 'USD'),
           }
         : null;
     dto.receivedBy = entity.receivedBy ?? null;

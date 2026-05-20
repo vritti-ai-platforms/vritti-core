@@ -57,10 +57,7 @@ export const PurchaseOrdersPage = () => {
       {
         accessorKey: 'totalAmount',
         header: 'Total',
-        cell: ({ row }) =>
-          row.original.totalAmount != null
-            ? `${row.original.totalAmount.currency} ${row.original.totalAmount.value}`
-            : '—',
+        cell: ({ row }) => `${row.original.totalAmount.currency} ${row.original.totalAmount.value}`,
         enableSorting: false,
       },
       {

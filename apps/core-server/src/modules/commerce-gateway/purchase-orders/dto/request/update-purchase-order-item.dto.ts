@@ -12,7 +12,7 @@ export class UpdatePurchaseOrderItemDto {
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  orderedQuantity?: number;
+  quantity?: number;
 
   @ApiPropertyOptional({ type: CurrencyAmountDto })
   @IsOptional()
