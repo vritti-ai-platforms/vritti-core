@@ -9,9 +9,9 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
     super(database, supplierItems);
   }
 
-  async findSupplierById(id: string): Promise<(typeof suppliers.$inferSelect) | undefined> {
+  async findSupplierById(id: string): Promise<typeof suppliers.$inferSelect | undefined> {
     const rows = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
-    return rows[0] as (typeof suppliers.$inferSelect) | undefined;
+    return rows[0] as typeof suppliers.$inferSelect | undefined;
   }
 
   // Returns paginated supplier items for a supplier with joined item/UOM display fields
@@ -61,9 +61,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   }> {
     const baseWhere = eq(supplierItems.inventoryItemId, inventoryItemId);
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    return this.findAllAndCount<
-      SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string }
-    >({
+    return this.findAllAndCount<SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string }>({
       select: {
         id: supplierItems.id,
         organizationId: supplierItems.organizationId,
@@ -88,7 +86,9 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
         { table: uom, on: eq(supplierItems.uomId, uom.id) },
       ],
       where,
-      orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierItems.isPreferred), desc(supplierItems.createdAt)],
+      orderBy: options.orderBy?.length
+        ? options.orderBy
+        : [desc(supplierItems.isPreferred), desc(supplierItems.createdAt)],
       limit: options.limit,
       offset: options.offset,
     });
@@ -105,18 +105,14 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
 
   // Creates a supplier item link
   async createSupplierItem(data: NewSupplierItem): Promise<SupplierItem> {
-    const results = await this.db.insert(supplierItems).values(data).returning();
-    return results[0] as SupplierItem;
+    const [row] = await this.db.insert(supplierItems).values(data).returning();
+    return row as SupplierItem;
   }
 
   // Updates a supplier item link by ID
   async updateSupplierItem(id: string, data: Partial<NewSupplierItem>): Promise<SupplierItem> {
-    const results = await this.db
-      .update(supplierItems)
-      .set(data)
-      .where(eq(supplierItems.id, id))
-      .returning();
-    return results[0] as SupplierItem;
+    const [row] = await this.db.update(supplierItems).set(data).where(eq(supplierItems.id, id)).returning();
+    return row as SupplierItem;
   }
 
   // Clears is_preferred on all supplier_items for an inventory item except the given row.
@@ -134,7 +130,9 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   }
 
   // Finds a supplier item by ID with inventory item name and UOM symbol
-  async findSupplierItemById(id: string): Promise<(SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined> {
+  async findSupplierItemById(
+    id: string,
+  ): Promise<(SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined> {
     const rows = await this.db
       .select({
         id: supplierItems.id,
@@ -164,7 +162,10 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   }
 
   // Finds a supplier item by supplier ID and inventory item ID
-  async findItemBySupplierAndInventoryItem(supplierId: string, inventoryItemId: string): Promise<SupplierItem | undefined> {
+  async findItemBySupplierAndInventoryItem(
+    supplierId: string,
+    inventoryItemId: string,
+  ): Promise<SupplierItem | undefined> {
     const result = await this.db
       .select()
       .from(supplierItems)

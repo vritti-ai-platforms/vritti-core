@@ -113,15 +113,16 @@ export class SupplierItemsService {
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
     const currencyCode = data.unitPrice.currency as CurrencyCode;
-    let unitPriceMinor: bigint;
-    try {
-      unitPriceMinor = majorToMinor(data.unitPrice.value, currencyCode);
-    } catch (e) {
-      throw new BadRequestException({
-        label: 'Invalid Price',
-        detail: e instanceof Error ? e.message : 'Invalid price value.',
-      });
-    }
+    const unitPriceMinor = (() => {
+      try {
+        return majorToMinor(data.unitPrice.value, currencyCode);
+      } catch (e) {
+        throw new BadRequestException({
+          label: 'Invalid Price',
+          detail: e instanceof Error ? e.message : 'Invalid price value.',
+        });
+      }
+    })();
 
     // If marking as preferred, clear preferred on any other supplier_item for this inventory item first
     if (data.isPreferred === true) {
@@ -140,13 +141,10 @@ export class SupplierItemsService {
       isPreferred: data.isPreferred ?? false,
     });
 
-    const linked = await this.repository.findSupplierItemById(created.id);
-    if (!linked) throw new NotFoundException('Supplier item not found.');
-
     return {
       success: true,
-      message: 'Item linked to supplier successfully.',
-      data: SupplierItemDto.from(linked, linked.inventoryItemName, linked.uomSymbol),
+      message: 'Item added to supplier successfully.',
+      data: SupplierItemDto.from(created),
     };
   }
 
