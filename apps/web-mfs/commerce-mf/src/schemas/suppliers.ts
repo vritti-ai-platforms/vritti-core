@@ -1,7 +1,6 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
 import { z, zodCurrencyField, zodNumericField, zodPhoneField } from '@vritti/quantum-ui/zod';
 
-
 export const TAX_ID_TYPE_OPTIONS = [
   { value: 'GST', label: 'GST' },
   { value: 'VAT', label: 'VAT' },
@@ -66,7 +65,7 @@ export const updateSupplierSchema = z
     code: z.string().min(1).max(100).optional(),
     currencyCode: z
       .string()
-      .regex(/^[A-Z]{3}$/)
+      .regex(/^[A-Z]{3}$/, 'Invalid currency code')
       .optional(),
     website: z.string().max(255).nullable().optional(),
     address: z.string().max(500).nullable().optional(),
@@ -199,3 +198,10 @@ export interface SupplierContactData {
   createdAt: string;
   updatedAt: string;
 }
+
+export const changeSupplierCurrencySchema = z.object({
+  currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
+  conversionRate: zodNumericField({ required: 'Conversion rate is required', positive: true, nonZero: true }),
+});
+
+export type ChangeSupplierCurrencyFormData = z.infer<typeof changeSupplierCurrencySchema>;

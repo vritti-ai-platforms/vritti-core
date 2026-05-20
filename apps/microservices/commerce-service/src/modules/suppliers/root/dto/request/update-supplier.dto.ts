@@ -1,4 +1,3 @@
-import { IsCurrencyCode } from '@vritti/api-sdk';
 import {
   IsBoolean,
   IsEnum,
@@ -21,10 +20,6 @@ export class UpdateSupplierDto {
   @IsString()
   @MaxLength(100)
   code?: string;
-
-  @IsOptional()
-  @IsCurrencyCode()
-  currencyCode?: string;
 
   @IsOptional()
   @IsString()

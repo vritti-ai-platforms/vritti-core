@@ -4,10 +4,11 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Pencil } from 'lucide-react';
+import { Pencil, RefreshCw } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteSupplier, useSupplier, useSupplierInventoryItemIds } from '@/hooks/suppliers';
+import { ChangeCurrencyDialog } from './forms/ChangeCurrencyDialog';
 import { EditSupplierForm } from './forms/EditSupplierForm';
 import { ContactsTab } from './tabs/ContactsTab';
 import { ItemsTab } from './tabs/ItemsTab';
@@ -20,6 +21,7 @@ export const SupplierDetailPage = () => {
   const { data: supplierInventoryItemIds = [] } = useSupplierInventoryItemIds(supplier.id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
+  const changeCurrencyDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = useDeleteSupplier();
 
@@ -41,9 +43,19 @@ export const SupplierDetailPage = () => {
         title={supplier.name}
         description={supplier.code}
         actions={
-          <Button variant="outline" size="sm" startAdornment={<Pencil className="size-4" />} onClick={editDialog.open}>
-            Edit
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              startAdornment={<RefreshCw className="size-4" />}
+              onClick={changeCurrencyDialog.open}
+            >
+              Change Currency
+            </Button>
+            <Button variant="outline" size="sm" startAdornment={<Pencil className="size-4" />} onClick={editDialog.open}>
+              Edit
+            </Button>
+          </div>
         }
       />
 
@@ -81,6 +93,20 @@ export const SupplierDetailPage = () => {
         description="Update the supplier details."
         className="max-w-3xl"
         content={(close) => <EditSupplierForm supplier={supplier} onSuccess={close} onCancel={close} />}
+      />
+
+      <Dialog
+        handle={changeCurrencyDialog}
+        title="Change Supplier Currency"
+        description="Reprices all catalog items using the provided conversion rate."
+        content={(close) => (
+          <ChangeCurrencyDialog
+            supplierId={supplier.id}
+            currentCurrencyCode={supplier.currencyCode}
+            onSuccess={close}
+            onCancel={close}
+          />
+        )}
       />
 
       <DangerZone

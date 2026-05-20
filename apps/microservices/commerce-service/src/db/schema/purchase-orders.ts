@@ -93,8 +93,6 @@ export const purchaseOrderItems = coreSchema.table(
     supplierUnitPrice: bigint('supplier_unit_price', { mode: 'bigint' }).notNull(),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     totalPrice: bigint('total_price', { mode: 'bigint' }).notNull(),
-    itemCurrencyCode: varchar('item_currency_code', { length: 3 }).notNull(),
-    conversionRate: decimal('conversion_rate', { precision: 18, scale: 6 }).notNull().default('1'),
   },
   (table) => [
     unique('uq_purchase_order_items_po_item').on(table.purchaseOrderId, table.inventoryItemId),

@@ -10425,6 +10425,44 @@
         ]
       }
     },
+    "/commerce-api/suppliers/{id}/change-currency": {
+      "post": {
+        "operationId": "SuppliersGatewayController_changeCurrency",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeSupplierCurrencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
     "/commerce-api/suppliers/{id}/items": {
       "post": {
         "operationId": "SuppliersGatewayController_addItem",
@@ -16307,6 +16345,24 @@
             "description": "Whether supplier is active"
           }
         }
+      },
+      "ChangeSupplierCurrencyDto": {
+        "type": "object",
+        "properties": {
+          "currencyCode": {
+            "type": "string",
+            "description": "New currency code (ISO 4217)",
+            "example": "USD"
+          },
+          "conversionRate": {
+            "type": "number",
+            "description": "Conversion rate from current currency to new currency",
+            "example": 1.1
+          }
+        },
+        "required": [
+          "currencyCode"
+        ]
       },
       "AddSupplierItemDto": {
         "type": "object",

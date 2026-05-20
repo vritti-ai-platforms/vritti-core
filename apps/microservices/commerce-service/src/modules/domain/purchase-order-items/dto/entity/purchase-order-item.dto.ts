@@ -8,8 +8,6 @@ export class PurchaseOrderItemDto {
   uomId: string;
   quantity: number;
   receivedQuantity: number;
-  conversionRate: number;
-  itemCurrencyCode: string;
   supplierUnitPrice: CurrencyAmountDto;
   unitPrice: CurrencyAmountDto;
   totalPrice: CurrencyAmountDto;
@@ -18,6 +16,7 @@ export class PurchaseOrderItemDto {
     entity: PurchaseOrderItem,
     itemName?: string | null,
     poCurrencyCode?: string | null,
+    supplierCurrencyCode?: string | null,
   ): PurchaseOrderItemDto {
     const dto = new PurchaseOrderItemDto();
     dto.id = entity.id;
@@ -26,12 +25,11 @@ export class PurchaseOrderItemDto {
     dto.uomId = entity.uomId;
     dto.quantity = Number(entity.quantity);
     dto.receivedQuantity = Number(entity.receivedQuantity);
-    dto.conversionRate = Number(entity.conversionRate);
-    dto.itemCurrencyCode = entity.itemCurrencyCode;
 
     const poCode = poCurrencyCode ?? 'USD';
+    const supplierCode = supplierCurrencyCode ?? poCode;
 
-    dto.supplierUnitPrice = CurrencyAmountDto.from(entity.supplierUnitPrice, entity.itemCurrencyCode);
+    dto.supplierUnitPrice = CurrencyAmountDto.from(entity.supplierUnitPrice, supplierCode);
     dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, poCode);
     dto.totalPrice = CurrencyAmountDto.from(entity.totalPrice, poCode);
 

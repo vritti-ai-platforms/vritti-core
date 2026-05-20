@@ -9,6 +9,7 @@ import {
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
+import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { CreateSupplierContactDto } from '../dto/request/create-supplier-contact.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
@@ -100,6 +101,12 @@ export class SuppliersGatewayService {
   async delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.delete');
     return this.nats.send('commerce', 'suppliers.delete', { id });
+  }
+
+  // Changes supplier currency and reprices all supplier items
+  async changeCurrency(id: string, dto: ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`suppliers.changeCurrency — id: ${id}, currency: ${dto.currencyCode}`);
+    return this.nats.send('commerce', 'suppliers.changeCurrency', { id, ...dto });
   }
 
   // Adds an inventory item to a supplier

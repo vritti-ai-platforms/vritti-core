@@ -9,6 +9,7 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk';
+import type { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 import { SuppliersRootService } from './services/suppliers-root.service';
@@ -57,5 +58,12 @@ export class SuppliersRootController {
   async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.delete');
     return this.service.delete(data.id);
+  }
+
+  @MessagePattern({ cmd: 'suppliers.changeCurrency' })
+  async changeCurrency(@Payload() data: { id: string } & ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
+    const { id, ...dto } = data;
+    this.logger.log(`suppliers.changeCurrency — id: ${id}, currency: ${dto.currencyCode}`);
+    return this.suppliersRootService.changeCurrency(id, dto);
   }
 }

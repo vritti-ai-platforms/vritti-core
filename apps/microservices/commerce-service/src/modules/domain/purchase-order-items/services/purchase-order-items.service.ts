@@ -42,9 +42,9 @@ export class PurchaseOrderItemsService {
   constructor(private readonly repository: PurchaseOrderItemsRepository) {}
 
   // Returns all line items for a PO
-  async findByPoId(poId: string, poCurrencyCode: string): Promise<PurchaseOrderItemDto[]> {
+  async findByPoId(poId: string, poCurrencyCode: string, supplierCurrencyCode?: string | null): Promise<PurchaseOrderItemDto[]> {
     const items = await this.repository.findItemsByPoId(poId);
-    return items.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName, poCurrencyCode));
+    return items.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName, poCurrencyCode, supplierCurrencyCode));
   }
 
   // Returns inventory item IDs for a PO
@@ -57,6 +57,7 @@ export class PurchaseOrderItemsService {
     poId: string,
     state: TableViewState,
     poCurrencyCode: string,
+    supplierCurrencyCode?: string | null,
   ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrderItemsService.ITEM_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrderItemsService.ITEM_FIELD_MAP);
@@ -72,7 +73,7 @@ export class PurchaseOrderItemsService {
     });
 
     return {
-      result: result.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName, poCurrencyCode)),
+      result: result.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName, poCurrencyCode, supplierCurrencyCode)),
       count,
     };
   }
@@ -91,23 +92,14 @@ export class PurchaseOrderItemsService {
       });
     }
 
-    const itemCurrencyCode = data.supplierUnitPrice.currency;
+    const supplierCode = (po.supplierCurrencyCode ?? po.currencyCode) as CurrencyCode;
     const poCode = po.currencyCode as CurrencyCode;
-    const isSameCurrency = itemCurrencyCode === po.currencyCode;
 
-    // Auto-apply PO header rate when item currency matches PO currency; otherwise require a per-item rate
-    let itemConversionRate: number;
-    if (isSameCurrency) {
-      itemConversionRate = Number(po.conversionRate);
-    } else {
-      itemConversionRate = data.conversionRate as number;
-      if (itemConversionRate == null || itemConversionRate <= 0) {
-        throw new BadRequestException({
-          label: 'Conversion Rate Required',
-          detail: `Item currency (${itemCurrencyCode}) differs from PO currency (${po.currencyCode}). A per-item conversion rate is required.`,
-          errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
-        });
-      }
+    if (data.supplierUnitPrice.currency !== supplierCode) {
+      throw new BadRequestException({
+        label: 'Currency Mismatch',
+        detail: `supplierUnitPrice.currency must be ${supplierCode}.`,
+      });
     }
 
     if (data.unitPrice && data.unitPrice.currency !== poCode) {
@@ -117,17 +109,19 @@ export class PurchaseOrderItemsService {
       });
     }
 
+    const itemConversionRate = Number(po.conversionRate);
+
     let supplierUnitPriceMinor: bigint;
     let unitPriceMinor: bigint;
 
     try {
-      supplierUnitPriceMinor = majorToMinor(data.supplierUnitPrice.value, itemCurrencyCode as CurrencyCode);
+      supplierUnitPriceMinor = majorToMinor(data.supplierUnitPrice.value, supplierCode);
 
       if (data.unitPrice != null) {
         unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
       } else {
         // Cross-currency scale: supplier_minor × rate × 10^poExp / 10^itemExp
-        const itemExp = Number(resolveCurrency(itemCurrencyCode as CurrencyCode).exponent);
+        const itemExp = Number(resolveCurrency(supplierCode).exponent);
         const poExp = Number(resolveCurrency(poCode).exponent);
         const unitPriceNum = (Number(supplierUnitPriceMinor) * itemConversionRate * 10 ** poExp) / 10 ** itemExp;
         unitPriceMinor = BigInt(Math.round(unitPriceNum));
@@ -149,8 +143,6 @@ export class PurchaseOrderItemsService {
       supplierUnitPrice: supplierUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
-      itemCurrencyCode,
-      conversionRate: String(itemConversionRate),
     });
 
     this.logger.log(`Added item to PO ${po.poNumber} (${po.id})`);
@@ -179,12 +171,9 @@ export class PurchaseOrderItemsService {
       }
     }
 
-    const supplierCode = item.itemCurrencyCode as CurrencyCode;
+    const supplierCode = (po.supplierCurrencyCode ?? po.currencyCode) as CurrencyCode;
     const poCode = po.currencyCode as CurrencyCode;
-
-    // Use provided per-item rate when currencies differ; otherwise keep the stored rate
-    const conversionRate =
-      data.conversionRate != null && supplierCode !== poCode ? data.conversionRate : Number(item.conversionRate);
+    const conversionRate = Number(po.conversionRate);
 
     const orderedQuantity = data.quantity ?? Number(item.quantity);
 
@@ -237,7 +226,6 @@ export class PurchaseOrderItemsService {
       supplierUnitPrice: supplierUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
-      conversionRate: String(conversionRate),
     });
 
     this.logger.log(`Updated item ${itemId} on PO ${po.poNumber}`);
@@ -258,22 +246,19 @@ export class PurchaseOrderItemsService {
     return { success: true, message: `Line item removed from purchase order "${po.poNumber}".` };
   }
 
-  // Recalculates unit and total prices for all provided items when the PO currency changes.
+  // Recalculates unit and total prices for all items on a PO when the header currency or rate changes.
   // Called by the app-layer root service inside a transaction — does not call syncTotalAmount.
   async recalculateForCurrencyChange(
+    poId: string,
     newCurrencyCode: string,
-    conversionRate: number,
-    items: { id: string; itemCurrencyCode: string; conversionRate: string }[],
+    newConversionRate: number,
+    supplierCurrencyCode: string,
   ): Promise<void> {
     const newCurrencyCodeTyped = newCurrencyCode as CurrencyCode;
+    const supplierCode = supplierCurrencyCode as CurrencyCode;
     const poExp = Number(resolveCurrency(newCurrencyCodeTyped).exponent);
-
-    for (const item of items) {
-      // Items whose currency matches the new PO currency auto-adopt the PO header rate
-      const itemRate =
-        item.itemCurrencyCode === newCurrencyCode ? conversionRate : (conversionRate ?? Number(item.conversionRate));
-      const itemExp = Number(resolveCurrency(item.itemCurrencyCode as CurrencyCode).exponent);
-      await this.repository.recalculateItemPricing(item.id, itemRate, poExp, itemExp);
-    }
+    const itemExp = Number(resolveCurrency(supplierCode).exponent);
+    const scaleFactor = 10 ** poExp / 10 ** itemExp;
+    await this.repository.recalculateAllForPo(poId, newConversionRate, scaleFactor);
   }
 }

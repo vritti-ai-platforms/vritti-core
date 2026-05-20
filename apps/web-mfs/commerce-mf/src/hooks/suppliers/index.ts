@@ -8,6 +8,7 @@ export {
   SUPPLIERS_TABLE_KEY,
 } from './keys';
 export { useAddSupplierContact } from './useAddSupplierContact';
+export { useChangeSupplierCurrency } from './useChangeSupplierCurrency';
 export { useCreateSupplier } from './useCreateSupplier';
 export { useDeleteSupplier } from './useDeleteSupplier';
 export { useDeleteSupplierContact } from './useDeleteSupplierContact';

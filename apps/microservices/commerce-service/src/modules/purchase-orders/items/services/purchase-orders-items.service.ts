@@ -29,7 +29,7 @@ export class PurchaseOrdersItemsService {
 
   async findItems(poId: string): Promise<PurchaseOrderItemDto[]> {
     const po = await this.getPurchaseOrderContext(poId);
-    return this.itemsService.findByPoId(poId, po.currencyCode);
+    return this.itemsService.findByPoId(poId, po.currencyCode, po.supplierCurrencyCode);
   }
 
   async findItemIds(poId: string): Promise<string[]> {
@@ -43,7 +43,7 @@ export class PurchaseOrdersItemsService {
     state: TableViewState,
   ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
     const po = await this.getPurchaseOrderContext(poId);
-    return this.itemsService.findForTable(poId, state, po.currencyCode);
+    return this.itemsService.findForTable(poId, state, po.currencyCode, po.supplierCurrencyCode);
   }
 
   async addItem(poId: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {

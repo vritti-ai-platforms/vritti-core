@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, ne, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, ne, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItems,
   type NewSupplierItem,
@@ -180,5 +180,16 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       .where(and(eq(supplierItems.supplierId, supplierId), eq(supplierItems.inventoryItemId, inventoryItemId)))
       .limit(1);
     return row as SupplierItem | undefined;
+  }
+
+  // Bulk-updates currency and reprices all supplier items for a supplier using the given conversion rate
+  async recalculateAllForSupplier(supplierId: string, newCurrencyCode: string, conversionRate: number): Promise<void> {
+    await this.db
+      .update(supplierItems)
+      .set({
+        currencyCode: newCurrencyCode,
+        unitPrice: sql`ROUND(${supplierItems.unitPrice}::numeric * ${conversionRate})::bigint`,
+      })
+      .where(eq(supplierItems.supplierId, supplierId));
   }
 }

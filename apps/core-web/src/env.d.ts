@@ -18,3 +18,7 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+
+declare module 'react-phone-number-input/style.css' {}
+declare module '*.css' {}

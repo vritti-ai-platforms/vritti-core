@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
-import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -58,7 +57,7 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <TextField name="name" label="Name" placeholder="e.g. Fresh Farms Ltd" />
         <TextField name="code" label="Code" placeholder="e.g. SUP-FRESH-001" />
-        <CurrencySelector name="currencyCode" label="Currency" placeholder="Select currency" />
+        <TextField name="currencyCode" label="Currency" disabled />
         <TextField name="website" label="Website" placeholder="e.g. https://freshfarms.com" />
         <TextField name="taxId" label="Tax ID" placeholder="e.g. 29AABCT1332L1ZP" />
         <Select

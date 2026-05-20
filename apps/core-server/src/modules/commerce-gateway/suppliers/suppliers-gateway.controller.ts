@@ -13,6 +13,7 @@ import { SessionTypeValues } from '@/db/schema';
 import { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
+import { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
@@ -109,6 +110,14 @@ export class SuppliersGatewayController {
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/suppliers/${id}`);
     return this.suppliersGatewayService.delete(id);
+  }
+
+  // Changes supplier currency and reprices all supplier items
+  @Post(':id/change-currency')
+  @HttpCode(HttpStatus.OK)
+  changeCurrency(@Param('id') id: string, @Body() dto: ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/suppliers/${id}/change-currency`);
+    return this.suppliersGatewayService.changeCurrency(id, dto);
   }
 
   // Adds an inventory item to a supplier

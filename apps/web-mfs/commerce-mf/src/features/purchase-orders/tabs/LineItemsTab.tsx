@@ -22,6 +22,9 @@ interface LineItemsTabProps {
 
 export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }: LineItemsTabProps) => {
   const purchaseOrderId = purchaseOrder.id;
+  const isCross =
+    purchaseOrder.supplierCurrencyCode != null &&
+    purchaseOrder.supplierCurrencyCode !== purchaseOrder.currencyCode;
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addItemDialog = useDialog();
@@ -68,9 +71,19 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
       {
         accessorKey: 'unitPrice',
         header: 'Unit Price',
-        cell: ({ row }) => (
-          <span className="font-mono">{`${row.original.unitPrice.currency} ${row.original.unitPrice.value}`}</span>
-        ),
+        cell: ({ row }) => {
+          const { unitPrice, supplierUnitPrice } = row.original;
+          return (
+            <div className="flex flex-col">
+              <span className="font-mono">{`${unitPrice.currency} ${unitPrice.value}`}</span>
+              {isCross && (
+                <span className="font-mono text-xs text-muted-foreground">
+                  {`${supplierUnitPrice.currency} ${supplierUnitPrice.value}`}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'totalPrice',
@@ -98,6 +111,8 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
                           <UpdatePurchaseOrderItemDialog
                             purchaseOrderId={purchaseOrderId}
                             poCurrencyCode={purchaseOrder.currencyCode}
+                            supplierCurrencyCode={purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode}
+                            conversionRate={purchaseOrder.conversionRate}
                             item={row.original}
                             onSuccess={close}
                             onCancel={close}
@@ -121,7 +136,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
           ]
         : []),
     ],
-    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode],
+    [canModifyItems, handleRemoveItem, purchaseOrderId, isCross, purchaseOrder.currencyCode, purchaseOrder.supplierCurrencyCode, purchaseOrder.conversionRate],
   );
 
   const { table } = useDataTable({

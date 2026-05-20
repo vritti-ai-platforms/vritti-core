@@ -23,8 +23,6 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         supplierUnitPrice: purchaseOrderItems.supplierUnitPrice,
         unitPrice: purchaseOrderItems.unitPrice,
         totalPrice: purchaseOrderItems.totalPrice,
-        itemCurrencyCode: purchaseOrderItems.itemCurrencyCode,
-        conversionRate: purchaseOrderItems.conversionRate,
         inventoryItemName: inventoryItems.name,
       })
       .from(purchaseOrderItems)
@@ -67,8 +65,6 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         supplierUnitPrice: purchaseOrderItems.supplierUnitPrice,
         unitPrice: purchaseOrderItems.unitPrice,
         totalPrice: purchaseOrderItems.totalPrice,
-        itemCurrencyCode: purchaseOrderItems.itemCurrencyCode,
-        conversionRate: purchaseOrderItems.conversionRate,
         inventoryItemName: inventoryItems.name,
       },
       leftJoins: [{ table: inventoryItems, on: eq(purchaseOrderItems.inventoryItemId, inventoryItems.id) }],
@@ -110,21 +106,14 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
       .where(eq(purchaseOrderItems.id, itemId));
   }
 
-  // Recalculates pricing for a single PO line item using its per-item conversion rate and exponent scaling
-  async recalculateItemPricing(
-    itemId: string,
-    conversionRate: number,
-    poExponent: number,
-    itemExponent: number,
-  ): Promise<void> {
-    const scaleFactor = 10 ** poExponent / 10 ** itemExponent;
+  // Recalculates unit and total prices for all items on a PO using the header conversion rate and scale factor
+  async recalculateAllForPo(poId: string, conversionRate: number, scaleFactor: number): Promise<void> {
     await this.db
       .update(purchaseOrderItems)
       .set({
-        conversionRate: String(conversionRate),
         unitPrice: sql`ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor})::bigint`,
         totalPrice: sql`ROUND(${purchaseOrderItems.quantity}::numeric * ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor}))::bigint`,
       })
-      .where(eq(purchaseOrderItems.id, itemId));
+      .where(eq(purchaseOrderItems.purchaseOrderId, poId));
   }
 }

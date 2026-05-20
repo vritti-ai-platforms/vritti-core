@@ -79,14 +79,18 @@ export class PurchaseOrdersRootService {
     }
 
     const effectiveRate = resolvedRate ?? 1;
-    const items = await this.itemsRepository.findItemsByPoId(id);
 
     await this.database.runInTransaction(async () => {
       await this.repository.updateCurrency(id, {
         currencyCode: dto.currencyCode,
         conversionRate: String(effectiveRate),
       });
-      await this.itemsService.recalculateForCurrencyChange(dto.currencyCode, effectiveRate, items);
+      await this.itemsService.recalculateForCurrencyChange(
+        id,
+        dto.currencyCode,
+        effectiveRate,
+        supplier.currencyCode ?? po.currencyCode,
+      );
       await this.repository.syncTotalAmount(id);
     });
 

@@ -76,8 +76,6 @@ export interface PurchaseOrderItemData {
   uomId: string;
   quantity: number;
   receivedQuantity: number;
-  itemCurrencyCode: string;
-  conversionRate: number;
   supplierUnitPrice: { currency: string; value: string };
   unitPrice: { currency: string; value: string };
   totalPrice: { currency: string; value: string };

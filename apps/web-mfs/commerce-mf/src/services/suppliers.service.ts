@@ -33,7 +33,6 @@ export interface CreateSupplierPayload {
 export interface UpdateSupplierPayload {
   name?: string;
   code?: string;
-  currencyCode?: string;
   website?: string | null;
   address?: string | null;
   taxId?: string | null;
@@ -222,4 +221,14 @@ export function markPrimarySupplierContact({
   return axios
     .post<SupplierContactData>(`commerce-api/suppliers/${supplierId}/contacts/${contactId}/mark-primary`)
     .then((r) => r.data);
+}
+
+export interface ChangeSupplierCurrencyPayload {
+  currencyCode: string;
+  conversionRate?: number;
+}
+
+// Changes the supplier's currency and reprices all catalog items atomically
+export function changeSupplierCurrency(id: string, data: ChangeSupplierCurrencyPayload): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`commerce-api/suppliers/${id}/change-currency`, data).then((r) => r.data);
 }

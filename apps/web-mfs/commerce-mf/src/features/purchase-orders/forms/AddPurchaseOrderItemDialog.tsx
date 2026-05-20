@@ -4,8 +4,8 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { formatCurrency, formatCurrencyMajor, minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -27,7 +27,6 @@ type AddLineItemFormData = {
   quantity: number;
   overridePrice: boolean;
   unitPrice?: { currency: string; value: string } | null;
-  conversionRate: string;
 };
 
 const baseAddLineItemSchema = z
@@ -36,7 +35,6 @@ const baseAddLineItemSchema = z
     quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
     overridePrice: z.boolean(),
     unitPrice: currencyValueSchema.optional().nullable(),
-    conversionRate: z.string(),
   })
   .superRefine((data, ctx) => {
     if (!data.unitPrice?.value) {
@@ -68,10 +66,10 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   const mutation = useAddPurchaseOrderItem({ onSuccess });
 
   const [supplierUnitPrice, setSupplierUnitPrice] = useState<number | null>(null);
-  const [itemCurrencyCode, setItemCurrencyCode] = useState<string | null>(null);
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
 
-  const isSameCurrency = itemCurrencyCode != null && itemCurrencyCode === purchaseOrder.currencyCode;
+  const isSameCurrency =
+    purchaseOrder.supplierCurrencyCode === purchaseOrder.currencyCode;
 
   const addLineItemSchema = useMemo(
     () =>
@@ -96,26 +94,23 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       quantity: 0,
       overridePrice: false,
       unitPrice: null,
-      conversionRate: '1',
     },
   });
 
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
-  const watchedConversionRate = useWatch({ control: form.control, name: 'conversionRate' });
 
   const excludeIds = existingItemIds.join(',');
+  const supplierCurrencyCode = purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode;
   const unitPriceLabel =
-    supplierUnitPrice != null && itemCurrencyCode != null
-      ? `Unit Price (Supplier: ${formatCurrencyMajor(supplierUnitPrice, itemCurrencyCode)})`
+    supplierUnitPrice != null
+      ? `Unit Price (Supplier: ${formatCurrencyMajor(supplierUnitPrice, supplierCurrencyCode)})`
       : 'Unit Price';
 
   useEffect(() => {
     form.clearErrors('unitPrice');
     if (!watchedOverridePrice) {
-      const rate = isSameCurrency
-        ? purchaseOrder.conversionRate
-        : Number(watchedConversionRate) || purchaseOrder.conversionRate;
-      const convertedPrice = supplierUnitPrice != null ? supplierUnitPrice * rate : null;
+      const convertedPrice =
+        supplierUnitPrice != null ? supplierUnitPrice * purchaseOrder.conversionRate : null;
       form.setValue(
         'unitPrice',
         convertedPrice != null
@@ -123,7 +118,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
           : null,
       );
     }
-  }, [watchedOverridePrice, supplierUnitPrice, isSameCurrency, purchaseOrder.conversionRate, watchedConversionRate, purchaseOrder.currencyCode, form]);
+  }, [watchedOverridePrice, supplierUnitPrice, purchaseOrder.conversionRate, purchaseOrder.currencyCode, form]);
 
   const handleItemSelect = (option: SelectOption | null) => {
     const nextCurrencyCode =
@@ -136,17 +131,17 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         : null;
 
     setSupplierUnitPrice(Number.isFinite(unitPrice) ? unitPrice : null);
-    setItemCurrencyCode(nextCurrencyCode);
     setAllowDecimal(option?.additionals?.allowDecimal === true);
     form.setValue('overridePrice', false);
-    form.setValue('conversionRate', '1');
-
-    const nextIsSameCurrency = nextCurrencyCode != null && nextCurrencyCode === purchaseOrder.currencyCode;
-    const nextRate = nextIsSameCurrency ? purchaseOrder.conversionRate : 1;
 
     form.setValue(
       'unitPrice',
-      unitPrice != null ? { currency: purchaseOrder.currencyCode, value: String(unitPrice * nextRate) } : null,
+      unitPrice != null
+        ? {
+            currency: purchaseOrder.currencyCode,
+            value: String(unitPrice * purchaseOrder.conversionRate),
+          }
+        : null,
     );
   };
 
@@ -157,15 +152,14 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => {
-        const submitRate = isSameCurrency ? purchaseOrder.conversionRate : Number(data.conversionRate);
-        const submitConvertedPrice = supplierUnitPrice != null ? supplierUnitPrice * submitRate : null;
+        const submitConvertedPrice =
+          supplierUnitPrice != null ? supplierUnitPrice * purchaseOrder.conversionRate : null;
         return {
           id: purchaseOrder.id,
           inventoryItemId: data.inventoryItemId,
           quantity: data.quantity,
-          conversionRate: submitRate,
           supplierUnitPrice: {
-            currency: itemCurrencyCode ?? purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode,
+            currency: isSameCurrency ? purchaseOrder.currencyCode : supplierCurrencyCode,
             value: String(supplierUnitPrice ?? Number(data.unitPrice?.value ?? '0')),
           },
           unitPrice: data.overridePrice
@@ -205,14 +199,6 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         params={{ excludeIds, supplierId: purchaseOrder.supplierId }}
       />
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 500" integer={!allowDecimal} positive />
-      {itemCurrencyCode != null && !isSameCurrency && (
-        <TextField
-          name="conversionRate"
-          label={`Conversion Rate (${itemCurrencyCode} → ${purchaseOrder.currencyCode})`}
-          type="number"
-          placeholder="e.g. 1.25"
-        />
-      )}
       <Switch
         name="overridePrice"
         label="Override Price"
