@@ -6,7 +6,7 @@ export type StockTransferStatus = 'REQUESTED' | 'IN_TRANSIT' | 'RECEIVED' | 'CAN
 export interface StockTransferData {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   fromBuId: string;
   fromBuName: string | null;
   toBuId: string;

@@ -3,7 +3,7 @@ import type { StockTransfer } from '@/db/schema';
 export class StockTransferDto {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   fromBuId: string;
   toBuId: string;
   quantity: number;
@@ -18,7 +18,7 @@ export class StockTransferDto {
     const dto = new StockTransferDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
+    dto.inventoryItemName = itemName ?? '';
     dto.fromBuId = entity.fromBuId;
     dto.toBuId = entity.toBuId;
     dto.quantity = Number(entity.quantity);

@@ -61,9 +61,9 @@ export interface GoodsReceiptItemData {
   id: string;
   goodsReceiptId: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   inventoryItemTracking: InventoryTracking;
-  inventoryItemUomSymbol: string | null;
+  inventoryItemUomSymbol: string;
   // derived from sum(lines.quantity)
   acceptedQuantity: number;
   rejectedQuantity: number;

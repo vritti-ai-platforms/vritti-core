@@ -6,7 +6,7 @@ export type ConversionStatus = 'DRAFT' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLE
 export interface ConversionInputData {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   quantity: number;
   wastageQuantity: number;
 }
@@ -14,7 +14,7 @@ export interface ConversionInputData {
 export interface ConversionOutputData {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   quantity: number;
   wastageQuantity: number;
 }

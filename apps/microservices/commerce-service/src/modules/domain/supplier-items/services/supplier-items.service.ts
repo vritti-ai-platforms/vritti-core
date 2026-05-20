@@ -58,7 +58,7 @@ export class SupplierItemsService {
     const { limit = 20, offset = 0 } = state.pagination;
 
     const { result, count } = await this.repository.findItemsForTable(supplierId, {
-      where: where || undefined,
+      where,
       orderBy,
       limit,
       offset,

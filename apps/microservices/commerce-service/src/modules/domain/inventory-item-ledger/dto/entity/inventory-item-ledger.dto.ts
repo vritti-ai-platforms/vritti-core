@@ -3,7 +3,7 @@ import type { InventoryItemLedgerEntry, InventoryItemLedgerType } from '@/db/sch
 export class InventoryItemLedgerDto {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   type: InventoryItemLedgerType;
   quantity: number;
   referenceType: string | null;
@@ -15,7 +15,7 @@ export class InventoryItemLedgerDto {
     const dto = new InventoryItemLedgerDto();
     dto.id = entry.id;
     dto.inventoryItemId = entry.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
+    dto.inventoryItemName = itemName ?? '';
     dto.type = entry.type;
     dto.quantity = Number(entry.quantity);
     dto.referenceType = entry.referenceType ?? null;

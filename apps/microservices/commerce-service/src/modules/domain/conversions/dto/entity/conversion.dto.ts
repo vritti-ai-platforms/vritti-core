@@ -3,7 +3,7 @@ import type { Conversion, ConversionInput, ConversionOutput } from '@/db/schema'
 export class ConversionInputDto {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   quantity: number;
   wastageQuantity: number;
 
@@ -11,7 +11,7 @@ export class ConversionInputDto {
     const dto = new ConversionInputDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
+    dto.inventoryItemName = itemName ?? '';
     dto.quantity = Number(entity.quantity);
     dto.wastageQuantity = Number(entity.wastageQuantity);
     return dto;
@@ -21,7 +21,7 @@ export class ConversionInputDto {
 export class ConversionOutputDto {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   quantity: number;
   wastageQuantity: number;
 
@@ -29,7 +29,7 @@ export class ConversionOutputDto {
     const dto = new ConversionOutputDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
+    dto.inventoryItemName = itemName ?? '';
     dto.quantity = Number(entity.quantity);
     dto.wastageQuantity = Number(entity.wastageQuantity);
     return dto;

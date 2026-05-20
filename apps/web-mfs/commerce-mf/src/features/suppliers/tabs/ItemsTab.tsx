@@ -58,7 +58,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
         accessorKey: 'unitPrice',
         header: 'Unit Price',
         cell: ({ row }) =>
-          row.original.unitPrice != null ? `${row.original.unitPrice.currency} ${row.original.unitPrice.value}` : '—',
+          `${row.original.unitPrice.currency} ${row.original.unitPrice.value}`,
       },
       {
         accessorKey: 'minOrderQuantity',

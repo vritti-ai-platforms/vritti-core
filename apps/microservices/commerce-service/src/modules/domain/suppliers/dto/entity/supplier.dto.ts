@@ -4,9 +4,9 @@ import type { Supplier, SupplierItem } from '@/db/schema';
 export class SupplierItemDto {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   supplierItemCode: string | null;
-  unitPrice: CurrencyAmountDto | null;
+  unitPrice: CurrencyAmountDto;
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;
@@ -18,7 +18,7 @@ export class SupplierItemDto {
     const dto = new SupplierItemDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
+    dto.inventoryItemName = itemName ?? '';
     dto.supplierItemCode = entity.supplierItemCode ?? null;
     dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, entity.currencyCode);
     dto.uomId = entity.uomId;
@@ -35,10 +35,10 @@ export class SupplierItemDto {
 export class InventoryItemSupplierDto {
   id: string;
   supplierId: string;
-  supplierName: string | null;
-  supplierCode: string | null;
+  supplierName: string;
+  supplierCode: string;
   supplierItemCode: string | null;
-  unitPrice: CurrencyAmountDto | null;
+  unitPrice: CurrencyAmountDto;
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;
@@ -55,8 +55,8 @@ export class InventoryItemSupplierDto {
     const dto = new InventoryItemSupplierDto();
     dto.id = entity.id;
     dto.supplierId = entity.supplierId;
-    dto.supplierName = supplierName ?? null;
-    dto.supplierCode = supplierCode ?? null;
+    dto.supplierName = supplierName ?? '';
+    dto.supplierCode = supplierCode ?? '';
     dto.supplierItemCode = entity.supplierItemCode ?? null;
     dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, entity.currencyCode);
     dto.uomId = entity.uomId;

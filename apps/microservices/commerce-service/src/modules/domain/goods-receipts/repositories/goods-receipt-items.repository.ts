@@ -16,9 +16,9 @@ import {
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
 
 export type GoodsReceiptItemWithRefs = GoodsReceiptItem & {
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   inventoryItemTracking: InventoryTracking;
-  inventoryItemUomSymbol: string | null;
+  inventoryItemUomSymbol: string;
   acceptedQuantity: number;
   lotsCount: number;
   linesCount: number;

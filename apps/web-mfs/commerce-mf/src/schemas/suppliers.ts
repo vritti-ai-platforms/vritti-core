@@ -164,9 +164,9 @@ export interface SupplierData {
 export interface SupplierItemData {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   supplierItemCode: string | null;
-  unitPrice: { currency: string; value: string } | null;
+  unitPrice: { currency: string; value: string };
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;
@@ -178,10 +178,10 @@ export interface SupplierItemData {
 export interface InventoryItemSupplierData {
   id: string;
   supplierId: string;
-  supplierName: string | null;
-  supplierCode: string | null;
+  supplierName: string;
+  supplierCode: string;
   supplierItemCode: string | null;
-  unitPrice: { currency: string; value: string } | null;
+  unitPrice: { currency: string; value: string };
   uomId: string;
   uomSymbol: string;
   minOrderQuantity: number | null;

@@ -5,9 +5,9 @@ export class GoodsReceiptItemDto {
   id: string;
   goodsReceiptId: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   inventoryItemTracking: InventoryTracking;
-  inventoryItemUomSymbol: string | null;
+  inventoryItemUomSymbol: string;
   acceptedQuantity: number;
   rejectedQuantity: number;
   lotsCount: number;
@@ -23,9 +23,9 @@ export class GoodsReceiptItemDto {
     dto.id = row.id;
     dto.goodsReceiptId = row.goodsReceiptId;
     dto.inventoryItemId = row.inventoryItemId;
-    dto.inventoryItemName = row.inventoryItemName ?? null;
+    dto.inventoryItemName = row.inventoryItemName ?? '';
     dto.inventoryItemTracking = row.inventoryItemTracking;
-    dto.inventoryItemUomSymbol = row.inventoryItemUomSymbol ?? null;
+    dto.inventoryItemUomSymbol = row.inventoryItemUomSymbol ?? '';
     dto.acceptedQuantity = Number(row.acceptedQuantity ?? 0);
     dto.rejectedQuantity = Number(row.rejectedQuantity ?? 0);
     dto.lotsCount = row.lotsCount;

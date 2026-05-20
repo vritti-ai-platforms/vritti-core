@@ -4,7 +4,7 @@ import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus } from '@/db
 export class PurchaseOrderItemDto {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   uomId: string;
   orderedQuantity: number;
   receivedQuantity: number;
@@ -22,7 +22,7 @@ export class PurchaseOrderItemDto {
     const dto = new PurchaseOrderItemDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
+    dto.inventoryItemName = itemName ?? '';
     dto.uomId = entity.uomId;
     dto.orderedQuantity = Number(entity.orderedQuantity);
     dto.receivedQuantity = Number(entity.receivedQuantity);
@@ -42,7 +42,7 @@ export class PurchaseOrderItemDto {
 export class PurchaseOrderDto {
   id: string;
   supplierId: string;
-  supplierName: string | null;
+  supplierName: string;
   supplierCurrencyCode: string | null;
   poNumber: string;
   status: PurchaseOrderStatus;
@@ -60,7 +60,7 @@ export class PurchaseOrderDto {
     const dto = new PurchaseOrderDto();
     dto.id = entity.id;
     dto.supplierId = entity.supplierId;
-    dto.supplierName = supplierName ?? null;
+    dto.supplierName = supplierName ?? '';
     dto.supplierCurrencyCode = supplierCurrencyCode ?? null;
     dto.poNumber = entity.poNumber;
     dto.status = entity.status;
@@ -82,7 +82,7 @@ export class PurchaseOrderDetailDto extends PurchaseOrderDto {
 
   static fromDetail(
     entity: PurchaseOrder,
-    supplierName: string | null,
+    supplierName: string,
     items: PurchaseOrderItemDto[],
   ): PurchaseOrderDetailDto {
     const dto = new PurchaseOrderDetailDto();

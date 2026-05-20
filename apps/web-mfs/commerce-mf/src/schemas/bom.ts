@@ -37,7 +37,7 @@ export interface BomData {
 export interface BomLineData {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   requiredQuantity: number;
 }
 

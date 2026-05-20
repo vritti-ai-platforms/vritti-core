@@ -3,14 +3,14 @@ import type { Bom, BomLine } from '@/db/schema';
 export class BomLineDto {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   requiredQuantity: number;
 
   static from(entity: BomLine, itemName?: string | null): BomLineDto {
     const dto = new BomLineDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? null;
+    dto.inventoryItemName = itemName ?? '';
     dto.requiredQuantity = Number(entity.requiredQuantity);
     return dto;
   }

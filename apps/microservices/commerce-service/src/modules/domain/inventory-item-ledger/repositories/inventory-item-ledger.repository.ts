@@ -23,10 +23,10 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
 
   // Returns paginated ledger entries joined with item name for the data table
   async findAllForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (InventoryItemLedgerEntry & { inventoryItemName: string | null })[];
+    result: (InventoryItemLedgerEntry & { inventoryItemName: string })[];
     count: number;
   }> {
-    return this.findAllAndCount<InventoryItemLedgerEntry & { inventoryItemName: string | null }>({
+    return this.findAllAndCount<InventoryItemLedgerEntry & { inventoryItemName: string }>({
       select: {
         id: inventoryItemLedger.id,
         organizationId: inventoryItemLedger.organizationId,

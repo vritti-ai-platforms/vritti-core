@@ -83,7 +83,7 @@ export interface PurchaseOrderData {
 export interface PurchaseOrderItemData {
   id: string;
   inventoryItemId: string;
-  inventoryItemName: string | null;
+  inventoryItemName: string;
   uomId: string;
   orderedQuantity: number;
   receivedQuantity: number;

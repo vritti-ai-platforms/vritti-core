@@ -15,8 +15,8 @@ export class StockTransfersRepository extends PrimaryBaseRepository<typeof stock
     orderBy?: SQL[];
     limit?: number;
     offset?: number;
-  }): Promise<{ result: (StockTransfer & { inventoryItemName: string | null })[]; count: number }> {
-    return this.findAllAndCount<StockTransfer & { inventoryItemName: string | null }>({
+  }): Promise<{ result: (StockTransfer & { inventoryItemName: string })[]; count: number }> {
+    return this.findAllAndCount<StockTransfer & { inventoryItemName: string }>({
       select: {
         id: stockTransfers.id,
         organizationId: stockTransfers.organizationId,

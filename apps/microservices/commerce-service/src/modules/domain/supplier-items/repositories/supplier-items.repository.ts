@@ -18,10 +18,10 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   async findItemsForTable(
     supplierId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: (SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null })[]; count: number }> {
+  ): Promise<{ result: (SupplierItem & { inventoryItemName: string; uomSymbol: string })[]; count: number }> {
     const baseWhere = eq(supplierItems.supplierId, supplierId);
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    return this.findAllAndCount<SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null }>({
+    return this.findAllAndCount<SupplierItem & { inventoryItemName: string; uomSymbol: string }>({
       select: {
         id: supplierItems.id,
         organizationId: supplierItems.organizationId,
@@ -56,13 +56,13 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
     inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{
-    result: (SupplierItem & { supplierName: string | null; supplierCode: string | null; uomSymbol: string | null })[];
+    result: (SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string })[];
     count: number;
   }> {
     const baseWhere = eq(supplierItems.inventoryItemId, inventoryItemId);
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<
-      SupplierItem & { supplierName: string | null; supplierCode: string | null; uomSymbol: string | null }
+      SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string }
     >({
       select: {
         id: supplierItems.id,
@@ -134,7 +134,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   }
 
   // Finds a supplier item by ID with inventory item name and UOM symbol
-  async findSupplierItemById(id: string): Promise<(SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null }) | undefined> {
+  async findSupplierItemById(id: string): Promise<(SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined> {
     const rows = await this.db
       .select({
         id: supplierItems.id,
@@ -160,7 +160,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       .where(eq(supplierItems.id, id))
       .limit(1);
 
-    return rows[0] as (SupplierItem & { inventoryItemName: string | null; uomSymbol: string | null }) | undefined;
+    return rows[0] as (SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined;
   }
 
   // Finds a supplier item by supplier ID and inventory item ID

@@ -32,7 +32,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
     resolver: zodResolver(updateSupplierItemSchema),
     defaultValues: {
       supplierItemCode: item.supplierItemCode ?? '',
-      unitPrice: item.unitPrice ?? undefined,
+      unitPrice: item.unitPrice,
       uomId: item.uomId,
       minOrderQuantity: item.minOrderQuantity ?? undefined,
       leadTimeDays: item.leadTimeDays ?? undefined,

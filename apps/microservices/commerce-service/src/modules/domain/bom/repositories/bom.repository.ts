@@ -20,7 +20,7 @@ export class BomRepository extends PrimaryBaseRepository<typeof bom> {
   }
 
   // Returns all lines for a BOM with inventory item names
-  async findLinesByBomId(bomId: string): Promise<(BomLine & { inventoryItemName: string | null })[]> {
+  async findLinesByBomId(bomId: string): Promise<(BomLine & { inventoryItemName: string })[]> {
     const rows = await this.db
       .select({
         id: bomLines.id,
@@ -34,7 +34,7 @@ export class BomRepository extends PrimaryBaseRepository<typeof bom> {
       .leftJoin(inventoryItems, eq(bomLines.inventoryItemId, inventoryItems.id))
       .where(eq(bomLines.bomId, bomId));
 
-    return rows as (BomLine & { inventoryItemName: string | null })[];
+    return rows as (BomLine & { inventoryItemName: string })[];
   }
 
   // Creates multiple BOM lines

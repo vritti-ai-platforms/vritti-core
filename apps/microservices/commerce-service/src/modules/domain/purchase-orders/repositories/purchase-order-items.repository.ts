@@ -10,7 +10,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
   }
 
   // Returns all line items for a PO with inventory item names
-  async findItemsByPoId(poId: string): Promise<(PurchaseOrderItem & { inventoryItemName: string | null })[]> {
+  async findItemsByPoId(poId: string): Promise<(PurchaseOrderItem & { inventoryItemName: string })[]> {
     const rows = await this.db
       .select({
         id: purchaseOrderItems.id,
@@ -31,7 +31,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
       .leftJoin(inventoryItems, eq(purchaseOrderItems.inventoryItemId, inventoryItems.id))
       .where(eq(purchaseOrderItems.purchaseOrderId, poId));
 
-    return rows as (PurchaseOrderItem & { inventoryItemName: string | null })[];
+    return rows as (PurchaseOrderItem & { inventoryItemName: string })[];
   }
 
   // Returns inventory item IDs linked to a PO
@@ -48,12 +48,12 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
   async findItemsForTable(
     poId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: (PurchaseOrderItem & { inventoryItemName: string | null })[]; count: number }> {
+  ): Promise<{ result: (PurchaseOrderItem & { inventoryItemName: string })[]; count: number }> {
     const baseWhere = eq(purchaseOrderItems.purchaseOrderId, poId);
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<
       PurchaseOrderItem & {
-        inventoryItemName: string | null;
+        inventoryItemName: string;
       }
     >({
       select: {

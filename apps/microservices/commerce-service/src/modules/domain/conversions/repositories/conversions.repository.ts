@@ -21,7 +21,7 @@ export class ConversionsRepository extends PrimaryBaseRepository<typeof conversi
   // Returns all inputs for a conversion with inventory item names
   async findInputsByConversionId(
     conversionId: string,
-  ): Promise<(ConversionInput & { inventoryItemName: string | null })[]> {
+  ): Promise<(ConversionInput & { inventoryItemName: string })[]> {
     const rows = await this.db
       .select({
         id: conversionInputs.id,
@@ -36,13 +36,13 @@ export class ConversionsRepository extends PrimaryBaseRepository<typeof conversi
       .leftJoin(inventoryItems, eq(conversionInputs.inventoryItemId, inventoryItems.id))
       .where(eq(conversionInputs.conversionId, conversionId));
 
-    return rows as (ConversionInput & { inventoryItemName: string | null })[];
+    return rows as (ConversionInput & { inventoryItemName: string })[];
   }
 
   // Returns all outputs for a conversion with inventory item names
   async findOutputsByConversionId(
     conversionId: string,
-  ): Promise<(ConversionOutput & { inventoryItemName: string | null })[]> {
+  ): Promise<(ConversionOutput & { inventoryItemName: string })[]> {
     const rows = await this.db
       .select({
         id: conversionOutputs.id,
@@ -57,7 +57,7 @@ export class ConversionsRepository extends PrimaryBaseRepository<typeof conversi
       .leftJoin(inventoryItems, eq(conversionOutputs.inventoryItemId, inventoryItems.id))
       .where(eq(conversionOutputs.conversionId, conversionId));
 
-    return rows as (ConversionOutput & { inventoryItemName: string | null })[];
+    return rows as (ConversionOutput & { inventoryItemName: string })[];
   }
 
   // Creates conversion input line items
