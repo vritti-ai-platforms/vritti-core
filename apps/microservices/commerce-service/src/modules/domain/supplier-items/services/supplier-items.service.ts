@@ -1,3 +1,4 @@
+import { InventoryItemSupplierDto, SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable } from '@nestjs/common';
 import {
   BadRequestException,
@@ -6,17 +7,16 @@ import {
   type CurrencyCode,
   type FieldMap,
   FilterProcessor,
+  majorToMinor,
+  minorToMajor,
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
-  majorToMinor,
-  minorToMajor,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
 import type { LinkSupplierItemDto } from '@/modules/suppliers/items/dto/request/link-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '@/modules/suppliers/items/dto/request/update-supplier-item.dto';
-import { InventoryItemSupplierDto, SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { SupplierItemsRepository } from '../repositories/supplier-items.repository';
 
 @Injectable()
@@ -48,10 +48,7 @@ export class SupplierItemsService {
 
   constructor(private readonly repository: SupplierItemsRepository) {}
 
-  async findForTable(
-    supplierId: string,
-    state: TableViewState,
-  ): Promise<{ result: SupplierItemDto[]; count: number }> {
+  async findForTable(supplierId: string, state: TableViewState): Promise<{ result: SupplierItemDto[]; count: number }> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
@@ -178,19 +175,15 @@ export class SupplierItemsService {
     if (data.isPreferred !== undefined) update.isPreferred = data.isPreferred;
     if (data.isActive !== undefined) update.isActive = data.isActive;
 
-    if (data.unitPrice !== undefined) {
-      if (data.unitPrice === null) {
-        update.unitPrice = null;
-      } else {
-        try {
-          update.unitPrice = Number(majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode));
-          update.currencyCode = data.unitPrice.currency;
-        } catch (e) {
-          throw new BadRequestException({
-            label: 'Invalid Price',
-            detail: e instanceof Error ? e.message : 'Invalid price value.',
-          });
-        }
+    if (data.unitPrice) {
+      try {
+        update.unitPrice = Number(majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode));
+        update.currencyCode = data.unitPrice.currency;
+      } catch (e) {
+        throw new BadRequestException({
+          label: 'Invalid Price',
+          detail: e instanceof Error ? e.message : 'Invalid price value.',
+        });
       }
     }
 
