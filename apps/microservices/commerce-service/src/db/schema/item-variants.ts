@@ -54,7 +54,7 @@ export const itemVariants = coreSchema.table(
     bomId: uuid('bom_id').references(() => bom.id, { onDelete: 'set null' }),
     sku: varchar('sku', { length: 100 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
-    price: bigint('price', { mode: 'number' }).notNull(),
+    price: bigint('price', { mode: 'bigint' }).notNull(),
     isAvailable: boolean('is_available').notNull().default(true),
     manageInventory: boolean('manage_inventory').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),

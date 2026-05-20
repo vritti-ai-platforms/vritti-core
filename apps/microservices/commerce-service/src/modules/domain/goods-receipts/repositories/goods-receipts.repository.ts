@@ -35,7 +35,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       poNumber: string | null;
       poOrderDate: string | null;
       poExpectedBy: string | null;
-      poTotalAmount: number | null;
+      poTotalAmount: bigint | null;
       poCurrencyCode: string | null;
     })[];
     count: number;
@@ -82,7 +82,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       poNumber: string | null;
       poOrderDate: string | null;
       poExpectedBy: string | null;
-      poTotalAmount: number | null;
+      poTotalAmount: bigint | null;
       poCurrencyCode: string | null;
     })[];
     count: number;
@@ -133,7 +133,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         poNumber: string | null;
         poOrderDate: string | null;
         poExpectedBy: string | null;
-        poTotalAmount: number | null;
+        poTotalAmount: bigint | null;
         poCurrencyCode: string | null;
       })
     | null

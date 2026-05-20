@@ -41,7 +41,7 @@ export class PaymentsService {
 
     const entity = await this.repository.create({
       invoiceId: data.invoiceId,
-      amount: data.amount,
+      amount: BigInt(data.amount),
       method: data.method as PaymentMethod,
       reference: data.reference ?? null,
       status: (data.status as PaymentStatus) ?? 'COMPLETED',

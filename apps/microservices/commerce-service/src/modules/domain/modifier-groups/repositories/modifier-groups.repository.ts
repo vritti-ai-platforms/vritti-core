@@ -36,7 +36,7 @@ export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modif
   async createOption(data: {
     groupId: string;
     name: string;
-    additionalPrice?: number;
+    additionalPrice?: bigint;
     isDefault?: boolean;
     isAvailable?: boolean;
     sortOrder?: number;

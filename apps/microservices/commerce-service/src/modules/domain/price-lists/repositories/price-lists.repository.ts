@@ -128,7 +128,7 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
       itemVariantName: string;
       itemId: string;
       itemName: string;
-      basePrice: number;
+      basePrice: bigint;
       categoryName: string | null;
     })[]
   > {
@@ -161,7 +161,7 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
   // Replaces all price list item assignments for a price list
   async replacePriceListItems(
     priceListId: string,
-    itemAssignments: Array<{ itemVariantId: string; sortOrder: number; isVisible: boolean; priceOverride: number | null }>,
+    itemAssignments: Array<{ itemVariantId: string; sortOrder: number; isVisible: boolean; priceOverride: bigint | null }>,
   ): Promise<void> {
     await this.db.delete(priceListItems).where(eq(priceListItems.priceListId, priceListId));
 
@@ -231,9 +231,9 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
       itemVariantName: string;
       itemId: string;
       itemName: string;
-      basePrice: number;
+      basePrice: bigint;
       categoryName: string | null;
-      priceOverride: number | null;
+      priceOverride: bigint | null;
       priority: number;
       sortOrder: number;
     }>

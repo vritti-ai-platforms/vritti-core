@@ -244,9 +244,9 @@ export class PurchaseOrdersService {
         inventoryItemId: data.inventoryItemId,
         uomId,
         orderedQuantity: String(data.orderedQuantity),
-        supplierUnitPrice: Number(supplierUnitPriceMinor),
-        unitPrice: Number(unitPriceMinor),
-        totalPrice: Number(totalPriceMinor),
+        supplierUnitPrice: supplierUnitPriceMinor,
+        unitPrice: unitPriceMinor,
+        totalPrice: totalPriceMinor,
         itemCurrencyCode,
         conversionRate: String(itemConversionRate),
       });
@@ -305,7 +305,7 @@ export class PurchaseOrdersService {
         supplierUnitPriceMinor = majorToMinor(data.supplierUnitPrice.value, supplierCode);
       } else {
         // Use existing minor value from DB directly
-        supplierUnitPriceMinor = BigInt(item.supplierUnitPrice);
+        supplierUnitPriceMinor = item.supplierUnitPrice;
       }
 
       if (data.unitPrice != null) {
@@ -324,7 +324,7 @@ export class PurchaseOrdersService {
         unitPriceMinor = BigInt(Math.round(unitPriceNum));
       } else {
         // data.unitPrice is undefined — keep existing minor value or derive if missing
-        unitPriceMinor = item.unitPrice != null ? BigInt(item.unitPrice) : supplierUnitPriceMinor;
+        unitPriceMinor = item.unitPrice != null ? item.unitPrice : supplierUnitPriceMinor;
       }
     } catch (e) {
       if (e instanceof BadRequestException) throw e;
@@ -340,9 +340,9 @@ export class PurchaseOrdersService {
       await this.poItemsRepository.update(itemId, {
         inventoryItemId: data.inventoryItemId,
         orderedQuantity: String(orderedQuantity),
-        supplierUnitPrice: Number(supplierUnitPriceMinor),
-        unitPrice: Number(unitPriceMinor),
-        totalPrice: Number(totalPriceMinor),
+        supplierUnitPrice: supplierUnitPriceMinor,
+        unitPrice: unitPriceMinor,
+        totalPrice: totalPriceMinor,
         conversionRate: String(conversionRate),
       });
 

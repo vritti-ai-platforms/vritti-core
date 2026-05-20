@@ -75,12 +75,12 @@ export class OrdersService {
       customerPhone: data.customerPhone ?? null,
       deliveryAddress: data.deliveryAddress ?? null,
       notes: data.notes ?? null,
-      subtotal,
-      taxAmount,
-      serviceCharge,
-      deliveryCharge,
-      discountAmount,
-      totalAmount,
+      subtotal: BigInt(Math.round(subtotal)),
+      taxAmount: BigInt(Math.round(taxAmount)),
+      serviceCharge: BigInt(Math.round(serviceCharge)),
+      deliveryCharge: BigInt(Math.round(deliveryCharge)),
+      discountAmount: BigInt(Math.round(discountAmount)),
+      totalAmount: BigInt(Math.round(totalAmount)),
     });
 
     // Insert order items
@@ -92,11 +92,11 @@ export class OrdersService {
         itemName: item.itemName,
         variantName: item.variantName,
         quantity: item.quantity,
-        unitPrice: item.unitPrice,
+        unitPrice: BigInt(item.unitPrice),
         taxRate: String(item.taxRate),
-        taxAmount: item.taxAmount,
-        subtotal: item.subtotal,
-        total: item.total,
+        taxAmount: BigInt(Math.round(item.taxAmount)),
+        subtotal: BigInt(Math.round(item.subtotal)),
+        total: BigInt(Math.round(item.total)),
         notes: item.notes ?? null,
       })),
     );
@@ -108,7 +108,7 @@ export class OrdersService {
         modifierGroupId: mod.modifierGroupId,
         modifierOptionId: mod.modifierOptionId,
         name: mod.name,
-        additionalPrice: mod.additionalPrice,
+        additionalPrice: BigInt(mod.additionalPrice),
       })),
     );
 

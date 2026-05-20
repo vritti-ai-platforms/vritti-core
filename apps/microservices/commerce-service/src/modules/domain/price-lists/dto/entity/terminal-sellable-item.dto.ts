@@ -22,9 +22,9 @@ export class TerminalSellableItemDto {
     itemVariantName: string;
     itemId: string;
     itemName: string;
-    basePrice: number;
+    basePrice: bigint;
     categoryName: string | null;
-    priceOverride: number | null;
+    priceOverride: bigint | null;
     priority: number;
     sortOrder: number;
   }): TerminalSellableItemDto {
@@ -37,9 +37,9 @@ export class TerminalSellableItemDto {
     dto.itemVariantName = entity.itemVariantName;
     dto.itemId = entity.itemId;
     dto.itemName = entity.itemName;
-    dto.basePrice = entity.basePrice;
+    dto.basePrice = Number(entity.basePrice);
     dto.categoryName = entity.categoryName;
-    dto.priceOverride = entity.priceOverride;
+    dto.priceOverride = entity.priceOverride != null ? Number(entity.priceOverride) : null;
     dto.priority = entity.priority;
     dto.sortOrder = entity.sortOrder;
     return dto;

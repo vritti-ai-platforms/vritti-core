@@ -180,7 +180,7 @@ export class ItemsService {
         itemId,
         sku,
         name: variantName,
-        price: 0,
+        price: 0n,
         sortOrder: i,
       });
 
@@ -223,7 +223,7 @@ export class ItemsService {
     const { price: _price, ...rest } = data;
     const updated = await this.itemsRepository.updateVariant(variantId, {
       ...rest,
-      ...(data.price != null && { price: data.price }),
+      ...(data.price != null && { price: BigInt(data.price) }),
     });
 
     const variantOptionValues = await this.itemsRepository.findVariantOptionValues([variantId]);

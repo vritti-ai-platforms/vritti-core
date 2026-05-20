@@ -74,7 +74,7 @@ export class ModifierGroupsService {
     const entity = await this.modifierGroupsRepository.createOption({
       groupId: data.groupId,
       name: data.name,
-      additionalPrice: data.additionalPrice ?? 0,
+      additionalPrice: BigInt(data.additionalPrice ?? 0),
       isDefault: data.isDefault ?? false,
       isAvailable: data.isAvailable ?? true,
       sortOrder: data.sortOrder ?? 0,
@@ -88,7 +88,11 @@ export class ModifierGroupsService {
     const existing = await this.modifierGroupsRepository.findOptionById(optionId);
     if (!existing) throw new NotFoundException('Modifier option not found.');
 
-    const entity = await this.modifierGroupsRepository.updateOption(optionId, dto);
+    const { additionalPrice: _ap, ...rest } = dto;
+    const entity = await this.modifierGroupsRepository.updateOption(optionId, {
+      ...rest,
+      ...(dto.additionalPrice != null && { additionalPrice: BigInt(dto.additionalPrice) }),
+    });
     this.logger.log(`Updated modifier option: ${entity.name} (${entity.id})`);
     return ModifierOptionDto.from(entity);
   }

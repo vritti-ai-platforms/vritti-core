@@ -15,7 +15,7 @@ export class ModifierOptionDto {
     dto.id = entity.id;
     dto.groupId = entity.groupId;
     dto.name = entity.name;
-    dto.additionalPrice = entity.additionalPrice;
+    dto.additionalPrice = Number(entity.additionalPrice);
     dto.isDefault = entity.isDefault;
     dto.isAvailable = entity.isAvailable;
     dto.sortOrder = entity.sortOrder;

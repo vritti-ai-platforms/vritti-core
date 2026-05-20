@@ -65,7 +65,7 @@ export const modifierOptions = coreSchema.table(
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     groupId: uuid('group_id').notNull(),
     name: varchar('name', { length: 255 }).notNull(),
-    additionalPrice: bigint('additional_price', { mode: 'number' }).notNull().default(0),
+    additionalPrice: bigint('additional_price', { mode: 'bigint' }).notNull().default(0n),
     isDefault: boolean('is_default').notNull().default(false),
     isAvailable: boolean('is_available').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),

@@ -57,7 +57,7 @@ export class InvoicesService {
   async create(data: CreateInvoiceDto): Promise<InvoiceDto> {
     const subtotal = this.calculateSubtotal(data.items);
     const taxAmount = this.calculateTaxAmount(data.items);
-    const discountAmount = data.discountAmount ?? 0;
+    const discountAmount = BigInt(data.discountAmount ?? 0);
     const totalAmount = subtotal + taxAmount - discountAmount;
 
     const entity = await this.repository.create({
@@ -72,7 +72,7 @@ export class InvoicesService {
       taxAmount,
       discountAmount,
       totalAmount,
-      paidAmount: 0,
+      paidAmount: 0n,
       balance: totalAmount,
       status: (data.status as InvoiceStatus) ?? InvoiceStatusValues.DRAFT,
       paymentTerms: data.paymentTerms ?? null,
@@ -87,9 +87,9 @@ export class InvoicesService {
             invoiceId: entity.id,
             description: item.description,
             quantity: String(item.quantity),
-            unitPrice: item.unitPrice,
-            taxAmount: item.taxAmount ?? 0,
-            total: item.quantity * item.unitPrice + (item.taxAmount ?? 0),
+            unitPrice: BigInt(item.unitPrice),
+            taxAmount: BigInt(item.taxAmount ?? 0),
+            total: BigInt(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),
             referenceItemId: item.referenceItemId ?? null,
           })),
       );
@@ -128,9 +128,9 @@ export class InvoicesService {
             invoiceId: id,
             description: item.description,
             quantity: String(item.quantity),
-            unitPrice: item.unitPrice,
-            taxAmount: item.taxAmount ?? 0,
-            total: item.quantity * item.unitPrice + (item.taxAmount ?? 0),
+            unitPrice: BigInt(item.unitPrice),
+            taxAmount: BigInt(item.taxAmount ?? 0),
+            total: BigInt(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),
             referenceItemId: item.referenceItemId ?? null,
           })),
         );
@@ -138,21 +138,22 @@ export class InvoicesService {
 
       const subtotal = this.calculateSubtotal(data.items);
       const taxAmount = this.calculateTaxAmount(data.items);
-      const discountAmount = data.discountAmount ?? Number(existing.discountAmount);
+      const discountAmount = BigInt(data.discountAmount ?? 0) ?? existing.discountAmount;
       const totalAmount = subtotal + taxAmount - discountAmount;
 
       updatePayload.subtotal = subtotal;
       updatePayload.taxAmount = taxAmount;
       updatePayload.discountAmount = discountAmount;
       updatePayload.totalAmount = totalAmount;
-      updatePayload.balance = totalAmount - Number(existing.paidAmount);
+      updatePayload.balance = totalAmount - existing.paidAmount;
     } else if (data.discountAmount !== undefined) {
-      const subtotal = Number(existing.subtotal);
-      const taxAmount = Number(existing.taxAmount);
-      const totalAmount = subtotal + taxAmount - data.discountAmount;
-      updatePayload.discountAmount = data.discountAmount;
+      const subtotal = existing.subtotal;
+      const taxAmount = existing.taxAmount;
+      const discountAmount = BigInt(data.discountAmount);
+      const totalAmount = subtotal + taxAmount - discountAmount;
+      updatePayload.discountAmount = discountAmount;
       updatePayload.totalAmount = totalAmount;
-      updatePayload.balance = totalAmount - Number(existing.paidAmount);
+      updatePayload.balance = totalAmount - existing.paidAmount;
     }
 
     const entity = await this.repository.update(id, updatePayload);
@@ -172,12 +173,12 @@ export class InvoicesService {
   }
 
   // Calculates subtotal from invoice items
-  private calculateSubtotal(items: CreateInvoiceItemDto[]): number {
-    return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  private calculateSubtotal(items: CreateInvoiceItemDto[]): bigint {
+    return items.reduce((sum, item) => sum + BigInt(item.quantity * item.unitPrice), 0n);
   }
 
   // Calculates total tax from invoice items
-  private calculateTaxAmount(items: CreateInvoiceItemDto[]): number {
-    return items.reduce((sum, item) => sum + (item.taxAmount ?? 0), 0);
+  private calculateTaxAmount(items: CreateInvoiceItemDto[]): bigint {
+    return items.reduce((sum, item) => sum + BigInt(item.taxAmount ?? 0), 0n);
   }
 }

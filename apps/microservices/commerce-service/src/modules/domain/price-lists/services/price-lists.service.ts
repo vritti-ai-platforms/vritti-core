@@ -166,7 +166,7 @@ export class PriceListsService {
         itemVariantId: item.itemVariantId,
         sortOrder: item.sortOrder ?? index,
         isVisible: item.isVisible ?? true,
-        priceOverride: item.priceOverride ?? null,
+        priceOverride: item.priceOverride != null ? BigInt(item.priceOverride) : null,
       })),
     );
 

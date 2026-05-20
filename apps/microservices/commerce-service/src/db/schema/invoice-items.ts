@@ -11,9 +11,9 @@ export const invoiceItems = coreSchema.table(
     invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
     description: varchar('description', { length: 255 }).notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    unitPrice: bigint('unit_price', { mode: 'number' }).notNull(),
-    taxAmount: bigint('tax_amount', { mode: 'number' }).notNull().default(0),
-    total: bigint('total', { mode: 'number' }).notNull(),
+    unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
+    taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull().default(0n),
+    total: bigint('total', { mode: 'bigint' }).notNull(),
     referenceItemId: uuid('reference_item_id'),
   },
   (table) => [

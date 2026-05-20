@@ -1,4 +1,4 @@
-import { type CurrencyAmountDto, type CurrencyCode, minorToMajor } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk';
 import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus } from '@/db/schema';
 
 export class PurchaseOrderItemDto {
@@ -29,15 +29,11 @@ export class PurchaseOrderItemDto {
     dto.conversionRate = Number(entity.conversionRate);
     dto.itemCurrencyCode = entity.itemCurrencyCode;
 
-    const supplierCode = entity.itemCurrencyCode as CurrencyCode;
-    const poCode = (poCurrencyCode ?? 'USD') as CurrencyCode;
+    const poCode = poCurrencyCode ?? 'USD';
 
-    dto.supplierUnitPrice = {
-      currency: supplierCode,
-      value: minorToMajor(BigInt(entity.supplierUnitPrice), supplierCode) as string,
-    };
-    dto.unitPrice = { currency: poCode, value: minorToMajor(BigInt(entity.unitPrice), poCode) as string };
-    dto.totalPrice = { currency: poCode, value: minorToMajor(BigInt(entity.totalPrice), poCode) as string };
+    dto.supplierUnitPrice = CurrencyAmountDto.from(entity.supplierUnitPrice, entity.itemCurrencyCode);
+    dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, poCode);
+    dto.totalPrice = CurrencyAmountDto.from(entity.totalPrice, poCode);
 
     return dto;
   }
@@ -74,13 +70,7 @@ export class PurchaseOrderDto {
     dto.expectedBy = entity.expectedBy ?? null;
     dto.timezone = entity.timezone;
     dto.notes = entity.notes ?? null;
-    dto.totalAmount =
-      entity.totalAmount != null
-        ? {
-            currency: entity.currencyCode,
-            value: minorToMajor(BigInt(entity.totalAmount), entity.currencyCode as CurrencyCode) as string,
-          }
-        : null;
+    dto.totalAmount = CurrencyAmountDto.from(entity.totalAmount, entity.currencyCode);
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

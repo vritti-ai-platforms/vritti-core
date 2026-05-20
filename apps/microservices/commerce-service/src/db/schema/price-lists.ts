@@ -74,7 +74,7 @@ export const priceListItems = coreSchema.table(
       .references(() => itemVariants.id, { onDelete: 'cascade' }),
     sortOrder: integer('sort_order').notNull().default(0),
     isVisible: boolean('is_visible').notNull().default(true),
-    priceOverride: bigint('price_override', { mode: 'number' }),
+    priceOverride: bigint('price_override', { mode: 'bigint' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

@@ -3,12 +3,11 @@ import { Injectable } from '@nestjs/common';
 import {
   BadRequestException,
   type CreateResponseDto,
-  type CurrencyAmountDto,
+  CurrencyAmountDto,
   type CurrencyCode,
   type FieldMap,
   FilterProcessor,
   majorToMinor,
-  minorToMajor,
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
@@ -114,9 +113,9 @@ export class SupplierItemsService {
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
     const currencyCode = data.unitPrice.currency as CurrencyCode;
-    let unitPriceMinor: number;
+    let unitPriceMinor: bigint;
     try {
-      unitPriceMinor = Number(majorToMinor(data.unitPrice.value, currencyCode));
+      unitPriceMinor = majorToMinor(data.unitPrice.value, currencyCode);
     } catch (e) {
       throw new BadRequestException({
         label: 'Invalid Price',
@@ -177,7 +176,7 @@ export class SupplierItemsService {
 
     if (data.unitPrice) {
       try {
-        update.unitPrice = Number(majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode));
+        update.unitPrice = majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode);
         update.currencyCode = data.unitPrice.currency;
       } catch (e) {
         throw new BadRequestException({
@@ -215,8 +214,6 @@ export class SupplierItemsService {
 
   async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: CurrencyAmountDto | null }> {
     const item = await this.repository.findItemBySupplierAndInventoryItem(supplierId, inventoryItemId);
-    if (item?.unitPrice == null) return { unitPrice: null };
-    const code = item.currencyCode as CurrencyCode;
-    return { unitPrice: { currency: code, value: minorToMajor(BigInt(item.unitPrice), code) } };
+    return { unitPrice: CurrencyAmountDto.from(item?.unitPrice ?? null, item?.currencyCode ?? '') };
   }
 }

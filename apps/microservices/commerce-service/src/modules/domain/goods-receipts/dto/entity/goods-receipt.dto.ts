@@ -28,7 +28,7 @@ export class GoodsReceiptDto {
       poNumber?: string | null;
       poOrderDate?: string | null;
       poExpectedBy?: string | null;
-      poTotalAmount?: number | null;
+      poTotalAmount?: bigint | null;
       poCurrencyCode?: string | null;
     },
   ): GoodsReceiptDto {
@@ -48,7 +48,7 @@ export class GoodsReceiptDto {
             expectedBy: refs.poExpectedBy ?? null,
             totalAmount: {
               currency: refs.poCurrencyCode ?? '',
-              value: refs.poTotalAmount ?? 0,
+              value: Number(refs.poTotalAmount ?? 0n),
             },
           }
         : null;

@@ -100,7 +100,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
   }
 
   // Updates pricing fields for a PO line item
-  async updateLinePricing(itemId: string, data: { unitPrice: number; totalPrice: number }): Promise<void> {
+  async updateLinePricing(itemId: string, data: { unitPrice: bigint; totalPrice: bigint }): Promise<void> {
     await this.db
       .update(purchaseOrderItems)
       .set({

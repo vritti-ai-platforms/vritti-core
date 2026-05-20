@@ -12,7 +12,7 @@ export const payments = coreSchema.table(
     invoiceId: uuid('invoice_id')
       .notNull()
       .references(() => invoices.id, { onDelete: 'cascade' }),
-    amount: bigint('amount', { mode: 'number' }).notNull(),
+    amount: bigint('amount', { mode: 'bigint' }).notNull(),
     method: paymentMethodEnum('method').notNull(),
     reference: varchar('reference', { length: 255 }),
     status: paymentStatusEnum('status').notNull().default('COMPLETED'),
