@@ -13,9 +13,9 @@ import {
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import {
   GoodsReceiptStatusValues,
-  inventoryItemSerials,
-  InventoryTrackingValues,
   goodsReceiptLineItems,
+  InventoryTrackingValues,
+  inventoryItemSerials,
 } from '@/db/schema';
 import { GoodsReceiptLineItemDto } from '../dto/entity/goods-receipt-line-item.dto';
 import { GoodsReceiptLineItemsRepository } from '../repositories/goods-receipt-line-items.repository';

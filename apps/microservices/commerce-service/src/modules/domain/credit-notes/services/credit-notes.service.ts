@@ -63,7 +63,13 @@ export class CreditNotesService {
     id: string,
     data: ApplyCreditNoteDto,
     invoice: InvoiceContext,
-  ): Promise<{ newPaidAmount: number; newBalance: number; newInvoiceStatus: string; success: boolean; message: string }> {
+  ): Promise<{
+    newPaidAmount: number;
+    newBalance: number;
+    newInvoiceStatus: string;
+    success: boolean;
+    message: string;
+  }> {
     const creditNote = await this.repository.findById(id);
     if (!creditNote) throw new NotFoundException('Credit note not found.');
 

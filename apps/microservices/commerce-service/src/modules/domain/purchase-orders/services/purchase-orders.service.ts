@@ -5,26 +5,15 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
-  PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
-import { type CurrencyCode, majorToMinor, resolveCurrency } from '@vritti/api-sdk/money';
-import {
-  type PurchaseOrderStatus,
-  PurchaseOrderStatusValues,
-  purchaseOrderItems,
-  purchaseOrders,
-  suppliers,
-} from '@/db/schema';
-import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
+import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrders, suppliers } from '@/db/schema';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
-import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
-import { PurchaseOrderDto, PurchaseOrderItemDto } from '../dto/entity/purchase-order.dto';
-import { PurchaseOrderItemsRepository } from '../repositories/purchase-order-items.repository';
+import { PurchaseOrderDto } from '../dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
 
 @Injectable()
@@ -56,20 +45,7 @@ export class PurchaseOrdersService {
     [PurchaseOrderStatusValues.CANCELLED]: [],
   };
 
-  private static readonly ITEM_FIELD_MAP: FieldMap = {
-    inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
-    quantity: { column: purchaseOrderItems.quantity, type: 'number' },
-    receivedQuantity: { column: purchaseOrderItems.receivedQuantity, type: 'number' },
-    supplierUnitPrice: { column: purchaseOrderItems.supplierUnitPrice, type: 'number' },
-    unitPrice: { column: purchaseOrderItems.unitPrice, type: 'number' },
-    totalPrice: { column: purchaseOrderItems.totalPrice, type: 'number' },
-  };
-
-  constructor(
-    private readonly database: PrimaryDatabaseService,
-    private readonly repository: PurchaseOrdersRepository,
-    private readonly poItemsRepository: PurchaseOrderItemsRepository,
-  ) {}
+  constructor(private readonly repository: PurchaseOrdersRepository) {}
 
   // Returns paginated purchase order options for select dropdowns.
   // `status` accepts a single value or a comma-separated list (e.g. "CONFIRMED,PARTIALLY_RECEIVED").
@@ -130,8 +106,11 @@ export class PurchaseOrdersService {
     };
   }
 
-  // Creates a new PO with line items. App-layer fetches the supplier and passes currency context.
-  async create(data: CreatePurchaseOrderDto, supplierCurrencyCode: string): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  // Creates a new PO. App-layer fetches the supplier and passes supplierCurrencyCode.
+  async create(
+    data: CreatePurchaseOrderDto,
+    supplierCurrencyCode: string,
+  ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const isSameCurrency = supplierCurrencyCode === data.currencyCode;
     const conversionRate = isSameCurrency ? 1 : data.conversionRate;
 
@@ -165,210 +144,11 @@ export class PurchaseOrdersService {
     };
   }
 
-  // Returns PO header/detail without line items
+  // Returns PO header without line items
   async findById(id: string): Promise<PurchaseOrderDto> {
     const entity = await this.repository.findByIdWithSupplierName(id);
     if (!entity) throw new NotFoundException('Purchase order not found.');
     return PurchaseOrderDto.from(entity, entity.supplierName, entity.supplierCurrencyCode);
-  }
-
-  // Adds a line item to a draft PO. uomId must be resolved by the app layer before calling this.
-  async addItem(id: string, data: AddPurchaseOrderItemDto, uomId: string): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    const existing = await this.repository.findByIdWithSupplierName(id);
-    if (!existing) throw new NotFoundException('Purchase order not found.');
-    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
-      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
-    }
-
-    const duplicate = await this.poItemsRepository.findItemByInventoryItemId(id, data.inventoryItemId);
-    if (duplicate) {
-      throw new BadRequestException({
-        label: 'Duplicate Item',
-        detail: 'This inventory item is already added to the purchase order.',
-      });
-    }
-
-    const itemCurrencyCode = data.supplierUnitPrice.currency;
-    const poCode = existing.currencyCode as CurrencyCode;
-    const isSameCurrency = itemCurrencyCode === existing.currencyCode;
-
-    // Auto-apply PO header rate when item currency matches PO currency; otherwise require a per-item rate
-    let itemConversionRate: number;
-    if (isSameCurrency) {
-      itemConversionRate = Number(existing.conversionRate);
-    } else {
-      itemConversionRate = data.conversionRate as number;
-      if (itemConversionRate == null || itemConversionRate <= 0) {
-        throw new BadRequestException({
-          label: 'Conversion Rate Required',
-          detail: `Item currency (${itemCurrencyCode}) differs from PO currency (${existing.currencyCode}). A per-item conversion rate is required.`,
-          errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
-        });
-      }
-    }
-
-    if (data.unitPrice && data.unitPrice.currency !== poCode) {
-      throw new BadRequestException({
-        label: 'Currency Mismatch',
-        detail: `unitPrice.currency must be ${poCode}.`,
-      });
-    }
-
-    let supplierUnitPriceMinor: bigint;
-    let unitPriceMinor: bigint;
-
-    try {
-      supplierUnitPriceMinor = majorToMinor(data.supplierUnitPrice.value, itemCurrencyCode as CurrencyCode);
-
-      if (data.unitPrice != null) {
-        unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
-      } else {
-        // Cross-currency scale: supplier_minor × rate × 10^poExp / 10^itemExp
-        const itemExp = Number(resolveCurrency(itemCurrencyCode as CurrencyCode).exponent);
-        const poExp = Number(resolveCurrency(poCode).exponent);
-        const unitPriceNum = (Number(supplierUnitPriceMinor) * itemConversionRate * 10 ** poExp) / 10 ** itemExp;
-        unitPriceMinor = BigInt(Math.round(unitPriceNum));
-      }
-    } catch (e) {
-      throw new BadRequestException({
-        label: 'Invalid Price',
-        detail: e instanceof Error ? e.message : 'Invalid price value.',
-      });
-    }
-
-    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.quantity));
-
-    await this.database.runInTransaction(async () => {
-      await this.poItemsRepository.create({
-        purchaseOrderId: id,
-        inventoryItemId: data.inventoryItemId,
-        uomId,
-        quantity: String(data.quantity),
-        supplierUnitPrice: supplierUnitPriceMinor,
-        unitPrice: unitPriceMinor,
-        totalPrice: totalPriceMinor,
-        itemCurrencyCode,
-        conversionRate: String(itemConversionRate),
-      });
-
-      await this.repository.syncTotalAmount(id);
-    });
-    this.logger.log(`Added PO item: ${existing.poNumber} (${existing.id})`);
-    return {
-      success: true,
-      message: `Line item added to purchase order "${existing.poNumber}".`,
-      data: PurchaseOrderDto.from(existing, existing.supplierName, existing.supplierCurrencyCode),
-    };
-  }
-
-  // Updates a line item on a draft PO
-  async updateItem(id: string, itemId: string, data: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findByIdWithSupplierName(id);
-    if (!existing) throw new NotFoundException('Purchase order not found.');
-    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
-      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
-    }
-
-    const item = await this.poItemsRepository.findItemById(id, itemId);
-    if (!item) throw new NotFoundException('Purchase order line item not found.');
-
-    if (data.inventoryItemId && data.inventoryItemId !== item.inventoryItemId) {
-      const duplicate = await this.poItemsRepository.findItemByInventoryItemId(id, data.inventoryItemId);
-      if (duplicate) {
-        throw new BadRequestException({
-          label: 'Duplicate Item',
-          detail: 'This inventory item is already added to the purchase order.',
-        });
-      }
-    }
-
-    const supplierCode = item.itemCurrencyCode as CurrencyCode;
-    const poCode = existing.currencyCode as CurrencyCode;
-
-    // Use provided per-item rate when currencies differ; otherwise keep the stored rate
-    const conversionRate =
-      data.conversionRate != null && supplierCode !== poCode ? data.conversionRate : Number(item.conversionRate);
-
-    const orderedQuantity = data.quantity ?? Number(item.quantity);
-
-    let supplierUnitPriceMinor: bigint;
-    let unitPriceMinor: bigint;
-
-    try {
-      if (data.supplierUnitPrice !== undefined) {
-        if (data.supplierUnitPrice.currency !== supplierCode) {
-          throw new BadRequestException({
-            label: 'Currency Mismatch',
-            detail: `supplierUnitPrice.currency must be ${supplierCode}.`,
-          });
-        }
-        supplierUnitPriceMinor = majorToMinor(data.supplierUnitPrice.value, supplierCode);
-      } else {
-        // Use existing minor value from DB directly
-        supplierUnitPriceMinor = item.supplierUnitPrice;
-      }
-
-      if (data.unitPrice != null) {
-        if (data.unitPrice.currency !== poCode) {
-          throw new BadRequestException({
-            label: 'Currency Mismatch',
-            detail: `unitPrice.currency must be ${poCode}.`,
-          });
-        }
-        unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
-      } else if (data.unitPrice === null) {
-        // Explicitly cleared — derive from supplier price using item's conversion rate
-        const itemExp = Number(resolveCurrency(supplierCode).exponent);
-        const poExp = Number(resolveCurrency(poCode).exponent);
-        const unitPriceNum = (Number(supplierUnitPriceMinor) * conversionRate * 10 ** poExp) / 10 ** itemExp;
-        unitPriceMinor = BigInt(Math.round(unitPriceNum));
-      } else {
-        // data.unitPrice is undefined — keep existing minor value or derive if missing
-        unitPriceMinor = item.unitPrice != null ? item.unitPrice : supplierUnitPriceMinor;
-      }
-    } catch (e) {
-      if (e instanceof BadRequestException) throw e;
-      throw new BadRequestException({
-        label: 'Invalid Price',
-        detail: e instanceof Error ? e.message : 'Invalid price value.',
-      });
-    }
-
-    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * orderedQuantity));
-
-    await this.database.runInTransaction(async () => {
-      await this.poItemsRepository.update(itemId, {
-        inventoryItemId: data.inventoryItemId,
-        quantity: String(orderedQuantity),
-        supplierUnitPrice: supplierUnitPriceMinor,
-        unitPrice: unitPriceMinor,
-        totalPrice: totalPriceMinor,
-        conversionRate: String(conversionRate),
-      });
-
-      await this.repository.syncTotalAmount(id);
-    });
-    this.logger.log(`Updated PO item: ${existing.poNumber} (${itemId})`);
-    return { success: true, message: `Line item updated for purchase order "${existing.poNumber}".` };
-  }
-
-  // Removes a line item from a draft PO
-  async removeItem(id: string, itemId: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Purchase order not found.');
-    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
-      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
-    }
-
-    const item = await this.poItemsRepository.findItemById(id, itemId);
-    if (!item) throw new NotFoundException('Purchase order line item not found.');
-
-    await this.database.runInTransaction(async () => {
-      await this.poItemsRepository.delete(itemId);
-      await this.repository.syncTotalAmount(id);
-    });
-    this.logger.log(`Removed PO item: ${existing.poNumber} (${itemId})`);
-    return { success: true, message: `Line item removed from purchase order "${existing.poNumber}".` };
   }
 
   // Updates notes on a purchase order
@@ -380,7 +160,7 @@ export class PurchaseOrdersService {
     return { success: true, message: `Notes updated for purchase order "${entity.poNumber}".` };
   }
 
-  // Changes supplier on a draft PO with no line items. App-layer fetches the supplier and passes name.
+  // Changes supplier on a draft PO. Items-empty check is the app-layer's responsibility.
   async changeSupplier(id: string, supplierId: string, supplierName: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
@@ -391,119 +171,11 @@ export class PurchaseOrdersService {
       });
     }
 
-    const currentItems = await this.poItemsRepository.findItemsByPoId(id);
-    if (currentItems.length > 0) {
-      throw new BadRequestException({
-        label: 'Cannot Change Supplier',
-        detail: 'Remove all line items before changing the supplier.',
-      });
-    }
-
     const entity = await this.repository.update(id, { supplierId });
     this.logger.log(`Changed PO supplier: ${entity.poNumber} (${entity.id})`);
     return {
       success: true,
       message: `Supplier changed to "${supplierName}" for purchase order "${entity.poNumber}".`,
-    };
-  }
-
-  // Changes currency on a draft PO and recalculates line prices from supplier price.
-  // App-layer fetches the supplier currency and passes it.
-  async changeCurrency(id: string, currencyCode: string, supplierCurrencyCode: string, conversionRate?: number): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Purchase order not found.');
-    if (existing.status !== PurchaseOrderStatusValues.DRAFT) {
-      throw new BadRequestException({
-        label: 'Cannot Change Currency',
-        detail: 'Currency can only be changed while the purchase order is in draft.',
-      });
-    }
-
-    const isSameCurrency = supplierCurrencyCode === currencyCode;
-    const nextConversionRate = isSameCurrency ? 1 : conversionRate;
-
-    if (!isSameCurrency && (nextConversionRate == null || nextConversionRate <= 0)) {
-      throw new BadRequestException({
-        label: 'Invalid Conversion Rate',
-        detail: `Conversion rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from PO currency (${currencyCode}).`,
-        errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
-      });
-    }
-
-    const resolvedConversionRate = Number(nextConversionRate ?? 1);
-    const newCurrencyCode = currencyCode as CurrencyCode;
-    const poExp = Number(resolveCurrency(newCurrencyCode).exponent);
-
-    const items = await this.poItemsRepository.findItemsByPoId(id);
-
-    await this.database.runInTransaction(async () => {
-      await this.repository.updateCurrency(id, {
-        currencyCode,
-        conversionRate: String(resolvedConversionRate),
-      });
-
-      for (const item of items) {
-        // Items whose currency matches the new PO currency auto-adopt the PO header rate
-        const itemRate =
-          item.itemCurrencyCode === newCurrencyCode
-            ? resolvedConversionRate
-            : (conversionRate ?? Number(item.conversionRate));
-        const itemExp = Number(resolveCurrency(item.itemCurrencyCode as CurrencyCode).exponent);
-        await this.poItemsRepository.recalculateItemPricing(item.id, itemRate, poExp, itemExp);
-      }
-
-      await this.repository.syncTotalAmount(id);
-    });
-    this.logger.log(`Changed PO currency: ${existing.poNumber} (${id}) -> ${currencyCode}`);
-    return {
-      success: true,
-      message: `Currency changed to "${currencyCode}" for purchase order "${existing.poNumber}".`,
-    };
-  }
-
-  // Returns all line items for a PO
-  async findItems(id: string): Promise<PurchaseOrderItemDto[]> {
-    const entity = await this.repository.findByIdWithSupplierName(id);
-    if (!entity) throw new NotFoundException('Purchase order not found.');
-    const itemsWithNames = await this.poItemsRepository.findItemsByPoId(id);
-    return itemsWithNames.map((item) =>
-      PurchaseOrderItemDto.from(item, item.inventoryItemName, entity.currencyCode),
-    );
-  }
-
-  // Returns inventory item IDs for a PO
-  async findItemIds(id: string): Promise<string[]> {
-    const entity = await this.repository.findById(id);
-    if (!entity) throw new NotFoundException('Purchase order not found.');
-    return this.poItemsRepository.findItemIdsByPoId(id);
-  }
-
-  // Returns paginated line items for a PO table
-  async findItemsForTable(
-    id: string,
-    state: TableViewState,
-  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
-    const entity = await this.repository.findByIdWithSupplierName(id);
-    if (!entity) throw new NotFoundException('Purchase order not found.');
-
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrdersService.ITEM_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrdersService.ITEM_FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersService.ITEM_FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.poItemsRepository.findItemsForTable(id, {
-      where: where || undefined,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(purchaseOrderItems.inventoryItemId)],
-      limit,
-      offset,
-    });
-
-    return {
-      result: result.map((item) =>
-        PurchaseOrderItemDto.from(item, item.inventoryItemName, entity.currencyCode),
-      ),
-      count,
     };
   }
 
@@ -527,7 +199,7 @@ export class PurchaseOrdersService {
   }
 
   // Deletes a PO (only if DRAFT)
-  async delete(id: string): Promise<{ success: boolean; message: string }> {
+  async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
     if (existing.status !== PurchaseOrderStatusValues.DRAFT) {

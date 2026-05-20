@@ -26,9 +26,9 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   }
 
   // Returns hierarchy rows ordered in tree order using a recursive CTE
-  async findHierarchyRows(search?: string): Promise<
-    Array<{ id: string; parentId: string | null; name: string; sortOrder: number; depth: number }>
-  > {
+  async findHierarchyRows(
+    search?: string,
+  ): Promise<Array<{ id: string; parentId: string | null; name: string; sortOrder: number; depth: number }>> {
     if (!search) {
       const result = await this.db.execute<{
         id: string;
@@ -68,9 +68,12 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
         ORDER BY ord
       `);
 
-      const rows = (
-        result as { rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }> }
-      ).rows ?? [];
+      const rows =
+        (
+          result as {
+            rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }>;
+          }
+        ).rows ?? [];
       return rows.map((row) => ({
         id: row.id,
         parentId: row.parent_id,
@@ -153,7 +156,12 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
       ORDER BY ord
     `);
 
-    const rows = (result as { rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }> }).rows ?? [];
+    const rows =
+      (
+        result as {
+          rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }>;
+        }
+      ).rows ?? [];
     return rows.map((row) => ({
       id: row.id,
       parentId: row.parent_id,
@@ -183,7 +191,10 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   // Returns a set of category IDs that have child categories
   async findParentIdsWithChildren(ids: string[]): Promise<Set<string>> {
     if (ids.length === 0) return new Set();
-    const rows = await this.db.select({ id: categories.parentId }).from(categories).where(inArray(categories.parentId, ids));
+    const rows = await this.db
+      .select({ id: categories.parentId })
+      .from(categories)
+      .where(inArray(categories.parentId, ids));
     const parentIds = new Set<string>();
     for (const row of rows) {
       if (row.id) parentIds.add(row.id);
@@ -252,7 +263,10 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
 
   // Counts items + inventory items linked directly to a category (used to block child creation)
   async countItemsForCategory(categoryId: string): Promise<number> {
-    const [itemRefs] = await this.db.select({ count: sql<number>`count(*)` }).from(items).where(eq(items.categoryId, categoryId));
+    const [itemRefs] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(items)
+      .where(eq(items.categoryId, categoryId));
     const [inventoryItemRefs] = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(inventoryItems)

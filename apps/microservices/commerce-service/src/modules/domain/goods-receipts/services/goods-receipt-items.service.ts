@@ -1,4 +1,4 @@
-import { PurchaseOrderItemsRepository } from '@domain/purchase-orders/repositories/purchase-order-items.repository';
+import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -91,7 +91,10 @@ export class GoodsReceiptItemsService {
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
     if (receipt.purchaseOrderId) {
-      const poItem = await this.poItemsRepository.findItemByInventoryItemId(receipt.purchaseOrderId, data.inventoryItemId);
+      const poItem = await this.poItemsRepository.findItemByInventoryItemId(
+        receipt.purchaseOrderId,
+        data.inventoryItemId,
+      );
       if (!poItem) {
         throw new BadRequestException('Inventory item is not part of the linked purchase order.');
       }

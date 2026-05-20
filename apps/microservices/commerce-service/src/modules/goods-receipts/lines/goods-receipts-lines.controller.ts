@@ -43,9 +43,7 @@ export class GoodsReceiptsLinesController {
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.lineById' })
-  lineById(
-    @Payload() data: { goodsReceiptId: string; itemId: string; lineId: string },
-  ): Promise<GoodsReceiptLineDto> {
+  lineById(@Payload() data: { goodsReceiptId: string; itemId: string; lineId: string }): Promise<GoodsReceiptLineDto> {
     this.logger.log(`goodsReceipts.lineById — line: ${data.lineId}`);
     return this.service.findById(data.goodsReceiptId, data.itemId, data.lineId);
   }
@@ -90,9 +88,7 @@ export class GoodsReceiptsLinesController {
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.removeLine' })
-  removeLine(
-    @Payload() data: { goodsReceiptId: string; itemId: string; lineId: string },
-  ): Promise<SuccessResponseDto> {
+  removeLine(@Payload() data: { goodsReceiptId: string; itemId: string; lineId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`goodsReceipts.removeLine — line: ${data.lineId}`);
     return this.service.removeLine(data.goodsReceiptId, data.itemId, data.lineId);
   }

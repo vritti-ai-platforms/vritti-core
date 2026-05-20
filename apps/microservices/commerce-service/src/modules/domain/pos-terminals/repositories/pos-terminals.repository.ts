@@ -6,7 +6,7 @@ import {
   type SelectQueryResult,
 } from '@vritti/api-sdk';
 import { eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type PosTerminal, posTerminals, locations } from '@/db/schema';
+import { locations, type PosTerminal, posTerminals } from '@/db/schema';
 
 @Injectable()
 export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerminals> {
@@ -20,12 +20,10 @@ export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerm
   }
 
   // Returns paginated POS terminals with storage location name for table display
-  async findForTable(options: {
-    where?: SQL;
-    orderBy?: SQL[];
-    limit: number;
-    offset: number;
-  }): Promise<{ result: (PosTerminal & { locationName: string | null; locationPath: string | null })[]; count: number }> {
+  async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
+    result: (PosTerminal & { locationName: string | null; locationPath: string | null })[];
+    count: number;
+  }> {
     return this.findAllAndCount<PosTerminal & { locationName: string | null; locationPath: string | null }>({
       select: {
         id: posTerminals.id,
@@ -50,7 +48,9 @@ export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerm
   }
 
   // Returns a POS terminal with joined storage location name
-  async findByIdWithLocationName(id: string): Promise<(PosTerminal & { locationName: string | null; locationPath: string | null }) | undefined> {
+  async findByIdWithLocationName(
+    id: string,
+  ): Promise<(PosTerminal & { locationName: string | null; locationPath: string | null }) | undefined> {
     const rows = await this.db
       .select({
         id: posTerminals.id,

@@ -4,7 +4,13 @@ import type { LocationTreeDto } from '@domain/locations/dto/entity/location-tree
 import { LocationsService } from '@domain/locations/services/locations.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+  TableViewState,
+} from '@vritti/api-sdk';
 import type { CreateLocationDto } from './dto/request/create-location.dto';
 import type { ReorderLocationsDto } from './dto/request/reorder-locations.dto';
 import type { UpdateLocationDto } from './dto/request/update-location.dto';

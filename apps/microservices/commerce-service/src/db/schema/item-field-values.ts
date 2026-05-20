@@ -1,5 +1,5 @@
-import { text, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { text, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { itemFieldDefinitions } from './item-field-definitions';
 import { items } from './items';
@@ -9,8 +9,12 @@ export const itemFieldValues = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    itemId: uuid('item_id').notNull().references(() => items.id, { onDelete: 'cascade' }),
-    fieldDefinitionId: uuid('field_definition_id').notNull().references(() => itemFieldDefinitions.id, { onDelete: 'cascade' }),
+    itemId: uuid('item_id')
+      .notNull()
+      .references(() => items.id, { onDelete: 'cascade' }),
+    fieldDefinitionId: uuid('field_definition_id')
+      .notNull()
+      .references(() => itemFieldDefinitions.id, { onDelete: 'cascade' }),
     value: text('value'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

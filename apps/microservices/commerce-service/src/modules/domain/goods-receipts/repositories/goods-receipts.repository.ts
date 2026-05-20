@@ -3,10 +3,10 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   goodsReceiptNumberSeq,
-  type NewGoodsReceipt,
   goodsReceipts,
-  purchaseOrderItems,
+  type NewGoodsReceipt,
   type PurchaseOrderStatus,
+  purchaseOrderItems,
   purchaseOrders,
   suppliers,
 } from '@/db/schema';
@@ -125,9 +125,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     return rows[0] ?? null;
   }
 
-  async findByIdWithRefs(
-    id: string,
-  ): Promise<
+  async findByIdWithRefs(id: string): Promise<
     | (typeof goodsReceipts.$inferSelect & {
         supplierName: string | null;
         poNumber: string | null;

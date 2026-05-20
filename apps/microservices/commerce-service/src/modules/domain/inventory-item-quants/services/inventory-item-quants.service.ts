@@ -11,11 +11,11 @@ import {
 } from '@vritti/api-sdk';
 import { and, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type InventoryItemLedgerReferenceType,
+  type InventoryItemLedgerType,
   type InventoryItemLot,
   type InventoryItemQuant,
   type InventoryItemSerial,
-  type InventoryItemLedgerReferenceType,
-  type InventoryItemLedgerType,
   type InventoryTracking,
   InventoryTrackingValues,
   inventoryItemLots,
@@ -129,7 +129,9 @@ export class InventoryItemQuantsService {
         (params.tracking === InventoryTrackingValues.LOT || params.tracking === InventoryTrackingValues.LOT_SERIAL) &&
         params.lotId == null
       ) {
-        throw new BadRequestException('lotId is required for tracking=lot or lot_serial. App-layer must resolve the lot.');
+        throw new BadRequestException(
+          'lotId is required for tracking=lot or lot_serial. App-layer must resolve the lot.',
+        );
       }
 
       const lotId = params.lotId ?? null;

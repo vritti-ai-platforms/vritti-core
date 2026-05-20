@@ -5,7 +5,9 @@ import { taxGroups } from './tax-groups';
 
 export const taxRates = coreSchema.table('tax_rates', {
   id: uuid('id').primaryKey().defaultRandom(),
-  taxGroupId: uuid('tax_group_id').notNull().references(() => taxGroups.id, { onDelete: 'cascade' }),
+  taxGroupId: uuid('tax_group_id')
+    .notNull()
+    .references(() => taxGroups.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 100 }).notNull(),
   rate: decimal('rate', { precision: 5, scale: 2 }).notNull(),
   type: taxRateTypeEnum('type').notNull(),

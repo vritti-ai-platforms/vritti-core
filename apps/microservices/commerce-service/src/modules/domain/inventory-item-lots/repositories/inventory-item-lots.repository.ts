@@ -32,9 +32,7 @@ export class InventoryItemLotsRepository extends PrimaryBaseRepository<typeof in
         createdAt: inventoryItemLots.createdAt,
         updatedAt: inventoryItemLots.updatedAt,
         stockedQuantity: sql<string>`COALESCE(SUM(${inventoryItemQuants.quantity}), 0)`.as('stockedQuantity'),
-        reservedQuantity: sql<string>`COALESCE(SUM(${inventoryItemQuants.reservedQuantity}), 0)`.as(
-          'reservedQuantity',
-        ),
+        reservedQuantity: sql<string>`COALESCE(SUM(${inventoryItemQuants.reservedQuantity}), 0)`.as('reservedQuantity'),
       },
       leftJoins: [{ table: inventoryItemQuants, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) }],
       groupBy: [inventoryItemLots.id],
@@ -46,10 +44,7 @@ export class InventoryItemLotsRepository extends PrimaryBaseRepository<typeof in
   }
 
   // Checks if a lot already exists for this item
-  async findByItemAndNumber(
-    inventoryItemId: string,
-    lotNumber: string,
-  ): Promise<InventoryItemLot | undefined> {
+  async findByItemAndNumber(inventoryItemId: string, lotNumber: string): Promise<InventoryItemLot | undefined> {
     const rows = await this.db
       .select()
       .from(inventoryItemLots)

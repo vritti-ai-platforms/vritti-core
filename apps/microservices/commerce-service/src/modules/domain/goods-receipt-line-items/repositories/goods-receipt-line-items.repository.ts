@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type GoodsReceiptLineItem,
-  goodsReceiptItems,
-  goodsReceiptLineItems,
-  goodsReceiptLines,
-} from '@/db/schema';
+import { type GoodsReceiptLineItem, goodsReceiptItems, goodsReceiptLineItems, goodsReceiptLines } from '@/db/schema';
 
 @Injectable()
 export class GoodsReceiptLineItemsRepository extends PrimaryBaseRepository<typeof goodsReceiptLineItems> {
@@ -79,10 +74,7 @@ export class GoodsReceiptLineItemsRepository extends PrimaryBaseRepository<typeo
       .select()
       .from(goodsReceiptLineItems)
       .where(
-        and(
-          eq(goodsReceiptLineItems.goodsReceiptLineId, lineId),
-          eq(goodsReceiptLineItems.serialNumber, serialNumber),
-        ),
+        and(eq(goodsReceiptLineItems.goodsReceiptLineId, lineId), eq(goodsReceiptLineItems.serialNumber, serialNumber)),
       )
       .limit(1);
     return rows[0] as GoodsReceiptLineItem | undefined;

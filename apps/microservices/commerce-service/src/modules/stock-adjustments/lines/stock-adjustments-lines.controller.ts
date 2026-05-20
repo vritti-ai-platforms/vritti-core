@@ -2,11 +2,7 @@ import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import {
-  type CreateResponseDto,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
 import { StockAdjustmentsLinesService } from './services/stock-adjustments-lines.service';
 
 @Controller()
@@ -65,12 +61,7 @@ export class StockAdjustmentsLinesController {
 
   @MessagePattern({ cmd: 'stockAdjustments.addChangeLine' })
   addChangeLine(
-    @Payload() data: {
-      adjustmentId: string;
-      quantId: string;
-      quantity: number;
-      uomId: string;
-    },
+    @Payload() data: { adjustmentId: string; quantId: string; quantity: number; uomId: string },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
     this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${data.adjustmentId}`);
     const { adjustmentId, ...rest } = data;
@@ -95,13 +86,7 @@ export class StockAdjustmentsLinesController {
 
   @MessagePattern({ cmd: 'stockAdjustments.updateChangeLine' })
   updateChangeLine(
-    @Payload() data: {
-      adjustmentId: string;
-      lineId: string;
-      quantId?: string;
-      quantity?: number;
-      uomId?: string;
-    },
+    @Payload() data: { adjustmentId: string; lineId: string; quantId?: string; quantity?: number; uomId?: string },
   ): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.updateChangeLine — line: ${data.lineId}`);
     const { adjustmentId, lineId, ...rest } = data;

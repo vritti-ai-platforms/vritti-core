@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
-  inventoryItems,
-  inventoryItemLedger,
   type InventoryItemLedgerEntry,
   type InventoryItemLedgerReferenceType,
+  inventoryItemLedger,
+  inventoryItems,
   type NewInventoryItemLedgerEntry,
 } from '@/db/schema';
 
@@ -49,7 +49,10 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Returns all ledger entries for a given reference
-  async findByReference(referenceType: InventoryItemLedgerReferenceType, referenceId: string): Promise<InventoryItemLedgerEntry[]> {
+  async findByReference(
+    referenceType: InventoryItemLedgerReferenceType,
+    referenceId: string,
+  ): Promise<InventoryItemLedgerEntry[]> {
     return this.db
       .select()
       .from(inventoryItemLedger)

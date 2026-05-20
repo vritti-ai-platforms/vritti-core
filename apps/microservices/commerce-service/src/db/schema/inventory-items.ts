@@ -1,5 +1,5 @@
-import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { categories } from './categories';
 import { coreSchema } from './core-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
@@ -16,9 +16,13 @@ export const inventoryItems = coreSchema.table(
     type: inventoryItemTypeEnum('type').notNull(),
     tracking: inventoryTrackingEnum('tracking').notNull().default('lot'),
     pickStrategy: inventoryPickStrategyEnum('pick_strategy').notNull().default('none'),
-    categoryId: uuid('category_id').notNull().references(() => categories.id),
+    categoryId: uuid('category_id')
+      .notNull()
+      .references(() => categories.id),
     description: varchar('description', { length: 500 }),
-    uomId: uuid('uom_id').notNull().references(() => uom.id),
+    uomId: uuid('uom_id')
+      .notNull()
+      .references(() => uom.id),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

@@ -69,10 +69,7 @@ export class GoodsReceiptsService {
     };
   }
 
-  async findForTableByPoId(
-    poId: string,
-    state: TableViewState,
-  ): Promise<{ result: GoodsReceiptDto[]; count: number }> {
+  async findForTableByPoId(poId: string, state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);

@@ -3,7 +3,13 @@ import { InventoryItemUomConversionsService } from '@domain/inventory-item-uom-c
 import { UomRepository } from '@domain/uom/repositories/uom.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type CreateResponseDto, NotFoundException, RpcBuId, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import {
+  type CreateResponseDto,
+  NotFoundException,
+  RpcBuId,
+  type SuccessResponseDto,
+  type TableViewState,
+} from '@vritti/api-sdk';
 import type { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 
@@ -37,7 +43,12 @@ export class InventoryItemsUomConversionsController {
     this.logger.log(`inventoryItems.addUomConversion — itemId: ${itemId}, uomId: ${dto.uomId}`);
     const uomEntity = await this.uomRepository.findById(dto.uomId);
     if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
-    return this.service.create(itemId, dto, { baseUnitId: uomEntity.baseUnitId, name: uomEntity.name, symbol: uomEntity.symbol }, buId);
+    return this.service.create(
+      itemId,
+      dto,
+      { baseUnitId: uomEntity.baseUnitId, name: uomEntity.name, symbol: uomEntity.symbol },
+      buId,
+    );
   }
 
   // Updates the conversion factor of an existing UOM override

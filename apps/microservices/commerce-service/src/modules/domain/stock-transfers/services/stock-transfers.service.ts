@@ -7,11 +7,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type StockTransferStatus,
-  StockTransferStatusValues,
-  stockTransfers,
-} from '@/db/schema';
+import { type StockTransferStatus, StockTransferStatusValues, stockTransfers } from '@/db/schema';
 import type { CreateStockTransferDto } from '@/modules/stock-transfers/dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from '@/modules/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransferDto } from '../dto/entity/stock-transfer.dto';
@@ -82,10 +78,7 @@ export class StockTransfersService {
   }
 
   // Persists the status change. Call after batch operations have been applied by the app-layer.
-  async applyStatus(
-    id: string,
-    data: UpdateStockTransferStatusDto,
-  ): Promise<{ success: boolean; message: string }> {
+  async applyStatus(id: string, data: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
     await this.repository.update(id, {
       status: data.status as StockTransferStatus,
       ...(data.receivedBy && { receivedBy: data.receivedBy }),

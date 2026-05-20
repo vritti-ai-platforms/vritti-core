@@ -30,9 +30,7 @@ export class InventoryItemsLocationsController {
   }
 
   @MessagePattern({ cmd: 'inventoryItems.updateLocation' })
-  async updateLocation(
-    @Payload() data: { id: string; reorderLevel: number },
-  ): Promise<SuccessResponseDto> {
+  async updateLocation(@Payload() data: { id: string; reorderLevel: number }): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.updateLocation — id: ${data.id}`);
     return this.service.update(data.id, { reorderLevel: data.reorderLevel });
   }

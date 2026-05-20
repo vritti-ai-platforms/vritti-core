@@ -7,8 +7,8 @@ import {
   ValidationException,
 } from '@vritti/api-sdk';
 import {
-  InventoryTrackingValues,
   type InventoryTracking,
+  InventoryTrackingValues,
   type StockAdjustmentStatus,
   StockAdjustmentStatusValues,
   type StockAdjustmentType,

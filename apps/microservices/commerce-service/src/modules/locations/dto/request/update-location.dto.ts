@@ -1,5 +1,5 @@
-import { LocationRoleValues, type LocationRole } from '@/db/schema';
 import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { type LocationRole, LocationRoleValues } from '@/db/schema';
 
 export class UpdateLocationDto {
   @IsOptional()

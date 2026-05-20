@@ -33,7 +33,7 @@ export class PaymentsController {
     await this.invoicesRepository.update(invoice.id, {
       paidAmount: BigInt(result.newPaidAmount),
       balance: BigInt(result.newBalance),
-      status: result.newStatus as typeof InvoiceStatusValues[keyof typeof InvoiceStatusValues],
+      status: result.newStatus as (typeof InvoiceStatusValues)[keyof typeof InvoiceStatusValues],
     });
     return result.payment;
   }

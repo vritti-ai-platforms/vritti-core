@@ -40,13 +40,7 @@ export class GoodsReceiptsLineItemsController {
   @MessagePattern({ cmd: 'goodsReceipts.updateLineItem' })
   updateLineItem(
     @Payload()
-    data: {
-      goodsReceiptId: string;
-      itemId: string;
-      lineId: string;
-      subItemId: string;
-      serialNumber: string;
-    },
+    data: { goodsReceiptId: string; itemId: string; lineId: string; subItemId: string; serialNumber: string },
   ): Promise<GoodsReceiptLineItemDto> {
     this.logger.log(`goodsReceipts.updateLineItem — subItem: ${data.subItemId}`);
     return this.service.updateLineItem(data.goodsReceiptId, data.itemId, data.lineId, data.subItemId, {

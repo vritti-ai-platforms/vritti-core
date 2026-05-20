@@ -1,5 +1,14 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, doublePrecision, index, pgPolicy, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  boolean,
+  doublePrecision,
+  index,
+  pgPolicy,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { uomDimensions } from './uom-dimensions';
 

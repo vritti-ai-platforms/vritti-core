@@ -2,9 +2,9 @@ import { GoodsReceiptLineItemsDomainModule } from '@domain/goods-receipt-line-it
 import { GoodsReceiptLinesDomainModule } from '@domain/goods-receipt-lines/goods-receipt-lines.module';
 import { GoodsReceiptLotsDomainModule } from '@domain/goods-receipt-lots/goods-receipt-lots.module';
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
-import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/inventory-item-ledger.module';
-import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
+import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
+import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { Module } from '@nestjs/common';
 import { GoodsReceiptsItemsController } from './items/goods-receipts-items.controller';
 import { GoodsReceiptsLineItemsController } from './line-items/goods-receipts-line-items.controller';
@@ -21,7 +21,7 @@ import { GoodsReceiptsPublishService } from './root/services/goods-receipts-publ
     GoodsReceiptLineItemsDomainModule,
     InventoryItemQuantsDomainModule,
     InventoryItemLedgerDomainModule,
-    PurchaseOrdersDomainModule,
+    PurchaseOrderItemsDomainModule,
   ],
   controllers: [
     GoodsReceiptsRootController,

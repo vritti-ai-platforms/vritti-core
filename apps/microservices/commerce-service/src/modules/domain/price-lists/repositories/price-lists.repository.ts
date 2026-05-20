@@ -5,15 +5,15 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { and, asc, eq, ilike, inArray, or, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, ilike, inArray, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
+  type ItemVariant,
   items,
   itemVariants,
-  type ItemVariant,
-  priceListItems,
   type PriceList,
   type PriceListItem,
+  priceListItems,
   priceLists,
   type TerminalPriceList,
   terminalPriceLists,
@@ -31,12 +31,7 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
   }
 
   // Returns paginated price lists with assignment counts for table display
-  async findForTable(options: {
-    where?: SQL;
-    orderBy?: SQL[];
-    limit: number;
-    offset: number;
-  }): Promise<{
+  async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
     result: (PriceList & { assignedItemsCount: number; assignedTerminalsCount: number })[];
     count: number;
   }> {
@@ -119,9 +114,7 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
   }
 
   // Returns item assignments for a price list with variant and item details
-  async findPriceListItems(
-    priceListId: string,
-  ): Promise<
+  async findPriceListItems(priceListId: string): Promise<
     (PriceListItem & {
       itemVariantId: string;
       itemVariantSku: string;
@@ -161,7 +154,12 @@ export class PriceListsRepository extends PrimaryBaseRepository<typeof priceList
   // Replaces all price list item assignments for a price list
   async replacePriceListItems(
     priceListId: string,
-    itemAssignments: Array<{ itemVariantId: string; sortOrder: number; isVisible: boolean; priceOverride: bigint | null }>,
+    itemAssignments: Array<{
+      itemVariantId: string;
+      sortOrder: number;
+      isVisible: boolean;
+      priceOverride: bigint | null;
+    }>,
   ): Promise<void> {
     await this.db.delete(priceListItems).where(eq(priceListItems.priceListId, priceListId));
 

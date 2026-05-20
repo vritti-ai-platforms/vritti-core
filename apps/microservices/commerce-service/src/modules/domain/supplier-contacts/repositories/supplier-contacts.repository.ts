@@ -22,10 +22,7 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
       .orderBy(desc(supplierContacts.isPrimary), desc(supplierContacts.createdAt));
   }
 
-  async findBySupplierAndContactId(
-    supplierId: string,
-    contactId: string,
-  ): Promise<SupplierContact | undefined> {
+  async findBySupplierAndContactId(supplierId: string, contactId: string): Promise<SupplierContact | undefined> {
     const [row] = await this.db
       .select()
       .from(supplierContacts)
@@ -56,15 +53,8 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
     return row as SupplierContact;
   }
 
-  async updateContact(
-    id: string,
-    data: Partial<NewSupplierContact>,
-  ): Promise<SupplierContact> {
-    const [row] = await this.db
-      .update(supplierContacts)
-      .set(data)
-      .where(eq(supplierContacts.id, id))
-      .returning();
+  async updateContact(id: string, data: Partial<NewSupplierContact>): Promise<SupplierContact> {
+    const [row] = await this.db.update(supplierContacts).set(data).where(eq(supplierContacts.id, id)).returning();
     return row as SupplierContact;
   }
 

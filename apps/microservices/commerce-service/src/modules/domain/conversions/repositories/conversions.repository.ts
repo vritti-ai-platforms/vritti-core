@@ -19,9 +19,7 @@ export class ConversionsRepository extends PrimaryBaseRepository<typeof conversi
   }
 
   // Returns all inputs for a conversion with inventory item names
-  async findInputsByConversionId(
-    conversionId: string,
-  ): Promise<(ConversionInput & { inventoryItemName: string })[]> {
+  async findInputsByConversionId(conversionId: string): Promise<(ConversionInput & { inventoryItemName: string })[]> {
     const rows = await this.db
       .select({
         id: conversionInputs.id,
@@ -40,9 +38,7 @@ export class ConversionsRepository extends PrimaryBaseRepository<typeof conversi
   }
 
   // Returns all outputs for a conversion with inventory item names
-  async findOutputsByConversionId(
-    conversionId: string,
-  ): Promise<(ConversionOutput & { inventoryItemName: string })[]> {
+  async findOutputsByConversionId(conversionId: string): Promise<(ConversionOutput & { inventoryItemName: string })[]> {
     const rows = await this.db
       .select({
         id: conversionOutputs.id,

@@ -21,9 +21,7 @@ export class ItemsController {
 
   // Returns paginated, filtered, and sorted items (RLS scopes to org + BU ancestors)
   @MessagePattern({ cmd: 'items.table' })
-  async table(
-    @Payload() state: TableViewState,
-  ): Promise<{ result: ItemDto[]; count: number }> {
+  async table(@Payload() state: TableViewState): Promise<{ result: ItemDto[]; count: number }> {
     this.logger.log('items.table');
     return this.itemsService.findForTable(state);
   }
@@ -89,7 +87,9 @@ export class ItemsController {
 
   // Updates a single variant
   @MessagePattern({ cmd: 'items.variants.update' })
-  async updateVariant(@Payload() data: { itemId: string; variantId: string } & UpdateVariantDto): Promise<ItemVariantDto> {
+  async updateVariant(
+    @Payload() data: { itemId: string; variantId: string } & UpdateVariantDto,
+  ): Promise<ItemVariantDto> {
     const { itemId: _itemId, variantId, ...updateData } = data;
     this.logger.log(`items.variants.update — variantId: ${variantId}`);
     return this.itemsService.updateVariant(variantId, updateData);

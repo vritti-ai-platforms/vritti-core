@@ -1,10 +1,10 @@
+import type { TaxGroupDto } from '@domain/tax-groups/dto/entity/tax-group.dto';
+import { TaxGroupsService } from '@domain/tax-groups/services/tax-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto } from '@vritti/api-sdk';
-import type { TaxGroupDto } from '@domain/tax-groups/dto/entity/tax-group.dto';
 import type { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
-import { TaxGroupsService } from '@domain/tax-groups/services/tax-groups.service';
 
 @Controller()
 export class TaxGroupsController {

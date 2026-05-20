@@ -29,9 +29,7 @@ export class StockAdjustmentsLotsController {
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.lotDetail' })
-  lotDetail(
-    @Payload() data: { adjustmentId: string; lotId: string },
-  ): Promise<StockAdjustmentLotDetailDto> {
+  lotDetail(@Payload() data: { adjustmentId: string; lotId: string }): Promise<StockAdjustmentLotDetailDto> {
     this.logger.log(`stockAdjustments.lotDetail — lot: ${data.lotId}`);
     return this.service.getLotDetail(data.adjustmentId, data.lotId);
   }
@@ -39,12 +37,7 @@ export class StockAdjustmentsLotsController {
   @MessagePattern({ cmd: 'stockAdjustments.addLot' })
   addLot(
     @Payload()
-    data: {
-      adjustmentId: string;
-      lotNumber: string;
-      manufacturingDate?: string | null;
-      expiryDate: string;
-    },
+    data: { adjustmentId: string; lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${data.adjustmentId}`);
     return this.appService.addLot(data.adjustmentId, data);

@@ -7,11 +7,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type ConversionStatus,
-  ConversionStatusValues,
-  conversions,
-} from '@/db/schema';
+import { type ConversionStatus, ConversionStatusValues, conversions } from '@/db/schema';
 import type { CreateConversionDto } from '@/modules/conversions/dto/request/create-conversion.dto';
 import {
   ConversionDetailDto,
@@ -101,9 +97,10 @@ export class ConversionsService {
 
   // Validates and loads conversion data for completion. App-layer handles batch operations.
   // Returns the inputs/outputs so the caller can deduct and create batches.
-  async prepareComplete(
-    id: string,
-  ): Promise<{ inputs: { inventoryItemId: string; quantity: string; wastageQuantity: string }[]; outputs: { inventoryItemId: string; quantity: string }[] }> {
+  async prepareComplete(id: string): Promise<{
+    inputs: { inventoryItemId: string; quantity: string; wastageQuantity: string }[];
+    outputs: { inventoryItemId: string; quantity: string }[];
+  }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Conversion not found.');
     if (entity.status === ConversionStatusValues.COMPLETED) {
@@ -117,7 +114,11 @@ export class ConversionsService {
     const outputs = await this.repository.findOutputsByConversionId(id);
 
     return {
-      inputs: inputs.map((i) => ({ inventoryItemId: i.inventoryItemId, quantity: i.quantity, wastageQuantity: i.wastageQuantity })),
+      inputs: inputs.map((i) => ({
+        inventoryItemId: i.inventoryItemId,
+        quantity: i.quantity,
+        wastageQuantity: i.wastageQuantity,
+      })),
       outputs: outputs.map((o) => ({ inventoryItemId: o.inventoryItemId, quantity: o.quantity })),
     };
   }

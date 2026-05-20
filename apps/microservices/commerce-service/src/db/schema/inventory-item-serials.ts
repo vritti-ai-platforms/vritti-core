@@ -1,5 +1,5 @@
-import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { serialStatusEnum } from './enums';
 import { inventoryItemQuants } from './inventory-item-quants';
@@ -11,9 +11,12 @@ export const inventoryItemSerials = coreSchema.table(
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
-    inventoryItemQuantId: uuid('inventory_item_quant_id')
-      .references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id, { onDelete: 'restrict' }),
+    inventoryItemQuantId: uuid('inventory_item_quant_id').references(() => inventoryItemQuants.id, {
+      onDelete: 'set null',
+    }),
+    inventoryItemId: uuid('inventory_item_id')
+      .notNull()
+      .references(() => inventoryItems.id, { onDelete: 'restrict' }),
     serialNumber: varchar('serial_number', { length: 100 }).notNull(),
     status: serialStatusEnum('status').notNull().default('AVAILABLE'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

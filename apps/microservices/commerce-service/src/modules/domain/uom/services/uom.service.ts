@@ -11,7 +11,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc, eq, isNotNull, isNull, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemUomConversions, uom, uomDimensions } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
@@ -93,7 +93,16 @@ export class UomService {
     }
 
     const joins = options?.inventoryItemId
-      ? [{ table: inventoryItemUomConversions, on: and(eq(inventoryItemUomConversions.uomId, uom.id), eq(inventoryItemUomConversions.inventoryItemId, options.inventoryItemId)) as SQL, type: 'left' as const }]
+      ? [
+          {
+            table: inventoryItemUomConversions,
+            on: and(
+              eq(inventoryItemUomConversions.uomId, uom.id),
+              eq(inventoryItemUomConversions.inventoryItemId, options.inventoryItemId),
+            ) as SQL,
+            type: 'left' as const,
+          },
+        ]
       : undefined;
 
     // COALESCE defaults null numerator/denominator to 1 for the primary UOM (no conversion row in the LEFT JOIN)

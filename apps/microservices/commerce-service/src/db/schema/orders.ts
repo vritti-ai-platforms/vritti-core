@@ -1,10 +1,21 @@
-import { bigint, decimal, index, integer, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  bigint,
+  decimal,
+  index,
+  integer,
+  pgPolicy,
+  text,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
-import { items } from './items';
 import { itemVariants } from './item-variants';
+import { items } from './items';
 
 export const orders = coreSchema.table(
   'orders',
@@ -95,9 +106,7 @@ export const orderItems = coreSchema.table(
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [
-    index('idx_order_items_order').on(table.orderId),
-  ],
+  (table) => [index('idx_order_items_order').on(table.orderId)],
 );
 
 export type OrderItem = typeof orderItems.$inferSelect;
@@ -116,9 +125,7 @@ export const orderItemModifiers = coreSchema.table(
     name: varchar('name', { length: 255 }).notNull(),
     additionalPrice: bigint('additional_price', { mode: 'bigint' }).notNull(),
   },
-  (table) => [
-    index('idx_order_item_modifiers_item').on(table.orderItemId),
-  ],
+  (table) => [index('idx_order_item_modifiers_item').on(table.orderItemId)],
 );
 
 export type OrderItemModifier = typeof orderItemModifiers.$inferSelect;

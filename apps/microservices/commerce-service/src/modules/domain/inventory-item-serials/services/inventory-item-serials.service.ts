@@ -1,9 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  BadRequestException,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-} from '@vritti/api-sdk';
+import { BadRequestException, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { eq, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemSerials, SerialStatusValues } from '@/db/schema';
 import { InventoryItemSerialsRepository } from '../repositories/inventory-item-serials.repository';

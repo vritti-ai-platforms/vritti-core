@@ -1,8 +1,8 @@
-import { decimal, index, pgPolicy, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { conversionStatusEnum } from './enums';
-import { coreSchema } from './core-schema';
+import { decimal, index, pgPolicy, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { bom } from './bom';
+import { coreSchema } from './core-schema';
+import { conversionStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 
 export const conversions = coreSchema.table(
@@ -57,8 +57,12 @@ export const conversionInputs = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    conversionId: uuid('conversion_id').notNull().references(() => conversions.id, { onDelete: 'cascade' }),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id),
+    conversionId: uuid('conversion_id')
+      .notNull()
+      .references(() => conversions.id, { onDelete: 'cascade' }),
+    inventoryItemId: uuid('inventory_item_id')
+      .notNull()
+      .references(() => inventoryItems.id),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     wastageQuantity: decimal('wastage_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
   },
@@ -76,8 +80,12 @@ export const conversionOutputs = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    conversionId: uuid('conversion_id').notNull().references(() => conversions.id, { onDelete: 'cascade' }),
-    inventoryItemId: uuid('inventory_item_id').notNull().references(() => inventoryItems.id),
+    conversionId: uuid('conversion_id')
+      .notNull()
+      .references(() => conversions.id, { onDelete: 'cascade' }),
+    inventoryItemId: uuid('inventory_item_id')
+      .notNull()
+      .references(() => inventoryItems.id),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     wastageQuantity: decimal('wastage_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
   },

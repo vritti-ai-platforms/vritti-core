@@ -1,43 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk';
-import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus } from '@/db/schema';
-
-export class PurchaseOrderItemDto {
-  id: string;
-  inventoryItemId: string;
-  inventoryItemName: string;
-  uomId: string;
-  quantity: number;
-  receivedQuantity: number;
-  conversionRate: number;
-  itemCurrencyCode: string;
-  supplierUnitPrice: CurrencyAmountDto;
-  unitPrice: CurrencyAmountDto;
-  totalPrice: CurrencyAmountDto;
-
-  static from(
-    entity: PurchaseOrderItem,
-    itemName?: string | null,
-    poCurrencyCode?: string | null,
-  ): PurchaseOrderItemDto {
-    const dto = new PurchaseOrderItemDto();
-    dto.id = entity.id;
-    dto.inventoryItemId = entity.inventoryItemId;
-    dto.inventoryItemName = itemName ?? '';
-    dto.uomId = entity.uomId;
-    dto.quantity = Number(entity.quantity);
-    dto.receivedQuantity = Number(entity.receivedQuantity);
-    dto.conversionRate = Number(entity.conversionRate);
-    dto.itemCurrencyCode = entity.itemCurrencyCode;
-
-    const poCode = poCurrencyCode ?? 'USD';
-
-    dto.supplierUnitPrice = CurrencyAmountDto.from(entity.supplierUnitPrice, entity.itemCurrencyCode);
-    dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, poCode);
-    dto.totalPrice = CurrencyAmountDto.from(entity.totalPrice, poCode);
-
-    return dto;
-  }
-}
+import type { PurchaseOrder, PurchaseOrderStatus } from '@/db/schema';
 
 export class PurchaseOrderDto {
   id: string;
@@ -56,7 +18,11 @@ export class PurchaseOrderDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(entity: PurchaseOrder, supplierName?: string | null, supplierCurrencyCode?: string | null): PurchaseOrderDto {
+  static from(
+    entity: PurchaseOrder,
+    supplierName?: string | null,
+    supplierCurrencyCode?: string | null,
+  ): PurchaseOrderDto {
     const dto = new PurchaseOrderDto();
     dto.id = entity.id;
     dto.supplierId = entity.supplierId;
@@ -73,21 +39,6 @@ export class PurchaseOrderDto {
     dto.totalAmount = CurrencyAmountDto.from(entity.totalAmount, entity.currencyCode);
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
-    return dto;
-  }
-}
-
-export class PurchaseOrderDetailDto extends PurchaseOrderDto {
-  items: PurchaseOrderItemDto[];
-
-  static fromDetail(
-    entity: PurchaseOrder,
-    supplierName: string,
-    items: PurchaseOrderItemDto[],
-  ): PurchaseOrderDetailDto {
-    const dto = new PurchaseOrderDetailDto();
-    Object.assign(dto, PurchaseOrderDto.from(entity, supplierName));
-    dto.items = items;
     return dto;
   }
 }

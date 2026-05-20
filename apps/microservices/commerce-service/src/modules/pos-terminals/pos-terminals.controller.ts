@@ -1,6 +1,6 @@
+import { LocationsRepository } from '@domain/locations/repositories/locations.repository';
 import type { PosTerminalDto } from '@domain/pos-terminals/dto/entity/pos-terminal.dto';
 import { PosTerminalsService } from '@domain/pos-terminals/services/pos-terminals.service';
-import { LocationsRepository } from '@domain/locations/repositories/locations.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {

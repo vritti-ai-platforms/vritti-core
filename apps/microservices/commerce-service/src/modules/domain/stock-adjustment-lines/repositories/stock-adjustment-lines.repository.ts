@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { aliasedTable, and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  inventoryItemLots,
-  inventoryItemQuants,
   type InventoryTracking,
   InventoryTrackingValues,
+  inventoryItemLots,
+  inventoryItemQuants,
   locations,
   type StockAdjustmentLine,
   stockAdjustmentLineItems,

@@ -16,5 +16,4 @@ export class CreateStockAdjustmentDto {
   @IsString()
   @IsNotEmpty()
   reason: string;
-
 }

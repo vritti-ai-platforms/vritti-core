@@ -1,7 +1,7 @@
-import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { invoiceTypeEnum, invoicePartyTypeEnum, invoiceStatusEnum } from './enums';
+import { invoicePartyTypeEnum, invoiceStatusEnum, invoiceTypeEnum } from './enums';
 
 export const invoices = coreSchema.table(
   'invoices',

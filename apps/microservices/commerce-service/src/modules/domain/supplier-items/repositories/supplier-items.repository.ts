@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, ne, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItems, type NewSupplierItem, type Supplier, type SupplierItem, supplierItems, suppliers, uom } from '@/db/schema';
+import {
+  inventoryItems,
+  type NewSupplierItem,
+  type Supplier,
+  type SupplierItem,
+  supplierItems,
+  suppliers,
+  uom,
+} from '@/db/schema';
 
 @Injectable()
 export class SupplierItemsRepository extends PrimaryBaseRepository<typeof supplierItems> {

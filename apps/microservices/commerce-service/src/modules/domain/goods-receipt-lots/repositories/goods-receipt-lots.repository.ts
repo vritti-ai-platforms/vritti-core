@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type GoodsReceiptLot,
-  goodsReceiptLineItems,
-  goodsReceiptLines,
-  goodsReceiptLots,
-} from '@/db/schema';
+import { type GoodsReceiptLot, goodsReceiptLineItems, goodsReceiptLines, goodsReceiptLots } from '@/db/schema';
 
 export type GoodsReceiptLotWithStats = GoodsReceiptLot & {
   linesCount: number;

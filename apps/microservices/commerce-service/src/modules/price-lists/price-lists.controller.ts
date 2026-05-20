@@ -1,9 +1,9 @@
+import { PosTerminalsRepository } from '@domain/pos-terminals/repositories/pos-terminals.repository';
 import type { PriceListDto } from '@domain/price-lists/dto/entity/price-list.dto';
 import type { PriceListItemDto } from '@domain/price-lists/dto/entity/price-list-item.dto';
 import type { TerminalPriceListDto } from '@domain/price-lists/dto/entity/terminal-price-list.dto';
 import type { TerminalSellableItemDto } from '@domain/price-lists/dto/entity/terminal-sellable-item.dto';
 import { PriceListsService } from '@domain/price-lists/services/price-lists.service';
-import { PosTerminalsRepository } from '@domain/pos-terminals/repositories/pos-terminals.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {

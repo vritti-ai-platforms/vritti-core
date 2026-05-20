@@ -17,9 +17,7 @@ export class StockTransfersController {
   ) {}
 
   @MessagePattern({ cmd: 'stockTransfers.table' })
-  async table(
-    @Payload() state: TableViewState,
-  ): Promise<{ result: StockTransferDto[]; count: number }> {
+  async table(@Payload() state: TableViewState): Promise<{ result: StockTransferDto[]; count: number }> {
     this.logger.log('stockTransfers.table');
     return this.service.findForTable(state);
   }
@@ -31,7 +29,9 @@ export class StockTransfersController {
   }
 
   @MessagePattern({ cmd: 'stockTransfers.updateStatus' })
-  async updateStatus(@Payload() data: { id: string } & UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
+  async updateStatus(
+    @Payload() data: { id: string } & UpdateStockTransferStatusDto,
+  ): Promise<{ success: boolean; message: string }> {
     const { id, ...statusData } = data;
     this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${statusData.status}`);
     return this.rootService.updateStatus(id, statusData);

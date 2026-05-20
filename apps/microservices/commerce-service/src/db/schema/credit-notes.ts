@@ -1,7 +1,7 @@
-import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { bigint, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { creditNoteTypeEnum, creditNoteStatusEnum, invoicePartyTypeEnum } from './enums';
+import { creditNoteStatusEnum, creditNoteTypeEnum, invoicePartyTypeEnum } from './enums';
 import { invoices } from './invoices';
 
 export const creditNotes = coreSchema.table(
@@ -57,8 +57,12 @@ export const creditNoteApplications = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    creditNoteId: uuid('credit_note_id').notNull().references(() => creditNotes.id, { onDelete: 'cascade' }),
-    invoiceId: uuid('invoice_id').notNull().references(() => invoices.id),
+    creditNoteId: uuid('credit_note_id')
+      .notNull()
+      .references(() => creditNotes.id, { onDelete: 'cascade' }),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => invoices.id),
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
     appliedAt: timestamp('applied_at', { withTimezone: true }).defaultNow().notNull(),
   },

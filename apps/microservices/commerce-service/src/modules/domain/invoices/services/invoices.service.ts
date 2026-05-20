@@ -84,14 +84,14 @@ export class InvoicesService {
     if (data.items?.length) {
       await this.repository.createItems(
         data.items.map((item) => ({
-            invoiceId: entity.id,
-            description: item.description,
-            quantity: String(item.quantity),
-            unitPrice: BigInt(item.unitPrice),
-            taxAmount: BigInt(item.taxAmount ?? 0),
-            total: BigInt(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),
-            referenceItemId: item.referenceItemId ?? null,
-          })),
+          invoiceId: entity.id,
+          description: item.description,
+          quantity: String(item.quantity),
+          unitPrice: BigInt(item.unitPrice),
+          taxAmount: BigInt(item.taxAmount ?? 0),
+          total: BigInt(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),
+          referenceItemId: item.referenceItemId ?? null,
+        })),
       );
     }
 

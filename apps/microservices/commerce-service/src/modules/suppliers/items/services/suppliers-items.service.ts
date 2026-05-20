@@ -44,7 +44,8 @@ export class SuppliersItemsService {
       this.logger.warn(`assertUomAllowed rejected — itemId=${inventoryItemId}, uomId=${uomId}`);
       throw new BadRequestException({
         label: 'Invalid UOM',
-        detail: "The selected unit of measure is not in this item's allowed UOM set. Define a per-item conversion first.",
+        detail:
+          "The selected unit of measure is not in this item's allowed UOM set. Define a per-item conversion first.",
       });
     }
   }

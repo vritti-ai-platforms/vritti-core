@@ -185,7 +185,6 @@ export class PriceListsService {
 
   // Replaces price list assignments for a terminal. App-layer validates the terminal exists.
   async saveTerminalPriceLists(terminalId: string, data: SaveTerminalPriceListsDto): Promise<SuccessResponseDto> {
-
     const uniquePriceListIds = new Set(data.priceLists.map((priceList) => priceList.priceListId));
     if (uniquePriceListIds.size !== data.priceLists.length) {
       throw new BadRequestException('Duplicate price lists are not allowed for a terminal.');

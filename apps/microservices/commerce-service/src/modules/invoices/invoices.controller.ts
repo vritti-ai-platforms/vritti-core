@@ -13,9 +13,7 @@ export class InvoicesController {
   constructor(private readonly service: InvoicesService) {}
 
   @MessagePattern({ cmd: 'invoices.table' })
-  async table(
-    @Payload() state: TableViewState,
-  ): Promise<{ result: InvoiceDto[]; count: number }> {
+  async table(@Payload() state: TableViewState): Promise<{ result: InvoiceDto[]; count: number }> {
     this.logger.log('invoices.table');
     return this.service.findForTable(state);
   }

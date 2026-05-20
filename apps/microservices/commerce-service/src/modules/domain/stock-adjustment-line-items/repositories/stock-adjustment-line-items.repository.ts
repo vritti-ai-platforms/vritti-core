@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { stockAdjustmentLineItems, stockAdjustmentLines, type StockAdjustmentLineItem } from '@/db/schema';
+import { type StockAdjustmentLineItem, stockAdjustmentLineItems, stockAdjustmentLines } from '@/db/schema';
 
 @Injectable()
 export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<typeof stockAdjustmentLineItems> {
@@ -58,9 +58,15 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
     return new Map(rows.map((r) => [r.lineId, { count: Number(r.count) }]));
   }
 
-  async findBySerialOnAdjustment(adjustmentId: string, serialNumber: string): Promise<StockAdjustmentLineItem | undefined> {
+  async findBySerialOnAdjustment(
+    adjustmentId: string,
+    serialNumber: string,
+  ): Promise<StockAdjustmentLineItem | undefined> {
     const rows = await this.db
-      .select({ id: stockAdjustmentLineItems.id, stockAdjustmentLineId: stockAdjustmentLineItems.stockAdjustmentLineId })
+      .select({
+        id: stockAdjustmentLineItems.id,
+        stockAdjustmentLineId: stockAdjustmentLineItems.stockAdjustmentLineId,
+      })
       .from(stockAdjustmentLineItems)
       .innerJoin(stockAdjustmentLines, eq(stockAdjustmentLineItems.stockAdjustmentLineId, stockAdjustmentLines.id))
       .where(

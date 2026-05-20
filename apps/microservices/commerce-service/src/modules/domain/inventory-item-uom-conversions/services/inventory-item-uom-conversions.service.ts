@@ -177,7 +177,12 @@ export class InventoryItemUomConversionsService {
     return globalConversionFactor;
   }
 
-  async resolvePrimaryUomQuantity(itemId: string, uomId: string, globalConversionFactor: number, quantity: number): Promise<number> {
+  async resolvePrimaryUomQuantity(
+    itemId: string,
+    uomId: string,
+    globalConversionFactor: number,
+    quantity: number,
+  ): Promise<number> {
     const factor = await this.resolvePrimaryUomFactor(itemId, uomId, globalConversionFactor);
     return new Decimal(quantity).times(factor).toDecimalPlaces(3).toNumber();
   }

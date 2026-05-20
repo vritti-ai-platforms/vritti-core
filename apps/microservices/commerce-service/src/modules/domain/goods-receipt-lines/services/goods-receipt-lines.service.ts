@@ -1,6 +1,6 @@
+import { GoodsReceiptLotsRepository } from '@domain/goods-receipt-lots/repositories/goods-receipt-lots.repository';
 import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
-import { GoodsReceiptLotsRepository } from '@domain/goods-receipt-lots/repositories/goods-receipt-lots.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -15,9 +15,9 @@ import {
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import {
   GoodsReceiptStatusValues,
+  goodsReceiptLines,
   type InventoryTracking,
   InventoryTrackingValues,
-  goodsReceiptLines,
   locations,
 } from '@/db/schema';
 import { GoodsReceiptLineDto } from '../dto/entity/goods-receipt-line.dto';
@@ -152,8 +152,7 @@ export class GoodsReceiptLinesService {
     if (!line || line.goodsReceiptItemId !== itemId) throw new NotFoundException('Goods receipt line not found.');
 
     const next = {
-      goodsReceiptLotId:
-        data.goodsReceiptLotId !== undefined ? data.goodsReceiptLotId : line.goodsReceiptLotId,
+      goodsReceiptLotId: data.goodsReceiptLotId !== undefined ? data.goodsReceiptLotId : line.goodsReceiptLotId,
       locationId: data.locationId !== undefined ? data.locationId : line.locationId,
       quantity: data.quantity !== undefined ? data.quantity : Number(line.quantity),
     };

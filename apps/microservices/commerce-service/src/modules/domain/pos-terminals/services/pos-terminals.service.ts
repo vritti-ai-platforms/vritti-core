@@ -11,7 +11,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
-import { posTerminals, locations, LocationRoleValues } from '@/db/schema';
+import { LocationRoleValues, locations, posTerminals } from '@/db/schema';
 import type { CreatePosTerminalDto } from '@/modules/pos-terminals/dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from '@/modules/pos-terminals/dto/request/update-pos-terminal.dto';
 import { PosTerminalDto } from '../dto/entity/pos-terminal.dto';
