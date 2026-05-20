@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type NewSupplierContact, type Supplier, type SupplierContact, supplierContacts, suppliers } from '@/db/schema';
 
 @Injectable()
@@ -35,11 +35,11 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
   }
 
   async countBySupplierId(supplierId: string): Promise<number> {
-    const rows = await this.db
-      .select()
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
       .from(supplierContacts)
       .where(eq(supplierContacts.supplierId, supplierId));
-    return rows.length;
+    return Number(row.count);
   }
 
   async findPrimaryBySupplierId(supplierId: string): Promise<SupplierContact | undefined> {
