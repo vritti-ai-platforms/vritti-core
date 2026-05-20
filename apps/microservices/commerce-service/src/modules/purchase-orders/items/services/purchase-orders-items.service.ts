@@ -1,5 +1,4 @@
 import type { PurchaseOrderItemDto } from '@domain/purchase-order-items/dto/entity/purchase-order-item.dto';
-import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrderDto as PurchaseOrderDtoClass } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
@@ -24,7 +23,6 @@ export class PurchaseOrdersItemsService {
   constructor(
     private readonly itemsService: PurchaseOrderItemsService,
     private readonly repository: PurchaseOrdersRepository,
-    private readonly itemsRepository: PurchaseOrderItemsRepository,
     private readonly supplierItemsRepository: SupplierItemsRepository,
     private readonly database: PrimaryDatabaseService,
   ) {}
