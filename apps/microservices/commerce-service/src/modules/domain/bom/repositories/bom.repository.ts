@@ -6,7 +6,7 @@ import {
   type SelectQueryResult,
 } from '@vritti/api-sdk';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
-import { type Bom, type BomLine, bom, bomLines, inventoryItems, type NewBomLine } from '@/db/schema';
+import { type BomLine, bom, bomLines, inventoryItems, type NewBomLine } from '@/db/schema';
 
 @Injectable()
 export class BomRepository extends PrimaryBaseRepository<typeof bom> {

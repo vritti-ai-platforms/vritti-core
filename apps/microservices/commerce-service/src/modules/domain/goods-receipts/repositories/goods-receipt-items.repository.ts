@@ -7,9 +7,8 @@ import {
   goodsReceiptLines,
   goodsReceiptLots,
   goodsReceipts,
-  inventoryItems,
   type InventoryTracking,
-  locations,
+  inventoryItems,
   purchaseOrderItems,
   uom,
 } from '@/db/schema';
@@ -303,9 +302,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
   }
 
   // Used by the publish flow — minimal projection: itemId, inventoryItemId, tracking, rejectedQuantity, poItemId
-  async findByReceiptIdForPublish(
-    goodsReceiptId: string,
-  ): Promise<
+  async findByReceiptIdForPublish(goodsReceiptId: string): Promise<
     {
       id: string;
       inventoryItemId: string;
