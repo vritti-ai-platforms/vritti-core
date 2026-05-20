@@ -1,13 +1,17 @@
 import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
 import type { RouteProp } from '@react-navigation/native';
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { getRemoteConfig } from '../config/remotes.config';
+import { RemoteErrorBoundary } from './RemoteErrorBoundary';
 
 const registeredRemotes = new Map<string, string>();
-const remoteCache = new Map<string, React.LazyExoticComponent<React.ComponentType>>();
+export type RemoteModule = {
+  default: React.ComponentType;
+  Header?: React.ComponentType;
+};
 
-type RemoteModule = { default: React.ComponentType };
+const modulePromiseCache = new Map<string, Promise<RemoteModule>>();
 
 export interface RemoteScreenParams {
   remoteName: string;
@@ -30,41 +34,61 @@ function ensureRemoteRegistered(remoteName: string, remoteEntry?: string) {
   registeredRemotes.set(remoteName, resolvedEntry);
 }
 
-async function loadRemoteModule(remoteName: string, moduleName: string) {
-  const cleanModuleName = moduleName.replace(/^\.\//, '');
-  const module = await loadRemote(`${remoteName}/${cleanModuleName}`);
-  return (module as RemoteModule | undefined)?.default
-    ? (module as RemoteModule).default
-    : (module as React.ComponentType);
+export function getRemoteModule(
+  remoteName: string,
+  remoteEntry: string | undefined,
+  moduleName: string,
+): Promise<RemoteModule> {
+  const normalized = moduleName.startsWith('./') ? moduleName : `./${moduleName}`;
+  const key = `${remoteName}|${remoteEntry ?? 'default'}|${normalized}`;
+  const cached = modulePromiseCache.get(key);
+  if (cached) return cached;
+
+  const promise = (async () => {
+    ensureRemoteRegistered(remoteName, remoteEntry);
+    try {
+      const mod = await loadRemote(`${remoteName}/${normalized.replace(/^\.\//, '')}`);
+      const m = mod as RemoteModule | undefined;
+      if (!m?.default) {
+        const received = m ? Object.keys(m).join(', ') || '(no keys)' : 'undefined';
+        throw new Error(`Remote module ${remoteName}/${normalized} has no default export (received: ${received})`);
+      }
+      return m;
+    } catch (err) {
+      console.error('[RemoteScreen] load failed', {
+        remoteName,
+        remoteEntry,
+        moduleName: normalized,
+        error: err instanceof Error ? err.message : err,
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+      throw err;
+    }
+  })();
+
+  // A rejected load must not stay cached — a stale rejection would replay on every retry
+  promise.catch(() => modulePromiseCache.delete(key));
+  modulePromiseCache.set(key, promise);
+  return promise;
 }
 
-/**
- * Registers a remote manifest on-demand and lazy-loads a screen from it.
- * This mirrors the core-web setup: runtime registry + loadRemote() + cache.
- */
 export const RemoteScreen = ({ route }: RemoteScreenProps) => {
   const { remoteName, moduleName, remoteEntry } = route.params;
-  const normalizedModuleName = moduleName.startsWith('./') ? moduleName : `./${moduleName}`;
-  const cacheKey = `${remoteName}|${remoteEntry ?? 'default'}|${normalizedModuleName}`;
 
-  if (!remoteCache.has(cacheKey)) {
-    const LazyComponent = React.lazy(async () => {
-      ensureRemoteRegistered(remoteName, remoteEntry);
-      const Component = await loadRemoteModule(remoteName, normalizedModuleName);
-      if (!Component) {
-        throw new Error(`Remote module ${cacheKey} did not resolve to a component`);
-      }
-      return { default: Component };
-    });
-    remoteCache.set(cacheKey, LazyComponent);
-  }
-
-  const Component = remoteCache.get(cacheKey)!;
+  const ScreenComponent = useMemo(
+    () =>
+      React.lazy(async () => ({
+        default: (await getRemoteModule(remoteName, remoteEntry, moduleName)).default,
+      })),
+    [remoteName, remoteEntry, moduleName],
+  );
 
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Component />
-    </Suspense>
+    <RemoteErrorBoundary remoteName={remoteName} moduleName={moduleName}>
+      <Suspense fallback={<LoadingFallback />}>
+        <ScreenComponent />
+      </Suspense>
+    </RemoteErrorBoundary>
   );
 };
 

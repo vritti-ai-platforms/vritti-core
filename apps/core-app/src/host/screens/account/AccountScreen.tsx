@@ -15,11 +15,33 @@ import { useAuth } from '../../providers/AuthProvider';
 import type { HostAppRoute } from '../../routes';
 import { getInitials } from './utils';
 
+type ThemePreferenceValue = 'system' | 'light' | 'dark';
+
 export const AccountScreen = () => {
   const { user, org, logout } = useAuth();
   const { push } = usePushNavigator<HostAppRoute>();
   const { isDark, colorScheme, themePreference, setThemePreference } = useTheme();
   const themeSheetRef = useRef<BottomSheetRef>(null);
+  const fullSheetRef = useRef<BottomSheetRef>(null);
+  // Held across the dismiss → onDismiss boundary. Using a ref (not state) so
+  // the sheet content doesn't re-render mid-close.
+  const pendingThemeRef = useRef<ThemePreferenceValue | null>(null);
+
+  // Defer setThemePreference until the sheet has fully closed. On Android the
+  // theme flip remounts both Tab.Navigator and Stack.Navigator, which tears
+  // down the React subtree underneath the gorhom BottomSheetModal Portal —
+  // doing that while the sheet's worklets are still running crashes the app.
+  const handleSelectTheme = (value: ThemePreferenceValue) => {
+    pendingThemeRef.current = value;
+    themeSheetRef.current?.dismiss();
+  };
+
+  const handleThemeSheetDismiss = () => {
+    const pending = pendingThemeRef.current;
+    if (!pending) return;
+    pendingThemeRef.current = null;
+    void setThemePreference(pending);
+  };
 
   const handleLogout = () => {
     NativeAlert.alert('Sign out', 'Are you sure you want to sign out of this session?', [
@@ -86,8 +108,17 @@ export const AccountScreen = () => {
         <View className="rounded-xl bg-card">
           <ListItem
             title="Theme"
+            index={0}
+            total={2}
             description="Choose system, light, or dark appearance"
             onPress={() => void themeSheetRef.current?.present()}
+          />
+          <ListItem
+            title="Full sheet demo"
+            index={1}
+            total={2}
+            description="Try the scroll-aware glass header"
+            onPress={() => void fullSheetRef.current?.present()}
           />
         </View>
       </View>
@@ -106,7 +137,7 @@ export const AccountScreen = () => {
         </Text>
       </View>
 
-      <BottomSheet ref={themeSheetRef} detents={['auto']}>
+      <BottomSheet ref={themeSheetRef} detents={['auto']} onDismiss={handleThemeSheetDismiss}>
         <View className="gap-5 px-4 pb-8 pt-2">
           <View className="gap-1">
             <Text className="text-base font-semibold text-foreground">Appearance</Text>
@@ -140,7 +171,7 @@ export const AccountScreen = () => {
               <CardPressable
                 key={value}
                 selected={themePreference === value}
-                onPress={() => void setThemePreference(value)}
+                onPress={() => handleSelectTheme(value)}
                 className="flex-1 items-center gap-2 rounded-xl border border-border bg-card p-4"
               >
                 <View className="h-10 w-10 items-center justify-center rounded-full bg-muted">
@@ -153,6 +184,36 @@ export const AccountScreen = () => {
               </CardPressable>
             ))}
           </View>
+        </View>
+      </BottomSheet>
+
+      {/* Demo: full-detent sheet with sticky scroll-aware header.
+          One component — `title` / `onClose` render the header, `detents: ['full']`
+          auto-enables the scrollable body. Per-platform header backdrop is handled
+          internally (LiquidGlass on iOS 26+, translucent material on iOS pre-26,
+          elevated solid surface on Android). */}
+      <BottomSheet
+        ref={fullSheetRef}
+        detents={['full']}
+        title="Full sheet demo"
+        onClose={() => fullSheetRef.current?.dismiss()}
+      >
+        <View className="gap-3 px-4">
+          <Text className="text-base font-semibold text-foreground">Scroll to see the header backdrop fade in</Text>
+          <Text className="text-sm text-muted-foreground">
+            The header is transparent at rest. As you scroll, its backdrop fades in over the first 20 px — Liquid Glass
+            on iOS 26+, a translucent material on iOS pre-26, and an elevated solid surface on Android.
+          </Text>
+          {Array.from({ length: 40 }).map((_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: demo only
+            <Card key={i} className="gap-1 p-4">
+              <Text className="text-sm font-semibold text-foreground">Row {i + 1}</Text>
+              <Text className="text-xs text-muted-foreground">
+                Placeholder content so the body has enough height to scroll. Use this pattern for any tall full-sheet
+                flow — checkout review, terms-of-service, multi-step forms, etc.
+              </Text>
+            </Card>
+          ))}
         </View>
       </BottomSheet>
     </ScreenContainer>

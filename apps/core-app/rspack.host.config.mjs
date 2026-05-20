@@ -66,6 +66,7 @@ const componentDirs = [
   'NativeStack',
   'PasswordField',
   'Progress',
+  'PushNavigator',
   'RadioGroup',
   'ScreenContainer',
   'Separator',
@@ -112,6 +113,7 @@ export default (rspackEnv) => {
     mode,
     context: __dirname,
     entry: './src/host/index.tsx',
+    devtool: mode === 'development' ? 'source-map' : false,
 
     resolve: {
       ...Repack.getResolveOptions(platform),
@@ -217,16 +219,60 @@ export default (rspackEnv) => {
         shared: {
           react: { singleton: true, eager: true, requiredVersion: '19.2.3' },
           'react-native': { singleton: true, eager: true, requiredVersion: '0.83.2' },
-          '@react-navigation/native': { singleton: true, eager: true, requiredVersion: '8.0.0-alpha.17' },
-          '@react-navigation/elements': { singleton: true, eager: true, requiredVersion: '3.0.0-alpha.20' },
-          '@react-navigation/bottom-tabs': { singleton: true, eager: true, requiredVersion: '8.0.0-alpha.22' },
+          // version pinned — MF can't auto-detect it from these packages' subpath package.json; >=0.0.0-0 matches prereleases
+          '@react-navigation/native': {
+            singleton: true,
+            eager: true,
+            version: '8.0.0-alpha.17',
+            requiredVersion: '>=0.0.0-0',
+          },
+          '@react-navigation/native-stack': {
+            singleton: true,
+            eager: true,
+            version: '8.0.0-alpha.25',
+            requiredVersion: '>=0.0.0-0',
+          },
+          '@react-navigation/elements': {
+            singleton: true,
+            eager: true,
+            version: '3.0.0-alpha.20',
+            requiredVersion: '>=0.0.0-0',
+          },
+          '@react-navigation/bottom-tabs': {
+            singleton: true,
+            eager: true,
+            version: '8.0.0-alpha.22',
+            requiredVersion: '>=0.0.0-0',
+          },
           'react-native-safe-area-context': { singleton: true, eager: true, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: true, requiredVersion: '^4.24.0' },
           '@tanstack/react-query': { singleton: true, eager: true },
           axios: { singleton: true, eager: true },
           'react-native-reanimated': { singleton: true, eager: true },
           'react-native-worklets': { singleton: true, eager: true, requiredVersion: '0.8.1' },
-          nativewind: { singleton: true, eager: true },
+          nativewind: { singleton: true, eager: true, version: '5.0.0-preview.3', requiredVersion: '>=0.0.0-0' },
+          // native modules — must be singletons so each registers its native views exactly once
+          'react-native-svg': { singleton: true, eager: true, version: '15.15.4', requiredVersion: '>=0.0.0-0' },
+          'react-native-sfsymbols': { singleton: true, eager: true, version: '1.2.2', requiredVersion: '>=0.0.0-0' },
+          '@react-native-vector-icons/material-icons': {
+            singleton: true,
+            eager: true,
+            version: '12.5.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          '@callstack/liquid-glass': { singleton: true, eager: true, version: '0.7.1', requiredVersion: '>=0.0.0-0' },
+          'react-native-gesture-handler': {
+            singleton: true,
+            eager: true,
+            version: '2.31.2',
+            requiredVersion: '>=0.0.0-0',
+          },
+          'react-native-nitro-modules': {
+            singleton: true,
+            eager: true,
+            version: '0.35.4',
+            requiredVersion: '>=0.0.0-0',
+          },
         },
       }),
 
