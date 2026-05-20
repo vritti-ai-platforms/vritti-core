@@ -30,15 +30,15 @@ export class SuppliersService {
 
   constructor(private readonly repository: SuppliersRepository) {}
 
-  private static throwInvalidTaxDetailsError(nextTaxId: string | null, nextTaxIdType: string | null): never {
-    if (nextTaxIdType != null && nextTaxId == null) {
-      throw new BadRequestException({
-        label: 'Invalid Tax Details',
-        detail: 'Tax ID is required when Tax ID Type is selected.',
-        errors: [{ field: 'taxId', message: 'Tax ID is required when Tax ID Type is selected.' }],
-      });
-    }
+  private throwMissingTaxId(): never {
+    throw new BadRequestException({
+      label: 'Invalid Tax Details',
+      detail: 'Tax ID is required when Tax ID Type is selected.',
+      errors: [{ field: 'taxId', message: 'Tax ID is required when Tax ID Type is selected.' }],
+    });
+  }
 
+  private throwMissingTaxIdType(): never {
     throw new BadRequestException({
       label: 'Invalid Tax Details',
       detail: 'Tax ID Type is required when Tax ID is provided.',
@@ -86,9 +86,8 @@ export class SuppliersService {
   async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     const normalizedTaxId = data.taxId?.trim() ? data.taxId.trim() : null;
     const normalizedTaxIdType = data.taxIdType ?? null;
-    if ((normalizedTaxId != null) !== (normalizedTaxIdType != null)) {
-      SuppliersService.throwInvalidTaxDetailsError(normalizedTaxId, normalizedTaxIdType);
-    }
+    if (normalizedTaxId != null && normalizedTaxIdType == null) this.throwMissingTaxIdType();
+    if (normalizedTaxId == null && normalizedTaxIdType != null) this.throwMissingTaxId();
 
     const entity = await this.repository.create({
       name: data.name,
@@ -125,22 +124,11 @@ export class SuppliersService {
     const normalizedTaxIdInput = data.taxId !== undefined ? (data.taxId?.trim() ? data.taxId.trim() : null) : undefined;
     const nextTaxId = normalizedTaxIdInput !== undefined ? normalizedTaxIdInput : existing.taxId;
     const nextTaxIdType = data.taxIdType !== undefined ? data.taxIdType : existing.taxIdType;
-    if ((nextTaxId != null) !== (nextTaxIdType != null)) {
-      SuppliersService.throwInvalidTaxDetailsError(nextTaxId, nextTaxIdType);
-    }
+    if (nextTaxId != null && nextTaxIdType == null) this.throwMissingTaxIdType();
+    if (nextTaxId == null && nextTaxIdType != null) this.throwMissingTaxId();
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.code !== undefined) updatePayload.code = data.code;
-    if (data.currencyCode !== undefined) updatePayload.currencyCode = data.currencyCode;
-    if (data.website !== undefined) updatePayload.website = data.website;
-    if (data.address !== undefined) updatePayload.address = data.address;
-    if (normalizedTaxIdInput !== undefined) updatePayload.taxId = normalizedTaxIdInput;
-    if (data.taxIdType !== undefined) updatePayload.taxIdType = data.taxIdType;
-    if (data.paymentTerms !== undefined) updatePayload.paymentTerms = data.paymentTerms;
-    if (data.leadTimeDays !== undefined) updatePayload.leadTimeDays = data.leadTimeDays;
-    if (data.notes !== undefined) updatePayload.notes = data.notes;
-    if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
+    const { taxId: _taxId, ...rest } = data;
+    const updatePayload = { ...rest, ...(normalizedTaxIdInput !== undefined && { taxId: normalizedTaxIdInput }) };
 
     const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
 

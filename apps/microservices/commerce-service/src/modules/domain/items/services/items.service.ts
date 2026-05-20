@@ -97,16 +97,7 @@ export class ItemsService {
     const existing = await this.itemsRepository.findById(id);
     if (!existing) throw new NotFoundException('Item not found.');
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.categoryId !== undefined) updatePayload.categoryId = data.categoryId;
-    if (data.type !== undefined) updatePayload.type = data.type;
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.description !== undefined) updatePayload.description = data.description;
-    if (data.taxGroupId !== undefined) updatePayload.taxGroupId = data.taxGroupId;
-    if (data.isAvailable !== undefined) updatePayload.isAvailable = data.isAvailable;
-    if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
-
-    const entity = await this.itemsRepository.update(id, updatePayload);
+    const entity = await this.itemsRepository.update(id, data);
     const categoryName = await this.itemsRepository.findCategoryName(entity.categoryId);
     this.logger.log(`Updated item: ${entity.name} (${entity.id})`);
     return ItemDto.from(entity, categoryName);
@@ -229,15 +220,11 @@ export class ItemsService {
     const existing = await this.itemsRepository.findVariantById(variantId);
     if (!existing) throw new NotFoundException('Variant not found.');
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.sku !== undefined) updatePayload.sku = data.sku;
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.price !== undefined) updatePayload.price = String(data.price);
-    if (data.isAvailable !== undefined) updatePayload.isAvailable = data.isAvailable;
-    if (data.manageInventory !== undefined) updatePayload.manageInventory = data.manageInventory;
-    if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
-
-    const updated = await this.itemsRepository.updateVariant(variantId, updatePayload);
+    const { price: _price, ...rest } = data;
+    const updated = await this.itemsRepository.updateVariant(variantId, {
+      ...rest,
+      ...(data.price != null && { price: data.price }),
+    });
 
     const variantOptionValues = await this.itemsRepository.findVariantOptionValues([variantId]);
     const ovIds = variantOptionValues.map((vov) => vov.optionValueId);

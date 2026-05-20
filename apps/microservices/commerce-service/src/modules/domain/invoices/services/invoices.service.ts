@@ -117,17 +117,8 @@ export class InvoicesService {
       throw new BadRequestException('Only draft invoices can be updated.');
     }
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.partyType !== undefined) updatePayload.partyType = data.partyType;
-    if (data.partyId !== undefined) updatePayload.partyId = data.partyId;
-    if (data.partyName !== undefined) updatePayload.partyName = data.partyName;
-    if (data.referenceType !== undefined) updatePayload.referenceType = data.referenceType;
-    if (data.referenceId !== undefined) updatePayload.referenceId = data.referenceId;
-    if (data.paymentTerms !== undefined) updatePayload.paymentTerms = data.paymentTerms;
-    if (data.issuedDate !== undefined) updatePayload.issuedDate = data.issuedDate;
-    if (data.dueDate !== undefined) updatePayload.dueDate = data.dueDate;
-    if (data.notes !== undefined) updatePayload.notes = data.notes;
-    if (data.status !== undefined) updatePayload.status = data.status;
+    const { items: _items, discountAmount: _discountAmount, ...scalarFields } = data;
+    const updatePayload: Record<string, unknown> = { ...scalarFields };
 
     if (data.items !== undefined) {
       await this.repository.deleteItemsByInvoiceId(id);
@@ -164,7 +155,7 @@ export class InvoicesService {
       updatePayload.balance = totalAmount - Number(existing.paidAmount);
     }
 
-    const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
+    const entity = await this.repository.update(id, updatePayload);
 
     this.logger.log(`Updated invoice: ${entity.invoiceNumber} (${entity.id})`);
     return InvoiceDto.from(entity);

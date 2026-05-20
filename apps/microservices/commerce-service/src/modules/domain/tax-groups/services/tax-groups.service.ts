@@ -51,12 +51,7 @@ export class TaxGroupsService {
     const existing = await this.taxGroupsRepository.findById(id);
     if (!existing) throw new NotFoundException('Tax group not found.');
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.isDefault !== undefined) updatePayload.isDefault = data.isDefault;
-    if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
-    if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
-
+    const { taxRates: _taxRates, ...updatePayload } = data;
     const entity = await this.taxGroupsRepository.update(id, updatePayload);
 
     // Replace tax rates if provided

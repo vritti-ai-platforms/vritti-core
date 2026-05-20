@@ -102,13 +102,8 @@ export class BomService {
     const existing = await this.bomRepository.findById(id);
     if (!existing) throw new NotFoundException('BOM not found.');
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.code !== undefined) updatePayload.code = data.code;
-    if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
-
-    const entity =
-      Object.keys(updatePayload).length > 0 ? await this.bomRepository.update(id, updatePayload) : existing;
+    const { lines: _lines, ...updatePayload } = data;
+    const entity = await this.bomRepository.update(id, updatePayload);
 
     if (data.lines !== undefined) {
       await this.bomRepository.deleteLinesByBomId(id);

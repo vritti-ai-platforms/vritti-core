@@ -89,14 +89,7 @@ export class CustomersService {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Customer not found.');
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.phone !== undefined) updatePayload.phone = data.phone;
-    if (data.email !== undefined) updatePayload.email = data.email;
-    if (data.notes !== undefined) updatePayload.notes = data.notes;
-    if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
-
-    const entity = Object.keys(updatePayload).length > 0 ? await this.repository.update(id, updatePayload) : existing;
+    const entity = await this.repository.update(id, data);
     this.logger.log(`Updated customer: ${entity.name} (${entity.id})`);
     return CustomerDto.from(entity);
   }

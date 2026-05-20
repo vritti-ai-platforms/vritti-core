@@ -196,7 +196,6 @@ export class SupplierItemsService {
       await this.repository.clearPreferredForOtherSuppliers(existing.inventoryItemId, supplierItemId);
     }
 
-    update.updatedAt = new Date();
     await this.repository.updateSupplierItem(supplierItemId, update);
     return { success: true, message: 'Supplier item updated successfully.' };
   }

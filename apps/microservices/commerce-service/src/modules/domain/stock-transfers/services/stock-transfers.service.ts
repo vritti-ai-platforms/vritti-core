@@ -8,6 +8,7 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type StockTransferStatus,
   StockTransferStatusValues,
   stockTransfers,
 } from '@/db/schema';
@@ -85,10 +86,10 @@ export class StockTransfersService {
     id: string,
     data: UpdateStockTransferStatusDto,
   ): Promise<{ success: boolean; message: string }> {
-    const updatePayload: Record<string, unknown> = { status: data.status };
-    if (data.receivedBy) updatePayload.receivedBy = data.receivedBy;
-
-    await this.repository.update(id, updatePayload);
+    await this.repository.update(id, {
+      status: data.status as StockTransferStatus,
+      ...(data.receivedBy && { receivedBy: data.receivedBy }),
+    });
     this.logger.log(`Updated stock transfer ${id} status: -> ${data.status}`);
     return { success: true, message: `Transfer status updated to ${data.status}.` };
   }

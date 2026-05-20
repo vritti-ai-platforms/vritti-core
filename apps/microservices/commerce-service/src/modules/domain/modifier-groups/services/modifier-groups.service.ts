@@ -49,15 +49,7 @@ export class ModifierGroupsService {
     const existing = await this.modifierGroupsRepository.findById(id);
     if (!existing) throw new NotFoundException('Modifier group not found.');
 
-    const updatePayload: Record<string, unknown> = {};
-    if (data.name !== undefined) updatePayload.name = data.name;
-    if (data.selectionType !== undefined) updatePayload.selectionType = data.selectionType;
-    if (data.minSelections !== undefined) updatePayload.minSelections = data.minSelections;
-    if (data.maxSelections !== undefined) updatePayload.maxSelections = data.maxSelections;
-    if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
-    if (data.isActive !== undefined) updatePayload.isActive = data.isActive;
-
-    const entity = await this.modifierGroupsRepository.update(id, updatePayload);
+    const entity = await this.modifierGroupsRepository.update(id, data);
     this.logger.log(`Updated modifier group: ${entity.name} (${entity.id})`);
     return ModifierGroupDto.from(entity);
   }
@@ -96,14 +88,7 @@ export class ModifierGroupsService {
     const existing = await this.modifierGroupsRepository.findOptionById(optionId);
     if (!existing) throw new NotFoundException('Modifier option not found.');
 
-    const updatePayload: Record<string, unknown> = {};
-    if (dto.name !== undefined) updatePayload.name = dto.name;
-    if (dto.additionalPrice !== undefined) updatePayload.additionalPrice = dto.additionalPrice;
-    if (dto.isDefault !== undefined) updatePayload.isDefault = dto.isDefault;
-    if (dto.isAvailable !== undefined) updatePayload.isAvailable = dto.isAvailable;
-    if (dto.sortOrder !== undefined) updatePayload.sortOrder = dto.sortOrder;
-
-    const entity = await this.modifierGroupsRepository.updateOption(optionId, updatePayload);
+    const entity = await this.modifierGroupsRepository.updateOption(optionId, dto);
     this.logger.log(`Updated modifier option: ${entity.name} (${entity.id})`);
     return ModifierOptionDto.from(entity);
   }
