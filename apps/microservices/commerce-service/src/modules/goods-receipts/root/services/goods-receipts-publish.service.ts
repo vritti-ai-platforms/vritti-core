@@ -5,8 +5,8 @@ import { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt
 import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
+import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { PurchaseOrderItemsRepository } from '@domain/purchase-orders/repositories/purchase-order-items.repository';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException, NotFoundException, PrimaryDatabaseService } from '@vritti/api-sdk';
@@ -164,10 +164,7 @@ export class GoodsReceiptsPublishService {
       // Update PO status overall
       if (receipt.purchaseOrderId) {
         const totals = await this.receiptsRepository.getPoTotals(receipt.purchaseOrderId);
-        if (
-          this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.quantity) &&
-          totals.quantity > 0
-        ) {
+        if (this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.quantity) && totals.quantity > 0) {
           await this.receiptsRepository.updatePoStatus(receipt.purchaseOrderId, PurchaseOrderStatusValues.RECEIVED);
         } else if (totals.receivedQuantity > 0) {
           await this.receiptsRepository.updatePoStatus(
