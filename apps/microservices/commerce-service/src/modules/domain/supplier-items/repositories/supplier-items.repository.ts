@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, ne, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItems, type NewSupplierItem, type SupplierItem, supplierItems, suppliers, uom } from '@/db/schema';
+import { inventoryItems, type NewSupplierItem, type Supplier, type SupplierItem, supplierItems, suppliers, uom } from '@/db/schema';
 
 @Injectable()
 export class SupplierItemsRepository extends PrimaryBaseRepository<typeof supplierItems> {
@@ -9,9 +9,9 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
     super(database, supplierItems);
   }
 
-  async findSupplierById(id: string): Promise<typeof suppliers.$inferSelect | undefined> {
-    const rows = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
-    return rows[0] as typeof suppliers.$inferSelect | undefined;
+  async findSupplierById(id: string): Promise<Supplier | undefined> {
+    const [row] = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
+    return row as Supplier | undefined;
   }
 
   // Returns paginated supplier items for a supplier with joined item/UOM display fields
@@ -133,7 +133,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   async findSupplierItemById(
     id: string,
   ): Promise<(SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined> {
-    const rows = await this.db
+    const [row] = await this.db
       .select({
         id: supplierItems.id,
         organizationId: supplierItems.organizationId,
@@ -158,7 +158,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       .where(eq(supplierItems.id, id))
       .limit(1);
 
-    return rows[0] as (SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined;
+    return row as (SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined;
   }
 
   // Finds a supplier item by supplier ID and inventory item ID
@@ -166,11 +166,11 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
     supplierId: string,
     inventoryItemId: string,
   ): Promise<SupplierItem | undefined> {
-    const result = await this.db
+    const [row] = await this.db
       .select()
       .from(supplierItems)
       .where(and(eq(supplierItems.supplierId, supplierId), eq(supplierItems.inventoryItemId, inventoryItemId)))
       .limit(1);
-    return result[0] as SupplierItem | undefined;
+    return row as SupplierItem | undefined;
   }
 }

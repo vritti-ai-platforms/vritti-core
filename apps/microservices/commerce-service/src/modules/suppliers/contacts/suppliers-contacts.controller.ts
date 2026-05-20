@@ -19,14 +19,18 @@ export class SuppliersContactsController {
   }
 
   @MessagePattern({ cmd: 'suppliers.addContact' })
-  addContact(@Payload() data: { supplierId: string } & CreateSupplierContactDto): Promise<CreateResponseDto<SupplierContactDto>> {
+  addContact(
+    @Payload() data: { supplierId: string } & CreateSupplierContactDto,
+  ): Promise<CreateResponseDto<SupplierContactDto>> {
     const { supplierId, ...payload } = data;
     this.logger.log(`suppliers.addContact — name: ${payload.name}`);
     return this.service.createContact(supplierId, payload);
   }
 
   @MessagePattern({ cmd: 'suppliers.updateContact' })
-  updateContact(@Payload() data: { supplierId: string; contactId: string } & UpdateSupplierContactDto): Promise<SuccessResponseDto> {
+  updateContact(
+    @Payload() data: { supplierId: string; contactId: string } & UpdateSupplierContactDto,
+  ): Promise<SuccessResponseDto> {
     const { supplierId, contactId, ...payload } = data;
     this.logger.log('suppliers.updateContact');
     return this.service.updateContact(supplierId, contactId, payload);

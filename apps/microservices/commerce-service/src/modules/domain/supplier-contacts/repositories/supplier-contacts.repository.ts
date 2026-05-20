@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
-import { type NewSupplierContact, supplierContacts, suppliers } from '@/db/schema';
+import { type NewSupplierContact, type Supplier, type SupplierContact, supplierContacts, suppliers } from '@/db/schema';
 
 @Injectable()
 export class SupplierContactsRepository extends PrimaryBaseRepository<typeof supplierContacts> {
@@ -9,12 +9,12 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
     super(database, supplierContacts);
   }
 
-  async findSupplierById(id: string): Promise<(typeof suppliers.$inferSelect) | undefined> {
-    const rows = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
-    return rows[0] as (typeof suppliers.$inferSelect) | undefined;
+  async findSupplierById(id: string): Promise<Supplier | undefined> {
+    const [row] = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
+    return row as Supplier | undefined;
   }
 
-  async listBySupplierId(supplierId: string): Promise<(typeof supplierContacts.$inferSelect)[]> {
+  async listBySupplierId(supplierId: string): Promise<SupplierContact[]> {
     return this.db
       .select()
       .from(supplierContacts)
@@ -25,13 +25,13 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
   async findBySupplierAndContactId(
     supplierId: string,
     contactId: string,
-  ): Promise<(typeof supplierContacts.$inferSelect) | undefined> {
-    const rows = await this.db
+  ): Promise<SupplierContact | undefined> {
+    const [row] = await this.db
       .select()
       .from(supplierContacts)
       .where(and(eq(supplierContacts.supplierId, supplierId), eq(supplierContacts.id, contactId)))
       .limit(1);
-    return rows[0] as (typeof supplierContacts.$inferSelect) | undefined;
+    return row as SupplierContact | undefined;
   }
 
   async countBySupplierId(supplierId: string): Promise<number> {
@@ -42,30 +42,30 @@ export class SupplierContactsRepository extends PrimaryBaseRepository<typeof sup
     return rows.length;
   }
 
-  async findPrimaryBySupplierId(supplierId: string): Promise<(typeof supplierContacts.$inferSelect) | undefined> {
-    const rows = await this.db
+  async findPrimaryBySupplierId(supplierId: string): Promise<SupplierContact | undefined> {
+    const [row] = await this.db
       .select()
       .from(supplierContacts)
       .where(and(eq(supplierContacts.supplierId, supplierId), eq(supplierContacts.isPrimary, true)))
       .limit(1);
-    return rows[0] as (typeof supplierContacts.$inferSelect) | undefined;
+    return row as SupplierContact | undefined;
   }
 
-  async createContact(data: NewSupplierContact): Promise<(typeof supplierContacts.$inferSelect)> {
-    const rows = await this.db.insert(supplierContacts).values(data).returning();
-    return rows[0] as (typeof supplierContacts.$inferSelect);
+  async createContact(data: NewSupplierContact): Promise<SupplierContact> {
+    const [row] = await this.db.insert(supplierContacts).values(data).returning();
+    return row as SupplierContact;
   }
 
   async updateContact(
     id: string,
     data: Partial<NewSupplierContact>,
-  ): Promise<(typeof supplierContacts.$inferSelect)> {
-    const rows = await this.db
+  ): Promise<SupplierContact> {
+    const [row] = await this.db
       .update(supplierContacts)
       .set(data)
       .where(eq(supplierContacts.id, id))
       .returning();
-    return rows[0] as (typeof supplierContacts.$inferSelect);
+    return row as SupplierContact;
   }
 
   async deleteContact(id: string): Promise<void> {
