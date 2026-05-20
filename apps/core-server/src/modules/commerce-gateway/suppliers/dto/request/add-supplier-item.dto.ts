@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
-export class LinkSupplierItemDto {
+export class AddSupplierItemDto {
   @ApiProperty({ description: 'Inventory item ID to link' })
   @IsUUID()
   @IsNotEmpty()

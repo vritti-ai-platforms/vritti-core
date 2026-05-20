@@ -1,8 +1,6 @@
 import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/api-response';
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
-const zOptionalNonNegativeInt = z.number().int().nonnegative().optional().catch(undefined);
-
 export const priceListFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name cannot exceed 100 characters'),
   code: z.string().min(1, 'Code is required').max(50, 'Code cannot exceed 50 characters'),
@@ -12,9 +10,9 @@ export const priceListFormSchema = z.object({
 
 export const priceListItemAssignmentSchema = z.object({
   itemVariantId: z.string().min(1, 'Item variant is required'),
-  sortOrder: zOptionalNonNegativeInt,
+  sortOrder: zodNumericField({ integer: true, min: 0 }).optional(),
   isVisible: z.boolean().optional(),
-  priceOverride: zOptionalNonNegativeInt,
+  priceOverride: zodNumericField({ positive: true }).optional(),
 });
 
 export const terminalPriceListAssignmentSchema = z.object({
@@ -38,7 +36,7 @@ export const saveTerminalPriceListsSchema = z
     if (defaultIndices.length > 1) {
       for (const i of defaultIndices) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['priceLists', i, 'isDefault'],
           message: 'Only one default price list can be selected.',
         });

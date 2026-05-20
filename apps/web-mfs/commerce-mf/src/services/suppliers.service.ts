@@ -44,7 +44,7 @@ export interface UpdateSupplierPayload {
   isActive?: boolean;
 }
 
-export interface LinkSupplierItemPayload {
+export interface AddSupplierItemPayload {
   inventoryItemId: string;
   supplierItemCode?: string;
   unitPrice?: { currency: string; value: string };
@@ -135,13 +135,13 @@ export function deleteSupplier(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/suppliers/${id}`).then((r) => r.data);
 }
 
-// Links an inventory item to a supplier
-export function linkSupplierItem({
+// Adds an inventory item to a supplier
+export function addSupplierItem({
   supplierId,
   data,
 }: {
   supplierId: string;
-  data: LinkSupplierItemPayload;
+  data: AddSupplierItemPayload;
 }): Promise<SupplierItemData> {
   return axios
     .post<CreateResponse<SupplierItemData>>(`commerce-api/suppliers/${supplierId}/items`, data)

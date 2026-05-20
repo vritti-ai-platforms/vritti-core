@@ -86,7 +86,7 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
               clearable
             />
             <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
-            <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" />
+            <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" integer positive />
             <div className="sm:col-span-2">
               <TextArea name="address" label="Address" placeholder="Full postal address" />
             </div>

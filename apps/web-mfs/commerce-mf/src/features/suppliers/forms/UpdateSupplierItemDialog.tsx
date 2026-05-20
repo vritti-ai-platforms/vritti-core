@@ -9,7 +9,6 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useAllowedUomIds } from '@/hooks/inventory-items';
 import { useUpdateSupplierItem } from '@/hooks/suppliers';
 import { type SupplierItemData, type UpdateSupplierItemFormData, updateSupplierItemSchema } from '@/schemas/suppliers';
 
@@ -42,7 +41,6 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
   });
 
   const updateMutation = useUpdateSupplierItem(supplierId, { onSuccess });
-  const { data: allowedUomIds, isFetching: isLoadingAllowed } = useAllowedUomIds(item.inventoryItemId);
   const [allowDecimal, setAllowDecimal] = useState(true);
 
   return (
@@ -54,7 +52,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
         itemId: item.id,
         data: {
           supplierItemCode: data.supplierItemCode ? data.supplierItemCode : null,
-          unitPrice: data.unitPrice ?? null,
+          unitPrice: data.unitPrice,
           uomId: data.uomId,
           minOrderQuantity: data.minOrderQuantity ?? null,
           leadTimeDays: data.leadTimeDays ?? null,
@@ -74,15 +72,21 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
         name="uomId"
         label="Unit of Measure"
         placeholder="Select unit"
-        disabled={isLoadingAllowed || !allowedUomIds}
-        params={allowedUomIds ? { values: allowedUomIds.join(',') } : undefined}
+        params={{ inventoryItemId: item.inventoryItemId }}
         onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
       />
       <div className="grid grid-cols-2 gap-4">
         <CurrencyField name="unitPrice" label="Unit Price" defaultCurrencyCode={supplierCurrencyCode} />
-        <TextField name="minOrderQuantity" label="Min Order Qty" type="number" placeholder="e.g. 100" integer={!allowDecimal} />
+        <TextField
+          name="minOrderQuantity"
+          label="Min Order Qty"
+          type="number"
+          placeholder="e.g. 100"
+          integer={!allowDecimal}
+          positive
+        />
       </div>
-      <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" />
+      <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" integer positive />
       <Switch name="isPreferred" label="Preferred Supplier" />
       <Switch name="isActive" label="Active" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

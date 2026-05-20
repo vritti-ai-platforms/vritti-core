@@ -3,7 +3,7 @@ import { SupplierItemsService } from '@domain/supplier-items/services/supplier-i
 import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
-import type { LinkSupplierItemDto } from '../dto/request/link-supplier-item.dto';
+import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '../dto/request/update-supplier-item.dto';
 
 // Top-level service used by the items sub-controller for the two write paths that
@@ -18,10 +18,10 @@ export class SuppliersItemsService {
     private readonly inventoryItemsService: InventoryItemsService,
   ) {}
 
-  async linkItem(supplierId: string, dto: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
-    this.logger.log(`linkItem — supplierId=${supplierId}, itemId=${dto.inventoryItemId}, uomId=${dto.uomId}`);
+  async addItem(supplierId: string, dto: AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
+    this.logger.log(`addItem — supplierId=${supplierId}, itemId=${dto.inventoryItemId}, uomId=${dto.uomId}`);
     await this.assertUomAllowed(dto.inventoryItemId, dto.uomId);
-    return this.supplierItemsService.linkItem(supplierId, dto);
+    return this.supplierItemsService.addItem(supplierId, dto);
   }
 
   async updateItem(

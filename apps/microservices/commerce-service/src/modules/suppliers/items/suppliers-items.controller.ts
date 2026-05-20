@@ -3,7 +3,7 @@ import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto'
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, CurrencyAmountDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
-import type { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
+import type { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { SuppliersItemsService } from './services/suppliers-items.service';
 
@@ -31,11 +31,11 @@ export class SuppliersItemsController {
     return this.domainService.findItemIds(data.supplierId);
   }
 
-  @MessagePattern({ cmd: 'suppliers.linkItem' })
-  linkItem(@Payload() data: { supplierId: string } & LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
+  @MessagePattern({ cmd: 'suppliers.addItem' })
+  addItem(@Payload() data: { supplierId: string } & AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
     const { supplierId, ...itemData } = data;
-    this.logger.log(`suppliers.linkItem — item: ${itemData.inventoryItemId}`);
-    return this.localService.linkItem(supplierId, itemData);
+    this.logger.log(`suppliers.addItem — item: ${itemData.inventoryItemId}`);
+    return this.localService.addItem(supplierId, itemData);
   }
 
   @MessagePattern({ cmd: 'suppliers.updateItem' })

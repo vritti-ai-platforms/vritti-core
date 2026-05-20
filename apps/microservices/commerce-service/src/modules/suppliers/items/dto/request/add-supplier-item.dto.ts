@@ -1,7 +1,7 @@
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 
-export class LinkSupplierItemDto {
+export class AddSupplierItemDto {
   @IsUUID()
   inventoryItemId: string;
 

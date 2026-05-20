@@ -69,7 +69,7 @@ export const EditSupplierForm: React.FC<EditSupplierFormProps> = ({ supplier, on
           clearable
         />
         <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
-        <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" />
+        <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" integer positive />
         <TextArea name="address" label="Address" placeholder="Full postal address" rows={3} className="w-full" />
         <TextArea name="notes" label="Notes" placeholder="Optional notes" rows={3} className="w-full" />
       </div>

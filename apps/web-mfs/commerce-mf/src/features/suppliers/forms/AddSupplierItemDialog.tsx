@@ -7,11 +7,10 @@ import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { useAllowedUomIds } from '@/hooks/inventory-items';
-import { useLinkSupplierItem } from '@/hooks/suppliers';
-import { type LinkSupplierItemFormData, linkSupplierItemSchema } from '@/schemas/suppliers';
+import { useAddSupplierItem } from '@/hooks/suppliers';
+import { type AddSupplierItemFormData, addSupplierItemSchema } from '@/schemas/suppliers';
 
 interface AddSupplierItemDialogProps {
   supplierId: string;
@@ -28,8 +27,8 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<LinkSupplierItemFormData>({
-    resolver: zodResolver(linkSupplierItemSchema),
+  const form = useForm<AddSupplierItemFormData>({
+    resolver: zodResolver(addSupplierItemSchema),
     defaultValues: {
       inventoryItemId: '',
       supplierItemCode: '',
@@ -41,23 +40,17 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
     },
   });
 
-  const linkMutation = useLinkSupplierItem(supplierId, { onSuccess });
+  const addMutation = useAddSupplierItem(supplierId, { onSuccess });
   const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
   const [allowDecimal, setAllowDecimal] = useState(true);
-  const { data: allowedUomIds, isFetching: isLoadingAllowed } = useAllowedUomIds(inventoryItemId || null);
-
-  // Reset UOM when item changes so a stale selection doesn't survive into the new allowed set
-  useEffect(() => {
-    form.setValue('uomId', '');
-  }, [form]);
 
   const existingItemIds = existingInventoryItemIds.join(',');
-  const uomDisabled = !inventoryItemId || isLoadingAllowed || !allowedUomIds;
+  const uomDisabled = !inventoryItemId;
 
   return (
     <Form
       form={form}
-      mutation={linkMutation}
+      mutation={addMutation}
       resetOnSuccess
       onCancel={onCancel}
       transformSubmit={(data) => ({
@@ -75,6 +68,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         label="Inventory Item"
         placeholder="Select item"
         params={{ excludeIds: existingItemIds }}
+        onOptionSelect={() => form.setValue('uomId', '')}
       />
       <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
       <UomSelector
@@ -82,7 +76,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         label="Unit of Measure"
         placeholder={inventoryItemId ? 'Select unit' : 'Select inventory item first'}
         disabled={uomDisabled}
-        params={allowedUomIds ? { values: allowedUomIds.join(',') } : undefined}
+        params={inventoryItemId ? { inventoryItemId } : undefined}
         onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
       />
       <div className="grid grid-cols-2 gap-4">
@@ -93,16 +87,17 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
           type="number"
           placeholder="e.g. 100"
           integer={!allowDecimal}
+          positive
         />
       </div>
-      <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" />
+      <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" integer positive />
       <Switch name="isPreferred" label="Preferred Supplier" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" loadingText="Linking...">
-          Link Item
+        <Button type="submit" loadingText="Adding...">
+          Add Item
         </Button>
       </div>
     </Form>

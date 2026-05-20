@@ -14,7 +14,7 @@ import {
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
-import type { LinkSupplierItemDto } from '@/modules/suppliers/items/dto/request/link-supplier-item.dto';
+import type { AddSupplierItemDto } from '@/modules/suppliers/items/dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '@/modules/suppliers/items/dto/request/update-supplier-item.dto';
 import { SupplierItemsRepository } from '../repositories/supplier-items.repository';
 
@@ -108,7 +108,7 @@ export class SupplierItemsService {
     return row?.inventoryItemId ?? null;
   }
 
-  async linkItem(supplierId: string, data: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
+  async addItem(supplierId: string, data: AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 

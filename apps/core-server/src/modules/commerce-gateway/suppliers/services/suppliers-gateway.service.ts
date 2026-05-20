@@ -8,11 +8,11 @@ import {
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
-import type { CreateSupplierContactDto } from '../dto/request/create-supplier-contact.dto';
+import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
-import type { LinkSupplierItemDto } from '../dto/request/link-supplier-item.dto';
-import type { UpdateSupplierContactDto } from '../dto/request/update-supplier-contact.dto';
+import type { CreateSupplierContactDto } from '../dto/request/create-supplier-contact.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
+import type { UpdateSupplierContactDto } from '../dto/request/update-supplier-contact.dto';
 import type { UpdateSupplierItemDto } from '../dto/request/update-supplier-item.dto';
 import type { SupplierContactResponseDto } from '../dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from '../dto/response/supplier-item-response.dto';
@@ -102,14 +102,18 @@ export class SuppliersGatewayService {
     return this.nats.send('commerce', 'suppliers.delete', { id });
   }
 
-  // Links an inventory item to a supplier
-  async linkItem(supplierId: string, dto: LinkSupplierItemDto): Promise<CreateResponseDto<SupplierItemResponseDto>> {
-    this.logger.log(`suppliers.linkItem — item: ${dto.inventoryItemId}`);
-    return this.nats.send('commerce', 'suppliers.linkItem', { supplierId, ...dto });
+  // Adds an inventory item to a supplier
+  async addItem(supplierId: string, dto: AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemResponseDto>> {
+    this.logger.log(`suppliers.addItem — item: ${dto.inventoryItemId}`);
+    return this.nats.send('commerce', 'suppliers.addItem', { supplierId, ...dto });
   }
 
   // Updates a supplier item link
-  async updateItem(supplierId: string, supplierItemId: string, dto: UpdateSupplierItemDto): Promise<SuccessResponseDto> {
+  async updateItem(
+    supplierId: string,
+    supplierItemId: string,
+    dto: UpdateSupplierItemDto,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`suppliers.updateItem — id: ${supplierItemId}`);
     return this.nats.send('commerce', 'suppliers.updateItem', { supplierId, supplierItemId, ...dto });
   }
@@ -121,13 +125,20 @@ export class SuppliersGatewayService {
   }
 
   // Adds a contact to a supplier
-  async addContact(supplierId: string, dto: CreateSupplierContactDto): Promise<CreateResponseDto<SupplierContactResponseDto>> {
+  async addContact(
+    supplierId: string,
+    dto: CreateSupplierContactDto,
+  ): Promise<CreateResponseDto<SupplierContactResponseDto>> {
     this.logger.log('suppliers.addContact');
     return this.nats.send('commerce', 'suppliers.addContact', { supplierId, ...dto });
   }
 
   // Updates a supplier contact
-  async updateContact(supplierId: string, contactId: string, dto: UpdateSupplierContactDto): Promise<SuccessResponseDto> {
+  async updateContact(
+    supplierId: string,
+    contactId: string,
+    dto: UpdateSupplierContactDto,
+  ): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.updateContact');
     return this.nats.send('commerce', 'suppliers.updateContact', { supplierId, contactId, ...dto });
   }

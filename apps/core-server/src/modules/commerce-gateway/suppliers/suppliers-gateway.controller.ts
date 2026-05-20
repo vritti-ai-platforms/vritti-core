@@ -12,7 +12,7 @@ import {
 import { SessionTypeValues } from '@/db/schema';
 import { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
-import { LinkSupplierItemDto } from './dto/request/link-supplier-item.dto';
+import { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
@@ -111,15 +111,15 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.delete(id);
   }
 
-  // Links an inventory item to a supplier
+  // Adds an inventory item to a supplier
   @Post(':id/items')
   @HttpCode(HttpStatus.CREATED)
-  linkItem(
+  addItem(
     @Param('id') supplierId: string,
-    @Body() dto: LinkSupplierItemDto,
+    @Body() dto: AddSupplierItemDto,
   ): Promise<CreateResponseDto<SupplierItemResponseDto>> {
     this.logger.log(`POST /commerce-api/suppliers/${supplierId}/items`);
-    return this.suppliersGatewayService.linkItem(supplierId, dto);
+    return this.suppliersGatewayService.addItem(supplierId, dto);
   }
 
   // Updates a supplier item link

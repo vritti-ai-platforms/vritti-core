@@ -52,12 +52,6 @@ export function deleteInventoryItem(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/inventory-items/${id}`).then((r) => r.data);
 }
 
-export function getAllowedUomIds(id: string): Promise<string[]> {
-  return axios
-    .get<string[]>(`commerce-api/inventory-items/${id}/allowed-uom-ids`, { showSuccessToast: false })
-    .then((r) => r.data);
-}
-
 export function getInventoryItemSuppliersTable(id: string): Promise<InventoryItemSuppliersTableResponse> {
   return axios
     .get<InventoryItemSuppliersTableResponse>(`commerce-api/inventory-items/${id}/suppliers/table`, {

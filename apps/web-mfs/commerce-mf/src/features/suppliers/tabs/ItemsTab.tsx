@@ -122,7 +122,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
   const { table: linkedItemsTable } = useDataTable({
     columns: linkedItemColumns,
     slug: `commerce-supplier-${supplierId}-items`,
-    label: 'linked item',
+    label: 'item',
     serverState: response,
     enableRowSelection: false,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) }),
@@ -137,7 +137,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
           actions: (
             <Button size="sm" onClick={addItemDialog.open}>
               <Plus className="mr-2 size-4" />
-              Link Item
+              Add Item
             </Button>
           ),
         }}
@@ -150,7 +150,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
 
       <Dialog
         handle={addItemDialog}
-        title="Link Inventory Item"
+        title="Add Inventory Item"
         description="Associate an inventory item with this supplier."
         content={(close) => (
           <AddSupplierItemDialog

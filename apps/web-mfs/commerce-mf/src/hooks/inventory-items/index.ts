@@ -1,5 +1,4 @@
 export {
-  INVENTORY_ITEM_ALLOWED_UOM_IDS_KEY,
   INVENTORY_ITEM_KEY,
   INVENTORY_ITEM_LEDGER_KEY,
   INVENTORY_ITEM_LOCATIONS_KEY,
@@ -10,7 +9,6 @@ export {
   INVENTORY_ITEM_UOM_CONVERSIONS_KEY,
   INVENTORY_ITEMS_TABLE_KEY,
 } from './keys';
-export { useAllowedUomIds } from './useAllowedUomIds';
 export { useCreateInventoryItem } from './useCreateInventoryItem';
 export { useDeleteInventoryItem } from './useDeleteInventoryItem';
 export {

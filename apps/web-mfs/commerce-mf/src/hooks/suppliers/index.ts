@@ -11,7 +11,7 @@ export { useAddSupplierContact } from './useAddSupplierContact';
 export { useCreateSupplier } from './useCreateSupplier';
 export { useDeleteSupplier } from './useDeleteSupplier';
 export { useDeleteSupplierContact } from './useDeleteSupplierContact';
-export { useLinkSupplierItem } from './useLinkSupplierItem';
+export { useAddSupplierItem } from './useAddSupplierItem';
 export { useMarkPrimarySupplierContact } from './useMarkPrimarySupplierContact';
 export { useSupplier } from './useSupplier';
 export { useSupplierContacts } from './useSupplierContacts';
