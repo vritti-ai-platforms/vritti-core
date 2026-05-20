@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
   @ApiProperty({ description: 'Dimension UUID this UOM belongs to' })
@@ -28,4 +28,9 @@ export class CreateUomDto {
   @IsNumber({ maxDecimalPlaces: 6 })
   @IsPositive()
   conversionFactor?: number;
+
+  @ApiPropertyOptional({ description: 'Whether this unit allows decimal quantities', default: false })
+  @IsOptional()
+  @IsBoolean()
+  allowDecimal?: boolean;
 }

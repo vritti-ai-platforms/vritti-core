@@ -16690,6 +16690,11 @@
             "description": "Conversion factor to base unit",
             "default": 1,
             "example": 1000
+          },
+          "allowDecimal": {
+            "type": "boolean",
+            "description": "Whether this unit allows decimal quantities",
+            "default": false
           }
         },
         "required": [
