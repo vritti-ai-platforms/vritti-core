@@ -57,6 +57,8 @@ export class UomController {
       baseOnly?: boolean;
       dimensionId?: string;
       inventoryItemId?: string;
+      supplierId?: string;
+      purchaseOrderId?: string;
     },
   ): Promise<SelectQueryResult> {
     this.logger.log('uom.select');
@@ -65,6 +67,8 @@ export class UomController {
       baseOnly: data.baseOnly,
       dimensionId: data.dimensionId,
       inventoryItemId: data.inventoryItemId,
+      supplierId: data.supplierId,
+      purchaseOrderId: data.purchaseOrderId,
     });
   }
 

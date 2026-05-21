@@ -169,18 +169,30 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
     return row as (SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined;
   }
 
-  // Finds a supplier item by supplier ID and inventory item ID, including the UOM global conversion factor
-  async findItemBySupplierAndInventoryItem(
+  // Finds a supplier item by supplier ID, inventory item ID, and UOM ID, including the UOM global conversion factor
+  async findItemBySupplierInventoryItemAndUom(
     supplierId: string,
     inventoryItemId: string,
+    uomId: string,
   ): Promise<(SupplierItem & { uomConversionFactor: number | null }) | undefined> {
     const [row] = await this.db
       .select({ ...getTableColumns(supplierItems), uomConversionFactor: uom.conversionFactor })
       .from(supplierItems)
       .leftJoin(uom, eq(supplierItems.uomId, uom.id))
-      .where(and(eq(supplierItems.supplierId, supplierId), eq(supplierItems.inventoryItemId, inventoryItemId)))
+      .where(
+        and(
+          eq(supplierItems.supplierId, supplierId),
+          eq(supplierItems.inventoryItemId, inventoryItemId),
+          eq(supplierItems.uomId, uomId),
+        ),
+      )
       .limit(1);
     return row as (SupplierItem & { uomConversionFactor: number | null }) | undefined;
+  }
+
+  async findUomSymbol(uomId: string): Promise<string | null> {
+    const [row] = await this.db.select({ symbol: uom.symbol }).from(uom).where(eq(uom.id, uomId)).limit(1);
+    return row?.symbol ?? null;
   }
 
   // Bulk-updates currency and reprices all supplier items for a supplier using the given conversion rate

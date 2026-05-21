@@ -72,7 +72,7 @@ export const updateSupplierSchema = z
     taxId: z.string().max(15).nullable().optional(),
     taxIdType: taxIdTypeSchema.nullable().optional(),
     paymentTerms: z.string().max(50).nullable().optional(),
-    leadTimeDays: zodNumericField({ integer: true, positive: true }).nullable().catch(null).optional(),
+    leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
     notes: z.string().nullable().optional(),
     isActive: z.boolean().optional(),
   })
@@ -104,7 +104,7 @@ export const updateSupplierContactSchema = z.object({
 export const addSupplierItemSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
   supplierItemCode: z.string().max(100).optional(),
-  unitPrice: zodCurrencyField({ required: 'Unit price is required' }),
+  unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
   uomId: z.uuid('Unit of measure is required'),
   minOrderQuantity: zodNumericField({ integer: true, positive: true }).optional(),
   leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
@@ -113,10 +113,10 @@ export const addSupplierItemSchema = z.object({
 
 export const updateSupplierItemSchema = z.object({
   supplierItemCode: z.string().max(100).optional(),
-  unitPrice: zodCurrencyField({ required: 'Unit price is required' }),
+  unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
   uomId: z.uuid('Unit of measure is required'),
-  minOrderQuantity: zodNumericField({ integer: true, positive: true }).nullable().catch(null).optional(),
-  leadTimeDays: zodNumericField({ integer: true, positive: true }).nullable().catch(null).optional(),
+  minOrderQuantity: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
   isPreferred: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });

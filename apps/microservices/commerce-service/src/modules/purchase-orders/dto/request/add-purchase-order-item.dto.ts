@@ -5,6 +5,9 @@ export class AddPurchaseOrderItemDto {
   @IsUUID()
   inventoryItemId: string;
 
+  @IsUUID()
+  uomId: string;
+
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
   quantity: number;
@@ -15,5 +18,4 @@ export class AddPurchaseOrderItemDto {
   @IsOptional()
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
-
 }

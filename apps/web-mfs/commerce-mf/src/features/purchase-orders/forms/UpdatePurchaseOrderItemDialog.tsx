@@ -111,6 +111,12 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
           : { currency: poCurrencyCode, value: String(supplierUnitPriceNum * conversionRate) },
       })}
     >
+      {item.orderUomSymbol && (
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-medium text-foreground">UOM</span>
+          <span className="text-sm text-muted-foreground">{item.orderUomSymbol}</span>
+        </div>
+      )}
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 500" />
       <Switch
         name="overridePrice"

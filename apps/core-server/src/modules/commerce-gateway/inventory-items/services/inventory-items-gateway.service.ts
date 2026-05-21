@@ -56,18 +56,14 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns paginated inventory item options; filters by PO when poId provided, by supplier when supplierId provided, else all
-  async select(params: SelectOptionsQueryDto, supplierId?: string, poId?: string): Promise<SelectQueryResult> {
+  // Returns paginated inventory item options; filters by PO when poId provided, else all (with optional excludeForSupplierId)
+  async select(params: SelectOptionsQueryDto, poId?: string, excludeForSupplierId?: string): Promise<SelectQueryResult> {
     if (poId) {
       this.logger.log(`inventoryItems.selectByPurchaseOrder — poId: ${poId}`);
       return this.nats.send('commerce', 'inventoryItems.selectByPurchaseOrder', { ...params, poId });
     }
-    if (supplierId) {
-      this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${supplierId}`);
-      return this.nats.send('commerce', 'inventoryItems.selectBySupplier', { ...params, supplierId });
-    }
     this.logger.log('inventoryItems.select');
-    return this.nats.send('commerce', 'inventoryItems.select', params);
+    return this.nats.send('commerce', 'inventoryItems.select', { ...params, excludeForSupplierId });
   }
 
   // Creates a new inventory item

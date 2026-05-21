@@ -152,7 +152,7 @@ export const supplierItems = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    uniqueIndex('uq_supplier_items_supplier_item').on(table.supplierId, table.inventoryItemId),
+    uniqueIndex('uq_supplier_items_supplier_item_uom').on(table.supplierId, table.inventoryItemId, table.uomId),
     uniqueIndex('uq_supplier_items_preferred').on(table.inventoryItemId).where(sql`is_preferred = true`),
     index('idx_supplier_items_supplier').on(table.supplierId),
   ],

@@ -58,40 +58,51 @@ export class InventoryItemsService {
     return { result: dtos, count };
   }
 
-  // Returns paginated inventory item options for select dropdowns
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelectWithUom({
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
+  findForSelect(query: SelectOptionsQueryDto, options?: { excludeForSupplierId?: string }): Promise<SelectQueryResult> {
+    return this.repository.findForSelectWithUom(
+      {
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey,
+        search: query.search,
+        limit: query.limit,
+        offset: query.offset,
+        values: query.values,
+        excludeIds: query.excludeIds,
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      options,
+    );
   }
 
-  // Returns inventory items linked to a specific supplier for select dropdowns
-  findForSelectBySupplier(supplierId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelectBySupplier(supplierId, {
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey || 'categoryId',
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
+  // Returns inventory items linked to a specific supplier for select dropdowns.
+  // When purchaseOrderId is supplied, excludes items whose every supplier UOM is already on that PO.
+  findForSelectBySupplier(
+    supplierId: string,
+    query: SelectOptionsQueryDto,
+    options?: { purchaseOrderId?: string },
+  ): Promise<SelectQueryResult> {
+    return this.repository.findForSelectBySupplier(
+      supplierId,
+      {
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey || 'categoryId',
+        search: query.search,
+        limit: query.limit,
+        offset: query.offset,
+        values: query.values,
+        excludeIds: query.excludeIds,
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      { purchaseOrderId: options?.purchaseOrderId },
+    );
   }
 
   // Returns inventory items scoped to a purchase order for select dropdowns
@@ -145,10 +156,11 @@ export class InventoryItemsService {
   }
 
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
-  async findAllowedUomIds(itemId: string): Promise<string[]> {
+  async findAllowedUomIds(itemId: string): Promise<{ name: string; allowedUomIds: string[] }> {
     const entity = await this.repository.findById(itemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    return this.repository.findAllowedUomIds(itemId);
+    const allowedUomIds = await this.repository.findAllowedUomIds(itemId);
+    return { name: entity.name, allowedUomIds };
   }
 
   // Updates an inventory item. Tracking is set at creation and cannot be changed.

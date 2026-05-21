@@ -28,4 +28,14 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID()
   inventoryItemId?: string;
+
+  @ApiPropertyOptional({ description: 'Restrict to UOMs the supplier offers for this item, excluding already-linked UOMs' })
+  @IsOptional()
+  @IsUUID()
+  supplierId?: string;
+
+  @ApiPropertyOptional({ description: 'Exclude UOMs already on this purchase order for the selected inventory item' })
+  @IsOptional()
+  @IsUUID()
+  purchaseOrderId?: string;
 }

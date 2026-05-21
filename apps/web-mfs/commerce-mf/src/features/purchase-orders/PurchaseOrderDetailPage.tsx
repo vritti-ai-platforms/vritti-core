@@ -42,7 +42,7 @@ export const PurchaseOrderDetailPage = () => {
           {
             value: 'items',
             label: `Line Items (${poItemIds.length})`,
-            content: <LineItemsTab purchaseOrder={po} canModifyItems={canModifyItems} existingItemIds={poItemIds} />,
+            content: <LineItemsTab purchaseOrder={po} canModifyItems={canModifyItems} />,
           },
           {
             value: 'receipts',

@@ -55,9 +55,9 @@ export class SuppliersItemsController {
 
   @MessagePattern({ cmd: 'suppliers.findItemPrice' })
   findItemPrice(
-    @Payload() data: { supplierId: string; inventoryItemId: string },
+    @Payload() data: { supplierId: string; inventoryItemId: string; uomId: string },
   ): Promise<{ unitPrice: CurrencyAmountDto | null }> {
     this.logger.log('suppliers.findItemPrice');
-    return this.domainService.findItemPrice(data.supplierId, data.inventoryItemId);
+    return this.domainService.findItemPrice(data.supplierId, data.inventoryItemId, data.uomId);
   }
 }

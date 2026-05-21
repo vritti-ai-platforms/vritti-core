@@ -9,6 +9,7 @@ import {
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
+import type { SupplierItemsSelectQueryDto } from '../dto/request/supplier-items-select-query.dto';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { CreateSupplierContactDto } from '../dto/request/create-supplier-contact.dto';
@@ -160,6 +161,12 @@ export class SuppliersGatewayService {
   async markPrimaryContact(supplierId: string, contactId: string): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.markPrimaryContact');
     return this.nats.send('commerce', 'suppliers.markPrimaryContact', { supplierId, contactId });
+  }
+
+  // Returns paginated inventory item options not yet fully linked to this supplier
+  async selectItems(supplierId: string, query: SupplierItemsSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${supplierId}`);
+    return this.nats.send('commerce', 'inventoryItems.selectBySupplier', { ...query, supplierId });
   }
 
   // Returns the unit price for a supplier-item pair

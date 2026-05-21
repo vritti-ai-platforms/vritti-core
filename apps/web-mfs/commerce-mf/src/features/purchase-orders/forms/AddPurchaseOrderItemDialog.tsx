@@ -5,7 +5,8 @@ import { formatCurrency, formatCurrencyMajor, minorToMajor } from '@vritti/quant
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
+import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
+import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -15,7 +16,6 @@ import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 
 interface AddPurchaseOrderItemDialogProps {
   purchaseOrder: PurchaseOrderDetail;
-  existingItemIds: string[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -24,6 +24,7 @@ const currencyValueSchema = z.object({ currency: z.string(), value: z.string() }
 
 type AddLineItemFormData = {
   inventoryItemId: string;
+  uomId: string;
   quantity: number;
   overridePrice: boolean;
   unitPrice?: { currency: string; value: string } | null;
@@ -32,6 +33,7 @@ type AddLineItemFormData = {
 const baseAddLineItemSchema = z
   .object({
     inventoryItemId: z.string().min(1, 'Item is required'),
+    uomId: z.string().min(1, 'UOM is required'),
     quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
     overridePrice: z.boolean(),
     unitPrice: currencyValueSchema.optional().nullable(),
@@ -59,7 +61,6 @@ const baseAddLineItemSchema = z
 
 export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({
   purchaseOrder,
-  existingItemIds,
   onSuccess,
   onCancel,
 }) => {
@@ -91,6 +92,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     resolver: zodResolver(addLineItemSchema),
     defaultValues: {
       inventoryItemId: '',
+      uomId: '',
       quantity: 0,
       overridePrice: false,
       unitPrice: null,
@@ -98,13 +100,17 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   });
 
   const watchedOverridePrice = useWatch({ control: form.control, name: 'overridePrice' });
+  const watchedInventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
 
-  const excludeIds = existingItemIds.join(',');
   const supplierCurrencyCode = purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode;
   const unitPriceLabel =
     supplierUnitPrice != null
       ? `Unit Price (Supplier: ${formatCurrencyMajor(supplierUnitPrice, supplierCurrencyCode)})`
       : 'Unit Price';
+
+  useEffect(() => {
+    form.setValue('uomId', '');
+  }, [watchedInventoryItemId, form]);
 
   useEffect(() => {
     form.clearErrors('unitPrice');
@@ -157,6 +163,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         return {
           id: purchaseOrder.id,
           inventoryItemId: data.inventoryItemId,
+          uomId: data.uomId,
           quantity: data.quantity,
           supplierUnitPrice: {
             currency: isSameCurrency ? purchaseOrder.currencyCode : supplierCurrencyCode,
@@ -170,10 +177,12 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         };
       }}
     >
-      <InventoryItemSelector
+      <SupplierItemSelector
         name="inventoryItemId"
         label="Inventory Item"
         placeholder="Select item"
+        supplierId={purchaseOrder.supplierId}
+        params={{ purchaseOrderId: purchaseOrder.id }}
         fieldKeys={{
           valueKey: 'id',
           labelKey: 'name',
@@ -196,7 +205,21 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
           return baseLabel;
         }}
         onOptionSelect={handleItemSelect}
-        params={{ excludeIds, supplierId: purchaseOrder.supplierId }}
+      />
+      <UomSelector
+        name="uomId"
+        label="UOM"
+        placeholder={watchedInventoryItemId ? 'Select unit' : 'Select inventory item first'}
+        disabled={!watchedInventoryItemId}
+        params={
+          watchedInventoryItemId
+            ? {
+                inventoryItemId: watchedInventoryItemId,
+                supplierId: purchaseOrder.supplierId,
+                purchaseOrderId: purchaseOrder.id,
+              }
+            : undefined
+        }
       />
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 500" integer={!allowDecimal} positive />
       <Switch

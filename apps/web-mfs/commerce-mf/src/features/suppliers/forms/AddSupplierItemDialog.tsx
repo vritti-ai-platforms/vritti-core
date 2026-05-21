@@ -15,7 +15,6 @@ import { type AddSupplierItemFormData, addSupplierItemSchema } from '@/schemas/s
 interface AddSupplierItemDialogProps {
   supplierId: string;
   supplierCurrencyCode?: string;
-  existingInventoryItemIds: string[];
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -23,7 +22,6 @@ interface AddSupplierItemDialogProps {
 export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
   supplierId,
   supplierCurrencyCode,
-  existingInventoryItemIds,
   onSuccess,
   onCancel,
 }) => {
@@ -44,7 +42,6 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
   const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
   const [allowDecimal, setAllowDecimal] = useState(true);
 
-  const existingItemIds = existingInventoryItemIds.join(',');
   const uomDisabled = !inventoryItemId;
 
   return (
@@ -67,8 +64,8 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         name="inventoryItemId"
         label="Inventory Item"
         placeholder="Select item"
-        params={{ excludeIds: existingItemIds }}
         onOptionSelect={() => form.setValue('uomId', '')}
+        params={{ excludeForSupplierId: supplierId }}
       />
       <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
       <UomSelector
@@ -76,7 +73,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         label="Unit of Measure"
         placeholder={inventoryItemId ? 'Select unit' : 'Select inventory item first'}
         disabled={uomDisabled}
-        params={inventoryItemId ? { inventoryItemId } : undefined}
+        params={inventoryItemId ? { inventoryItemId, supplierId } : undefined}
         onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
       />
       <div className="grid grid-cols-2 gap-4">

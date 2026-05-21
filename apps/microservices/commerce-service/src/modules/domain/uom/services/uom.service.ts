@@ -12,7 +12,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import { and, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItemUomConversions, uom, uomDimensions } from '@/db/schema';
+import { inventoryItemUomConversions, purchaseOrderItems, supplierItems, uom, uomDimensions } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
 import { UomDto } from '../dto/entity/uom.dto';
@@ -80,38 +80,73 @@ export class UomService {
 
   // Returns paginated UOM options for select dropdowns. When `inventoryItemId` is set, the
   // result is restricted to that item's allowed-UOMs set (see UomRepository.allowedUomIdsForItemSubquery).
+  // When `supplierId` is also set (no purchaseOrderId): restricts to UOMs the supplier offers for this item,
+  //   excluding UOMs already linked to the supplier for this item.
+  // When `supplierId` + `purchaseOrderId` are both set: restricts to UOMs in supplier_items for this
+  //   supplier+item, excluding UOMs already on the PO for this item.
   findForSelect(
     query: SelectOptionsQueryDto,
-    options?: { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string; inventoryItemId?: string },
+    options?: {
+      derivedOnly?: boolean;
+      baseOnly?: boolean;
+      dimensionId?: string;
+      inventoryItemId?: string;
+      supplierId?: string;
+      purchaseOrderId?: string;
+    },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
     if (options?.derivedOnly) conditions.push(isNotNull(uom.baseUnitId));
     if (options?.baseOnly) conditions.push(isNull(uom.baseUnitId));
     if (options?.dimensionId) conditions.push(eq(uom.dimensionId, options.dimensionId));
-    if (options?.inventoryItemId) {
+
+    if (options?.inventoryItemId && options?.supplierId && options?.purchaseOrderId) {
+      // Restrict to UOMs the supplier offers for this item, minus UOMs already on the PO for this item
+      conditions.push(sql`${uom.id} IN (
+        SELECT si.uom_id FROM ${supplierItems} si
+        WHERE si.supplier_id = ${options.supplierId}
+          AND si.inventory_item_id = ${options.inventoryItemId}
+          AND NOT EXISTS (
+            SELECT 1 FROM ${purchaseOrderItems} poi
+            WHERE poi.purchase_order_id = ${options.purchaseOrderId}
+              AND poi.inventory_item_id = ${options.inventoryItemId}
+              AND poi.uom_id = si.uom_id
+          )
+      )`);
+    } else if (options?.inventoryItemId && options?.supplierId) {
+      // Restrict to allowed UOMs for the item, excluding UOMs already linked to this supplier+item
+      conditions.push(sql`${uom.id} IN ${this.uomRepository.allowedUomIdsForItemSubquery(options.inventoryItemId)}`);
+      conditions.push(sql`${uom.id} NOT IN (
+        SELECT si.uom_id FROM ${supplierItems} si
+        WHERE si.supplier_id = ${options.supplierId}
+          AND si.inventory_item_id = ${options.inventoryItemId}
+      )`);
+    } else if (options?.inventoryItemId) {
       conditions.push(sql`${uom.id} IN ${this.uomRepository.allowedUomIdsForItemSubquery(options.inventoryItemId)}`);
     }
 
-    const joins = options?.inventoryItemId
-      ? [
-          {
-            table: inventoryItemUomConversions,
-            on: and(
-              eq(inventoryItemUomConversions.uomId, uom.id),
-              eq(inventoryItemUomConversions.inventoryItemId, options.inventoryItemId),
-            ) as SQL,
-            type: 'left' as const,
-          },
-        ]
-      : undefined;
+    const joins =
+      options?.inventoryItemId && !options?.supplierId
+        ? [
+            {
+              table: inventoryItemUomConversions,
+              on: and(
+                eq(inventoryItemUomConversions.uomId, uom.id),
+                eq(inventoryItemUomConversions.inventoryItemId, options.inventoryItemId),
+              ) as SQL,
+              type: 'left' as const,
+            },
+          ]
+        : undefined;
 
     // COALESCE defaults null numerator/denominator to 1 for the primary UOM (no conversion row in the LEFT JOIN)
-    const additionalExpressions = options?.inventoryItemId
-      ? {
-          numerator: sql<number>`COALESCE(${inventoryItemUomConversions.numerator}, 1)`,
-          denominator: sql<number>`COALESCE(${inventoryItemUomConversions.denominator}, 1)`,
-        }
-      : undefined;
+    const additionalExpressions =
+      options?.inventoryItemId && !options?.supplierId
+        ? {
+            numerator: sql<number>`COALESCE(${inventoryItemUomConversions.numerator}, 1)`,
+            denominator: sql<number>`COALESCE(${inventoryItemUomConversions.denominator}, 1)`,
+          }
+        : undefined;
 
     return this.uomRepository.findForSelect({
       value: query.valueKey || 'id',

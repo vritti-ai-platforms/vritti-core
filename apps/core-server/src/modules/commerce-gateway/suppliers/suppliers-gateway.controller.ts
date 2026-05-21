@@ -17,6 +17,7 @@ import { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currenc
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
+import { SupplierItemsSelectQueryDto } from './dto/request/supplier-items-select-query.dto';
 import type { SupplierContactResponseDto } from './dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from './dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from './dto/response/supplier-item-table-response.dto';
@@ -82,6 +83,16 @@ export class SuppliersGatewayController {
   getSupplierItemIds(@Param('id') supplierId: string): Promise<string[]> {
     this.logger.log(`GET /commerce-api/suppliers/${supplierId}/items/ids`);
     return this.suppliersGatewayService.findItemIds(supplierId);
+  }
+
+  // Returns inventory item options not yet fully linked to this supplier
+  @Get(':id/items/select')
+  selectItems(
+    @Param('id') id: string,
+    @Query() query: SupplierItemsSelectQueryDto,
+  ): Promise<SelectQueryResult> {
+    this.logger.log(`GET /commerce-api/suppliers/${id}/items/select`);
+    return this.suppliersGatewayService.selectItems(id, query);
   }
 
   // Returns contacts for a supplier

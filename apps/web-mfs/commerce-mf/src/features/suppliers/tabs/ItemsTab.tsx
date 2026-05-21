@@ -14,10 +14,9 @@ import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
 interface ItemsTabProps {
   supplierId: string;
   supplierCurrencyCode?: string;
-  existingInventoryItemIds: string[];
 }
 
-export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryItemIds }: ItemsTabProps) => {
+export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) => {
   const queryClient = useQueryClient();
   const addItemDialog = useDialog();
   const confirm = useConfirm();
@@ -149,13 +148,12 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode, existingInventoryIt
 
       <Dialog
         handle={addItemDialog}
-        title="Add Inventory Item"
+        title="Add Supplier Item"
         description="Associate an inventory item with this supplier."
         content={(close) => (
           <AddSupplierItemDialog
             supplierId={supplierId}
             supplierCurrencyCode={supplierCurrencyCode}
-            existingInventoryItemIds={existingInventoryItemIds}
             onSuccess={close}
             onCancel={close}
           />

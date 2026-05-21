@@ -29,16 +29,19 @@ export class InventoryItemsRootController {
   }
 
   @MessagePattern({ cmd: 'inventoryItems.select' })
-  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  async select(@Payload() data: SelectOptionsQueryDto & { excludeForSupplierId?: string }): Promise<SelectQueryResult> {
+    const { excludeForSupplierId, ...query } = data;
     this.logger.log('inventoryItems.select');
-    return this.service.findForSelect(data);
+    return this.service.findForSelect(query, { excludeForSupplierId });
   }
 
   @MessagePattern({ cmd: 'inventoryItems.selectBySupplier' })
-  async selectBySupplier(@Payload() data: SelectOptionsQueryDto & { supplierId: string }): Promise<SelectQueryResult> {
-    const { supplierId, ...query } = data;
+  async selectBySupplier(
+    @Payload() data: SelectOptionsQueryDto & { supplierId: string; purchaseOrderId?: string },
+  ): Promise<SelectQueryResult> {
+    const { supplierId, purchaseOrderId, ...query } = data;
     this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${supplierId}`);
-    return this.service.findForSelectBySupplier(supplierId, query);
+    return this.service.findForSelectBySupplier(supplierId, query, { purchaseOrderId });
   }
 
   @MessagePattern({ cmd: 'inventoryItems.selectByPurchaseOrder' })
@@ -57,7 +60,8 @@ export class InventoryItemsRootController {
   @MessagePattern({ cmd: 'inventoryItems.allowedUomIds' })
   async allowedUomIds(@Payload() data: { id: string }): Promise<string[]> {
     this.logger.log(`inventoryItems.allowedUomIds — id: ${data.id}`);
-    return this.service.findAllowedUomIds(data.id);
+    const { allowedUomIds } = await this.service.findAllowedUomIds(data.id);
+    return allowedUomIds;
   }
 
   @MessagePattern({ cmd: 'inventoryItems.findById' })

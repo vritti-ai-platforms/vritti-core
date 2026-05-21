@@ -72,7 +72,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
         name="uomId"
         label="Unit of Measure"
         placeholder="Select unit"
-        params={{ inventoryItemId: item.inventoryItemId }}
+        params={{ inventoryItemId: item.inventoryItemId, supplierId }}
         onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
       />
       <div className="grid grid-cols-2 gap-4">

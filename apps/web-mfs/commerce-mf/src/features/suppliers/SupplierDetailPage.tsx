@@ -73,7 +73,6 @@ export const SupplierDetailPage = () => {
               <ItemsTab
                 supplierId={supplier.id}
                 supplierCurrencyCode={supplier.currencyCode}
-                existingInventoryItemIds={supplierInventoryItemIds}
               />
             ),
           },

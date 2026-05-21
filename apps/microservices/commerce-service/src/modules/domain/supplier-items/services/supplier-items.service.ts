@@ -108,9 +108,17 @@ export class SupplierItemsService {
     return row?.inventoryItemId ?? null;
   }
 
-  async addItem(supplierId: string, data: AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
+  async addItem(supplierId: string, data: AddSupplierItemDto, inventoryItemName: string): Promise<CreateResponseDto<SupplierItemDto>> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
+
+    const existing = await this.repository.findItemBySupplierInventoryItemAndUom(supplierId, data.inventoryItemId, data.uomId);
+    if (existing) {
+      throw new BadRequestException({
+        label: 'Duplicate Item',
+        detail: 'This item with the selected UOM is already linked to this supplier.',
+      });
+    }
 
     const currencyCode = data.unitPrice.currency as CurrencyCode;
     const unitPriceMinor = (() => {
@@ -129,22 +137,25 @@ export class SupplierItemsService {
       await this.repository.clearPreferredForOtherSuppliers(data.inventoryItemId);
     }
 
-    const created = await this.repository.createSupplierItem({
-      supplierId,
-      inventoryItemId: data.inventoryItemId,
-      supplierItemCode: data.supplierItemCode ?? null,
-      unitPrice: unitPriceMinor,
-      currencyCode,
-      uomId: data.uomId,
-      minOrderQuantity: data.minOrderQuantity ?? null,
-      leadTimeDays: data.leadTimeDays ?? null,
-      isPreferred: data.isPreferred ?? false,
-    });
+    const [created, uomSymbol] = await Promise.all([
+      this.repository.createSupplierItem({
+        supplierId,
+        inventoryItemId: data.inventoryItemId,
+        supplierItemCode: data.supplierItemCode ?? null,
+        unitPrice: unitPriceMinor,
+        currencyCode,
+        uomId: data.uomId,
+        minOrderQuantity: data.minOrderQuantity ?? null,
+        leadTimeDays: data.leadTimeDays ?? null,
+        isPreferred: data.isPreferred ?? false,
+      }),
+      this.repository.findUomSymbol(data.uomId),
+    ]);
 
     return {
       success: true,
-      message: 'Item added to supplier successfully.',
-      data: SupplierItemDto.from(created),
+      message: `"${inventoryItemName}" (${uomSymbol}) added to supplier successfully.`,
+      data: SupplierItemDto.from(created, inventoryItemName, uomSymbol),
     };
   }
 
@@ -194,7 +205,7 @@ export class SupplierItemsService {
     }
 
     await this.repository.updateSupplierItem(supplierItemId, update);
-    return { success: true, message: 'Supplier item updated successfully.' };
+    return { success: true, message: `"${existing.inventoryItemName}" (${existing.uomSymbol}) updated successfully.` };
   }
 
   async unlinkItem(supplierId: string, supplierItemId: string): Promise<SuccessResponseDto> {
@@ -207,11 +218,15 @@ export class SupplierItemsService {
     }
 
     await this.repository.deleteSupplierItem(supplierItemId);
-    return { success: true, message: `Supplier item link "${supplierItemId}" removed successfully.` };
+    return { success: true, message: `"${existing.inventoryItemName}" (${existing.uomSymbol}) removed from supplier successfully.` };
   }
 
-  async findItemPrice(supplierId: string, inventoryItemId: string): Promise<{ unitPrice: CurrencyAmountDto | null }> {
-    const item = await this.repository.findItemBySupplierAndInventoryItem(supplierId, inventoryItemId);
+  async findItemPrice(
+    supplierId: string,
+    inventoryItemId: string,
+    uomId: string,
+  ): Promise<{ unitPrice: CurrencyAmountDto | null }> {
+    const item = await this.repository.findItemBySupplierInventoryItemAndUom(supplierId, inventoryItemId, uomId);
     return { unitPrice: CurrencyAmountDto.from(item?.unitPrice ?? null, item?.currencyCode ?? '') };
   }
 }

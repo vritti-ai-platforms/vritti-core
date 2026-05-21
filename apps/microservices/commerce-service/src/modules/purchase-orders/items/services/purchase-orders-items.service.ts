@@ -8,12 +8,12 @@ import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/p
 import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
   type CreateResponseDto,
   NotFoundException,
   PrimaryDatabaseService,
   type SuccessResponseDto,
   type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
@@ -53,14 +53,15 @@ export class PurchaseOrdersItemsService {
   async addItem(poId: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const po = await this.getPurchaseOrderContext(poId);
 
-    const supplierItem = await this.supplierItemsRepository.findItemBySupplierAndInventoryItem(
+    const supplierItem = await this.supplierItemsRepository.findItemBySupplierInventoryItemAndUom(
       po.supplierId,
       data.inventoryItemId,
+      data.uomId,
     );
     if (!supplierItem) {
-      throw new BadRequestException({
-        label: 'Item Not Linked',
-        detail: 'This inventory item is not linked to the purchase order supplier.',
+      throw new ValidationException({
+        detail: 'This UOM is not offered by the supplier for this item.',
+        errors: [{ field: 'uomId', message: 'UOM not available from supplier.' }],
       });
     }
 
@@ -92,9 +93,10 @@ export class PurchaseOrdersItemsService {
     const inventoryItemId = data.inventoryItemId ?? existingItem.inventoryItemId;
     const uomId = existingItem.uomId;
 
-    const supplierItem = await this.supplierItemsRepository.findItemBySupplierAndInventoryItem(
+    const supplierItem = await this.supplierItemsRepository.findItemBySupplierInventoryItemAndUom(
       po.supplierId,
       inventoryItemId,
+      uomId,
     );
 
     const conversionFactor = supplierItem

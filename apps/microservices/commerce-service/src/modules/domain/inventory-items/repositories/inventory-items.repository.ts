@@ -26,25 +26,78 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     super(database, inventoryItems);
   }
 
-  // Returns paginated inventory item options with uom joined so dimensionId is reachable as additionalKey
-  findForSelectWithUom(config: FindForSelectConfig): Promise<SelectQueryResult> {
+  findForSelectWithUom(config: FindForSelectConfig, options?: { excludeForSupplierId?: string }): Promise<SelectQueryResult> {
+    const conditions: SQL[] = [];
+
+    if (options?.excludeForSupplierId) {
+      // Keep items that have at least one allowed UOM not yet linked to the given supplier
+      conditions.push(sql`EXISTS (
+        WITH allowed AS (
+          SELECT DISTINCT id AS uom_id FROM (
+            SELECT uic.uom_id AS id
+            FROM ${inventoryItemUomConversions} uic
+            WHERE uic.inventory_item_id = ${inventoryItems.id}
+            UNION
+            SELECT u.id
+            FROM ${uom} u
+            WHERE COALESCE(u.base_unit_id, u.id) = (
+              SELECT COALESCE(base_unit_id, id) FROM ${uom} WHERE id = ${inventoryItems.uomId}
+            )
+          ) sub
+        )
+        SELECT 1 FROM allowed a
+        WHERE NOT EXISTS (
+          SELECT 1 FROM ${supplierItems} si
+          WHERE si.supplier_id = ${options.excludeForSupplierId}
+            AND si.inventory_item_id = ${inventoryItems.id}
+            AND si.uom_id = a.uom_id
+        )
+      )`);
+    }
+
     return super.findForSelect({
       ...config,
       joins: [{ table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' }],
+      groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
+      conditions,
     });
   }
 
-  // Returns paginated inventory item options filtered by supplier via inner join on supplier_items
-  findForSelectBySupplier(supplierId: string, config: FindForSelectConfig): Promise<SelectQueryResult> {
+  // Returns paginated inventory item options filtered by supplier via inner join on supplier_items.
+  // Uses DISTINCT to avoid duplicate rows when a supplier has multiple UOM rows for the same item.
+  // When purchaseOrderId is supplied, excludes items whose every supplier UOM is already on that PO.
+  findForSelectBySupplier(
+    supplierId: string,
+    config: FindForSelectConfig,
+    options?: { purchaseOrderId?: string },
+  ): Promise<SelectQueryResult> {
+    const conditions: SQL[] = [eq(supplierItems.supplierId, supplierId), eq(supplierItems.isActive, true)];
+
+    if (options?.purchaseOrderId) {
+      // Keep items that have at least one supplier UOM not yet on the PO
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM ${supplierItems} si2
+        WHERE si2.supplier_id = ${supplierId}
+          AND si2.inventory_item_id = ${inventoryItems.id}
+          AND NOT EXISTS (
+            SELECT 1 FROM ${purchaseOrderItems} poi
+            WHERE poi.purchase_order_id = ${options.purchaseOrderId}
+              AND poi.inventory_item_id = ${inventoryItems.id}
+              AND poi.uom_id = si2.uom_id
+          )
+      )`);
+    }
+
     return super.findForSelect({
       ...config,
+      distinct: true,
       joins: [
         { table: supplierItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id), type: 'inner' },
         { table: categories, on: eq(inventoryItems.categoryId, categories.id), type: 'left' },
         { table: uom, on: eq(supplierItems.uomId, uom.id), type: 'left' },
       ],
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
-      conditions: [eq(supplierItems.supplierId, supplierId), eq(supplierItems.isActive, true)],
+      conditions,
     });
   }
 

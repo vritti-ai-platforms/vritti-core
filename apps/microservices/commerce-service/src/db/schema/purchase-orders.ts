@@ -98,7 +98,7 @@ export const purchaseOrderItems = coreSchema.table(
     totalPrice: bigint('total_price', { mode: 'bigint' }).notNull(),
   },
   (table) => [
-    unique('uq_purchase_order_items_po_item').on(table.purchaseOrderId, table.inventoryItemId),
+    unique('uq_purchase_order_items_po_item_uom').on(table.purchaseOrderId, table.inventoryItemId, table.uomId),
     index('idx_purchase_order_items_po').on(table.purchaseOrderId),
   ],
 );

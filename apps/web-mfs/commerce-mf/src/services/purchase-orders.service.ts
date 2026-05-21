@@ -20,6 +20,7 @@ export interface CreatePurchaseOrderPayload {
 export interface AddPurchaseOrderItemPayload {
   id: string;
   inventoryItemId: string;
+  uomId: string;
   quantity: number;
   supplierUnitPrice: { currency: string; value: string };
   unitPrice?: { currency: string; value: string } | null;
@@ -102,6 +103,7 @@ export function downloadPurchaseOrderPdf(id: string): Promise<Blob> {
 export function addPurchaseOrderItem({
   id,
   inventoryItemId,
+  uomId,
   quantity,
   supplierUnitPrice,
   unitPrice,
@@ -109,6 +111,7 @@ export function addPurchaseOrderItem({
   return axios
     .post<CreateResponse<PurchaseOrderData>>(`commerce-api/purchase-orders/${id}/items`, {
       inventoryItemId,
+      uomId,
       quantity,
       supplierUnitPrice,
       unitPrice,

@@ -20,8 +20,8 @@ export class SuppliersItemsService {
 
   async addItem(supplierId: string, dto: AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
     this.logger.log(`addItem — supplierId=${supplierId}, itemId=${dto.inventoryItemId}, uomId=${dto.uomId}`);
-    await this.assertUomAllowed(dto.inventoryItemId, dto.uomId);
-    return this.supplierItemsService.addItem(supplierId, dto);
+    const inventoryItemName = await this.assertUomAllowed(dto.inventoryItemId, dto.uomId);
+    return this.supplierItemsService.addItem(supplierId, dto, inventoryItemName);
   }
 
   async updateItem(
@@ -38,9 +38,9 @@ export class SuppliersItemsService {
     return this.supplierItemsService.updateItem(supplierId, supplierItemId, dto);
   }
 
-  private async assertUomAllowed(inventoryItemId: string, uomId: string): Promise<void> {
-    const allowed = await this.inventoryItemsService.findAllowedUomIds(inventoryItemId);
-    if (!allowed.includes(uomId)) {
+  private async assertUomAllowed(inventoryItemId: string, uomId: string): Promise<string> {
+    const { name, allowedUomIds } = await this.inventoryItemsService.findAllowedUomIds(inventoryItemId);
+    if (!allowedUomIds.includes(uomId)) {
       this.logger.warn(`assertUomAllowed rejected — itemId=${inventoryItemId}, uomId=${uomId}`);
       throw new BadRequestException({
         label: 'Invalid UOM',
@@ -48,5 +48,6 @@ export class SuppliersItemsService {
           "The selected unit of measure is not in this item's allowed UOM set. Define a per-item conversion first.",
       });
     }
+    return name;
   }
 }

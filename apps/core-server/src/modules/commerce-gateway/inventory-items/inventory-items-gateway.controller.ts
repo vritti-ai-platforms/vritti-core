@@ -42,18 +42,23 @@ export class InventoryItemsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Returns paginated inventory item options; filtered by PO when poId provided, by supplier when supplierId provided, else all
+  // Returns paginated inventory item options; filters by PO when poId provided, else all items (optionally excluding those fully linked to a supplier)
   @Get('select')
-  @ApiQuery({ name: 'supplierId', required: false, type: String, description: 'Filter to items linked to a supplier' })
   @ApiQuery({
     name: 'poId',
     required: false,
     type: String,
-    description: 'Filter to items on a purchase order (takes precedence over supplierId)',
+    description: 'Filter to items on a purchase order',
+  })
+  @ApiQuery({
+    name: 'excludeForSupplierId',
+    required: false,
+    type: String,
+    description: 'Exclude items that have all UOMs already linked to this supplier',
   })
   select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-items/select');
-    return this.service.select(query, query.supplierId, query.poId);
+    return this.service.select(query, query.poId, query.excludeForSupplierId);
   }
 
   // Creates a new inventory item
