@@ -1,13 +1,3 @@
-import { Button } from '@vritti/quantum-ui/Button';
-import { Form } from '@vritti/quantum-ui/Form';
-import { Select } from '@vritti/quantum-ui/Select';
-import { Switch } from '@vritti/quantum-ui/Switch';
-import { LocationSelector } from '@vritti/quantum-ui/selects/location';
-import { UserSelector } from '@vritti/quantum-ui/selects/user';
-import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { TextField } from '@vritti/quantum-ui/TextField';
-import type React from 'react';
-import { useForm } from 'react-hook-form';
 import { useCreateLocation } from '@/hooks/locations';
 import {
   type LocationFormData,
@@ -15,6 +5,16 @@ import {
   LocationRoleValues,
   locationFormResolver,
 } from '@/schemas/locations';
+import { Button } from '@vritti/quantum-ui/Button';
+import { Form } from '@vritti/quantum-ui/Form';
+import { Select } from '@vritti/quantum-ui/Select';
+import { LocationSelector } from '@vritti/quantum-ui/selects/location';
+import { UserSelector } from '@vritti/quantum-ui/selects/user';
+import { Switch } from '@vritti/quantum-ui/Switch';
+import { TextArea } from '@vritti/quantum-ui/TextArea';
+import { TextField } from '@vritti/quantum-ui/TextField';
+import type React from 'react';
+import { useForm } from 'react-hook-form';
 
 interface AddLocationDialogProps {
   defaultParentId?: string | null;
@@ -49,6 +49,7 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
 
   return (
     <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
       <TextField name="code" label="Code" placeholder="e.g. WIF" />
       <LocationSelector
@@ -62,8 +63,10 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
       <Select name="locationRole" label="Role" options={roleOptions} />
       <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
       <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
-      <TextArea name="address" label="Address" placeholder="Location address" />
       <Switch name="isActive" label="Active" description="Enable this storage location" />
+
+      </div>
+            <TextArea name="address" label="Address" placeholder="Location address" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
           Cancel
