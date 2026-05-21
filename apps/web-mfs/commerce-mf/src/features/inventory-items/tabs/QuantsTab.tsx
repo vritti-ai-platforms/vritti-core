@@ -136,7 +136,7 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ itemId, uomSymbol }) => {
   return (
     <DataTable
       table={table}
-      mode="compact"
+      mode="tab"
       isLoading={isLoading}
       filters={[<LocationFilter key="locationId" />, <LotFilter key="lotId" inventoryItemId={itemId} />]}
       emptyStateConfig={{

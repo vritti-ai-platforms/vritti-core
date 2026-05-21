@@ -118,7 +118,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, it
     <>
       <DataTable
         table={table}
-        mode="compact"
+        mode="tab"
         isLoading={isLoading}
         toolbarActions={{
           actions: (

@@ -82,7 +82,7 @@ export const GoodsReceiptsTab = ({ poId, isActive }: GoodsReceiptsTabProps) => {
   return (
     <DataTable
       table={table}
-      mode="compact"
+      mode="tab"
       isLoading={isLoading}
       emptyStateConfig={{
         icon: PackageCheck,

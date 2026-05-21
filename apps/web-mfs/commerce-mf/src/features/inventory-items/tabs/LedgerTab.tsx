@@ -107,7 +107,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
   return (
     <DataTable
       table={table}
-      mode="compact"
+      mode="tab"
       isLoading={isLoading}
       emptyStateConfig={{
         icon: ScrollText,

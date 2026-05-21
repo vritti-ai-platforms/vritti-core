@@ -121,7 +121,7 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol })
     <>
       <DataTable
         table={table}
-        mode="compact"
+        mode="tab"
         isLoading={isLoading}
         toolbarActions={{
           actions: (

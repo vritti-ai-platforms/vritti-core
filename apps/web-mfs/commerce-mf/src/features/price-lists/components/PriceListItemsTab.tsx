@@ -133,7 +133,7 @@ export const PriceListItemsTab = ({ priceList }: PriceListItemsTabProps) => {
 
       <DataTable
         table={table}
-        mode="compact"
+        mode="tab"
         isLoading={isLoading}
         searchConfig={{
           columns: [

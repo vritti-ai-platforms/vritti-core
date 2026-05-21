@@ -110,7 +110,7 @@ export const LotsTab: React.FC<LotsTabProps> = ({ itemId, uomSymbol }) => {
   return (
     <DataTable
       table={table}
-      mode="compact"
+      mode="tab"
       isLoading={isLoading}
       emptyStateConfig={{
         icon: Layers,

@@ -94,7 +94,7 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ itemId, uomSymbo
   return (
     <DataTable
       table={table}
-      mode="compact"
+      mode="tab"
       isLoading={isLoading}
       emptyStateConfig={{
         icon: MapPin,

@@ -90,7 +90,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ itemId }) => {
   return (
     <DataTable
       table={table}
-      mode="compact"
+      mode="tab"
       isLoading={isLoading}
       searchConfig={{
         columns: [
