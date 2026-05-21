@@ -1,4 +1,6 @@
+import { InventoryItemUomConversionsService } from '@domain/inventory-item-uom-conversions/services/inventory-item-uom-conversions.service';
 import type { PurchaseOrderItemDto } from '@domain/purchase-order-items/dto/entity/purchase-order-item.dto';
+import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrderDto as PurchaseOrderDtoClass } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
@@ -22,8 +24,10 @@ export class PurchaseOrdersItemsService {
 
   constructor(
     private readonly itemsService: PurchaseOrderItemsService,
+    private readonly itemsRepository: PurchaseOrderItemsRepository,
     private readonly repository: PurchaseOrdersRepository,
     private readonly supplierItemsRepository: SupplierItemsRepository,
+    private readonly uomConversionsService: InventoryItemUomConversionsService,
     private readonly database: PrimaryDatabaseService,
   ) {}
 
@@ -60,8 +64,14 @@ export class PurchaseOrdersItemsService {
       });
     }
 
+    const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
+      data.inventoryItemId,
+      supplierItem.uomId,
+      supplierItem.uomConversionFactor ?? 1,
+    );
+
     await this.database.runInTransaction(async () => {
-      await this.itemsService.addItem(po, data, supplierItem.uomId);
+      await this.itemsService.addItem(po, data, supplierItem.uomId, conversionFactor);
       await this.repository.syncTotalAmount(poId);
     });
 
@@ -76,8 +86,27 @@ export class PurchaseOrdersItemsService {
   async updateItem(poId: string, itemId: string, data: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
     const po = await this.getPurchaseOrderContext(poId);
 
+    const existingItem = await this.itemsRepository.findItemById(poId, itemId);
+    if (!existingItem) throw new NotFoundException('Purchase order line item not found.');
+
+    const inventoryItemId = data.inventoryItemId ?? existingItem.inventoryItemId;
+    const uomId = existingItem.uomId;
+
+    const supplierItem = await this.supplierItemsRepository.findItemBySupplierAndInventoryItem(
+      po.supplierId,
+      inventoryItemId,
+    );
+
+    const conversionFactor = supplierItem
+      ? await this.uomConversionsService.resolvePrimaryUomFactor(
+          inventoryItemId,
+          uomId,
+          supplierItem.uomConversionFactor ?? 1,
+        )
+      : Number(existingItem.conversionFactor);
+
     await this.database.runInTransaction(async () => {
-      await this.itemsService.updateItem(po, itemId, data);
+      await this.itemsService.updateItem(po, itemId, data, conversionFactor);
       await this.repository.syncTotalAmount(poId);
     });
 

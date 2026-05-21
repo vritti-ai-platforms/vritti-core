@@ -61,24 +61,59 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems, existingItemIds }:
       {
         accessorKey: 'quantity',
         header: 'Quantity',
-        cell: ({ row }) => <span className="font-mono">{row.original.quantity}</span>,
+        cell: ({ row }) => {
+          const { quantity, conversionFactor, orderUomSymbol, primaryUomSymbol } = row.original;
+          const isCrossUom = conversionFactor !== 1;
+          return (
+            <div className="flex flex-col">
+              <span className="font-mono">{quantity} {orderUomSymbol}</span>
+              {isCrossUom && (
+                <span className="font-mono text-xs text-muted-foreground">
+                  1 {orderUomSymbol} = {conversionFactor} {primaryUomSymbol}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'receivedQuantity',
         header: 'Received',
-        cell: ({ row }) => <span className="font-mono">{row.original.receivedQuantity}</span>,
+        cell: ({ row }) => (
+          <span className="font-mono">{row.original.receivedQuantity} {row.original.orderUomSymbol}</span>
+        ),
       },
       {
         accessorKey: 'unitPrice',
         header: 'Unit Price',
         cell: ({ row }) => {
-          const { unitPrice, supplierUnitPrice } = row.original;
+          const { unitPrice, primaryUomUnitPrice, conversionFactor, primaryUomSymbol } = row.original;
+          const isCrossUom = conversionFactor !== 1;
           return (
             <div className="flex flex-col">
               <span className="font-mono">{`${unitPrice.currency} ${unitPrice.value}`}</span>
-              {isCross && (
+              {isCrossUom && (
                 <span className="font-mono text-xs text-muted-foreground">
-                  {`${supplierUnitPrice.currency} ${supplierUnitPrice.value}`}
+                  {`${primaryUomUnitPrice.currency} ${primaryUomUnitPrice.value}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''}`}
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'supplierUnitPrice',
+        header: 'Supplier Unit Price',
+        cell: ({ row }) => {
+          const { supplierUnitPrice, primaryUomSupplierUnitPrice, conversionFactor, primaryUomSymbol } = row.original;
+          if (!isCross) return <span className="text-muted-foreground">—</span>;
+          const isCrossUom = conversionFactor !== 1;
+          return (
+            <div className="flex flex-col">
+              <span className="font-mono">{`${supplierUnitPrice.currency} ${supplierUnitPrice.value}`}</span>
+              {isCrossUom && (
+                <span className="font-mono text-xs text-muted-foreground">
+                  {`${primaryUomSupplierUnitPrice.currency} ${primaryUomSupplierUnitPrice.value}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''}`}
                 </span>
               )}
             </div>

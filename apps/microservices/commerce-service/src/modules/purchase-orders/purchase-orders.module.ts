@@ -1,4 +1,5 @@
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
+import { InventoryItemUomConversionsDomainModule } from '@domain/inventory-item-uom-conversions/inventory-item-uom-conversions.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
@@ -17,6 +18,7 @@ import { PurchaseOrdersRootService } from './root/services/purchase-orders-root.
     GoodsReceiptsDomainModule,
     SuppliersDomainModule,
     SupplierItemsDomainModule,
+    InventoryItemUomConversionsDomainModule,
   ],
   controllers: [PurchaseOrdersRootController, PurchaseOrdersItemsController, PurchaseOrdersGoodsReceiptsController],
   providers: [PurchaseOrdersRootService, PurchaseOrdersItemsService],

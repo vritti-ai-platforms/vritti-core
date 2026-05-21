@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, ne, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, getTableColumns, ne, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItems,
   type NewSupplierItem,
@@ -169,17 +169,18 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
     return row as (SupplierItem & { inventoryItemName: string; uomSymbol: string }) | undefined;
   }
 
-  // Finds a supplier item by supplier ID and inventory item ID
+  // Finds a supplier item by supplier ID and inventory item ID, including the UOM global conversion factor
   async findItemBySupplierAndInventoryItem(
     supplierId: string,
     inventoryItemId: string,
-  ): Promise<SupplierItem | undefined> {
+  ): Promise<(SupplierItem & { uomConversionFactor: number | null }) | undefined> {
     const [row] = await this.db
-      .select()
+      .select({ ...getTableColumns(supplierItems), uomConversionFactor: uom.conversionFactor })
       .from(supplierItems)
+      .leftJoin(uom, eq(supplierItems.uomId, uom.id))
       .where(and(eq(supplierItems.supplierId, supplierId), eq(supplierItems.inventoryItemId, inventoryItemId)))
       .limit(1);
-    return row as SupplierItem | undefined;
+    return row as (SupplierItem & { uomConversionFactor: number | null }) | undefined;
   }
 
   // Bulk-updates currency and reprices all supplier items for a supplier using the given conversion rate

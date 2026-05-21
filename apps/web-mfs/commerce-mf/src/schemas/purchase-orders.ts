@@ -77,8 +77,13 @@ export interface PurchaseOrderItemData {
   quantity: number;
   receivedQuantity: number;
   supplierUnitPrice: { currency: string; value: string };
+  primaryUomSupplierUnitPrice: { currency: string; value: string };
   unitPrice: { currency: string; value: string };
   totalPrice: { currency: string; value: string };
+  conversionFactor: number;
+  orderUomSymbol: string | null;
+  primaryUomSymbol: string | null;
+  primaryUomUnitPrice: { currency: string; value: string };
 }
 
 export interface GoodsReceiptData {

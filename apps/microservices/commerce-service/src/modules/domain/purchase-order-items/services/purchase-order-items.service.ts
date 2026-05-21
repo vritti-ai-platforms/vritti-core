@@ -7,6 +7,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor, resolveCurrency } from '@vritti/api-sdk/money';
 import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems } from '@/db/schema';
@@ -79,7 +80,7 @@ export class PurchaseOrderItemsService {
   }
 
   // Adds a line item to a draft PO. Does not call syncTotalAmount — that is the app-layer's responsibility.
-  async addItem(po: PurchaseOrderContext, data: AddPurchaseOrderItemDto, uomId: string): Promise<void> {
+  async addItem(po: PurchaseOrderContext, data: AddPurchaseOrderItemDto, uomId: string, conversionFactor: number): Promise<void> {
     if (po.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
     }
@@ -135,11 +136,17 @@ export class PurchaseOrderItemsService {
 
     const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.quantity));
 
+    const primaryUomUnitPriceMinor = BigInt(
+      new Decimal(Number(unitPriceMinor)).dividedBy(conversionFactor).toDecimalPlaces(0).toNumber(),
+    );
+
     await this.repository.create({
       purchaseOrderId: po.id,
       inventoryItemId: data.inventoryItemId,
       uomId,
       quantity: String(data.quantity),
+      conversionFactor: String(conversionFactor),
+      primaryUomUnitPrice: primaryUomUnitPriceMinor,
       supplierUnitPrice: supplierUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
@@ -153,6 +160,7 @@ export class PurchaseOrderItemsService {
     po: PurchaseOrderContext,
     itemId: string,
     data: UpdatePurchaseOrderItemDto,
+    conversionFactor: number,
   ): Promise<SuccessResponseDto> {
     if (po.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
@@ -220,9 +228,15 @@ export class PurchaseOrderItemsService {
 
     const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * orderedQuantity));
 
+    const primaryUomUnitPriceMinor = BigInt(
+      new Decimal(Number(unitPriceMinor)).dividedBy(conversionFactor).toDecimalPlaces(0).toNumber(),
+    );
+
     await this.repository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
       quantity: String(orderedQuantity),
+      conversionFactor: String(conversionFactor),
+      primaryUomUnitPrice: primaryUomUnitPriceMinor,
       supplierUnitPrice: supplierUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,

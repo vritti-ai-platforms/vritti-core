@@ -41,7 +41,7 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
       joins: [
         { table: supplierItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id), type: 'inner' },
         { table: categories, on: eq(inventoryItems.categoryId, categories.id), type: 'left' },
-        { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' },
+        { table: uom, on: eq(supplierItems.uomId, uom.id), type: 'left' },
       ],
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions: [eq(supplierItems.supplierId, supplierId), eq(supplierItems.isActive, true)],

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  BadRequestException,
   ConflictException,
   type CreateResponseDto,
   type FieldMap,
@@ -154,6 +155,17 @@ export class InventoryItemsService {
   async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
+
+    if (data.uomId && data.uomId !== existing.uomId) {
+      const refs = await this.repository.countReferences(id);
+      if (refs.purchaseOrderItems > 0 || refs.stockAdjustments > 0 || refs.stockTransfers > 0) {
+        throw new BadRequestException({
+          label: 'UOM Locked',
+          detail: 'Primary UOM cannot be changed after the item has transaction history.',
+        });
+      }
+    }
+
     if (data.description !== undefined) data.description = data.description || null;
     const updated = await this.repository.update(id, data);
     this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);
