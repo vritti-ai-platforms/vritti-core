@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
@@ -9,7 +9,7 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import {
@@ -119,12 +119,19 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
         cell: ({ row }) => (row.original.isActive ? 'Active' : 'Inactive'),
       },
       {
-        id: 'open',
+        id: 'actions',
         header: '',
         cell: ({ row }) => (
-          <Button variant="ghost" size="sm" onClick={() => onSelectLocation(row.original.id)}>
-            Open
-          </Button>
+          <RowActions
+            actions={[
+              {
+                id: 'view',
+                icon: Eye,
+                label: 'View',
+                onClick: () => onSelectLocation(row.original.id),
+              },
+            ]}
+          />
         ),
         enableSorting: false,
         enableHiding: false,
@@ -236,6 +243,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
         handle={addChildDialog}
         title="Add Child Location"
         description={`Add a child location under "${location.name}".`}
+        className="max-w-3xl"
         content={(close) => (
           <AddLocationDialog
             defaultParentId={location.id}
