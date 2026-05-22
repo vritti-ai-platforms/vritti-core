@@ -5,6 +5,7 @@ import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/qua
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { InventoryItemFilter } from '@vritti/quantum-ui/selects/inventory-item';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, Truck } from 'lucide-react';
 import { useMemo } from 'react';
@@ -110,6 +111,7 @@ export const SuppliersPage = () => {
           ],
           searchAll: true,
         }}
+        filters={[<InventoryItemFilter key="inventoryItemId" />]}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={addDialog.open}>

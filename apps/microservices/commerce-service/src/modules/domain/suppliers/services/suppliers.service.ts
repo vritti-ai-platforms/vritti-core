@@ -4,6 +4,7 @@ import {
   ConflictException,
   type CreateResponseDto,
   type FieldMap,
+  FilterOperators,
   FilterProcessor,
   NotFoundException,
   type SelectOptionsQueryDto,
@@ -11,8 +12,8 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { suppliers } from '@/db/schema';
+import { and, desc, sql } from '@vritti/api-sdk/drizzle-orm';
+import { supplierItems, suppliers } from '@/db/schema';
 import type { CreateSupplierDto } from '@/modules/suppliers/root/dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '@/modules/suppliers/root/dto/request/update-supplier.dto';
 import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
@@ -26,6 +27,13 @@ export class SuppliersService {
     name: { column: suppliers.name, type: 'string' },
     code: { column: suppliers.code, type: 'string' },
     isActive: { column: suppliers.isActive, type: 'boolean' },
+    inventoryItemId: {
+      expression: (value, operator) =>
+        operator === FilterOperators.NOT_EQUALS
+          ? sql`NOT EXISTS (SELECT 1 FROM ${supplierItems} WHERE ${supplierItems.supplierId} = ${suppliers.id} AND ${supplierItems.inventoryItemId} = ${String(value)})`
+          : sql`EXISTS (SELECT 1 FROM ${supplierItems} WHERE ${supplierItems.supplierId} = ${suppliers.id} AND ${supplierItems.inventoryItemId} = ${String(value)})`,
+      type: 'string',
+    },
   };
 
   constructor(private readonly repository: SuppliersRepository) {}
