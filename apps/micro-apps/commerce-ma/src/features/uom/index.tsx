@@ -1,62 +1,12 @@
 import { type RouteProp, useNavigation } from '@react-navigation/native';
+import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
+import { Button } from '@vritti/quantum-ui-native/Button';
 import { PushNavigator, type PushScreenConfig } from '@vritti/quantum-ui-native/PushNavigator';
-import { ScreenContainer, useScreenScrollY } from '@vritti/quantum-ui-native/ScreenContainer';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { ScreenHeader } from '@vritti/quantum-ui-native/ScreenHeader';
 import { Text } from '@vritti/quantum-ui-native/Typography';
-import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const HERO_HEIGHT = 110;
-const NORMAL_HEIGHT = 80;
-const PINNED_HEIGHT = 44;
-const HERO_DROP = 60;
-const NORMAL_DROP = 50;
-const PINNED_AT = HERO_DROP + NORMAL_DROP;
-
-function Header() {
-  const insets = useSafeAreaInsets();
-  const scrollY = useScreenScrollY();
-
-  const containerStyle = useAnimatedStyle(() => ({
-    height:
-      interpolate(
-        scrollY.value,
-        [0, HERO_DROP, PINNED_AT],
-        [HERO_HEIGHT, NORMAL_HEIGHT, PINNED_HEIGHT],
-        Extrapolation.CLAMP,
-      ) + insets.top,
-  }));
-
-  const heroStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, HERO_DROP * 0.7], [1, 0], Extrapolation.CLAMP),
-    transform: [{ translateY: interpolate(scrollY.value, [0, HERO_DROP], [0, -16], Extrapolation.CLAMP) }],
-  }));
-
-  const compactStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [HERO_DROP, PINNED_AT], [0, 1], Extrapolation.CLAMP),
-  }));
-
-  return (
-    <Animated.View
-      style={[styles.container, { paddingTop: insets.top }, containerStyle]}
-      className="bg-background border-b border-border overflow-hidden"
-    >
-      <Animated.View
-        style={[StyleSheet.absoluteFillObject, styles.compactCenter, { paddingTop: insets.top }, compactStyle]}
-        pointerEvents="none"
-      >
-        <View style={styles.compactRow}>
-          <Text className="text-base font-semibold text-foreground">Units of Measure</Text>
-        </View>
-      </Animated.View>
-
-      <Animated.View style={[styles.hero, heroStyle]} pointerEvents="none">
-        <Text className="text-[34px] font-bold text-foreground">Units of Measure</Text>
-        <Text className="text-sm text-muted-foreground">Manage UOM definitions</Text>
-      </Animated.View>
-    </Animated.View>
-  );
-}
+import { useRef } from 'react';
+import { Pressable, View } from 'react-native';
 
 type UOMRoute = 'UOMList' | 'UOMDetail';
 
@@ -93,6 +43,9 @@ function UOMList() {
 
 function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams }, 'UOMDetail'> }) {
   const id = route.params?.id ?? '?';
+  const fullSheetRef = useRef<BottomSheetRef>(null);
+  const halfSheetRef = useRef<BottomSheetRef>(null);
+
   return (
     <ScreenContainer scrollable>
       <View className="p-4 gap-4">
@@ -115,23 +68,62 @@ function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams },
             <Text className="text-base font-semibold text-foreground">Placeholder</Text>
           </View>
         </View>
+
+        <View className="gap-3">
+          <Text className="text-base font-semibold text-foreground">Bottom sheet examples</Text>
+          <Button onPress={() => fullSheetRef.current?.present()}>
+            <Text>Open full sheet</Text>
+          </Button>
+          <Button variant="ghost" onPress={() => halfSheetRef.current?.present()}>
+            <Text>Open half sheet</Text>
+          </Button>
+        </View>
       </View>
+
+      <BottomSheet
+        ref={fullSheetRef}
+        detents={['full']}
+        title="Full sheet"
+        onClose={() => fullSheetRef.current?.dismiss()}
+      >
+        <View className="gap-3 px-4">
+          <Text className="text-base font-semibold text-foreground">Full-height sheet</Text>
+          <Text className="text-sm text-muted-foreground">
+            Opens to the full screen height with a scrollable body. Tap Close or drag down to dismiss.
+          </Text>
+          {Array.from({ length: 30 }).map((_, i) => {
+            const row = i + 1;
+            return (
+              <View key={`full-row-${row}`} className="bg-card border border-border rounded-xl p-4">
+                <Text className="text-sm font-semibold text-foreground">Row {row}</Text>
+                <Text className="text-xs text-muted-foreground">Placeholder content</Text>
+              </View>
+            );
+          })}
+        </View>
+      </BottomSheet>
+
+      <BottomSheet ref={halfSheetRef} detents={['50%']}>
+        <View className="gap-3 px-4 pb-8 pt-2">
+          <Text className="text-base font-semibold text-foreground">Half-height sheet</Text>
+          <Text className="text-sm text-muted-foreground">
+            Opens to roughly half the screen height. Drag the grabber up to expand or down to dismiss.
+          </Text>
+        </View>
+      </BottomSheet>
     </ScreenContainer>
   );
 }
 
 const screens: ReadonlyArray<PushScreenConfig<UOMRoute>> = [
-  { name: 'UOMList', component: UOMList, header: () => <Header /> },
+  {
+    name: 'UOMList',
+    component: UOMList,
+    header: () => <ScreenHeader title="Units of Measure" subtitle="Manage UOM definitions" />,
+  },
   { name: 'UOMDetail', component: UOMDetail, headerShown: true, title: 'UOM Detail' },
 ];
 
 export default function UOMScreen() {
   return <PushNavigator<UOMRoute> initialRoute="UOMList" screens={screens} />;
 }
-
-const styles = StyleSheet.create({
-  container: { position: 'relative' },
-  hero: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, gap: 2, justifyContent: 'flex-start', flex: 1 },
-  compactCenter: { alignItems: 'center', justifyContent: 'center' },
-  compactRow: { height: 44, alignItems: 'center', justifyContent: 'center' },
-});
