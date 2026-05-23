@@ -9,9 +9,16 @@ import {
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
-import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrders, suppliers } from '@/db/schema';
+import {
+  ExchangeRateTypeValues,
+  type PurchaseOrderStatus,
+  PurchaseOrderStatusValues,
+  purchaseOrders,
+  suppliers,
+} from '@/db/schema';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
 import { PurchaseOrderDto } from '../dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
@@ -101,33 +108,43 @@ export class PurchaseOrdersService {
     });
 
     return {
-      result: rows.map((entity) => PurchaseOrderDto.from(entity, entity.supplierName, entity.supplierCurrencyCode)),
+      result: rows.map((entity) => PurchaseOrderDto.from(entity, entity.supplierName)),
       count,
     };
   }
 
-  // Creates a new PO. App-layer fetches the supplier and passes supplierCurrencyCode.
+  // Creates a new PO. App-layer resolves the supplier and BU currency snapshots.
   async create(
     data: CreatePurchaseOrderDto,
     supplierCurrencyCode: string,
+    buCurrencyCode: string,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    const isSameCurrency = supplierCurrencyCode === data.currencyCode;
-    const conversionRate = isSameCurrency ? 1 : data.conversionRate;
+    const isSameCurrency = supplierCurrencyCode === buCurrencyCode;
+    const requestedType = data.exchangeRateType ?? ExchangeRateTypeValues.FIXED;
+    const exchangeRateType = isSameCurrency ? ExchangeRateTypeValues.FIXED : requestedType;
 
-    if (!isSameCurrency && (conversionRate == null || conversionRate <= 0)) {
-      throw new BadRequestException({
-        label: 'Invalid Conversion Rate',
-        detail: `Conversion rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from PO currency (${data.currencyCode}).`,
-        errors: [{ field: 'conversionRate', message: 'Conversion rate must be greater than 0.' }],
-      });
+    let exchangeRate: string | null;
+    if (isSameCurrency) {
+      exchangeRate = '1';
+    } else if (exchangeRateType === ExchangeRateTypeValues.FIXED) {
+      if (data.exchangeRate == null || data.exchangeRate <= 0) {
+        throw new ValidationException({
+          detail: `Exchange rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from business unit currency (${buCurrencyCode}) and rate type is FIXED.`,
+          errors: [{ field: 'exchangeRate', message: 'Exchange rate must be greater than 0.' }],
+        });
+      }
+      exchangeRate = String(data.exchangeRate);
+    } else {
+      exchangeRate = null;
     }
 
     const poNumber = await this.repository.generatePoNumber();
     const entity = await this.repository.create({
       supplierId: data.supplierId,
       poNumber,
-      currencyCode: data.currencyCode,
-      conversionRate: String(conversionRate ?? 1),
+      currencyCode: supplierCurrencyCode,
+      exchangeRate,
+      exchangeRateType,
       orderDate: data.orderDate,
       expectedBy: data.expectedBy ?? null,
       notes: data.notes ?? null,
@@ -140,7 +157,7 @@ export class PurchaseOrdersService {
     return {
       success: true,
       message: `Purchase order "${entity.poNumber}" created successfully.`,
-      data: PurchaseOrderDto.from(detailed, detailed.supplierName, detailed.supplierCurrencyCode),
+      data: PurchaseOrderDto.from(detailed, detailed.supplierName),
     };
   }
 
@@ -148,7 +165,7 @@ export class PurchaseOrdersService {
   async findById(id: string): Promise<PurchaseOrderDto> {
     const entity = await this.repository.findByIdWithSupplierName(id);
     if (!entity) throw new NotFoundException('Purchase order not found.');
-    return PurchaseOrderDto.from(entity, entity.supplierName, entity.supplierCurrencyCode);
+    return PurchaseOrderDto.from(entity, entity.supplierName);
   }
 
   // Updates notes on a purchase order

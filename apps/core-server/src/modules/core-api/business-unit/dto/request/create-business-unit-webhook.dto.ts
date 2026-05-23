@@ -39,6 +39,11 @@ export class CreateBusinessUnitWebhookDto {
   @IsNotEmpty()
   timezone: string;
 
+  @ApiProperty({ description: 'Business unit currency (ISO 4217)', example: 'INR' })
+  @IsString()
+  @IsNotEmpty()
+  currencyCode: string;
+
   @ApiPropertyOptional({
     description: 'Business unit metadata (address, city, state, country, phone, etc.)',
     example: { city: 'New York' },

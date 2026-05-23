@@ -38,6 +38,9 @@ export class BusinessUnitDto {
   @ApiProperty({ example: 'Asia/Kolkata' })
   timezone: string;
 
+  @ApiProperty({ example: 'INR' })
+  currencyCode: string;
+
   @ApiPropertyOptional({ nullable: true })
   metadata: BuMetadata | null;
 
@@ -64,6 +67,7 @@ export class BusinessUnitDto {
     dto.isActive = bu.isActive;
     dto.sortOrder = bu.sortOrder;
     dto.timezone = bu.timezone;
+    dto.currencyCode = bu.currencyCode;
     dto.appCodes = bu.appCodes ?? [];
     dto.metadata = bu.metadata ?? null;
     dto.createdAt = bu.createdAt.toISOString();

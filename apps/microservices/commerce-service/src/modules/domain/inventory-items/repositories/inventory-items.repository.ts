@@ -5,7 +5,7 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, ilike, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   bomLines,
   categories,
@@ -16,6 +16,7 @@ import {
   purchaseOrderItems,
   stockAdjustments,
   stockTransfers,
+  suppliers,
   supplierItems,
   uom,
 } from '@/db/schema';
@@ -63,42 +64,84 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     });
   }
 
-  // Returns paginated inventory item options filtered by supplier via inner join on supplier_items.
-  // Uses DISTINCT to avoid duplicate rows when a supplier has multiple UOM rows for the same item.
-  // When purchaseOrderId is supplied, excludes items whose every supplier UOM is already on that PO.
+  // Returns paginated supplier item options filtered by supplier — one row per supplier item (item + UOM pair).
+  // Uses supplierItems.id as the select value so each item+UOM combination is a distinct option.
+  // When supplierId is absent, returns all active supplier items and includes supplier name as description.
+  // When purchaseOrderId is supplied, excludes item+UOM combos already on that PO.
   findForSelectBySupplier(
-    supplierId: string,
+    supplierId: string | undefined,
     config: FindForSelectConfig,
     options?: { purchaseOrderId?: string },
   ): Promise<SelectQueryResult> {
-    const conditions: SQL[] = [eq(supplierItems.supplierId, supplierId), eq(supplierItems.isActive, true)];
+    const conditions: SQL[] = [eq(supplierItems.isActive, true)];
+
+    if (supplierId) {
+      conditions.push(eq(supplierItems.supplierId, supplierId));
+    }
 
     if (options?.purchaseOrderId) {
-      // Keep items that have at least one supplier UOM not yet on the PO
-      conditions.push(sql`EXISTS (
-        SELECT 1 FROM ${supplierItems} si2
-        WHERE si2.supplier_id = ${supplierId}
-          AND si2.inventory_item_id = ${inventoryItems.id}
-          AND NOT EXISTS (
-            SELECT 1 FROM ${purchaseOrderItems} poi
-            WHERE poi.purchase_order_id = ${options.purchaseOrderId}
-              AND poi.inventory_item_id = ${inventoryItems.id}
-              AND poi.uom_id = si2.uom_id
-          )
+      const poId = options.purchaseOrderId;
+      conditions.push(sql`NOT EXISTS (
+        SELECT 1 FROM ${purchaseOrderItems} poi
+        WHERE poi.purchase_order_id = ${poId}
+          AND poi.inventory_item_id = ${inventoryItems.id}
+          AND poi.uom_id = ${supplierItems.uomId}
       )`);
     }
 
-    return super.findForSelect({
-      ...config,
-      distinct: true,
-      joins: [
-        { table: supplierItems, on: eq(supplierItems.inventoryItemId, inventoryItems.id), type: 'inner' },
-        { table: categories, on: eq(inventoryItems.categoryId, categories.id), type: 'left' },
-        { table: uom, on: eq(supplierItems.uomId, uom.id), type: 'left' },
-      ],
-      groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
-      conditions,
-    });
+    const limit = Number(config.limit) || 20;
+    const offset = Number(config.offset) || 0;
+    const search = config.search?.trim();
+
+    if (search) {
+      conditions.push(ilike(inventoryItems.name, `%${search}%`));
+    }
+
+    return this.db
+      .select({
+        value: supplierItems.id,
+        label: inventoryItems.name,
+        groupId: inventoryItems.categoryId,
+        groupName: categories.name,
+        supplierName: suppliers.name,
+        symbol: uom.symbol,
+        unitPrice: supplierItems.unitPrice,
+        currencyCode: supplierItems.currencyCode,
+        allowDecimal: uom.allowDecimal,
+      })
+      .from(inventoryItems)
+      .innerJoin(supplierItems, eq(supplierItems.inventoryItemId, inventoryItems.id))
+      .innerJoin(suppliers, eq(supplierItems.supplierId, suppliers.id))
+      .leftJoin(categories, eq(inventoryItems.categoryId, categories.id))
+      .leftJoin(uom, eq(supplierItems.uomId, uom.id))
+      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+      .orderBy(asc(categories.id), asc(inventoryItems.name))
+      .limit(limit)
+      .offset(offset)
+      .then((rows) => {
+        const seenGroups = new Map<string, string>();
+        for (const row of rows) {
+          if (row.groupId != null && row.groupName != null && !seenGroups.has(row.groupId)) {
+            seenGroups.set(row.groupId, row.groupName);
+          }
+        }
+        return {
+          options: rows.map((row) => ({
+            value: row.value,
+            label: row.label,
+            ...(row.groupId != null ? { groupId: row.groupId } : {}),
+            ...(!supplierId ? { description: row.supplierName } : {}),
+            additionals: {
+              symbol: row.symbol,
+              unitPrice: row.unitPrice !== null ? Number(row.unitPrice) : null,
+              currencyCode: row.currencyCode,
+              allowDecimal: row.allowDecimal,
+            },
+          })),
+          groups: Array.from(seenGroups.entries()).map(([id, name]) => ({ id, name })),
+          hasMore: false,
+        };
+      });
   }
 
   // Returns inventory item options scoped to a purchase order with orderedQuantity/receivedQuantity available as additionalKeys

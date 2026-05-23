@@ -4,6 +4,7 @@ const TTL_MS = 5 * 60 * 1000;
 
 interface BuContextEntry {
   buTimezone: string;
+  buCurrencyCode: string;
   buAncestorIds: string[];
   buDescendantIds: string[];
   expiresAt: number;
@@ -17,7 +18,12 @@ export class BuContextCacheService {
   get(buId: string): Omit<BuContextEntry, 'expiresAt'> | null {
     const entry = this.cache.get(buId);
     if (!entry || entry.expiresAt < Date.now()) return null;
-    return { buTimezone: entry.buTimezone, buAncestorIds: entry.buAncestorIds, buDescendantIds: entry.buDescendantIds };
+    return {
+      buTimezone: entry.buTimezone,
+      buCurrencyCode: entry.buCurrencyCode,
+      buAncestorIds: entry.buAncestorIds,
+      buDescendantIds: entry.buDescendantIds,
+    };
   }
 
   set(buId: string, value: Omit<BuContextEntry, 'expiresAt'>): void {

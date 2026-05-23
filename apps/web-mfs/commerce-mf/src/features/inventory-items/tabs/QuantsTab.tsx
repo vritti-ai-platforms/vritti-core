@@ -138,7 +138,7 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ itemId, uomSymbol }) => {
       table={table}
       mode="tab"
       isLoading={isLoading}
-      filters={[<LocationFilter key="locationId" />, <LotFilter key="lotId" inventoryItemId={itemId} />]}
+      filters={[<LocationFilter key="locationId" />, <LotFilter key="lotId" params={{ inventoryItemId: itemId }} />]}
       emptyStateConfig={{
         icon: Boxes,
         title: 'No quants',

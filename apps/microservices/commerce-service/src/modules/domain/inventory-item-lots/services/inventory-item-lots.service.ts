@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
   type FieldMap,
   FilterProcessor,
   type SelectOptionsQueryDto,
@@ -83,9 +82,8 @@ export class InventoryItemLotsService {
     });
   }
 
-  // Returns paginated lot options for the select component
-  async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    if (!query.inventoryItemId) throw new BadRequestException('inventoryItemId is required.');
+  // Returns paginated lot options, optionally filtered to a specific inventory item
+  async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {
     const search = query.search?.trim();
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
@@ -98,7 +96,7 @@ export class InventoryItemLotsService {
       offset: query.offset,
       orderByKey: query.orderByKey || 'createdAt',
       orderDirection: query.orderDirection || 'desc',
-      where: { inventoryItemId: query.inventoryItemId },
+      where: query.inventoryItemId ? { inventoryItemId: query.inventoryItemId } : undefined,
       conditions: search ? [ilike(inventoryItemLots.lotNumber, `%${search}%`)] : undefined,
     });
   }

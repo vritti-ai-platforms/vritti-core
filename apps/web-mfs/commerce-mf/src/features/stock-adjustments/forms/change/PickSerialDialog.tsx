@@ -53,7 +53,7 @@ const PickSerialForm = ({
         name="serialNumber"
         label="Serial Number"
         placeholder="Pick an AVAILABLE serial"
-        quantId={quantId}
+        params={{ quantId }}
         fieldKeys={{ valueKey: 'serialNumber', labelKey: 'serialNumber' }}
       />
       <p className="text-xs text-muted-foreground">The serial must belong to the picked quant and be AVAILABLE.</p>

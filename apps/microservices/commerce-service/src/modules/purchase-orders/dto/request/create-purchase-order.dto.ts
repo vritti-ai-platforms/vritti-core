@@ -1,13 +1,10 @@
-import { IsCurrencyCode, IsDateTime } from '@vritti/api-sdk';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsDateTime } from '@vritti/api-sdk';
+import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { ExchangeRateTypeValues } from '@/db/schema';
 
 export class CreatePurchaseOrderDto {
   @IsUUID()
   supplierId: string;
-
-  @IsNotEmpty()
-  @IsCurrencyCode()
-  currencyCode: string;
 
   @IsNotEmpty()
   @IsString()
@@ -22,7 +19,11 @@ export class CreatePurchaseOrderDto {
   notes?: string;
 
   @IsOptional()
+  @IsIn([ExchangeRateTypeValues.FIXED, ExchangeRateTypeValues.VARIABLE])
+  exchangeRateType?: 'FIXED' | 'VARIABLE';
+
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  conversionRate?: number;
+  exchangeRate?: number | null;
 }

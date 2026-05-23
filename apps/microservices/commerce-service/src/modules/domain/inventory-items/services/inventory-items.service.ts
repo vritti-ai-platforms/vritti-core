@@ -78,10 +78,11 @@ export class InventoryItemsService {
     );
   }
 
-  // Returns inventory items linked to a specific supplier for select dropdowns.
-  // When purchaseOrderId is supplied, excludes items whose every supplier UOM is already on that PO.
+  // Returns inventory items linked to a supplier for select dropdowns.
+  // When supplierId is absent, returns all active supplier items with supplier name as description.
+  // When purchaseOrderId is supplied, excludes item+UOM combos already on that PO.
   findForSelectBySupplier(
-    supplierId: string,
+    supplierId: string | undefined,
     query: SelectOptionsQueryDto,
     options?: { purchaseOrderId?: string },
   ): Promise<SelectQueryResult> {

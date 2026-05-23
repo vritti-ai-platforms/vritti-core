@@ -10,19 +10,15 @@ export class PurchaseOrderItemDto {
   receivedQuantity: number;
   conversionFactor: number;
   primaryUomSymbol: string | null;
-  supplierUnitPrice: CurrencyAmountDto;
+  orderUomSymbol: string | null;
+  currencyCode: string;
   unitPrice: CurrencyAmountDto;
   primaryUomUnitPrice: CurrencyAmountDto;
   totalPrice: CurrencyAmountDto;
 
-  orderUomSymbol: string | null;
-  primaryUomSupplierUnitPrice: CurrencyAmountDto;
-
   static from(
     entity: PurchaseOrderItem & { orderUomSymbol?: string | null; primaryUomSymbol?: string | null },
     itemName?: string | null,
-    poCurrencyCode?: string | null,
-    supplierCurrencyCode?: string | null,
   ): PurchaseOrderItemDto {
     const dto = new PurchaseOrderItemDto();
     dto.id = entity.id;
@@ -34,16 +30,11 @@ export class PurchaseOrderItemDto {
     dto.conversionFactor = Number(entity.conversionFactor);
     dto.orderUomSymbol = entity.orderUomSymbol ?? null;
     dto.primaryUomSymbol = entity.primaryUomSymbol ?? null;
+    dto.currencyCode = entity.currencyCode;
 
-    const poCode = poCurrencyCode ?? 'USD';
-    const supplierCode = supplierCurrencyCode ?? poCode;
-
-    dto.supplierUnitPrice = CurrencyAmountDto.from(entity.supplierUnitPrice, supplierCode);
-    const primarySupplierMinor = BigInt(Math.round(Number(entity.supplierUnitPrice) / Number(entity.conversionFactor)));
-    dto.primaryUomSupplierUnitPrice = CurrencyAmountDto.from(primarySupplierMinor, supplierCode);
-    dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, poCode);
-    dto.primaryUomUnitPrice = CurrencyAmountDto.from(entity.primaryUomUnitPrice, poCode);
-    dto.totalPrice = CurrencyAmountDto.from(entity.totalPrice, poCode);
+    dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, entity.currencyCode);
+    dto.primaryUomUnitPrice = CurrencyAmountDto.from(entity.primaryUomUnitPrice, entity.currencyCode);
+    dto.totalPrice = CurrencyAmountDto.from(entity.totalPrice, entity.currencyCode);
 
     return dto;
   }

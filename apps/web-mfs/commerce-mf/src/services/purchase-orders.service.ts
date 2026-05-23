@@ -2,6 +2,7 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-res
 import axios from '@vritti/quantum-ui/axios';
 import type { GoodsReceiptsTableResponse } from '@/schemas/goods-receipts';
 import type {
+  ExchangeRateType,
   PurchaseOrderData,
   PurchaseOrderDetail,
   PurchaseOrderItemsTableResponse,
@@ -10,8 +11,8 @@ import type {
 
 export interface CreatePurchaseOrderPayload {
   supplierId: string;
-  currencyCode: string;
-  conversionRate: number;
+  exchangeRateType: ExchangeRateType;
+  exchangeRate?: number | null;
   orderDate: string;
   expectedBy?: string;
   notes?: string;
@@ -19,11 +20,9 @@ export interface CreatePurchaseOrderPayload {
 
 export interface AddPurchaseOrderItemPayload {
   id: string;
-  inventoryItemId: string;
-  uomId: string;
+  supplierItemId: string;
   quantity: number;
-  supplierUnitPrice: { currency: string; value: string };
-  unitPrice?: { currency: string; value: string } | null;
+  unitPrice: { currency: string; value: string };
 }
 
 export interface UpdatePurchaseOrderItemPayload {
@@ -31,8 +30,7 @@ export interface UpdatePurchaseOrderItemPayload {
   itemId: string;
   inventoryItemId?: string;
   quantity?: number;
-  supplierUnitPrice?: { currency: string; value: string };
-  unitPrice?: { currency: string; value: string } | null;
+  unitPrice?: { currency: string; value: string };
 }
 
 export interface UpdatePurchaseOrderNotesPayload {
@@ -43,12 +41,6 @@ export interface UpdatePurchaseOrderNotesPayload {
 export interface ChangePurchaseOrderSupplierPayload {
   id: string;
   supplierId: string;
-}
-
-export interface ChangePurchaseOrderCurrencyPayload {
-  id: string;
-  currencyCode: string;
-  conversionRate: number;
 }
 
 export interface SendPurchaseOrderEmailPayload {
@@ -102,18 +94,14 @@ export function downloadPurchaseOrderPdf(id: string): Promise<Blob> {
 // Adds a line item to a purchase order
 export function addPurchaseOrderItem({
   id,
-  inventoryItemId,
-  uomId,
+  supplierItemId,
   quantity,
-  supplierUnitPrice,
   unitPrice,
 }: AddPurchaseOrderItemPayload): Promise<CreateResponse<PurchaseOrderData>> {
   return axios
     .post<CreateResponse<PurchaseOrderData>>(`commerce-api/purchase-orders/${id}/items`, {
-      inventoryItemId,
-      uomId,
+      supplierItemId,
       quantity,
-      supplierUnitPrice,
       unitPrice,
     })
     .then((r) => r.data);
@@ -125,14 +113,12 @@ export function updatePurchaseOrderItem({
   itemId,
   inventoryItemId,
   quantity,
-  supplierUnitPrice,
   unitPrice,
 }: UpdatePurchaseOrderItemPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/items/${itemId}`, {
       inventoryItemId,
       quantity,
-      supplierUnitPrice,
       unitPrice,
     })
     .then((r) => r.data);
@@ -157,17 +143,6 @@ export function changePurchaseOrderSupplier({
 }: ChangePurchaseOrderSupplierPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/supplier`, { supplierId })
-    .then((r) => r.data);
-}
-
-// Changes purchase order currency and conversion rate
-export function changePurchaseOrderCurrency({
-  id,
-  currencyCode,
-  conversionRate,
-}: ChangePurchaseOrderCurrencyPayload): Promise<SuccessResponse> {
-  return axios
-    .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/currency`, { currencyCode, conversionRate })
     .then((r) => r.data);
 }
 

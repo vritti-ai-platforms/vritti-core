@@ -251,6 +251,13 @@ export const InventoryItemLedgerReferenceTypeValues = {
 };
 export type InventoryItemLedgerReferenceType = (typeof inventoryItemLedgerReferenceTypeEnum.enumValues)[number];
 
+export const exchangeRateTypeEnum = coreSchema.enum('exchange_rate_type', ['FIXED', 'VARIABLE']);
+export const ExchangeRateTypeValues = {
+  FIXED: 'FIXED' as const,
+  VARIABLE: 'VARIABLE' as const,
+};
+export type ExchangeRateType = (typeof exchangeRateTypeEnum.enumValues)[number];
+
 export const purchaseOrderStatusEnum = coreSchema.enum('purchase_order_status', [
   'DRAFT',
   'SENT',

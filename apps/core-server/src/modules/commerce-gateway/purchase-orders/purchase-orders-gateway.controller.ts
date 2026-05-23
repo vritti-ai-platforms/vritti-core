@@ -25,7 +25,6 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
-import { ChangePurchaseOrderCurrencyDto } from './dto/request/change-purchase-order-currency.dto';
 import { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
 import { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import { PurchaseOrderSelectQueryDto } from './dto/request/purchase-order-select-query.dto';
@@ -147,13 +146,6 @@ export class PurchaseOrdersGatewayController {
   changeSupplier(@Param('id') id: string, @Body() dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/supplier`);
     return this.service.changeSupplier(id, dto);
-  }
-
-  // Changes purchase order currency
-  @Patch(':id/currency')
-  changeCurrency(@Param('id') id: string, @Body() dto: ChangePurchaseOrderCurrencyDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/currency`);
-    return this.service.changeCurrency(id, dto);
   }
 
   // Updates the status of a purchase order

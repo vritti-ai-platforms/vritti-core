@@ -12,6 +12,7 @@ import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto'
 import { CreateInventoryItemLocationDto } from './dto/request/create-inventory-item-location.dto';
 import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
+import { InventoryItemsSupplierSelectQueryDto } from './dto/request/inventory-items-supplier-select-query.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
 import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
@@ -59,6 +60,13 @@ export class InventoryItemsGatewayController {
   select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-items/select');
     return this.service.select(query, query.poId, query.excludeForSupplierId);
+  }
+
+  // Returns supplier item options; when supplierId is absent, includes supplier name as description on each option
+  @Get('supplier-items/select')
+  selectSupplierItems(@Query() query: InventoryItemsSupplierSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('GET /commerce-api/inventory-items/supplier-items/select');
+    return this.service.selectSupplierItems(query);
   }
 
   // Creates a new inventory item

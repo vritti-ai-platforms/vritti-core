@@ -17,12 +17,12 @@ export class PurchaseOrderItemResponseDto {
   @ApiProperty({ description: 'Received quantity' })
   receivedQuantity: number;
 
-  @ApiProperty({ type: CurrencyAmountDto })
-  supplierUnitPrice: CurrencyAmountDto;
+  @ApiProperty({ description: 'Line currency code (ISO 4217) — snapshot from PO header' })
+  currencyCode: string;
 
-  @ApiProperty({ type: CurrencyAmountDto })
+  @ApiProperty({ type: CurrencyAmountDto, description: 'Unit price in PO/supplier currency' })
   unitPrice: CurrencyAmountDto;
 
-  @ApiProperty({ type: CurrencyAmountDto })
+  @ApiProperty({ type: CurrencyAmountDto, description: 'Line total in PO/supplier currency' })
   totalPrice: CurrencyAmountDto;
 }

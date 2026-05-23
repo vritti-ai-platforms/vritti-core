@@ -14,12 +14,7 @@ export class UpdatePurchaseOrderItemDto {
   @Min(0)
   quantity?: number;
 
-  @ApiPropertyOptional({ type: CurrencyAmountDto })
-  @IsOptional()
-  @IsCurrency()
-  supplierUnitPrice?: CurrencyAmountDto;
-
-  @ApiPropertyOptional({ type: CurrencyAmountDto })
+  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Unit price in PO/supplier currency' })
   @IsOptional()
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;

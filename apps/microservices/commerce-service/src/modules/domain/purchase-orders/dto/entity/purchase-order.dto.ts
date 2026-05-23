@@ -1,15 +1,15 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk';
-import type { PurchaseOrder, PurchaseOrderStatus } from '@/db/schema';
+import type { ExchangeRateType, PurchaseOrder, PurchaseOrderStatus } from '@/db/schema';
 
 export class PurchaseOrderDto {
   id: string;
   supplierId: string;
   supplierName: string;
-  supplierCurrencyCode: string | null;
   poNumber: string;
   status: PurchaseOrderStatus;
   currencyCode: string;
-  conversionRate: number;
+  exchangeRate: number | null;
+  exchangeRateType: ExchangeRateType;
   orderDate: string;
   expectedBy: string | null;
   timezone: string;
@@ -18,20 +18,16 @@ export class PurchaseOrderDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(
-    entity: PurchaseOrder,
-    supplierName?: string | null,
-    supplierCurrencyCode?: string | null,
-  ): PurchaseOrderDto {
+  static from(entity: PurchaseOrder, supplierName?: string | null): PurchaseOrderDto {
     const dto = new PurchaseOrderDto();
     dto.id = entity.id;
     dto.supplierId = entity.supplierId;
     dto.supplierName = supplierName ?? '';
-    dto.supplierCurrencyCode = supplierCurrencyCode ?? null;
     dto.poNumber = entity.poNumber;
     dto.status = entity.status;
     dto.currencyCode = entity.currencyCode;
-    dto.conversionRate = Number(entity.conversionRate);
+    dto.exchangeRate = entity.exchangeRate != null ? Number(entity.exchangeRate) : null;
+    dto.exchangeRateType = entity.exchangeRateType;
     dto.orderDate = entity.orderDate;
     dto.expectedBy = entity.expectedBy ?? null;
     dto.timezone = entity.timezone;

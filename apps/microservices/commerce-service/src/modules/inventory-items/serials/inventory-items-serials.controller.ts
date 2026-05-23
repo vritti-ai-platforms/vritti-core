@@ -9,10 +9,10 @@ export class InventoryItemsSerialsController {
 
   constructor(private readonly service: InventoryItemSerialsService) {}
 
-  // Returns paginated AVAILABLE serials for a given quant
+  // Returns paginated AVAILABLE serials, optionally filtered to a specific inventory quant
   @MessagePattern({ cmd: 'inventoryItems.selectSerials' })
-  async select(@Payload() data: SelectOptionsQueryDto & { quantId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItems.selectSerials — quantId: ${data.quantId}`);
+  async select(@Payload() data: SelectOptionsQueryDto & { quantId?: string }): Promise<SelectQueryResult> {
+    this.logger.log(`inventoryItems.selectSerials — quantId: ${data.quantId ?? 'all'}`);
     return this.service.findForSelect(data);
   }
 }

@@ -3,8 +3,7 @@ import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { DateTimePicker } from '@vritti/quantum-ui/DateTimePicker';
 import { parse } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
-import type { SelectOption } from '@vritti/quantum-ui/Select';
-import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
+import { Select, type SelectOption } from '@vritti/quantum-ui/Select';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -20,6 +19,11 @@ interface CreatePurchaseOrderDialogProps {
   onCancel: () => void;
 }
 
+const EXCHANGE_RATE_TYPE_OPTIONS = [
+  { label: 'Fixed (lock rate at PO time)', value: 'FIXED' },
+  { label: 'Variable (resolve at GR/invoice)', value: 'VARIABLE' },
+];
+
 // Renders "<code> · <payment terms>" under the supplier name in the dropdown
 const formatSupplierDescription = (code: string, option: SelectOption): string => {
   const paymentTerms = option.additionals?.paymentTerms;
@@ -32,8 +36,8 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
     defaultValues: {
       supplierId: '',
       supplierCurrencyCode: '',
-      currencyCode: '',
-      conversionRate: 1,
+      exchangeRateType: 'FIXED',
+      exchangeRate: undefined,
       orderDate: new Date().toISOString().split('T')[0],
       expectedBy: '',
       notes: '',
@@ -41,29 +45,22 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
   });
 
   const orderDate = form.watch('orderDate');
-  const poCurrencyCode = form.watch('currencyCode');
   const supplierCurrencyCode = form.watch('supplierCurrencyCode');
-  const needsConversion = !!supplierCurrencyCode && poCurrencyCode !== supplierCurrencyCode;
+  const exchangeRateType = form.watch('exchangeRateType');
   const minExpectedDate = orderDate ? parse(orderDate, 'yyyy-MM-dd', new Date()) : undefined;
 
   const createMutation = useCreatePurchaseOrder({ onSuccess });
 
   useEffect(() => {
-    form.clearErrors('conversionRate');
-    if (!needsConversion) {
-      form.setValue('conversionRate', 1);
+    if (exchangeRateType === 'VARIABLE') {
+      form.setValue('exchangeRate', undefined);
     }
-  }, [needsConversion, form]);
+  }, [exchangeRateType, form]);
 
   const handleSupplierSelect = (option: SelectOption | null) => {
     const rawCurrencyCode = option?.additionals?.currencyCode;
     const nextSupplierCurrencyCode = typeof rawCurrencyCode === 'string' ? rawCurrencyCode : '';
     form.setValue('supplierCurrencyCode', nextSupplierCurrencyCode);
-
-    if (nextSupplierCurrencyCode) {
-      form.setValue('currencyCode', nextSupplierCurrencyCode);
-      form.setValue('conversionRate', 1);
-    }
   };
 
   return (
@@ -74,8 +71,8 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
       onCancel={onCancel}
       transformSubmit={(data) => ({
         supplierId: data.supplierId,
-        currencyCode: data.currencyCode,
-        conversionRate: data.currencyCode === data.supplierCurrencyCode ? 1 : (data.conversionRate ?? 1),
+        exchangeRateType: data.exchangeRateType,
+        exchangeRate: data.exchangeRateType === 'FIXED' ? ((data.exchangeRate ?? undefined) as number | undefined) : null,
         orderDate: data.orderDate,
         expectedBy: data.expectedBy || undefined,
         notes: data.notes || undefined,
@@ -94,16 +91,27 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
         transformDescription={formatSupplierDescription}
         onOptionSelect={handleSupplierSelect}
       />
-      <CurrencySelector name="currencyCode" label="PO Currency" placeholder="Select currency" />
-      {needsConversion ? (
-        <TextField
-          name="conversionRate"
-          label={`Conversion Rate (${supplierCurrencyCode} -> ${poCurrencyCode})`}
-          type="number"
-          placeholder="e.g. 83.250000"
-          positive
-          nonZero
-        />
+      {supplierCurrencyCode ? (
+        <>
+          <Select
+            name="exchangeRateType"
+            label="Exchange Rate Policy"
+            description="FIXED locks the rate at PO time (auditable). VARIABLE defers to goods-receipt posting."
+            options={EXCHANGE_RATE_TYPE_OPTIONS}
+            clearable={false}
+          />
+          {exchangeRateType === 'FIXED' ? (
+            <TextField
+              name="exchangeRate"
+              label={`Exchange Rate (${supplierCurrencyCode} → BU currency)`}
+              description="Leave blank if supplier currency matches your business unit currency."
+              type="number"
+              placeholder="e.g. 83.250000"
+              positive
+              nonZero
+            />
+          ) : null}
+        </>
       ) : null}
       <DatePicker name="orderDate" label="Order Date" />
       <DateTimePicker

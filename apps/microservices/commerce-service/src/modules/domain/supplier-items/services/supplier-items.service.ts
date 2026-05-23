@@ -221,6 +221,14 @@ export class SupplierItemsService {
     return { success: true, message: `"${existing.inventoryItemName}" (${existing.uomSymbol}) removed from supplier successfully.` };
   }
 
+  // Bulk-removes multiple supplier items for a supplier
+  async bulkUnlinkItems(supplierId: string, supplierItemIds: string[]): Promise<SuccessResponseDto> {
+    const supplier = await this.repository.findSupplierById(supplierId);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    await this.repository.bulkDeleteSupplierItems(supplierItemIds);
+    return { success: true, message: `${supplierItemIds.length} item${supplierItemIds.length === 1 ? '' : 's'} removed from supplier.` };
+  }
+
   async findItemPrice(
     supplierId: string,
     inventoryItemId: string,

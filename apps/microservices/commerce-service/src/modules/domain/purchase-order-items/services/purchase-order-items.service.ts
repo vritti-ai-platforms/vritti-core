@@ -9,7 +9,7 @@ import {
 } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { type CurrencyCode, majorToMinor, resolveCurrency } from '@vritti/api-sdk/money';
+import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems } from '@/db/schema';
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
@@ -21,10 +21,8 @@ export interface PurchaseOrderContext {
   poNumber: string;
   status: PurchaseOrderStatus;
   currencyCode: string;
-  conversionRate: string;
   supplierId: string;
   supplierName: string | null;
-  supplierCurrencyCode: string | null;
 }
 
 @Injectable()
@@ -35,7 +33,6 @@ export class PurchaseOrderItemsService {
     inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
     quantity: { column: purchaseOrderItems.quantity, type: 'number' },
     receivedQuantity: { column: purchaseOrderItems.receivedQuantity, type: 'number' },
-    supplierUnitPrice: { column: purchaseOrderItems.supplierUnitPrice, type: 'number' },
     unitPrice: { column: purchaseOrderItems.unitPrice, type: 'number' },
     totalPrice: { column: purchaseOrderItems.totalPrice, type: 'number' },
   };
@@ -43,9 +40,9 @@ export class PurchaseOrderItemsService {
   constructor(private readonly repository: PurchaseOrderItemsRepository) {}
 
   // Returns all line items for a PO
-  async findByPoId(poId: string, poCurrencyCode: string, supplierCurrencyCode?: string | null): Promise<PurchaseOrderItemDto[]> {
+  async findByPoId(poId: string): Promise<PurchaseOrderItemDto[]> {
     const items = await this.repository.findItemsByPoId(poId);
-    return items.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName, poCurrencyCode, supplierCurrencyCode));
+    return items.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName));
   }
 
   // Returns inventory item IDs for a PO
@@ -57,8 +54,6 @@ export class PurchaseOrderItemsService {
   async findForTable(
     poId: string,
     state: TableViewState,
-    poCurrencyCode: string,
-    supplierCurrencyCode?: string | null,
   ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrderItemsService.ITEM_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrderItemsService.ITEM_FIELD_MAP);
@@ -74,18 +69,24 @@ export class PurchaseOrderItemsService {
     });
 
     return {
-      result: result.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName, poCurrencyCode, supplierCurrencyCode)),
+      result: result.map((item) => PurchaseOrderItemDto.from(item, item.inventoryItemName)),
       count,
     };
   }
 
   // Adds a line item to a draft PO. Does not call syncTotalAmount — that is the app-layer's responsibility.
-  async addItem(po: PurchaseOrderContext, data: AddPurchaseOrderItemDto, uomId: string, conversionFactor: number): Promise<void> {
+  async addItem(
+    po: PurchaseOrderContext,
+    data: AddPurchaseOrderItemDto,
+    inventoryItemId: string,
+    uomId: string,
+    conversionFactor: number,
+  ): Promise<void> {
     if (po.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
     }
 
-    const duplicate = await this.repository.findItemByInventoryItemId(po.id, data.inventoryItemId);
+    const duplicate = await this.repository.findItemByInventoryItemId(po.id, inventoryItemId);
     if (duplicate) {
       throw new BadRequestException({
         label: 'Duplicate Item',
@@ -93,40 +94,18 @@ export class PurchaseOrderItemsService {
       });
     }
 
-    const supplierCode = (po.supplierCurrencyCode ?? po.currencyCode) as CurrencyCode;
     const poCode = po.currencyCode as CurrencyCode;
 
-    if (data.supplierUnitPrice.currency !== supplierCode) {
-      throw new BadRequestException({
-        label: 'Currency Mismatch',
-        detail: `supplierUnitPrice.currency must be ${supplierCode}.`,
-      });
-    }
-
-    if (data.unitPrice && data.unitPrice.currency !== poCode) {
+    if (data.unitPrice.currency !== poCode) {
       throw new BadRequestException({
         label: 'Currency Mismatch',
         detail: `unitPrice.currency must be ${poCode}.`,
       });
     }
 
-    const itemConversionRate = Number(po.conversionRate);
-
-    let supplierUnitPriceMinor: bigint;
     let unitPriceMinor: bigint;
-
     try {
-      supplierUnitPriceMinor = majorToMinor(data.supplierUnitPrice.value, supplierCode);
-
-      if (data.unitPrice != null) {
-        unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
-      } else {
-        // Cross-currency scale: supplier_minor × rate × 10^poExp / 10^itemExp
-        const itemExp = Number(resolveCurrency(supplierCode).exponent);
-        const poExp = Number(resolveCurrency(poCode).exponent);
-        const unitPriceNum = (Number(supplierUnitPriceMinor) * itemConversionRate * 10 ** poExp) / 10 ** itemExp;
-        unitPriceMinor = BigInt(Math.round(unitPriceNum));
-      }
+      unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
     } catch (e) {
       throw new BadRequestException({
         label: 'Invalid Price',
@@ -142,14 +121,14 @@ export class PurchaseOrderItemsService {
 
     await this.repository.create({
       purchaseOrderId: po.id,
-      inventoryItemId: data.inventoryItemId,
+      inventoryItemId,
       uomId,
       quantity: String(data.quantity),
       conversionFactor: String(conversionFactor),
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
-      supplierUnitPrice: supplierUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
+      currencyCode: po.currencyCode,
     });
 
     this.logger.log(`Added item to PO ${po.poNumber} (${po.id})`);
@@ -179,28 +158,11 @@ export class PurchaseOrderItemsService {
       }
     }
 
-    const supplierCode = (po.supplierCurrencyCode ?? po.currencyCode) as CurrencyCode;
     const poCode = po.currencyCode as CurrencyCode;
-    const conversionRate = Number(po.conversionRate);
-
     const orderedQuantity = data.quantity ?? Number(item.quantity);
 
-    let supplierUnitPriceMinor: bigint;
     let unitPriceMinor: bigint;
-
     try {
-      if (data.supplierUnitPrice !== undefined) {
-        if (data.supplierUnitPrice.currency !== supplierCode) {
-          throw new BadRequestException({
-            label: 'Currency Mismatch',
-            detail: `supplierUnitPrice.currency must be ${supplierCode}.`,
-          });
-        }
-        supplierUnitPriceMinor = majorToMinor(data.supplierUnitPrice.value, supplierCode);
-      } else {
-        supplierUnitPriceMinor = item.supplierUnitPrice;
-      }
-
       if (data.unitPrice != null) {
         if (data.unitPrice.currency !== poCode) {
           throw new BadRequestException({
@@ -209,14 +171,8 @@ export class PurchaseOrderItemsService {
           });
         }
         unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
-      } else if (data.unitPrice === null) {
-        // Explicitly cleared — derive from supplier price using item's conversion rate
-        const itemExp = Number(resolveCurrency(supplierCode).exponent);
-        const poExp = Number(resolveCurrency(poCode).exponent);
-        const unitPriceNum = (Number(supplierUnitPriceMinor) * conversionRate * 10 ** poExp) / 10 ** itemExp;
-        unitPriceMinor = BigInt(Math.round(unitPriceNum));
       } else {
-        unitPriceMinor = item.unitPrice != null ? item.unitPrice : supplierUnitPriceMinor;
+        unitPriceMinor = item.unitPrice;
       }
     } catch (e) {
       if (e instanceof BadRequestException) throw e;
@@ -237,7 +193,6 @@ export class PurchaseOrderItemsService {
       quantity: String(orderedQuantity),
       conversionFactor: String(conversionFactor),
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
-      supplierUnitPrice: supplierUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
     });
@@ -258,21 +213,5 @@ export class PurchaseOrderItemsService {
     await this.repository.delete(itemId);
     this.logger.log(`Removed item ${itemId} from PO ${po.poNumber}`);
     return { success: true, message: `Line item removed from purchase order "${po.poNumber}".` };
-  }
-
-  // Recalculates unit and total prices for all items on a PO when the header currency or rate changes.
-  // Called by the app-layer root service inside a transaction — does not call syncTotalAmount.
-  async recalculateForCurrencyChange(
-    poId: string,
-    newCurrencyCode: string,
-    newConversionRate: number,
-    supplierCurrencyCode: string,
-  ): Promise<void> {
-    const newCurrencyCodeTyped = newCurrencyCode as CurrencyCode;
-    const supplierCode = supplierCurrencyCode as CurrencyCode;
-    const poExp = Number(resolveCurrency(newCurrencyCodeTyped).exponent);
-    const itemExp = Number(resolveCurrency(supplierCode).exponent);
-    const scaleFactor = 10 ** poExp / 10 ** itemExp;
-    await this.repository.recalculateAllForPo(poId, newConversionRate, scaleFactor);
   }
 }

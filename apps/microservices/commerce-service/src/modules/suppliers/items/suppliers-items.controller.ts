@@ -53,6 +53,12 @@ export class SuppliersItemsController {
     return this.domainService.unlinkItem(data.supplierId, data.supplierItemId);
   }
 
+  @MessagePattern({ cmd: 'suppliers.bulkUnlinkItems' })
+  bulkUnlinkItems(@Payload() data: { supplierId: string; supplierItemIds: string[] }): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.bulkUnlinkItems');
+    return this.domainService.bulkUnlinkItems(data.supplierId, data.supplierItemIds);
+  }
+
   @MessagePattern({ cmd: 'suppliers.findItemPrice' })
   findItemPrice(
     @Payload() data: { supplierId: string; inventoryItemId: string; uomId: string },

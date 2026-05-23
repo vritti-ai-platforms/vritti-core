@@ -9,23 +9,6 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
     super(database, purchaseOrders, { sequence: purchaseOrderNumberSeq });
   }
 
-  // Updates PO currency and conversion rate
-  async updateCurrency(
-    id: string,
-    data: { currencyCode: string; conversionRate: string },
-  ): Promise<typeof purchaseOrders.$inferSelect | null> {
-    const [row] = await this.db
-      .update(purchaseOrders)
-      .set({
-        currencyCode: data.currencyCode,
-        conversionRate: data.conversionRate,
-      })
-      .where(eq(purchaseOrders.id, id))
-      .returning();
-
-    return row ?? null;
-  }
-
   // Generates a sequential PO number
   async generatePoNumber(): Promise<string> {
     const now = new Date();
@@ -37,9 +20,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
   // Returns PO with supplier name for detail endpoint
   async findByIdWithSupplierName(
     id: string,
-  ): Promise<
-    (typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }) | null
-  > {
+  ): Promise<(typeof purchaseOrders.$inferSelect & { supplierName: string | null }) | null> {
     const [row] = await this.db
       .select({
         id: purchaseOrders.id,
@@ -49,7 +30,8 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         poNumber: purchaseOrders.poNumber,
         status: purchaseOrders.status,
         currencyCode: purchaseOrders.currencyCode,
-        conversionRate: purchaseOrders.conversionRate,
+        exchangeRate: purchaseOrders.exchangeRate,
+        exchangeRateType: purchaseOrders.exchangeRateType,
         orderDate: purchaseOrders.orderDate,
         expectedBy: purchaseOrders.expectedBy,
         timezone: purchaseOrders.timezone,
@@ -59,7 +41,6 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         createdAt: purchaseOrders.createdAt,
         updatedAt: purchaseOrders.updatedAt,
         supplierName: suppliers.name,
-        supplierCurrencyCode: suppliers.currencyCode,
       })
       .from(purchaseOrders)
       .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
@@ -71,15 +52,10 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
 
   // Returns paginated POs with supplier name for table view
   async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (typeof purchaseOrders.$inferSelect & {
-      supplierName: string | null;
-      supplierCurrencyCode: string | null;
-    })[];
+    result: (typeof purchaseOrders.$inferSelect & { supplierName: string | null })[];
     count: number;
   }> {
-    return this.findAllAndCount<
-      typeof purchaseOrders.$inferSelect & { supplierName: string | null; supplierCurrencyCode: string | null }
-    >({
+    return this.findAllAndCount<typeof purchaseOrders.$inferSelect & { supplierName: string | null }>({
       select: {
         id: purchaseOrders.id,
         organizationId: purchaseOrders.organizationId,
@@ -88,7 +64,8 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         poNumber: purchaseOrders.poNumber,
         status: purchaseOrders.status,
         currencyCode: purchaseOrders.currencyCode,
-        conversionRate: purchaseOrders.conversionRate,
+        exchangeRate: purchaseOrders.exchangeRate,
+        exchangeRateType: purchaseOrders.exchangeRateType,
         orderDate: purchaseOrders.orderDate,
         expectedBy: purchaseOrders.expectedBy,
         timezone: purchaseOrders.timezone,
@@ -98,7 +75,6 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
         createdAt: purchaseOrders.createdAt,
         updatedAt: purchaseOrders.updatedAt,
         supplierName: suppliers.name,
-        supplierCurrencyCode: suppliers.currencyCode,
       },
       leftJoins: [{ table: suppliers, on: eq(purchaseOrders.supplierId, suppliers.id) }],
       where: options.where,

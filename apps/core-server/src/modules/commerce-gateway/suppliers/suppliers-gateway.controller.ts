@@ -13,11 +13,11 @@ import { SessionTypeValues } from '@/db/schema';
 import { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
+import { BulkUnlinkSupplierItemsDto } from './dto/request/bulk-unlink-supplier-items.dto';
 import { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
 import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
-import { SupplierItemsSelectQueryDto } from './dto/request/supplier-items-select-query.dto';
 import type { SupplierContactResponseDto } from './dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from './dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from './dto/response/supplier-item-table-response.dto';
@@ -85,16 +85,6 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.findItemIds(supplierId);
   }
 
-  // Returns inventory item options not yet fully linked to this supplier
-  @Get(':id/items/select')
-  selectItems(
-    @Param('id') id: string,
-    @Query() query: SupplierItemsSelectQueryDto,
-  ): Promise<SelectQueryResult> {
-    this.logger.log(`GET /commerce-api/suppliers/${id}/items/select`);
-    return this.suppliersGatewayService.selectItems(id, query);
-  }
-
   // Returns contacts for a supplier
   @Get(':id/contacts')
   getSupplierContacts(@Param('id') supplierId: string): Promise<SupplierContactResponseDto[]> {
@@ -158,6 +148,16 @@ export class SuppliersGatewayController {
   unlinkItem(@Param('id') supplierId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/suppliers/${supplierId}/items/${itemId}`);
     return this.suppliersGatewayService.unlinkItem(supplierId, itemId);
+  }
+
+  // Bulk-unlinks multiple inventory items from a supplier
+  @Delete(':id/items')
+  bulkUnlinkItems(
+    @Param('id') supplierId: string,
+    @Body() dto: BulkUnlinkSupplierItemsDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/suppliers/${supplierId}/items`);
+    return this.suppliersGatewayService.bulkUnlinkItems(supplierId, dto);
   }
 
   // Adds a contact to a supplier

@@ -9,8 +9,8 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
-import type { ChangePurchaseOrderCurrencyDto } from '../dto/request/change-purchase-order-currency.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderNotesDto } from '../dto/request/update-purchase-order-notes.dto';
@@ -44,9 +44,12 @@ export class PurchaseOrdersRootController {
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.create' })
-  create(@Payload() dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  create(
+    @Payload() dto: CreatePurchaseOrderDto,
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
-    return this.appService.create(dto);
+    return this.appService.create(dto, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.updateNotes' })
@@ -60,13 +63,6 @@ export class PurchaseOrdersRootController {
     this.logger.log(`purchaseOrders.changeSupplier — id: ${data.id}, supplier: ${data.supplierId}`);
     const { id, ...dto } = data;
     return this.appService.changeSupplier(id, dto);
-  }
-
-  @MessagePattern({ cmd: 'purchaseOrders.changeCurrency' })
-  changeCurrency(@Payload() data: { id: string } & ChangePurchaseOrderCurrencyDto): Promise<SuccessResponseDto> {
-    this.logger.log(`purchaseOrders.changeCurrency — id: ${data.id}, currency: ${data.currencyCode}`);
-    const { id, ...dto } = data;
-    return this.appService.changeCurrency(id, dto);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.updateStatus' })

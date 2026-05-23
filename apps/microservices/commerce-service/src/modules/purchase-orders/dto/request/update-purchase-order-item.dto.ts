@@ -13,10 +13,5 @@ export class UpdatePurchaseOrderItemDto {
 
   @IsOptional()
   @IsCurrency()
-  supplierUnitPrice?: CurrencyAmountDto;
-
-  @IsOptional()
-  @IsCurrency()
   unitPrice?: CurrencyAmountDto;
-
 }

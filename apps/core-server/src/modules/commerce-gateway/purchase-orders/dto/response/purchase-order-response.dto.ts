@@ -11,9 +11,6 @@ export class PurchaseOrderResponseDto {
   @ApiPropertyOptional({ description: 'Supplier name', nullable: true })
   supplierName: string | null;
 
-  @ApiPropertyOptional({ description: 'Supplier currency code (ISO 4217)', nullable: true, example: 'INR' })
-  supplierCurrencyCode: string | null;
-
   @ApiPropertyOptional({ description: 'PO number', nullable: true })
   poNumber: string | null;
 
@@ -23,11 +20,21 @@ export class PurchaseOrderResponseDto {
   })
   status: string;
 
-  @ApiProperty({ description: 'PO currency code (ISO 4217)', example: 'INR' })
+  @ApiProperty({ description: 'PO currency code (ISO 4217) — snapshot from supplier', example: 'USD' })
   currencyCode: string;
 
-  @ApiProperty({ description: 'FX conversion rate from supplier currency to PO currency', example: 1 })
-  conversionRate: number;
+  @ApiPropertyOptional({
+    description: 'Exchange rate from supplier currency to BU currency. Null when type is VARIABLE.',
+    nullable: true,
+    example: 83.5,
+  })
+  exchangeRate: number | null;
+
+  @ApiProperty({
+    description: 'Exchange rate policy. FIXED locks the rate at PO time; VARIABLE defers to GR/invoice.',
+    enum: ['FIXED', 'VARIABLE'],
+  })
+  exchangeRateType: 'FIXED' | 'VARIABLE';
 
   @ApiProperty({ description: 'Order date (ISO string)' })
   orderDate: string;

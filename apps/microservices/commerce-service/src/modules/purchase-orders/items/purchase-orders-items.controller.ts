@@ -36,7 +36,7 @@ export class PurchaseOrdersItemsController {
 
   @MessagePattern({ cmd: 'purchaseOrders.addItem' })
   addItem(@Payload() data: { id: string } & AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    this.logger.log(`purchaseOrders.addItem — id: ${data.id}, inventoryItemId: ${data.inventoryItemId}`);
+    this.logger.log(`purchaseOrders.addItem — id: ${data.id}, supplierItemId: ${data.supplierItemId}`);
     const { id, ...dto } = data;
     return this.service.addItem(id, dto);
   }

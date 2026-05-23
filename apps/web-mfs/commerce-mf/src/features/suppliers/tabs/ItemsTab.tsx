@@ -1,12 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, getSelectionColumn, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { SUPPLIER_ITEMS_TABLE_KEY, useSupplierItemsTable, useUnlinkSupplierItem } from '@/hooks/suppliers';
+import { SUPPLIER_ITEMS_TABLE_KEY, useBulkUnlinkSupplierItems, useSupplierItemsTable, useUnlinkSupplierItem } from '@/hooks/suppliers';
 import type { SupplierItemData } from '@/schemas/suppliers';
 import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
 import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
@@ -21,6 +21,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
   const addItemDialog = useDialog();
   const confirm = useConfirm();
   const unlinkMutation = useUnlinkSupplierItem(supplierId);
+  const bulkUnlinkMutation = useBulkUnlinkSupplierItems(supplierId);
   const { data: response, isLoading } = useSupplierItemsTable(supplierId);
 
   const handleUnlinkItem = useCallback(
@@ -38,6 +39,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
 
   const linkedItemColumns = useMemo<ColumnDef<SupplierItemData>[]>(
     () => [
+      getSelectionColumn<SupplierItemData>(),
       {
         accessorKey: 'inventoryItemName',
         header: 'Inventory Item',
@@ -122,7 +124,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
     slug: `commerce-supplier-${supplierId}-items`,
     label: 'item',
     serverState: response,
-    enableRowSelection: false,
+    enableRowSelection: true,
     onStatePush: () => queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) }),
   });
 
@@ -131,6 +133,22 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       <DataTable
         table={linkedItemsTable}
         isLoading={isLoading}
+        selectActions={(rows) => (
+          <Button
+            size="sm"
+            variant="destructive"
+            startAdornment={<Trash2 className="size-4" />}
+            isLoading={bulkUnlinkMutation.isPending}
+            onClick={() => {
+              const ids = rows.map((r) => r.original.id);
+              bulkUnlinkMutation.mutate(ids, {
+                onSuccess: () => linkedItemsTable.resetRowSelection(),
+              });
+            }}
+          >
+            Unlink
+          </Button>
+        )}
         toolbarActions={{
           actions: (
             <Button size="sm" onClick={addItemDialog.open}>

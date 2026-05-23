@@ -199,9 +199,18 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
             ? await Promise.all([buRepo.findAncestors(path), buRepo.findDescendants(path)])
             : [[buId], [buId]];
           const buTimezone = bu?.timezone ?? 'UTC';
+          const buCurrencyCode = bu?.currencyCode ?? '';
 
-          buContextCache.set(buId, { buTimezone, buAncestorIds, buDescendantIds });
-          return { orgId, userId: sessionInfo.userId, buId, buTimezone, buAncestorIds, buDescendantIds };
+          buContextCache.set(buId, { buTimezone, buCurrencyCode, buAncestorIds, buDescendantIds });
+          return {
+            orgId,
+            userId: sessionInfo.userId,
+            buId,
+            buTimezone,
+            buCurrencyCode,
+            buAncestorIds,
+            buDescendantIds,
+          };
         },
       }),
     }),

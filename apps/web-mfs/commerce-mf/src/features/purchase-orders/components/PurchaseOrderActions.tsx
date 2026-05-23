@@ -1,13 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
 import { useConfirm } from '@vritti/quantum-ui/hooks';
-import { Mail, MoreVertical, Pencil, Printer, Send, Trash2, Truck, Wallet } from 'lucide-react';
+import { Mail, MoreVertical, Pencil, Printer, Send, Trash2, Truck } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeletePurchaseOrder, useUpdatePurchaseOrderStatus } from '@/hooks/purchase-orders';
 import type { PurchaseOrderDetail, PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { downloadPurchaseOrderPdf } from '@/services/purchase-orders.service';
-import { ChangePurchaseOrderCurrencyDialog } from '../forms/ChangePurchaseOrderCurrencyDialog';
 import { ChangePurchaseOrderSupplierDialog } from '../forms/ChangePurchaseOrderSupplierDialog';
 import { SendPurchaseOrderEmailDialog } from '../forms/SendPurchaseOrderEmailDialog';
 import { UpdatePurchaseOrderNotesDialog } from '../forms/UpdatePurchaseOrderNotesDialog';
@@ -111,11 +110,6 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
     ),
     [po, poItemIds.length],
   );
-  const renderChangeCurrencyDialog = useCallback(
-    (close: () => void) => <ChangePurchaseOrderCurrencyDialog purchaseOrder={po} onSuccess={close} onCancel={close} />,
-    [po],
-  );
-
   const nextAction = nextPurchaseOrderStatusAction[po.status];
   const totalAmountValue = Number(po.totalAmount?.value ?? 0);
   const hasPositiveTotalAmount = Number.isFinite(totalAmountValue) && totalAmountValue > 0;
@@ -178,18 +172,6 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
             ? 'Remove all line items before changing supplier.'
             : 'Select a new supplier for this purchase order.',
         content: renderChangeSupplierDialog,
-      },
-    });
-    actionMenuItems.push({
-      type: 'dialog',
-      id: 'change-currency',
-      label: 'Change Currency',
-      icon: Wallet,
-      dialog: {
-        title: 'Change Currency',
-        description:
-          'Change PO currency and conversion rate. All line item unit prices will be recalculated from supplier prices.',
-        content: renderChangeCurrencyDialog,
       },
     });
   }

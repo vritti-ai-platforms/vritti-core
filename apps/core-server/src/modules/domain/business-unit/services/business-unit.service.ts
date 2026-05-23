@@ -48,6 +48,7 @@ export class BusinessUnitService {
       depth,
       path,
       timezone: dto.timezone,
+      currencyCode: dto.currencyCode,
       metadata: dto.metadata as BuMetadata,
     });
 

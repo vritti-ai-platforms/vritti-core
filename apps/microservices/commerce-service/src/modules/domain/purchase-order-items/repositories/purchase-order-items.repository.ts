@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { aliasedTable, and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { aliasedTable, and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, type PurchaseOrderItem, purchaseOrderItems, uom } from '@/db/schema';
 
 const orderUom = aliasedTable(uom, 'order_uom');
+
+type EnrichedItem = PurchaseOrderItem & {
+  inventoryItemName: string;
+  orderUomSymbol: string | null;
+  primaryUomSymbol: string | null;
+};
 
 @Injectable()
 export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof purchaseOrderItems> {
@@ -12,9 +18,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
   }
 
   // Returns all line items for a PO with inventory item names, order UOM symbol, and primary UOM symbol
-  async findItemsByPoId(
-    poId: string,
-  ): Promise<(PurchaseOrderItem & { inventoryItemName: string; orderUomSymbol: string | null; primaryUomSymbol: string | null })[]> {
+  async findItemsByPoId(poId: string): Promise<EnrichedItem[]> {
     const rows = await this.db
       .select({
         id: purchaseOrderItems.id,
@@ -26,9 +30,9 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         receivedQuantity: purchaseOrderItems.receivedQuantity,
         conversionFactor: purchaseOrderItems.conversionFactor,
         primaryUomUnitPrice: purchaseOrderItems.primaryUomUnitPrice,
-        supplierUnitPrice: purchaseOrderItems.supplierUnitPrice,
         unitPrice: purchaseOrderItems.unitPrice,
         totalPrice: purchaseOrderItems.totalPrice,
+        currencyCode: purchaseOrderItems.currencyCode,
         inventoryItemName: inventoryItems.name,
         orderUomSymbol: orderUom.symbol,
         primaryUomSymbol: uom.symbol,
@@ -39,7 +43,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
       .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
       .where(eq(purchaseOrderItems.purchaseOrderId, poId));
 
-    return rows as (PurchaseOrderItem & { inventoryItemName: string; orderUomSymbol: string | null; primaryUomSymbol: string | null })[];
+    return rows as EnrichedItem[];
   }
 
   // Returns inventory item IDs linked to a PO
@@ -56,16 +60,10 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
   async findItemsForTable(
     poId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: (PurchaseOrderItem & { inventoryItemName: string; orderUomSymbol: string | null; primaryUomSymbol: string | null })[]; count: number }> {
+  ): Promise<{ result: EnrichedItem[]; count: number }> {
     const baseWhere = eq(purchaseOrderItems.purchaseOrderId, poId);
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
-    return this.findAllAndCount<
-      PurchaseOrderItem & {
-        inventoryItemName: string;
-        orderUomSymbol: string | null;
-        primaryUomSymbol: string | null;
-      }
-    >({
+    return this.findAllAndCount<EnrichedItem>({
       select: {
         id: purchaseOrderItems.id,
         organizationId: purchaseOrderItems.organizationId,
@@ -76,9 +74,9 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         receivedQuantity: purchaseOrderItems.receivedQuantity,
         conversionFactor: purchaseOrderItems.conversionFactor,
         primaryUomUnitPrice: purchaseOrderItems.primaryUomUnitPrice,
-        supplierUnitPrice: purchaseOrderItems.supplierUnitPrice,
         unitPrice: purchaseOrderItems.unitPrice,
         totalPrice: purchaseOrderItems.totalPrice,
+        currencyCode: purchaseOrderItems.currencyCode,
         inventoryItemName: inventoryItems.name,
         orderUomSymbol: orderUom.symbol,
         primaryUomSymbol: uom.symbol,
@@ -124,17 +122,5 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         totalPrice: data.totalPrice,
       })
       .where(eq(purchaseOrderItems.id, itemId));
-  }
-
-  // Recalculates unit, total, and primary-UOM unit prices for all items on a PO using the header conversion rate and scale factor
-  async recalculateAllForPo(poId: string, conversionRate: number, scaleFactor: number): Promise<void> {
-    await this.db
-      .update(purchaseOrderItems)
-      .set({
-        unitPrice: sql`ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor})::bigint`,
-        totalPrice: sql`ROUND(${purchaseOrderItems.quantity}::numeric * ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor}))::bigint`,
-        primaryUomUnitPrice: sql`ROUND(ROUND(${purchaseOrderItems.supplierUnitPrice}::numeric * ${conversionRate} * ${scaleFactor}) / ${purchaseOrderItems.conversionFactor}::numeric)::bigint`,
-      })
-      .where(eq(purchaseOrderItems.purchaseOrderId, poId));
   }
 }

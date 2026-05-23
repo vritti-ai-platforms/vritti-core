@@ -39,6 +39,7 @@ export const businessUnits = coreSchema.table(
     sortOrder: integer('sort_order').notNull().default(0),
     appCodes: jsonb('app_codes').$type<string[]>().notNull().default([]),
     timezone: varchar('timezone', { length: 50 }).notNull(),
+    currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     metadata: jsonb('metadata').$type<BuMetadata>(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

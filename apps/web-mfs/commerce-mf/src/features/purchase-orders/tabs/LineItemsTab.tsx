@@ -103,24 +103,6 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
         },
       },
       {
-        accessorKey: 'supplierUnitPrice',
-        header: 'Supplier Unit Price',
-        cell: ({ row }) => {
-          const { supplierUnitPrice, primaryUomSupplierUnitPrice, conversionFactor, primaryUomSymbol } = row.original;
-          const isCrossUom = conversionFactor !== 1;
-          return (
-            <div className="flex flex-col">
-              <span className="font-mono">{`${supplierUnitPrice.currency} ${supplierUnitPrice.value}`}</span>
-              {isCrossUom && (
-                <span className="font-mono text-xs text-muted-foreground">
-                  {`${primaryUomSupplierUnitPrice.currency} ${primaryUomSupplierUnitPrice.value}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''}`}
-                </span>
-              )}
-            </div>
-          );
-        },
-      },
-      {
         accessorKey: 'totalPrice',
         header: 'Total',
         cell: ({ row }) => (
@@ -146,8 +128,6 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
                           <UpdatePurchaseOrderItemDialog
                             purchaseOrderId={purchaseOrderId}
                             poCurrencyCode={purchaseOrder.currencyCode}
-                            supplierCurrencyCode={purchaseOrder.supplierCurrencyCode ?? purchaseOrder.currencyCode}
-                            conversionRate={purchaseOrder.conversionRate}
                             item={row.original}
                             onSuccess={close}
                             onCancel={close}
@@ -171,14 +151,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
           ]
         : []),
     ],
-    [
-      canModifyItems,
-      handleRemoveItem,
-      purchaseOrderId,
-      purchaseOrder.currencyCode,
-      purchaseOrder.supplierCurrencyCode,
-      purchaseOrder.conversionRate,
-    ],
+    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode],
   );
 
   const { table } = useDataTable({

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BadRequestException, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { eq, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemSerials, SerialStatusValues } from '@/db/schema';
 import { InventoryItemSerialsRepository } from '../repositories/inventory-item-serials.repository';
@@ -10,9 +10,8 @@ export class InventoryItemSerialsService {
 
   constructor(private readonly repository: InventoryItemSerialsRepository) {}
 
-  // Returns paginated AVAILABLE serials for a given quant
-  async findForSelect(query: SelectOptionsQueryDto & { quantId: string }): Promise<SelectQueryResult> {
-    if (!query.quantId) throw new BadRequestException('quantId is required.');
+  // Returns paginated AVAILABLE serials, optionally filtered to a specific inventory quant
+  async findForSelect(query: SelectOptionsQueryDto & { quantId?: string }): Promise<SelectQueryResult> {
     const search = query.search?.trim();
     return this.repository.findForSelect({
       value: query.valueKey || 'id',
@@ -25,7 +24,7 @@ export class InventoryItemSerialsService {
       offset: query.offset,
       orderByKey: query.orderByKey || 'createdAt',
       orderDirection: query.orderDirection || 'asc',
-      where: { inventoryItemQuantId: query.quantId },
+      where: query.quantId ? { inventoryItemQuantId: query.quantId } : undefined,
       conditions: [
         eq(inventoryItemSerials.status, SerialStatusValues.AVAILABLE),
         ...(search ? [ilike(inventoryItemSerials.serialNumber, `%${search}%`)] : []),

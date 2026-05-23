@@ -13,7 +13,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { purchaseOrderStatusEnum } from './enums';
+import { exchangeRateTypeEnum, purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 import { suppliers } from './suppliers';
 import { uom } from './uom';
@@ -30,7 +30,8 @@ export const purchaseOrders = coreSchema.table(
     poNumber: varchar('po_number', { length: 50 }).notNull(),
     status: purchaseOrderStatusEnum('status').notNull().default('DRAFT'),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
-    conversionRate: decimal('conversion_rate', { precision: 18, scale: 6 }).notNull().default('1'),
+    exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6 }).default('1'),
+    exchangeRateType: exchangeRateTypeEnum('exchange_rate_type').notNull().default('FIXED'),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
     timezone: varchar('timezone', { length: 50 })
@@ -93,9 +94,9 @@ export const purchaseOrderItems = coreSchema.table(
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
     conversionFactor: numeric('conversion_factor', { precision: 15, scale: 6 }).notNull().default('1'),
     primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }).notNull().default(0n),
-    supplierUnitPrice: bigint('supplier_unit_price', { mode: 'bigint' }).notNull(),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     totalPrice: bigint('total_price', { mode: 'bigint' }).notNull(),
+    currencyCode: varchar('currency_code', { length: 3 }).notNull(),
   },
   (table) => [
     unique('uq_purchase_order_items_po_item_uom').on(table.purchaseOrderId, table.inventoryItemId, table.uomId),

@@ -1,28 +1,18 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z, zodNumericField } from '@vritti/quantum-ui/zod';
+import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
-export const createPurchaseOrderSchema = z
-  .object({
-    supplierId: z.string().min(1, 'Supplier is required'),
-    supplierCurrencyCode: z.string().optional(),
-    currencyCode: z.string().regex(/^[A-Z]{3}$/, 'Currency is required'),
-    conversionRate: zodNumericField({ positive: true, nonZero: true }).optional(),
-    orderDate: z.string().min(1, 'Order date is required'),
-    expectedBy: z.string().optional(),
-    notes: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.supplierCurrencyCode) return;
-    if (data.currencyCode === data.supplierCurrencyCode) return;
+export const ExchangeRateTypeEnum = z.enum(['FIXED', 'VARIABLE']);
+export type ExchangeRateType = z.infer<typeof ExchangeRateTypeEnum>;
 
-    if (data.conversionRate == null || Number.isNaN(data.conversionRate)) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['conversionRate'],
-        message: 'Conversion rate is required when PO currency differs from supplier currency.',
-      });
-    }
-  });
+export const createPurchaseOrderSchema = z.object({
+  supplierId: z.string().min(1, 'Supplier is required'),
+  supplierCurrencyCode: z.string().optional(),
+  exchangeRateType: ExchangeRateTypeEnum,
+  exchangeRate: zodNumericField({ positive: true, nonZero: true }).optional(),
+  orderDate: z.string().min(1, 'Order date is required'),
+  expectedBy: z.string().optional(),
+  notes: z.string().optional(),
+});
 
 export type CreatePurchaseOrderFormData = z.infer<typeof createPurchaseOrderSchema>;
 export type PurchaseOrdersTableResponse = TableResponse<PurchaseOrderData>;
@@ -55,11 +45,11 @@ export interface PurchaseOrderData {
   id: string;
   supplierId: string;
   supplierName: string;
-  supplierCurrencyCode: string | null;
   poNumber: string;
   status: PurchaseOrderStatus;
   currencyCode: string;
-  conversionRate: number;
+  exchangeRate: number | null;
+  exchangeRateType: ExchangeRateType;
   orderDate: string;
   expectedBy: string | null;
   timezone: string;
@@ -76,8 +66,7 @@ export interface PurchaseOrderItemData {
   uomId: string;
   quantity: number;
   receivedQuantity: number;
-  supplierUnitPrice: { currency: string; value: string };
-  primaryUomSupplierUnitPrice: { currency: string; value: string };
+  currencyCode: string;
   unitPrice: { currency: string; value: string };
   totalPrice: { currency: string; value: string };
   conversionFactor: number;
@@ -107,3 +96,11 @@ export interface GoodsReceiptData {
 }
 
 export type PurchaseOrderDetail = PurchaseOrderData;
+
+export const addPurchaseOrderItemSchema = z.object({
+  supplierItemId: z.string().min(1, 'Item is required'),
+  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+  unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+});
+
+export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;

@@ -1,23 +1,18 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsUUID, Min } from 'class-validator';
 
 export class AddPurchaseOrderItemDto {
-  @ApiProperty({ description: 'Inventory item ID' })
+  @ApiProperty({ description: 'Supplier item ID' })
   @IsUUID()
-  inventoryItemId: string;
+  supplierItemId: string;
 
   @ApiProperty({ description: 'Ordered quantity', example: 100 })
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
   quantity: number;
 
-  @ApiProperty({ type: CurrencyAmountDto })
+  @ApiProperty({ type: CurrencyAmountDto, description: 'Unit price in PO/supplier currency' })
   @IsCurrency()
-  supplierUnitPrice: CurrencyAmountDto;
-
-  @ApiPropertyOptional({ type: CurrencyAmountDto })
-  @IsOptional()
-  @IsCurrency()
-  unitPrice?: CurrencyAmountDto;
+  unitPrice: CurrencyAmountDto;
 }

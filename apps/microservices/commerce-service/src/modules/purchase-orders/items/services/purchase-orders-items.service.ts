@@ -32,8 +32,8 @@ export class PurchaseOrdersItemsService {
   ) {}
 
   async findItems(poId: string): Promise<PurchaseOrderItemDto[]> {
-    const po = await this.getPurchaseOrderContext(poId);
-    return this.itemsService.findByPoId(poId, po.currencyCode, po.supplierCurrencyCode);
+    await this.getPurchaseOrderContext(poId);
+    return this.itemsService.findByPoId(poId);
   }
 
   async findItemIds(poId: string): Promise<string[]> {
@@ -46,33 +46,36 @@ export class PurchaseOrdersItemsService {
     poId: string,
     state: TableViewState,
   ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
-    const po = await this.getPurchaseOrderContext(poId);
-    return this.itemsService.findForTable(poId, state, po.currencyCode, po.supplierCurrencyCode);
+    await this.getPurchaseOrderContext(poId);
+    return this.itemsService.findForTable(poId, state);
   }
 
   async addItem(poId: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const po = await this.getPurchaseOrderContext(poId);
 
-    const supplierItem = await this.supplierItemsRepository.findItemBySupplierInventoryItemAndUom(
-      po.supplierId,
-      data.inventoryItemId,
-      data.uomId,
-    );
+    const supplierItem = await this.supplierItemsRepository.findById(data.supplierItemId);
     if (!supplierItem) {
       throw new ValidationException({
-        detail: 'This UOM is not offered by the supplier for this item.',
-        errors: [{ field: 'uomId', message: 'UOM not available from supplier.' }],
+        detail: 'Supplier item not found.',
+        errors: [{ field: 'supplierItemId', message: 'Supplier item not found.' }],
+      });
+    }
+
+    if (supplierItem.supplierId !== po.supplierId) {
+      throw new ValidationException({
+        detail: 'This supplier item does not belong to the purchase order supplier.',
+        errors: [{ field: 'supplierItemId', message: 'Supplier mismatch.' }],
       });
     }
 
     const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
-      data.inventoryItemId,
+      supplierItem.inventoryItemId,
       supplierItem.uomId,
       supplierItem.uomConversionFactor ?? 1,
     );
 
     await this.database.runInTransaction(async () => {
-      await this.itemsService.addItem(po, data, supplierItem.uomId, conversionFactor);
+      await this.itemsService.addItem(po, data, supplierItem.inventoryItemId, supplierItem.uomId, conversionFactor);
       await this.repository.syncTotalAmount(poId);
     });
 
@@ -80,7 +83,7 @@ export class PurchaseOrdersItemsService {
     return {
       success: true,
       message: `Line item added to purchase order "${po.poNumber}".`,
-      data: PurchaseOrderDtoClass.from(po, po.supplierName, po.supplierCurrencyCode),
+      data: PurchaseOrderDtoClass.from(po, po.supplierName),
     };
   }
 

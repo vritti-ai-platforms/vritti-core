@@ -171,6 +171,19 @@ export function unlinkSupplierItem({
   return axios.delete<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/${itemId}`).then((r) => r.data);
 }
 
+// Bulk unlinks multiple supplier items in a single request
+export function bulkUnlinkSupplierItems({
+  supplierId,
+  supplierItemIds,
+}: {
+  supplierId: string;
+  supplierItemIds: string[];
+}): Promise<SuccessResponse> {
+  return axios
+    .delete<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items`, { data: { supplierItemIds } })
+    .then((r) => r.data);
+}
+
 // Adds a contact to a supplier
 export function addSupplierContact({
   supplierId,

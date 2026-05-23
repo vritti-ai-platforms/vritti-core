@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NatsClientService, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import { NatsClientService, type SelectQueryResult } from '@vritti/api-sdk';
+import { LotsSelectQueryDto } from '../dto/request/lots-select-query.dto';
 
 @Injectable()
 export class InventoryItemLotsGatewayService {
@@ -7,9 +8,9 @@ export class InventoryItemLotsGatewayService {
 
   constructor(private readonly nats: NatsClientService) {}
 
-  // Returns paginated lot options for a given inventory item
-  async select(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItems.selectLots — inventoryItemId: ${query.inventoryItemId}`);
+  // Returns paginated lot options, optionally filtered to a specific inventory item
+  async select(query: LotsSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`inventoryItems.selectLots — inventoryItemId: ${query.inventoryItemId ?? 'all'}`);
     return this.nats.send('commerce', 'inventoryItems.selectLots', query);
   }
 }

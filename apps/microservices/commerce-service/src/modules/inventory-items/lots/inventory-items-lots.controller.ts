@@ -23,10 +23,10 @@ export class InventoryItemsLotsController {
     return this.itemsLotsService.findForTable(data.itemId, data);
   }
 
-  // Returns paginated lot options scoped to a single inventory item
+  // Returns paginated lot options, optionally filtered to a specific inventory item
   @MessagePattern({ cmd: 'inventoryItems.selectLots' })
-  async select(@Payload() data: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItems.selectLots — inventoryItemId: ${data.inventoryItemId}`);
+  async select(@Payload() data: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {
+    this.logger.log(`inventoryItems.selectLots — inventoryItemId: ${data.inventoryItemId ?? 'all'}`);
     return this.service.findForSelect(data);
   }
 }
