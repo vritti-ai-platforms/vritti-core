@@ -1,6 +1,7 @@
 import { type RouteProp, useNavigation } from '@react-navigation/native';
 import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
 import { Button } from '@vritti/quantum-ui-native/Button';
+import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { PushNavigator, type PushScreenConfig } from '@vritti/quantum-ui-native/PushNavigator';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { ScreenHeader } from '@vritti/quantum-ui-native/ScreenHeader';
@@ -115,11 +116,40 @@ function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams },
   );
 }
 
+const CREATE_ICON = { sfSymbol: 'plus', materialIcon: 'add' } as const;
+
+function CreateButton() {
+  // onPress is a placeholder — the create flow is not wired up yet.
+  return (
+    <Button variant="glass" size="icon" onPress={() => {}} accessibilityLabel="Create" hitSlop={8}>
+      <DynamicIcon icon={CREATE_ICON} size={24} />
+    </Button>
+  );
+}
+
+const FILTER_ICON = { sfSymbol: 'line.3.horizontal.decrease', materialIcon: 'filter-list' } as const;
+
+function FilterButton() {
+  // onPress is a placeholder — filtering/sorting is not wired up yet.
+  return (
+    <Button variant="glass" size="icon" onPress={() => {}} accessibilityLabel="Filter" hitSlop={8}>
+      <DynamicIcon icon={FILTER_ICON} size={24} />
+    </Button>
+  );
+}
+
 const screens: ReadonlyArray<PushScreenConfig<UOMRoute>> = [
   {
     name: 'UOMList',
     component: UOMList,
-    header: () => <ScreenHeader title="Units of Measure" subtitle="Manage UOM definitions" />,
+    header: () => (
+      <ScreenHeader
+        title="Units of Measure"
+        subtitle="Manage UOM definitions"
+        leftActions={<FilterButton />}
+        rightActions={<CreateButton />}
+      />
+    ),
   },
   { name: 'UOMDetail', component: UOMDetail, headerShown: true, title: 'UOM Detail' },
 ];
