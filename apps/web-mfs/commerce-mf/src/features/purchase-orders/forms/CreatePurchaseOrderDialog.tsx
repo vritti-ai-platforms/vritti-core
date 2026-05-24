@@ -25,12 +25,6 @@ const EXCHANGE_RATE_TYPE_OPTIONS = [
   { label: 'Variable (resolve at GR/invoice)', value: 'VARIABLE' },
 ];
 
-// Renders "<code> · <payment terms>" under the supplier name in the dropdown
-const formatSupplierDescription = (code: string, option: SelectOption): string => {
-  const paymentTerms = option.additionals?.paymentTerms;
-  return paymentTerms ? `${code} · ${paymentTerms}` : code;
-};
-
 export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps> = ({ onSuccess, onCancel }) => {
   const buCurrencyCode = useBUCurrency();
 
@@ -82,19 +76,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
         notes: data.notes || undefined,
       })}
     >
-      <SupplierSelector
-        name="supplierId"
-        label="Supplier"
-        placeholder="Select supplier"
-        fieldKeys={{
-          valueKey: 'id',
-          labelKey: 'name',
-          descriptionKey: 'code',
-          additionalKeys: 'currencyCode,paymentTerms',
-        }}
-        transformDescription={formatSupplierDescription}
-        onOptionSelect={handleSupplierSelect}
-      />
+      <SupplierSelector name="supplierId" onOptionSelect={handleSupplierSelect} />
       {needsExchangeRate ? (
         <>
           <Select
