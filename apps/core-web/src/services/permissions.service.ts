@@ -26,6 +26,7 @@ export interface AssignedBU {
   code: string | null;
   type: string;
   timezone: string;
+  currencyCode: string;
 }
 
 // Fetches business units where the user has role assignments

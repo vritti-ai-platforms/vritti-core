@@ -1,4 +1,5 @@
 import { defineConfig } from '@vritti/quantum-ui';
+import { getBusinessUnitCurrency, getUserCurrency } from '@vritti/quantum-ui/currency';
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { getBusinessUnitTimeZone, getUserTimeZone } from '@vritti/quantum-ui/timezone';
 
@@ -69,6 +70,17 @@ export default defineConfig({
       }
 
       return getUserTimeZone();
+    },
+  },
+
+  currency: {
+    resolveCurrency: () => {
+      const businessUnitId = getActiveBusinessUnitId();
+      if (businessUnitId) {
+        return getBusinessUnitCurrency(businessUnitId) ?? getUserCurrency();
+      }
+
+      return getUserCurrency();
     },
   },
 

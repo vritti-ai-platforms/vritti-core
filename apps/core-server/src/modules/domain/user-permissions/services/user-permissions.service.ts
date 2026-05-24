@@ -26,6 +26,7 @@ export interface AssignedBU {
   code: string | null;
   type: string;
   timezone: string;
+  currencyCode: string;
 }
 
 @Injectable()
@@ -51,7 +52,15 @@ export class UserPermissionsService {
     const result: AssignedBU[] = [];
     for (const id of buIds) {
       const bu = buMap.get(id);
-      if (bu) result.push({ id: bu.id, name: bu.name, code: bu.code, type: bu.type as string, timezone: bu.timezone });
+      if (bu)
+        result.push({
+          id: bu.id,
+          name: bu.name,
+          code: bu.code,
+          type: bu.type as string,
+          timezone: bu.timezone,
+          currencyCode: bu.currencyCode,
+        });
     }
     return result;
   }

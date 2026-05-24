@@ -1,6 +1,7 @@
 import { useAssignedBusinessUnits, useUserPermissions } from '@hooks/usePermissions';
 import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
 import { parseSlug } from '@vritti/quantum-ui/slug';
+import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
 import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -63,6 +64,7 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => {
     for (const businessUnit of businessUnits) {
       setBusinessUnitTimeZone(businessUnit.id, businessUnit.timezone);
+      setBusinessUnitCurrency(businessUnit.id, businessUnit.currencyCode);
     }
   }, [businessUnits]);
 

@@ -3,6 +3,7 @@ import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { DateTimePicker } from '@vritti/quantum-ui/DateTimePicker';
 import { parse } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
+import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import { Select, type SelectOption } from '@vritti/quantum-ui/Select';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -31,6 +32,8 @@ const formatSupplierDescription = (code: string, option: SelectOption): string =
 };
 
 export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps> = ({ onSuccess, onCancel }) => {
+  const buCurrencyCode = useBUCurrency();
+
   const form = useForm<CreatePurchaseOrderFormData>({
     resolver: zodResolver(createPurchaseOrderSchema),
     defaultValues: {
@@ -48,6 +51,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
   const supplierCurrencyCode = form.watch('supplierCurrencyCode');
   const exchangeRateType = form.watch('exchangeRateType');
   const minExpectedDate = orderDate ? parse(orderDate, 'yyyy-MM-dd', new Date()) : undefined;
+  const needsExchangeRate = !!supplierCurrencyCode && !!buCurrencyCode && supplierCurrencyCode !== buCurrencyCode;
 
   const createMutation = useCreatePurchaseOrder({ onSuccess });
 
@@ -91,7 +95,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
         transformDescription={formatSupplierDescription}
         onOptionSelect={handleSupplierSelect}
       />
-      {supplierCurrencyCode ? (
+      {needsExchangeRate ? (
         <>
           <Select
             name="exchangeRateType"
@@ -103,8 +107,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
           {exchangeRateType === 'FIXED' ? (
             <TextField
               name="exchangeRate"
-              label={`Exchange Rate (${supplierCurrencyCode} → BU currency)`}
-              description="Leave blank if supplier currency matches your business unit currency."
+              label={`Exchange Rate (${supplierCurrencyCode} → ${buCurrencyCode})`}
               type="number"
               placeholder="e.g. 83.250000"
               positive

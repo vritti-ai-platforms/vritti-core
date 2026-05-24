@@ -32,6 +32,12 @@ export class UpdateBusinessUnitWebhookDto {
   @IsNotEmpty()
   timezone?: string;
 
+  @ApiPropertyOptional({ example: 'INR', description: 'Business unit currency (ISO 4217)' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  currencyCode?: string;
+
   @ApiPropertyOptional({ example: { city: 'New York' } })
   @IsOptional()
   @IsObject()

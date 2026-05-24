@@ -15,4 +15,7 @@ export class AssignedBuResponseDto {
 
   @ApiProperty({ example: 'America/New_York' })
   timezone: string;
+
+  @ApiProperty({ example: 'USD' })
+  currencyCode: string;
 }

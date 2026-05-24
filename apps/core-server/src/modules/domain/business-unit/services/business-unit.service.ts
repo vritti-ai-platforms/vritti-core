@@ -89,6 +89,7 @@ export class BusinessUnitService {
       ...(dto.code !== undefined && { code: dto.code }),
       ...(dto.type && { type: dto.type as BuType }),
       ...(dto.timezone !== undefined && { timezone: dto.timezone }),
+      ...(dto.currencyCode !== undefined && { currencyCode: dto.currencyCode }),
       ...(dto.metadata !== undefined && { metadata: dto.metadata as BuMetadata }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
       updatedAt: new Date(),

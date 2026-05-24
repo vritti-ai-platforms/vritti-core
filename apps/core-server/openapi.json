@@ -12352,13 +12352,18 @@
           "timezone": {
             "type": "string",
             "example": "America/New_York"
+          },
+          "currencyCode": {
+            "type": "string",
+            "example": "USD"
           }
         },
         "required": [
           "id",
           "name",
           "type",
-          "timezone"
+          "timezone",
+          "currencyCode"
         ]
       },
       "AuthResponseDto": {
@@ -13442,6 +13447,11 @@
           "timezone": {
             "type": "string",
             "example": "Asia/Kolkata"
+          },
+          "currencyCode": {
+            "type": "string",
+            "example": "INR",
+            "description": "Business unit currency (ISO 4217)"
           },
           "metadata": {
             "type": "object",
