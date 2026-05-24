@@ -11,6 +11,7 @@ import type {
 } from '@vritti/api-sdk';
 import { RpcBuCurrencyCode } from '@vritti/api-sdk';
 import { PurchaseOrderStatus } from '@/db/schema';
+import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderNotesDto } from '../dto/request/update-purchase-order-notes.dto';
@@ -63,6 +64,22 @@ export class PurchaseOrdersRootController {
     this.logger.log(`purchaseOrders.changeSupplier — id: ${data.id}, supplier: ${data.supplierId}`);
     const { id, ...dto } = data;
     return this.appService.changeSupplier(id, dto);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.changeExchangeRate' })
+  changeExchangeRate(
+    @Payload() data: { id: string } & ChangePurchaseOrderExchangeRateDto,
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.changeExchangeRate — id: ${data.id}, type: ${data.exchangeRateType}`);
+    const { id, ...dto } = data;
+    return this.appService.changeExchangeRate(id, dto, buCurrencyCode);
+  }
+
+  @MessagePattern({ cmd: 'purchaseOrders.closeShort' })
+  closeShort(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`purchaseOrders.closeShort — id: ${data.id}`);
+    return this.service.closeShort(data.id);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.updateStatus' })

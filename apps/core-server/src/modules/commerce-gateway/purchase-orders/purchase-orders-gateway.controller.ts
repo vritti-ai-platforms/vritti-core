@@ -25,6 +25,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
 import { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.dto';
+import { ChangePurchaseOrderExchangeRateDto } from './dto/request/change-purchase-order-exchange-rate.dto';
 import { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
 import { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
 import { PurchaseOrderSelectQueryDto } from './dto/request/purchase-order-select-query.dto';
@@ -146,6 +147,23 @@ export class PurchaseOrdersGatewayController {
   changeSupplier(@Param('id') id: string, @Body() dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/supplier`);
     return this.service.changeSupplier(id, dto);
+  }
+
+  // Changes purchase order exchange rate policy / value (pre-receipt only, cross-currency only)
+  @Patch(':id/exchange-rate')
+  changeExchangeRate(
+    @Param('id') id: string,
+    @Body() dto: ChangePurchaseOrderExchangeRateDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/exchange-rate`);
+    return this.service.changeExchangeRate(id, dto);
+  }
+
+  // Closes a purchase order short — no further receipts expected
+  @Patch(':id/close')
+  closePurchaseOrder(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/close`);
+    return this.service.closePurchaseOrder(id);
   }
 
   // Updates the status of a purchase order

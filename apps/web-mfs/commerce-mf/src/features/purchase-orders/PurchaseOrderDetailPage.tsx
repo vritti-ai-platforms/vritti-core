@@ -2,7 +2,6 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { useState } from 'react';
 import { usePurchaseOrder, usePurchaseOrderItemsIds } from '@/hooks/purchase-orders';
 import { PurchaseOrderActions } from './components/PurchaseOrderActions';
 import { purchaseOrderStatusConfig } from './status-config';
@@ -14,7 +13,6 @@ export const PurchaseOrderDetailPage = () => {
   const { id } = useSlugParams('poSlug');
   const { data: po } = usePurchaseOrder(id);
   const { data: poItemIds } = usePurchaseOrderItemsIds(id);
-  const [activeTab, setActiveTab] = useState('overview');
 
   const statusBadgeConfig = purchaseOrderStatusConfig[po.status];
   const canModifyItems = po.status === 'DRAFT';
@@ -47,11 +45,10 @@ export const PurchaseOrderDetailPage = () => {
           {
             value: 'receipts',
             label: 'Goods Receipts',
-            content: <GoodsReceiptsTab poId={po.id} isActive={activeTab === 'receipts'} />,
+            content: <GoodsReceiptsTab poId={po.id} />,
           },
         ]}
-        value={activeTab}
-        onValueChange={setActiveTab}
+        defaultValue="overview"
       />
     </div>
   );

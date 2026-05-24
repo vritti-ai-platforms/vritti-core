@@ -9349,6 +9349,72 @@
         ]
       }
     },
+    "/commerce-api/purchase-orders/{id}/exchange-rate": {
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_changeExchangeRate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePurchaseOrderExchangeRateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/purchase-orders/{id}/close": {
+      "patch": {
+        "operationId": "PurchaseOrdersGatewayController_closePurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
     "/commerce-api/purchase-orders/{id}/status": {
       "patch": {
         "operationId": "PurchaseOrdersGatewayController_updateStatus",
@@ -16371,6 +16437,27 @@
         },
         "required": [
           "supplierId"
+        ]
+      },
+      "ChangePurchaseOrderExchangeRateDto": {
+        "type": "object",
+        "properties": {
+          "exchangeRateType": {
+            "type": "string",
+            "description": "Exchange rate policy. FIXED locks the rate; VARIABLE clears it (resolved at GR/invoice).",
+            "enum": [
+              "FIXED",
+              "VARIABLE"
+            ]
+          },
+          "exchangeRate": {
+            "type": "object",
+            "description": "Exchange rate from supplier currency to BU currency. Required when FIXED.",
+            "example": 83.5
+          }
+        },
+        "required": [
+          "exchangeRateType"
         ]
       },
       "SendPurchaseOrderEmailDto": {

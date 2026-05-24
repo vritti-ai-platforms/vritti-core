@@ -11,14 +11,13 @@ import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 
 interface GoodsReceiptsTabProps {
   poId: string;
-  isActive: boolean;
 }
 
-export const GoodsReceiptsTab = ({ poId, isActive }: GoodsReceiptsTabProps) => {
+export const GoodsReceiptsTab = ({ poId }: GoodsReceiptsTabProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useGoodsReceipts(poId, {
-    enabled: isActive && !!poId,
+    enabled: !!poId,
   });
 
   const columns = useMemo<ColumnDef<GoodsReceiptData>[]>(

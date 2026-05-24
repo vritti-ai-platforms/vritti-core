@@ -13,6 +13,7 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc, inArray } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type ExchangeRateType,
   ExchangeRateTypeValues,
   type PurchaseOrderStatus,
   PurchaseOrderStatusValues,
@@ -37,19 +38,30 @@ export class PurchaseOrdersService {
   };
 
   private static readonly STATUS_TRANSITIONS: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
-    [PurchaseOrderStatusValues.DRAFT]: [PurchaseOrderStatusValues.SENT],
-    [PurchaseOrderStatusValues.SENT]: [PurchaseOrderStatusValues.CONFIRMED, PurchaseOrderStatusValues.CANCELLED],
-    [PurchaseOrderStatusValues.CONFIRMED]: [
+    [PurchaseOrderStatusValues.DRAFT]: [PurchaseOrderStatusValues.SENT, PurchaseOrderStatusValues.CANCELLED],
+    [PurchaseOrderStatusValues.SENT]: [
+      PurchaseOrderStatusValues.CONFIRMED,
       PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
       PurchaseOrderStatusValues.RECEIVED,
       PurchaseOrderStatusValues.CANCELLED,
     ],
-    [PurchaseOrderStatusValues.PARTIALLY_RECEIVED]: [
+    [PurchaseOrderStatusValues.CONFIRMED]: [
+      PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
       PurchaseOrderStatusValues.RECEIVED,
+      PurchaseOrderStatusValues.CLOSED,
       PurchaseOrderStatusValues.CANCELLED,
     ],
+    [PurchaseOrderStatusValues.PARTIALLY_RECEIVED]: [
+      PurchaseOrderStatusValues.RECEIVED,
+      PurchaseOrderStatusValues.CLOSED,
+    ],
     [PurchaseOrderStatusValues.RECEIVED]: [],
+    [PurchaseOrderStatusValues.CLOSED]: [],
     [PurchaseOrderStatusValues.CANCELLED]: [],
+    // Reserved for upcoming approval workflow — no transitions wired yet.
+    [PurchaseOrderStatusValues.PENDING_APPROVAL]: [],
+    [PurchaseOrderStatusValues.APPROVED]: [],
+    [PurchaseOrderStatusValues.REJECTED]: [],
   };
 
   constructor(private readonly repository: PurchaseOrdersRepository) {}
@@ -213,6 +225,81 @@ export class PurchaseOrdersService {
     const entity = await this.repository.update(id, { status });
     this.logger.log(`PO ${entity.poNumber} status → ${status}`);
     return { success: true, message: `Purchase order "${entity.poNumber}" status updated to ${status}.` };
+  }
+
+  // Closes a PO short — no further receipts expected; quantities already received are kept.
+  async closeShort(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+
+    const canClose =
+      existing.status === PurchaseOrderStatusValues.CONFIRMED ||
+      existing.status === PurchaseOrderStatusValues.PARTIALLY_RECEIVED;
+    if (!canClose) {
+      throw new BadRequestException({
+        label: 'Cannot Close',
+        detail: 'Only confirmed or partially-received purchase orders can be closed.',
+      });
+    }
+
+    const entity = await this.repository.update(id, { status: PurchaseOrderStatusValues.CLOSED });
+    this.logger.log(`Closed PO short: ${entity.poNumber} (${entity.id})`);
+    return { success: true, message: `Purchase order "${entity.poNumber}" closed.` };
+  }
+
+  // Changes the exchange rate type and/or rate on a pre-receipt PO.
+  // App-layer is responsible for fetching supplier and passing the two currency codes.
+  async changeExchangeRate(
+    id: string,
+    data: { exchangeRateType: ExchangeRateType; exchangeRate?: number | null },
+    supplierCurrencyCode: string,
+    buCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Purchase order not found.');
+
+    const isPreReceipt =
+      existing.status === PurchaseOrderStatusValues.DRAFT ||
+      existing.status === PurchaseOrderStatusValues.SENT ||
+      existing.status === PurchaseOrderStatusValues.CONFIRMED;
+    if (!isPreReceipt) {
+      throw new BadRequestException({
+        label: 'Cannot Change Exchange Rate',
+        detail: 'Exchange rate is locked once a goods receipt has been posted.',
+      });
+    }
+
+    if (supplierCurrencyCode === buCurrencyCode) {
+      throw new BadRequestException({
+        label: 'Cannot Change Exchange Rate',
+        detail: 'Rate is fixed at 1 when supplier currency matches business unit currency.',
+      });
+    }
+
+    let exchangeRate: string | null;
+    if (data.exchangeRateType === ExchangeRateTypeValues.FIXED) {
+      if (data.exchangeRate == null || data.exchangeRate <= 0) {
+        throw new ValidationException({
+          detail: 'Exchange rate must be greater than 0 for FIXED policy.',
+          errors: [{ field: 'exchangeRate', message: 'Exchange rate must be greater than 0.' }],
+        });
+      }
+      exchangeRate = String(data.exchangeRate);
+    } else {
+      exchangeRate = null;
+    }
+
+    const entity = await this.repository.update(id, {
+      exchangeRateType: data.exchangeRateType,
+      exchangeRate,
+    });
+    this.logger.log(
+      `Changed PO exchange rate: ${entity.poNumber} (${entity.id}) → type=${data.exchangeRateType}, rate=${exchangeRate ?? 'null'}`,
+    );
+    return {
+      success: true,
+      message: `Exchange rate updated for purchase order "${entity.poNumber}".`,
+    };
   }
 
   // Deletes a PO (only if DRAFT)

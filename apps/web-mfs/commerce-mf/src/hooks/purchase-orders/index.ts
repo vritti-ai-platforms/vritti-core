@@ -6,7 +6,9 @@ export {
   PURCHASE_ORDERS_TABLE_KEY,
 } from './keys';
 export { useAddPurchaseOrderItem } from './useAddPurchaseOrderItem';
+export { useChangePurchaseOrderExchangeRate } from './useChangePurchaseOrderExchangeRate';
 export { useChangePurchaseOrderSupplier } from './useChangePurchaseOrderSupplier';
+export { useClosePurchaseOrder } from './useClosePurchaseOrder';
 export { useCreatePurchaseOrder } from './useCreatePurchaseOrder';
 export { useDeletePurchaseOrder } from './useDeletePurchaseOrder';
 export { usePurchaseOrder } from './usePurchaseOrder';

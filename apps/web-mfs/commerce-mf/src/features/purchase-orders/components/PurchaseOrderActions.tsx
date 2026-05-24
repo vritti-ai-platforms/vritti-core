@@ -1,12 +1,17 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
-import { useConfirm } from '@vritti/quantum-ui/hooks';
-import { Mail, MoreVertical, Pencil, Printer, Send, Trash2, Truck } from 'lucide-react';
+import { useBUCurrency, useConfirm } from '@vritti/quantum-ui/hooks';
+import { Mail, MoreVertical, PackageX, Pencil, Printer, Send, Trash2, Truck, Wallet } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeletePurchaseOrder, useUpdatePurchaseOrderStatus } from '@/hooks/purchase-orders';
+import {
+  useClosePurchaseOrder,
+  useDeletePurchaseOrder,
+  useUpdatePurchaseOrderStatus,
+} from '@/hooks/purchase-orders';
 import type { PurchaseOrderDetail, PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { downloadPurchaseOrderPdf } from '@/services/purchase-orders.service';
+import { ChangePurchaseOrderExchangeRateDialog } from '../forms/ChangePurchaseOrderExchangeRateDialog';
 import { ChangePurchaseOrderSupplierDialog } from '../forms/ChangePurchaseOrderSupplierDialog';
 import { SendPurchaseOrderEmailDialog } from '../forms/SendPurchaseOrderEmailDialog';
 import { UpdatePurchaseOrderNotesDialog } from '../forms/UpdatePurchaseOrderNotesDialog';
@@ -31,6 +36,8 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
   const confirm = useConfirm();
   const updateStatusMutation = useUpdatePurchaseOrderStatus();
   const deleteMutation = useDeletePurchaseOrder();
+  const closeMutation = useClosePurchaseOrder();
+  const buCurrencyCode = useBUCurrency();
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const handleStatusChange = useCallback(
@@ -65,6 +72,18 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
       await updateStatusMutation.mutateAsync({ id: po.id, status: 'CANCELLED' });
     }
   }, [po.id, confirm, updateStatusMutation]);
+
+  const handleCloseShort = useCallback(async () => {
+    const confirmed = await confirm({
+      title: `Close "${po.poNumber}"?`,
+      description:
+        'No further goods receipts will be allowed. Quantities already received are kept; the remaining balance is abandoned.',
+      confirmLabel: 'Close PO',
+    });
+    if (confirmed) {
+      await closeMutation.mutateAsync(po.id);
+    }
+  }, [po.id, po.poNumber, confirm, closeMutation]);
 
   const handleDelete = useCallback(async () => {
     const confirmed = await confirm({
@@ -110,6 +129,18 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
     ),
     [po, poItemIds.length],
   );
+  const renderChangeExchangeRateDialog = useCallback(
+    (close: () => void) => (
+      <ChangePurchaseOrderExchangeRateDialog purchaseOrder={po} onSuccess={close} onCancel={close} />
+    ),
+    [po],
+  );
+
+  const isCrossCurrency = !!buCurrencyCode && po.currencyCode !== buCurrencyCode;
+  const isPreReceipt = po.status === 'DRAFT' || po.status === 'SENT' || po.status === 'CONFIRMED';
+  const canChangeExchangeRate = isCrossCurrency && isPreReceipt;
+  const canClose = po.status === 'CONFIRMED' || po.status === 'PARTIALLY_RECEIVED';
+
   const nextAction = nextPurchaseOrderStatusAction[po.status];
   const totalAmountValue = Number(po.totalAmount?.value ?? 0);
   const hasPositiveTotalAmount = Number.isFinite(totalAmountValue) && totalAmountValue > 0;
@@ -117,7 +148,12 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
   const markAsSentDisabledTip = requiresPositiveTotalToSend
     ? 'Add Line Items to Mark the Purchase Order as Sent'
     : undefined;
-  const canCancel = po.status !== 'DRAFT' && po.status !== 'CANCELLED' && po.status !== 'RECEIVED';
+  const canCancel =
+    po.status !== 'DRAFT' &&
+    po.status !== 'CANCELLED' &&
+    po.status !== 'RECEIVED' &&
+    po.status !== 'CLOSED' &&
+    po.status !== 'PARTIALLY_RECEIVED';
   const canSendEmail = po.status !== 'CANCELLED';
 
   const primaryAction: PrimaryAction | undefined =
@@ -176,6 +212,20 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
     });
   }
 
+  if (canChangeExchangeRate) {
+    actionMenuItems.push({
+      type: 'dialog',
+      id: 'change-exchange-rate',
+      label: 'Change Exchange Rate',
+      icon: Wallet,
+      dialog: {
+        title: 'Change Exchange Rate',
+        description: 'Edit the rate policy or value. Locks once a goods receipt is posted.',
+        content: renderChangeExchangeRateDialog,
+      },
+    });
+  }
+
   if (canSendEmail) {
     actionMenuItems.push({
       type: 'dialog',
@@ -198,6 +248,17 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
       label: nextAction.label,
       icon: Send,
       onClick: () => handleStatusChange(nextAction.status, nextAction.label),
+    });
+  }
+
+  if (canClose) {
+    actionMenuItems.push({
+      type: 'item',
+      id: 'close-po',
+      label: 'Close PO',
+      icon: PackageX,
+      onClick: handleCloseShort,
+      disabled: closeMutation.isPending,
     });
   }
 

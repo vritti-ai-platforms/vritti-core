@@ -259,19 +259,27 @@ export const ExchangeRateTypeValues = {
 export type ExchangeRateType = (typeof exchangeRateTypeEnum.enumValues)[number];
 
 export const purchaseOrderStatusEnum = coreSchema.enum('purchase_order_status', [
+  'PENDING_APPROVAL',
+  'APPROVED',
+  'REJECTED',
   'DRAFT',
   'SENT',
   'CONFIRMED',
   'PARTIALLY_RECEIVED',
   'RECEIVED',
+  'CLOSED',
   'CANCELLED',
 ]);
 export const PurchaseOrderStatusValues = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL' as const,
+  APPROVED: 'APPROVED' as const,
+  REJECTED: 'REJECTED' as const,
   DRAFT: 'DRAFT' as const,
   SENT: 'SENT' as const,
   CONFIRMED: 'CONFIRMED' as const,
   PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED' as const,
   RECEIVED: 'RECEIVED' as const,
+  CLOSED: 'CLOSED' as const,
   CANCELLED: 'CANCELLED' as const,
 };
 export type PurchaseOrderStatus = (typeof purchaseOrderStatusEnum.enumValues)[number];

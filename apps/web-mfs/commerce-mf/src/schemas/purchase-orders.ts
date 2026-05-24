@@ -18,14 +18,28 @@ export type CreatePurchaseOrderFormData = z.infer<typeof createPurchaseOrderSche
 export type PurchaseOrdersTableResponse = TableResponse<PurchaseOrderData>;
 export type PurchaseOrderItemsTableResponse = TableResponse<PurchaseOrderItemData>;
 
-export type PurchaseOrderStatus = 'DRAFT' | 'SENT' | 'CONFIRMED' | 'PARTIALLY_RECEIVED' | 'RECEIVED' | 'CANCELLED';
+export type PurchaseOrderStatus =
+  | 'PENDING_APPROVAL'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'DRAFT'
+  | 'SENT'
+  | 'CONFIRMED'
+  | 'PARTIALLY_RECEIVED'
+  | 'RECEIVED'
+  | 'CLOSED'
+  | 'CANCELLED';
 
 export const PurchaseOrderStatusValues = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
   DRAFT: 'DRAFT',
   SENT: 'SENT',
   CONFIRMED: 'CONFIRMED',
   PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED',
   RECEIVED: 'RECEIVED',
+  CLOSED: 'CLOSED',
   CANCELLED: 'CANCELLED',
 } as const;
 
@@ -33,11 +47,15 @@ export const purchaseOrderStatusConfig: Record<
   PurchaseOrderStatus,
   { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
 > = {
+  PENDING_APPROVAL: { label: 'Pending Approval', variant: 'outline' },
+  APPROVED: { label: 'Approved', variant: 'secondary' },
+  REJECTED: { label: 'Rejected', variant: 'destructive' },
   DRAFT: { label: 'Draft', variant: 'outline' },
   SENT: { label: 'Sent', variant: 'secondary' },
   CONFIRMED: { label: 'Confirmed', variant: 'secondary', className: 'bg-success/15 text-success' },
   PARTIALLY_RECEIVED: { label: 'Partial', variant: 'secondary', className: 'bg-warning/15 text-warning' },
   RECEIVED: { label: 'Received', variant: 'secondary', className: 'bg-success/15 text-success' },
+  CLOSED: { label: 'Closed', variant: 'secondary', className: 'bg-muted text-muted-foreground' },
   CANCELLED: { label: 'Cancelled', variant: 'destructive' },
 };
 

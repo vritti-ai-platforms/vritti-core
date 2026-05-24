@@ -43,6 +43,12 @@ export interface ChangePurchaseOrderSupplierPayload {
   supplierId: string;
 }
 
+export interface ChangePurchaseOrderExchangeRatePayload {
+  id: string;
+  exchangeRateType: ExchangeRateType;
+  exchangeRate?: number | null;
+}
+
 export interface SendPurchaseOrderEmailPayload {
   id: string;
   email?: string;
@@ -144,6 +150,25 @@ export function changePurchaseOrderSupplier({
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/supplier`, { supplierId })
     .then((r) => r.data);
+}
+
+// Changes purchase order exchange rate policy and/or value
+export function changePurchaseOrderExchangeRate({
+  id,
+  exchangeRateType,
+  exchangeRate,
+}: ChangePurchaseOrderExchangeRatePayload): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/exchange-rate`, {
+      exchangeRateType,
+      exchangeRate,
+    })
+    .then((r) => r.data);
+}
+
+// Closes a purchase order short — no further receipts expected
+export function closePurchaseOrder(id: string): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/close`).then((r) => r.data);
 }
 
 // Updates a purchase order status
