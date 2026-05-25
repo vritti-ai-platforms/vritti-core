@@ -16,10 +16,10 @@ export class InventoryItemsQuantsController {
 
   @MessagePattern({ cmd: 'inventoryItems.quantsTable' })
   async quantsTable(
-    @Payload() data: { itemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableViewState,
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
-    this.logger.log(`inventoryItems.quantsTable — itemId: ${data.itemId}`);
-    return this.itemsQuantsService.findForTable(data.itemId, data);
+    this.logger.log(`inventoryItems.quantsTable — inventoryItemId: ${data.inventoryItemId}`);
+    return this.itemsQuantsService.findForTable(data.inventoryItemId, data);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.findQuantById' })

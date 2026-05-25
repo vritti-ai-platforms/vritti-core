@@ -25,26 +25,26 @@ export class InventoryItemsUomConversionsController {
   // Returns paginated UOM conversion overrides for an inventory item
   @MessagePattern({ cmd: 'inventoryItems.uomConversionsTable' })
   async table(
-    @Payload() data: { itemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableViewState,
     @RpcBuId() buId: string,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
-    const { itemId, ...state } = data;
-    this.logger.log(`inventoryItems.uomConversionsTable — itemId: ${itemId}`);
-    return this.service.findForTable(itemId, state, buId);
+    const { inventoryItemId, ...state } = data;
+    this.logger.log(`inventoryItems.uomConversionsTable — inventoryItemId: ${inventoryItemId}`);
+    return this.service.findForTable(inventoryItemId, state, buId);
   }
 
   // Creates a per-item UOM conversion override
   @MessagePattern({ cmd: 'inventoryItems.addUomConversion' })
   async create(
-    @Payload() data: { itemId: string } & CreateInventoryItemUomConversionDto,
+    @Payload() data: { inventoryItemId: string } & CreateInventoryItemUomConversionDto,
     @RpcBuId() buId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
-    const { itemId, ...dto } = data;
-    this.logger.log(`inventoryItems.addUomConversion — itemId: ${itemId}, uomId: ${dto.uomId}`);
+    const { inventoryItemId, ...dto } = data;
+    this.logger.log(`inventoryItems.addUomConversion — inventoryItemId: ${inventoryItemId}, uomId: ${dto.uomId}`);
     const uomEntity = await this.uomRepository.findById(dto.uomId);
     if (!uomEntity) throw new NotFoundException('Unit of measure not found.');
     return this.service.create(
-      itemId,
+      inventoryItemId,
       dto,
       { baseUnitId: uomEntity.baseUnitId, name: uomEntity.name, symbol: uomEntity.symbol },
       buId,

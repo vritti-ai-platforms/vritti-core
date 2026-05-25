@@ -75,7 +75,7 @@ export const PriceListForm: React.FC<PriceListFormProps> = ({ priceList, onSucce
         </div>
 
         <TextArea name="description" label="Description" placeholder="Optional notes about this price list" rows={3} />
-        {isEdit && <Switch name="isActive" label="Active" />}
+        {isEdit && <Switch name="isActive" label="Active" description="Inactive price lists can't be assigned to terminals" />}
       </div>
     </Form>
   );

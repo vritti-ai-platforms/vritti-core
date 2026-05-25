@@ -30,12 +30,12 @@ export class InventoryItemUomConversionsRepository extends PrimaryBaseRepository
     super(database, inventoryItemUomConversions);
   }
 
-  // Returns paginated, filtered, sorted UOM overrides for an item with joined UOM details
+  // Returns paginated, filtered, sorted UOM overrides for an inventory item with joined UOM details
   async findForTable(
-    itemId: string,
+    inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{ result: ConversionWithUom[]; count: number }> {
-    const baseWhere = eq(inventoryItemUomConversions.inventoryItemId, itemId);
+    const baseWhere = eq(inventoryItemUomConversions.inventoryItemId, inventoryItemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
 
     const { result, count } = await this.findAllAndCount<ConversionWithUom>({
@@ -60,17 +60,20 @@ export class InventoryItemUomConversionsRepository extends PrimaryBaseRepository
     return rows[0] as ConversionWithUom | undefined;
   }
 
-  // Returns an override by composite key (item + UOM) for duplicate detection
-  async findByItemAndUom(itemId: string, uomId: string): Promise<InventoryItemUomConversion | undefined> {
-    return this.model.findFirst({ where: { inventoryItemId: itemId, uomId } });
+  // Returns an override by composite key (inventory item + UOM) for duplicate detection
+  async findByInventoryItemAndUom(
+    inventoryItemId: string,
+    uomId: string,
+  ): Promise<InventoryItemUomConversion | undefined> {
+    return this.model.findFirst({ where: { inventoryItemId, uomId } });
   }
 
   // Returns the primary UOM ID for a given inventory item
-  async findItemPrimaryUomId(itemId: string): Promise<string | undefined> {
+  async findInventoryItemPrimaryUomId(inventoryItemId: string): Promise<string | undefined> {
     const [row] = await this.db
       .select({ uomId: inventoryItems.uomId })
       .from(inventoryItems)
-      .where(eq(inventoryItems.id, itemId))
+      .where(eq(inventoryItems.id, inventoryItemId))
       .limit(1);
     return row?.uomId;
   }

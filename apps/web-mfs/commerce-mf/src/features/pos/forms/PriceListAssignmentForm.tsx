@@ -52,7 +52,7 @@ export const PriceListAssignmentForm: React.FC<PriceListAssignmentFormProps> = (
           params={params}
         />
         <TextField name="priority" label="Priority" type="number" min={0} placeholder="0" />
-        <Switch name="isDefault" label="Default Price List" />
+        <Switch name="isDefault" label="Default Price List" description="Used when no other price list applies" />
       </div>
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

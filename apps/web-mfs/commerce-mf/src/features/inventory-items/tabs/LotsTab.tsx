@@ -9,7 +9,7 @@ import { INVENTORY_ITEM_LOTS_KEY, useInventoryItemLotsTable } from '@/hooks/inve
 import type { InventoryItemLotData, InventoryItemLotStatus } from '@/schemas/inventory-item-lots';
 
 interface LotsTabProps {
-  itemId: string;
+  inventoryItemId: string;
   uomSymbol: string | null;
 }
 
@@ -30,9 +30,9 @@ const STATUS_CONFIG: Record<
   FRESH: { label: 'Fresh', variant: 'default' },
 };
 
-export const LotsTab: React.FC<LotsTabProps> = ({ itemId, uomSymbol }) => {
+export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useInventoryItemLotsTable(itemId);
+  const { data: response, isLoading } = useInventoryItemLotsTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemLotData>[]>(
     () => [
@@ -100,11 +100,11 @@ export const LotsTab: React.FC<LotsTabProps> = ({ itemId, uomSymbol }) => {
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-lots`,
+    slug: `inventory-item-${inventoryItemId}-lots`,
     label: 'lot',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LOTS_KEY(itemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LOTS_KEY(inventoryItemId)] }),
   });
 
   return (

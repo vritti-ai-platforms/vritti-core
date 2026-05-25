@@ -106,7 +106,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
         )}
 
         <TextArea name="description" label="Description" placeholder="Optional notes about this terminal" rows={3} />
-        {isEdit && <Switch name="isActive" label="Active" />}
+        {isEdit && <Switch name="isActive" label="Active" description="Inactive terminals can't take orders" />}
       </div>
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

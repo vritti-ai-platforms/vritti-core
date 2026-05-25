@@ -31,7 +31,7 @@ export class PurchaseOrderItemsService {
 
   private static readonly ITEM_FIELD_MAP: FieldMap = {
     inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
-    quantity: { column: purchaseOrderItems.quantity, type: 'number' },
+    uomQty: { column: purchaseOrderItems.uomQty, type: 'number' },
     receivedQuantity: { column: purchaseOrderItems.receivedQuantity, type: 'number' },
     unitPrice: { column: purchaseOrderItems.unitPrice, type: 'number' },
     totalPrice: { column: purchaseOrderItems.totalPrice, type: 'number' },
@@ -47,7 +47,7 @@ export class PurchaseOrderItemsService {
 
   // Returns inventory item IDs for a PO
   findIdsByPoId(poId: string): Promise<string[]> {
-    return this.repository.findItemIdsByPoId(poId);
+    return this.repository.findInventoryItemIdsByPoId(poId);
   }
 
   // Returns paginated line items for a PO table
@@ -113,7 +113,7 @@ export class PurchaseOrderItemsService {
       });
     }
 
-    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.quantity));
+    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.uomQty));
 
     // Price per primary UOM unit = totalPrice / primaryUomQty (minor units ÷ decimal qty → minor units).
     const primaryUomUnitPriceMinor = BigInt(
@@ -127,7 +127,7 @@ export class PurchaseOrderItemsService {
       purchaseOrderId: po.id,
       inventoryItemId,
       uomId,
-      quantity: String(data.quantity),
+      uomQty: String(data.uomQty),
       primaryUomQty: String(primaryUomQty),
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,
@@ -139,7 +139,7 @@ export class PurchaseOrderItemsService {
   }
 
   // Updates a line item on a draft PO. Does not call syncTotalAmount — that is the app-layer's responsibility.
-  // `primaryUomQty` must already be computed for the effective ordered quantity (data.quantity ?? existing).
+  // `primaryUomQty` must already be computed for the effective ordered quantity (data.uomQty ?? existing).
   async updateItem(
     po: PurchaseOrderContext,
     itemId: string,
@@ -164,7 +164,7 @@ export class PurchaseOrderItemsService {
     }
 
     const poCode = po.currencyCode as CurrencyCode;
-    const orderedQuantity = data.quantity ?? Number(item.quantity);
+    const orderedQuantity = data.uomQty ?? Number(item.uomQty);
 
     let unitPriceMinor: bigint;
     try {
@@ -198,7 +198,7 @@ export class PurchaseOrderItemsService {
 
     await this.repository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
-      quantity: String(orderedQuantity),
+      uomQty: String(orderedQuantity),
       primaryUomQty: String(primaryUomQty),
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,

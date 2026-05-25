@@ -12,14 +12,14 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
   // Returns paginated configs for an item with location name + path.
   // The Locations tab is the registry view (reorder thresholds); actual stock figures live on the
   // Stocks tab via the inventory_stock_levels view.
-  async findByItemId(
-    itemId: string,
+  async findByInventoryItemId(
+    inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{
     result: (InventoryItemLocation & { locationName: string | null; locationPath: string | null })[];
     count: number;
   }> {
-    const baseWhere = eq(inventoryItemLocations.inventoryItemId, itemId);
+    const baseWhere = eq(inventoryItemLocations.inventoryItemId, inventoryItemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<InventoryItemLocation & { locationName: string | null; locationPath: string | null }>({
       select: {
@@ -69,9 +69,9 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
   }
 
   // Returns a config by composite key (item + location)
-  async findByCompositeKey(itemId: string, locationId: string): Promise<InventoryItemLocation | undefined> {
+  async findByCompositeKey(inventoryItemId: string, locationId: string): Promise<InventoryItemLocation | undefined> {
     return this.model.findFirst({
-      where: { inventoryItemId: itemId, locationId },
+      where: { inventoryItemId: inventoryItemId, locationId },
     });
   }
 }

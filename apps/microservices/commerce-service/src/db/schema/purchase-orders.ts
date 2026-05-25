@@ -88,9 +88,10 @@ export const purchaseOrderItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    // Ordered amount in the line's UOM (e.g. 5 if buying "5 boxes").
+    uomQty: decimal('uom_qty', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
-    // Snapshot of `quantity` converted to the item's primary UOM at create/update time. Computed in
+    // Snapshot of `uom_qty` converted to the item's primary UOM at create/update time. Computed in
     // the service via UomConversionsService (Decimal math); never derived in SQL.
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3 }).notNull(),
     primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }).notNull().default(0n),

@@ -8,6 +8,7 @@
     "dev:ssl": "USE_HTTPS=true rsbuild dev",
     "dev:ssl:w": "cross-env USE_HTTPS=true rsbuild dev",
     "build": "tsc --noEmit && rsbuild build",
+    "typecheck": "tsc --noEmit",
     "preview": "rsbuild preview",
     "check": "biome check --write .",
     "lint": "biome lint .",

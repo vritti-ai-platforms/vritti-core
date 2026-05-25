@@ -475,7 +475,7 @@ export class PurchaseOrdersGatewayService {
       page.drawText(String(index + 1), { x: MARGIN + 8, y: textY, size: 9, font, color: BLACK });
       page.drawText(itemName, { x: MARGIN + colNum + 8, y: textY, size: 9, font, color: BLACK });
 
-      const qtyText = String(item.quantity);
+      const qtyText = String(item.uomQty);
       const qtyX = MARGIN + colNum + colDesc + colQty - 8 - font.widthOfTextAtSize(qtyText, 9);
       page.drawText(qtyText, { x: qtyX, y: textY, size: 9, font, color: BLACK });
 

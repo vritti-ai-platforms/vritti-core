@@ -87,8 +87,8 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
         />
       </div>
       <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" integer positive />
-      <Switch name="isPreferred" label="Preferred Supplier" />
-      <Switch name="isActive" label="Active" />
+      <Switch name="isPreferred" label="Preferred Supplier" description="Surfaced first when picking suppliers for this item" />
+      <Switch name="isActive" label="Active" description="Inactive supplier items can't be added to new POs" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

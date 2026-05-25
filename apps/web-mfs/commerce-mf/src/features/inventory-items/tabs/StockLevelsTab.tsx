@@ -7,12 +7,12 @@ import { useInventoryItemStocks } from '@/hooks/inventory-items';
 import type { InventoryItemStockData } from '@/schemas/inventory-items';
 
 interface StockLevelsTabProps {
-  itemId: string;
+  inventoryItemId: string;
   uomSymbol: string | null;
 }
 
-export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ itemId, uomSymbol }) => {
-  const { data: stocks = [], isLoading } = useInventoryItemStocks(itemId);
+export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId, uomSymbol }) => {
+  const { data: stocks = [], isLoading } = useInventoryItemStocks(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemStockData>[]>(
     () => [
@@ -85,7 +85,7 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ itemId, uomSymbo
   const { table } = useDataTable({
     columns,
     serverState,
-    slug: `inventory-item-${itemId}-stock-levels`,
+    slug: `inventory-item-${inventoryItemId}-stock-levels`,
     label: 'stock level',
     enableRowSelection: false,
     enableSorting: true,

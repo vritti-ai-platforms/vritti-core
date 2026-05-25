@@ -1,5 +1,5 @@
 import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { type RouteObject, useRoutes } from 'react-router-dom';
 import { MicrofrontendSkeletonFullPage } from './MircrofrontendFullPageSkeleton';
 

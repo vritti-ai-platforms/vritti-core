@@ -25,37 +25,37 @@ export function useInventoryItem(id: string) {
 }
 
 export function useInventoryItemQuantsTable(
-  itemId: string | null,
+  inventoryItemId: string | null,
   options?: Omit<UseQueryOptions<InventoryItemQuantsTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
   return useQuery<InventoryItemQuantsTableResponse, AxiosError>({
-    queryKey: [...INVENTORY_ITEM_QUANTS_KEY(itemId ?? '')],
-    queryFn: () => getInventoryItemQuantsTable(itemId as string),
-    enabled: !!itemId,
+    queryKey: [...INVENTORY_ITEM_QUANTS_KEY(inventoryItemId ?? '')],
+    queryFn: () => getInventoryItemQuantsTable(inventoryItemId as string),
+    enabled: !!inventoryItemId,
     ...options,
   });
 }
 
 export function useInventoryItemLotsTable(
-  itemId: string | null,
+  inventoryItemId: string | null,
   options?: Omit<UseQueryOptions<InventoryItemLotsTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
   return useQuery<InventoryItemLotsTableResponse, AxiosError>({
-    queryKey: [...INVENTORY_ITEM_LOTS_KEY(itemId ?? '')],
-    queryFn: () => getInventoryItemLotsTable(itemId as string),
-    enabled: !!itemId,
+    queryKey: [...INVENTORY_ITEM_LOTS_KEY(inventoryItemId ?? '')],
+    queryFn: () => getInventoryItemLotsTable(inventoryItemId as string),
+    enabled: !!inventoryItemId,
     ...options,
   });
 }
 
 export function useInventoryItemLedgerTable(
-  itemId: string | null,
+  inventoryItemId: string | null,
   options?: Omit<UseQueryOptions<InventoryItemLedgerTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
   return useQuery<InventoryItemLedgerTableResponse, AxiosError>({
-    queryKey: [...INVENTORY_ITEM_LEDGER_KEY(itemId ?? '')],
-    queryFn: () => getInventoryItemLedgerTable(itemId as string),
-    enabled: !!itemId,
+    queryKey: [...INVENTORY_ITEM_LEDGER_KEY(inventoryItemId ?? '')],
+    queryFn: () => getInventoryItemLedgerTable(inventoryItemId as string),
+    enabled: !!inventoryItemId,
     ...options,
   });
 }

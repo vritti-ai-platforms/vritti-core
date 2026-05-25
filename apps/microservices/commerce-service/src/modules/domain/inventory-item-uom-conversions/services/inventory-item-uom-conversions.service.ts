@@ -34,7 +34,7 @@ export class InventoryItemUomConversionsService {
 
   // Returns paginated, filtered, sorted UOM conversions for an inventory item
   async findForTable(
-    itemId: string,
+    inventoryItemId: string,
     state: TableViewState,
     currentBuId: string,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
@@ -44,7 +44,7 @@ export class InventoryItemUomConversionsService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemUomConversionsService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findForTable(itemId, {
+    const { result, count } = await this.repository.findForTable(inventoryItemId, {
       where,
       orderBy: orderBy.length > 0 ? orderBy : [asc(inventoryItemUomConversions.createdAt)],
       limit,
@@ -70,18 +70,19 @@ export class InventoryItemUomConversionsService {
       });
     }
 
-    const itemPrimaryUomId = await this.repository.findItemPrimaryUomId(inventoryItemId);
-    if (!itemPrimaryUomId) throw new NotFoundException('Inventory item not found.');
-    if (itemPrimaryUomId === dto.uomId) {
+    const inventoryItemPrimaryUomId = await this.repository.findInventoryItemPrimaryUomId(inventoryItemId);
+    if (!inventoryItemPrimaryUomId) throw new NotFoundException('Inventory item not found.');
+    if (inventoryItemPrimaryUomId === dto.uomId) {
       throw new ValidationException({
-        detail: "An item's primary UOM cannot have a per-item conversion (it would be 1:1 with itself).",
-        errors: [{ field: 'uomId', message: "This is the item's primary UOM — pick a different one." }],
+        detail:
+          "An inventory item's primary UOM cannot have a per-inventory-item conversion (it would be 1:1 with itself).",
+        errors: [{ field: 'uomId', message: "This is the inventory item's primary UOM — pick a different one." }],
       });
     }
 
     validateConversionPair(dto);
 
-    const existing = await this.repository.findByItemAndUom(inventoryItemId, dto.uomId);
+    const existing = await this.repository.findByInventoryItemAndUom(inventoryItemId, dto.uomId);
     if (existing) {
       throw new ValidationException({
         detail: 'A conversion for this unit already exists on this item.',
@@ -96,7 +97,7 @@ export class InventoryItemUomConversionsService {
       uomQty: dto.uomQty,
     });
     this.logger.log(
-      `Created UOM conversion for item ${inventoryItemId}: uomId=${dto.uomId}, primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`,
+      `Created UOM conversion for inventory item ${inventoryItemId}: uomId=${dto.uomId}, primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`,
     );
     return {
       success: true,

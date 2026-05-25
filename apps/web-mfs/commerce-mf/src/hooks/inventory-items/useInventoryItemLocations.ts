@@ -20,19 +20,19 @@ import {
 import { INVENTORY_ITEM_LOCATIONS_KEY, INVENTORY_ITEM_STOCKS_KEY } from './keys';
 
 export function useInventoryItemLocationsTable(
-  itemId: string | null,
+  inventoryItemId: string | null,
   options?: Omit<UseQueryOptions<InventoryItemLocationsTableResponse, AxiosError>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
   return useQuery<InventoryItemLocationsTableResponse, AxiosError>({
-    queryKey: [...INVENTORY_ITEM_LOCATIONS_KEY(itemId ?? '')],
-    queryFn: () => getInventoryItemLocationsTable(itemId as string),
-    enabled: !!itemId,
+    queryKey: [...INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId ?? '')],
+    queryFn: () => getInventoryItemLocationsTable(inventoryItemId as string),
+    enabled: !!inventoryItemId,
     ...options,
   });
 }
 
 export function useCreateInventoryItemLocation(
-  itemId: string,
+  inventoryItemId: string,
   options?: UseMutationOptions<
     CreateResponse<InventoryItemLocationData>,
     AxiosError,
@@ -45,47 +45,47 @@ export function useCreateInventoryItemLocation(
     AxiosError,
     { locationId: string; reorderLevel: number }
   >({
-    mutationFn: (data) => createInventoryItemLocation(itemId, data),
+    mutationFn: (data) => createInventoryItemLocation(inventoryItemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
       // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
       // so any add/edit/delete here mutates what the Stocks tab sees.
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });
 }
 
 export function useUpdateInventoryItemLocation(
-  itemId: string,
+  inventoryItemId: string,
   options?: UseMutationOptions<SuccessResponse, AxiosError, { locationConfigId: string; reorderLevel: number }>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, { locationConfigId: string; reorderLevel: number }>({
     mutationFn: ({ locationConfigId, reorderLevel }) =>
-      updateInventoryItemLocation(itemId, locationConfigId, { reorderLevel }),
+      updateInventoryItemLocation(inventoryItemId, locationConfigId, { reorderLevel }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
       // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
       // so any add/edit/delete here mutates what the Stocks tab sees.
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });
 }
 
 export function useDeleteInventoryItemLocation(
-  itemId: string,
+  inventoryItemId: string,
   options?: UseMutationOptions<SuccessResponse, AxiosError, string>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, string>({
-    mutationFn: (locationConfigId) => deleteInventoryItemLocation(itemId, locationConfigId),
+    mutationFn: (locationConfigId) => deleteInventoryItemLocation(inventoryItemId, locationConfigId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
       // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
       // so any add/edit/delete here mutates what the Stocks tab sees.
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });

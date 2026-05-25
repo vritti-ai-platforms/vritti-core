@@ -12,18 +12,18 @@ export class InventoryItemsLocationsController {
 
   @MessagePattern({ cmd: 'inventoryItems.locationsTable' })
   async locationsTable(
-    @Payload() data: { itemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableViewState,
   ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
-    this.logger.log(`inventoryItems.locationsTable — itemId: ${data.itemId}`);
-    return this.service.findForTable(data.itemId, data);
+    this.logger.log(`inventoryItems.locationsTable — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findForTable(data.inventoryItemId, data);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.addLocation' })
   async createLocation(
-    @Payload() data: { itemId: string; locationId: string; reorderLevel: number },
+    @Payload() data: { inventoryItemId: string; locationId: string; reorderLevel: number },
   ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
-    this.logger.log(`inventoryItems.addLocation — itemId: ${data.itemId}`);
-    return this.service.create(data.itemId, {
+    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.create(data.inventoryItemId, {
       locationId: data.locationId,
       reorderLevel: data.reorderLevel,
     });

@@ -61,7 +61,7 @@ export const AddSupplierContactDialog: React.FC<AddSupplierContactDialogProps> =
       <TextField name="alternateEmail" label="Alternate Email" type="email" placeholder="e.g. john.alt@supplier.com" />
       <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
-      <Switch name="isPrimary" label="Set as primary contact" />
+      <Switch name="isPrimary" label="Set as primary contact" description="Used as the default contact when sending POs" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

@@ -451,7 +451,7 @@ const CreateGroupForm = ({ businessUnitId, onSuccess, onCancel }: CreateGroupFor
     >
       <TextField name="name" label="Name" placeholder="e.g. Toppings" />
       <RadioGroup name="selectionType" label="Selection Type" options={selectionTypeOptions} orientation="horizontal" />
-      <Switch name="isRequired" label="Required" />
+      <Switch name="isRequired" label="Required" description="Customers must select from this group when ordering" />
       <TextField name="minSelections" label="Min Selections" type="number" placeholder="0" />
       <TextField name="maxSelections" label="Max Selections" type="number" placeholder="Leave empty for unlimited" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
@@ -504,7 +504,7 @@ const EditGroupForm = ({ group, onSuccess, onCancel }: EditGroupFormProps) => {
     >
       <TextField name="name" label="Name" placeholder="e.g. Toppings" />
       <RadioGroup name="selectionType" label="Selection Type" options={selectionTypeOptions} orientation="horizontal" />
-      <Switch name="isRequired" label="Required" />
+      <Switch name="isRequired" label="Required" description="Customers must select from this group when ordering" />
       <TextField name="minSelections" label="Min Selections" type="number" placeholder="0" />
       <TextField name="maxSelections" label="Max Selections" type="number" placeholder="Leave empty for unlimited" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

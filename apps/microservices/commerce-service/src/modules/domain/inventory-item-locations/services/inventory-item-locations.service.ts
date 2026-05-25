@@ -26,7 +26,7 @@ export class InventoryItemLocationsService {
 
   // Returns paginated, filtered, and sorted configs for an inventory item
   async findForTable(
-    itemId: string,
+    inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLocationsService.FIELD_MAP);
@@ -35,7 +35,7 @@ export class InventoryItemLocationsService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLocationsService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findByItemId(itemId, {
+    const { result, count } = await this.repository.findByInventoryItemId(inventoryItemId, {
       where,
       orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItemLocations.createdAt)],
       limit,
@@ -47,20 +47,20 @@ export class InventoryItemLocationsService {
 
   // Creates a new config for an item at a location
   async create(
-    itemId: string,
+    inventoryItemId: string,
     data: { locationId: string; reorderLevel: number },
   ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
-    const existing = await this.repository.findByCompositeKey(itemId, data.locationId);
+    const existing = await this.repository.findByCompositeKey(inventoryItemId, data.locationId);
     if (existing) throw new ConflictException('A configuration already exists for this item at this location.');
 
     const entity = await this.repository.create({
-      inventoryItemId: itemId,
+      inventoryItemId: inventoryItemId,
       locationId: data.locationId,
       reorderLevel: String(data.reorderLevel),
     });
 
     const row = await this.repository.findByIdWithLocation(entity.id);
-    this.logger.log(`Created item-location config for item ${itemId} at location ${data.locationId}`);
+    this.logger.log(`Created item-location config for item ${inventoryItemId} at location ${data.locationId}`);
     return {
       success: true,
       message: 'Item location configuration created successfully.',

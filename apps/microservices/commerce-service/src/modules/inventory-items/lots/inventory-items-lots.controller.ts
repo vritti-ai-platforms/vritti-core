@@ -17,10 +17,10 @@ export class InventoryItemsLotsController {
   // Returns paginated lots for an inventory item data table (one row per lot, with stock totals)
   @MessagePattern({ cmd: 'inventoryItems.lotsTable' })
   async lotsTable(
-    @Payload() data: { itemId: string } & TableViewState,
+    @Payload() data: { inventoryItemId: string } & TableViewState,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
-    this.logger.log(`inventoryItems.lotsTable — itemId: ${data.itemId}`);
-    return this.itemsLotsService.findForTable(data.itemId, data);
+    this.logger.log(`inventoryItems.lotsTable — inventoryItemId: ${data.inventoryItemId}`);
+    return this.itemsLotsService.findForTable(data.inventoryItemId, data);
   }
 
   // Returns paginated lot options, optionally filtered to a specific inventory item

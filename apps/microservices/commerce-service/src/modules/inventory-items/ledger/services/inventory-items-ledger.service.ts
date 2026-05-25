@@ -14,19 +14,19 @@ export class InventoryItemsLedgerService {
   ) {}
 
   // Returns all ledger entries for an inventory item
-  async findByItemId(itemId: string): Promise<InventoryItemLedgerDto[]> {
-    this.logger.log(`findByItemId — itemId=${itemId}`);
-    await this.inventoryItemsService.findById(itemId);
-    return this.ledgerService.findByItemId(itemId);
+  async findByInventoryItemId(inventoryItemId: string): Promise<InventoryItemLedgerDto[]> {
+    this.logger.log(`findByInventoryItemId — inventoryItemId=${inventoryItemId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.ledgerService.findByInventoryItemId(inventoryItemId);
   }
 
   // Returns paginated ledger entries for an inventory item data table
   async findForTable(
-    itemId: string,
+    inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
-    this.logger.log(`findForTable — itemId=${itemId}`);
-    await this.inventoryItemsService.findById(itemId);
+    this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
     return this.ledgerService.findForTable(state);
   }
 }

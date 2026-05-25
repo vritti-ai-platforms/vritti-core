@@ -39,7 +39,11 @@ export const AddBomDialog: React.FC<AddBomDialogProps> = ({ onSuccess, onCancel 
     >
       <TextField name="name" label="Name" placeholder="e.g. Chicken Biryani Full" />
       <TextField name="code" label="Code" placeholder="e.g. BOM-BIR-CHK-F" />
-      <Switch name="isActive" label="Active" />
+      <Switch
+        name="isActive"
+        label="Active"
+        description="Inactive BOMs are hidden from selectors and can't produce new conversions"
+      />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

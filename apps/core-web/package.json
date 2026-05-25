@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && rsbuild build",
+    "typecheck": "tsc --noEmit",
     "check": "biome check --write .",
     "dev": "rsbuild dev --host local.vrittiai.com",
     "dev:ssl": "USE_HTTPS=true rsbuild dev --host local.vrittiai.com",

@@ -12,7 +12,7 @@ import {
   useRemoveGoodsReceiptItem,
   useRemoveGoodsReceiptLot,
 } from '@/hooks/goods-receipts';
-import { type GoodsReceiptTreeNode, InventoryTrackingValues } from '@/schemas/goods-receipts';
+import { type GoodsReceiptTreeNode, type InventoryTracking, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { AddLotDialog } from '../forms/AddLotDialog';
 import { EditItemDialog } from '../forms/EditItemDialog';
 import { EditLotDialog } from '../forms/EditLotDialog';
@@ -279,8 +279,8 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                     goodsReceiptId,
                     inventoryItemId: itemNode.inventoryItemId!,
                     inventoryItemName: itemNode.name,
-                    inventoryItemTracking: tracking,
-                    inventoryItemUomSymbol: uomSymbol,
+                    inventoryItemTracking: tracking as InventoryTracking,
+                    inventoryItemUomSymbol: uomSymbol ?? '',
                     acceptedQuantity: itemNode.acceptedQuantity ?? 0,
                     rejectedQuantity: itemNode.rejectedQuantity ?? 0,
                     lotsCount: 0,
@@ -363,8 +363,8 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                   goodsReceiptId,
                   inventoryItemId: itemNode.inventoryItemId!,
                   inventoryItemName: itemNode.name,
-                  inventoryItemTracking: tracking,
-                  inventoryItemUomSymbol: uomSymbol,
+                  inventoryItemTracking: tracking as InventoryTracking,
+                  inventoryItemUomSymbol: uomSymbol ?? '',
                   acceptedQuantity: itemNode.acceptedQuantity ?? 0,
                   rejectedQuantity: itemNode.rejectedQuantity ?? 0,
                   lotsCount: 0,

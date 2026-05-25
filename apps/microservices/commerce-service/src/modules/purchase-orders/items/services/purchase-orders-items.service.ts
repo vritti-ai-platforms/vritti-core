@@ -71,7 +71,7 @@ export class PurchaseOrdersItemsService {
     const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
       supplierItem.inventoryItemId,
       supplierItem.uomId,
-      data.quantity,
+      data.uomQty,
     );
 
     await this.database.runInTransaction(async () => {
@@ -95,11 +95,11 @@ export class PurchaseOrdersItemsService {
 
     const inventoryItemId = data.inventoryItemId ?? existingItem.inventoryItemId;
     const uomId = existingItem.uomId;
-    const orderedQuantity = data.quantity ?? Number(existingItem.quantity);
+    const orderedUomQty = data.uomQty ?? Number(existingItem.uomQty);
 
     // Always recompute against the current (item, uom, qty). The UOM doesn't change on update — this
     // covers item-swap and qty-change cases.
-    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, orderedQuantity);
+    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, orderedUomQty);
 
     await this.database.runInTransaction(async () => {
       await this.itemsService.updateItem(po, itemId, data, primaryUomQty);

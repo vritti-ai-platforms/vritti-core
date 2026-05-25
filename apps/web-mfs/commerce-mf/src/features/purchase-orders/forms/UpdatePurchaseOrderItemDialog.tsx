@@ -30,7 +30,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
   const form = useForm<UpdatePurchaseOrderItemFormData>({
     resolver: zodResolver(updatePurchaseOrderItemSchema),
     defaultValues: {
-      quantity: item.quantity,
+      uomQty: item.uomQty,
       unitPrice: item.unitPrice,
     },
   });
@@ -45,7 +45,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
       transformSubmit={(data) => ({
         id: purchaseOrderId,
         itemId: item.id,
-        quantity: data.quantity ?? undefined,
+        uomQty: data.uomQty ?? undefined,
         unitPrice: data.unitPrice as { currency: string; value: string } | undefined,
       })}
     >
@@ -55,7 +55,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
           <span className="text-sm text-muted-foreground">{item.orderUomSymbol}</span>
         </div>
       )}
-      <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 500" />
+      <TextField name="uomQty" label="Quantity" type="number" placeholder="e.g. 500" />
       <CurrencyField name="unitPrice" label="Unit Price" currencyCode={poCurrencyCode} placeholder="Enter unit price" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

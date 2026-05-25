@@ -9,7 +9,7 @@ export class UpdatePurchaseOrderItemDto {
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  quantity?: number;
+  uomQty?: number;
 
   @IsOptional()
   @IsCurrency()

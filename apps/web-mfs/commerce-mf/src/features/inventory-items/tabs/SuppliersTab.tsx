@@ -9,12 +9,12 @@ import { INVENTORY_ITEM_SUPPLIERS_TABLE_KEY, useInventoryItemSuppliersTable } fr
 import type { InventoryItemSupplierData } from '@/schemas/suppliers';
 
 interface SuppliersTabProps {
-  itemId: string;
+  inventoryItemId: string;
 }
 
-export const SuppliersTab: React.FC<SuppliersTabProps> = ({ itemId }) => {
+export const SuppliersTab: React.FC<SuppliersTabProps> = ({ inventoryItemId }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useInventoryItemSuppliersTable(itemId);
+  const { data: response, isLoading } = useInventoryItemSuppliersTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemSupplierData>[]>(
     () => [
@@ -80,11 +80,11 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ itemId }) => {
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `commerce-inventory-item-${itemId}-suppliers`,
+    slug: `commerce-inventory-item-${inventoryItemId}-suppliers`,
     label: 'supplier',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SUPPLIERS_TABLE_KEY(itemId) }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SUPPLIERS_TABLE_KEY(inventoryItemId) }),
   });
 
   return (

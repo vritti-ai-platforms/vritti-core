@@ -74,7 +74,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
         clearable
       />
       <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
-      <Switch name="isActive" label="Active" />
+      <Switch name="isActive" label="Active" description="Inactive categories don't appear in item assignment dropdowns" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

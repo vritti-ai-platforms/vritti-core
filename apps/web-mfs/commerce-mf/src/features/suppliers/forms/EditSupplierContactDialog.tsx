@@ -63,7 +63,7 @@ export const EditSupplierContactDialog: React.FC<EditSupplierContactDialogProps>
       <TextField name="alternateEmail" label="Alternate Email" type="email" placeholder="e.g. john.alt@supplier.com" />
       <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
-      <Switch name="isActive" label="Active" />
+      <Switch name="isActive" label="Active" description="Inactive contacts are hidden from POs and selectors" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

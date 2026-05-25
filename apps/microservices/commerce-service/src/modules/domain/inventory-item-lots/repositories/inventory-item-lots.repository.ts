@@ -15,10 +15,10 @@ export class InventoryItemLotsRepository extends PrimaryBaseRepository<typeof in
   }
 
   async findLotsForTable(
-    itemId: string,
+    inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{ result: InventoryItemLotWithStock[]; count: number }> {
-    const baseWhere = eq(inventoryItemLots.inventoryItemId, itemId);
+    const baseWhere = eq(inventoryItemLots.inventoryItemId, inventoryItemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<InventoryItemLotWithStock>({
       select: {

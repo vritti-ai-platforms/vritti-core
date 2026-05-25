@@ -35,7 +35,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     resolver: zodResolver(addPurchaseOrderItemSchema),
     defaultValues: {
       supplierItemId: '',
-      quantity: 0,
+      uomQty: 0,
       unitPrice: undefined,
     },
   });
@@ -64,7 +64,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
         supplierItemId: data.supplierItemId,
-        quantity: data.quantity,
+        uomQty: data.uomQty,
         unitPrice: data.unitPrice as { currency: string; value: string },
       })}
     >
@@ -74,7 +74,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         onOptionSelect={handleItemSelect}
       />
       <TextField
-        name="quantity"
+        name="uomQty"
         label="Quantity"
         type="number"
         placeholder="e.g. 500"

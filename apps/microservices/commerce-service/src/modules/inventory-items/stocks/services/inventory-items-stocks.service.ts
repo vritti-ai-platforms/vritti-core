@@ -15,9 +15,9 @@ export class InventoryItemsStocksService {
     private readonly quantsService: InventoryItemQuantsService,
   ) {}
 
-  async findStocks(itemId: string): Promise<LocationStockDto[]> {
-    this.logger.log(`findStocks — itemId=${itemId}`);
-    await this.inventoryItemsService.findById(itemId);
-    return this.quantsService.findLocationStockByItemId(itemId);
+  async findStocks(inventoryItemId: string): Promise<LocationStockDto[]> {
+    this.logger.log(`findStocks — inventoryItemId=${inventoryItemId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.quantsService.findLocationStockByInventoryItemId(inventoryItemId);
   }
 }

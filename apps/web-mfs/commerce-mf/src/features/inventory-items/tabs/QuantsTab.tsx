@@ -12,7 +12,7 @@ import { INVENTORY_ITEM_QUANTS_KEY, useInventoryItemQuantsTable } from '@/hooks/
 import type { InventoryItemQuantData, InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
 
 interface QuantsTabProps {
-  itemId: string;
+  inventoryItemId: string;
   uomSymbol: string | null;
 }
 
@@ -34,10 +34,10 @@ const STATUS_CONFIG: Record<
   FRESH: { label: 'Fresh', variant: 'default' },
 };
 
-export const QuantsTab: React.FC<QuantsTabProps> = ({ itemId, uomSymbol }) => {
+export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { data: response, isLoading } = useInventoryItemQuantsTable(itemId);
+  const { data: response, isLoading } = useInventoryItemQuantsTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemQuantData>[]>(
     () => [
@@ -126,11 +126,11 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ itemId, uomSymbol }) => {
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-quants`,
+    slug: `inventory-item-${inventoryItemId}-quants`,
     label: 'quant',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_QUANTS_KEY(itemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_QUANTS_KEY(inventoryItemId)] }),
   });
 
   return (
@@ -138,7 +138,7 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ itemId, uomSymbol }) => {
       table={table}
       mode="tab"
       isLoading={isLoading}
-      filters={[<LocationFilter key="locationId" />, <LotFilter key="lotId" params={{ inventoryItemId: itemId }} />]}
+      filters={[<LocationFilter key="locationId" />, <LotFilter key="lotId" params={{ inventoryItemId: inventoryItemId }} />]}
       emptyStateConfig={{
         icon: Boxes,
         title: 'No quants',

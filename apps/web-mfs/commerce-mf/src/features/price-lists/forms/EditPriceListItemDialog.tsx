@@ -47,7 +47,11 @@ export const EditPriceListItemDialog: React.FC<EditPriceListItemDialogProps> = (
 
         <div className="flex items-center justify-between">
           <FieldLabel>Visible</FieldLabel>
-          <Switch checked={isVisible} onCheckedChange={setIsVisible} />
+          <Switch
+            checked={isVisible}
+            onCheckedChange={setIsVisible}
+            description="Hide this item from menus while keeping its price configured"
+          />
         </div>
       </div>
 

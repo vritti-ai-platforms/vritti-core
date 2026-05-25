@@ -162,17 +162,17 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   //  - the item's primary UOM
   //  - every per-item conversion override
   //  - every UOM in the same global "family" (sharing COALESCE(base_unit_id, id) with the primary)
-  async findAllowedUomIds(itemId: string): Promise<string[]> {
+  async findAllowedUomIds(inventoryItemId: string): Promise<string[]> {
     const result = await this.db.execute<{ id: string }>(sql`
       WITH p AS (
         SELECT COALESCE(base_unit_id, id) AS family_root
         FROM ${uom}
-        WHERE id = (SELECT uom_id FROM ${inventoryItems} WHERE id = ${itemId})
+        WHERE id = (SELECT uom_id FROM ${inventoryItems} WHERE id = ${inventoryItemId})
       )
       SELECT DISTINCT id FROM (
         SELECT uom_id AS id
         FROM ${inventoryItemUomConversions}
-        WHERE inventory_item_id = ${itemId}
+        WHERE inventory_item_id = ${inventoryItemId}
         UNION
         SELECT u.id
         FROM ${uom} u, p

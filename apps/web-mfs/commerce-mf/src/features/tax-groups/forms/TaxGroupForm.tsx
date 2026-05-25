@@ -27,10 +27,10 @@ export function TaxGroupForm({ form, showStatusFields = false, compactRates = fa
   return (
     <div className="space-y-4">
       <TextField name="name" label="Name" placeholder="e.g. GST 18%" />
-      <Switch name="isDefault" label="Set as default tax group" />
+      <Switch name="isDefault" label="Set as default tax group" description="Auto-applied to new items in this BU" />
       {showStatusFields && (
         <>
-          <Switch name="isActive" label="Active" />
+          <Switch name="isActive" label="Active" description="Inactive tax groups won't apply to new invoices" />
           <TextField name="sortOrder" type="number" label="Sort Order" placeholder="0" />
         </>
       )}

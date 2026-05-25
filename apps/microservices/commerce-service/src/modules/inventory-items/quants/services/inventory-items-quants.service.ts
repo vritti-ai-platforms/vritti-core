@@ -16,11 +16,11 @@ export class InventoryItemsQuantsService {
   ) {}
 
   async findForTable(
-    itemId: string,
+    inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
-    this.logger.log(`findForTable — itemId=${itemId}`);
-    await this.inventoryItemsService.findById(itemId);
-    return this.quantsService.findQuantsForTable(itemId, state);
+    this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.quantsService.findQuantsForTable(inventoryItemId, state);
   }
 }

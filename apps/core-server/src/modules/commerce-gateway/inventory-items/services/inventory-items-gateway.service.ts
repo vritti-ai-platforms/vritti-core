@@ -80,17 +80,17 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns supplier links for a given inventory item, table-shaped
-  async findSuppliersTable(itemId: string, userId: string): Promise<InventoryItemSupplierTableResponseDto> {
-    this.logger.log(`inventoryItems.suppliersTable — itemId: ${itemId}`);
+  async findSuppliersTable(inventoryItemId: string, userId: string): Promise<InventoryItemSupplierTableResponseDto> {
+    this.logger.log(`inventoryItems.suppliersTable — inventoryItemId: ${inventoryItemId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `commerce-inventory-item-${itemId}-suppliers`,
+      `commerce-inventory-item-${inventoryItemId}-suppliers`,
     );
 
     const { result, count } = await this.nats.send<{ result: InventoryItemSupplierResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.suppliersTable',
-      { inventoryItemId: itemId, ...state },
+      { inventoryItemId: inventoryItemId, ...state },
     );
 
     return { result, count, state, activeViewId };
@@ -109,109 +109,109 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns stock levels for an inventory item
-  async findLevels(itemId: string) {
-    this.logger.log(`inventoryItems.levels — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.levels', { itemId });
+  async findLevels(inventoryItemId: string) {
+    this.logger.log(`inventoryItems.levels — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'inventoryItems.levels', { inventoryItemId });
   }
 
   // Returns ledger entries for an inventory item
-  async findLedger(itemId: string) {
-    this.logger.log(`inventoryItems.ledger — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.ledger', { itemId });
+  async findLedger(inventoryItemId: string) {
+    this.logger.log(`inventoryItems.ledger — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'inventoryItems.ledger', { inventoryItemId });
   }
 
   // Returns paginated stock levels for an inventory item data table
-  async findLevelsForTable(itemId: string, userId: string): Promise<InventoryLevelTableResponseDto> {
+  async findLevelsForTable(inventoryItemId: string, userId: string): Promise<InventoryLevelTableResponseDto> {
     this.logger.log('inventoryItems.levelsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `inventory-item-${itemId}-levels`,
+      `inventory-item-${inventoryItemId}-levels`,
     );
 
     const { result, count } = await this.nats.send<{ result: InventoryLevelResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.levelsTable',
-      { itemId, ...state },
+      { inventoryItemId, ...state },
     );
 
     return { result, count, state, activeViewId };
   }
 
   // Returns paginated ledger entries for an inventory item data table
-  async findLedgerForTable(itemId: string, userId: string): Promise<InventoryItemLedgerTableResponseDto> {
+  async findLedgerForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log('inventoryItems.ledgerTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `inventory-item-${itemId}-ledger`,
+      `inventory-item-${inventoryItemId}-ledger`,
     );
 
     const { result, count } = await this.nats.send<{ result: InventoryItemLedgerResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.ledgerTable',
-      { itemId, ...state },
+      { inventoryItemId, ...state },
     );
 
     return { result, count, state, activeViewId };
   }
 
   // Returns location-wise stock aggregates for an inventory item, sourced from inventory_item_quants.
-  async findStocks(itemId: string): Promise<InventoryItemStockResponseDto[]> {
-    this.logger.log(`inventoryItems.stocks — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.stocks', { itemId });
+  async findStocks(inventoryItemId: string): Promise<InventoryItemStockResponseDto[]> {
+    this.logger.log(`inventoryItems.stocks — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'inventoryItems.stocks', { inventoryItemId });
   }
 
   // Returns paginated quants for an inventory item data table
-  async findQuantsForTable(itemId: string, userId: string): Promise<InventoryItemQuantTableResponseDto> {
+  async findQuantsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemQuantTableResponseDto> {
     this.logger.log('inventoryItems.quantsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `inventory-item-${itemId}-quants`,
+      `inventory-item-${inventoryItemId}-quants`,
     );
 
     const { result, count } = await this.nats.send<{
       result: InventoryItemQuantResponseDto[];
       count: number;
-    }>('commerce', 'inventoryItems.quantsTable', { itemId, ...state });
+    }>('commerce', 'inventoryItems.quantsTable', { inventoryItemId, ...state });
 
     return { result, count, state, activeViewId };
   }
 
   // Returns paginated lots for an inventory item data table
-  async findLotsForTable(itemId: string, userId: string): Promise<InventoryItemLotTableResponseDto> {
+  async findLotsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLotTableResponseDto> {
     this.logger.log('inventoryItems.lotsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `inventory-item-${itemId}-lots`,
+      `inventory-item-${inventoryItemId}-lots`,
     );
 
     const { result, count } = await this.nats.send<{
       result: InventoryItemLotResponseDto[];
       count: number;
-    }>('commerce', 'inventoryItems.lotsTable', { itemId, ...state });
+    }>('commerce', 'inventoryItems.lotsTable', { inventoryItemId, ...state });
 
     return { result, count, state, activeViewId };
   }
 
   // Returns paginated item-location configs for an inventory item
-  async findItemLocationsForTable(itemId: string, userId: string): Promise<InventoryItemLocationTableResponseDto> {
+  async findItemLocationsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log('inventoryItems.locationsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `inventory-item-${itemId}-locations`,
+      `inventory-item-${inventoryItemId}-locations`,
     );
 
     const { result, count } = await this.nats.send<{
       result: InventoryItemLocationResponseDto[];
       count: number;
-    }>('commerce', 'inventoryItems.locationsTable', { itemId, ...state });
+    }>('commerce', 'inventoryItems.locationsTable', { inventoryItemId, ...state });
 
     return { result, count, state, activeViewId };
   }
 
   // Creates an item-location config for an inventory item
-  async createItemLocation(itemId: string, dto: { locationId: string; reorderLevel: number }) {
-    this.logger.log(`inventoryItems.addLocation — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.addLocation', { itemId, ...dto });
+  async createItemLocation(inventoryItemId: string, dto: { locationId: string; reorderLevel: number }) {
+    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'inventoryItems.addLocation', { inventoryItemId, ...dto });
   }
 
   // Updates an item-location config
@@ -227,17 +227,17 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns paginated UOM conversion overrides for an inventory item
-  async findUomConversionsForTable(itemId: string, userId: string) {
-    this.logger.log(`inventoryItems.uomConversionsTable — itemId: ${itemId}`);
+  async findUomConversionsForTable(inventoryItemId: string, userId: string) {
+    this.logger.log(`inventoryItems.uomConversionsTable — inventoryItemId: ${inventoryItemId}`);
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
-      `inventory-item-${itemId}-uom-overrides`,
+      `inventory-item-${inventoryItemId}-uom-overrides`,
     );
 
     const { result, count } = await this.nats.send<{ result: InventoryItemUomConversionResponseDto[]; count: number }>(
       'commerce',
       'inventoryItems.uomConversionsTable',
-      { itemId, ...state },
+      { inventoryItemId, ...state },
     );
 
     return { result, count, state, activeViewId };
@@ -245,11 +245,11 @@ export class InventoryItemsGatewayService {
 
   // Creates a per-item UOM conversion override
   async createUomConversion(
-    itemId: string,
+    inventoryItemId: string,
     dto: CreateInventoryItemUomConversionDto,
   ): Promise<CreateResponseDto<InventoryItemUomConversionResponseDto>> {
-    this.logger.log(`inventoryItems.addUomConversion — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'inventoryItems.addUomConversion', { itemId, ...dto });
+    this.logger.log(`inventoryItems.addUomConversion — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'inventoryItems.addUomConversion', { inventoryItemId, ...dto });
   }
 
   // Updates a per-item UOM conversion override

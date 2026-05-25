@@ -24,7 +24,7 @@ export class InventoryItemLotsService {
   constructor(private readonly repository: InventoryItemLotsRepository) {}
 
   async findLotsForTable(
-    itemId: string,
+    inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsService.LOTS_FIELD_MAP);
@@ -33,7 +33,7 @@ export class InventoryItemLotsService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLotsService.LOTS_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findLotsForTable(itemId, {
+    const { result, count } = await this.repository.findLotsForTable(inventoryItemId, {
       where,
       orderBy: orderBy.length > 0 ? orderBy : undefined,
       limit,
@@ -43,7 +43,7 @@ export class InventoryItemLotsService {
     return { result: result.map((row) => InventoryItemLotDto.from(row)), count };
   }
 
-  // Returns existing lot or creates a new one. Lot identity is (orgId, itemId, lotNumber).
+  // Returns existing lot or creates a new one. Lot identity is (orgId, inventoryItemId, lotNumber).
   async findOrCreateLot(params: {
     inventoryItemId: string;
     lotNumber: string;

@@ -15,7 +15,7 @@ export class InventoryItemsSupplierItemsController {
     @Payload() data: { inventoryItemId: string } & TableViewState,
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
-    this.logger.log(`inventoryItems.suppliersTable — itemId: ${inventoryItemId}`);
+    this.logger.log(`inventoryItems.suppliersTable — inventoryItemId: ${inventoryItemId}`);
     return this.service.findSuppliersForItem(inventoryItemId, state);
   }
 }

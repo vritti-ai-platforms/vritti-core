@@ -14,7 +14,7 @@ import {
 } from '@/schemas/inventory-item-uom-conversions';
 
 interface AddUomConversionFormProps {
-  itemId: string;
+  inventoryItemId: string;
   itemUomId: string;
   itemUomSymbol: string;
   onSuccess: () => void;
@@ -22,7 +22,7 @@ interface AddUomConversionFormProps {
 }
 
 export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
-  itemId,
+  inventoryItemId,
   itemUomId,
   itemUomSymbol,
   onSuccess,
@@ -39,7 +39,7 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
   const uomQty = useWatch({ control: form.control, name: 'uomQty' });
   const uomId = useWatch({ control: form.control, name: 'uomId' });
 
-  const createMutation = useCreateInventoryItemUomConversion(itemId, { onSuccess });
+  const createMutation = useCreateInventoryItemUomConversion(inventoryItemId, { onSuccess });
 
   function handleOptionSelect(option: SelectOption | null) {
     setSelectedUomSymbol((option?.additionals?.symbol as string | undefined) ?? null);

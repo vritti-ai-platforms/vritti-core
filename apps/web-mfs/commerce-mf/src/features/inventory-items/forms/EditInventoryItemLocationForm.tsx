@@ -11,7 +11,7 @@ import {
 } from '@/schemas/inventory-item-locations';
 
 interface EditInventoryItemLocationFormProps {
-  itemId: string;
+  inventoryItemId: string;
   locationConfigId: string;
   locationName: string | null;
   currentReorderLevel: number;
@@ -21,7 +21,7 @@ interface EditInventoryItemLocationFormProps {
 }
 
 export const EditInventoryItemLocationForm: React.FC<EditInventoryItemLocationFormProps> = ({
-  itemId,
+  inventoryItemId,
   locationConfigId,
   locationName,
   currentReorderLevel,
@@ -34,7 +34,7 @@ export const EditInventoryItemLocationForm: React.FC<EditInventoryItemLocationFo
     defaultValues: { reorderLevel: currentReorderLevel },
   });
 
-  const updateMutation = useUpdateInventoryItemLocation(itemId, { onSuccess });
+  const updateMutation = useUpdateInventoryItemLocation(inventoryItemId, { onSuccess });
 
   return (
     <Form

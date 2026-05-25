@@ -5,36 +5,36 @@ import type {
   InventoryItemUomConversionsTableResponse,
 } from '@/schemas/inventory-item-uom-conversions';
 
-export function getInventoryItemUomConversionsTable(itemId: string): Promise<InventoryItemUomConversionsTableResponse> {
+export function getInventoryItemUomConversionsTable(inventoryItemId: string): Promise<InventoryItemUomConversionsTableResponse> {
   return axios
-    .get<InventoryItemUomConversionsTableResponse>(`commerce-api/inventory-items/${itemId}/uom-conversions/table`)
+    .get<InventoryItemUomConversionsTableResponse>(`commerce-api/inventory-items/${inventoryItemId}/uom-conversions/table`)
     .then((r) => r.data);
 }
 
 export function createInventoryItemUomConversion(
-  itemId: string,
+  inventoryItemId: string,
   data: { uomId: string; primaryUomQty: number; uomQty: number },
 ): Promise<CreateResponse<InventoryItemUomConversionData>> {
   return axios
     .post<CreateResponse<InventoryItemUomConversionData>>(
-      `commerce-api/inventory-items/${itemId}/uom-conversions`,
+      `commerce-api/inventory-items/${inventoryItemId}/uom-conversions`,
       data,
     )
     .then((r) => r.data);
 }
 
 export function updateInventoryItemUomConversion(
-  itemId: string,
+  inventoryItemId: string,
   conversionId: string,
   data: { primaryUomQty: number; uomQty: number },
 ): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/inventory-items/${itemId}/uom-conversions/${conversionId}`, data)
+    .patch<SuccessResponse>(`commerce-api/inventory-items/${inventoryItemId}/uom-conversions/${conversionId}`, data)
     .then((r) => r.data);
 }
 
-export function deleteInventoryItemUomConversion(itemId: string, conversionId: string): Promise<SuccessResponse> {
+export function deleteInventoryItemUomConversion(inventoryItemId: string, conversionId: string): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/inventory-items/${itemId}/uom-conversions/${conversionId}`)
+    .delete<SuccessResponse>(`commerce-api/inventory-items/${inventoryItemId}/uom-conversions/${conversionId}`)
     .then((r) => r.data);
 }

@@ -16375,9 +16375,9 @@
             "type": "string",
             "description": "Supplier item ID"
           },
-          "quantity": {
+          "uomQty": {
             "type": "number",
-            "description": "Ordered quantity",
+            "description": "Ordered uomQty",
             "example": 100
           },
           "unitPrice": {
@@ -16391,7 +16391,7 @@
         },
         "required": [
           "supplierItemId",
-          "quantity",
+          "uomQty",
           "unitPrice"
         ]
       },
@@ -16402,9 +16402,9 @@
             "type": "string",
             "description": "Inventory item ID"
           },
-          "quantity": {
+          "uomQty": {
             "type": "number",
-            "description": "Ordered quantity",
+            "description": "Ordered uomQty",
             "example": 100
           },
           "unitPrice": {

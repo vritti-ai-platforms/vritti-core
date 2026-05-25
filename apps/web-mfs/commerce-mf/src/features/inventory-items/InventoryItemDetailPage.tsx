@@ -59,41 +59,41 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'locations',
             label: 'Locations',
-            content: <LocationsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+            content: <LocationsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'stock-levels',
             label: 'Stock Levels',
-            content: <StockLevelsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+            content: <StockLevelsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'uom-conversions',
             label: 'UOM Conversions',
-            content: <UomConversionsTab itemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol ?? ''} />,
+            content: <UomConversionsTab inventoryItemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol ?? ''} />,
           },
           {
             value: 'suppliers',
             label: 'Suppliers',
-            content: <SuppliersTab itemId={item.id} />,
+            content: <SuppliersTab inventoryItemId={item.id} />,
           },
           ...(item.tracking === 'lot' || item.tracking === 'lot_serial'
             ? [
                 {
                   value: 'lots',
                   label: 'Lots',
-                  content: <LotsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+                  content: <LotsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
                 },
               ]
             : []),
           {
             value: 'quants',
             label: 'Quants',
-            content: <QuantsTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+            content: <QuantsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'ledger',
             label: 'Ledger',
-            content: <LedgerTab itemId={item.id} uomSymbol={item.uomSymbol} />,
+            content: <LedgerTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
         ]}
         value={activeTab}

@@ -45,6 +45,7 @@ export const VariantRow: React.FC<VariantRowProps> = ({ variant, edit, isDirty, 
       <Switch
         checked={edit.isAvailable}
         onCheckedChange={(checked) => onFieldChange(variant.id, 'isAvailable', checked)}
+        description="When off, this variant is hidden from POS and order forms"
       />
       <Typography variant="caption">{edit.isAvailable ? 'Available' : 'Unavailable'}</Typography>
     </div>

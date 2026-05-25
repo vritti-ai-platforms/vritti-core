@@ -26,7 +26,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         purchaseOrderId: purchaseOrderItems.purchaseOrderId,
         inventoryItemId: purchaseOrderItems.inventoryItemId,
         uomId: purchaseOrderItems.uomId,
-        quantity: purchaseOrderItems.quantity,
+        uomQty: purchaseOrderItems.uomQty,
         receivedQuantity: purchaseOrderItems.receivedQuantity,
         primaryUomQty: purchaseOrderItems.primaryUomQty,
         primaryUomUnitPrice: purchaseOrderItems.primaryUomUnitPrice,
@@ -47,7 +47,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
   }
 
   // Returns inventory item IDs linked to a PO
-  async findItemIdsByPoId(poId: string): Promise<string[]> {
+  async findInventoryItemIdsByPoId(poId: string): Promise<string[]> {
     const rows = await this.db
       .select({ inventoryItemId: purchaseOrderItems.inventoryItemId })
       .from(purchaseOrderItems)
@@ -70,7 +70,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         purchaseOrderId: purchaseOrderItems.purchaseOrderId,
         inventoryItemId: purchaseOrderItems.inventoryItemId,
         uomId: purchaseOrderItems.uomId,
-        quantity: purchaseOrderItems.quantity,
+        uomQty: purchaseOrderItems.uomQty,
         receivedQuantity: purchaseOrderItems.receivedQuantity,
         primaryUomQty: purchaseOrderItems.primaryUomQty,
         primaryUomUnitPrice: purchaseOrderItems.primaryUomUnitPrice,

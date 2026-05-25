@@ -9,7 +9,7 @@ import { INVENTORY_ITEM_LEDGER_KEY, useInventoryItemLedgerTable } from '@/hooks/
 import type { InventoryItemLedgerData, InventoryItemLedgerType } from '@/schemas/inventory-items';
 
 interface LedgerTabProps {
-  itemId: string;
+  inventoryItemId: string;
   uomSymbol: string | null;
 }
 
@@ -29,9 +29,9 @@ const TYPE_CONFIG: Record<
   TRANSFER_IN: { label: 'Transfer In', variant: 'default' },
 };
 
-export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
+export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
-  const { data: response, isLoading } = useInventoryItemLedgerTable(itemId);
+  const { data: response, isLoading } = useInventoryItemLedgerTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemLedgerData>[]>(
     () => [
@@ -97,11 +97,11 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ itemId, uomSymbol }) => {
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-ledger`,
+    slug: `inventory-item-${inventoryItemId}-ledger`,
     label: 'entry',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LEDGER_KEY(itemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LEDGER_KEY(inventoryItemId)] }),
   });
 
   return (

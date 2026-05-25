@@ -30,10 +30,10 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
   }
 
   async findQuantsForTable(
-    itemId: string,
+    inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{ result: InventoryItemQuantWithRefs[]; count: number }> {
-    const baseWhere = eq(inventoryItemQuants.inventoryItemId, itemId);
+    const baseWhere = eq(inventoryItemQuants.inventoryItemId, inventoryItemId);
     const combinedWhere = options.where ? and(baseWhere, options.where) : baseWhere;
     return this.findAllAndCount<InventoryItemQuantWithRefs>({
       select: {
@@ -246,7 +246,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     await this.db.delete(inventoryItemQuants).where(eq(inventoryItemQuants.id, id));
   }
 
-  async findLocationStockByItemId(itemId: string): Promise<
+  async findLocationStockByInventoryItemId(inventoryItemId: string): Promise<
     {
       locationId: string;
       locationName: string | null;
@@ -269,6 +269,6 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       })
       .from(inventoryStockLevels)
       .leftJoin(locations, eq(inventoryStockLevels.locationId, locations.id))
-      .where(eq(inventoryStockLevels.inventoryItemId, itemId));
+      .where(eq(inventoryStockLevels.inventoryItemId, inventoryItemId));
   }
 }

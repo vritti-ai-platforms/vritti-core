@@ -16,17 +16,17 @@ import { AddUomConversionForm } from '../forms/AddUomConversionForm';
 import { EditUomConversionForm } from '../forms/EditUomConversionForm';
 
 interface UomConversionsTabProps {
-  itemId: string;
+  inventoryItemId: string;
   itemUomId: string;
   itemUomSymbol: string;
 }
 
-export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, itemUomId, itemUomSymbol }) => {
+export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryItemId, itemUomId, itemUomSymbol }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addDialog = useDialog();
-  const { data: response, isLoading } = useInventoryItemUomConversionsTable(itemId);
-  const deleteMutation = useDeleteInventoryItemUomConversion(itemId);
+  const { data: response, isLoading } = useInventoryItemUomConversionsTable(inventoryItemId);
+  const deleteMutation = useDeleteInventoryItemUomConversion(inventoryItemId);
 
   const handleDelete = useCallback(
     async (row: InventoryItemUomConversionData) => {
@@ -74,7 +74,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, it
                   description: `Update the conversion ratio for ${row.original.uomName} (${row.original.uomSymbol}).`,
                   content: (close) => (
                     <EditUomConversionForm
-                      itemId={itemId}
+                      inventoryItemId={inventoryItemId}
                       conversionId={row.original.id}
                       uomSymbol={row.original.uomSymbol}
                       itemUomSymbol={itemUomSymbol}
@@ -101,17 +101,17 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, it
         enableHiding: false,
       },
     ],
-    [itemId, handleDelete, itemUomSymbol],
+    [inventoryItemId, handleDelete, itemUomSymbol],
   );
 
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-uom-conversions`,
+    slug: `inventory-item-${inventoryItemId}-uom-conversions`,
     label: 'conversion',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId)] }),
   });
 
   return (
@@ -146,7 +146,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, it
         description="Specify a conversion factor for this inventory item."
         content={(close) => (
           <AddUomConversionForm
-            itemId={itemId}
+            inventoryItemId={inventoryItemId}
             itemUomId={itemUomId}
             itemUomSymbol={itemUomSymbol}
             onSuccess={close}

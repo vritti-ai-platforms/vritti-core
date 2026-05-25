@@ -62,11 +62,11 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Returns all ledger entries for a given inventory item, newest first
-  async findByItemId(itemId: string): Promise<InventoryItemLedgerEntry[]> {
+  async findByInventoryItemId(inventoryItemId: string): Promise<InventoryItemLedgerEntry[]> {
     return this.db
       .select()
       .from(inventoryItemLedger)
-      .where(eq(inventoryItemLedger.inventoryItemId, itemId))
+      .where(eq(inventoryItemLedger.inventoryItemId, inventoryItemId))
       .orderBy(desc(inventoryItemLedger.createdAt)) as Promise<InventoryItemLedgerEntry[]>;
   }
 }

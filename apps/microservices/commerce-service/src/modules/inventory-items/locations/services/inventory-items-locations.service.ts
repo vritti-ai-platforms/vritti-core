@@ -17,21 +17,21 @@ export class InventoryItemsLocationsService {
   ) {}
 
   async findForTable(
-    itemId: string,
+    inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
-    this.logger.log(`findForTable — itemId=${itemId}`);
-    await this.inventoryItemsService.findById(itemId);
-    return this.itemLocationsService.findForTable(itemId, state);
+    this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.itemLocationsService.findForTable(inventoryItemId, state);
   }
 
   async create(
-    itemId: string,
+    inventoryItemId: string,
     data: { locationId: string; reorderLevel: number },
   ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
-    this.logger.log(`create — itemId=${itemId}, locationId=${data.locationId}`);
-    await this.inventoryItemsService.findById(itemId);
-    return this.itemLocationsService.create(itemId, data);
+    this.logger.log(`create — inventoryItemId=${inventoryItemId}, locationId=${data.locationId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.itemLocationsService.create(inventoryItemId, data);
   }
 
   async update(id: string, data: { reorderLevel: number }): Promise<SuccessResponseDto> {

@@ -308,7 +308,7 @@ export class InventoryItemQuantsService {
   }
 
   async findQuantsForTable(
-    itemId: string,
+    inventoryItemId: string,
     state: TableViewState,
   ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsService.QUANTS_FIELD_MAP);
@@ -317,7 +317,7 @@ export class InventoryItemQuantsService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsService.QUANTS_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findQuantsForTable(itemId, {
+    const { result, count } = await this.repository.findQuantsForTable(inventoryItemId, {
       where,
       orderBy: orderBy.length > 0 ? orderBy : undefined,
       limit,
@@ -333,8 +333,8 @@ export class InventoryItemQuantsService {
     return InventoryItemQuantDto.from(row, true);
   }
 
-  async findLocationStockByItemId(itemId: string): Promise<LocationStockDto[]> {
-    const rows = await this.repository.findLocationStockByItemId(itemId);
+  async findLocationStockByInventoryItemId(inventoryItemId: string): Promise<LocationStockDto[]> {
+    const rows = await this.repository.findLocationStockByInventoryItemId(inventoryItemId);
     return rows.map((row) => {
       const dto = new LocationStockDto();
       dto.locationId = row.locationId;

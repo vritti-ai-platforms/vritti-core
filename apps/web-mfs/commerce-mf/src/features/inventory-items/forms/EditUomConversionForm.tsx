@@ -11,7 +11,7 @@ import {
 } from '@/schemas/inventory-item-uom-conversions';
 
 interface EditUomConversionFormProps {
-  itemId: string;
+  inventoryItemId: string;
   conversionId: string;
   uomSymbol: string;
   itemUomSymbol: string;
@@ -22,7 +22,7 @@ interface EditUomConversionFormProps {
 }
 
 export const EditUomConversionForm: React.FC<EditUomConversionFormProps> = ({
-  itemId,
+  inventoryItemId,
   conversionId,
   uomSymbol,
   itemUomSymbol,
@@ -39,7 +39,7 @@ export const EditUomConversionForm: React.FC<EditUomConversionFormProps> = ({
   const primaryUomQty = useWatch({ control: form.control, name: 'primaryUomQty' });
   const uomQty = useWatch({ control: form.control, name: 'uomQty' });
 
-  const updateMutation = useUpdateInventoryItemUomConversion(itemId, { onSuccess });
+  const updateMutation = useUpdateInventoryItemUomConversion(inventoryItemId, { onSuccess });
 
   return (
     <Form

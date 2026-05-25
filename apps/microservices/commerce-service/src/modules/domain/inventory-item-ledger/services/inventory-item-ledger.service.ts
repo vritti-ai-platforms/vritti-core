@@ -52,8 +52,8 @@ export class InventoryItemLedgerService {
   }
 
   // Returns all ledger entries for a given inventory item
-  async findByItemId(itemId: string): Promise<InventoryItemLedgerDto[]> {
-    const entries = await this.repository.findByItemId(itemId);
+  async findByInventoryItemId(inventoryItemId: string): Promise<InventoryItemLedgerDto[]> {
+    const entries = await this.repository.findByInventoryItemId(inventoryItemId);
     return entries.map((r) => InventoryItemLedgerDto.from(r));
   }
 

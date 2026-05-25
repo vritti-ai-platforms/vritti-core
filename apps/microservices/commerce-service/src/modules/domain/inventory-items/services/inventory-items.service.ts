@@ -157,10 +157,10 @@ export class InventoryItemsService {
   }
 
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
-  async findAllowedUomIds(itemId: string): Promise<{ name: string; allowedUomIds: string[] }> {
-    const entity = await this.repository.findById(itemId);
+  async findAllowedUomIds(inventoryItemId: string): Promise<{ name: string; allowedUomIds: string[] }> {
+    const entity = await this.repository.findById(inventoryItemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
-    const allowedUomIds = await this.repository.findAllowedUomIds(itemId);
+    const allowedUomIds = await this.repository.findAllowedUomIds(inventoryItemId);
     return { name: entity.name, allowedUomIds };
   }
 

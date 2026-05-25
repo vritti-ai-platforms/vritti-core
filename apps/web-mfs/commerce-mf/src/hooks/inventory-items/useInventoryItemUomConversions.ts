@@ -20,16 +20,16 @@ import {
 import { INVENTORY_ITEM_UOM_CONVERSIONS_KEY } from './keys';
 
 export function useInventoryItemUomConversionsTable(
-  itemId: string | null,
+  inventoryItemId: string | null,
   options?: Omit<
     UseQueryOptions<InventoryItemUomConversionsTableResponse, AxiosError>,
     'queryKey' | 'queryFn' | 'enabled'
   >,
 ) {
   return useQuery<InventoryItemUomConversionsTableResponse, AxiosError>({
-    queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId ?? '')],
-    queryFn: () => getInventoryItemUomConversionsTable(itemId as string),
-    enabled: !!itemId,
+    queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId ?? '')],
+    queryFn: () => getInventoryItemUomConversionsTable(inventoryItemId as string),
+    enabled: !!inventoryItemId,
     ...options,
   });
 }
@@ -38,43 +38,43 @@ type CreatePayload = { uomId: string; primaryUomQty: number; uomQty: number };
 type UpdatePayload = { conversionId: string; primaryUomQty: number; uomQty: number };
 
 export function useCreateInventoryItemUomConversion(
-  itemId: string,
+  inventoryItemId: string,
   options?: UseMutationOptions<CreateResponse<InventoryItemUomConversionData>, AxiosError, CreatePayload>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<CreateResponse<InventoryItemUomConversionData>, AxiosError, CreatePayload>({
-    mutationFn: (data) => createInventoryItemUomConversion(itemId, data),
+    mutationFn: (data) => createInventoryItemUomConversion(inventoryItemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });
 }
 
 export function useUpdateInventoryItemUomConversion(
-  itemId: string,
+  inventoryItemId: string,
   options?: UseMutationOptions<SuccessResponse, AxiosError, UpdatePayload>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, UpdatePayload>({
     mutationFn: ({ conversionId, primaryUomQty, uomQty }) =>
-      updateInventoryItemUomConversion(itemId, conversionId, { primaryUomQty, uomQty }),
+      updateInventoryItemUomConversion(inventoryItemId, conversionId, { primaryUomQty, uomQty }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });
 }
 
 export function useDeleteInventoryItemUomConversion(
-  itemId: string,
+  inventoryItemId: string,
   options?: UseMutationOptions<SuccessResponse, AxiosError, string>,
 ) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, string>({
-    mutationFn: (conversionId) => deleteInventoryItemUomConversion(itemId, conversionId),
+    mutationFn: (conversionId) => deleteInventoryItemUomConversion(inventoryItemId, conversionId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId) });
+      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });

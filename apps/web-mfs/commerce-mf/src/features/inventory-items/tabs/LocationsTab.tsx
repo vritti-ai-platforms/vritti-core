@@ -16,16 +16,16 @@ import { AddInventoryItemLocationForm } from '../forms/AddInventoryItemLocationF
 import { EditInventoryItemLocationForm } from '../forms/EditInventoryItemLocationForm';
 
 interface LocationsTabProps {
-  itemId: string;
+  inventoryItemId: string;
   uomSymbol: string | null;
 }
 
-export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol }) => {
+export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addDialog = useDialog();
-  const { data: response, isLoading } = useInventoryItemLocationsTable(itemId);
-  const deleteMutation = useDeleteInventoryItemLocation(itemId);
+  const { data: response, isLoading } = useInventoryItemLocationsTable(inventoryItemId);
+  const deleteMutation = useDeleteInventoryItemLocation(inventoryItemId);
 
   const handleDelete = useCallback(
     async (row: InventoryItemLocationData) => {
@@ -79,7 +79,7 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol })
                   description: `Update the reorder threshold for ${row.original.locationName ?? 'this location'}.`,
                   content: (close) => (
                     <EditInventoryItemLocationForm
-                      itemId={itemId}
+                      inventoryItemId={inventoryItemId}
                       locationConfigId={row.original.id}
                       locationName={row.original.locationName}
                       currentReorderLevel={row.original.reorderLevel}
@@ -104,17 +104,17 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol })
         enableHiding: false,
       },
     ],
-    [itemId, uomSymbol, handleDelete],
+    [inventoryItemId, uomSymbol, handleDelete],
   );
 
   const { table } = useDataTable({
     columns,
     serverState: response,
-    slug: `inventory-item-${itemId}-locations`,
+    slug: `inventory-item-${inventoryItemId}-locations`,
     label: 'config',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LOCATIONS_KEY(itemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId)] }),
   });
 
   return (
@@ -146,7 +146,7 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ itemId, uomSymbol })
         handle={addDialog}
         title="Add Location"
         description="Set a minimum stock level for a storage location."
-        content={(close) => <AddInventoryItemLocationForm itemId={itemId} onSuccess={close} onCancel={close} />}
+        content={(close) => <AddInventoryItemLocationForm inventoryItemId={inventoryItemId} onSuccess={close} onCancel={close} />}
       />
     </>
   );

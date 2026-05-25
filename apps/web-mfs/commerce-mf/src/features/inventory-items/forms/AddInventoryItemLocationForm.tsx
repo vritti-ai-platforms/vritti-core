@@ -13,13 +13,13 @@ import {
 import { LocationRoleValues } from '@/schemas/locations';
 
 interface AddInventoryItemLocationFormProps {
-  itemId: string;
+  inventoryItemId: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationFormProps> = ({
-  itemId,
+  inventoryItemId,
   onSuccess,
   onCancel,
 }) => {
@@ -28,7 +28,7 @@ export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationForm
     defaultValues: { locationId: '', reorderLevel: 0 },
   });
 
-  const createMutation = useCreateInventoryItemLocation(itemId, { onSuccess });
+  const createMutation = useCreateInventoryItemLocation(inventoryItemId, { onSuccess });
 
   return (
     <Form form={form} mutation={createMutation} onCancel={onCancel}>

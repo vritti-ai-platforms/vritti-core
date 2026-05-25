@@ -68,7 +68,7 @@ export const EditItemForm: React.FC<EditItemFormProps> = ({ item, onSuccess, onC
 
       <TextArea name="description" label="Description" placeholder="Optional description" rows={3} />
 
-      <Switch name="isAvailable" label="Available for ordering" />
+      <Switch name="isAvailable" label="Available for ordering" description="When off, the item is hidden from POS and order forms" />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

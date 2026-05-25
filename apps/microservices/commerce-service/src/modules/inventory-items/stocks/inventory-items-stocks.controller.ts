@@ -10,8 +10,8 @@ export class InventoryItemsStocksController {
   constructor(private readonly service: InventoryItemsStocksService) {}
 
   @MessagePattern({ cmd: 'inventoryItems.stocks' })
-  async stocks(@Payload() data: { itemId: string }): Promise<LocationStockDto[]> {
-    this.logger.log(`inventoryItems.stocks — itemId: ${data.itemId}`);
-    return this.service.findStocks(data.itemId);
+  async stocks(@Payload() data: { inventoryItemId: string }): Promise<LocationStockDto[]> {
+    this.logger.log(`inventoryItems.stocks — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findStocks(data.inventoryItemId);
   }
 }

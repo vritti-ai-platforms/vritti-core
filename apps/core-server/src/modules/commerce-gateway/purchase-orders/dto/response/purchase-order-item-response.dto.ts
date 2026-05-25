@@ -11,8 +11,8 @@ export class PurchaseOrderItemResponseDto {
   @ApiProperty({ description: 'Inventory item name', nullable: true })
   inventoryItemName: string | null;
 
-  @ApiProperty({ description: 'Ordered quantity' })
-  quantity: number;
+  @ApiProperty({ description: 'Ordered quantity in the line UOM' })
+  uomQty: number;
 
   @ApiProperty({ description: 'Received quantity' })
   receivedQuantity: number;

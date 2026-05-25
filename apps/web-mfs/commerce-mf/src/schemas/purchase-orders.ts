@@ -82,7 +82,7 @@ export interface PurchaseOrderItemData {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  quantity: number;
+  uomQty: number;
   receivedQuantity: number;
   currencyCode: string;
   unitPrice: { currency: string; value: string };
@@ -117,14 +117,14 @@ export type PurchaseOrderDetail = PurchaseOrderData;
 
 export const addPurchaseOrderItemSchema = z.object({
   supplierItemId: z.string().min(1, 'Item is required'),
-  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+  uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
   unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
 });
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
 
 export const updatePurchaseOrderItemSchema = z.object({
-  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+  uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
   unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
 });
 

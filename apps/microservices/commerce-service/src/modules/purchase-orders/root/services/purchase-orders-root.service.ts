@@ -31,8 +31,8 @@ export class PurchaseOrdersRootService {
     const supplier = await this.suppliersRepository.findById(dto.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
-    const itemIds = await this.itemsRepository.findItemIdsByPoId(id);
-    if (itemIds.length > 0) {
+    const inventoryItemIds = await this.itemsRepository.findInventoryItemIdsByPoId(id);
+    if (inventoryItemIds.length > 0) {
       throw new BadRequestException({
         label: 'Cannot Change Supplier',
         detail: 'Remove all line items before changing the supplier.',

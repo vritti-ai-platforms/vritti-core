@@ -21,16 +21,16 @@ export class UomConversionsRepository extends PrimaryBaseRepository<typeof inven
     super(database, inventoryItemUomConversions);
   }
 
-  async findItemPrimaryUomId(itemId: string): Promise<string | null> {
+  async findInventoryItemPrimaryUomId(inventoryItemId: string): Promise<string | null> {
     const [row] = await this.db
       .select({ uomId: inventoryItems.uomId })
       .from(inventoryItems)
-      .where(eq(inventoryItems.id, itemId))
+      .where(eq(inventoryItems.id, inventoryItemId))
       .limit(1);
     return row?.uomId ?? null;
   }
 
-  async findItemConversion(itemId: string, uomId: string): Promise<ConversionPair | null> {
+  async findInventoryItemConversion(inventoryItemId: string, uomId: string): Promise<ConversionPair | null> {
     const [row] = await this.db
       .select({
         primaryUomQty: inventoryItemUomConversions.primaryUomQty,
@@ -38,7 +38,10 @@ export class UomConversionsRepository extends PrimaryBaseRepository<typeof inven
       })
       .from(inventoryItemUomConversions)
       .where(
-        and(eq(inventoryItemUomConversions.inventoryItemId, itemId), eq(inventoryItemUomConversions.uomId, uomId)),
+        and(
+          eq(inventoryItemUomConversions.inventoryItemId, inventoryItemId),
+          eq(inventoryItemUomConversions.uomId, uomId),
+        ),
       )
       .limit(1);
     return row ?? null;
@@ -58,18 +61,20 @@ export class UomConversionsRepository extends PrimaryBaseRepository<typeof inven
     return row ?? null;
   }
 
-  async findItemPrimaryUomIds(itemIds: string[]): Promise<Map<string, string>> {
-    if (itemIds.length === 0) return new Map();
+  async findInventoryItemPrimaryUomIds(inventoryItemIds: string[]): Promise<Map<string, string>> {
+    if (inventoryItemIds.length === 0) return new Map();
     const rows = await this.db
       .select({ id: inventoryItems.id, uomId: inventoryItems.uomId })
       .from(inventoryItems)
-      .where(inArray(inventoryItems.id, itemIds));
+      .where(inArray(inventoryItems.id, inventoryItemIds));
     return new Map(rows.map((r) => [r.id, r.uomId]));
   }
 
-  async findItemConversionsByItemIds(itemIds: string[]): Promise<Map<string, Map<string, ConversionPair>>> {
+  async findInventoryItemConversionsByInventoryItemIds(
+    inventoryItemIds: string[],
+  ): Promise<Map<string, Map<string, ConversionPair>>> {
     const result = new Map<string, Map<string, ConversionPair>>();
-    if (itemIds.length === 0) return result;
+    if (inventoryItemIds.length === 0) return result;
     const rows = await this.db
       .select({
         inventoryItemId: inventoryItemUomConversions.inventoryItemId,
@@ -78,14 +83,14 @@ export class UomConversionsRepository extends PrimaryBaseRepository<typeof inven
         uomQty: inventoryItemUomConversions.uomQty,
       })
       .from(inventoryItemUomConversions)
-      .where(inArray(inventoryItemUomConversions.inventoryItemId, itemIds));
+      .where(inArray(inventoryItemUomConversions.inventoryItemId, inventoryItemIds));
     for (const row of rows) {
-      let perItem = result.get(row.inventoryItemId);
-      if (!perItem) {
-        perItem = new Map();
-        result.set(row.inventoryItemId, perItem);
+      let perInventoryItem = result.get(row.inventoryItemId);
+      if (!perInventoryItem) {
+        perInventoryItem = new Map();
+        result.set(row.inventoryItemId, perInventoryItem);
       }
-      perItem.set(row.uomId, { primaryUomQty: row.primaryUomQty, uomQty: row.uomQty });
+      perInventoryItem.set(row.uomId, { primaryUomQty: row.primaryUomQty, uomQty: row.uomQty });
     }
     return result;
   }

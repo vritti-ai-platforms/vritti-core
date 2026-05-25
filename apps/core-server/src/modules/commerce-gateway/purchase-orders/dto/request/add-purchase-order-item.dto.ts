@@ -7,10 +7,10 @@ export class AddPurchaseOrderItemDto {
   @IsUUID()
   supplierItemId: string;
 
-  @ApiProperty({ description: 'Ordered quantity', example: 100 })
+  @ApiProperty({ description: 'Ordered uomQty', example: 100 })
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  quantity: number;
+  uomQty: number;
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Unit price in PO/supplier currency' })
   @IsCurrency()
