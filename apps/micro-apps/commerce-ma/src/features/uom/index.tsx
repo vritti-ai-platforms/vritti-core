@@ -145,8 +145,7 @@ const screens: ReadonlyArray<PushScreenConfig<UOMRoute>> = [
     header: () => (
       <ScreenHeader
         title="Units of Measure"
-        subtitle="Manage UOM definitions"
-        leftActions={<FilterButton />}
+        // leftActions={<FilterButton />}
         rightActions={<CreateButton />}
       />
     ),

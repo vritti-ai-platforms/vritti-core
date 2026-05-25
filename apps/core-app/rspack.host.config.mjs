@@ -28,6 +28,7 @@ for (const file of [`.env`, `.env.${appEnv}`, `.env.local`, `.env.${appEnv}.loca
 const env = envSchema.parse({
   APP_ENV: process.env.APP_ENV ?? appEnv,
   DEV_HOST: process.env.DEV_HOST,
+  API_BASE_URL: process.env.API_BASE_URL,
   DEPLOYMENTS_API_BASE_URL: process.env.DEPLOYMENTS_API_BASE_URL,
 });
 
@@ -199,6 +200,7 @@ export default (rspackEnv) => {
         __APP_CONFIG__: JSON.stringify({
           appEnv: env.APP_ENV,
           devHost: isDev ? env.DEV_HOST : undefined,
+          apiBaseUrl: env.API_BASE_URL,
           deploymentsApiBaseUrl: env.DEPLOYMENTS_API_BASE_URL,
         }),
       }),

@@ -6,10 +6,12 @@ export const envSchema = z.discriminatedUnion('APP_ENV', [
   z.object({
     APP_ENV: z.literal('development'),
     DEV_HOST: hostOnly,
+    API_BASE_URL: z.string().url(),
     DEPLOYMENTS_API_BASE_URL: z.string().url(),
   }),
   z.object({
     APP_ENV: z.literal('production'),
+    API_BASE_URL: z.string().url(),
     DEPLOYMENTS_API_BASE_URL: z.string().url(),
   }),
 ]);

@@ -1,13 +1,13 @@
 declare const __APP_CONFIG__: {
   readonly appEnv: 'development' | 'production';
   readonly devHost?: string;
+  readonly apiBaseUrl: string;
   readonly deploymentsApiBaseUrl: string;
 };
 
-const DEV_PORTS = { rawCore: 3001, mf: 8081 } as const;
+const DEV_PORTS = { mf: 8081 } as const;
 
 const PROD = {
-  apiBaseUrl: 'https://api.vrittiai.com',
   mfHostUrl: 'https://mf.vrittiai.com',
 } as const;
 
@@ -20,8 +20,8 @@ export const config = {
 
   api: {
     deploymentsBaseUrl: raw.deploymentsApiBaseUrl,
-    fallbackBaseUrl: isDev ? `http://${raw.devHost}:${DEV_PORTS.rawCore}` : PROD.apiBaseUrl,
-    devRawCoreBaseUrl: isDev ? `http://${raw.devHost}:${DEV_PORTS.rawCore}` : undefined,
+    fallbackBaseUrl: raw.apiBaseUrl,
+    devRawCoreBaseUrl: isDev ? raw.apiBaseUrl : undefined,
   },
 
   mf: {
