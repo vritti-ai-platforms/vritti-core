@@ -1,23 +1,21 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { z, zodResolver } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useSendPurchaseOrderEmail } from '@/hooks/purchase-orders';
-import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
+import {
+  type PurchaseOrderDetail,
+  type SendPurchaseOrderEmailFormData,
+  sendPurchaseOrderEmailSchema,
+} from '@/schemas/purchase-orders';
 
 interface SendPurchaseOrderEmailDialogProps {
   purchaseOrder: PurchaseOrderDetail;
   onSuccess: () => void;
   onCancel: () => void;
 }
-
-const sendPurchaseOrderEmailSchema = z.object({
-  email: z.string().email('Enter a valid email address').optional().or(z.literal('')),
-});
-
-type SendPurchaseOrderEmailFormData = z.infer<typeof sendPurchaseOrderEmailSchema>;
 
 export const SendPurchaseOrderEmailDialog: React.FC<SendPurchaseOrderEmailDialogProps> = ({
   purchaseOrder,

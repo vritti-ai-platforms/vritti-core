@@ -122,3 +122,28 @@ export const addPurchaseOrderItemSchema = z.object({
 });
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
+
+export const updatePurchaseOrderItemSchema = z.object({
+  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+  unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+});
+
+export type UpdatePurchaseOrderItemFormData = z.infer<typeof updatePurchaseOrderItemSchema>;
+
+export const updatePurchaseOrderNotesSchema = z.object({
+  notes: z.string().optional(),
+});
+
+export type UpdatePurchaseOrderNotesFormData = z.infer<typeof updatePurchaseOrderNotesSchema>;
+
+export const changePurchaseOrderSupplierSchema = z.object({
+  supplierId: z.string().min(1, 'Supplier is required'),
+});
+
+export type ChangePurchaseOrderSupplierFormData = z.infer<typeof changePurchaseOrderSupplierSchema>;
+
+export const sendPurchaseOrderEmailSchema = z.object({
+  email: z.string().email('Enter a valid email address').optional().or(z.literal('')),
+});
+
+export type SendPurchaseOrderEmailFormData = z.infer<typeof sendPurchaseOrderEmailSchema>;

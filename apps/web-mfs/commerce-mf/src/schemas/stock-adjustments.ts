@@ -145,6 +145,11 @@ export const createStockAdjustmentSchema = z.object({
 });
 export type CreateStockAdjustmentFormData = z.infer<typeof createStockAdjustmentSchema>;
 
+export const updateStockAdjustmentSchema = z.object({
+  reason: z.string().min(1, 'Reason is required'),
+});
+export type UpdateStockAdjustmentFormData = z.infer<typeof updateStockAdjustmentSchema>;
+
 export const addStockAdjustmentLotSchema = z
   .object({
     lotNumber: z.string().min(1, 'Lot number is required').max(100),
@@ -166,13 +171,28 @@ export const addOpeningStockLineSchema = z.object({
 });
 export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
 
-// Deduct/CORRECTION lines (change intent)
-export const addChangeLineSchema = z.object({
-  quantId: z.string().min(1, 'Quant is required'),
-  uomId: z.string().min(1, 'UOM is required'),
-  uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
-});
-export type AddChangeLineFormData = z.infer<typeof addChangeLineSchema>;
+// Deduct/CORRECTION lines (change intent). Factory because validation depends on
+// adjustment type (CORRECTION allows negative/zero) and the source quant's available qty (maxQty).
+export function buildAddChangeLineSchema(opts: { isCorrection: boolean; maxQty?: number }) {
+  return z.object({
+    quantId: z.string().min(1, 'Quant is required'),
+    uomId: z.string().min(1, 'UOM is required'),
+    uomQty: opts.isCorrection
+      ? zodNumericField({ required: 'Quantity is required', nonZero: true })
+      : zodNumericField({ required: 'Quantity is required', positive: true, max: opts.maxQty }),
+  });
+}
+export type AddChangeLineFormData = z.infer<ReturnType<typeof buildAddChangeLineSchema>>;
+
+export function buildUpdateChangeLineSchema(opts: { isCorrection: boolean }) {
+  return z.object({
+    uomQty: opts.isCorrection
+      ? zodNumericField({ required: 'Quantity is required' })
+      : zodNumericField({ required: 'Quantity is required', positive: true }),
+    uomId: z.string().min(1, 'UOM is required'),
+  });
+}
+export type UpdateChangeLineFormData = z.infer<ReturnType<typeof buildUpdateChangeLineSchema>>;
 
 export const addStockAdjustmentLineItemSchema = z.object({
   serialNumber: z.string().min(1, 'Serial number is required').max(100),

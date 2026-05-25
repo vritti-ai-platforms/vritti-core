@@ -70,7 +70,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
       transformSubmit={(data) => ({
         supplierId: data.supplierId,
         exchangeRateType: data.exchangeRateType,
-        exchangeRate: data.exchangeRateType === 'FIXED' ? ((data.exchangeRate ?? undefined) as number | undefined) : null,
+        exchangeRate: data.exchangeRateType === 'FIXED' ? (data.exchangeRate ?? undefined) : null,
         orderDate: data.orderDate,
         expectedBy: data.expectedBy || undefined,
         notes: data.notes || undefined,

@@ -1,11 +1,15 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
-import { z, zodResolver } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useChangePurchaseOrderSupplier } from '@/hooks/purchase-orders';
-import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
+import {
+  changePurchaseOrderSupplierSchema,
+  type ChangePurchaseOrderSupplierFormData,
+  type PurchaseOrderDetail,
+} from '@/schemas/purchase-orders';
 
 interface ChangePurchaseOrderSupplierDialogProps {
   purchaseOrder: PurchaseOrderDetail;
@@ -14,20 +18,14 @@ interface ChangePurchaseOrderSupplierDialogProps {
   onCancel: () => void;
 }
 
-const changeSupplierSchema = z.object({
-  supplierId: z.string().min(1, 'Supplier is required'),
-});
-
-type ChangeSupplierFormData = z.infer<typeof changeSupplierSchema>;
-
 export const ChangePurchaseOrderSupplierDialog: React.FC<ChangePurchaseOrderSupplierDialogProps> = ({
   purchaseOrder,
   hasLines,
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<ChangeSupplierFormData>({
-    resolver: zodResolver(changeSupplierSchema),
+  const form = useForm<ChangePurchaseOrderSupplierFormData>({
+    resolver: zodResolver(changePurchaseOrderSupplierSchema),
     defaultValues: {
       supplierId: purchaseOrder.supplierId,
     },

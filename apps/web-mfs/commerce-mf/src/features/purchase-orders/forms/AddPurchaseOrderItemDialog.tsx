@@ -64,7 +64,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
         supplierItemId: data.supplierItemId,
-        quantity: data.quantity as number,
+        quantity: data.quantity,
         unitPrice: data.unitPrice as { currency: string; value: string },
       })}
     >

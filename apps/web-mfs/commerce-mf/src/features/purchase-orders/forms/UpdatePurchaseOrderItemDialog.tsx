@@ -2,11 +2,15 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { z, zodCurrencyField, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdatePurchaseOrderItem } from '@/hooks/purchase-orders';
-import type { PurchaseOrderItemData } from '@/schemas/purchase-orders';
+import {
+  type PurchaseOrderItemData,
+  type UpdatePurchaseOrderItemFormData,
+  updatePurchaseOrderItemSchema,
+} from '@/schemas/purchase-orders';
 
 interface UpdatePurchaseOrderItemDialogProps {
   purchaseOrderId: string;
@@ -16,13 +20,6 @@ interface UpdatePurchaseOrderItemDialogProps {
   onCancel: () => void;
 }
 
-const updateLineItemSchema = z.object({
-  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
-  unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
-});
-
-type UpdateLineItemFormData = z.infer<typeof updateLineItemSchema>;
-
 export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDialogProps> = ({
   purchaseOrderId,
   poCurrencyCode,
@@ -30,8 +27,8 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<UpdateLineItemFormData>({
-    resolver: zodResolver(updateLineItemSchema),
+  const form = useForm<UpdatePurchaseOrderItemFormData>({
+    resolver: zodResolver(updatePurchaseOrderItemSchema),
     defaultValues: {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
@@ -48,7 +45,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
       transformSubmit={(data) => ({
         id: purchaseOrderId,
         itemId: item.id,
-        quantity: (data.quantity ?? undefined) as number | undefined,
+        quantity: data.quantity ?? undefined,
         unitPrice: data.unitPrice as { currency: string; value: string } | undefined,
       })}
     >

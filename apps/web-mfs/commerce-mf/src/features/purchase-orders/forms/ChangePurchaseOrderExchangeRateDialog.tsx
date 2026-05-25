@@ -65,7 +65,7 @@ export const ChangePurchaseOrderExchangeRateDialog: React.FC<ChangePurchaseOrder
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
         exchangeRateType: data.exchangeRateType,
-        exchangeRate: data.exchangeRateType === 'FIXED' ? ((data.exchangeRate ?? undefined) as number | undefined) : null,
+        exchangeRate: data.exchangeRateType === 'FIXED' ? (data.exchangeRate ?? undefined) : null,
       })}
     >
       <Select

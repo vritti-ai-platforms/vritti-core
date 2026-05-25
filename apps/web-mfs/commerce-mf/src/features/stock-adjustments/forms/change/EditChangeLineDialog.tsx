@@ -4,15 +4,17 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
-import { useState } from 'react';
+import { zodResolver } from '@vritti/quantum-ui/zod';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateChangeStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import {
+  buildUpdateChangeLineSchema,
   type InventoryTracking,
   type StockAdjustmentLineData,
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
+  type UpdateChangeLineFormData,
 } from '@/schemas/stock-adjustments';
 
 // Edit allows changing quantity + UOM; quant binding cannot change after creation.
@@ -37,16 +39,10 @@ export const EditChangeLineForm = ({
   const isCorrection = adjustmentType === StockAdjustmentTypeValues.CORRECTION;
   const [allowDecimal, setAllowDecimal] = useState(true);
 
-  const schema = z.object({
-    uomQty: isCorrection
-      ? zodNumericField({ required: 'Quantity is required' })
-      : zodNumericField({ required: 'Quantity is required', positive: true }),
-    uomId: z.string().min(1, 'UOM is required'),
-  });
-  type FormData = z.infer<typeof schema>;
+  const resolver = useMemo(() => zodResolver(buildUpdateChangeLineSchema({ isCorrection })), [isCorrection]);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const form = useForm<UpdateChangeLineFormData>({
+    resolver,
     defaultValues: { uomQty: line.uomQty ?? 0, uomId: line.uomId },
   });
 

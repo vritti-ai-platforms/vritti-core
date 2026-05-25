@@ -1,11 +1,15 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { z, zodResolver } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdatePurchaseOrderNotes } from '@/hooks/purchase-orders';
-import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
+import {
+  type PurchaseOrderDetail,
+  type UpdatePurchaseOrderNotesFormData,
+  updatePurchaseOrderNotesSchema,
+} from '@/schemas/purchase-orders';
 
 interface UpdatePurchaseOrderNotesDialogProps {
   purchaseOrder: PurchaseOrderDetail;
@@ -13,19 +17,13 @@ interface UpdatePurchaseOrderNotesDialogProps {
   onCancel: () => void;
 }
 
-const updateNotesSchema = z.object({
-  notes: z.string().optional(),
-});
-
-type UpdateNotesFormData = z.infer<typeof updateNotesSchema>;
-
 export const UpdatePurchaseOrderNotesDialog: React.FC<UpdatePurchaseOrderNotesDialogProps> = ({
   purchaseOrder,
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<UpdateNotesFormData>({
-    resolver: zodResolver(updateNotesSchema),
+  const form = useForm<UpdatePurchaseOrderNotesFormData>({
+    resolver: zodResolver(updatePurchaseOrderNotesSchema),
     defaultValues: {
       notes: purchaseOrder.notes ?? '',
     },

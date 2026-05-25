@@ -54,3 +54,9 @@ export const createConversionSchema = z.object({
 });
 
 export type CreateConversionFormData = z.infer<typeof createConversionSchema>;
+
+export const completeConversionSchema = z.object({
+  locationId: z.string().min(1, 'Location is required'),
+});
+
+export type CompleteConversionFormData = z.infer<typeof completeConversionSchema>;

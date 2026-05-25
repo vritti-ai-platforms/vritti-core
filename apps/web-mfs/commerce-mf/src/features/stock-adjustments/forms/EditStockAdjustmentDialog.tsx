@@ -1,15 +1,10 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { z, zodResolver } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useUpdateStockAdjustment } from '@/hooks/stock-adjustments';
-
-const schema = z.object({
-  reason: z.string().min(1, 'Reason is required'),
-});
-
-type FormData = z.infer<typeof schema>;
+import { type UpdateStockAdjustmentFormData, updateStockAdjustmentSchema } from '@/schemas/stock-adjustments';
 
 interface EditStockAdjustmentDialogProps {
   adjustmentId: string;
@@ -24,8 +19,8 @@ export const EditStockAdjustmentDialog = ({
   onSuccess,
   onCancel,
 }: EditStockAdjustmentDialogProps) => {
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const form = useForm<UpdateStockAdjustmentFormData>({
+    resolver: zodResolver(updateStockAdjustmentSchema),
     defaultValues: { reason: reason ?? '' },
   });
 

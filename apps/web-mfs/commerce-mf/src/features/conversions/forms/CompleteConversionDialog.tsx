@@ -1,22 +1,17 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
-import { z, zodResolver } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCompleteConversion } from '@/hooks/conversions';
+import { type CompleteConversionFormData, completeConversionSchema } from '@/schemas/conversions';
 
 interface CompleteConversionDialogProps {
   conversionId: string;
   onSuccess: () => void;
   onCancel: () => void;
 }
-
-const completeConversionSchema = z.object({
-  locationId: z.string().min(1, 'Location is required'),
-});
-
-type CompleteConversionFormData = z.infer<typeof completeConversionSchema>;
 
 export const CompleteConversionDialog: React.FC<CompleteConversionDialogProps> = ({
   conversionId,

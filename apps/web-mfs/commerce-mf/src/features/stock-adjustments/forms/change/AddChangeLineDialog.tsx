@@ -5,17 +5,17 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { QuantSelector } from '@vritti/quantum-ui/selects/quant';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
-import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddChangeStockAdjustmentLine } from '@/hooks/stock-adjustments';
 import {
+  type AddChangeLineFormData,
+  buildAddChangeLineSchema,
   type InventoryTracking,
   type StockAdjustmentType,
   StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
-
-type FormData = { quantId: string; uomId: string; uomQty: number };
 
 const AddChangeLineForm = ({
   adjustmentId,
@@ -44,18 +44,12 @@ const AddChangeLineForm = ({
   const maxQty =
     !isCorrection && availableQty != null ? (availableQty * uomPair.primaryUomQty) / uomPair.uomQty : undefined;
 
-  const resolver = useMemo(() => {
-    const schema = z.object({
-      quantId: z.string().min(1, 'Quant is required'),
-      uomId: z.string().min(1, 'UOM is required'),
-      uomQty: isCorrection
-        ? zodNumericField({ required: 'Quantity is required', nonZero: true })
-        : zodNumericField({ required: 'Quantity is required', positive: true, max: maxQty }),
-    });
-    return zodResolver(schema);
-  }, [maxQty, isCorrection]);
+  const resolver = useMemo(
+    () => zodResolver(buildAddChangeLineSchema({ isCorrection, maxQty })),
+    [maxQty, isCorrection],
+  );
 
-  const form = useForm<FormData>({
+  const form = useForm<AddChangeLineFormData>({
     resolver,
     defaultValues: { quantId: '', uomId: primaryUomId, uomQty: 0 },
   });
