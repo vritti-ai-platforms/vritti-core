@@ -25,7 +25,7 @@ interface LotsTreeNodeData extends TreeDataItem {
   isBalanced: boolean;
   totalQuantity?: number;
   linesCount?: number;
-  quantity?: number;
+  uomQty?: number;
   lineItemsCount?: number;
 }
 
@@ -37,7 +37,7 @@ const toTreeData = (nodes: StockAdjustmentTreeNode[]): LotsTreeNodeData[] =>
     isBalanced: n.isBalanced,
     totalQuantity: n.totalQuantity,
     linesCount: n.linesCount,
-    quantity: n.quantity,
+    uomQty: n.uomQty,
     lineItemsCount: n.lineItemsCount,
     children: n.children?.length ? toTreeData(n.children) : undefined,
   }));
@@ -49,7 +49,7 @@ const TreeRow = ({ uomSymbol }: { uomSymbol: string }) =>
     const badgeText =
       node.kind === 'lot'
         ? `${node.totalQuantity ?? 0} ${uomSymbol}`
-        : `${node.lineItemsCount ?? 0}/${node.quantity ?? 0}`;
+        : `${node.lineItemsCount ?? 0}/${node.uomQty ?? 0}`;
     const balanced = node.isBalanced;
     return (
       <div className="flex items-center gap-1.5 flex-1 min-w-0">

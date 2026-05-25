@@ -45,7 +45,7 @@ export const AddOpeningLineForm = ({
       locationId: '',
       uomId: primaryUomId,
       // For tracking='serial', quantity is derived from serials count — start at 0 (server will refresh).
-      quantity: 0,
+      uomQty: 0,
     },
   });
 
@@ -61,7 +61,7 @@ export const AddOpeningLineForm = ({
         stockAdjustmentLotId: stockAdjustmentLotId ?? undefined,
         locationId: data.locationId,
         uomId: data.uomId,
-        quantity: data.quantity,
+        uomQty: data.uomQty,
       })}
     >
       <LocationSelector
@@ -74,7 +74,7 @@ export const AddOpeningLineForm = ({
         }}
       />
       <div className="grid grid-cols-2 gap-4">
-        <TextField name="quantity" label="Quantity" type="number" positive integer={isItem || !allowDecimal} />
+        <TextField name="uomQty" label="Quantity" type="number" positive integer={isItem || !allowDecimal} />
         <UomSelector
           name="uomId"
           label="Unit"

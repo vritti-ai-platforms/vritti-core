@@ -13,7 +13,7 @@ export class StockAdjustmentResponseDto {
     | 'lot_serial'
     | 'serial';
   @ApiProperty({ example: 'WASTE' }) type: string;
-  @ApiProperty({ description: 'Sum of stock_adjustment_lines.quantity' }) totalQuantity: number;
+  @ApiProperty({ description: 'Sum of stock_adjustment_lines.primary_qty (item primary UOM units)' }) totalQuantity: number;
   @ApiProperty({ example: 'DRAFT' }) status: string;
   @ApiPropertyOptional({ nullable: true }) reason: string | null;
   @ApiProperty() isPublishable: boolean;

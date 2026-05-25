@@ -41,7 +41,7 @@ export const EditOpeningLineForm = ({
       stockAdjustmentLotId: line.stockAdjustmentLotId ?? undefined,
       locationId: line.locationId ?? '',
       uomId: line.uomId,
-      quantity: line.quantity ?? 0,
+      uomQty: line.uomQty ?? 0,
     },
   });
 
@@ -54,7 +54,7 @@ export const EditOpeningLineForm = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         locationId: data.locationId,
-        quantity: data.quantity,
+        uomQty: data.uomQty,
         ...(isItem ? {} : { uomId: data.uomId }),
       })}
     >
@@ -68,7 +68,7 @@ export const EditOpeningLineForm = ({
         }}
       />
       <div className="grid grid-cols-2 gap-4">
-        <TextField name="quantity" label="Quantity" type="number" positive nonZero integer={isItem || !allowDecimal} />
+        <TextField name="uomQty" label="Quantity" type="number" positive nonZero integer={isItem || !allowDecimal} />
         <UomSelector
           name="uomId"
           label="Unit"

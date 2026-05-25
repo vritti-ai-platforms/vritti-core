@@ -37,10 +37,10 @@ export class StockAdjustmentsLineItemsTransactionService {
     const { line, adjustment } = await this.getLineContext(data.adjustmentId, data.lineId);
 
     const currentCount = await this.lineItemsService.countByLineId(data.lineId);
-    if (currentCount >= line.quantity) {
+    if (currentCount >= line.uomQty) {
       throw new BadRequestException({
         label: 'Line Capacity Reached',
-        detail: `This line allows ${line.quantity} serial item(s). All slots are already filled.`,
+        detail: `This line allows ${line.uomQty} serial item(s). All slots are already filled.`,
       });
     }
 

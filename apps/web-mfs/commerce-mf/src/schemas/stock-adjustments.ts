@@ -81,9 +81,9 @@ export interface StockAdjustmentLineData {
   uomId: string;
   uomName: string | null;
   uomSymbol: string | null;
-  conversionFactor: number;
 
-  quantity: number;
+  uomQty: number;
+  primaryUomQty: number;
   resolvedQuantId: string | null;
   isBalanced: boolean;
   lineItemsCount: number;
@@ -124,7 +124,7 @@ export interface StockAdjustmentTreeNode {
   kind: 'lot' | 'line';
   totalQuantity?: number;
   linesCount?: number;
-  quantity?: number;
+  uomQty?: number;
   lineItemsCount?: number;
   isBalanced: boolean;
   children?: StockAdjustmentTreeNode[];
@@ -162,7 +162,7 @@ export const addOpeningStockLineSchema = z.object({
   stockAdjustmentLotId: z.string().optional(), // null for tracking='quantity'
   locationId: z.string().min(1, 'Location is required'),
   uomId: z.string().min(1, 'UOM is required'),
-  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+  uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
 });
 export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
 
@@ -170,7 +170,7 @@ export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSche
 export const addChangeLineSchema = z.object({
   quantId: z.string().min(1, 'Quant is required'),
   uomId: z.string().min(1, 'UOM is required'),
-  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
+  uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
 });
 export type AddChangeLineFormData = z.infer<typeof addChangeLineSchema>;
 

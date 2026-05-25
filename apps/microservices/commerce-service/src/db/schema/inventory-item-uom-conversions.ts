@@ -16,8 +16,13 @@ export const inventoryItemUomConversions = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
-    numerator: integer('numerator').notNull(),
-    denominator: integer('denominator').notNull(),
+    // Integer pair expressing the conversion ratio for this (item, uom) override.
+    // Semantic: `uom_qty` units of THIS UOM equal `primary_uom_qty` units of the item's primary UOM.
+    // Example: 1 Strip = 14 Each → primary_uom_qty=14, uom_qty=1.
+    // The two conversion factors (toPrimary = primary_uom_qty / uom_qty; toUom = uom_qty / primary_uom_qty)
+    // are computed in the service layer; they are NOT stored.
+    primaryUomQty: integer('primary_uom_qty').notNull(),
+    uomQty: integer('uom_qty').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -28,8 +33,8 @@ export const inventoryItemUomConversions = coreSchema.table(
     uniqueIndex('uq_iiuc_item_uom').on(table.inventoryItemId, table.uomId),
     index('idx_iiuc_bu').on(table.organizationId, table.businessUnitId),
     index('idx_iiuc_item').on(table.inventoryItemId),
-    check('chk_iiuc_num_positive', sql`${table.numerator} > 0`),
-    check('chk_iiuc_denom_positive', sql`${table.denominator} > 0`),
+    check('chk_iiuc_primary_uom_qty_positive', sql`${table.primaryUomQty} > 0`),
+    check('chk_iiuc_uom_qty_positive', sql`${table.uomQty} > 0`),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

@@ -7,7 +7,7 @@ export interface StockAdjustmentTreeNode {
   kind: 'lot' | 'line';
   totalQuantity?: number;
   linesCount?: number;
-  quantity?: number;
+  uomQty?: number;
   lineItemsCount?: number;
   isBalanced: boolean;
   children?: StockAdjustmentTreeNode[];

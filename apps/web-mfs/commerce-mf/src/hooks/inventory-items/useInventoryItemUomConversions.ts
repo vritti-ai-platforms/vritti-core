@@ -34,8 +34,8 @@ export function useInventoryItemUomConversionsTable(
   });
 }
 
-type CreatePayload = { uomId: string; numerator: number; denominator: number };
-type UpdatePayload = { conversionId: string; numerator: number; denominator: number };
+type CreatePayload = { uomId: string; primaryUomQty: number; uomQty: number };
+type UpdatePayload = { conversionId: string; primaryUomQty: number; uomQty: number };
 
 export function useCreateInventoryItemUomConversion(
   itemId: string,
@@ -57,8 +57,8 @@ export function useUpdateInventoryItemUomConversion(
 ) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, UpdatePayload>({
-    mutationFn: ({ conversionId, numerator, denominator }) =>
-      updateInventoryItemUomConversion(itemId, conversionId, { numerator, denominator }),
+    mutationFn: ({ conversionId, primaryUomQty, uomQty }) =>
+      updateInventoryItemUomConversion(itemId, conversionId, { primaryUomQty, uomQty }),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_UOM_CONVERSIONS_KEY(itemId) });
       options?.onSuccess?.(...args);

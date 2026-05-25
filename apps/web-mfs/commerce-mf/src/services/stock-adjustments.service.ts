@@ -43,7 +43,7 @@ export interface AddStockAdjustmentLinePayload {
   locationId?: string | null; // OPENING_STOCK
   quantId?: string | null; // deduct/CORRECTION
   uomId: string;
-  quantity: number;
+  uomQty: number;
 }
 
 export interface UpdateStockAdjustmentLinePayload {
@@ -51,7 +51,7 @@ export interface UpdateStockAdjustmentLinePayload {
   locationId?: string | null;
   quantId?: string | null;
   uomId?: string;
-  quantity?: number;
+  uomQty?: number;
 }
 
 // Line items (serials)

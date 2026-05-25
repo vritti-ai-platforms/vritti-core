@@ -23,8 +23,8 @@ export class StockAdjustmentTreeNodeResponseDto {
   @ApiPropertyOptional({ description: 'Lines under this lot (lots only).' })
   linesCount?: number;
 
-  @ApiPropertyOptional({ description: 'Line quantity (lines only).' })
-  quantity?: number;
+  @ApiPropertyOptional({ description: 'Line quantity in the line UOM (lines only).' })
+  uomQty?: number;
 
   @ApiPropertyOptional({ description: 'Serials added to this line (lines only).' })
   lineItemsCount?: number;

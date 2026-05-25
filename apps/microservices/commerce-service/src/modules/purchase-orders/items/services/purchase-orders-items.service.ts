@@ -1,4 +1,3 @@
-import { InventoryItemUomConversionsService } from '@domain/inventory-item-uom-conversions/services/inventory-item-uom-conversions.service';
 import type { PurchaseOrderItemDto } from '@domain/purchase-order-items/dto/entity/purchase-order-item.dto';
 import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
@@ -6,6 +5,7 @@ import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purcha
 import { PurchaseOrderDto as PurchaseOrderDtoClass } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
+import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
@@ -27,7 +27,7 @@ export class PurchaseOrdersItemsService {
     private readonly itemsRepository: PurchaseOrderItemsRepository,
     private readonly repository: PurchaseOrdersRepository,
     private readonly supplierItemsRepository: SupplierItemsRepository,
-    private readonly uomConversionsService: InventoryItemUomConversionsService,
+    private readonly uomConversionsService: UomConversionsService,
     private readonly database: PrimaryDatabaseService,
   ) {}
 
@@ -68,14 +68,14 @@ export class PurchaseOrdersItemsService {
       });
     }
 
-    const conversionFactor = await this.uomConversionsService.resolvePrimaryUomFactor(
+    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
       supplierItem.inventoryItemId,
       supplierItem.uomId,
-      supplierItem.uomConversionFactor ?? 1,
+      data.quantity,
     );
 
     await this.database.runInTransaction(async () => {
-      await this.itemsService.addItem(po, data, supplierItem.inventoryItemId, supplierItem.uomId, conversionFactor);
+      await this.itemsService.addItem(po, data, supplierItem.inventoryItemId, supplierItem.uomId, primaryUomQty);
       await this.repository.syncTotalAmount(poId);
     });
 
@@ -95,23 +95,14 @@ export class PurchaseOrdersItemsService {
 
     const inventoryItemId = data.inventoryItemId ?? existingItem.inventoryItemId;
     const uomId = existingItem.uomId;
+    const orderedQuantity = data.quantity ?? Number(existingItem.quantity);
 
-    const supplierItem = await this.supplierItemsRepository.findItemBySupplierInventoryItemAndUom(
-      po.supplierId,
-      inventoryItemId,
-      uomId,
-    );
-
-    const conversionFactor = supplierItem
-      ? await this.uomConversionsService.resolvePrimaryUomFactor(
-          inventoryItemId,
-          uomId,
-          supplierItem.uomConversionFactor ?? 1,
-        )
-      : Number(existingItem.conversionFactor);
+    // Always recompute against the current (item, uom, qty). The UOM doesn't change on update — this
+    // covers item-swap and qty-change cases.
+    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, orderedQuantity);
 
     await this.database.runInTransaction(async () => {
-      await this.itemsService.updateItem(po, itemId, data, conversionFactor);
+      await this.itemsService.updateItem(po, itemId, data, primaryUomQty);
       await this.repository.syncTotalAmount(poId);
     });
 

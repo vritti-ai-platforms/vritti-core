@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
@@ -9,9 +8,14 @@ import {
   type TableViewState,
   ValidationException,
 } from '@vritti/api-sdk';
-import Decimal from '@vritti/api-sdk/decimal';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemUomConversions, uom } from '@/db/schema';
+
+interface ConversionPair {
+  primaryUomQty: number;
+  uomQty: number;
+}
+
 import { InventoryItemUomConversionDto } from '../dto/entity/inventory-item-uom-conversion.dto';
 import { InventoryItemUomConversionsRepository } from '../repositories/inventory-item-uom-conversions.repository';
 
@@ -22,8 +26,8 @@ export class InventoryItemUomConversionsService {
   private static readonly FIELD_MAP: FieldMap = {
     uomName: { column: uom.name, type: 'string' },
     uomSymbol: { column: uom.symbol, type: 'string' },
-    numerator: { column: inventoryItemUomConversions.numerator, type: 'number' },
-    denominator: { column: inventoryItemUomConversions.denominator, type: 'number' },
+    primaryUomQty: { column: inventoryItemUomConversions.primaryUomQty, type: 'number' },
+    uomQty: { column: inventoryItemUomConversions.uomQty, type: 'number' },
   };
 
   constructor(private readonly repository: InventoryItemUomConversionsRepository) {}
@@ -55,44 +59,27 @@ export class InventoryItemUomConversionsService {
   // App-layer is responsible for validating the UOM exists; caller passes the pre-fetched UOM context.
   async create(
     inventoryItemId: string,
-    dto: { uomId: string; numerator: number; denominator: number },
+    dto: { uomId: string } & ConversionPair,
     uomContext: { baseUnitId: string | null; name: string; symbol: string },
     currentBuId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     if (uomContext.baseUnitId !== null) {
-      throw new BadRequestException({
-        label: 'Derived Unit',
+      throw new ValidationException({
         detail: 'Per-item conversions are only allowed for base UOMs. Derived UOMs use the global conversion factor.',
+        errors: [{ field: 'uomId', message: 'Derived units already have a global conversion factor.' }],
       });
     }
 
     const itemPrimaryUomId = await this.repository.findItemPrimaryUomId(inventoryItemId);
     if (!itemPrimaryUomId) throw new NotFoundException('Inventory item not found.');
     if (itemPrimaryUomId === dto.uomId) {
-      throw new BadRequestException({
-        label: 'Primary UOM',
+      throw new ValidationException({
         detail: "An item's primary UOM cannot have a per-item conversion (it would be 1:1 with itself).",
+        errors: [{ field: 'uomId', message: "This is the item's primary UOM — pick a different one." }],
       });
     }
 
-    if (!Number.isInteger(dto.numerator) || dto.numerator <= 0) {
-      throw new ValidationException({
-        detail: 'Numerator must be a positive integer.',
-        errors: [{ field: 'numerator', message: 'Must be a positive integer.' }],
-      });
-    }
-    if (!Number.isInteger(dto.denominator) || dto.denominator <= 0) {
-      throw new ValidationException({
-        detail: 'Denominator must be a positive integer.',
-        errors: [{ field: 'denominator', message: 'Must be a positive integer.' }],
-      });
-    }
-    if (dto.numerator !== 1 && dto.denominator !== 1) {
-      throw new ValidationException({
-        detail: 'One side of the ratio must be 1 (e.g. 1:10 or 50:1).',
-        errors: [],
-      });
-    }
+    validateConversionPair(dto);
 
     const existing = await this.repository.findByItemAndUom(inventoryItemId, dto.uomId);
     if (existing) {
@@ -105,11 +92,11 @@ export class InventoryItemUomConversionsService {
     const uomConversion = await this.repository.create({
       inventoryItemId,
       uomId: dto.uomId,
-      numerator: dto.numerator,
-      denominator: dto.denominator,
+      primaryUomQty: dto.primaryUomQty,
+      uomQty: dto.uomQty,
     });
     this.logger.log(
-      `Created UOM conversion for item ${inventoryItemId}: uomId=${dto.uomId}, ${dto.numerator}/${dto.denominator}`,
+      `Created UOM conversion for item ${inventoryItemId}: uomId=${dto.uomId}, primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`,
     );
     return {
       success: true,
@@ -122,38 +109,18 @@ export class InventoryItemUomConversionsService {
   }
 
   // Updates an existing UOM conversion's ratio
-  async update(
-    id: string,
-    dto: { numerator: number; denominator: number },
-    _currentBuId: string,
-  ): Promise<SuccessResponseDto> {
+  async update(id: string, dto: ConversionPair, _currentBuId: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
 
-    if (!Number.isInteger(dto.numerator) || dto.numerator <= 0) {
-      throw new ValidationException({
-        detail: 'Numerator must be a positive integer.',
-        errors: [{ field: 'numerator', message: 'Must be a positive integer.' }],
-      });
-    }
-    if (!Number.isInteger(dto.denominator) || dto.denominator <= 0) {
-      throw new ValidationException({
-        detail: 'Denominator must be a positive integer.',
-        errors: [{ field: 'denominator', message: 'Must be a positive integer.' }],
-      });
-    }
-    if (dto.numerator !== 1 && dto.denominator !== 1) {
-      throw new ValidationException({
-        detail: 'One side of the ratio must be 1 (e.g. 1:10 or 50:1).',
-      });
-    }
+    validateConversionPair(dto);
 
     await this.repository.update(id, {
-      numerator: dto.numerator,
-      denominator: dto.denominator,
+      primaryUomQty: dto.primaryUomQty,
+      uomQty: dto.uomQty,
       updatedAt: new Date(),
     });
-    this.logger.log(`Updated UOM conversion ${id}: ${dto.numerator}/${dto.denominator}`);
+    this.logger.log(`Updated UOM conversion ${id}: primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`);
     return { success: true, message: 'UOM conversion updated successfully.' };
   }
 
@@ -166,24 +133,25 @@ export class InventoryItemUomConversionsService {
     this.logger.log(`Deleted UOM conversion ${id}`);
     return { success: true, message: 'UOM conversion deleted successfully.' };
   }
+}
 
-  // Resolves the per-item UOM factor; falls back to the provided globalConversionFactor if no override exists.
-  // App-layer fetches the global UOM and passes its conversionFactor.
-  async resolvePrimaryUomFactor(itemId: string, uomId: string, globalConversionFactor: number): Promise<number> {
-    const conversion = await this.repository.findByItemAndUom(itemId, uomId);
-    if (conversion) {
-      return new Decimal(conversion.numerator).dividedBy(conversion.denominator).toNumber();
-    }
-    return globalConversionFactor;
+// Validates a positive-integer conversion pair. One side must be 1 to keep ratios canonical.
+function validateConversionPair(pair: ConversionPair): void {
+  if (!Number.isInteger(pair.primaryUomQty) || pair.primaryUomQty <= 0) {
+    throw new ValidationException({
+      detail: 'primaryUomQty must be a positive integer.',
+      errors: [{ field: 'primaryUomQty', message: 'Must be a positive integer.' }],
+    });
   }
-
-  async resolvePrimaryUomQuantity(
-    itemId: string,
-    uomId: string,
-    globalConversionFactor: number,
-    quantity: number,
-  ): Promise<number> {
-    const factor = await this.resolvePrimaryUomFactor(itemId, uomId, globalConversionFactor);
-    return new Decimal(quantity).times(factor).toDecimalPlaces(3).toNumber();
+  if (!Number.isInteger(pair.uomQty) || pair.uomQty <= 0) {
+    throw new ValidationException({
+      detail: 'uomQty must be a positive integer.',
+      errors: [{ field: 'uomQty', message: 'Must be a positive integer.' }],
+    });
+  }
+  if (pair.primaryUomQty !== 1 && pair.uomQty !== 1) {
+    throw new ValidationException({
+      detail: 'One side of the ratio must be 1 (e.g. 1:10 or 50:1).',
+    });
   }
 }

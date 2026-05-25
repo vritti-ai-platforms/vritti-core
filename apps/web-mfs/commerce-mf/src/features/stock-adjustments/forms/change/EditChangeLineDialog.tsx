@@ -38,7 +38,7 @@ export const EditChangeLineForm = ({
   const [allowDecimal, setAllowDecimal] = useState(true);
 
   const schema = z.object({
-    quantity: isCorrection
+    uomQty: isCorrection
       ? zodNumericField({ required: 'Quantity is required' })
       : zodNumericField({ required: 'Quantity is required', positive: true }),
     uomId: z.string().min(1, 'UOM is required'),
@@ -47,7 +47,7 @@ export const EditChangeLineForm = ({
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { quantity: line.quantity ?? 0, uomId: line.uomId },
+    defaultValues: { uomQty: line.uomQty ?? 0, uomId: line.uomId },
   });
 
   const mutation = useUpdateChangeStockAdjustmentLine(adjustmentId, line.id, { onSuccess });
@@ -57,7 +57,7 @@ export const EditChangeLineForm = ({
       form={form}
       mutation={mutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ quantity: data.quantity, uomId: data.uomId })}
+      transformSubmit={(data) => ({ uomQty: data.uomQty, uomId: data.uomId })}
     >
       <p className="text-sm">
         <span className="text-muted-foreground">Quant:</span> {line.quantLotNumber ? `${line.quantLotNumber} @ ` : ''}
@@ -67,7 +67,7 @@ export const EditChangeLineForm = ({
         <>
           <div className="grid grid-cols-2 gap-4">
             <TextField
-              name="quantity"
+              name="uomQty"
               label="Quantity"
               type="number"
               positive={!isCorrection}

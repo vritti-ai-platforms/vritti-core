@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
   @ApiProperty({ description: 'Dimension UUID this UOM belongs to' })
@@ -23,11 +23,25 @@ export class CreateUomDto {
   @IsUUID()
   baseUnitId?: string;
 
-  @ApiPropertyOptional({ description: 'Conversion factor to base unit', default: 1, example: 1000 })
+  @ApiPropertyOptional({
+    description: 'Count of dimension base UOM units in the ratio. Example for 1 Box = 12 Each → baseUomQty=12.',
+    default: 1,
+    example: 12,
+  })
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 6 })
+  @IsInt()
   @IsPositive()
-  conversionFactor?: number;
+  baseUomQty?: number;
+
+  @ApiPropertyOptional({
+    description: 'Count of this UOM in the ratio. Example for 1 Box = 12 Each → uomQty=1.',
+    default: 1,
+    example: 1,
+  })
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  uomQty?: number;
 
   @ApiPropertyOptional({ description: 'Whether this unit allows decimal quantities', default: false })
   @IsOptional()

@@ -7,8 +7,12 @@ export interface InventoryItemUomConversionData {
   uomId: string;
   uomName: string;
   uomSymbol: string;
-  numerator: number;
-  denominator: number;
+  primaryUomQty: number;
+  uomQty: number;
+  // Derived: 1 UOM unit = toPrimaryConversionFactor primary units.
+  toPrimaryConversionFactor: number;
+  // Derived: 1 primary unit = toUomConversionFactor UOM units.
+  toUomConversionFactor: number;
   canEdit: boolean;
   canDelete: boolean;
   createdAt: string;
@@ -21,13 +25,13 @@ const positiveInt = zodNumericField({ required: 'Value is required', positive: t
 
 export const createInventoryItemUomConversionSchema = z.object({
   uomId: z.uuid('UOM is required'),
-  numerator: positiveInt,
-  denominator: positiveInt,
+  primaryUomQty: positiveInt,
+  uomQty: positiveInt,
 });
 
 export const updateInventoryItemUomConversionSchema = z.object({
-  numerator: positiveInt,
-  denominator: positiveInt,
+  primaryUomQty: positiveInt,
+  uomQty: positiveInt,
 });
 
 export type CreateInventoryItemUomConversionFormData = z.infer<typeof createInventoryItemUomConversionSchema>;

@@ -4,7 +4,6 @@ import {
   date,
   decimal,
   index,
-  numeric,
   pgPolicy,
   text,
   timestamp,
@@ -39,7 +38,6 @@ export const purchaseOrders = coreSchema.table(
       .default(sql.raw("current_setting('app.bu_timezone')::text")),
     notes: text('notes'),
     totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(0n),
-    createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -92,7 +90,9 @@ export const purchaseOrderItems = coreSchema.table(
       .references(() => uom.id, { onDelete: 'restrict' }),
     quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
-    conversionFactor: numeric('conversion_factor', { precision: 15, scale: 6 }).notNull().default('1'),
+    // Snapshot of `quantity` converted to the item's primary UOM at create/update time. Computed in
+    // the service via UomConversionsService (Decimal math); never derived in SQL.
+    primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3 }).notNull(),
     primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }).notNull().default(0n),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     totalPrice: bigint('total_price', { mode: 'bigint' }).notNull(),

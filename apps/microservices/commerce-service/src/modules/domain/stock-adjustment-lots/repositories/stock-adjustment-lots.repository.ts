@@ -40,7 +40,7 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
         createdAt: stockAdjustmentLots.createdAt,
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
-        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0)`,
       })
       .from(stockAdjustmentLots)
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
@@ -65,7 +65,7 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
           'name', COALESCE(${locations.name}, '—'),
           'path', json_build_array(${stockAdjustmentLots.id}, ${stockAdjustmentLines.id}),
           'kind', 'line',
-          'quantity', ${stockAdjustmentLines.quantity},
+          'uomQty', ${stockAdjustmentLines.uomQty},
           'lineItemsCount', (
             SELECT COUNT(*) FROM ${stockAdjustmentLineItems}
             WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
@@ -81,7 +81,7 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
       'name', ${stockAdjustmentLots.lotNumber},
       'path', json_build_array(${stockAdjustmentLots.id}),
       'kind', 'lot',
-      'totalQuantity', COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0),
+      'totalQuantity', COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0),
       'linesCount', COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0),
       'isBalanced', COALESCE(SUM(CASE WHEN ${stockAdjustmentLines.isBalanced} = false THEN 1 ELSE 0 END), 0) = 0,
       'children', ${childrenJson}
@@ -114,7 +114,7 @@ export class StockAdjustmentLotsRepository extends PrimaryBaseRepository<typeof 
         createdAt: stockAdjustmentLots.createdAt,
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
-        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0)`,
       })
       .from(stockAdjustmentLots)
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))

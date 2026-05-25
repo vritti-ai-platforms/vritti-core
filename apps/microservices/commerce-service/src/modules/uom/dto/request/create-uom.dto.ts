@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateUomDto {
   @IsUUID()
@@ -18,10 +18,18 @@ export class CreateUomDto {
   @IsUUID()
   baseUnitId?: string;
 
+  // Integer pair: `uomQty` units of THIS UOM = `baseUomQty` units of the dimension base UOM.
+  // Example for 1 Box = 12 Each → baseUomQty=12, uomQty=1.
+  // Both default to 1 (no conversion) when omitted.
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 6 })
+  @IsInt()
   @IsPositive()
-  conversionFactor?: number;
+  baseUomQty?: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  uomQty?: number;
 
   @IsOptional()
   @IsBoolean()

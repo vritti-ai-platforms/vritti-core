@@ -32,11 +32,11 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
 
   const form = useForm<CreateInventoryItemUomConversionFormData>({
     resolver: zodResolver(createInventoryItemUomConversionSchema),
-    defaultValues: { uomId: '', numerator: 1, denominator: 1 },
+    defaultValues: { uomId: '', primaryUomQty: 1, uomQty: 1 },
   });
 
-  const numerator = useWatch({ control: form.control, name: 'numerator' });
-  const denominator = useWatch({ control: form.control, name: 'denominator' });
+  const primaryUomQty = useWatch({ control: form.control, name: 'primaryUomQty' });
+  const uomQty = useWatch({ control: form.control, name: 'uomQty' });
   const uomId = useWatch({ control: form.control, name: 'uomId' });
 
   const createMutation = useCreateInventoryItemUomConversion(itemId, { onSuccess });
@@ -60,7 +60,7 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
       <div className="flex flex-col gap-1">
         <div className="grid grid-cols-2 gap-3">
           <TextField
-            name="denominator"
+            name="uomQty"
             label={`Count of ${selectedUomSymbol ?? 'alt UOM'}`}
             type="number"
             integer
@@ -68,7 +68,7 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
             disabled={!uomId}
           />
           <TextField
-            name="numerator"
+            name="primaryUomQty"
             label={`Count of ${itemUomSymbol}`}
             type="number"
             integer
@@ -78,7 +78,7 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
         </div>
         {showPreview && (
           <p className="text-sm text-muted-foreground">
-            {denominator} {selectedUomSymbol} = {numerator} {itemUomSymbol}
+            {uomQty} {selectedUomSymbol} = {primaryUomQty} {itemUomSymbol}
           </p>
         )}
       </div>

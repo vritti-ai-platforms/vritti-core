@@ -80,17 +80,17 @@ export class PurchaseOrderItemsService {
     data: AddPurchaseOrderItemDto,
     inventoryItemId: string,
     uomId: string,
-    conversionFactor: number,
+    primaryUomQty: number,
   ): Promise<void> {
     if (po.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
     }
 
-    const duplicate = await this.repository.findItemByInventoryItemId(po.id, inventoryItemId);
+    const duplicate = await this.repository.findItemByInventoryItemAndUom(po.id, inventoryItemId, uomId);
     if (duplicate) {
       throw new BadRequestException({
         label: 'Duplicate Item',
-        detail: 'This inventory item is already added to the purchase order.',
+        detail: 'This inventory item with the same UOM is already added to the purchase order.',
       });
     }
 
@@ -115,8 +115,12 @@ export class PurchaseOrderItemsService {
 
     const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.quantity));
 
+    // Price per primary UOM unit = totalPrice / primaryUomQty (minor units ÷ decimal qty → minor units).
     const primaryUomUnitPriceMinor = BigInt(
-      new Decimal(Number(unitPriceMinor)).dividedBy(conversionFactor).toDecimalPlaces(0).toNumber(),
+      new Decimal(totalPriceMinor.toString())
+        .dividedBy(primaryUomQty)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toNumber(),
     );
 
     await this.repository.create({
@@ -124,7 +128,7 @@ export class PurchaseOrderItemsService {
       inventoryItemId,
       uomId,
       quantity: String(data.quantity),
-      conversionFactor: String(conversionFactor),
+      primaryUomQty: String(primaryUomQty),
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
@@ -135,11 +139,12 @@ export class PurchaseOrderItemsService {
   }
 
   // Updates a line item on a draft PO. Does not call syncTotalAmount — that is the app-layer's responsibility.
+  // `primaryUomQty` must already be computed for the effective ordered quantity (data.quantity ?? existing).
   async updateItem(
     po: PurchaseOrderContext,
     itemId: string,
     data: UpdatePurchaseOrderItemDto,
-    conversionFactor: number,
+    primaryUomQty: number,
   ): Promise<SuccessResponseDto> {
     if (po.status !== PurchaseOrderStatusValues.DRAFT) {
       throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
@@ -149,11 +154,11 @@ export class PurchaseOrderItemsService {
     if (!item) throw new NotFoundException('Purchase order line item not found.');
 
     if (data.inventoryItemId && data.inventoryItemId !== item.inventoryItemId) {
-      const duplicate = await this.repository.findItemByInventoryItemId(po.id, data.inventoryItemId);
+      const duplicate = await this.repository.findItemByInventoryItemAndUom(po.id, data.inventoryItemId, item.uomId);
       if (duplicate) {
         throw new BadRequestException({
           label: 'Duplicate Item',
-          detail: 'This inventory item is already added to the purchase order.',
+          detail: 'This inventory item with the same UOM is already added to the purchase order.',
         });
       }
     }
@@ -185,13 +190,16 @@ export class PurchaseOrderItemsService {
     const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * orderedQuantity));
 
     const primaryUomUnitPriceMinor = BigInt(
-      new Decimal(Number(unitPriceMinor)).dividedBy(conversionFactor).toDecimalPlaces(0).toNumber(),
+      new Decimal(totalPriceMinor.toString())
+        .dividedBy(primaryUomQty)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toNumber(),
     );
 
     await this.repository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
       quantity: String(orderedQuantity),
-      conversionFactor: String(conversionFactor),
+      primaryUomQty: String(primaryUomQty),
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,

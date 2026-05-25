@@ -64,7 +64,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
     count: number;
   }> {
     const totalQuantitySql = sql<string>`COALESCE((
-      SELECT SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}) FROM ${stockAdjustmentLines} WHERE ${stockAdjustmentLines.stockAdjustmentId} = ${stockAdjustments.id}
+      SELECT SUM(${stockAdjustmentLines.primaryUomQty}) FROM ${stockAdjustmentLines} WHERE ${stockAdjustmentLines.stockAdjustmentId} = ${stockAdjustments.id}
     ), 0)`;
     return this.findAllAndCount<StockAdjustmentWithRefs>({
       select: {
@@ -121,7 +121,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         inventoryItemUomId: inventoryItems.uomId,
         inventoryItemUomSymbol: uom.symbol,
         inventoryItemTracking: inventoryItems.tracking,
-        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
+        totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0)`,
         isPublishable: sql<boolean>`(
           ${stockAdjustments.status} = 'DRAFT'
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0

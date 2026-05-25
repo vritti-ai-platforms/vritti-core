@@ -31,7 +31,8 @@ export class UomService {
       type: 'string',
       expression: (value) => (value === 'base' ? isNull(uom.baseUnitId) : isNotNull(uom.baseUnitId)),
     },
-    conversionFactor: { column: uom.conversionFactor, type: 'number' },
+    baseUomQty: { column: uom.baseUomQty, type: 'number' },
+    uomQty: { column: uom.uomQty, type: 'number' },
   };
 
   constructor(private readonly uomRepository: UomRepository) {}
@@ -139,12 +140,12 @@ export class UomService {
           ]
         : undefined;
 
-    // COALESCE defaults null numerator/denominator to 1 for the primary UOM (no conversion row in the LEFT JOIN)
+    // COALESCE defaults null primaryUomQty/uomQty to 1 for the primary UOM (no conversion row in the LEFT JOIN)
     const additionalExpressions =
       options?.inventoryItemId && !options?.supplierId
         ? {
-            numerator: sql<number>`COALESCE(${inventoryItemUomConversions.numerator}, 1)`,
-            denominator: sql<number>`COALESCE(${inventoryItemUomConversions.denominator}, 1)`,
+            primaryUomQty: sql<number>`COALESCE(${inventoryItemUomConversions.primaryUomQty}, 1)`,
+            uomQty: sql<number>`COALESCE(${inventoryItemUomConversions.uomQty}, 1)`,
           }
         : undefined;
 
@@ -194,7 +195,8 @@ export class UomService {
       name: data.name,
       symbol: data.symbol,
       baseUnitId: data.baseUnitId ?? null,
-      conversionFactor: data.conversionFactor ?? 1,
+      baseUomQty: data.baseUomQty ?? 1,
+      uomQty: data.uomQty ?? 1,
       allowDecimal: data.allowDecimal ?? true,
     });
 

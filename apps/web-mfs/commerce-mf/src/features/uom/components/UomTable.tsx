@@ -7,7 +7,7 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { Pencil, Plus, Ruler, Trash2 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { UOM_TABLE_KEY, useDeleteUom, useUomTable } from '@/hooks/uom';
 import type { UomData } from '@/schemas/uom';
 import { AddUomDialog } from '../forms/AddUomDialog';
@@ -23,21 +23,6 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
   const { data: response, isLoading } = useUomTable(dimensionId);
   const deleteMutation = useDeleteUom();
   const addDialog = useDialog();
-  const editDialog = useDialog();
-  const [editTarget, setEditTarget] = useState<UomData | null>(null);
-
-  const openEdit = useCallback(
-    (uom: UomData) => {
-      setEditTarget(uom);
-      editDialog.open();
-    },
-    [editDialog],
-  );
-
-  const closeEdit = useCallback(() => {
-    editDialog.close();
-    setEditTarget(null);
-  }, [editDialog]);
 
   const handleDelete = useCallback(
     async (uom: UomData) => {
@@ -84,15 +69,15 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
         enableSorting: false,
       },
       {
-        accessorKey: 'conversionFactor',
-        header: 'Factor',
+        accessorKey: 'baseUomQty',
+        header: 'Conversion',
         enableSorting: true,
         cell: ({ row }) => {
-          const { conversionFactor, baseUnitSymbol } = row.original;
+          const { baseUomQty, uomQty, symbol, baseUnitSymbol } = row.original;
+          if (baseUnitSymbol == null) return <span className="text-muted-foreground">—</span>;
           return (
             <span className="font-mono">
-              {conversionFactor}
-              {baseUnitSymbol ? ` ${baseUnitSymbol}` : ''}
+              {uomQty} {symbol} = {baseUomQty} {baseUnitSymbol}
             </span>
           );
         },
@@ -100,32 +85,41 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
       {
         id: 'actions',
         header: '',
-        cell: ({ row }) => (
-          <RowActions
-            actions={[
-              {
-                id: 'edit',
-                icon: Pencil,
-                label: 'Edit',
-                onClick: () => openEdit(row.original),
-                disabled: !row.original.canEdit,
-              },
-              {
-                id: 'delete',
-                icon: Trash2,
-                label: 'Delete',
-                variant: 'destructive',
-                onClick: () => handleDelete(row.original),
-                disabled: !row.original.canDelete,
-              },
-            ]}
-          />
-        ),
+        cell: ({ row }) => {
+          const uom = row.original;
+          const isBase = uom.baseUnitId === null;
+          return (
+            <RowActions
+              actions={[
+                {
+                  id: 'edit',
+                  icon: Pencil,
+                  label: 'Edit',
+                  disabled: !uom.canEdit,
+                  dialog: {
+                    title: 'Edit UOM',
+                    description: 'Update this unit of measure.',
+                    badgeSlot: <Badge variant="secondary">{isBase ? 'Base unit' : 'Derived unit'}</Badge>,
+                    content: (close) => <EditUomDialog uom={uom} onSuccess={close} onCancel={close} />,
+                  },
+                },
+                {
+                  id: 'delete',
+                  icon: Trash2,
+                  label: 'Delete',
+                  variant: 'destructive',
+                  onClick: () => handleDelete(uom),
+                  disabled: !uom.canDelete,
+                },
+              ]}
+            />
+          );
+        },
         enableSorting: false,
         enableHiding: false,
       },
     ],
-    [openEdit, handleDelete],
+    [handleDelete],
   );
 
   const { table } = useDataTable({
@@ -181,15 +175,6 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
         title="Add UOM"
         description="Add a new unit of measure to this dimension."
         content={(close) => <AddUomDialog dimensionId={dimensionId} onSuccess={close} onCancel={close} />}
-      />
-
-      <Dialog
-        handle={editDialog}
-        title="Edit UOM"
-        description="Update this unit of measure."
-        content={() =>
-          editTarget ? <EditUomDialog uom={editTarget} onSuccess={closeEdit} onCancel={closeEdit} /> : null
-        }
       />
     </>
   );

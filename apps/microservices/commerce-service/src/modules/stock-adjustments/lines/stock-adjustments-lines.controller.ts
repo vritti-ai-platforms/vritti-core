@@ -50,7 +50,7 @@ export class StockAdjustmentsLinesController {
       adjustmentId: string;
       locationId: string;
       stockAdjustmentLotId?: string | null;
-      quantity: number;
+      uomQty: number;
       uomId: string;
     },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
@@ -61,7 +61,7 @@ export class StockAdjustmentsLinesController {
 
   @MessagePattern({ cmd: 'stockAdjustments.addChangeLine' })
   addChangeLine(
-    @Payload() data: { adjustmentId: string; quantId: string; quantity: number; uomId: string },
+    @Payload() data: { adjustmentId: string; quantId: string; uomQty: number; uomId: string },
   ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
     this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${data.adjustmentId}`);
     const { adjustmentId, ...rest } = data;
@@ -75,7 +75,7 @@ export class StockAdjustmentsLinesController {
       lineId: string;
       locationId?: string;
       stockAdjustmentLotId?: string | null;
-      quantity?: number;
+      uomQty?: number;
       uomId?: string;
     },
   ): Promise<SuccessResponseDto> {
@@ -86,7 +86,7 @@ export class StockAdjustmentsLinesController {
 
   @MessagePattern({ cmd: 'stockAdjustments.updateChangeLine' })
   updateChangeLine(
-    @Payload() data: { adjustmentId: string; lineId: string; quantId?: string; quantity?: number; uomId?: string },
+    @Payload() data: { adjustmentId: string; lineId: string; quantId?: string; uomQty?: number; uomId?: string },
   ): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.updateChangeLine — line: ${data.lineId}`);
     const { adjustmentId, lineId, ...rest } = data;

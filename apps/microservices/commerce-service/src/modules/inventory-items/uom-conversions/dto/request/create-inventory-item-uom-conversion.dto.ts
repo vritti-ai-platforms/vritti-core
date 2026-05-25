@@ -6,9 +6,9 @@ export class CreateInventoryItemUomConversionDto {
 
   @IsInt()
   @Min(1)
-  numerator: number;
+  primaryUomQty: number;
 
   @IsInt()
   @Min(1)
-  denominator: number;
+  uomQty: number;
 }

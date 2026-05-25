@@ -210,7 +210,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
                 <Badge
                   variant={line.isBalanced ? 'success' : 'warning'}
                 >
-                  {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+                  {line.lineItemsCount}/{line.uomQty} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
                 </Badge>
               )}
             </div>
@@ -321,7 +321,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
         lineId={lineId}
         lastSerial={lastSerial}
         lineItemsCount={line?.lineItemsCount}
-        quantity={line?.quantity}
+        quantity={line?.uomQty}
         handle={addSerialDialog}
       />
 

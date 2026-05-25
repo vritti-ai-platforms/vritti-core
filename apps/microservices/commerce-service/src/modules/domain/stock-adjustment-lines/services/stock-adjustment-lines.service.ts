@@ -42,7 +42,7 @@ export class StockAdjustmentLinesService {
   };
 
   private static readonly FILTER_FIELD_MAP: FieldMap = {
-    quantity: { column: stockAdjustmentLines.quantity, type: 'number' },
+    uomQty: { column: stockAdjustmentLines.uomQty, type: 'number' },
     uomId: { column: stockAdjustmentLines.uomId, type: 'string' },
   };
 
@@ -87,8 +87,8 @@ export class StockAdjustmentLinesService {
       locationId: string;
       stockAdjustmentLotId?: string | null;
       uomId: string;
-      conversionFactor: number;
-      quantity: number;
+      uomQty: number;
+      primaryUomQty: number;
     },
   ): Promise<StockAdjustmentLineDto> {
     const t0 = Date.now();
@@ -115,10 +115,10 @@ export class StockAdjustmentLinesService {
       });
     }
 
-    if (data.quantity === 0) {
+    if (data.uomQty === 0) {
       throw new ValidationException({
         detail: 'Quantity must be a non-zero number.',
-        errors: [{ field: 'quantity', message: 'Quantity is required.' }],
+        errors: [{ field: 'uomQty', message: 'Quantity is required.' }],
       });
     }
 
@@ -133,8 +133,8 @@ export class StockAdjustmentLinesService {
       locationId: data.locationId,
       quantId: null,
       uomId: data.uomId,
-      conversionFactor: data.conversionFactor,
-      quantity: data.quantity,
+      uomQty: data.uomQty,
+      primaryUomQty: data.primaryUomQty,
       isBalanced: initialIsBalanced,
     });
     this.logger.log(`addOpeningLine [repository.create] ${Date.now() - t0}ms`);
@@ -148,18 +148,18 @@ export class StockAdjustmentLinesService {
     data: {
       quantId: string;
       uomId: string;
-      conversionFactor: number;
-      quantity: number;
+      uomQty: number;
+      primaryUomQty: number;
     },
   ): Promise<StockAdjustmentLineDto> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be added to DRAFT adjustments.');
     }
 
-    if (data.quantity === 0) {
+    if (data.uomQty === 0) {
       throw new ValidationException({
         detail: 'Quantity must be a non-zero number.',
-        errors: [{ field: 'quantity', message: 'Quantity is required.' }],
+        errors: [{ field: 'uomQty', message: 'Quantity is required.' }],
       });
     }
 
@@ -182,8 +182,8 @@ export class StockAdjustmentLinesService {
       locationId: null,
       quantId: data.quantId,
       uomId: data.uomId,
-      conversionFactor: data.conversionFactor,
-      quantity: data.quantity,
+      uomQty: data.uomQty,
+      primaryUomQty: data.primaryUomQty,
       isBalanced: !isItemTracking,
     });
 
@@ -197,9 +197,9 @@ export class StockAdjustmentLinesService {
     data: {
       locationId?: string;
       stockAdjustmentLotId?: string | null;
-      quantity?: number;
+      uomQty?: number;
       uomId?: string;
-      conversionFactor?: number;
+      primaryUomQty?: number;
     },
   ): Promise<void> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -237,8 +237,8 @@ export class StockAdjustmentLinesService {
         stockAdjustmentLotId: nextLotId,
         locationId: nextLocationId,
         uomId: nextUomId,
-        quantity: data.quantity,
-        conversionFactor: data.conversionFactor,
+        uomQty: data.uomQty,
+        primaryUomQty: data.primaryUomQty,
       });
       await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
     });
@@ -249,9 +249,9 @@ export class StockAdjustmentLinesService {
     lineId: string,
     data: {
       quantId?: string;
-      quantity?: number;
+      uomQty?: number;
       uomId?: string;
-      conversionFactor?: number;
+      primaryUomQty?: number;
     },
   ): Promise<void> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -267,8 +267,8 @@ export class StockAdjustmentLinesService {
       await this.repository.update(lineId, {
         quantId: data.quantId,
         uomId: data.uomId,
-        quantity: data.quantity,
-        conversionFactor: data.conversionFactor,
+        uomQty: data.uomQty,
+        primaryUomQty: data.primaryUomQty,
       });
       await this.repository.refreshIsBalanced(lineId, adjustment.inventoryItemTracking);
     });

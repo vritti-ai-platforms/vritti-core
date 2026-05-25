@@ -56,11 +56,11 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
         enableSorting: false,
       },
       {
-        accessorKey: 'quantity',
+        accessorKey: 'uomQty',
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.quantity} {row.original.uomSymbol ?? adjustment.inventoryItemUomSymbol}
+            {row.original.uomQty} {row.original.uomSymbol ?? adjustment.inventoryItemUomSymbol}
           </span>
         ),
         enableSorting: true,

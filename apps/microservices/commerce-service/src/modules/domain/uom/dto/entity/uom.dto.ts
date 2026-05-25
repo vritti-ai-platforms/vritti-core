@@ -7,7 +7,8 @@ export class UomDto {
   symbol: string;
   baseUnitId: string | null;
   baseUnitSymbol: string | null;
-  conversionFactor: number;
+  baseUomQty: number;
+  uomQty: number;
   allowDecimal: boolean;
   canEdit: boolean;
   canDelete: boolean;
@@ -21,7 +22,8 @@ export class UomDto {
     dto.symbol = entity.symbol;
     dto.baseUnitId = entity.baseUnitId ?? null;
     dto.baseUnitSymbol = baseUnitSymbol;
-    dto.conversionFactor = entity.conversionFactor;
+    dto.baseUomQty = entity.baseUomQty;
+    dto.uomQty = entity.uomQty;
     dto.allowDecimal = entity.allowDecimal;
     dto.canEdit = entity.businessUnitId === currentBuId;
     dto.canDelete = entity.businessUnitId === currentBuId && canDelete;

@@ -65,11 +65,11 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         enableSorting: false,
       },
       {
-        accessorKey: 'quantity',
+        accessorKey: 'uomQty',
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.quantity} {row.original.uomSymbol ?? uomSymbol}
+            {row.original.uomQty} {row.original.uomSymbol ?? uomSymbol}
           </span>
         ),
         enableSorting: true,

@@ -15,7 +15,7 @@ import {
   StockAdjustmentTypeValues,
 } from '@/schemas/stock-adjustments';
 
-type FormData = { quantId: string; uomId: string; quantity: number };
+type FormData = { quantId: string; uomId: string; uomQty: number };
 
 const AddChangeLineForm = ({
   adjustmentId,
@@ -38,17 +38,17 @@ const AddChangeLineForm = ({
   const isCorrection = adjustmentType === StockAdjustmentTypeValues.CORRECTION;
 
   const [availableQty, setAvailableQty] = useState<number | null>(null);
-  const [numerator, setNumerator] = useState(1);
-  const [denominator, setDenominator] = useState(1);
+  const [uomPair, setUomPair] = useState({ primaryUomQty: 1, uomQty: 1 });
   const [allowDecimal, setAllowDecimal] = useState(true);
 
-  const maxQty = !isCorrection && availableQty != null ? (availableQty * numerator) / denominator : undefined;
+  const maxQty =
+    !isCorrection && availableQty != null ? (availableQty * uomPair.primaryUomQty) / uomPair.uomQty : undefined;
 
   const resolver = useMemo(() => {
     const schema = z.object({
       quantId: z.string().min(1, 'Quant is required'),
       uomId: z.string().min(1, 'UOM is required'),
-      quantity: isCorrection
+      uomQty: isCorrection
         ? zodNumericField({ required: 'Quantity is required', nonZero: true })
         : zodNumericField({ required: 'Quantity is required', positive: true, max: maxQty }),
     });
@@ -57,7 +57,7 @@ const AddChangeLineForm = ({
 
   const form = useForm<FormData>({
     resolver,
-    defaultValues: { quantId: '', uomId: primaryUomId, quantity: 0 },
+    defaultValues: { quantId: '', uomId: primaryUomId, uomQty: 0 },
   });
 
   const mutation = useAddChangeStockAdjustmentLine(adjustmentId, { onSuccess });
@@ -71,7 +71,7 @@ const AddChangeLineForm = ({
       transformSubmit={(data) => ({
         quantId: data.quantId,
         uomId: data.uomId,
-        quantity: data.quantity,
+        uomQty: data.uomQty,
       })}
     >
       <QuantSelector
@@ -86,7 +86,7 @@ const AddChangeLineForm = ({
       />
       <div className="grid grid-cols-2 gap-4">
         <TextField
-          name="quantity"
+          name="uomQty"
           label="Quantity"
           type="number"
           positive={!isCorrection}
@@ -100,10 +100,12 @@ const AddChangeLineForm = ({
           params={{ inventoryItemId }}
           disabled={isItem}
           onOptionSelect={(option) => {
-            const n = option?.additionals?.numerator;
-            const d = option?.additionals?.denominator;
-            setNumerator(n != null ? Number(n) : 1);
-            setDenominator(d != null && Number(d) !== 0 ? Number(d) : 1);
+            const p = option?.additionals?.primaryUomQty;
+            const u = option?.additionals?.uomQty;
+            setUomPair({
+              primaryUomQty: p != null ? Number(p) : 1,
+              uomQty: u != null && Number(u) !== 0 ? Number(u) : 1,
+            });
             setAllowDecimal(option?.additionals?.allowDecimal !== false);
           }}
         />

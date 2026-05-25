@@ -19,8 +19,11 @@ export class UomResponseDto {
   @ApiPropertyOptional({ description: 'Base unit symbol (joined from referenced UOM)', nullable: true })
   baseUnitSymbol: string | null;
 
-  @ApiProperty({ description: 'Conversion factor to base unit', example: 1000 })
-  conversionFactor: number;
+  @ApiProperty({ description: 'Count of dimension base UOM units in the ratio. 1 Box = 12 Each → baseUomQty=12.', example: 12 })
+  baseUomQty: number;
+
+  @ApiProperty({ description: 'Count of this UOM in the ratio. 1 Box = 12 Each → uomQty=1.', example: 1 })
+  uomQty: number;
 
   @ApiProperty({ description: 'Whether this UOM is editable by the current BU' })
   canEdit: boolean;

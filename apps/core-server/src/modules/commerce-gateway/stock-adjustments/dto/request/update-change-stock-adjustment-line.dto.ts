@@ -7,12 +7,12 @@ export class UpdateChangeStockAdjustmentLineDto {
   @IsUUID()
   quantId?: string;
 
-  @ApiPropertyOptional({ description: 'Line quantity' })
+  @ApiPropertyOptional({ description: 'Line quantity in the line UOM' })
   @IsOptional()
   @IsNumber()
-  quantity?: number;
+  uomQty?: number;
 
-  @ApiPropertyOptional({ description: 'UOM for the line quantity' })
+  @ApiPropertyOptional({ description: 'UOM the line quantity is expressed in' })
   @IsOptional()
   @IsUUID()
   uomId?: string;

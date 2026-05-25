@@ -14354,40 +14354,40 @@
             "type": "string",
             "description": "ID of the alternative UOM"
           },
-          "numerator": {
+          "primaryQty": {
             "type": "number",
-            "description": "Numerator: count of the alternative UOM in the ratio (e.g. 100 in \"100 ml = 1 vial\")",
-            "example": 1
+            "description": "Count of the item primary UOM in the ratio. Example for 1 Strip = 14 Each → primaryQty=14.",
+            "example": 14
           },
-          "denominator": {
+          "uomQty": {
             "type": "number",
-            "description": "Denominator: count of the item primary UOM in the ratio (e.g. 1 in \"100 ml = 1 vial\")",
-            "example": 10
+            "description": "Count of the alternative UOM in the ratio. Example for 1 Strip = 14 Each → uomQty=1.",
+            "example": 1
           }
         },
         "required": [
           "uomId",
-          "numerator",
-          "denominator"
+          "primaryQty",
+          "uomQty"
         ]
       },
       "UpdateInventoryItemUomConversionDto": {
         "type": "object",
         "properties": {
-          "numerator": {
+          "primaryQty": {
             "type": "number",
-            "description": "Numerator: count of the alternative UOM in the ratio",
-            "example": 1
+            "description": "Count of the item primary UOM in the ratio. 1 Strip = 14 Each → primaryQty=14.",
+            "example": 14
           },
-          "denominator": {
+          "uomQty": {
             "type": "number",
-            "description": "Denominator: count of the item primary UOM in the ratio",
-            "example": 10
+            "description": "Count of the alternative UOM in the ratio. 1 Strip = 14 Each → uomQty=1.",
+            "example": 1
           }
         },
         "required": [
-          "numerator",
-          "denominator"
+          "primaryQty",
+          "uomQty"
         ]
       },
       "UpdateInventoryItemDto": {
@@ -16550,18 +16550,18 @@
             "type": "object",
             "description": "Stock adjustment lot draft ID (required for lot/lot_serial-tracked items)"
           },
-          "quantity": {
+          "uomQty": {
             "type": "number",
-            "description": "Line quantity (magnitude — sign comes from adjustment.type)"
+            "description": "Line quantity in the line UOM (magnitude — sign comes from adjustment.type)"
           },
           "uomId": {
             "type": "string",
-            "description": "UOM for the line quantity. Must be in the item allowed-UOM set."
+            "description": "UOM the line quantity is expressed in. Must be in the item allowed-UOM set."
           }
         },
         "required": [
           "locationId",
-          "quantity",
+          "uomQty",
           "uomId"
         ]
       },
@@ -16572,18 +16572,18 @@
             "type": "string",
             "description": "Quant ID — the existing stock to adjust (deduct/correction lines)"
           },
-          "quantity": {
+          "uomQty": {
             "type": "number",
-            "description": "Line quantity (magnitude — sign comes from adjustment.type)"
+            "description": "Line quantity in the line UOM (magnitude — sign comes from adjustment.type)"
           },
           "uomId": {
             "type": "string",
-            "description": "UOM for the line quantity. Must be in the item allowed-UOM set."
+            "description": "UOM the line quantity is expressed in. Must be in the item allowed-UOM set."
           }
         },
         "required": [
           "quantId",
-          "quantity",
+          "uomQty",
           "uomId"
         ]
       },
@@ -16598,13 +16598,13 @@
             "type": "object",
             "description": "Stock adjustment lot draft ID"
           },
-          "quantity": {
+          "uomQty": {
             "type": "number",
-            "description": "Line quantity"
+            "description": "Line quantity in the line UOM"
           },
           "uomId": {
             "type": "string",
-            "description": "UOM for the line quantity"
+            "description": "UOM the line quantity is expressed in"
           }
         }
       },
@@ -16615,13 +16615,13 @@
             "type": "string",
             "description": "Quant ID — the existing stock to adjust"
           },
-          "quantity": {
+          "uomQty": {
             "type": "number",
-            "description": "Line quantity"
+            "description": "Line quantity in the line UOM"
           },
           "uomId": {
             "type": "string",
-            "description": "UOM for the line quantity"
+            "description": "UOM the line quantity is expressed in"
           }
         }
       },
@@ -17306,11 +17306,17 @@
             "type": "string",
             "description": "Base unit ID (null = this is a base unit)"
           },
-          "conversionFactor": {
+          "primaryQty": {
             "type": "number",
-            "description": "Conversion factor to base unit",
+            "description": "Count of primary (base) units in the ratio. Example for 1 Box = 12 Each → primaryQty=12.",
             "default": 1,
-            "example": 1000
+            "example": 12
+          },
+          "uomQty": {
+            "type": "number",
+            "description": "Count of this UOM in the ratio. Example for 1 Box = 12 Each → uomQty=1.",
+            "default": 1,
+            "example": 1
           },
           "allowDecimal": {
             "type": "boolean",
@@ -17343,9 +17349,13 @@
             "type": "object",
             "description": "Updated base unit ID (null = this is a base unit)"
           },
-          "conversionFactor": {
+          "primaryQty": {
             "type": "number",
-            "description": "Updated conversion factor"
+            "description": "Updated count of primary (base) units in the ratio"
+          },
+          "uomQty": {
+            "type": "number",
+            "description": "Updated count of this UOM in the ratio"
           }
         }
       },

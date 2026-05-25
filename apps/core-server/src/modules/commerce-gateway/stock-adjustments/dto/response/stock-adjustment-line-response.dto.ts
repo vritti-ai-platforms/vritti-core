@@ -26,10 +26,10 @@ export class StockAdjustmentLineResponseDto {
   @ApiProperty() uomId: string;
   @ApiPropertyOptional({ nullable: true }) uomName: string | null;
   @ApiPropertyOptional({ nullable: true }) uomSymbol: string | null;
-  @ApiProperty({ description: 'Snapshot of (line UOM → primary UOM) factor at create/update time' })
-  conversionFactor: number;
 
-  @ApiProperty() quantity: number;
+  @ApiProperty({ description: 'Line quantity in the line UOM' }) uomQty: number;
+  @ApiProperty({ description: 'Snapshot of line quantity converted to the item primary UOM at create/update time' })
+  primaryUomQty: number;
   @ApiPropertyOptional({ nullable: true, description: 'Set after publish' })
   resolvedQuantId: string | null;
   @ApiProperty() isBalanced: boolean;

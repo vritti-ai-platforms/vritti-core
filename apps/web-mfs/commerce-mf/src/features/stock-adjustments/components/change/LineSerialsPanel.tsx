@@ -197,7 +197,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
                 <h3 className="text-xl font-semibold leading-none tracking-tight">{line.quantLotNumber}</h3>
               )}
               <Badge variant={line.isBalanced ? 'success' : 'warning'}>
-                {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+                {line.lineItemsCount}/{line.uomQty} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
               </Badge>
             </div>
             {line.quantLocationPath && <p className="mt-1 text-sm text-muted-foreground">{line.quantLocationPath}</p>}
@@ -248,7 +248,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
         <DetailField
           className="px-4 py-2"
           label="Quantity"
-          value={`${line.quantity} ${adjustment.inventoryItemUomSymbol}`}
+          value={`${line.uomQty} ${adjustment.inventoryItemUomSymbol}`}
         />
       </DetailSection>
 
@@ -322,7 +322,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
         lineId={lineId}
         quantId={line.quantId}
         lineItemsCount={line.lineItemsCount}
-        quantity={line.quantity}
+        quantity={line.uomQty}
         handle={pickDialog}
       />
       <EditChangeLineDialog

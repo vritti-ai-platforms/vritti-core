@@ -64,7 +64,7 @@ export const OpeningLinesSidePanel = ({ adjustment, isDraft, selectedLineId, onS
                 <Badge
                   variant={line.isBalanced ? 'success' : 'warning'}
                 >
-                  {line.lineItemsCount}/{line.quantity}
+                  {line.lineItemsCount}/{line.uomQty}
                 </Badge>
               </div>
               {line.locationPath && (

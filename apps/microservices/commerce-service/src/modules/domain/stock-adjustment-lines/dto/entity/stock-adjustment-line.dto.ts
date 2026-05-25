@@ -33,8 +33,8 @@ export class StockAdjustmentLineDto {
   uomId: string;
   uomName: string | null;
   uomSymbol: string | null;
-  conversionFactor: number;
-  quantity: number;
+  uomQty: number;
+  primaryUomQty: number;
   resolvedQuantId: string | null;
   isBalanced: boolean;
   lineItemsCount: number;
@@ -65,8 +65,8 @@ export class StockAdjustmentLineDto {
     dto.uomId = row.uomId;
     dto.uomName = row.uomName ?? null;
     dto.uomSymbol = row.uomSymbol ?? null;
-    dto.conversionFactor = row.conversionFactor;
-    dto.quantity = row.quantity;
+    dto.uomQty = Number(row.uomQty);
+    dto.primaryUomQty = Number(row.primaryUomQty);
     dto.resolvedQuantId = row.resolvedQuantId ?? null;
     dto.isBalanced = row.isBalanced;
     dto.lineItemsCount = row.lineItemsCount ?? 0;

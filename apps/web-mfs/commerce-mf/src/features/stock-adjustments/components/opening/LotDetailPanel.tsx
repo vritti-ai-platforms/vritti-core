@@ -182,11 +182,11 @@ const LotDetailContent = ({
         enableSorting: false,
       },
       {
-        accessorKey: 'quantity',
+        accessorKey: 'uomQty',
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.quantity} {row.original.uomSymbol ?? uomSymbol}
+            {row.original.uomQty} {row.original.uomSymbol ?? uomSymbol}
           </span>
         ),
         enableSorting: true,
@@ -202,7 +202,7 @@ const LotDetailContent = ({
                     row.original.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
                   }`}
                 >
-                  {row.original.lineItemsCount}/{row.original.quantity}
+                  {row.original.lineItemsCount}/{row.original.uomQty}
                 </span>
               ),
             } satisfies ColumnDef<StockAdjustmentLineData>,

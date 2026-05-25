@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
   @IsOptional()
@@ -22,9 +22,14 @@ export class UpdateUomDto {
   baseUnitId?: string | null;
 
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 6 })
+  @IsInt()
   @IsPositive()
-  conversionFactor?: number;
+  baseUomQty?: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  uomQty?: number;
 
   @IsOptional()
   @IsBoolean()

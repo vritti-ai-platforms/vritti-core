@@ -87,7 +87,7 @@ export interface PurchaseOrderItemData {
   currencyCode: string;
   unitPrice: { currency: string; value: string };
   totalPrice: { currency: string; value: string };
-  conversionFactor: number;
+  primaryUomQty: number;
   orderUomSymbol: string | null;
   primaryUomSymbol: string | null;
   primaryUomUnitPrice: { currency: string; value: string };

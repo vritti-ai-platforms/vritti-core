@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateUomDto {
   @ApiPropertyOptional({ description: 'Updated dimension UUID' })
@@ -26,9 +26,15 @@ export class UpdateUomDto {
   @IsUUID()
   baseUnitId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Updated conversion factor' })
+  @ApiPropertyOptional({ description: 'Updated count of dimension base UOM units in the ratio' })
   @IsOptional()
-  @IsNumber({ maxDecimalPlaces: 6 })
+  @IsInt()
   @IsPositive()
-  conversionFactor?: number;
+  baseUomQty?: number;
+
+  @ApiPropertyOptional({ description: 'Updated count of this UOM in the ratio' })
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  uomQty?: number;
 }

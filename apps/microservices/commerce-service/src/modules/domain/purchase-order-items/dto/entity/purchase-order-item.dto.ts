@@ -8,7 +8,7 @@ export class PurchaseOrderItemDto {
   uomId: string;
   quantity: number;
   receivedQuantity: number;
-  conversionFactor: number;
+  primaryUomQty: number;
   primaryUomSymbol: string | null;
   orderUomSymbol: string | null;
   currencyCode: string;
@@ -27,7 +27,7 @@ export class PurchaseOrderItemDto {
     dto.uomId = entity.uomId;
     dto.quantity = Number(entity.quantity);
     dto.receivedQuantity = Number(entity.receivedQuantity);
-    dto.conversionFactor = Number(entity.conversionFactor);
+    dto.primaryUomQty = Number(entity.primaryUomQty);
     dto.orderUomSymbol = entity.orderUomSymbol ?? null;
     dto.primaryUomSymbol = entity.primaryUomSymbol ?? null;
     dto.currencyCode = entity.currencyCode;

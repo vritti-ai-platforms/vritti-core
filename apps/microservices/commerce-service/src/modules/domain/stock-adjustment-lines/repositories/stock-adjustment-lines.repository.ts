@@ -75,8 +75,8 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         uomId: stockAdjustmentLines.uomId,
         uomName: uom.name,
         uomSymbol: uom.symbol,
-        conversionFactor: stockAdjustmentLines.conversionFactor,
-        quantity: stockAdjustmentLines.quantity,
+        primaryUomQty: stockAdjustmentLines.primaryUomQty,
+        uomQty: stockAdjustmentLines.uomQty,
         resolvedQuantId: stockAdjustmentLines.resolvedQuantId,
         isBalanced: stockAdjustmentLines.isBalanced,
         createdAt: stockAdjustmentLines.createdAt,
@@ -151,7 +151,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
   async totalQuantityForAdjustment(adjustmentId: string): Promise<number> {
     const [result] = await this.db
       .select({
-        total: sql<string>`COALESCE(SUM(${stockAdjustmentLines.quantity} * ${stockAdjustmentLines.conversionFactor}), 0)`,
+        total: sql<string>`COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0)`,
       })
       .from(stockAdjustmentLines)
       .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId));
@@ -174,31 +174,31 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         isBalanced: sql`(
           SELECT COUNT(*) FROM ${stockAdjustmentLineItems}
           WHERE ${stockAdjustmentLineItems.stockAdjustmentLineId} = ${stockAdjustmentLines.id}
-        ) = ${stockAdjustmentLines.quantity}`,
+        ) = ${stockAdjustmentLines.uomQty}`,
       })
       .where(eq(stockAdjustmentLines.id, lineId));
   }
 
-  // Returns lines with mismatch (line_items count != quantity) — for tracking='serial' validation at publish
+  // Returns lines with mismatch (line_items count != uomQty) — for tracking='serial' validation at publish
   async findUnbalancedItemLines(
     adjustmentId: string,
-  ): Promise<{ lineId: string; lineQuantity: number; lineItemsCount: number; delta: number }[]> {
+  ): Promise<{ lineId: string; lineUomQty: number; lineItemsCount: number; delta: number }[]> {
     const rows = await this.db
       .select({
         lineId: stockAdjustmentLines.id,
-        lineQuantity: stockAdjustmentLines.quantity,
+        lineUomQty: stockAdjustmentLines.uomQty,
         lineItemsCount: sql<number>`COUNT(${stockAdjustmentLineItems.id})`,
       })
       .from(stockAdjustmentLines)
       .leftJoin(stockAdjustmentLineItems, eq(stockAdjustmentLineItems.stockAdjustmentLineId, stockAdjustmentLines.id))
       .where(eq(stockAdjustmentLines.stockAdjustmentId, adjustmentId))
-      .groupBy(stockAdjustmentLines.id, stockAdjustmentLines.quantity);
+      .groupBy(stockAdjustmentLines.id, stockAdjustmentLines.uomQty);
 
     return rows
       .map((row) => {
-        const lineQuantity = Number(row.lineQuantity);
+        const lineUomQty = Number(row.lineUomQty);
         const lineItemsCount = Number(row.lineItemsCount ?? 0);
-        return { lineId: row.lineId, lineQuantity, lineItemsCount, delta: lineQuantity - lineItemsCount };
+        return { lineId: row.lineId, lineUomQty, lineItemsCount, delta: lineUomQty - lineItemsCount };
       })
       .filter((row) => row.delta !== 0);
   }
@@ -225,8 +225,8 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
         uomId: stockAdjustmentLines.uomId,
         uomName: uom.name,
         uomSymbol: uom.symbol,
-        conversionFactor: stockAdjustmentLines.conversionFactor,
-        quantity: stockAdjustmentLines.quantity,
+        primaryUomQty: stockAdjustmentLines.primaryUomQty,
+        uomQty: stockAdjustmentLines.uomQty,
         resolvedQuantId: stockAdjustmentLines.resolvedQuantId,
         isBalanced: stockAdjustmentLines.isBalanced,
         createdAt: stockAdjustmentLines.createdAt,

@@ -59,8 +59,8 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
         accessorKey: 'quantity',
         header: 'Quantity',
         cell: ({ row }) => {
-          const { quantity, conversionFactor, orderUomSymbol, primaryUomSymbol } = row.original;
-          const isCrossUom = conversionFactor !== 1;
+          const { quantity, primaryUomQty, orderUomSymbol, primaryUomSymbol } = row.original;
+          const isCrossUom = primaryUomQty !== quantity;
           return (
             <div className="flex flex-col">
               <span className="font-mono">
@@ -68,7 +68,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
               </span>
               {isCrossUom && (
                 <span className="font-mono text-xs text-muted-foreground">
-                  1 {orderUomSymbol} = {conversionFactor} {primaryUomSymbol}
+                  {quantity} {orderUomSymbol} = {primaryUomQty} {primaryUomSymbol}
                 </span>
               )}
             </div>
@@ -88,8 +88,8 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
         accessorKey: 'unitPrice',
         header: 'Unit Price',
         cell: ({ row }) => {
-          const { unitPrice, primaryUomUnitPrice, conversionFactor, primaryUomSymbol } = row.original;
-          const isCrossUom = conversionFactor !== 1;
+          const { unitPrice, primaryUomUnitPrice, quantity, primaryUomQty, primaryUomSymbol } = row.original;
+          const isCrossUom = primaryUomQty !== quantity;
           return (
             <div className="flex flex-col">
               <span className="font-mono">{`${unitPrice.currency} ${unitPrice.value}`}</span>

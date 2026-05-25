@@ -87,7 +87,7 @@ export class StockAdjustmentsRootService {
 
     const tracking = adjustment.inventoryItemTracking;
 
-    // For serial-bearing lines: validate balance (count of line_items === line.quantity)
+    // For serial-bearing lines: validate balance (count of line_items === line.uomQty)
     if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       const validation = await this.linesService.getPublishValidation(id);
       if (!validation.valid) {
@@ -152,10 +152,10 @@ export class StockAdjustmentsRootService {
       throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK.`);
     }
 
-    // Convert the line quantity (in line.uomId) → primary UOM using the snapshot factor stored on
-    // the line at create/update time. Serial tracking is restricted to primary UOM at validation
-    // time, so factor === 1 in those branches by construction.
-    const primaryQty = Number(line.quantity) * Number(line.conversionFactor);
+    // Snapshot of the line quantity in the item's primary UOM, computed at create/update time.
+    // Serial tracking is restricted to primary UOM at validation time, so primaryUomQty === quantity
+    // in those branches by construction.
+    const primaryUomQty = Number(line.primaryUomQty);
 
     let createParams: Parameters<typeof this.batchesService.createBatchScoped>[0];
     if (tracking === InventoryTrackingValues.QUANTITY) {
@@ -166,16 +166,16 @@ export class StockAdjustmentsRootService {
         inventoryItemId: adjustment.inventoryItemId,
         locationId: line.locationId,
         tracking,
-        quantity: primaryQty,
+        quantity: primaryUomQty,
       };
     } else if (tracking === InventoryTrackingValues.SERIAL) {
       if (line.stockAdjustmentLotId) {
         throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=serial.`);
       }
       const serials = lineItems.map((li) => li.serialNumber);
-      if (serials.length !== Number(line.quantity)) {
+      if (serials.length !== Number(line.uomQty)) {
         throw new BadRequestException(
-          `Line ${line.id}: expected ${line.quantity} serial numbers, got ${serials.length}.`,
+          `Line ${line.id}: expected ${line.uomQty} serial numbers, got ${serials.length}.`,
         );
       }
       if (new Set(serials).size !== serials.length) {
@@ -200,7 +200,7 @@ export class StockAdjustmentsRootService {
           inventoryItemId: adjustment.inventoryItemId,
           locationId: line.locationId,
           tracking,
-          quantity: primaryQty,
+          quantity: primaryUomQty,
           lot: {
             lotNumber: lot.lotNumber,
             manufacturingDate: lot.manufacturingDate ?? null,
@@ -210,9 +210,9 @@ export class StockAdjustmentsRootService {
       } else {
         // tracking === 'lot_serial'
         const serials = lineItems.map((li) => li.serialNumber);
-        if (serials.length !== Number(line.quantity)) {
+        if (serials.length !== Number(line.uomQty)) {
           throw new BadRequestException(
-            `Line ${line.id}: expected ${line.quantity} serial numbers, got ${serials.length}.`,
+            `Line ${line.id}: expected ${line.uomQty} serial numbers, got ${serials.length}.`,
           );
         }
         if (new Set(serials).size !== serials.length) {
@@ -238,7 +238,7 @@ export class StockAdjustmentsRootService {
     await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
       type: InventoryItemLedgerTypeValues.OPENING_STOCK,
-      quantity: String(primaryQty),
+      quantity: String(primaryUomQty),
       referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
       referenceId: adjustmentId,
       notes: adjustment.reason ?? null,
@@ -262,15 +262,15 @@ export class StockAdjustmentsRootService {
     let signedDelta: number;
     if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       const serials = lineItems.map((li) => li.serialNumber);
-      if (serials.length !== Number(line.quantity)) {
-        throw new BadRequestException(`Line ${line.id}: expected ${line.quantity} serials, got ${serials.length}.`);
+      if (serials.length !== Number(line.uomQty)) {
+        throw new BadRequestException(`Line ${line.id}: expected ${line.uomQty} serials, got ${serials.length}.`);
       }
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, serials });
       signedDelta = this.isDeductType(adjustment.type) ? -serials.length : serials.length;
     } else {
-      // Convert from line.uomId → primary UOM using the line's snapshot factor.
-      const primaryQty = Number(line.quantity) * Number(line.conversionFactor);
-      const delta = this.isDeductType(adjustment.type) ? -Math.abs(primaryQty) : primaryQty;
+      // Snapshot of line qty in the item's primary UOM, computed at create/update time.
+      const primaryUomQty = Number(line.primaryUomQty);
+      const delta = this.isDeductType(adjustment.type) ? -Math.abs(primaryUomQty) : primaryUomQty;
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, delta });
       signedDelta = delta;
     }

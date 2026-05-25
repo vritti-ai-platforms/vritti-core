@@ -2,16 +2,18 @@ import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/api-respo
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
 
-// Unified UOM form schema — supports both base and derived units
+// Unified UOM form schema — supports both base and derived units.
+// For derived units, the user enters the integer pair: 1 Box = 12 Each → baseUomQty=12, uomQty=1.
+const positiveInt = zodNumericField({ positive: true, integer: true });
+
 const _uomFormSchema = z
   .object({
     name: z.string().min(1, 'Name is required').max(50),
     symbol: z.string().min(1, 'Symbol is required').max(10),
     kind: z.enum(['base', 'derived']),
     baseUnitId: z.string().optional(),
-    conversionFactor: zodNumericField({ required: 'Conversion factor is required', positive: true })
-      .optional()
-      .catch(undefined),
+    baseUomQty: positiveInt.optional().catch(undefined),
+    uomQty: positiveInt.optional().catch(undefined),
     allowDecimal: z.boolean().default(false),
   })
   .superRefine((data, ctx) => {
@@ -23,11 +25,18 @@ const _uomFormSchema = z
           message: 'Base unit is required for derived units',
         });
       }
-      if (!data.conversionFactor || data.conversionFactor <= 0) {
+      if (!data.baseUomQty || data.baseUomQty <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ['conversionFactor'],
-          message: 'Conversion factor is required for derived units',
+          path: ['baseUomQty'],
+          message: 'Base UOM qty is required for derived units',
+        });
+      }
+      if (!data.uomQty || data.uomQty <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['uomQty'],
+          message: 'UOM qty is required for derived units',
         });
       }
     }
@@ -38,7 +47,8 @@ export type UomFormData = {
   symbol: string;
   kind: 'base' | 'derived';
   baseUnitId?: string;
-  conversionFactor?: number;
+  baseUomQty?: number;
+  uomQty?: number;
   allowDecimal: boolean;
 };
 
@@ -52,14 +62,16 @@ export interface CreateUomData {
   symbol: string;
   dimensionId: string;
   baseUnitId?: string | null;
-  conversionFactor?: number;
+  baseUomQty?: number;
+  uomQty?: number;
   allowDecimal: boolean;
 }
 
 export interface UpdateUomData {
   name?: string;
   symbol?: string;
-  conversionFactor?: number;
+  baseUomQty?: number;
+  uomQty?: number;
   allowDecimal?: boolean;
 }
 
@@ -70,7 +82,8 @@ export interface UomData {
   dimensionId: string;
   baseUnitId: string | null;
   baseUnitSymbol: string | null;
-  conversionFactor: number;
+  baseUomQty: number;
+  uomQty: number;
   allowDecimal: boolean;
   canEdit: boolean;
   canDelete: boolean;

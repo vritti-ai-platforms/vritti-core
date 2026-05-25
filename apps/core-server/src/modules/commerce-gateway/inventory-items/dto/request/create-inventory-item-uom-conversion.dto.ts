@@ -7,18 +7,18 @@ export class CreateInventoryItemUomConversionDto {
   uomId: string;
 
   @ApiProperty({
-    description: 'Numerator: count of the alternative UOM in the ratio (e.g. 100 in "100 ml = 1 vial")',
+    description: 'Count of the item primary UOM in the ratio. Example for 1 Strip = 14 Each → primaryUomQty=14.',
+    example: 14,
+  })
+  @IsInt()
+  @Min(1)
+  primaryUomQty: number;
+
+  @ApiProperty({
+    description: 'Count of the alternative UOM in the ratio. Example for 1 Strip = 14 Each → uomQty=1.',
     example: 1,
   })
   @IsInt()
   @Min(1)
-  numerator: number;
-
-  @ApiProperty({
-    description: 'Denominator: count of the item primary UOM in the ratio (e.g. 1 in "100 ml = 1 vial")',
-    example: 10,
-  })
-  @IsInt()
-  @Min(1)
-  denominator: number;
+  uomQty: number;
 }

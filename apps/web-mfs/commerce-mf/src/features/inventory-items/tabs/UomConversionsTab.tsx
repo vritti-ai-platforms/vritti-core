@@ -54,7 +54,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, it
         header: 'Conversion',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.numerator} {row.original.uomSymbol} = {row.original.denominator} {itemUomSymbol}
+            {row.original.uomQty} {row.original.uomSymbol} = {row.original.primaryUomQty} {itemUomSymbol}
           </span>
         ),
       },
@@ -78,8 +78,8 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ itemId, it
                       conversionId={row.original.id}
                       uomSymbol={row.original.uomSymbol}
                       itemUomSymbol={itemUomSymbol}
-                      currentNumerator={row.original.numerator}
-                      currentDenominator={row.original.denominator}
+                      currentPrimaryUomQty={row.original.primaryUomQty}
+                      currentUomQty={row.original.uomQty}
                       onSuccess={close}
                       onCancel={close}
                     />

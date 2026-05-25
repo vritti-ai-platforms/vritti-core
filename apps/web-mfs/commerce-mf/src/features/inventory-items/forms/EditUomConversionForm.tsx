@@ -15,8 +15,8 @@ interface EditUomConversionFormProps {
   conversionId: string;
   uomSymbol: string;
   itemUomSymbol: string;
-  currentNumerator: number;
-  currentDenominator: number;
+  currentPrimaryUomQty: number;
+  currentUomQty: number;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -26,18 +26,18 @@ export const EditUomConversionForm: React.FC<EditUomConversionFormProps> = ({
   conversionId,
   uomSymbol,
   itemUomSymbol,
-  currentNumerator,
-  currentDenominator,
+  currentPrimaryUomQty,
+  currentUomQty,
   onSuccess,
   onCancel,
 }) => {
   const form = useForm<UpdateInventoryItemUomConversionFormData>({
     resolver: zodResolver(updateInventoryItemUomConversionSchema),
-    defaultValues: { numerator: currentNumerator, denominator: currentDenominator },
+    defaultValues: { primaryUomQty: currentPrimaryUomQty, uomQty: currentUomQty },
   });
 
-  const numerator = useWatch({ control: form.control, name: 'numerator' });
-  const denominator = useWatch({ control: form.control, name: 'denominator' });
+  const primaryUomQty = useWatch({ control: form.control, name: 'primaryUomQty' });
+  const uomQty = useWatch({ control: form.control, name: 'uomQty' });
 
   const updateMutation = useUpdateInventoryItemUomConversion(itemId, { onSuccess });
 
@@ -46,18 +46,18 @@ export const EditUomConversionForm: React.FC<EditUomConversionFormProps> = ({
       form={form}
       mutation={updateMutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({ conversionId, numerator: data.numerator, denominator: data.denominator })}
+      transformSubmit={(data) => ({ conversionId, primaryUomQty: data.primaryUomQty, uomQty: data.uomQty })}
     >
       <p className="text-sm text-muted-foreground">
         Updating the conversion ratio for <span className="font-medium text-foreground">{uomSymbol}</span>.
       </p>
       <div className="flex flex-col gap-1">
         <div className="grid grid-cols-2 gap-3">
-          <TextField name="denominator" label={`Count of ${uomSymbol}`} type="number" integer positive />
-          <TextField name="numerator" label={`Count of ${itemUomSymbol}`} type="number" integer positive />
+          <TextField name="uomQty" label={`Count of ${uomSymbol}`} type="number" integer positive />
+          <TextField name="primaryUomQty" label={`Count of ${itemUomSymbol}`} type="number" integer positive />
         </div>
         <p className="text-sm text-muted-foreground">
-          {denominator} {uomSymbol} = {numerator} {itemUomSymbol}
+          {uomQty} {uomSymbol} = {primaryUomQty} {itemUomSymbol}
         </p>
       </div>
       <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">

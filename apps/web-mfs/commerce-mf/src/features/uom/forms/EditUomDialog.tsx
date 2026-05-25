@@ -1,4 +1,3 @@
-import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
@@ -25,7 +24,8 @@ export const EditUomDialog: React.FC<EditUomDialogProps> = ({ uom, onSuccess, on
       symbol: uom.symbol,
       kind: isBase ? 'base' : 'derived',
       baseUnitId: uom.baseUnitId ?? undefined,
-      conversionFactor: uom.conversionFactor,
+      baseUomQty: uom.baseUomQty,
+      uomQty: uom.uomQty,
       allowDecimal: uom.allowDecimal,
     },
   });
@@ -48,22 +48,29 @@ export const EditUomDialog: React.FC<EditUomDialogProps> = ({ uom, onSuccess, on
         data: {
           name: data.name,
           symbol: data.symbol,
-          conversionFactor: isBase ? 1 : (data.conversionFactor ?? 1),
+          baseUomQty: isBase ? 1 : (data.baseUomQty ?? 1),
+          uomQty: isBase ? 1 : (data.uomQty ?? 1),
           allowDecimal: data.allowDecimal,
         },
       })}
     >
-      <div className="flex items-center gap-2">
-        <Badge variant="secondary">{isBase ? 'Base unit' : 'Derived unit'}</Badge>
-      </div>
-
       <TextField name="name" label="Name" placeholder="e.g. Kilogram" />
       <TextField name="symbol" label="Symbol" placeholder="e.g. kg" />
 
       {!isBase ? (
         <>
           <Select name="baseUnitId" label="Base unit" placeholder="Select base unit" options={baseOptions} disabled />
-          <TextField name="conversionFactor" label="Conversion factor" type="number" placeholder="e.g. 1000" positive />
+          <div className="grid grid-cols-2 gap-3">
+            <TextField name="uomQty" label="Count of this unit" type="number" placeholder="e.g. 1" integer positive />
+            <TextField
+              name="baseUomQty"
+              label={`Count of ${uom.baseUnitSymbol ?? 'base units'}`}
+              type="number"
+              placeholder="e.g. 1000"
+              integer
+              positive
+            />
+          </div>
         </>
       ) : null}
 
