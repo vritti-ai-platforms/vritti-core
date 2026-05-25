@@ -14354,9 +14354,9 @@
             "type": "string",
             "description": "ID of the alternative UOM"
           },
-          "primaryQty": {
+          "primaryUomQty": {
             "type": "number",
-            "description": "Count of the item primary UOM in the ratio. Example for 1 Strip = 14 Each → primaryQty=14.",
+            "description": "Count of the item primary UOM in the ratio. Example for 1 Strip = 14 Each → primaryUomQty=14.",
             "example": 14
           },
           "uomQty": {
@@ -14367,16 +14367,16 @@
         },
         "required": [
           "uomId",
-          "primaryQty",
+          "primaryUomQty",
           "uomQty"
         ]
       },
       "UpdateInventoryItemUomConversionDto": {
         "type": "object",
         "properties": {
-          "primaryQty": {
+          "primaryUomQty": {
             "type": "number",
-            "description": "Count of the item primary UOM in the ratio. 1 Strip = 14 Each → primaryQty=14.",
+            "description": "Count of the item primary UOM in the ratio. 1 Strip = 14 Each → primaryUomQty=14.",
             "example": 14
           },
           "uomQty": {
@@ -14386,7 +14386,7 @@
           }
         },
         "required": [
-          "primaryQty",
+          "primaryUomQty",
           "uomQty"
         ]
       },
@@ -17306,9 +17306,9 @@
             "type": "string",
             "description": "Base unit ID (null = this is a base unit)"
           },
-          "primaryQty": {
+          "baseUomQty": {
             "type": "number",
-            "description": "Count of primary (base) units in the ratio. Example for 1 Box = 12 Each → primaryQty=12.",
+            "description": "Count of dimension base UOM units in the ratio. Example for 1 Box = 12 Each → baseUomQty=12.",
             "default": 1,
             "example": 12
           },
@@ -17349,9 +17349,9 @@
             "type": "object",
             "description": "Updated base unit ID (null = this is a base unit)"
           },
-          "primaryQty": {
+          "baseUomQty": {
             "type": "number",
-            "description": "Updated count of primary (base) units in the ratio"
+            "description": "Updated count of dimension base UOM units in the ratio"
           },
           "uomQty": {
             "type": "number",

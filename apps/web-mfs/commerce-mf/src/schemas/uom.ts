@@ -22,21 +22,21 @@ const _uomFormSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['baseUnitId'],
-          message: 'Base unit is required for derived units',
+          message: 'Pick a base unit',
         });
       }
       if (!data.baseUomQty || data.baseUomQty <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['baseUomQty'],
-          message: 'Base UOM qty is required for derived units',
+          message: 'Count is required',
         });
       }
       if (!data.uomQty || data.uomQty <= 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['uomQty'],
-          message: 'UOM qty is required for derived units',
+          message: 'Count is required',
         });
       }
     }

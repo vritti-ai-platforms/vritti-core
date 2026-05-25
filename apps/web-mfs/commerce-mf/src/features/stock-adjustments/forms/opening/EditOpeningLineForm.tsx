@@ -68,7 +68,7 @@ export const EditOpeningLineForm = ({
         }}
       />
       <div className="grid grid-cols-2 gap-4">
-        <TextField name="uomQty" label="Quantity" type="number" positive nonZero integer={isItem || !allowDecimal} />
+        <TextField name="uomQty" label="Quantity" type="number" positive integer={isItem || !allowDecimal} />
         <UomSelector
           name="uomId"
           label="Unit"
