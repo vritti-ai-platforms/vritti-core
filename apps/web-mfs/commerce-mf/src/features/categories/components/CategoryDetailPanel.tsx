@@ -180,9 +180,9 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
       </div>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        <DetailField label="Sort Order" value={category.sortOrder} />
-        <DetailField label="Child Categories" value={childrenResponse?.count ?? 0} />
-        <DetailField label="Parent" value={category.path ? formatCategoryPath(category.path) || '—' : '—'} />
+        <DetailField label="Sort Order" type="number" value={category.sortOrder} />
+        <DetailField label="Child Categories" type="number" value={childrenResponse?.count ?? 0} />
+        <DetailField label="Parent" type="string" value={category.path ? formatCategoryPath(category.path) : null} />
       </div>
 
       <div>

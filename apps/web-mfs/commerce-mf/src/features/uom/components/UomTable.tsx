@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
@@ -43,7 +43,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
         accessorKey: 'symbol',
         header: 'Symbol',
         enableSorting: true,
-        cell: ({ row }) => <span className="font-mono">{row.original.symbol}</span>,
+        cell: ({ row }) => <StringCell value={row.original.symbol} mono />,
       },
       {
         accessorKey: 'name',
@@ -64,7 +64,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
         id: 'baseUnit',
         header: 'Base',
         cell: ({ row }) => (
-          <span className="font-mono text-muted-foreground">{row.original.baseUnitSymbol ?? '—'}</span>
+          <StringCell value={row.original.baseUnitSymbol ?? '—'} mono className="text-muted-foreground" />
         ),
         enableSorting: false,
       },
@@ -77,7 +77,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
           if (baseUnitSymbol == null) return <span className="text-muted-foreground">—</span>;
           return (
             <span className="font-mono">
-              {uomQty} {symbol} = {baseUomQty} {baseUnitSymbol}
+              <NumberCell value={uomQty} /> {symbol} = <NumberCell value={baseUomQty} /> {baseUnitSymbol}
             </span>
           );
         },

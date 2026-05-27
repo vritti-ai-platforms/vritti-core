@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
+import { type ColumnDef, DataTable, DateTimeCell, NumberCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { ScrollText } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -31,6 +31,7 @@ const TYPE_CONFIG: Record<
 
 export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol }) => {
   const queryClient = useQueryClient();
+  const fmt = useFormatters();
   const { data: response, isLoading } = useInventoryItemLedgerTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemLedgerData>[]>(
@@ -38,7 +39,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol
       {
         accessorKey: 'createdAt',
         header: 'Date',
-        cell: ({ row }) => <FormattedDate value={row.original.createdAt} dateFormat="Pp" className="font-mono" />,
+        cell: ({ row }) => <DateTimeCell value={row.original.createdAt} className="font-mono" />,
         enableSorting: true,
       },
       {
@@ -57,7 +58,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol
           return (
             <span className={`font-mono ${q > 0 ? 'text-success' : q < 0 ? 'text-destructive' : ''}`}>
               {q > 0 ? '+' : ''}
-              {q} {uomSymbol}
+              {fmt.number(q).primary} {uomSymbol}
             </span>
           );
         },
@@ -68,7 +69,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol
         header: 'Balance',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.balanceAfter} {uomSymbol}
+            <NumberCell value={row.original.balanceAfter} /> {uomSymbol}
           </span>
         ),
       },
@@ -91,7 +92,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol
         cell: ({ row }) => <span className="text-muted-foreground text-sm">{row.original.notes ?? '—'}</span>,
       },
     ],
-    [uomSymbol],
+    [uomSymbol, fmt],
   );
 
   const { table } = useDataTable({

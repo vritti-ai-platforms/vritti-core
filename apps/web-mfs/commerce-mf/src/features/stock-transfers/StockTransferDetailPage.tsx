@@ -108,15 +108,15 @@ export const StockTransferDetailPage = () => {
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-6">
-          <DetailField label="Inventory Item" value={transfer.inventoryItemName} />
-          <DetailField label="Quantity" value={transfer.quantity} number />
-          <DetailField label="From" value={transfer.fromBuName ?? transfer.fromBuId} />
-          <DetailField label="To" value={transfer.toBuName ?? transfer.toBuId} />
-          <DetailField label="Requested By" value={transfer.requestedBy} />
-          <DetailField label="Received By" value={transfer.receivedBy} />
-          <DetailField label="Created" value={transfer.createdAt} />
-          <DetailField label="Last Updated" value={transfer.updatedAt} />
-          <DetailField label="Notes" value={transfer.notes} className="col-span-2" />
+          <DetailField label="Inventory Item" type="string" value={transfer.inventoryItemName} />
+          <DetailField label="Quantity" type="number" value={transfer.quantity} />
+          <DetailField label="From" type="string" value={transfer.fromBuName ?? transfer.fromBuId} />
+          <DetailField label="To" type="string" value={transfer.toBuName ?? transfer.toBuId} />
+          <DetailField label="Requested By" type="string" value={transfer.requestedBy} />
+          <DetailField label="Received By" type="string" value={transfer.receivedBy} />
+          <DetailField label="Created" type="dateTime" value={transfer.createdAt} />
+          <DetailField label="Last Updated" type="dateTime" value={transfer.updatedAt} />
+          <DetailField label="Notes" type="string" value={transfer.notes} className="col-span-2" />
         </CardContent>
       </Card>
     </div>

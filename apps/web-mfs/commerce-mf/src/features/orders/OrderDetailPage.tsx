@@ -127,12 +127,18 @@ export const OrderDetailPage = () => {
                     <CardTitle>Order Info</CardTitle>
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-6">
-                    <DetailField label="Order Number" value={order.orderNumber} number />
-                    <DetailField label="Type" value={<Badge variant="outline">{typeLabels[order.type]}</Badge>} />
-                    <DetailField label="Channel" value={channelLabels[order.channel]} />
-                    <DetailField label="Placed At" value={order.placedAt} />
-                    {order.externalOrderId && <DetailField label="External ID" value={order.externalOrderId} number />}
-                    <DetailField label="Notes" value={order.notes} className="col-span-2" />
+                    <DetailField label="Order Number" type="string" mono value={order.orderNumber} />
+                    <DetailField
+                      label="Type"
+                      type="string"
+                      value={<Badge variant="outline">{typeLabels[order.type]}</Badge>}
+                    />
+                    <DetailField label="Channel" type="string" value={channelLabels[order.channel]} />
+                    <DetailField label="Placed At" type="dateTime" value={order.placedAt} />
+                    {order.externalOrderId && (
+                      <DetailField label="External ID" type="string" mono value={order.externalOrderId} />
+                    )}
+                    <DetailField label="Notes" type="string" value={order.notes} className="col-span-2" />
                   </CardContent>
                 </Card>
 
@@ -141,10 +147,15 @@ export const OrderDetailPage = () => {
                     <CardTitle>Customer</CardTitle>
                   </CardHeader>
                   <CardContent className="grid grid-cols-2 gap-6">
-                    <DetailField label="Name" value={order.customerName} />
-                    <DetailField label="Phone" value={order.customerPhone} />
+                    <DetailField label="Name" type="string" value={order.customerName} />
+                    <DetailField label="Phone" type="string" value={order.customerPhone} />
                     {order.deliveryAddress && (
-                      <DetailField label="Delivery Address" value={order.deliveryAddress} className="col-span-2" />
+                      <DetailField
+                        label="Delivery Address"
+                        type="string"
+                        value={order.deliveryAddress}
+                        className="col-span-2"
+                      />
                     )}
                   </CardContent>
                 </Card>

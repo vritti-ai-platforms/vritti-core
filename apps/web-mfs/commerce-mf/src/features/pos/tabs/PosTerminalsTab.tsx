@@ -2,9 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { Monitor, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
@@ -89,7 +88,7 @@ export const PosTerminalsTab = () => {
         accessorKey: 'updatedAt',
         header: 'Updated',
         enableSorting: true,
-        cell: ({ row }) => <FormattedDate value={row.original.updatedAt} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.updatedAt} />,
       },
       {
         id: 'actions',

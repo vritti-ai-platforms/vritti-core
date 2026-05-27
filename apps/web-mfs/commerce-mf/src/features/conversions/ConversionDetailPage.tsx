@@ -74,19 +74,20 @@ export const ConversionDetailPage = () => {
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-6">
-                  <DetailField label="BOM" value={conversion.bomName} />
+                  <DetailField label="BOM" type="string" value={conversion.bomName} />
                   <DetailField
                     label="Status"
+                    type="string"
                     value={
                       <Badge variant={badgeConfig.variant} className={badgeConfig.className}>
                         {badgeConfig.label}
                       </Badge>
                     }
                   />
-                  <DetailField label="Produced By" value={conversion.producedBy} />
-                  <DetailField label="Started At" value={conversion.startedAt} />
-                  <DetailField label="Completed At" value={conversion.completedAt} />
-                  <DetailField label="Notes" value={conversion.notes} className="col-span-2" />
+                  <DetailField label="Produced By" type="string" value={conversion.producedBy} />
+                  <DetailField label="Started At" type="dateTime" value={conversion.startedAt} />
+                  <DetailField label="Completed At" type="dateTime" value={conversion.completedAt} />
+                  <DetailField label="Notes" type="string" value={conversion.notes} className="col-span-2" />
                 </CardContent>
               </Card>
             ),

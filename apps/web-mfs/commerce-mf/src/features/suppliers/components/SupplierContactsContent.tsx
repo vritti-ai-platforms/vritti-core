@@ -114,16 +114,16 @@ export const SupplierContactsContent = ({
       <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 gap-4">
-            <DetailField label="Name" value={selectedContact.name} />
-            <DetailField label="Designation" value={selectedContact.designation ?? '—'} />
-            <DetailField label="Phone" value={selectedContact.phone ?? '—'} />
-            <DetailField label="Alternate Phone" value={selectedContact.alternatePhone ?? '—'} />
-            <DetailField label="Email" value={selectedContact.email ?? '—'} />
-            <DetailField label="Alternate Email" value={selectedContact.alternateEmail ?? '—'} />
-            <DetailField label="Status" value={selectedContact.isActive ? 'Active' : 'Inactive'} />
-            <DetailField label="Created" value={selectedContact.createdAt} dateOnly />
+            <DetailField label="Name" type="string" value={selectedContact.name} />
+            <DetailField label="Designation" type="string" value={selectedContact.designation} />
+            <DetailField label="Phone" type="string" value={selectedContact.phone} />
+            <DetailField label="Alternate Phone" type="string" value={selectedContact.alternatePhone} />
+            <DetailField label="Email" type="string" value={selectedContact.email} />
+            <DetailField label="Alternate Email" type="string" value={selectedContact.alternateEmail} />
+            <DetailField label="Status" type="string" value={selectedContact.isActive ? 'Active' : 'Inactive'} />
+            <DetailField label="Created" type="date" value={selectedContact.createdAt} />
             <div className="col-span-2">
-              <DetailField label="Notes" value={selectedContact.notes ?? '—'} />
+              <DetailField label="Notes" type="string" value={selectedContact.notes} />
             </div>
           </div>
         </CardContent>

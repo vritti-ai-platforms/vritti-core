@@ -13,15 +13,15 @@ export const GoodsReceiptOverviewCard = ({ id }: { id: string }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-6">
-            <DetailField label="GR Number" value={receipt.grNumber} number />
-            <DetailField label="Supplier" value={receipt.supplierName} />
-            <DetailField label="Status" value={receipt.status} />
-            <DetailField label="Publishable" value={receipt.isPublishable ? 'Yes' : 'No'} />
-            <DetailField label="Received Date" value={receipt.receivedDate} dateFormat="dd/MM/yyyy" dateOnly />
-            <DetailField label="Received By" value={receipt.receivedBy} />
-            <DetailField label="Created At" value={receipt.createdAt} dateFormat="dd/MM/yyyy HH:mm" />
-            <DetailField label="Published At" value={receipt.publishedAt} dateFormat="dd/MM/yyyy HH:mm" />
-            <DetailField label="Notes" value={receipt.notes} className="col-span-2" />
+            <DetailField label="GR Number" type="string" mono value={receipt.grNumber} />
+            <DetailField label="Supplier" type="string" value={receipt.supplierName} />
+            <DetailField label="Status" type="string" value={receipt.status} />
+            <DetailField label="Publishable" type="string" value={receipt.isPublishable ? 'Yes' : 'No'} />
+            <DetailField label="Received Date" type="date" value={receipt.receivedDate} />
+            <DetailField label="Received By" type="string" value={receipt.receivedBy} />
+            <DetailField label="Created At" type="dateTime" value={receipt.createdAt} />
+            <DetailField label="Published At" type="dateTime" value={receipt.publishedAt} />
+            <DetailField label="Notes" type="string" value={receipt.notes} className="col-span-2" />
           </div>
         </CardContent>
       </Card>
@@ -33,14 +33,10 @@ export const GoodsReceiptOverviewCard = ({ id }: { id: string }) => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-6">
-              <DetailField label="PO Number" value={receipt.po.poNumber} number />
-              <DetailField label="Order Date" value={receipt.po.orderDate} dateFormat="dd/MM/yyyy" dateOnly />
-              <DetailField label="Expected By" value={receipt.po.expectedBy} dateFormat="dd/MM/yyyy HH:mm" />
-              <DetailField
-                label="Total Amount"
-                value={`${receipt.po.totalAmount.currency} ${receipt.po.totalAmount.value}`}
-                number
-              />
+              <DetailField label="PO Number" type="string" mono value={receipt.po.poNumber} />
+              <DetailField label="Order Date" type="date" value={receipt.po.orderDate} />
+              <DetailField label="Expected By" type="dateTime" value={receipt.po.expectedBy} />
+              <DetailField label="Total Amount" type="currency" value={receipt.po.totalAmount} />
             </div>
           </CardContent>
         </Card>

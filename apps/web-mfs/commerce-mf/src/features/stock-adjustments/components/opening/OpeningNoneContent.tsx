@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
@@ -60,7 +60,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.uomQty} {row.original.uomSymbol ?? adjustment.inventoryItemUomSymbol}
+            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol ?? adjustment.inventoryItemUomSymbol}
           </span>
         ),
         enableSorting: true,

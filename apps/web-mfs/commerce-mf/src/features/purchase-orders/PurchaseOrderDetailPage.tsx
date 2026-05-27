@@ -3,11 +3,16 @@ import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { usePurchaseOrder, usePurchaseOrderItemsIds } from '@/hooks/purchase-orders';
+import type { PurchaseOrderStatus } from '@/schemas/purchase-orders';
 import { PurchaseOrderActions } from './components/PurchaseOrderActions';
 import { purchaseOrderStatusConfig } from './status-config';
 import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
 import { LineItemsTab } from './tabs/LineItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
+
+// Matches the backend's PurchaseOrderItemsService.EDITABLE_STATUSES. Per-line constraints
+// (no decrease below received qty, no delete on received lines) are enforced in LineItemsTab.
+const EDITABLE_PO_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED'];
 
 export const PurchaseOrderDetailPage = () => {
   const { id } = useSlugParams('poSlug');
@@ -15,7 +20,7 @@ export const PurchaseOrderDetailPage = () => {
   const { data: poItemIds } = usePurchaseOrderItemsIds(id);
 
   const statusBadgeConfig = purchaseOrderStatusConfig[po.status];
-  const canModifyItems = po.status === 'DRAFT';
+  const canModifyItems = EDITABLE_PO_STATUSES.includes(po.status);
 
   return (
     <div className="flex flex-col gap-6">
@@ -26,7 +31,7 @@ export const PurchaseOrderDetailPage = () => {
             {statusBadgeConfig.label}
           </Badge>
         }
-        description={po.supplierName ?? 'Purchase Order'}
+        description={po.supplierName}
         actions={<PurchaseOrderActions po={po} poItemIds={poItemIds} />}
       />
 

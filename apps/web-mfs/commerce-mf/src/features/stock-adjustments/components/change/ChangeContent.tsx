@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -59,7 +59,12 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         header: 'Available',
         cell: ({ row }) => (
           <span className="font-mono text-muted-foreground">
-            {row.original.quantAvailableQuantity ?? '—'} {uomSymbol}
+            {row.original.quantAvailableQuantity != null ? (
+              <NumberCell value={row.original.quantAvailableQuantity} />
+            ) : (
+              '—'
+            )}{' '}
+            {uomSymbol}
           </span>
         ),
         enableSorting: false,
@@ -69,7 +74,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.uomQty} {row.original.uomSymbol ?? uomSymbol}
+            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol ?? uomSymbol}
           </span>
         ),
         enableSorting: true,

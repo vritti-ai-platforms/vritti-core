@@ -1,9 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateTimeCell, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
@@ -48,7 +47,7 @@ export const OrdersPage = () => {
       {
         accessorKey: 'orderNumber',
         header: 'Order #',
-        cell: ({ row }) => <span className="font-mono font-medium">{row.original.orderNumber}</span>,
+        cell: ({ row }) => <StringCell value={row.original.orderNumber} mono className="font-medium" />,
         enableSorting: true,
       },
       {
@@ -82,12 +81,12 @@ export const OrdersPage = () => {
       {
         accessorKey: 'totalAmount',
         header: 'Total',
-        cell: ({ row }) => <span className="font-mono">{row.original.totalAmount.toFixed(2)}</span>,
+        cell: ({ row }) => <NumberCell value={row.original.totalAmount} />,
       },
       {
         accessorKey: 'placedAt',
         header: 'Placed At',
-        cell: ({ row }) => <FormattedDate value={row.original.placedAt} />,
+        cell: ({ row }) => <DateTimeCell value={row.original.placedAt} />,
         enableSorting: true,
       },
       {

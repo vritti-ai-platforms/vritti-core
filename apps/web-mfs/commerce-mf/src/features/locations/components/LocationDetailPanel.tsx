@@ -202,12 +202,12 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
       </div>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        <DetailField label="Sort Order" value={location.sortOrder} />
-        <DetailField label="Role" value={location.locationRole} />
-        <DetailField label="Child Locations" value={childrenResponse?.count ?? 0} />
-        <DetailField label="Parent" value={location.parentId ?? '—'} />
-        <DetailField label="Area" value={location.area ?? '—'} />
-        <DetailField label="Address" value={location.address ?? '—'} className="col-span-2" />
+        <DetailField label="Sort Order" type="number" value={location.sortOrder} />
+        <DetailField label="Role" type="string" value={location.locationRole} />
+        <DetailField label="Child Locations" type="number" value={childrenResponse?.count ?? 0} />
+        <DetailField label="Parent" type="string" value={location.parentId} />
+        <DetailField label="Area" type="string" value={location.area} />
+        <DetailField label="Address" type="string" value={location.address} className="col-span-2" />
       </div>
 
       <div>

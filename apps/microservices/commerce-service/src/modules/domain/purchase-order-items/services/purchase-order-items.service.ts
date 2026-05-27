@@ -30,6 +30,16 @@ export interface PurchaseOrderContext {
 export class PurchaseOrderItemsService {
   private readonly logger = new Logger(PurchaseOrderItemsService.name);
 
+  // PO statuses in which line-item edits are permitted. Once a line has been received against
+  // (item.receivedQuantity > 0) per-line constraints apply: qty cannot drop below received and
+  // the line cannot be deleted.
+  private static readonly EDITABLE_STATUSES: PurchaseOrderStatus[] = [
+    PurchaseOrderStatusValues.DRAFT,
+    PurchaseOrderStatusValues.SENT,
+    PurchaseOrderStatusValues.CONFIRMED,
+    PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
+  ];
+
   private static readonly ITEM_FIELD_MAP: FieldMap = {
     inventoryItemId: { column: purchaseOrderItems.inventoryItemId, type: 'string' },
     uomQty: { column: purchaseOrderItems.uomQty, type: 'number' },
@@ -39,6 +49,15 @@ export class PurchaseOrderItemsService {
   };
 
   constructor(private readonly repository: PurchaseOrderItemsRepository) {}
+
+  private assertEditable(po: PurchaseOrderContext): void {
+    if (!PurchaseOrderItemsService.EDITABLE_STATUSES.includes(po.status)) {
+      throw new BadRequestException({
+        label: 'Cannot Edit Items',
+        detail: 'Line items cannot be changed once the purchase order is received, closed, or cancelled.',
+      });
+    }
+  }
 
   // Returns all line items for a PO
   async findByPoId(poId: string): Promise<PurchaseOrderItemDto[]> {
@@ -75,7 +94,9 @@ export class PurchaseOrderItemsService {
     };
   }
 
-  // Adds a line item to a draft PO. Does not call syncTotalAmount — that is the app-layer's responsibility.
+  // Adds a line item. Allowed while the PO is in an editable status (see EDITABLE_STATUSES).
+  // A new line always starts with receivedQuantity = 0, so no per-line constraint applies on add.
+  // Does not call syncTotalAmount — that is the app-layer's responsibility.
   async addItem(
     po: PurchaseOrderContext,
     data: AddPurchaseOrderItemDto,
@@ -83,9 +104,7 @@ export class PurchaseOrderItemsService {
     uomId: string,
     primaryUomQty: number,
   ): Promise<void> {
-    if (po.status !== PurchaseOrderStatusValues.DRAFT) {
-      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
-    }
+    this.assertEditable(po);
 
     const duplicate = await this.repository.findItemByInventoryItemAndUom(po.id, inventoryItemId, uomId);
     if (duplicate) {
@@ -136,7 +155,10 @@ export class PurchaseOrderItemsService {
     this.logger.log(`Added item to PO ${po.poNumber} (${po.id})`);
   }
 
-  // Updates a line item on a draft PO. Does not call syncTotalAmount — that is the app-layer's responsibility.
+  // Updates a line item. Allowed while the PO is in an editable status. Once the line has been
+  // received against (item.receivedQuantity > 0), inventoryItemId becomes locked and the new
+  // uomQty cannot drop below receivedQuantity. Unit price remains editable.
+  // Does not call syncTotalAmount — that is the app-layer's responsibility.
   // `primaryUomQty` must already be computed for the effective ordered quantity (data.uomQty ?? existing).
   async updateItem(
     po: PurchaseOrderContext,
@@ -144,14 +166,20 @@ export class PurchaseOrderItemsService {
     data: UpdatePurchaseOrderItemDto,
     primaryUomQty: number,
   ): Promise<SuccessResponseDto> {
-    if (po.status !== PurchaseOrderStatusValues.DRAFT) {
-      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
-    }
+    this.assertEditable(po);
 
     const item = await this.repository.findItemById(po.id, itemId);
     if (!item) throw new NotFoundException('Purchase order line item not found.');
 
+    const isReceived = item.receivedQuantity > 0;
+
     if (data.inventoryItemId && data.inventoryItemId !== item.inventoryItemId) {
+      if (isReceived) {
+        throw new BadRequestException({
+          label: 'Cannot Change Item',
+          detail: 'Inventory item cannot be changed once goods have been received against this line.',
+        });
+      }
       const duplicate = await this.repository.findItemByInventoryItemAndUom(po.id, data.inventoryItemId, item.uomId);
       if (duplicate) {
         throw new ValidationException({
@@ -163,6 +191,13 @@ export class PurchaseOrderItemsService {
 
     const poCode = po.currencyCode as CurrencyCode;
     const orderedQuantity = data.uomQty ?? item.uomQty;
+
+    if (isReceived && orderedQuantity < item.receivedQuantity) {
+      throw new ValidationException({
+        detail: `Quantity cannot be less than the received quantity (${item.receivedQuantity}).`,
+        errors: [{ field: 'uomQty', message: `Cannot be less than received quantity (${item.receivedQuantity}).` }],
+      });
+    }
 
     let unitPriceMinor: bigint;
     if (data.unitPrice != null) {
@@ -204,14 +239,21 @@ export class PurchaseOrderItemsService {
     return { success: true, message: `Line item updated for purchase order "${po.poNumber}".` };
   }
 
-  // Removes a line item from a draft PO. Does not call syncTotalAmount — that is the app-layer's responsibility.
+  // Removes a line item. Allowed while the PO is in an editable status and the line has not yet
+  // been received against (item.receivedQuantity === 0). Once received, the line is locked.
+  // Does not call syncTotalAmount — that is the app-layer's responsibility.
   async removeItem(po: PurchaseOrderContext, itemId: string): Promise<SuccessResponseDto> {
-    if (po.status !== PurchaseOrderStatusValues.DRAFT) {
-      throw new BadRequestException({ label: 'Cannot Edit Items', detail: 'Line items can only be changed in draft.' });
-    }
+    this.assertEditable(po);
 
     const item = await this.repository.findItemById(po.id, itemId);
     if (!item) throw new NotFoundException('Purchase order line item not found.');
+
+    if (item.receivedQuantity > 0) {
+      throw new BadRequestException({
+        label: 'Cannot Remove Item',
+        detail: 'Line items cannot be removed once goods have been received against them.',
+      });
+    }
 
     await this.repository.delete(itemId);
     this.logger.log(`Removed item ${itemId} from PO ${po.poNumber}`);

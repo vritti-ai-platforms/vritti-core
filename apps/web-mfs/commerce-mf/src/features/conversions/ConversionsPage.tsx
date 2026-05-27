@@ -1,9 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
@@ -35,7 +34,7 @@ export const ConversionsPage = () => {
       {
         accessorKey: 'id',
         header: 'ID',
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.id.slice(0, 8)}</span>,
+        cell: ({ row }) => <StringCell value={row.original.id.slice(0, 8)} mono className="text-xs" />,
       },
       {
         accessorKey: 'bomName',
@@ -62,13 +61,13 @@ export const ConversionsPage = () => {
       {
         accessorKey: 'startedAt',
         header: 'Started',
-        cell: ({ row }) => <FormattedDate value={row.original.startedAt} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.startedAt} />,
         enableSorting: true,
       },
       {
         accessorKey: 'completedAt',
         header: 'Completed',
-        cell: ({ row }) => <FormattedDate value={row.original.completedAt} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.completedAt} />,
       },
       {
         id: 'actions',

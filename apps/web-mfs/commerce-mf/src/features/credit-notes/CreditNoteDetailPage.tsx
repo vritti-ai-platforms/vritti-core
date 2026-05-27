@@ -83,11 +83,12 @@ export const CreditNoteDetailPage = () => {
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-6">
-                  <DetailField label="Credit Note Number" value={creditNote.creditNoteNumber} number />
-                  <DetailField label="Party" value={creditNote.partyName} />
-                  <DetailField label="Party Type" value={creditNote.partyType} />
+                  <DetailField label="Credit Note Number" type="string" mono value={creditNote.creditNoteNumber} />
+                  <DetailField label="Party" type="string" value={creditNote.partyName} />
+                  <DetailField label="Party Type" type="string" value={creditNote.partyType} />
                   <DetailField
                     label="Status"
+                    type="string"
                     value={
                       <Badge variant={badge.variant} className={badge.className}>
                         {creditNote.status}
@@ -96,17 +97,19 @@ export const CreditNoteDetailPage = () => {
                   />
                   <DetailField
                     label="Amount"
-                    number
+                    type="string"
+                    mono
                     value={<span className="text-lg font-medium">{creditNote.amount.toFixed(2)}</span>}
                   />
-                  <DetailField label="Applied" value={creditNote.appliedAmount.toFixed(2)} number />
+                  <DetailField label="Applied" type="number" value={creditNote.appliedAmount} />
                   <DetailField
                     label="Remaining"
-                    number
+                    type="string"
+                    mono
                     value={<span className="font-medium text-success">{creditNote.remaining.toFixed(2)}</span>}
                   />
-                  <DetailField label="Issued By" value={creditNote.issuedBy} />
-                  <DetailField label="Reason" value={creditNote.reason} className="col-span-2" />
+                  <DetailField label="Issued By" type="string" value={creditNote.issuedBy} />
+                  <DetailField label="Reason" type="string" value={creditNote.reason} className="col-span-2" />
                 </CardContent>
               </Card>
             ),

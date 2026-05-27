@@ -4,12 +4,13 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdatePurchaseOrderItem } from '@/hooks/purchase-orders';
 import {
+  buildUpdatePurchaseOrderItemSchema,
   type PurchaseOrderItemData,
   type UpdatePurchaseOrderItemFormData,
-  updatePurchaseOrderItemSchema,
 } from '@/schemas/purchase-orders';
 
 interface UpdatePurchaseOrderItemDialogProps {
@@ -27,8 +28,12 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
   onSuccess,
   onCancel,
 }) => {
+  const schema = useMemo(
+    () => buildUpdatePurchaseOrderItemSchema({ minQty: item.receivedQuantity }),
+    [item.receivedQuantity],
+  );
   const form = useForm<UpdatePurchaseOrderItemFormData>({
-    resolver: zodResolver(updatePurchaseOrderItemSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       uomQty: item.uomQty,
       unitPrice: item.unitPrice,

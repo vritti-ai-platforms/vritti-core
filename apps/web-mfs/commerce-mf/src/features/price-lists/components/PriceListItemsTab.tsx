@@ -3,7 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { ListTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { PriceListData, PriceListItemData } from '@/schemas/price-lists';
 import { getErrorMessage } from '@/utils/error';
@@ -170,8 +170,9 @@ export const PriceListItemsTab = ({ priceList }: PriceListItemsTabProps) => {
 };
 
 const PriceCell = ({ item }: { item: PriceListItemData }) => {
+  const fmt = useFormatters();
   const hasOverride = item.priceOverride != null;
-  const baseLabel = item.basePrice?.toLocaleString() ?? '—';
+  const baseLabel = item.basePrice != null ? fmt.number(item.basePrice).primary : '—';
 
   if (!hasOverride) {
     return <span className="text-sm text-muted-foreground">{baseLabel}</span>;
@@ -179,7 +180,7 @@ const PriceCell = ({ item }: { item: PriceListItemData }) => {
 
   return (
     <span className="text-sm">
-      <span className="font-medium">{item.priceOverride?.toLocaleString()}</span>
+      <span className="font-medium">{fmt.number(item.priceOverride).primary}</span>
       <span className="ml-1.5 text-xs text-muted-foreground line-through">{baseLabel}</span>
     </span>
   );

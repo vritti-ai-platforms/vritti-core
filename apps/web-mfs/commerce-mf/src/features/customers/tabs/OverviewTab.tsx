@@ -15,11 +15,12 @@ export const OverviewTab = ({ customer }: OverviewTabProps) => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-6">
-          <DetailField label="Name" value={customer.name} />
-          <DetailField label="Phone" value={customer.phone} />
-          <DetailField label="Email" value={customer.email} />
+          <DetailField label="Name" type="string" value={customer.name} />
+          <DetailField label="Phone" type="string" value={customer.phone} />
+          <DetailField label="Email" type="string" value={customer.email} />
           <DetailField
             label="Status"
+            type="string"
             value={
               <Badge
                 variant={customer.isActive ? 'secondary' : 'outline'}
@@ -29,7 +30,7 @@ export const OverviewTab = ({ customer }: OverviewTabProps) => {
               </Badge>
             }
           />
-          <DetailField label="Notes" value={customer.notes} className="col-span-2" />
+          <DetailField label="Notes" type="string" value={customer.notes} className="col-span-2" />
         </div>
       </CardContent>
     </Card>

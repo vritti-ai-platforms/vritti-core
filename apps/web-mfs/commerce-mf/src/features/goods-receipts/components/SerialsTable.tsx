@@ -1,9 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
@@ -76,13 +75,13 @@ export const SerialsTable = ({
       {
         accessorKey: 'serialNumber',
         header: 'Serial',
-        cell: ({ row }) => <span className="font-mono text-sm">{row.original.serialNumber}</span>,
+        cell: ({ row }) => <StringCell value={row.original.serialNumber} mono className="text-sm" />,
         enableSorting: true,
       },
       {
         accessorKey: 'createdAt',
         header: 'Added',
-        cell: ({ row }) => <FormattedDate value={row.original.createdAt} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.createdAt} />,
         enableSorting: true,
       },
       ...(isDraft

@@ -1,8 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  CurrencyCell,
+  DataTable,
+  NumberCell,
+  RowActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -25,6 +32,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addItemDialog = useDialog();
+  const fmt = useFormatters();
   const { data: response, isLoading } = usePurchaseOrderItemsTable(purchaseOrderId);
   const removeItemMutation = useRemovePurchaseOrderItem();
 
@@ -63,9 +71,12 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
           const isCrossUom = primaryUomQty !== uomQty;
           return (
             <span className="font-mono">
-              {uomQty} {orderUomSymbol}
+              <NumberCell value={uomQty} /> {orderUomSymbol}
               {isCrossUom && (
-                <span className="text-xs text-muted-foreground"> ({primaryUomQty} {primaryUomSymbol})</span>
+                <span className="text-xs text-muted-foreground">
+                  {' ('}
+                  <NumberCell value={primaryUomQty} /> {primaryUomSymbol})
+                </span>
               )}
             </span>
           );
@@ -76,7 +87,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
         header: 'Received',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.receivedQuantity} {row.original.orderUomSymbol}
+            <NumberCell value={row.original.receivedQuantity} /> {row.original.orderUomSymbol}
           </span>
         ),
       },
@@ -88,10 +99,10 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
           const isCrossUom = primaryUomQty !== uomQty;
           return (
             <span className="font-mono">
-              {`${unitPrice.currency} ${unitPrice.value}`}
+              {fmt.currency(unitPrice).primary}
               {isCrossUom && (
                 <span className="text-xs text-muted-foreground">
-                  {` (${primaryUomUnitPrice.currency} ${primaryUomUnitPrice.value}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''})`}
+                  {` (${fmt.currency(primaryUomUnitPrice).primary}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''})`}
                 </span>
               )}
             </span>
@@ -101,53 +112,59 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
       {
         accessorKey: 'totalPrice',
         header: 'Total',
-        cell: ({ row }) => (
-          <span className="font-mono">{`${row.original.totalPrice.currency} ${row.original.totalPrice.value}`}</span>
-        ),
+        cell: ({ row }) => <CurrencyCell value={row.original.totalPrice} />,
       },
       ...(canModifyItems
         ? [
             {
               id: 'actions',
               header: '',
-              cell: ({ row }) => (
-                <RowActions
-                  actions={[
-                    {
-                      id: 'edit',
-                      icon: Pencil,
-                      label: 'Edit',
-                      dialog: {
-                        title: 'Update Line Item',
-                        description: 'Change quantity and pricing for this line item.',
-                        content: (close) => (
-                          <UpdatePurchaseOrderItemDialog
-                            purchaseOrderId={purchaseOrderId}
-                            poCurrencyCode={purchaseOrder.currencyCode}
-                            item={row.original}
-                            onSuccess={close}
-                            onCancel={close}
-                          />
-                        ),
+              cell: ({ row }) => {
+                const isReceived = row.original.receivedQuantity > 0;
+                return (
+                  <RowActions
+                    actions={[
+                      {
+                        id: 'edit',
+                        icon: Pencil,
+                        label: 'Edit',
+                        dialog: {
+                          title: 'Update Line Item',
+                          description: 'Change quantity and pricing for this line item.',
+                          content: (close) => (
+                            <UpdatePurchaseOrderItemDialog
+                              purchaseOrderId={purchaseOrderId}
+                              poCurrencyCode={purchaseOrder.currencyCode}
+                              item={row.original}
+                              onSuccess={close}
+                              onCancel={close}
+                            />
+                          ),
+                        },
                       },
-                    },
-                    {
-                      id: 'remove',
-                      icon: Trash2,
-                      label: 'Remove',
-                      variant: 'destructive',
-                      onClick: () => handleRemoveItem(row.original.id, row.original.inventoryItemName ?? 'item'),
-                    },
-                  ]}
-                />
-              ),
+                      ...(isReceived
+                        ? []
+                        : [
+                            {
+                              id: 'remove',
+                              icon: Trash2,
+                              label: 'Remove',
+                              variant: 'destructive' as const,
+                              onClick: () =>
+                                handleRemoveItem(row.original.id, row.original.inventoryItemName ?? 'item'),
+                            },
+                          ]),
+                    ]}
+                  />
+                );
+              },
               enableSorting: false,
               enableHiding: false,
             } as ColumnDef<PurchaseOrderItemData>,
           ]
         : []),
     ],
-    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode],
+    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode, fmt],
   );
 
   const { table } = useDataTable({

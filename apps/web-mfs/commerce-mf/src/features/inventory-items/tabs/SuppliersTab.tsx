@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, CurrencyCell, DataTable, NumberCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Truck } from 'lucide-react';
 import type React from 'react';
@@ -42,13 +42,13 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ inventoryItemId }) =
       {
         accessorKey: 'unitPrice',
         header: 'Unit Price',
-        cell: ({ row }) =>
-          `${row.original.unitPrice.currency} ${row.original.unitPrice.value}`,
+        cell: ({ row }) => <CurrencyCell value={row.original.unitPrice} />,
       },
       {
         accessorKey: 'minOrderQuantity',
         header: 'Min Order',
-        cell: ({ row }) => (row.original.minOrderQuantity != null ? row.original.minOrderQuantity : '—'),
+        cell: ({ row }) =>
+          row.original.minOrderQuantity != null ? <NumberCell value={row.original.minOrderQuantity} /> : '—',
       },
       {
         accessorKey: 'leadTimeDays',

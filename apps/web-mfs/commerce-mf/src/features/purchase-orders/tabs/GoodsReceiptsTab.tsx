@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
+import { type ColumnDef, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck } from 'lucide-react';
 import { useMemo } from 'react';
@@ -29,7 +28,7 @@ export const GoodsReceiptsTab = ({ poId }: GoodsReceiptsTabProps) => {
       {
         accessorKey: 'receivedDate',
         header: 'Received Date',
-        cell: ({ row }) => <FormattedDate value={row.original.receivedDate} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.receivedDate} />,
       },
       {
         accessorKey: 'receivedBy',

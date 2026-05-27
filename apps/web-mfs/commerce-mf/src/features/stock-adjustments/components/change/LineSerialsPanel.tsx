@@ -6,14 +6,15 @@ import {
   type ColumnDef,
   CompactTableSkeleton,
   DataTable,
+  DateTimeCell,
   getSelectionColumn,
   RowActions,
   type SelectActions,
+  StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
@@ -125,13 +126,13 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
       {
         accessorKey: 'serialNumber',
         header: 'Serial Number',
-        cell: ({ row }) => <span className="font-mono">{row.original.serialNumber}</span>,
+        cell: ({ row }) => <StringCell value={row.original.serialNumber} mono />,
         enableSorting: true,
       },
       {
         accessorKey: 'createdAt',
         header: 'Picked At',
-        cell: ({ row }) => <FormattedDate value={row.original.createdAt} />,
+        cell: ({ row }) => <DateTimeCell value={row.original.createdAt} />,
         enableSorting: true,
       },
       ...(isDraft
@@ -239,15 +240,19 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
         <DetailField
           className="px-4 py-2"
           label="Available"
+          type="string"
+          mono
           value={
             line.quantAvailableQuantity != null
               ? `${line.quantAvailableQuantity} ${adjustment.inventoryItemUomSymbol}`
-              : '—'
+              : null
           }
         />
         <DetailField
           className="px-4 py-2"
           label="Quantity"
+          type="string"
+          mono
           value={`${line.uomQty} ${adjustment.inventoryItemUomSymbol}`}
         />
       </DetailSection>

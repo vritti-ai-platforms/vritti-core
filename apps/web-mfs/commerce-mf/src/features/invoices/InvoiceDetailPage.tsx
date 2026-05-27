@@ -88,22 +88,24 @@ export const InvoiceDetailPage = () => {
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-6">
-                  <DetailField label="Invoice Number" value={invoice.invoiceNumber} number />
+                  <DetailField label="Invoice Number" type="string" mono value={invoice.invoiceNumber} />
                   <DetailField
                     label="Type"
+                    type="string"
                     value={
                       <Badge variant="secondary" className={typeBadge.className}>
                         {typeBadge.label}
                       </Badge>
                     }
                   />
-                  <DetailField label="Party" value={invoice.partyName} />
-                  <DetailField label="Party Type" value={invoice.partyType} />
-                  <DetailField label="Issued Date" value={invoice.issuedDate} dateOnly />
-                  <DetailField label="Due Date" value={invoice.dueDate} dateOnly />
-                  <DetailField label="Payment Terms" value={invoice.paymentTerms} />
+                  <DetailField label="Party" type="string" value={invoice.partyName} />
+                  <DetailField label="Party Type" type="string" value={invoice.partyType} />
+                  <DetailField label="Issued Date" type="date" value={invoice.issuedDate} />
+                  <DetailField label="Due Date" type="date" value={invoice.dueDate} />
+                  <DetailField label="Payment Terms" type="string" value={invoice.paymentTerms} />
                   <DetailField
                     label="Status"
+                    type="string"
                     value={
                       <Badge variant={statusBadge.variant} className={statusBadge.className}>
                         {statusBadge.label}
@@ -114,28 +116,33 @@ export const InvoiceDetailPage = () => {
                   <div className="col-span-2 mt-2 border-t pt-6">
                     <h4 className="mb-4 font-medium">Amounts</h4>
                     <div className="grid grid-cols-2 gap-6">
-                      <DetailField label="Subtotal" value={invoice.subtotal.toFixed(2)} number />
-                      <DetailField label="Tax" value={invoice.taxAmount.toFixed(2)} number />
-                      <DetailField label="Discount" value={invoice.discountAmount.toFixed(2)} number />
+                      <DetailField label="Subtotal" type="number" value={invoice.subtotal} />
+                      <DetailField label="Tax" type="number" value={invoice.taxAmount} />
+                      <DetailField label="Discount" type="number" value={invoice.discountAmount} />
                       <DetailField
                         label="Total"
-                        number
+                        type="string"
+                        mono
                         value={<span className="text-lg font-medium">{invoice.totalAmount.toFixed(2)}</span>}
                       />
                       <DetailField
                         label="Paid"
-                        number
+                        type="string"
+                        mono
                         value={<span className="text-success">{invoice.paidAmount.toFixed(2)}</span>}
                       />
                       <DetailField
                         label="Balance"
-                        number
+                        type="string"
+                        mono
                         value={<span className="font-medium text-destructive">{invoice.balance.toFixed(2)}</span>}
                       />
                     </div>
                   </div>
 
-                  {invoice.notes && <DetailField label="Notes" value={invoice.notes} className="col-span-2" />}
+                  {invoice.notes && (
+                    <DetailField label="Notes" type="string" value={invoice.notes} className="col-span-2" />
+                  )}
                 </CardContent>
               </Card>
             ),

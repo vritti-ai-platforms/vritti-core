@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, getSelectionColumn, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, CurrencyCell, DataTable, NumberCell, RowActions, getSelectionColumn, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -58,12 +58,13 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       {
         accessorKey: 'unitPrice',
         header: 'Unit Price',
-        cell: ({ row }) => `${row.original.unitPrice.currency} ${row.original.unitPrice.value}`,
+        cell: ({ row }) => <CurrencyCell value={row.original.unitPrice} />,
       },
       {
         accessorKey: 'minOrderQuantity',
         header: 'Min Order',
-        cell: ({ row }) => (row.original.minOrderQuantity != null ? row.original.minOrderQuantity : '—'),
+        cell: ({ row }) =>
+          row.original.minOrderQuantity != null ? <NumberCell value={row.original.minOrderQuantity} /> : '—',
       },
       {
         accessorKey: 'isPreferred',

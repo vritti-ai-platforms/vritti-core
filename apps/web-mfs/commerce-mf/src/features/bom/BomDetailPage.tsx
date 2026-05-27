@@ -80,9 +80,10 @@ export const BomDetailPage = () => {
                   <CardTitle>Details</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-6">
-                  <DetailField label="Code" value={bom.code} number />
+                  <DetailField label="Code" type="string" mono value={bom.code} />
                   <DetailField
                     label="Status"
+                    type="string"
                     value={
                       <Badge
                         variant={bom.isActive ? 'secondary' : 'outline'}

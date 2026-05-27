@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -59,7 +59,7 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uom
         header: 'Min. Stock Level',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.reorderLevel} {uomSymbol}
+            <NumberCell value={row.original.reorderLevel} /> {uomSymbol}
           </span>
         ),
         enableSorting: true,

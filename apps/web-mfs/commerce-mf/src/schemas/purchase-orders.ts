@@ -123,12 +123,23 @@ export const addPurchaseOrderItemSchema = z.object({
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
 
-export const updatePurchaseOrderItemSchema = z.object({
-  uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
-  unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
-});
+// Pass `minQty` when the line has already been received against — the form will then block
+// reducing the ordered qty below what's been received. Defaults to no minimum.
+export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } = {}) {
+  const { minQty } = options;
+  return z.object({
+    uomQty: zodNumericField({
+      required: 'Quantity is required',
+      positive: true,
+      ...(minQty != null && minQty > 0
+        ? { min: minQty, minMessage: `Cannot be less than received quantity (${minQty}).` }
+        : {}),
+    }),
+    unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+  });
+}
 
-export type UpdatePurchaseOrderItemFormData = z.infer<typeof updatePurchaseOrderItemSchema>;
+export type UpdatePurchaseOrderItemFormData = z.infer<ReturnType<typeof buildUpdatePurchaseOrderItemSchema>>;
 
 export const updatePurchaseOrderNotesSchema = z.object({
   notes: z.string().optional(),

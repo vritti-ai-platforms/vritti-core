@@ -70,25 +70,28 @@ export const QuantDetailPage = () => {
                 <CardContent className="grid grid-cols-2 gap-6">
                   <DetailField
                     label="Location"
+                    type="string"
                     value={
                       quant.locationPath ? `${quant.locationPath} › ${quant.locationName ?? ''}` : quant.locationName
                     }
                   />
-                  <DetailField label="Lot Number" value={quant.lotNumber} number />
-                  <DetailField label="Quantity" value={quant.quantity} number />
-                  <DetailField label="Reserved" value={quant.reservedQuantity} number />
+                  <DetailField label="Lot Number" type="string" mono value={quant.lotNumber} />
+                  <DetailField label="Quantity" type="number" value={quant.quantity} />
+                  <DetailField label="Reserved" type="number" value={quant.reservedQuantity} />
                   <DetailField
                     label="Available"
+                    type="string"
+                    mono
                     value={<span className="text-success">{quant.availableQuantity}</span>}
-                    number
                   />
                   <DetailField
                     label="Status"
+                    type="string"
                     value={<Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>}
                   />
-                  <DetailField label="Manufacturing Date" value={quant.manufacturingDate} dateOnly />
-                  <DetailField label="Expiry Date" value={quant.expiryDate} dateOnly />
-                  <DetailField label="Created" value={quant.createdAt} />
+                  <DetailField label="Manufacturing Date" type="date" value={quant.manufacturingDate} />
+                  <DetailField label="Expiry Date" type="date" value={quant.expiryDate} />
+                  <DetailField label="Created" type="dateTime" value={quant.createdAt} />
                 </CardContent>
               </Card>
             ),

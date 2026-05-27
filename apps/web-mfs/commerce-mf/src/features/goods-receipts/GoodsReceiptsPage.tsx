@@ -1,9 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
@@ -33,7 +32,7 @@ export const GoodsReceiptsPage = () => {
       {
         accessorKey: 'receivedDate',
         header: 'Received Date',
-        cell: ({ row }) => <FormattedDate value={row.original.receivedDate} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.receivedDate} />,
         enableSorting: true,
       },
       {

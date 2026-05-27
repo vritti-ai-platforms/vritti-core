@@ -6,14 +6,15 @@ import {
   type ColumnDef,
   CompactTableSkeleton,
   DataTable,
+  DateCell,
   getSelectionColumn,
   RowActions,
   type SelectActions,
+  StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
@@ -97,13 +98,13 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
       {
         accessorKey: 'serialNumber',
         header: 'Serial',
-        cell: ({ row }) => <span className="font-mono text-sm">{row.original.serialNumber}</span>,
+        cell: ({ row }) => <StringCell value={row.original.serialNumber} mono className="text-sm" />,
         enableSorting: true,
       },
       {
         accessorKey: 'createdAt',
         header: 'Added',
-        cell: ({ row }) => <FormattedDate value={row.original.createdAt} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.createdAt} />,
         enableSorting: true,
       },
       ...(isDraft

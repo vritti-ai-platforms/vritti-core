@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
@@ -96,7 +96,7 @@ export const LinesTable = ({
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.quantity} {uomSymbol ?? ''}
+            <NumberCell value={row.original.quantity} /> {uomSymbol ?? ''}
           </span>
         ),
         enableSorting: true,

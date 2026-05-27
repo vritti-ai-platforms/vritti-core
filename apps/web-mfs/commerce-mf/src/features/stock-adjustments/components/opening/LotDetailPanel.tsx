@@ -4,6 +4,7 @@ import {
   type ColumnDef,
   CompactTableSkeleton,
   DataTable,
+  NumberCell,
   RowActions,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
@@ -186,7 +187,7 @@ const LotDetailContent = ({
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.uomQty} {row.original.uomSymbol ?? uomSymbol}
+            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol ?? uomSymbol}
           </span>
         ),
         enableSorting: true,
@@ -302,10 +303,16 @@ const LotDetailContent = ({
         )}
       </div>
       <DetailSection wrap>
-        <DetailField className="px-4 py-2" label="Mfg" value={lot.manufacturingDate} dateOnly />
-        <DetailField className="px-4 py-2" label="Exp" value={lot.expiryDate} dateOnly />
-        <DetailField className="px-4 py-2" label="Total" value={`${lot.totalQuantity} ${uomSymbol}`} />
-        <DetailField className="px-4 py-2" label="Lines" value={lot.linesCount} />
+        <DetailField className="px-4 py-2" label="Mfg" type="date" value={lot.manufacturingDate} />
+        <DetailField className="px-4 py-2" label="Exp" type="date" value={lot.expiryDate} />
+        <DetailField
+          className="px-4 py-2"
+          label="Total"
+          type="string"
+          mono
+          value={`${lot.totalQuantity} ${uomSymbol}`}
+        />
+        <DetailField className="px-4 py-2" label="Lines" type="number" value={lot.linesCount} />
       </DetailSection>
 
       <DataTable

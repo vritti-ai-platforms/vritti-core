@@ -1,9 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, CurrencyCell, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
@@ -39,7 +38,7 @@ export const PurchaseOrdersPage = () => {
       {
         accessorKey: 'orderDate',
         header: 'Order Date',
-        cell: ({ row }) => <FormattedDate value={row.original.orderDate} dateFormat="P" />,
+        cell: ({ row }) => <DateCell value={row.original.orderDate} />,
         enableSorting: true,
       },
       {
@@ -57,7 +56,9 @@ export const PurchaseOrdersPage = () => {
       {
         accessorKey: 'totalAmount',
         header: 'Total',
-        cell: ({ row }) => `${row.original.totalAmount.currency} ${row.original.totalAmount.value}`,
+        cell: ({ row }) => (
+          <CurrencyCell value={row.original.totalAmount} exchangeRate={row.original.exchangeRate} />
+        ),
         enableSorting: false,
       },
       {

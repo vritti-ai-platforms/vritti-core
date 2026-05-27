@@ -21,11 +21,11 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
-          <DetailField label="Type" value={inventoryItemTypeConfig[item.type].label} />
-          <DetailField label="Category" value={item.categoryName} />
-          <DetailField label="Unit of Measure" value={item.uomSymbol} />
-          <DetailField label="Tracking" value={inventoryTrackingConfig[item.tracking].label} />
-          <DetailField label="Description" value={item.description} className="col-span-2" />
+          <DetailField label="Type" type="string" value={inventoryItemTypeConfig[item.type].label} />
+          <DetailField label="Category" type="string" value={item.categoryName} />
+          <DetailField label="Unit of Measure" type="string" value={item.uomSymbol} />
+          <DetailField label="Tracking" type="string" value={inventoryTrackingConfig[item.tracking].label} />
+          <DetailField label="Description" type="string" value={item.description} className="col-span-2" />
         </CardContent>
       </Card>
 
@@ -36,7 +36,8 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
         <CardContent className="grid grid-cols-3 gap-4">
           <DetailField
             label="Total Stocked"
-            number
+            type="string"
+            mono
             value={
               <>
                 {totalStocked} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span>
@@ -45,7 +46,8 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
           />
           <DetailField
             label="Total Reserved"
-            number
+            type="string"
+            mono
             value={
               <>
                 {totalReserved} <span className="text-sm font-normal text-muted-foreground">{item.uomSymbol}</span>
@@ -54,7 +56,8 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
           />
           <DetailField
             label="Total Available"
-            number
+            type="string"
+            mono
             value={
               <span className="text-success">
                 {totalAvailable} <span className="text-sm font-normal">{item.uomSymbol}</span>

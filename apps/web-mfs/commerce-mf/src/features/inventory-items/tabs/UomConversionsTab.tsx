@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ArrowLeftRight, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -54,7 +54,8 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
         header: 'Conversion',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.uomQty} {row.original.uomSymbol} = {row.original.primaryUomQty} {itemUomSymbol}
+            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol} ={' '}
+            <NumberCell value={row.original.primaryUomQty} /> {itemUomSymbol}
           </span>
         ),
       },

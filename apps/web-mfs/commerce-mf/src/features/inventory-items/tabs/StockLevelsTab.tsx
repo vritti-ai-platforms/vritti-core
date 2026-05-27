@@ -1,5 +1,5 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { MapPin } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -33,7 +33,7 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId,
         header: 'Stocked',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.stockedQuantity} {uomSymbol}
+            <NumberCell value={row.original.stockedQuantity} /> {uomSymbol}
           </span>
         ),
         enableSorting: true,
@@ -41,14 +41,14 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId,
       {
         accessorKey: 'reservedQuantity',
         header: 'Reserved',
-        cell: ({ row }) => <span className="font-mono">{row.original.reservedQuantity}</span>,
+        cell: ({ row }) => <NumberCell value={row.original.reservedQuantity} />,
       },
       {
         accessorKey: 'availableQuantity',
         header: 'Available',
         cell: ({ row }) => (
           <span className="font-mono font-semibold">
-            {row.original.availableQuantity} {uomSymbol}
+            <NumberCell value={row.original.availableQuantity} /> {uomSymbol}
           </span>
         ),
       },
@@ -58,7 +58,7 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId,
         cell: ({ row }) =>
           row.original.reorderLevel != null ? (
             <span className="font-mono">
-              {row.original.reorderLevel} {uomSymbol}
+              <NumberCell value={row.original.reorderLevel} /> {uomSymbol}
             </span>
           ) : (
             <span className="text-xs text-muted-foreground">—</span>

@@ -45,13 +45,6 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
       const confirmed = await confirm({
         title: `${label}?`,
         description: `This will change the purchase order status to "${purchaseOrderStatusConfig[nextStatus].label}".`,
-        alert:
-          nextStatus === 'SENT'
-            ? {
-                type: 'warning',
-                text: 'You cannot add any line items after this action.',
-              }
-            : undefined,
         confirmLabel: label,
       });
       if (confirmed) {

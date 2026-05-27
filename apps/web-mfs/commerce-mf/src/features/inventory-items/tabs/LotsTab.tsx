@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
+import { type ColumnDef, DataTable, DateCell, NumberCell, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Layers } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -39,15 +38,13 @@ export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) 
       {
         accessorKey: 'lotNumber',
         header: 'Lot #',
-        cell: ({ row }) => <span className="font-mono">{row.original.lotNumber}</span>,
+        cell: ({ row }) => <StringCell value={row.original.lotNumber} mono />,
         enableSorting: true,
       },
       {
         accessorKey: 'manufacturingDate',
         header: 'Mfg. Date',
-        cell: ({ row }) => (
-          <FormattedDate value={row.original.manufacturingDate} dateFormat="P" className="font-mono" />
-        ),
+        cell: ({ row }) => <DateCell value={row.original.manufacturingDate} className="font-mono" />,
         enableSorting: true,
       },
       {
@@ -57,7 +54,7 @@ export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) 
           const status = getLotStatus(row.original.expiryDate);
           const colorClass =
             status === 'EXPIRED' ? 'text-destructive' : status === 'EXPIRING_SOON' ? 'text-warning' : '';
-          return <FormattedDate value={row.original.expiryDate} dateFormat="P" className={`font-mono ${colorClass}`} />;
+          return <DateCell value={row.original.expiryDate} className={`font-mono ${colorClass}`} />;
         },
         enableSorting: true,
       },
@@ -66,21 +63,21 @@ export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) 
         header: 'Stocked',
         cell: ({ row }) => (
           <span className="font-mono">
-            {row.original.stockedQuantity} {uomSymbol}
+            <NumberCell value={row.original.stockedQuantity} /> {uomSymbol}
           </span>
         ),
       },
       {
         accessorKey: 'reservedQuantity',
         header: 'Reserved',
-        cell: ({ row }) => <span className="font-mono">{row.original.reservedQuantity}</span>,
+        cell: ({ row }) => <NumberCell value={row.original.reservedQuantity} />,
       },
       {
         accessorKey: 'availableQuantity',
         header: 'Available',
         cell: ({ row }) => (
           <span className="font-mono font-semibold">
-            {row.original.availableQuantity} {uomSymbol}
+            <NumberCell value={row.original.availableQuantity} /> {uomSymbol}
           </span>
         ),
       },

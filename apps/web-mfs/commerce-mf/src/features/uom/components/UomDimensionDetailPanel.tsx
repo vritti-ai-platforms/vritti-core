@@ -116,7 +116,7 @@ const UomDimensionDetailContent: React.FC<UomDimensionDetailContentProps> = ({ d
         </div>
       </div>
 
-      <DetailField label="Description" value={dimension.description ?? '—'} />
+      <DetailField label="Description" type="string" value={dimension.description} />
 
       <Typography variant="overline" intent="muted" className="mb-3">
         Units
