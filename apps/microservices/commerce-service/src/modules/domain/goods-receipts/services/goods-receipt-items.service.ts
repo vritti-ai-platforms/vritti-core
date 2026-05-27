@@ -118,7 +118,7 @@ export class GoodsReceiptItemsService {
       entity = await this.itemsRepository.create({
         goodsReceiptId,
         inventoryItemId: data.inventoryItemId,
-        rejectedQuantity: String(data.rejectedQuantity ?? 0),
+        rejectedQuantity: data.rejectedQuantity ?? 0,
       });
     } catch (error: unknown) {
       if ((error as { code?: string })?.code === '23505') {
@@ -155,7 +155,7 @@ export class GoodsReceiptItemsService {
     }
 
     await this.itemsRepository.update(item.id, {
-      rejectedQuantity: data.rejectedQuantity === undefined ? undefined : String(data.rejectedQuantity),
+      rejectedQuantity: data.rejectedQuantity,
     });
     return { success: true, message: 'Item updated.' };
   }

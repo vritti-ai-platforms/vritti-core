@@ -31,7 +31,7 @@ export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups>
   // Creates multiple tax rates for a tax group
   async createTaxRates(
     groupId: string,
-    rates: { name: string; rate: string; type: TaxRateType; sortOrder: number }[],
+    rates: { name: string; rate: number; type: TaxRateType; sortOrder: number }[],
   ): Promise<TaxRate[]> {
     if (rates.length === 0) return [];
     const values = rates.map((r) => ({ ...r, taxGroupId: groupId }));

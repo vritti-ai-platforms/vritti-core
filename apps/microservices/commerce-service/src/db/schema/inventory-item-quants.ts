@@ -20,8 +20,8 @@ export const inventoryItemQuants = coreSchema.table(
       .references(() => locations.id),
     lotId: uuid('lot_id').references(() => inventoryItemLots.id, { onDelete: 'restrict' }),
     supplierId: uuid('supplier_id').references(() => suppliers.id, { onDelete: 'restrict' }),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull().default('0'),
-    reservedQuantity: decimal('reserved_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    reservedQuantity: decimal('reserved_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

@@ -60,7 +60,7 @@ export class GoodsReceiptsPublishService {
         let acceptedTotal = 0;
 
         for (const line of lines) {
-          const lineQuantity = Number(line.quantity);
+          const lineQuantity = line.quantity;
           const isSerialBearing =
             item.tracking === InventoryTrackingValues.SERIAL || item.tracking === InventoryTrackingValues.LOT_SERIAL;
           const requiresLot =
@@ -139,7 +139,7 @@ export class GoodsReceiptsPublishService {
           await this.ledgerService.createEntry({
             inventoryItemId: item.inventoryItemId,
             type: InventoryItemLedgerTypeValues.GOODS_RECEIPT,
-            quantity: String(lineQuantity),
+            quantity: lineQuantity,
             referenceType: InventoryItemLedgerReferenceTypeValues.GOODS_RECEIPT,
             referenceId: receipt.id,
             notes: receipt.notes ?? null,

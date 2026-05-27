@@ -17,7 +17,7 @@ export class InventoryItemLedgerDto {
     dto.inventoryItemId = entry.inventoryItemId;
     dto.inventoryItemName = itemName ?? '';
     dto.type = entry.type;
-    dto.quantity = Number(entry.quantity);
+    dto.quantity = entry.quantity;
     dto.referenceType = entry.referenceType ?? null;
     dto.referenceId = entry.referenceId ?? null;
     dto.notes = entry.notes ?? null;

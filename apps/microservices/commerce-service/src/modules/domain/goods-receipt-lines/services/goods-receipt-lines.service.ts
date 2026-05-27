@@ -127,7 +127,7 @@ export class GoodsReceiptLinesService {
       goodsReceiptItemId: itemId,
       goodsReceiptLotId: data.goodsReceiptLotId ?? null,
       locationId: data.locationId,
-      quantity: String(data.quantity),
+      quantity: data.quantity,
       isBalanced: initialIsBalanced,
     });
 
@@ -154,7 +154,7 @@ export class GoodsReceiptLinesService {
     const next = {
       goodsReceiptLotId: data.goodsReceiptLotId !== undefined ? data.goodsReceiptLotId : line.goodsReceiptLotId,
       locationId: data.locationId !== undefined ? data.locationId : line.locationId,
-      quantity: data.quantity !== undefined ? data.quantity : Number(line.quantity),
+      quantity: data.quantity !== undefined ? data.quantity : line.quantity,
     };
     await this.validateIntent(ctx, next);
 
@@ -166,7 +166,7 @@ export class GoodsReceiptLinesService {
     }
 
     await this.repository.update(lineId, {
-      ...(data.quantity !== undefined ? { quantity: String(data.quantity) } : {}),
+      ...(data.quantity !== undefined ? { quantity: data.quantity } : {}),
       ...(data.goodsReceiptLotId !== undefined ? { goodsReceiptLotId: data.goodsReceiptLotId } : {}),
       ...(data.locationId !== undefined ? { locationId: data.locationId } : {}),
     });

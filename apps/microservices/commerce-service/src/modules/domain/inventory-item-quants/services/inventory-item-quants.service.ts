@@ -140,13 +140,13 @@ export class InventoryItemQuantsService {
 
       let quant: InventoryItemQuant;
       if (existing) {
-        quant = await this.repository.updateQuantity(existing.id, String(params.quantity));
+        quant = await this.repository.updateQuantity(existing.id, params.quantity);
       } else {
         quant = await this.repository.createBatch({
           inventoryItemId: params.inventoryItemId,
           locationId: params.locationId,
           lotId,
-          quantity: String(params.quantity),
+          quantity: params.quantity,
         });
       }
 
@@ -259,8 +259,8 @@ export class InventoryItemQuantsService {
       switch (params.tracking) {
         case 'quantity':
         case 'lot': {
-          const quant = await this.repository.updateQuantity(batchId, String(params.delta));
-          if (Number(quant.quantity) <= 0) await this.repository.deleteQuant(batchId);
+          const quant = await this.repository.updateQuantity(batchId, params.delta);
+          if (quant.quantity <= 0) await this.repository.deleteQuant(batchId);
           return { quant, consumedItems: [] };
         }
         case 'serial':
@@ -270,8 +270,8 @@ export class InventoryItemQuantsService {
             throw new BadRequestException('Some serials are not AVAILABLE or do not belong to the given batch.');
           }
           await this.repository.consumeQuantItems(items.map((i) => i.id));
-          const quant = await this.repository.updateQuantity(batchId, String(-items.length));
-          if (Number(quant.quantity) <= 0) await this.repository.deleteQuant(batchId);
+          const quant = await this.repository.updateQuantity(batchId, -items.length);
+          if (quant.quantity <= 0) await this.repository.deleteQuant(batchId);
           return { quant, consumedItems: items };
         }
       }
@@ -298,13 +298,13 @@ export class InventoryItemQuantsService {
   async reserve(batchId: string, quantity: number): Promise<InventoryItemQuant> {
     const batch = await this.repository.findById(batchId);
     if (!batch) throw new NotFoundException('Batch not found.');
-    const available = Number(batch.quantity) - Number(batch.reservedQuantity);
+    const available = batch.quantity - batch.reservedQuantity;
     if (available < quantity) throw new BadRequestException('Insufficient available stock to reserve.');
-    return this.repository.updateReservedQuantity(batchId, String(quantity));
+    return this.repository.updateReservedQuantity(batchId, quantity);
   }
 
   async releaseReserve(batchId: string, quantity: number): Promise<InventoryItemQuant> {
-    return this.repository.updateReservedQuantity(batchId, String(-quantity));
+    return this.repository.updateReservedQuantity(batchId, -quantity);
   }
 
   async findQuantsForTable(
@@ -343,7 +343,7 @@ export class InventoryItemQuantsService {
       dto.stockedQuantity = Number(row.stockedQuantity);
       dto.reservedQuantity = Number(row.reservedQuantity);
       dto.availableQuantity = Number(row.availableQuantity);
-      dto.reorderLevel = row.reorderLevel !== null ? Number(row.reorderLevel) : null;
+      dto.reorderLevel = row.reorderLevel;
       return dto;
     });
   }

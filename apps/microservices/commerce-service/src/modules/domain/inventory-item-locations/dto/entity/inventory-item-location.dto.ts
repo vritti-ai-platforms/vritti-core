@@ -23,7 +23,7 @@ export class InventoryItemLocationDto {
     dto.locationId = row.locationId;
     dto.locationName = row.locationName ?? null;
     dto.locationPath = row.locationPath ?? null;
-    dto.reorderLevel = Number(row.reorderLevel);
+    dto.reorderLevel = row.reorderLevel;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

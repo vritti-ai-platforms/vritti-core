@@ -12,7 +12,7 @@ export const invoiceItems = coreSchema.table(
       .notNull()
       .references(() => invoices.id, { onDelete: 'cascade' }),
     description: varchar('description', { length: 255 }).notNull(),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull().default(0n),
     total: bigint('total', { mode: 'bigint' }).notNull(),

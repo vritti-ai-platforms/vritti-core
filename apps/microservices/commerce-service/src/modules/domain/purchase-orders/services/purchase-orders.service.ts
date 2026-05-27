@@ -135,9 +135,9 @@ export class PurchaseOrdersService {
     const requestedType = data.exchangeRateType ?? ExchangeRateTypeValues.FIXED;
     const exchangeRateType = isSameCurrency ? ExchangeRateTypeValues.FIXED : requestedType;
 
-    let exchangeRate: string | null;
+    let exchangeRate: number | null;
     if (isSameCurrency) {
-      exchangeRate = '1';
+      exchangeRate = 1;
     } else if (exchangeRateType === ExchangeRateTypeValues.FIXED) {
       if (data.exchangeRate == null || data.exchangeRate <= 0) {
         throw new ValidationException({
@@ -145,7 +145,7 @@ export class PurchaseOrdersService {
           errors: [{ field: 'exchangeRate', message: 'Exchange rate must be greater than 0.' }],
         });
       }
-      exchangeRate = String(data.exchangeRate);
+      exchangeRate = data.exchangeRate;
     } else {
       exchangeRate = null;
     }
@@ -276,7 +276,7 @@ export class PurchaseOrdersService {
       });
     }
 
-    let exchangeRate: string | null;
+    let exchangeRate: number | null;
     if (data.exchangeRateType === ExchangeRateTypeValues.FIXED) {
       if (data.exchangeRate == null || data.exchangeRate <= 0) {
         throw new ValidationException({
@@ -284,7 +284,7 @@ export class PurchaseOrdersService {
           errors: [{ field: 'exchangeRate', message: 'Exchange rate must be greater than 0.' }],
         });
       }
-      exchangeRate = String(data.exchangeRate);
+      exchangeRate = data.exchangeRate;
     } else {
       exchangeRate = null;
     }

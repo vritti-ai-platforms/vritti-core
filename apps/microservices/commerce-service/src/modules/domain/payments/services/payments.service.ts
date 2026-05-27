@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import { InvoiceStatusValues, type PaymentMethod, type PaymentStatus } from '@/db/schema';
 import type { CreatePaymentDto } from '@/modules/payments/dto/request/create-payment.dto';
 import { PaymentDto } from '../dto/entity/payment.dto';
@@ -10,9 +11,9 @@ export type PaymentInvoiceContext = {
   id: string;
   invoiceNumber: string;
   status: string;
-  balance: number;
-  totalAmount: number;
-  paidAmount: number;
+  balance: bigint;
+  totalAmount: bigint;
+  paidAmount: bigint;
 };
 
 @Injectable()
@@ -26,7 +27,7 @@ export class PaymentsService {
   async createPayment(
     data: CreatePaymentDto,
     invoice: PaymentInvoiceContext,
-  ): Promise<{ payment: PaymentDto; newPaidAmount: number; newBalance: number; newStatus: string }> {
+  ): Promise<{ payment: PaymentDto; newPaidAmount: bigint; newBalance: bigint; newStatus: string }> {
     if (invoice.status === InvoiceStatusValues.VOID) {
       throw new BadRequestException('Cannot record payment for a voided invoice.');
     }
@@ -35,24 +36,32 @@ export class PaymentsService {
       throw new BadRequestException('Invoice is already fully paid.');
     }
 
-    if (data.amount > invoice.balance) {
+    const requestedAmount = new Decimal(data.amount);
+    const balance = new Decimal(invoice.balance.toString());
+    if (requestedAmount.greaterThan(balance)) {
       throw new BadRequestException('Payment amount exceeds invoice balance.');
     }
 
+    const amountMinor = toMinorBigInt(requestedAmount);
+
     const entity = await this.repository.create({
       invoiceId: data.invoiceId,
-      amount: BigInt(data.amount),
+      amount: amountMinor,
       method: data.method as PaymentMethod,
       reference: data.reference ?? null,
       status: (data.status as PaymentStatus) ?? 'COMPLETED',
       notes: data.notes ?? null,
     });
 
-    const newPaidAmount = invoice.paidAmount + data.amount;
+    const newPaidAmount = invoice.paidAmount + amountMinor;
     const newBalance = invoice.totalAmount - newPaidAmount;
-    const newStatus = newBalance <= 0 ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
+    const newStatus = newBalance <= 0n ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
 
     this.logger.log(`Created payment of ${data.amount} for invoice ${invoice.invoiceNumber}`);
     return { payment: PaymentDto.from(entity), newPaidAmount, newBalance, newStatus };
   }
+}
+
+function toMinorBigInt(value: Decimal): bigint {
+  return BigInt(value.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
 }

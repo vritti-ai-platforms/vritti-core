@@ -25,14 +25,14 @@ export class PaymentsController {
       id: invoice.id,
       invoiceNumber: invoice.invoiceNumber,
       status: invoice.status,
-      balance: Number(invoice.balance),
-      totalAmount: Number(invoice.totalAmount),
-      paidAmount: Number(invoice.paidAmount),
+      balance: invoice.balance,
+      totalAmount: invoice.totalAmount,
+      paidAmount: invoice.paidAmount,
     };
     const result = await this.service.createPayment(dto, invoiceContext);
     await this.invoicesRepository.update(invoice.id, {
-      paidAmount: BigInt(result.newPaidAmount),
-      balance: BigInt(result.newBalance),
+      paidAmount: result.newPaidAmount,
+      balance: result.newBalance,
       status: result.newStatus as (typeof InvoiceStatusValues)[keyof typeof InvoiceStatusValues],
     });
     return result.payment;

@@ -25,7 +25,7 @@ export class ConversionsRootService {
 
     // Deduct inputs from specified batches
     for (const input of inputs) {
-      const totalDeduct = Number(input.quantity) + Number(input.wastageQuantity);
+      const totalDeduct = input.quantity + input.wastageQuantity;
       const batchId = inputBatchIds?.[input.inventoryItemId];
 
       if (batchId) {
@@ -57,7 +57,7 @@ export class ConversionsRootService {
       await this.batchesService.createBatch({
         inventoryItemId: output.inventoryItemId,
         locationId,
-        quantity: Number(output.quantity),
+        quantity: output.quantity,
         lotId: lot.id,
         type: InventoryItemLedgerTypeValues.CONVERSION_OUTPUT,
         referenceType: InventoryItemLedgerReferenceTypeValues.CONVERSION,

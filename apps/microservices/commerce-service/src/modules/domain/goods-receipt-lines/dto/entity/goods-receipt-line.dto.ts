@@ -29,7 +29,7 @@ export class GoodsReceiptLineDto {
     dto.lotNumber = row.lotNumber ?? null;
     dto.manufacturingDate = row.lotManufacturingDate ?? null;
     dto.expiryDate = row.lotExpiryDate ?? null;
-    dto.quantity = Number(row.quantity);
+    dto.quantity = row.quantity;
     dto.resolvedQuantId = row.resolvedQuantId ?? null;
     dto.isBalanced = row.isBalanced;
     dto.lineItemsCount = row.lineItemsCount;

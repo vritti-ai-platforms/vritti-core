@@ -16,7 +16,7 @@ export const inventoryItemLocations = coreSchema.table(
     locationId: uuid('location_id')
       .notNull()
       .references(() => locations.id, { onDelete: 'cascade' }),
-    reorderLevel: decimal('reorder_level', { precision: 12, scale: 3 }).notNull().default('0'),
+    reorderLevel: decimal('reorder_level', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

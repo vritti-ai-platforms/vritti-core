@@ -65,8 +65,8 @@ export class StockAdjustmentLineDto {
     dto.uomId = row.uomId;
     dto.uomName = row.uomName ?? null;
     dto.uomSymbol = row.uomSymbol ?? null;
-    dto.uomQty = Number(row.uomQty);
-    dto.primaryUomQty = Number(row.primaryUomQty);
+    dto.uomQty = row.uomQty;
+    dto.primaryUomQty = row.primaryUomQty;
     dto.resolvedQuantId = row.resolvedQuantId ?? null;
     dto.isBalanced = row.isBalanced;
     dto.lineItemsCount = row.lineItemsCount ?? 0;

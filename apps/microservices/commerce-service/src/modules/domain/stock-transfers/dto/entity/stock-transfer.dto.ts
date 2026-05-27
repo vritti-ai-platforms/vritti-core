@@ -21,7 +21,7 @@ export class StockTransferDto {
     dto.inventoryItemName = itemName ?? '';
     dto.fromBuId = entity.fromBuId;
     dto.toBuId = entity.toBuId;
-    dto.quantity = Number(entity.quantity);
+    dto.quantity = entity.quantity;
     dto.status = entity.status;
     dto.requestedBy = entity.requestedBy ?? null;
     dto.receivedBy = entity.receivedBy ?? null;

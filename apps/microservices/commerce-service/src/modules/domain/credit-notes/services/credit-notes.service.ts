@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import {
   type CreditNoteStatus,
   CreditNoteStatusValues,
@@ -17,8 +18,8 @@ export type InvoiceContext = {
   id: string;
   invoiceNumber: string;
   status: string;
-  balance: number;
-  paidAmount: number;
+  balance: bigint;
+  paidAmount: bigint;
 };
 
 @Injectable()
@@ -64,8 +65,8 @@ export class CreditNotesService {
     data: ApplyCreditNoteDto,
     invoice: InvoiceContext,
   ): Promise<{
-    newPaidAmount: number;
-    newBalance: number;
+    newPaidAmount: bigint;
+    newBalance: bigint;
     newInvoiceStatus: string;
     success: boolean;
     message: string;
@@ -77,8 +78,9 @@ export class CreditNotesService {
       throw new BadRequestException('Credit note is already fully applied.');
     }
 
-    const remaining = Number(creditNote.remaining);
-    if (data.amount > remaining) {
+    const requestedAmount = new Decimal(data.amount);
+    const remaining = new Decimal(creditNote.remaining.toString());
+    if (requestedAmount.greaterThan(remaining)) {
       throw new BadRequestException('Application amount exceeds credit note remaining balance.');
     }
 
@@ -86,17 +88,20 @@ export class CreditNotesService {
       throw new BadRequestException('Cannot apply credit note to a voided or fully paid invoice.');
     }
 
-    if (data.amount > invoice.balance) {
+    const balance = new Decimal(invoice.balance.toString());
+    if (requestedAmount.greaterThan(balance)) {
       throw new BadRequestException('Application amount exceeds invoice balance.');
     }
+
+    const amountMinor = toMinorBigInt(requestedAmount);
 
     await this.repository.createApplication({
       creditNoteId: id,
       invoiceId: data.invoiceId,
-      amount: BigInt(data.amount),
+      amount: amountMinor,
     });
 
-    const newAppliedAmount = creditNote.appliedAmount + BigInt(data.amount);
+    const newAppliedAmount = creditNote.appliedAmount + amountMinor;
     const newRemaining = creditNote.amount - newAppliedAmount;
     const newCnStatus =
       newRemaining <= 0n ? CreditNoteStatusValues.FULLY_APPLIED : CreditNoteStatusValues.PARTIALLY_APPLIED;
@@ -107,13 +112,17 @@ export class CreditNotesService {
       status: newCnStatus,
     });
 
-    const newBalance = invoice.balance - data.amount;
-    const newPaidAmount = Number(invoice.paidAmount) + data.amount;
-    const newInvoiceStatus = newBalance <= 0 ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
+    const newBalance = invoice.balance - amountMinor;
+    const newPaidAmount = invoice.paidAmount + amountMinor;
+    const newInvoiceStatus = newBalance <= 0n ? InvoiceStatusValues.PAID : InvoiceStatusValues.PARTIALLY_PAID;
 
     this.logger.log(
       `Applied ${data.amount} from CN ${creditNote.creditNoteNumber} to invoice ${invoice.invoiceNumber}`,
     );
     return { newPaidAmount, newBalance, newInvoiceStatus, success: true, message: 'Credit note applied successfully.' };
   }
+}
+
+function toMinorBigInt(value: Decimal): bigint {
+  return BigInt(value.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
 }

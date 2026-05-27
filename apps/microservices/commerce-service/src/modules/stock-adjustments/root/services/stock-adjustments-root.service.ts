@@ -155,7 +155,7 @@ export class StockAdjustmentsRootService {
     // Snapshot of the line quantity in the item's primary UOM, computed at create/update time.
     // Serial tracking is restricted to primary UOM at validation time, so primaryUomQty === quantity
     // in those branches by construction.
-    const primaryUomQty = Number(line.primaryUomQty);
+    const primaryUomQty = line.primaryUomQty;
 
     let createParams: Parameters<typeof this.batchesService.createBatchScoped>[0];
     if (tracking === InventoryTrackingValues.QUANTITY) {
@@ -173,7 +173,7 @@ export class StockAdjustmentsRootService {
         throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=serial.`);
       }
       const serials = lineItems.map((li) => li.serialNumber);
-      if (serials.length !== Number(line.uomQty)) {
+      if (serials.length !== line.uomQty) {
         throw new BadRequestException(
           `Line ${line.id}: expected ${line.uomQty} serial numbers, got ${serials.length}.`,
         );
@@ -210,7 +210,7 @@ export class StockAdjustmentsRootService {
       } else {
         // tracking === 'lot_serial'
         const serials = lineItems.map((li) => li.serialNumber);
-        if (serials.length !== Number(line.uomQty)) {
+        if (serials.length !== line.uomQty) {
           throw new BadRequestException(
             `Line ${line.id}: expected ${line.uomQty} serial numbers, got ${serials.length}.`,
           );
@@ -238,7 +238,7 @@ export class StockAdjustmentsRootService {
     await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
       type: InventoryItemLedgerTypeValues.OPENING_STOCK,
-      quantity: String(primaryUomQty),
+      quantity: primaryUomQty,
       referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
       referenceId: adjustmentId,
       notes: adjustment.reason ?? null,
@@ -262,14 +262,14 @@ export class StockAdjustmentsRootService {
     let signedDelta: number;
     if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       const serials = lineItems.map((li) => li.serialNumber);
-      if (serials.length !== Number(line.uomQty)) {
+      if (serials.length !== line.uomQty) {
         throw new BadRequestException(`Line ${line.id}: expected ${line.uomQty} serials, got ${serials.length}.`);
       }
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, serials });
       signedDelta = this.isDeductType(adjustment.type) ? -serials.length : serials.length;
     } else {
       // Snapshot of line qty in the item's primary UOM, computed at create/update time.
-      const primaryUomQty = Number(line.primaryUomQty);
+      const primaryUomQty = line.primaryUomQty;
       const delta = this.isDeductType(adjustment.type) ? -Math.abs(primaryUomQty) : primaryUomQty;
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, delta });
       signedDelta = delta;
@@ -278,7 +278,7 @@ export class StockAdjustmentsRootService {
     await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
       type: InventoryItemLedgerTypeValues.ADJUSTMENT,
-      quantity: String(signedDelta),
+      quantity: signedDelta,
       referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_ADJUSTMENT,
       referenceId: adjustmentId,
       notes: `${adjustment.type}: ${adjustment.reason ?? ''}`,

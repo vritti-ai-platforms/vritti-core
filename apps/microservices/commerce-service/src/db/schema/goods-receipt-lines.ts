@@ -20,7 +20,7 @@ export const goodsReceiptLines = coreSchema.table(
     locationId: uuid('location_id')
       .notNull()
       .references(() => locations.id),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),
     metadata: jsonb('metadata').notNull().default({}),

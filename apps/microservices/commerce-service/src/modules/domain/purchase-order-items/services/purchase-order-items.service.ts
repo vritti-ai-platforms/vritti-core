@@ -6,6 +6,7 @@ import {
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
@@ -88,47 +89,44 @@ export class PurchaseOrderItemsService {
 
     const duplicate = await this.repository.findItemByInventoryItemAndUom(po.id, inventoryItemId, uomId);
     if (duplicate) {
-      throw new BadRequestException({
-        label: 'Duplicate Item',
+      throw new ValidationException({
         detail: 'This inventory item with the same UOM is already added to the purchase order.',
+        errors: [{ field: 'uomId', message: 'This unit is already on the purchase order for this item.' }],
       });
     }
 
     const poCode = po.currencyCode as CurrencyCode;
 
     if (data.unitPrice.currency !== poCode) {
-      throw new BadRequestException({
-        label: 'Currency Mismatch',
-        detail: `unitPrice.currency must be ${poCode}.`,
+      throw new ValidationException({
+        detail: `Unit price currency must match the purchase order currency (${poCode}).`,
+        errors: [{ field: 'unitPrice', message: `Must be in ${poCode}.` }],
       });
     }
 
-    let unitPriceMinor: bigint;
-    try {
-      unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
-    } catch (e) {
-      throw new BadRequestException({
-        label: 'Invalid Price',
-        detail: e instanceof Error ? e.message : 'Invalid price value.',
-      });
-    }
+    const unitPriceMinor = majorToMinor(data.unitPrice.value, poCode, 'unitPrice');
 
-    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * data.uomQty));
+    const totalPriceMinor = BigInt(
+      new Decimal(unitPriceMinor.toString())
+        .times(data.uomQty)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toFixed(0),
+    );
 
     // Price per primary UOM unit = totalPrice / primaryUomQty (minor units ÷ decimal qty → minor units).
     const primaryUomUnitPriceMinor = BigInt(
       new Decimal(totalPriceMinor.toString())
         .dividedBy(primaryUomQty)
         .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
-        .toNumber(),
+        .toFixed(0),
     );
 
     await this.repository.create({
       purchaseOrderId: po.id,
       inventoryItemId,
       uomId,
-      uomQty: String(data.uomQty),
-      primaryUomQty: String(primaryUomQty),
+      uomQty: data.uomQty,
+      primaryUomQty,
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
@@ -156,50 +154,47 @@ export class PurchaseOrderItemsService {
     if (data.inventoryItemId && data.inventoryItemId !== item.inventoryItemId) {
       const duplicate = await this.repository.findItemByInventoryItemAndUom(po.id, data.inventoryItemId, item.uomId);
       if (duplicate) {
-        throw new BadRequestException({
-          label: 'Duplicate Item',
+        throw new ValidationException({
           detail: 'This inventory item with the same UOM is already added to the purchase order.',
+          errors: [{ field: 'uomId', message: 'This unit is already on the purchase order for this item.' }],
         });
       }
     }
 
     const poCode = po.currencyCode as CurrencyCode;
-    const orderedQuantity = data.uomQty ?? Number(item.uomQty);
+    const orderedQuantity = data.uomQty ?? item.uomQty;
 
     let unitPriceMinor: bigint;
-    try {
-      if (data.unitPrice != null) {
-        if (data.unitPrice.currency !== poCode) {
-          throw new BadRequestException({
-            label: 'Currency Mismatch',
-            detail: `unitPrice.currency must be ${poCode}.`,
-          });
-        }
-        unitPriceMinor = majorToMinor(data.unitPrice.value, poCode);
-      } else {
-        unitPriceMinor = item.unitPrice;
+    if (data.unitPrice != null) {
+      if (data.unitPrice.currency !== poCode) {
+        throw new ValidationException({
+          detail: `Unit price currency must match the purchase order currency (${poCode}).`,
+          errors: [{ field: 'unitPrice', message: `Must be in ${poCode}.` }],
+        });
       }
-    } catch (e) {
-      if (e instanceof BadRequestException) throw e;
-      throw new BadRequestException({
-        label: 'Invalid Price',
-        detail: e instanceof Error ? e.message : 'Invalid price value.',
-      });
+      unitPriceMinor = majorToMinor(data.unitPrice.value, poCode, 'unitPrice');
+    } else {
+      unitPriceMinor = item.unitPrice;
     }
 
-    const totalPriceMinor = BigInt(Math.round(Number(unitPriceMinor) * orderedQuantity));
+    const totalPriceMinor = BigInt(
+      new Decimal(unitPriceMinor.toString())
+        .times(orderedQuantity)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toFixed(0),
+    );
 
     const primaryUomUnitPriceMinor = BigInt(
       new Decimal(totalPriceMinor.toString())
         .dividedBy(primaryUomQty)
         .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
-        .toNumber(),
+        .toFixed(0),
     );
 
     await this.repository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
-      uomQty: String(orderedQuantity),
-      primaryUomQty: String(primaryUomQty),
+      uomQty: orderedQuantity,
+      primaryUomQty,
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,

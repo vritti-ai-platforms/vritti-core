@@ -26,7 +26,7 @@ export class PurchaseOrderDto {
     dto.poNumber = entity.poNumber;
     dto.status = entity.status;
     dto.currencyCode = entity.currencyCode;
-    dto.exchangeRate = entity.exchangeRate != null ? Number(entity.exchangeRate) : null;
+    dto.exchangeRate = entity.exchangeRate;
     dto.exchangeRateType = entity.exchangeRateType;
     dto.orderDate = entity.orderDate;
     dto.expectedBy = entity.expectedBy ?? null;

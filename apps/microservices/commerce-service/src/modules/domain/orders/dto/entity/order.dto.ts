@@ -34,7 +34,7 @@ export class OrderItemDto {
     dto.variantName = entity.variantName ?? null;
     dto.quantity = entity.quantity;
     dto.unitPrice = Number(entity.unitPrice);
-    dto.taxRate = Number(entity.taxRate);
+    dto.taxRate = entity.taxRate;
     dto.taxAmount = Number(entity.taxAmount);
     dto.subtotal = Number(entity.subtotal);
     dto.total = Number(entity.total);

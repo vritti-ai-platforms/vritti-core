@@ -14,7 +14,7 @@ export const stockTransfers = coreSchema.table(
       .references(() => inventoryItems.id),
     fromBuId: uuid('from_bu_id').notNull(),
     toBuId: uuid('to_bu_id').notNull(),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     status: stockTransferStatusEnum('status').notNull().default('REQUESTED'),
     requestedBy: uuid('requested_by'),
     receivedBy: uuid('received_by'),

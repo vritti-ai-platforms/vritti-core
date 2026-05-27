@@ -63,8 +63,8 @@ export const conversionInputs = coreSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    wastageQuantity: decimal('wastage_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
+    wastageQuantity: decimal('wastage_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
   },
   (table) => [
     index('idx_conversion_inputs_conversion').on(table.conversionId),
@@ -86,8 +86,8 @@ export const conversionOutputs = coreSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
-    wastageQuantity: decimal('wastage_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
+    wastageQuantity: decimal('wastage_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
   },
   (table) => [
     index('idx_conversion_outputs_conversion').on(table.conversionId),

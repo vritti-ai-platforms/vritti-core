@@ -68,7 +68,7 @@ export const bomLines = coreSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
-    requiredQuantity: decimal('required_quantity', { precision: 12, scale: 3 }).notNull(),
+    requiredQuantity: decimal('required_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
   },
   (table) => [
     unique('uq_bom_lines_bom_item').on(table.bomId, table.inventoryItemId),

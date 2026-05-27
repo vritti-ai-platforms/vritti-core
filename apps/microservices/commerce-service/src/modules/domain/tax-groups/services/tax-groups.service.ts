@@ -28,7 +28,7 @@ export class TaxGroupsService {
       entity.id,
       (data.taxRates ?? []).map((r, i) => ({
         name: r.name,
-        rate: String(r.rate),
+        rate: r.rate,
         type: r.type,
         sortOrder: i,
       })),
@@ -62,7 +62,7 @@ export class TaxGroupsService {
         id,
         data.taxRates.map((r, i) => ({
           name: r.name,
-          rate: String(r.rate),
+          rate: r.rate,
           type: r.type,
           sortOrder: i,
         })),

@@ -11,7 +11,7 @@ export class BomLineDto {
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? '';
-    dto.requiredQuantity = Number(entity.requiredQuantity);
+    dto.requiredQuantity = entity.requiredQuantity;
     return dto;
   }
 }

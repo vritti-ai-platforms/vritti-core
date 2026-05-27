@@ -12,7 +12,7 @@ export class TaxRateDto {
     const dto = new TaxRateDto();
     dto.id = entity.id;
     dto.name = entity.name;
-    dto.rate = Number(entity.rate);
+    dto.rate = entity.rate;
     dto.type = entity.type;
     dto.sortOrder = entity.sortOrder;
     return dto;

@@ -86,7 +86,7 @@ export class InvoicesService {
         data.items.map((item) => ({
           invoiceId: entity.id,
           description: item.description,
-          quantity: String(item.quantity),
+          quantity: item.quantity,
           unitPrice: BigInt(item.unitPrice),
           taxAmount: BigInt(item.taxAmount ?? 0),
           total: BigInt(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),
@@ -127,7 +127,7 @@ export class InvoicesService {
           data.items.map((item) => ({
             invoiceId: id,
             description: item.description,
-            quantity: String(item.quantity),
+            quantity: item.quantity,
             unitPrice: BigInt(item.unitPrice),
             taxAmount: BigInt(item.taxAmount ?? 0),
             total: BigInt(item.quantity * item.unitPrice + (item.taxAmount ?? 0)),

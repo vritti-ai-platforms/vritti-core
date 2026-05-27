@@ -170,7 +170,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     await this.db
       .update(purchaseOrderItems)
       .set({
-        receivedQuantity: sql`${purchaseOrderItems.receivedQuantity} + ${String(addQty)}`,
+        receivedQuantity: sql`${purchaseOrderItems.receivedQuantity} + ${addQty}`,
       })
       .where(eq(purchaseOrderItems.id, poItemId));
   }

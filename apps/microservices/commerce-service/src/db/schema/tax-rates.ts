@@ -9,7 +9,7 @@ export const taxRates = coreSchema.table('tax_rates', {
     .notNull()
     .references(() => taxGroups.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 100 }).notNull(),
-  rate: decimal('rate', { precision: 5, scale: 2 }).notNull(),
+  rate: decimal('rate', { precision: 5, scale: 2, mode: 'number' }).notNull(),
   type: taxRateTypeEnum('type').notNull(),
   sortOrder: integer('sort_order').notNull().default(0),
 });

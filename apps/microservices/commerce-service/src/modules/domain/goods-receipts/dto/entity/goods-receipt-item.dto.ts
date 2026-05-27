@@ -27,7 +27,7 @@ export class GoodsReceiptItemDto {
     dto.inventoryItemTracking = row.inventoryItemTracking;
     dto.inventoryItemUomSymbol = row.inventoryItemUomSymbol ?? '';
     dto.acceptedQuantity = Number(row.acceptedQuantity ?? 0);
-    dto.rejectedQuantity = Number(row.rejectedQuantity ?? 0);
+    dto.rejectedQuantity = row.rejectedQuantity ?? 0;
     dto.lotsCount = row.lotsCount;
     dto.linesCount = row.linesCount;
     dto.poOrderedQuantity = row.poOrderedQuantity != null ? Number(row.poOrderedQuantity) : null;

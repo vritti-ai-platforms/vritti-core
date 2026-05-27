@@ -35,9 +35,9 @@ export class InventoryItemQuantDto {
     dto.locationPath = row.locationPath ?? null;
     dto.lotId = row.lotId ?? null;
     dto.lotNumber = row.lotNumber ?? null;
-    dto.quantity = Number(row.quantity);
-    dto.reservedQuantity = Number(row.reservedQuantity);
-    dto.availableQuantity = Number(row.quantity) - Number(row.reservedQuantity);
+    dto.quantity = row.quantity;
+    dto.reservedQuantity = row.reservedQuantity;
+    dto.availableQuantity = row.quantity - row.reservedQuantity;
     dto.manufacturingDate = row.manufacturingDate ?? null;
     dto.expiryDate = row.expiryDate ?? null;
     dto.canDelete = canDelete;

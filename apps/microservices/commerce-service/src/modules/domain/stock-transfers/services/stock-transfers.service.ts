@@ -47,7 +47,7 @@ export class StockTransfersService {
       inventoryItemId: data.inventoryItemId,
       fromBuId: data.fromBuId,
       toBuId: data.toBuId,
-      quantity: String(data.quantity),
+      quantity: data.quantity,
       requestedBy: data.requestedBy ?? null,
       notes: data.notes ?? null,
     });

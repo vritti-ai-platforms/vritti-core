@@ -74,7 +74,7 @@ export class BomService {
       (data.lines ?? []).map((line) => ({
         bomId: entity.id,
         inventoryItemId: line.inventoryItemId,
-        requiredQuantity: String(line.requiredQuantity),
+        requiredQuantity: line.requiredQuantity,
       })),
     );
 
@@ -111,7 +111,7 @@ export class BomService {
         data.lines.map((line) => ({
           bomId: id,
           inventoryItemId: line.inventoryItemId,
-          requiredQuantity: String(line.requiredQuantity),
+          requiredQuantity: line.requiredQuantity,
         })),
       );
     }

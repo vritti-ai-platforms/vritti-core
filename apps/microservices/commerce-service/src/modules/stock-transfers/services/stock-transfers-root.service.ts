@@ -29,7 +29,7 @@ export class StockTransfersRootService {
       if (data.fromBatchId) {
         await this.batchesService.adjustBatch({
           batchId: data.fromBatchId,
-          quantity: -Number(transfer.quantity),
+          quantity: -transfer.quantity,
           type: InventoryItemLedgerTypeValues.TRANSFER_OUT,
           referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_TRANSFER,
           referenceId: id,
@@ -60,7 +60,7 @@ export class StockTransfersRootService {
       await this.batchesService.createBatch({
         inventoryItemId: transfer.inventoryItemId,
         locationId: data.toLocationId,
-        quantity: Number(transfer.quantity),
+        quantity: transfer.quantity,
         lotId: lotId ?? null,
         type: InventoryItemLedgerTypeValues.TRANSFER_IN,
         referenceType: InventoryItemLedgerReferenceTypeValues.STOCK_TRANSFER,

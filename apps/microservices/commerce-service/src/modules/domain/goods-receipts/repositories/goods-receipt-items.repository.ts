@@ -306,11 +306,11 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     {
       id: string;
       inventoryItemId: string;
-      rejectedQuantity: string;
+      rejectedQuantity: number;
       tracking: InventoryTracking;
       poItemId: string | null;
-      poOrderedQuantity: string | null;
-      poReceivedQuantity: string | null;
+      poOrderedQuantity: number | null;
+      poReceivedQuantity: number | null;
     }[]
   > {
     const rows = await this.db

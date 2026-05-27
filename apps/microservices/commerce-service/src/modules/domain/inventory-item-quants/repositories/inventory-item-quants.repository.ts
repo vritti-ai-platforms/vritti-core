@@ -91,7 +91,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return rows[0] as InventoryItemQuantWithRefs | undefined;
   }
 
-  async updateQuantity(id: string, delta: string): Promise<InventoryItemQuant> {
+  async updateQuantity(id: string, delta: number): Promise<InventoryItemQuant> {
     const results = await this.db
       .update(inventoryItemQuants)
       .set({
@@ -103,7 +103,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results[0] as InventoryItemQuant;
   }
 
-  async updateReservedQuantity(id: string, delta: string): Promise<InventoryItemQuant> {
+  async updateReservedQuantity(id: string, delta: number): Promise<InventoryItemQuant> {
     const results = await this.db
       .update(inventoryItemQuants)
       .set({
@@ -254,7 +254,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       stockedQuantity: string;
       reservedQuantity: string;
       availableQuantity: string;
-      reorderLevel: string | null;
+      reorderLevel: number | null;
     }[]
   > {
     return this.db

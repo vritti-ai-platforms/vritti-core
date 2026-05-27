@@ -59,8 +59,8 @@ export class ConversionsService {
       data.inputs.map((input) => ({
         conversionId: entity.id,
         inventoryItemId: input.inventoryItemId,
-        quantity: String(input.quantity),
-        wastageQuantity: String(input.wastageQuantity ?? 0),
+        quantity: input.quantity,
+        wastageQuantity: input.wastageQuantity ?? 0,
       })),
     );
 
@@ -68,8 +68,8 @@ export class ConversionsService {
       data.outputs.map((output) => ({
         conversionId: entity.id,
         inventoryItemId: output.inventoryItemId,
-        quantity: String(output.quantity),
-        wastageQuantity: String(output.wastageQuantity ?? 0),
+        quantity: output.quantity,
+        wastageQuantity: output.wastageQuantity ?? 0,
       })),
     );
 
@@ -98,8 +98,8 @@ export class ConversionsService {
   // Validates and loads conversion data for completion. App-layer handles batch operations.
   // Returns the inputs/outputs so the caller can deduct and create batches.
   async prepareComplete(id: string): Promise<{
-    inputs: { inventoryItemId: string; quantity: string; wastageQuantity: string }[];
-    outputs: { inventoryItemId: string; quantity: string }[];
+    inputs: { inventoryItemId: string; quantity: number; wastageQuantity: number }[];
+    outputs: { inventoryItemId: string; quantity: number }[];
   }> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('Conversion not found.');

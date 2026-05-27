@@ -39,13 +39,13 @@ export class CreditNotesController {
       id: invoice.id,
       invoiceNumber: invoice.invoiceNumber,
       status: invoice.status,
-      balance: Number(invoice.balance),
-      paidAmount: Number(invoice.paidAmount),
+      balance: invoice.balance,
+      paidAmount: invoice.paidAmount,
     };
     const result = await this.service.apply(id, applyData, invoiceContext);
     await this.invoicesRepository.update(invoice.id, {
-      paidAmount: BigInt(result.newPaidAmount),
-      balance: BigInt(result.newBalance),
+      paidAmount: result.newPaidAmount,
+      balance: result.newBalance,
       status: result.newInvoiceStatus as (typeof InvoiceStatusValues)[keyof typeof InvoiceStatusValues],
     });
     return { success: result.success, message: result.message };

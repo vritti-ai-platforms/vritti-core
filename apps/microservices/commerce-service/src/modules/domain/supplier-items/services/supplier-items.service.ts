@@ -121,16 +121,7 @@ export class SupplierItemsService {
     }
 
     const currencyCode = data.unitPrice.currency as CurrencyCode;
-    const unitPriceMinor = (() => {
-      try {
-        return majorToMinor(data.unitPrice.value, currencyCode);
-      } catch (e) {
-        throw new BadRequestException({
-          label: 'Invalid Price',
-          detail: e instanceof Error ? e.message : 'Invalid price value.',
-        });
-      }
-    })();
+    const unitPriceMinor = majorToMinor(data.unitPrice.value, currencyCode, 'unitPrice');
 
     // If marking as preferred, clear preferred on any other supplier_item for this inventory item first
     if (data.isPreferred === true) {
@@ -184,15 +175,8 @@ export class SupplierItemsService {
     if (data.isActive !== undefined) update.isActive = data.isActive;
 
     if (data.unitPrice) {
-      try {
-        update.unitPrice = majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode);
-        update.currencyCode = data.unitPrice.currency;
-      } catch (e) {
-        throw new BadRequestException({
-          label: 'Invalid Price',
-          detail: e instanceof Error ? e.message : 'Invalid price value.',
-        });
-      }
+      update.unitPrice = majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode, 'unitPrice');
+      update.currencyCode = data.unitPrice.currency;
     }
 
     if (Object.keys(update).length === 0) {

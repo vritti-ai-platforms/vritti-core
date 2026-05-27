@@ -62,16 +62,12 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
           const { uomQty, primaryUomQty, orderUomSymbol, primaryUomSymbol } = row.original;
           const isCrossUom = primaryUomQty !== uomQty;
           return (
-            <div className="flex flex-col">
-              <span className="font-mono">
-                {uomQty} {orderUomSymbol}
-              </span>
+            <span className="font-mono">
+              {uomQty} {orderUomSymbol}
               {isCrossUom && (
-                <span className="font-mono text-xs text-muted-foreground">
-                  {uomQty} {orderUomSymbol} = {primaryUomQty} {primaryUomSymbol}
-                </span>
+                <span className="text-xs text-muted-foreground"> ({primaryUomQty} {primaryUomSymbol})</span>
               )}
-            </div>
+            </span>
           );
         },
       },
@@ -91,14 +87,14 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
           const { unitPrice, primaryUomUnitPrice, uomQty, primaryUomQty, primaryUomSymbol } = row.original;
           const isCrossUom = primaryUomQty !== uomQty;
           return (
-            <div className="flex flex-col">
-              <span className="font-mono">{`${unitPrice.currency} ${unitPrice.value}`}</span>
+            <span className="font-mono">
+              {`${unitPrice.currency} ${unitPrice.value}`}
               {isCrossUom && (
-                <span className="font-mono text-xs text-muted-foreground">
-                  {`${primaryUomUnitPrice.currency} ${primaryUomUnitPrice.value}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''}`}
+                <span className="text-xs text-muted-foreground">
+                  {` (${primaryUomUnitPrice.currency} ${primaryUomUnitPrice.value}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''})`}
                 </span>
               )}
-            </div>
+            </span>
           );
         },
       },

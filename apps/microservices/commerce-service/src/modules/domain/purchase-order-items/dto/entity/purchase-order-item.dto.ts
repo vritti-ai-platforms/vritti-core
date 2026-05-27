@@ -25,9 +25,9 @@ export class PurchaseOrderItemDto {
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? '';
     dto.uomId = entity.uomId;
-    dto.uomQty = Number(entity.uomQty);
-    dto.receivedQuantity = Number(entity.receivedQuantity);
-    dto.primaryUomQty = Number(entity.primaryUomQty);
+    dto.uomQty = entity.uomQty;
+    dto.receivedQuantity = entity.receivedQuantity;
+    dto.primaryUomQty = entity.primaryUomQty;
     dto.orderUomSymbol = entity.orderUomSymbol ?? null;
     dto.primaryUomSymbol = entity.primaryUomSymbol ?? null;
     dto.currencyCode = entity.currencyCode;

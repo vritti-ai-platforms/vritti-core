@@ -56,7 +56,7 @@ export class InventoryItemLocationsService {
     const entity = await this.repository.create({
       inventoryItemId: inventoryItemId,
       locationId: data.locationId,
-      reorderLevel: String(data.reorderLevel),
+      reorderLevel: data.reorderLevel,
     });
 
     const row = await this.repository.findByIdWithLocation(entity.id);
@@ -73,7 +73,7 @@ export class InventoryItemLocationsService {
     const existing = await this.repository.findByIdWithLocation(id);
     if (!existing) throw new NotFoundException('Item location configuration not found.');
 
-    await this.repository.update(id, { reorderLevel: String(data.reorderLevel) });
+    await this.repository.update(id, { reorderLevel: data.reorderLevel });
     this.logger.log(`Updated item-location config ${id} — reorderLevel: ${data.reorderLevel}`);
 
     return { success: true, message: 'Reorder level updated successfully.' };

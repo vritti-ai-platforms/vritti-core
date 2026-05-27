@@ -6,6 +6,7 @@ import {
   NotFoundException,
   type TableViewState,
 } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type OrderSource, type OrderStatus, OrderStatusValues, type OrderType, orders } from '@/db/schema';
 import type { CreateOrderDto, CreateOrderItemDto } from '@/modules/orders/dto/request/create-order.dto';
@@ -61,10 +62,10 @@ export class OrdersService {
     // Build order items with denormalized catalog data
     const { itemRows, modifierRows, subtotal, taxAmount } = await this.buildOrderItems(data.items);
 
-    const serviceCharge = data.serviceCharge ?? 0;
-    const deliveryCharge = data.deliveryCharge ?? 0;
-    const discountAmount = data.discountAmount ?? 0;
-    const totalAmount = subtotal + taxAmount + serviceCharge + deliveryCharge - discountAmount;
+    const serviceCharge = new Decimal(data.serviceCharge ?? 0);
+    const deliveryCharge = new Decimal(data.deliveryCharge ?? 0);
+    const discountAmount = new Decimal(data.discountAmount ?? 0);
+    const totalAmount = subtotal.plus(taxAmount).plus(serviceCharge).plus(deliveryCharge).minus(discountAmount);
 
     const entity = await this.repository.create({
       orderNumber,
@@ -75,12 +76,12 @@ export class OrdersService {
       customerPhone: data.customerPhone ?? null,
       deliveryAddress: data.deliveryAddress ?? null,
       notes: data.notes ?? null,
-      subtotal: BigInt(Math.round(subtotal)),
-      taxAmount: BigInt(Math.round(taxAmount)),
-      serviceCharge: BigInt(Math.round(serviceCharge)),
-      deliveryCharge: BigInt(Math.round(deliveryCharge)),
-      discountAmount: BigInt(Math.round(discountAmount)),
-      totalAmount: BigInt(Math.round(totalAmount)),
+      subtotal: toMinorBigInt(subtotal),
+      taxAmount: toMinorBigInt(taxAmount),
+      serviceCharge: toMinorBigInt(serviceCharge),
+      deliveryCharge: toMinorBigInt(deliveryCharge),
+      discountAmount: toMinorBigInt(discountAmount),
+      totalAmount: toMinorBigInt(totalAmount),
     });
 
     // Insert order items
@@ -92,11 +93,11 @@ export class OrdersService {
         itemName: item.itemName,
         variantName: item.variantName,
         quantity: item.quantity,
-        unitPrice: BigInt(item.unitPrice),
-        taxRate: String(item.taxRate),
-        taxAmount: BigInt(Math.round(item.taxAmount)),
-        subtotal: BigInt(Math.round(item.subtotal)),
-        total: BigInt(Math.round(item.total)),
+        unitPrice: item.unitPrice,
+        taxRate: item.taxRate.toNumber(),
+        taxAmount: toMinorBigInt(item.taxAmount),
+        subtotal: toMinorBigInt(item.subtotal),
+        total: toMinorBigInt(item.total),
         notes: item.notes ?? null,
       })),
     );
@@ -108,7 +109,7 @@ export class OrdersService {
         modifierGroupId: mod.modifierGroupId,
         modifierOptionId: mod.modifierOptionId,
         name: mod.name,
-        additionalPrice: BigInt(mod.additionalPrice),
+        additionalPrice: mod.additionalPrice,
       })),
     );
 
@@ -186,21 +187,21 @@ export class OrdersService {
       itemName: string;
       variantName: string | null;
       quantity: number;
-      unitPrice: number;
-      taxRate: number;
-      taxAmount: number;
-      subtotal: number;
-      total: number;
+      unitPrice: bigint;
+      taxRate: Decimal;
+      taxAmount: Decimal;
+      subtotal: Decimal;
+      total: Decimal;
       notes: string | null;
     }[];
     modifierRows: {
       modifierGroupId: string;
       modifierOptionId: string;
       name: string;
-      additionalPrice: number;
+      additionalPrice: bigint;
     }[][];
-    subtotal: number;
-    taxAmount: number;
+    subtotal: Decimal;
+    taxAmount: Decimal;
   }> {
     const itemRows: {
       itemId: string;
@@ -208,21 +209,21 @@ export class OrdersService {
       itemName: string;
       variantName: string | null;
       quantity: number;
-      unitPrice: number;
-      taxRate: number;
-      taxAmount: number;
-      subtotal: number;
-      total: number;
+      unitPrice: bigint;
+      taxRate: Decimal;
+      taxAmount: Decimal;
+      subtotal: Decimal;
+      total: Decimal;
       notes: string | null;
     }[] = [];
     const modifierRows: {
       modifierGroupId: string;
       modifierOptionId: string;
       name: string;
-      additionalPrice: number;
+      additionalPrice: bigint;
     }[][] = [];
-    let orderSubtotal = 0;
-    let orderTaxAmount = 0;
+    let orderSubtotal = new Decimal(0);
+    let orderTaxAmount = new Decimal(0);
 
     for (const item of items) {
       const variant = await this.repository.findVariantWithItem(item.variantId);
@@ -230,15 +231,18 @@ export class OrdersService {
         throw new NotFoundException(`Variant ${item.variantId} not found.`);
       }
 
-      const taxRate = await this.repository.getEffectiveTaxRate(variant.taxGroupId);
-      const unitPrice = Number(variant.price);
+      const taxRate = new Decimal(await this.repository.getEffectiveTaxRate(variant.taxGroupId));
+      const unitPrice = new Decimal(variant.price.toString());
 
       // Sum modifier additional prices
-      const modifierTotal = (item.modifiers ?? []).reduce((sum, m) => sum + m.additionalPrice, 0);
+      const modifierTotal = (item.modifiers ?? []).reduce(
+        (sum, m) => sum.plus(new Decimal(m.additionalPrice.toString())),
+        new Decimal(0),
+      );
 
-      const lineSubtotal = (unitPrice + modifierTotal) * item.quantity;
-      const lineTax = lineSubtotal * (taxRate / 100);
-      const lineTotal = lineSubtotal + lineTax;
+      const lineSubtotal = unitPrice.plus(modifierTotal).times(item.quantity);
+      const lineTax = lineSubtotal.times(taxRate).dividedBy(100);
+      const lineTotal = lineSubtotal.plus(lineTax);
 
       itemRows.push({
         itemId: variant.itemId,
@@ -246,7 +250,7 @@ export class OrdersService {
         itemName: variant.itemName,
         variantName: variant.variantName,
         quantity: item.quantity,
-        unitPrice,
+        unitPrice: variant.price,
         taxRate,
         taxAmount: lineTax,
         subtotal: lineSubtotal,
@@ -259,14 +263,18 @@ export class OrdersService {
           modifierGroupId: m.modifierGroupId,
           modifierOptionId: m.modifierOptionId,
           name: m.name,
-          additionalPrice: m.additionalPrice,
+          additionalPrice: toMinorBigInt(new Decimal(m.additionalPrice)),
         })),
       );
 
-      orderSubtotal += lineSubtotal;
-      orderTaxAmount += lineTax;
+      orderSubtotal = orderSubtotal.plus(lineSubtotal);
+      orderTaxAmount = orderTaxAmount.plus(lineTax);
     }
 
     return { itemRows, modifierRows, subtotal: orderSubtotal, taxAmount: orderTaxAmount };
   }
+}
+
+function toMinorBigInt(value: Decimal): bigint {
+  return BigInt(value.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
 }

@@ -29,7 +29,7 @@ export const purchaseOrders = coreSchema.table(
     poNumber: varchar('po_number', { length: 50 }).notNull(),
     status: purchaseOrderStatusEnum('status').notNull().default('DRAFT'),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
-    exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6 }).default('1'),
+    exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6, mode: 'number' }).default(1),
     exchangeRateType: exchangeRateTypeEnum('exchange_rate_type').notNull().default('FIXED'),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
@@ -89,12 +89,12 @@ export const purchaseOrderItems = coreSchema.table(
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
     // Ordered amount in the line's UOM (e.g. 5 if buying "5 boxes").
-    uomQty: decimal('uom_qty', { precision: 12, scale: 3 }).notNull(),
-    receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3 }).notNull().default('0'),
+    uomQty: decimal('uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
+    receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     // Snapshot of `uom_qty` converted to the item's primary UOM at create/update time. Computed in
     // the service via UomConversionsService (Decimal math); never derived in SQL.
-    primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3 }).notNull(),
-    primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }).notNull().default(0n),
+    primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
+    primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }).notNull(),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     totalPrice: bigint('total_price', { mode: 'bigint' }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),

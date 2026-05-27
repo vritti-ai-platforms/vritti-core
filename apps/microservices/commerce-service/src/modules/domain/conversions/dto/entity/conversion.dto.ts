@@ -12,8 +12,8 @@ export class ConversionInputDto {
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? '';
-    dto.quantity = Number(entity.quantity);
-    dto.wastageQuantity = Number(entity.wastageQuantity);
+    dto.quantity = entity.quantity;
+    dto.wastageQuantity = entity.wastageQuantity;
     return dto;
   }
 }
@@ -30,8 +30,8 @@ export class ConversionOutputDto {
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? '';
-    dto.quantity = Number(entity.quantity);
-    dto.wastageQuantity = Number(entity.wastageQuantity);
+    dto.quantity = entity.quantity;
+    dto.wastageQuantity = entity.wastageQuantity;
     return dto;
   }
 }

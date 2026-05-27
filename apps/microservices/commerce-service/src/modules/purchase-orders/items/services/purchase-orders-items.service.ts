@@ -95,7 +95,7 @@ export class PurchaseOrdersItemsService {
 
     const inventoryItemId = data.inventoryItemId ?? existingItem.inventoryItemId;
     const uomId = existingItem.uomId;
-    const orderedUomQty = data.uomQty ?? Number(existingItem.uomQty);
+    const orderedUomQty = data.uomQty ?? existingItem.uomQty;
 
     // Always recompute against the current (item, uom, qty). The UOM doesn't change on update — this
     // covers item-swap and qty-change cases.

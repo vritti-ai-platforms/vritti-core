@@ -13,7 +13,7 @@ export class InvoiceItemDto {
     const dto = new InvoiceItemDto();
     dto.id = entity.id;
     dto.description = entity.description;
-    dto.quantity = Number(entity.quantity);
+    dto.quantity = entity.quantity;
     dto.unitPrice = Number(entity.unitPrice);
     dto.taxAmount = Number(entity.taxAmount);
     dto.total = Number(entity.total);

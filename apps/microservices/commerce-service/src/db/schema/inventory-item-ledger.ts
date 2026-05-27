@@ -14,7 +14,7 @@ export const inventoryItemLedger = coreSchema.table(
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
     type: inventoryItemLedgerTypeEnum('type').notNull(),
-    quantity: decimal('quantity', { precision: 12, scale: 3 }).notNull(),
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     referenceType: inventoryItemLedgerReferenceTypeEnum('reference_type'),
     referenceId: uuid('reference_id'),
     notes: text('notes'),

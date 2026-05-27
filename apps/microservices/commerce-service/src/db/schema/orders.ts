@@ -99,7 +99,7 @@ export const orderItems = coreSchema.table(
     variantName: varchar('variant_name', { length: 255 }),
     quantity: integer('quantity').notNull().default(1),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
-    taxRate: decimal('tax_rate', { precision: 5, scale: 2 }).notNull(),
+    taxRate: decimal('tax_rate', { precision: 5, scale: 2, mode: 'number' }).notNull(),
     taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull(),
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull(),
     total: bigint('total', { mode: 'bigint' }).notNull(),
