@@ -73,5 +73,6 @@ See `.claude/rules/` for detailed pattern documentation:
 - `frontend-conventions.md` — Frontend patterns and component usage
 - `frontend-hook.md` — TanStack Query hook conventions
 - `frontend-service.md` — Axios service conventions
+- `value-formatting.md` — DetailField / DataTable cells / useFormatters for dates, currency, numbers
 - `comment-style.md` — Comment style rules
 - `export-conventions.md` — Export patterns
