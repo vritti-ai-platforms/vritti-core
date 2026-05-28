@@ -24,6 +24,9 @@ export class GoodsReceiptTreeNodeResponseDto {
   @ApiPropertyOptional({ description: 'UOM symbol for the inventory item (items only).' })
   inventoryItemUomSymbol?: string;
 
+  @ApiPropertyOptional({ description: 'Whether the GR-item UOM allows decimal quantities (items only).' })
+  inventoryItemAllowDecimal?: boolean;
+
   @ApiPropertyOptional({ description: 'Sum of all line quantities (items only).' })
   acceptedQuantity?: number;
 

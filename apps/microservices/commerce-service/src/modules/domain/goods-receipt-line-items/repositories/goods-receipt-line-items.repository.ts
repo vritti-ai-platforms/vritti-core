@@ -69,6 +69,14 @@ export class GoodsReceiptLineItemsRepository extends PrimaryBaseRepository<typeo
     return new Map(rows.map((r) => [r.lineId, { count: Number(r.count) }]));
   }
 
+  async countByLineId(lineId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(goodsReceiptLineItems)
+      .where(eq(goodsReceiptLineItems.goodsReceiptLineId, lineId));
+    return Number(row?.count ?? 0);
+  }
+
   async findBySerialOnLine(lineId: string, serialNumber: string): Promise<GoodsReceiptLineItem | undefined> {
     const rows = await this.db
       .select()

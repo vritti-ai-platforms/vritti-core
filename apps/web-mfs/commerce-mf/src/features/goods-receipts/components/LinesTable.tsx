@@ -27,6 +27,7 @@ interface LinesTableProps {
   tracking: InventoryTracking;
   isDraft: boolean;
   uomSymbol: string | null;
+  allowDecimal: boolean;
   poRemainingQuantity: number | null;
   selectedLineId?: string | null;
   onSelectLine?: (lineId: string | null) => void;
@@ -40,6 +41,7 @@ export const LinesTable = ({
   tracking,
   isDraft,
   uomSymbol,
+  allowDecimal,
   poRemainingQuantity,
   selectedLineId,
   onSelectLine,
@@ -140,6 +142,8 @@ export const LinesTable = ({
                             inventoryItemId={scope.inventoryItemId}
                             line={row.original}
                             tracking={tracking}
+                            allowDecimal={allowDecimal}
+                            poRemainingQuantity={poRemainingQuantity}
                             onSuccess={close}
                             onCancel={close}
                           />
@@ -162,7 +166,18 @@ export const LinesTable = ({
           ]
         : []),
     ],
-    [isDraft, isSerial, tracking, uomSymbol, scope.itemId, goodsReceiptId, handleRemoveLine, scope.inventoryItemId],
+    [
+      isDraft,
+      isSerial,
+      tracking,
+      uomSymbol,
+      scope.itemId,
+      goodsReceiptId,
+      handleRemoveLine,
+      scope.inventoryItemId,
+      allowDecimal,
+      poRemainingQuantity,
+    ],
   );
 
   const slug =
@@ -236,6 +251,7 @@ export const LinesTable = ({
             inventoryItemId={scope.inventoryItemId}
             goodsReceiptLotId={lotId}
             tracking={tracking}
+            allowDecimal={allowDecimal}
             poRemainingQuantity={poRemainingQuantity}
             onSuccess={close}
             onCancel={close}

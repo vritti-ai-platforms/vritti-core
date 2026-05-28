@@ -138,15 +138,16 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       await this.db.update(goodsReceiptLines).set({ isBalanced: true }).where(eq(goodsReceiptLines.id, lineId));
       return;
     }
+    // Serial lines: line.quantity is the user-declared expected count. Don't overwrite it — just flip
+    // isBalanced to true once the serial count catches up to (or matches) the declared quantity.
     await this.db
       .update(goodsReceiptLines)
       .set({
-        quantity: sql<string>`COALESCE((
+        isBalanced: sql<boolean>`${goodsReceiptLines.quantity} = COALESCE((
           SELECT COUNT(*)
           FROM ${goodsReceiptLineItems}
           WHERE ${goodsReceiptLineItems.goodsReceiptLineId} = ${goodsReceiptLines.id}
         ), 0)`,
-        isBalanced: true,
       })
       .where(eq(goodsReceiptLines.id, lineId));
   }

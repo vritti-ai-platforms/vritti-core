@@ -135,6 +135,7 @@ export interface GoodsReceiptTreeNode {
   inventoryItemId?: string;
   inventoryItemTracking?: InventoryTracking;
   inventoryItemUomSymbol?: string;
+  inventoryItemAllowDecimal?: boolean;
   acceptedQuantity?: number;
   rejectedQuantity?: number;
   poOrderedQuantity?: number | null;
@@ -180,12 +181,30 @@ export const addGoodsReceiptLotSchema = z
   });
 export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema>;
 
-export const addGoodsReceiptLineSchema = z.object({
-  goodsReceiptLotId: z.string().optional(),
-  locationId: z.string().min(1, 'Location is required'),
-  quantity: zodNumericField({ required: 'Quantity is required', positive: true }),
-});
-export type AddGoodsReceiptLineFormData = z.infer<typeof addGoodsReceiptLineSchema>;
+// Quantity rules depend on the GR-item UOM's allowDecimal flag, (when PO is linked) the PO
+// remaining quantity, and — for serial-tracked edit flows — the current serial count (so the user
+// can't shrink the line below the serials already attached). Build the schema per form mount so
+// zod enforces the same caps the input does.
+export function buildAddGoodsReceiptLineSchema(options: {
+  allowDecimal: boolean;
+  min?: number;
+  max?: number;
+}) {
+  return z.object({
+    goodsReceiptLotId: z.string().optional(),
+    locationId: z.string().min(1, 'Location is required'),
+    quantity: zodNumericField({
+      required: 'Quantity is required',
+      positive: true,
+      integer: !options.allowDecimal,
+      ...(options.min != null
+        ? { min: options.min, minMessage: `Cannot be less than the ${options.min} serials already on this line.` }
+        : {}),
+      ...(options.max != null ? { max: options.max } : {}),
+    }),
+  });
+}
+export type AddGoodsReceiptLineFormData = z.infer<ReturnType<typeof buildAddGoodsReceiptLineSchema>>;
 
 export const addGoodsReceiptLineItemSchema = z.object({
   serialNumber: z.string().min(1, 'Serial number is required').max(100),

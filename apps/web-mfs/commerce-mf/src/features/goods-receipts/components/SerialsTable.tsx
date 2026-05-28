@@ -1,14 +1,28 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { Alert } from '@vritti/quantum-ui/Alert';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, DateCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateCell,
+  getSelectionColumn,
+  RowActions,
+  type SelectActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
+import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   GOODS_RECEIPT_LINE_ITEMS_TABLE_KEY,
+  useAddGoodsReceiptLineItem,
   useGoodsReceiptLineItemsTable,
   useRemoveGoodsReceiptLine,
   useRemoveGoodsReceiptLineItem,
@@ -23,6 +37,7 @@ interface SerialsTableProps {
   inventoryItemId: string;
   line: GoodsReceiptLineData | null;
   isDraft: boolean;
+  allowDecimal: boolean;
   onLineRemoved?: () => void;
 }
 
@@ -32,6 +47,7 @@ export const SerialsTable = ({
   inventoryItemId,
   line,
   isDraft,
+  allowDecimal,
   onLineRemoved,
 }: SerialsTableProps) => {
   const confirm = useConfirm();
@@ -43,6 +59,17 @@ export const SerialsTable = ({
   const { data: response, isLoading } = useGoodsReceiptLineItemsTable(goodsReceiptId, itemId, lineId);
   const removeSerialMutation = useRemoveGoodsReceiptLineItem(goodsReceiptId, itemId, lineId ?? '');
   const removeLineMutation = useRemoveGoodsReceiptLine(goodsReceiptId, itemId);
+  const addSerialMutation = useAddGoodsReceiptLineItem(goodsReceiptId, itemId, lineId ?? '');
+
+  const scanner = useBarcodeScanner({
+    mutation: addSerialMutation,
+    toVariables: (code) => ({ serialNumber: code }),
+    enabled: isDraft && !!lineId && !line?.isBalanced,
+  });
+
+  useEffect(() => {
+    if (line?.isBalanced && addSerialDialog.isOpen) addSerialDialog.close();
+  }, [line?.isBalanced, addSerialDialog]);
 
   const handleRemoveSerial = useCallback(
     async (item: GoodsReceiptLineItemData) => {
@@ -72,6 +99,7 @@ export const SerialsTable = ({
 
   const columns = useMemo<ColumnDef<GoodsReceiptLineItemData>[]>(
     () => [
+      ...(isDraft ? [getSelectionColumn<GoodsReceiptLineItemData>()] : []),
       {
         accessorKey: 'serialNumber',
         header: 'Serial',
@@ -118,7 +146,7 @@ export const SerialsTable = ({
     serverState: response,
     slug: tableSlug,
     label: 'serial',
-    enableRowSelection: false,
+    enableRowSelection: isDraft,
     onStatePush: () => {
       if (lineId) {
         queryClient.invalidateQueries({
@@ -127,6 +155,21 @@ export const SerialsTable = ({
       }
     },
   });
+
+  const handleBulkRemove = useCallback(
+    async (rows: Parameters<SelectActions<GoodsReceiptLineItemData>>[0]) => {
+      const confirmed = await confirm({
+        title: `Remove ${rows.length} serial${rows.length === 1 ? '' : 's'}?`,
+        description: 'These serials will no longer be part of this line.',
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (!confirmed) return;
+      await Promise.all(rows.map((r) => removeSerialMutation.mutateAsync(r.original.id)));
+      table.resetRowSelection();
+    },
+    [confirm, removeSerialMutation, table],
+  );
 
   if (!line) {
     return (
@@ -143,14 +186,28 @@ export const SerialsTable = ({
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-base font-semibold">Serials</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold">Serials</h3>
+              <Badge variant={line.isBalanced ? 'success' : 'warning'}>
+                {line.lineItemsCount}/{line.quantity} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+              </Badge>
+            </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {line.locationName ?? line.locationId ?? '—'} • {line.lineItemsCount} added
-              {line.quantity ? ` of ${line.quantity}` : ''} • {line.isBalanced ? 'balanced' : 'unbalanced'}
+              {line.locationPath ?? line.locationName ?? line.locationId ?? '—'}
             </p>
           </div>
           {isDraft && (
             <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={scanner.isActive ? 'default' : 'outline'}
+                startAdornment={<ScanBarcode className="size-4" />}
+                endAdornment={<KbdGroup className="ml-1" shortcut={scanner.toggleShortcut} />}
+                onClick={scanner.toggle}
+                disabled={!!line.isBalanced}
+              >
+                Scan Barcode
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -172,15 +229,52 @@ export const SerialsTable = ({
           )}
         </div>
 
+        {scanner.isActive && (
+          <Alert
+            variant="info"
+            icon={<ScanBarcode className="size-4" />}
+            title="Scan Mode Active"
+            description={`Point your scanner at a barcode — each scan auto-inserts a serial to this line. Press ${formatHotkey(scanner.toggleShortcut).display} to toggle or ${formatHotkey(scanner.exitShortcut).display} to exit.`}
+            action={
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={scanner.disable}
+                endAdornment={<KbdGroup shortcut={scanner.exitShortcut} />}
+              >
+                Exit
+              </Button>
+            }
+          />
+        )}
+
         <DataTable
           table={table}
           mode="compact"
           isLoading={isLoading}
+          searchConfig={{ columns: [{ id: 'serialNumber', label: 'Serial' }], searchAll: true }}
+          filters={[<ValueFilter key="serialNumber" name="serialNumber" label="Serial" fieldType="string" />]}
+          selectActions={(rows) => (
+            <Button
+              size="sm"
+              variant="destructive"
+              startAdornment={<Trash2 className="size-4" />}
+              onClick={() => handleBulkRemove(rows)}
+              isLoading={removeSerialMutation.isPending}
+            >
+              Remove
+            </Button>
+          )}
           toolbarActions={
             isDraft
               ? {
                   actions: (
-                    <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addSerialDialog.open}>
+                    <Button
+                      size="sm"
+                      startAdornment={<Plus className="size-4" />}
+                      onClick={addSerialDialog.open}
+                      disabled={!!line.isBalanced}
+                    >
                       Add Serial
                     </Button>
                   ),
@@ -191,11 +285,12 @@ export const SerialsTable = ({
             icon: Tags,
             title: 'No serials',
             description: 'Add a serial to start filling this line.',
-            action: isDraft ? (
-              <Button startAdornment={<Plus className="size-4" />} onClick={addSerialDialog.open}>
-                Add Serial
-              </Button>
-            ) : undefined,
+            action:
+              isDraft && !line.isBalanced ? (
+                <Button startAdornment={<Plus className="size-4" />} onClick={addSerialDialog.open}>
+                  Add Serial
+                </Button>
+              ) : undefined,
           }}
         />
       </div>
@@ -219,6 +314,7 @@ export const SerialsTable = ({
             inventoryItemId={inventoryItemId}
             line={line}
             tracking="serial"
+            allowDecimal={allowDecimal}
             onSuccess={close}
             onCancel={close}
           />

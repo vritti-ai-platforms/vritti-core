@@ -5434,7 +5434,7 @@
             }
           },
           {
-            "name": "includeOnPurchaseOrderId",
+            "name": "purchaseOrderId",
             "required": false,
             "in": "query",
             "description": "Restrict results to supplier items whose (inventoryItemId, uomId) matches a line on this purchase order.",

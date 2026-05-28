@@ -130,6 +130,32 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
 
+    // tracking='serial': lines as direct children of the item (no lot layer). Each line carries
+    // serial count via lineItemsCount so the tree-side balance indicator stays consistent with the
+    // lot_serial pattern.
+    const linesOnlyJson = sql`(
+      SELECT COALESCE(
+        json_agg(
+          json_build_object(
+            'id', line.id,
+            'name', COALESCE(loc.name, '—'),
+            'path', json_build_array(${goodsReceiptItems.id}, line.id),
+            'kind', 'line',
+            'quantity', line.quantity,
+            'lineItemsCount', (
+              SELECT COUNT(*) FROM vritti_core.goods_receipt_line_items li
+              WHERE li.goods_receipt_line_id = line.id
+            ),
+            'isBalanced', line.is_balanced
+          ) ORDER BY line.created_at
+        ),
+        '[]'::json
+      )
+      FROM vritti_core.goods_receipt_lines line
+      LEFT JOIN vritti_core.locations loc ON line.location_id = loc.id
+      WHERE line.goods_receipt_item_id = ${goodsReceiptItems.id}
+    )`;
+
     const node = sql<GoodsReceiptTreeNode>`json_build_object(
       'id', ${goodsReceiptItems.id},
       'name', COALESCE(${inventoryItems.name}, ${goodsReceiptItems.inventoryItemId}::text),
@@ -138,6 +164,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       'inventoryItemId', ${goodsReceiptItems.inventoryItemId},
       'inventoryItemTracking', ${inventoryItems.tracking},
       'inventoryItemUomSymbol', ${uom.symbol},
+      'inventoryItemAllowDecimal', ${uom.allowDecimal},
       'acceptedQuantity', ${acceptedQty},
       'rejectedQuantity', ${goodsReceiptItems.rejectedQuantity},
       'poOrderedQuantity', ${purchaseOrderItems.uomQty},
@@ -151,6 +178,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       'children', CASE ${inventoryItems.tracking}
         WHEN 'lot' THEN ${lotsOnlyJson}
         WHEN 'lot_serial' THEN ${lotsWithLinesJson}
+        WHEN 'serial' THEN ${linesOnlyJson}
         ELSE '[]'::json
       END
     )`;

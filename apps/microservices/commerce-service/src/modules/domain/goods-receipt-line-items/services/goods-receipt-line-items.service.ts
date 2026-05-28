@@ -94,6 +94,17 @@ export class GoodsReceiptLineItemsService {
       });
     }
 
+    // Enforce the user-declared cap on the line. The line's `quantity` field is the expected number
+    // of serials at this location; once the count reaches that, the line is balanced and full.
+    const currentCount = await this.repository.countByLineId(lineId);
+    if (currentCount >= line.quantity) {
+      throw new ConflictException({
+        label: 'Line Full',
+        detail: `This line is full — already has ${line.quantity} serials. Increase the line quantity to add more.`,
+        errors: [{ field: 'serialNumber', message: `Line full (${line.quantity} / ${line.quantity}).` }],
+      });
+    }
+
     await this.validateSerialForRegister(ctx.inventoryItemId, trimmed);
     await this.linesService.validatePoCap(ctx, 1, lineId);
 

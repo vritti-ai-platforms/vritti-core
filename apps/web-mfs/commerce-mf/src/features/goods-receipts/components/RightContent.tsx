@@ -50,6 +50,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
   const itemNode = useMemo(() => (itemId ? findItemNode(tree, itemId) : undefined), [tree, itemId]);
   const tracking = itemNode?.inventoryItemTracking;
   const uomSymbol = itemNode?.inventoryItemUomSymbol ?? null;
+  const allowDecimal = itemNode?.inventoryItemAllowDecimal ?? false;
   const poRemaining = itemNode?.poRemainingQuantity ?? null;
 
   // Lots for the selected item — needed when selection.kind='lot' to derive lot details for the EditLot dialog
@@ -113,6 +114,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
         inventoryItemId={itemNode!.inventoryItemId!}
         line={selectedLine}
         isDraft={isDraft}
+        allowDecimal={allowDecimal}
         onLineRemoved={() =>
           onSelectionChange(
             selection.lotId
@@ -179,6 +181,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
             tracking={tracking}
             isDraft={isDraft}
             uomSymbol={uomSymbol}
+            allowDecimal={allowDecimal}
             poRemainingQuantity={poRemaining}
             selectedLineId={null}
             onSelectLine={
@@ -273,6 +276,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
               tracking={tracking}
               isDraft={isDraft}
               uomSymbol={uomSymbol}
+              allowDecimal={allowDecimal}
               poRemainingQuantity={poRemaining}
               onSelectLine={
                 tracking === InventoryTrackingValues.SERIAL

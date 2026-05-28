@@ -1,14 +1,14 @@
-import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateGoodsReceiptLine } from '@/hooks/goods-receipts';
 import {
   type AddGoodsReceiptLineFormData,
-  addGoodsReceiptLineSchema,
+  buildAddGoodsReceiptLineSchema,
   type GoodsReceiptLineData,
   type InventoryTracking,
   InventoryTrackingValues,
@@ -21,6 +21,8 @@ interface EditLineFormProps {
   inventoryItemId: string;
   line: GoodsReceiptLineData;
   tracking: InventoryTracking;
+  allowDecimal: boolean;
+  poRemainingQuantity?: number | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -31,12 +33,27 @@ export const EditLineForm = ({
   inventoryItemId,
   line,
   tracking,
+  allowDecimal,
+  poRemainingQuantity,
   onSuccess,
   onCancel,
 }: EditLineFormProps) => {
   const isSerial = tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL;
+  // For Edit, the line's own current quantity is part of the PO usage; the effective max for the
+  // editor is `poRemaining + line.quantity` so the user can hold steady or shift quantity around.
+  const effectiveMax = useMemo(() => {
+    if (poRemainingQuantity == null) return undefined;
+    return poRemainingQuantity + (line.quantity ?? 0);
+  }, [poRemainingQuantity, line.quantity]);
+  // For serial-tracked lines, quantity can never drop below the count of serials already attached —
+  // otherwise the line would be in a state count > quantity with no valid path to balanced.
+  const minQty = isSerial ? line.lineItemsCount : undefined;
+  const schema = useMemo(
+    () => buildAddGoodsReceiptLineSchema({ allowDecimal, min: minQty, max: effectiveMax }),
+    [allowDecimal, minQty, effectiveMax],
+  );
   const form = useForm<AddGoodsReceiptLineFormData>({
-    resolver: zodResolver(addGoodsReceiptLineSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       goodsReceiptLotId: line.goodsReceiptLotId ?? undefined,
       locationId: line.locationId,
@@ -52,7 +69,7 @@ export const EditLineForm = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         locationId: data.locationId,
-        ...(isSerial ? {} : { quantity: data.quantity }),
+        quantity: data.quantity,
       })}
     >
       <LocationSelector
@@ -64,13 +81,20 @@ export const EditLineForm = ({
           inventoryItemId,
         }}
       />
-      {!isSerial && <TextField name="quantity" label="Quantity" type="number" positive nonZero />}
-      {isSerial && (
-        <Alert
-          variant="info"
-          description={`Quantity is derived from the number of serials added to this line (${line.lineItemsCount}).`}
-        />
-      )}
+      <TextField
+        name="quantity"
+        label="Quantity"
+        type="number"
+        positive
+        integer={!allowDecimal}
+        min={minQty}
+        max={effectiveMax}
+        description={
+          isSerial
+            ? `Currently ${line.lineItemsCount} of ${line.quantity} serials added. Adjusting this changes the expected count.`
+            : undefined
+        }
+      />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>

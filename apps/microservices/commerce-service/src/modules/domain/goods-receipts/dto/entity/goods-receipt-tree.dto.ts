@@ -11,6 +11,7 @@ export interface GoodsReceiptTreeNode {
   inventoryItemId?: string;
   inventoryItemTracking?: InventoryTracking;
   inventoryItemUomSymbol?: string;
+  inventoryItemAllowDecimal?: boolean;
   acceptedQuantity?: number;
   rejectedQuantity?: number;
   poOrderedQuantity?: number | null;
