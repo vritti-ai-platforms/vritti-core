@@ -1,5 +1,9 @@
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
-import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
+import {
+  type CreateNewQuantParams,
+  InventoryItemQuantsService,
+} from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
 import type { StockAdjustmentLineWithRefs } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
@@ -17,8 +21,10 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import _ from '@vritti/api-sdk/lodash';
 import {
+  CostSourceTypeValues,
   InventoryItemLedgerReferenceTypeValues,
   InventoryItemLedgerTypeValues,
   type InventoryTracking,
@@ -45,6 +51,7 @@ export class StockAdjustmentsRootService {
     private readonly lotsService: StockAdjustmentsLotsService,
     private readonly linesService: StockAdjustmentLinesService,
     private readonly batchesService: InventoryItemQuantsService,
+    private readonly quantsRepository: InventoryItemQuantsRepository,
     private readonly ledgerService: InventoryItemLedgerService,
     private readonly adjustmentsService: StockAdjustmentsService,
   ) {}
@@ -73,7 +80,7 @@ export class StockAdjustmentsRootService {
     return this.adjustmentsService.updateAdjustment(id, data);
   }
 
-  async publish(id: string): Promise<StockAdjustmentDto> {
+  async publish(id: string, buCurrencyCode: string): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -122,11 +129,20 @@ export class StockAdjustmentsRootService {
         await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id);
       }
 
+      // Re-fetch lots after Phase A so each draft carries its now-populated `resolvedLotId`. The
+      // publishRegisterLine path uses `createNewQuantScoped` (PR3/PR4) which expects a pre-resolved
+      // lot id, so we can't rely on the stale snapshot taken before Phase A.
+      const resolvedLots =
+        adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK &&
+        (tracking === InventoryTrackingValues.LOT || tracking === InventoryTrackingValues.LOT_SERIAL)
+          ? await this.lotsRepository.findByAdjustmentId(id)
+          : lots;
+
       // Phase B: process each line
       for (const line of lines) {
         const lineItems = lineItemsByLineId[line.id] ?? [];
         if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
-          await this.publishRegisterLine(id, adjustment, tracking, line, lineItems, lots);
+          await this.publishRegisterLine(id, adjustment, tracking, line, lineItems, resolvedLots, buCurrencyCode);
         } else {
           await this.publishChangeLine(id, adjustment, tracking, line, lineItems);
         }
@@ -139,7 +155,9 @@ export class StockAdjustmentsRootService {
     return this.adjustmentsService.findById(id);
   }
 
-  // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials])
+  // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials]).
+  // PR4: each line creates a NEW quant (no merge) with cost provenance — matches the GR pattern
+  // so cost-association can later target these quants via (sourceType, sourceId).
   private async publishRegisterLine(
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
@@ -147,17 +165,24 @@ export class StockAdjustmentsRootService {
     line: StockAdjustmentLineWithRefs,
     lineItems: StockAdjustmentLineItem[],
     lots: StockAdjustmentLot[],
+    buCurrencyCode: string,
   ): Promise<void> {
     if (!line.locationId) {
       throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK.`);
     }
 
     // Snapshot of the line quantity in the item's primary UOM, computed at create/update time.
-    // Serial tracking is restricted to primary UOM at validation time, so primaryUomQty === quantity
+    // Serial tracking is restricted to primary UOM at validation time, so primaryUomQty === uomQty
     // in those branches by construction.
     const primaryUomQty = line.primaryUomQty;
 
-    let createParams: Parameters<typeof this.batchesService.createBatchScoped>[0];
+    const costProvenance = {
+      costCurrency: buCurrencyCode,
+      sourceType: CostSourceTypeValues.STOCK_ADJUSTMENT,
+      sourceId: adjustmentId,
+    };
+
+    let createParams: CreateNewQuantParams;
     if (tracking === InventoryTrackingValues.QUANTITY) {
       if (line.stockAdjustmentLotId) {
         throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=quantity.`);
@@ -167,6 +192,7 @@ export class StockAdjustmentsRootService {
         locationId: line.locationId,
         tracking,
         quantity: primaryUomQty,
+        ...costProvenance,
       };
     } else if (tracking === InventoryTrackingValues.SERIAL) {
       if (line.stockAdjustmentLotId) {
@@ -187,6 +213,7 @@ export class StockAdjustmentsRootService {
         tracking,
         quantity: serials.length,
         serialNumbers: serials,
+        ...costProvenance,
       };
     } else {
       if (!line.stockAdjustmentLotId) {
@@ -194,6 +221,11 @@ export class StockAdjustmentsRootService {
       }
       const lot = lots.find((l) => l.id === line.stockAdjustmentLotId);
       if (!lot) throw new BadRequestException(`Line ${line.id}: lot draft not found.`);
+      // Phase A resolved each SA lot draft into an inventory_item_lots row and stamped its id
+      // onto `resolved_lot_id`. createNewQuantScoped requires that resolved id.
+      if (!lot.resolvedLotId) {
+        throw new BadRequestException(`Line ${line.id}: lot draft is missing resolvedLotId (Phase A skipped).`);
+      }
 
       if (tracking === InventoryTrackingValues.LOT) {
         createParams = {
@@ -201,11 +233,8 @@ export class StockAdjustmentsRootService {
           locationId: line.locationId,
           tracking,
           quantity: primaryUomQty,
-          lot: {
-            lotNumber: lot.lotNumber,
-            manufacturingDate: lot.manufacturingDate ?? null,
-            expiryDate: lot.expiryDate ?? null,
-          },
+          lotId: lot.resolvedLotId,
+          ...costProvenance,
         };
       } else {
         // tracking === 'lot_serial'
@@ -223,17 +252,14 @@ export class StockAdjustmentsRootService {
           locationId: line.locationId,
           tracking,
           quantity: serials.length,
-          lot: {
-            lotNumber: lot.lotNumber,
-            manufacturingDate: lot.manufacturingDate ?? null,
-            expiryDate: lot.expiryDate ?? null,
-          },
+          lotId: lot.resolvedLotId,
           serialNumbers: serials,
+          ...costProvenance,
         };
       }
     }
 
-    const { quant } = await this.batchesService.createBatchScoped(createParams);
+    const { quant } = await this.batchesService.createNewQuantScoped(createParams);
 
     await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
@@ -247,7 +273,12 @@ export class StockAdjustmentsRootService {
     await this.linesRepository.setResolvedQuant(line.id, quant.id);
   }
 
-  // Deduct/CORRECTION: line carries (quantId, quantity, [serials])
+  // Deduct/CORRECTION: line carries (quantId, quantity, [serials]).
+  // PR4: for deduct types (WASTE/DAMAGE/THEFT/EXPIRED) and negative CORRECTIONs we snapshot
+  // `write_off_amount = sourceQuant.total_unit_cost × primaryUomQty` plus `write_off_currency`
+  // onto the SA line so loss reporting + period-end queries don't have to re-join the quant's
+  // cost history. The snapshot is taken BEFORE the decrement (the quant value is unchanged at
+  // that moment).
   private async publishChangeLine(
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
@@ -259,18 +290,26 @@ export class StockAdjustmentsRootService {
       throw new BadRequestException(`Line ${line.id} is missing quantId for ${adjustment.type} adjustment.`);
     }
 
+    const isDeduct = this.isDeductType(adjustment.type);
     let signedDelta: number;
+    let writeOffPrimaryUomQty = 0;
+
     if (tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL) {
       const serials = lineItems.map((li) => li.serialNumber);
       if (serials.length !== line.uomQty) {
         throw new BadRequestException(`Line ${line.id}: expected ${line.uomQty} serials, got ${serials.length}.`);
       }
+      writeOffPrimaryUomQty = serials.length;
+      // Take the write-off snapshot before consuming the serials.
+      if (isDeduct) await this.snapshotWriteOff(line, writeOffPrimaryUomQty);
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, serials });
-      signedDelta = this.isDeductType(adjustment.type) ? -serials.length : serials.length;
+      signedDelta = isDeduct ? -serials.length : serials.length;
     } else {
       // Snapshot of line qty in the item's primary UOM, computed at create/update time.
       const primaryUomQty = line.primaryUomQty;
-      const delta = this.isDeductType(adjustment.type) ? -Math.abs(primaryUomQty) : primaryUomQty;
+      const delta = isDeduct ? -Math.abs(primaryUomQty) : primaryUomQty;
+      writeOffPrimaryUomQty = Math.abs(delta);
+      if (isDeduct) await this.snapshotWriteOff(line, writeOffPrimaryUomQty);
       await this.batchesService.adjustBatchScoped(line.quantId, { tracking, delta });
       signedDelta = delta;
     }
@@ -285,6 +324,26 @@ export class StockAdjustmentsRootService {
     });
 
     await this.linesRepository.setResolvedQuant(line.id, line.quantId);
+  }
+
+  // PR4: reads the source quant's denormalized total_unit_cost + cost_currency and snapshots
+  // `total_unit_cost × primaryUomQty` onto the SA line. Cheap because quant.total_unit_cost is
+  // already denormalized — no cost-row roll-up needed at write-off time.
+  private async snapshotWriteOff(line: StockAdjustmentLineWithRefs, primaryUomQty: number): Promise<void> {
+    if (!line.quantId) return;
+    const sourceQuant = await this.quantsRepository.findById(line.quantId);
+    if (!sourceQuant) return;
+    const totalUnitCost = BigInt(sourceQuant.totalUnitCost?.toString() ?? '0');
+    if (totalUnitCost === 0n || primaryUomQty <= 0) return;
+    const writeOffAmount = BigInt(
+      new Decimal(totalUnitCost.toString())
+        .times(primaryUomQty)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toFixed(0),
+    );
+    const currency = sourceQuant.costCurrency ?? '';
+    if (!currency) return;
+    await this.linesRepository.setWriteOff(line.id, writeOffAmount, currency);
   }
 
   private isDeductType(type: StockAdjustmentType): boolean {

@@ -1,5 +1,6 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  bigint,
   boolean,
   check,
   decimal,
@@ -8,6 +9,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 
 import { coreSchema } from './core-schema';
@@ -45,6 +47,13 @@ export const stockAdjustmentLines = coreSchema.table(
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),
+    // Write-off snapshot for negative SAs (WASTE / DAMAGE / EXPIRED / THEFT / negative CORRECTION):
+    // captures `source_quant.total_unit_cost × primary_uom_qty` at publish so loss reporting and
+    // P&L don't have to rejoin to the quant history. Positive SAs (OPENING_STOCK, positive
+    // CORRECTION) leave this at 0 — they go through Associate Cost instead. writeOffCurrency is
+    // NULL during PR1 transition; Phase 4 (SA publish) always sets it. Tighten to NOT NULL later.
+    writeOffAmount: bigint('write_off_amount', { mode: 'bigint' }).notNull().default(0n),
+    writeOffCurrency: varchar('write_off_currency', { length: 3 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

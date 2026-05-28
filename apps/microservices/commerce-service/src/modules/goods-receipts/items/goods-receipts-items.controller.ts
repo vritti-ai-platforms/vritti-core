@@ -45,22 +45,41 @@ export class GoodsReceiptsItemsController {
 
   @MessagePattern({ cmd: 'goodsReceipts.addItem' })
   addItem(
-    @Payload() data: { goodsReceiptId: string; supplierItemId: string; rejectedQuantity?: number },
+    @Payload()
+    data: {
+      goodsReceiptId: string;
+      supplierItemId: string;
+      rejectedQuantity?: number;
+      // bigint over NATS is serialized as string by the gateway to dodge JSON precision loss.
+      unitPrice?: string;
+      currencyCode?: string;
+    },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItem — supplierItem: ${data.supplierItemId}`);
     return this.itemsService.addItem(data.goodsReceiptId, {
       supplierItemId: data.supplierItemId,
       rejectedQuantity: data.rejectedQuantity,
+      unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
+      currencyCode: data.currencyCode,
     });
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.updateItem' })
   updateItem(
-    @Payload() data: { goodsReceiptId: string; itemId: string; rejectedQuantity?: number },
+    @Payload()
+    data: {
+      goodsReceiptId: string;
+      itemId: string;
+      rejectedQuantity?: number;
+      unitPrice?: string;
+      currencyCode?: string;
+    },
   ): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.updateItem');
     return this.itemsService.updateItem(data.goodsReceiptId, data.itemId, {
       rejectedQuantity: data.rejectedQuantity,
+      unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
+      currencyCode: data.currencyCode,
     });
   }
 
@@ -68,5 +87,13 @@ export class GoodsReceiptsItemsController {
   removeItem(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.removeItem');
     return this.itemsService.removeItem(data.goodsReceiptId, data.itemId);
+  }
+
+  @MessagePattern({ cmd: 'goodsReceipts.items.pricePrefill' })
+  pricePrefill(
+    @Payload() data: { goodsReceiptId: string; inventoryItemId: string; uomId: string },
+  ): Promise<{ unitPrice: { currency: string; value: string } | null; source: 'PO' | 'SUPPLIER_ITEM' | null }> {
+    this.logger.log(`goodsReceipts.items.pricePrefill — gr: ${data.goodsReceiptId}`);
+    return this.itemsService.resolvePricePrefill(data.goodsReceiptId, data.inventoryItemId, data.uomId);
   }
 }

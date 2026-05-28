@@ -13,6 +13,8 @@ import { CategoriesGatewayController } from './categories/categories-gateway.con
 import { CategoriesGatewayService } from './categories/services/categories-gateway.service';
 import { ConversionsGatewayController } from './conversions/conversions-gateway.controller';
 import { ConversionsGatewayService } from './conversions/services/conversions-gateway.service';
+import { CostCategoriesGatewayController } from './cost-categories/cost-categories-gateway.controller';
+import { CostCategoriesGatewayService } from './cost-categories/services/cost-categories-gateway.service';
 import { CreditNotesGatewayController } from './credit-notes/credit-notes-gateway.controller';
 import { CreditNotesGatewayService } from './credit-notes/services/credit-notes-gateway.service';
 import { CustomersGatewayController } from './customers/customers-gateway.controller';
@@ -61,6 +63,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     InventoryItemSerialsGatewayController,
     InventoryItemQuantsGatewayController,
     ConversionsGatewayController,
+    CostCategoriesGatewayController,
     CreditNotesGatewayController,
     CustomersGatewayController,
     GoodsReceiptsGatewayController,
@@ -88,6 +91,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     InventoryItemSerialsGatewayService,
     InventoryItemQuantsGatewayService,
     ConversionsGatewayService,
+    CostCategoriesGatewayService,
     CreditNotesGatewayService,
     CustomersGatewayService,
     GoodsReceiptsGatewayService,

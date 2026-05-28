@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z, zodNumericField } from '@vritti/quantum-ui/zod';
+import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export const GoodsReceiptStatus = {
   DRAFT: 'DRAFT',
@@ -81,6 +81,7 @@ export interface GoodsReceiptItemData {
   poOrderedQuantity: number | null;
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
+  unitPrice: { currency: string; value: string } | null;
   metadata: Record<string, unknown>;
   createdAt: string;
 }
@@ -161,13 +162,23 @@ const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(und
 export const addGoodsReceiptItemSchema = z.object({
   supplierItemId: z.string({ error: 'Supplier item is required' }).min(1, 'Supplier item is required'),
   rejectedQuantity: zOptionalNonNegativeNumber,
+  // Optional: when absent, the publish-time auto-associate skips this item and the user can
+  // still post the supplier price manually via Add Cost. Pre-filled by the dialog (PO → supplier
+  // catalog) so most users just accept the default.
+  unitPrice: zodCurrencyField({ positive: true }).optional(),
 });
 export type AddGoodsReceiptItemFormData = z.infer<typeof addGoodsReceiptItemSchema>;
 
 export const updateGoodsReceiptItemSchema = z.object({
   rejectedQuantity: zOptionalNonNegativeNumber,
+  unitPrice: zodCurrencyField({ positive: true }).optional(),
 });
 export type UpdateGoodsReceiptItemFormData = z.infer<typeof updateGoodsReceiptItemSchema>;
+
+export interface GoodsReceiptItemPricePrefill {
+  unitPrice: { currency: string; value: string } | null;
+  source: 'PO' | 'SUPPLIER_ITEM' | null;
+}
 
 export const addGoodsReceiptLotSchema = z
   .object({

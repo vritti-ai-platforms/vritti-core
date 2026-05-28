@@ -12,6 +12,8 @@ import { validate } from './config/env.validation';
 import { BomModule } from './modules/bom/bom.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ConversionsModule } from './modules/conversions/conversions.module';
+import { CostCategoriesModule } from './modules/cost-categories/cost-categories.module';
+import { InventoryItemCostsModule } from './modules/inventory-item-costs/inventory-item-costs.module';
 import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.module';
@@ -67,6 +69,8 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
       },
     }),
     CategoriesModule,
+    CostCategoriesModule,
+    InventoryItemCostsModule,
     ItemsModule,
     ModifierGroupsModule,
     TaxGroupsModule,

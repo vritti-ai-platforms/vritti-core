@@ -23,3 +23,7 @@ export const GOODS_RECEIPT_LINE_KEY = (id: string, itemId: string, lineId: strin
 
 export const GOODS_RECEIPT_LINE_ITEMS_TABLE_KEY = (id: string, itemId: string, lineId: string) =>
   ['commerce', 'goods-receipts', id, 'items', itemId, 'lines', lineId, 'items', 'table'] as const;
+
+export const GOODS_RECEIPT_COSTS_KEY = (id: string) => ['commerce', 'goods-receipts', id, 'costs'] as const;
+export const GOODS_RECEIPT_COST_ALLOCATIONS_KEY = (id: string, costId: string) =>
+  ['commerce', 'goods-receipts', id, 'costs', costId, 'allocations'] as const;

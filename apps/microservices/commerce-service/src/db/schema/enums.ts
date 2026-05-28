@@ -351,3 +351,47 @@ export const OrderTypeValues = {
   DELIVERY: 'DELIVERY' as const,
 };
 export type OrderType = (typeof orderTypeEnum.enumValues)[number];
+
+export const costCategoryKindEnum = coreSchema.enum('cost_category_kind', [
+  'ITEM',
+  'FREIGHT',
+  'DUTY',
+  'INSURANCE',
+  'SERVICE',
+  'OTHER',
+]);
+export const CostCategoryKindValues = {
+  ITEM: 'ITEM' as const,
+  FREIGHT: 'FREIGHT' as const,
+  DUTY: 'DUTY' as const,
+  INSURANCE: 'INSURANCE' as const,
+  SERVICE: 'SERVICE' as const,
+  OTHER: 'OTHER' as const,
+};
+export type CostCategoryKind = (typeof costCategoryKindEnum.enumValues)[number];
+
+export const costSourceTypeEnum = coreSchema.enum('cost_source_type', [
+  'goods_receipt',
+  'stock_adjustment',
+  'stock_transfer',
+  'manual_adjustment',
+]);
+export const CostSourceTypeValues = {
+  GOODS_RECEIPT: 'goods_receipt' as const,
+  STOCK_ADJUSTMENT: 'stock_adjustment' as const,
+  STOCK_TRANSFER: 'stock_transfer' as const,
+  MANUAL_ADJUSTMENT: 'manual_adjustment' as const,
+};
+export type CostSourceType = (typeof costSourceTypeEnum.enumValues)[number];
+
+export const costDistributionMethodEnum = coreSchema.enum('cost_distribution_method', [
+  'by_value',
+  'by_quantity',
+  'equal',
+]);
+export const CostDistributionMethodValues = {
+  BY_VALUE: 'by_value' as const,
+  BY_QUANTITY: 'by_quantity' as const,
+  EQUAL: 'equal' as const,
+};
+export type CostDistributionMethod = (typeof costDistributionMethodEnum.enumValues)[number];

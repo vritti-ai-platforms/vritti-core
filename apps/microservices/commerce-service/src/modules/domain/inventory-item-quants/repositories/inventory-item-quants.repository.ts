@@ -120,6 +120,63 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results[0] as InventoryItemQuant;
   }
 
+  // Updates the denormalized total_unit_cost on a quant. The cost-association service recomputes
+  // this from SUM(allocated_amount across all junction rows) / quantity each time a cost row
+  // affecting the quant is inserted, edited, or deleted.
+  async updateTotalUnitCost(id: string, totalUnitCost: bigint): Promise<void> {
+    await this.db
+      .update(inventoryItemQuants)
+      .set({ totalUnitCost })
+      .where(eq(inventoryItemQuants.id, id));
+  }
+
+  // Optional: override the cost currency on a quant. Used by autoAssociatePoPrice when the GR is
+  // linked to a PO that's in a different currency than the BU — the quant's cost currency tracks
+  // whichever currency the cost rows are in.
+  async updateCostCurrency(id: string, costCurrency: string): Promise<void> {
+    await this.db
+      .update(inventoryItemQuants)
+      .set({ costCurrency })
+      .where(eq(inventoryItemQuants.id, id));
+  }
+
+  // Per-source quant lookup — used by autoAssociatePoPrice (gr.id) and by associateCost when
+  // targetQuantIds is omitted.
+  async findBySource(sourceType: string, sourceId: string): Promise<InventoryItemQuant[]> {
+    const rows = await this.db
+      .select()
+      .from(inventoryItemQuants)
+      .where(
+        and(
+          eq(inventoryItemQuants.sourceType, sourceType as never),
+          eq(inventoryItemQuants.sourceId, sourceId),
+        ),
+      );
+    return rows as InventoryItemQuant[];
+  }
+
+  // Quants resolved from a specific GR-item (via gr_lines.resolved_quant_id). Used by
+  // autoAssociatePoPrice to scope the cost row's junction rows to just the lines for one GR-item.
+  async findByGrItemId(grItemId: string): Promise<InventoryItemQuant[]> {
+    const rows = await this.db
+      .select()
+      .from(inventoryItemQuants)
+      .where(
+        sql`${inventoryItemQuants.id} IN (
+          SELECT resolved_quant_id FROM ${sql.identifier('vritti_core')}.goods_receipt_lines
+          WHERE goods_receipt_item_id = ${grItemId} AND resolved_quant_id IS NOT NULL
+        )`,
+      );
+    return rows as InventoryItemQuant[];
+  }
+
+  // Loads a set of quants by ID — used by associateCostInternal to score the distribution math.
+  async findByIds(ids: string[]): Promise<InventoryItemQuant[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.db.select().from(inventoryItemQuants).where(inArray(inventoryItemQuants.id, ids));
+    return rows as InventoryItemQuant[];
+  }
+
   // Returns the tracking type for an item (none | lot | item)
   async findItemTracking(inventoryItemId: string): Promise<InventoryTracking> {
     const rows = await this.db

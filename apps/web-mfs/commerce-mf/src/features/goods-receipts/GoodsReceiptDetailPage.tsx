@@ -18,6 +18,7 @@ import {
 import { GoodsReceiptStatus, goodsReceiptStatusLabels } from '@/schemas/goods-receipts';
 import { LinkPurchaseOrderDialog } from './forms/LinkPurchaseOrderDialog';
 import { BreakdownTab } from './tabs/BreakdownTab';
+import { CostsTab } from './tabs/CostsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
 export const GoodsReceiptDetailPage = () => {
@@ -110,6 +111,11 @@ export const GoodsReceiptDetailPage = () => {
             value: 'breakdown',
             label: `Breakdown (${existingInventoryItemIds.length})`,
             content: <BreakdownTab receipt={receipt} isDraft={isDraft} />,
+          },
+          {
+            value: 'costs',
+            label: 'Costs',
+            content: <CostsTab goodsReceiptId={receipt.id} isDraft={isDraft} />,
           },
         ]}
         value={activeTab}

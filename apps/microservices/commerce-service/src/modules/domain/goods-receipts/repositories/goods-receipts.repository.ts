@@ -54,6 +54,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         notes: goodsReceipts.notes,
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
+        costAssociatedAt: goodsReceipts.costAssociatedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         poNumber: purchaseOrders.poNumber,
@@ -101,6 +102,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         notes: goodsReceipts.notes,
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
+        costAssociatedAt: goodsReceipts.costAssociatedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         poNumber: purchaseOrders.poNumber,
@@ -150,6 +152,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         notes: goodsReceipts.notes,
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
+        costAssociatedAt: goodsReceipts.costAssociatedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         poNumber: purchaseOrders.poNumber,
@@ -206,5 +209,10 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         ...(publishedAt ? { publishedAt } : {}),
       })
       .where(eq(goodsReceipts.id, id));
+  }
+
+  // Re-stamped every time a cost row affecting this GR is inserted, edited, or deleted (PR5).
+  async setCostAssociatedAt(id: string, at: Date): Promise<void> {
+    await this.db.update(goodsReceipts).set({ costAssociatedAt: at }).where(eq(goodsReceipts.id, id));
   }
 }

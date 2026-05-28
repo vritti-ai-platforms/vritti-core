@@ -3612,6 +3612,350 @@
         ]
       }
     },
+    "/commerce-api/cost-categories/table": {
+      "get": {
+        "operationId": "CostCategoriesGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      }
+    },
+    "/commerce-api/cost-categories/select": {
+      "get": {
+        "operationId": "CostCategoriesGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      }
+    },
+    "/commerce-api/cost-categories": {
+      "post": {
+        "operationId": "CostCategoriesGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCostCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      }
+    },
+    "/commerce-api/cost-categories/{id}": {
+      "get": {
+        "operationId": "CostCategoriesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      },
+      "patch": {
+        "operationId": "CostCategoriesGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCostCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      },
+      "delete": {
+        "operationId": "CostCategoriesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      }
+    },
+    "/commerce-api/cost-categories/{id}/deactivate": {
+      "post": {
+        "operationId": "CostCategoriesGatewayController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      }
+    },
+    "/commerce-api/cost-categories/{id}/activate": {
+      "post": {
+        "operationId": "CostCategoriesGatewayController_activate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Cost Categories"
+        ]
+      }
+    },
     "/commerce-api/credit-notes": {
       "post": {
         "operationId": "CreditNotesGatewayController_create",
@@ -4219,6 +4563,164 @@
         ]
       }
     },
+    "/commerce-api/goods-receipts/{id}/costs": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_getCosts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/costs/{costId}/allocations": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_getCostAllocations",
+        "parameters": [
+          {
+            "name": "costId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/associate-cost": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_associateCost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssociateGoodsReceiptCostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/costs/{costId}": {
+      "patch": {
+        "operationId": "GoodsReceiptsGatewayController_updateCost",
+        "parameters": [
+          {
+            "name": "costId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGoodsReceiptCostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      },
+      "delete": {
+        "operationId": "GoodsReceiptsGatewayController_deleteCost",
+        "parameters": [
+          {
+            "name": "costId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/goods-receipts/{id}/items/inventory-item-ids": {
       "get": {
         "operationId": "GoodsReceiptsGatewayController_inventoryItemIds",
@@ -4319,6 +4821,50 @@
             "name": "id",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/price-prefill": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_pricePrefill",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "inventoryItemId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uomId",
+            "required": true,
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -14037,6 +14583,51 @@
           "locationId"
         ]
       },
+      "CreateCostCategoryDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code within the org",
+            "example": "SUPPLIER_PRICE"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name",
+            "example": "Supplier Price"
+          },
+          "kind": {
+            "type": "string",
+            "description": "Reporting kind — fixed enum used for cross-org rollups",
+            "enum": [
+              "ITEM",
+              "FREIGHT",
+              "DUTY",
+              "INSURANCE",
+              "SERVICE",
+              "OTHER"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "kind"
+        ]
+      },
+      "UpdateCostCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the category is selectable"
+          }
+        }
+      },
       "CreateCreditNoteDto": {
         "type": "object",
         "properties": {
@@ -14219,6 +14810,80 @@
           "purchaseOrderId"
         ]
       },
+      "CurrencyAmountDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AssociateGoodsReceiptCostDto": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "string",
+            "description": "Cost category ID"
+          },
+          "totalAmount": {
+            "description": "Total amount in major units",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "distributionMethod": {
+            "type": "string",
+            "enum": [
+              "by_value",
+              "by_quantity",
+              "equal"
+            ]
+          },
+          "vendorRef": {
+            "type": "string",
+            "description": "Invoice / vendor reference",
+            "example": "INV-FR-99"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes"
+          }
+        },
+        "required": [
+          "categoryId",
+          "totalAmount",
+          "distributionMethod"
+        ]
+      },
+      "UpdateGoodsReceiptCostDto": {
+        "type": "object",
+        "properties": {
+          "totalAmount": {
+            "description": "Total amount in major units",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "distributionMethod": {
+            "type": "string",
+            "enum": [
+              "by_value",
+              "by_quantity",
+              "equal"
+            ]
+          },
+          "vendorRef": {
+            "type": "object",
+            "description": "Invoice / vendor reference",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "description": "Notes",
+            "nullable": true
+          }
+        }
+      },
       "AddGoodsReceiptItemDto": {
         "type": "object",
         "properties": {
@@ -14229,6 +14894,14 @@
           "rejectedQuantity": {
             "type": "number",
             "description": "Damage-on-arrival quantity (does not go to inventory)."
+          },
+          "unitPrice": {
+            "description": "Supplier unit price captured at the breakdown step. Pre-filled from PO when linked, else from supplier_items; user may edit. Required for auto-associating SUPPLIER_PRICE at publish.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         },
         "required": [
@@ -14241,6 +14914,14 @@
           "rejectedQuantity": {
             "type": "number",
             "description": "Damage-on-arrival quantity (does not go to inventory)."
+          },
+          "unitPrice": {
+            "description": "Updated supplier unit price. Service recomputes primary_uom_unit_price on save.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         }
       },
@@ -16459,10 +17140,6 @@
           "supplierId",
           "orderDate"
         ]
-      },
-      "CurrencyAmountDto": {
-        "type": "object",
-        "properties": {}
       },
       "AddPurchaseOrderItemDto": {
         "type": "object",

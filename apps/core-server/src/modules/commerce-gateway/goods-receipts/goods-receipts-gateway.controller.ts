@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
@@ -6,8 +6,10 @@ import { AddGoodsReceiptItemDto } from './dto/request/add-goods-receipt-item.dto
 import { AddGoodsReceiptLineDto } from './dto/request/add-goods-receipt-line.dto';
 import { AddGoodsReceiptLineItemDto } from './dto/request/add-goods-receipt-line-item.dto';
 import { AddGoodsReceiptLotDto } from './dto/request/add-goods-receipt-lot.dto';
+import { AssociateGoodsReceiptCostDto } from './dto/request/associate-cost.dto';
 import { CreateGoodsReceiptDto } from './dto/request/create-goods-receipt.dto';
 import { LinkGoodsReceiptPurchaseOrderDto } from './dto/request/link-goods-receipt-purchase-order.dto';
+import { UpdateGoodsReceiptCostDto } from './dto/request/update-cost.dto';
 import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
 import { UpdateGoodsReceiptLineItemDto } from './dto/request/update-goods-receipt-line-item.dto';
@@ -22,6 +24,11 @@ import type { GoodsReceiptLotResponseDto } from './dto/response/goods-receipt-lo
 import type { GoodsReceiptResponseDto } from './dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from './dto/response/goods-receipt-table-response.dto';
 import type { GoodsReceiptTreeNodeResponseDto } from './dto/response/goods-receipt-tree-response.dto';
+import type {
+  CostAllocationResponseDto,
+  GoodsReceiptCostResponseDto,
+  GoodsReceiptCostsResponseDto,
+} from './dto/response/cost-response.dto';
 import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.service';
 
 @ApiTags('Commerce - Goods Receipts')
@@ -87,6 +94,46 @@ export class GoodsReceiptsGatewayController {
     return this.service.delete(id);
   }
 
+  // Costs (Hybrid PR5)
+
+  @Get(':id/costs')
+  getCosts(@Param('id') id: string, @UserId() userId: string): Promise<GoodsReceiptCostsResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${id}/costs`);
+    return this.service.findCostsForTable(id, userId);
+  }
+
+  @Get(':id/costs/:costId/allocations')
+  getCostAllocations(@Param('costId') costId: string): Promise<CostAllocationResponseDto[]> {
+    this.logger.log(`GET /commerce-api/goods-receipts/.../costs/${costId}/allocations`);
+    return this.service.findCostAllocations(costId);
+  }
+
+  @Post(':id/associate-cost')
+  @HttpCode(HttpStatus.CREATED)
+  associateCost(
+    @Param('id') id: string,
+    @Body() dto: AssociateGoodsReceiptCostDto,
+    @UserId() userId: string,
+  ): Promise<GoodsReceiptCostResponseDto> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${id}/associate-cost`);
+    return this.service.associateCost(id, dto, userId);
+  }
+
+  @Patch(':id/costs/:costId')
+  updateCost(
+    @Param('costId') costId: string,
+    @Body() dto: UpdateGoodsReceiptCostDto,
+  ): Promise<GoodsReceiptCostResponseDto> {
+    this.logger.log(`PATCH /commerce-api/goods-receipts/.../costs/${costId}`);
+    return this.service.updateCost(costId, dto);
+  }
+
+  @Delete(':id/costs/:costId')
+  deleteCost(@Param('costId') costId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/goods-receipts/.../costs/${costId}`);
+    return this.service.deleteCost(costId);
+  }
+
   // Items
 
   @Get(':id/items/inventory-item-ids')
@@ -105,6 +152,19 @@ export class GoodsReceiptsGatewayController {
   itemsTable(@Param('id') goodsReceiptId: string, @UserId() userId: string): Promise<GoodsReceiptItemTableResponseDto> {
     this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/table`);
     return this.service.findItemsTable(goodsReceiptId, userId);
+  }
+
+  // Pre-fill the supplier unit price for the breakdown-step Add Item dialog. Resolution order:
+  // PO → supplier_items → null. Used by the frontend to populate the CurrencyField when the user
+  // selects a supplier item.
+  @Get(':id/items/price-prefill')
+  pricePrefill(
+    @Param('id') goodsReceiptId: string,
+    @Query('inventoryItemId') inventoryItemId: string,
+    @Query('uomId') uomId: string,
+  ): Promise<{ unitPrice: { currency: string; value: string } | null; source: 'PO' | 'SUPPLIER_ITEM' | null }> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/price-prefill`);
+    return this.service.findPricePrefill(goodsReceiptId, inventoryItemId, uomId);
   }
 
   @Get(':id/items/:itemId')

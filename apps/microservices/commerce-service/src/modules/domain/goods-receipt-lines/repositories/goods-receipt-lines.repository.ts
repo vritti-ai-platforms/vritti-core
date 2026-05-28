@@ -112,6 +112,13 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     await this.db.update(goodsReceiptLines).set({ resolvedQuantId }).where(eq(goodsReceiptLines.id, lineId));
   }
 
+  // Snapshots the primary-UOM quantity onto the line at publish time. Computed by the publish
+  // service via UomConversionsService — never derived in SQL — so later factor changes don't
+  // retroactively shift the cost math on this line.
+  async setPrimaryUomQty(lineId: string, primaryUomQty: number): Promise<void> {
+    await this.db.update(goodsReceiptLines).set({ primaryUomQty }).where(eq(goodsReceiptLines.id, lineId));
+  }
+
   async totalQuantityForItem(itemId: string, excludeLineId?: string): Promise<number> {
     const where = excludeLineId
       ? and(eq(goodsReceiptLines.goodsReceiptItemId, itemId), sql`${goodsReceiptLines.id} <> ${excludeLineId}`)

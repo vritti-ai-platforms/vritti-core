@@ -1,7 +1,8 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { useDialog } from '@vritti/quantum-ui/hooks';
+import { useBUCurrency, useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
@@ -23,11 +24,16 @@ const EditItemForm = ({
   onSuccess: () => void;
   onCancel: () => void;
 }) => {
+  const buCurrencyCode = useBUCurrency() ?? 'INR';
   const form = useForm<UpdateGoodsReceiptItemFormData>({
     resolver: zodResolver(updateGoodsReceiptItemSchema),
-    defaultValues: { rejectedQuantity: item.rejectedQuantity },
+    defaultValues: {
+      rejectedQuantity: item.rejectedQuantity,
+      unitPrice: item.unitPrice ?? undefined,
+    },
   });
   const mutation = useUpdateGoodsReceiptItem(goodsReceiptId, item.id, { onSuccess });
+  const lockedCurrency = item.unitPrice?.currency ?? buCurrencyCode;
 
   return (
     <Form
@@ -36,8 +42,15 @@ const EditItemForm = ({
       onCancel={onCancel}
       transformSubmit={(data) => ({
         rejectedQuantity: data.rejectedQuantity ?? 0,
+        unitPrice: data.unitPrice && data.unitPrice.value ? data.unitPrice : undefined,
       })}
     >
+      <CurrencyField
+        name="unitPrice"
+        label="Supplier Unit Price"
+        currencyCode={lockedCurrency}
+        description="Update to reflect the actual supplier invoice price. Recalculates the auto-cost at next publish."
+      />
       <TextField name="rejectedQuantity" label="Damaged on arrival" type="number" />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
@@ -64,7 +77,7 @@ export const EditItemDialog = ({
   <Dialog
     handle={handle}
     title="Edit Item"
-    description="Update the damage-on-arrival quantity for this item."
+    description="Update the supplier unit price or the damage-on-arrival quantity for this item."
     content={(close) =>
       item ? <EditItemForm goodsReceiptId={goodsReceiptId} item={item} onSuccess={close} onCancel={close} /> : null
     }

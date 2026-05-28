@@ -148,6 +148,16 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
     await this.db.update(stockAdjustmentLines).set({ resolvedQuantId }).where(eq(stockAdjustmentLines.id, lineId));
   }
 
+  // Snapshots the write-off (sourceQuant.total_unit_cost × primary_uom_qty) onto a deduct-type
+  // SA line at publish time. PR 4. Loss reporting and period-end queries read these columns
+  // directly so they don't have to re-join to the quant's cost history.
+  async setWriteOff(lineId: string, amount: bigint, currency: string): Promise<void> {
+    await this.db
+      .update(stockAdjustmentLines)
+      .set({ writeOffAmount: amount, writeOffCurrency: currency })
+      .where(eq(stockAdjustmentLines.id, lineId));
+  }
+
   async totalQuantityForAdjustment(adjustmentId: string): Promise<number> {
     const [result] = await this.db
       .select({

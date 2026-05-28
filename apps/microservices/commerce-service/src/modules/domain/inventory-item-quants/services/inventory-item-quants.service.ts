@@ -11,6 +11,7 @@ import {
 } from '@vritti/api-sdk';
 import { and, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type CostSourceType,
   type InventoryItemLedgerReferenceType,
   type InventoryItemLedgerType,
   type InventoryItemLot,
@@ -38,6 +39,14 @@ export type CreateQuantParams = {
   lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
   // for tracking='serial' or 'lot_serial': required, length must equal quantity
   serialNumbers?: string[];
+};
+
+export type CreateNewQuantParams = CreateQuantParams & {
+  // Required cost/provenance columns for "per-line quant" creation (Phase 3 / Phase 4).
+  // `quantity` on this variant is expected to be in the inventory item's PRIMARY UOM.
+  costCurrency: string;
+  sourceType: CostSourceType;
+  sourceId: string;
 };
 
 export type AdjustQuantParams =
@@ -169,6 +178,55 @@ export class InventoryItemQuantsService {
     });
   }
 
+  // Always creates a new quant — no merge / no findByItemLocationLot lookup. Used by GR / SA
+  // publish (Phase 3 / Phase 4) so that each receipt line keeps its own cost-batch granularity.
+  // `quantity` MUST already be in the inventory item's PRIMARY UOM. Cost provenance columns
+  // (costCurrency, sourceType, sourceId) are required so the new cost association service can
+  // resolve which document this quant came from. Caller handles the ledger entry separately.
+  async createNewQuantScoped(
+    params: CreateNewQuantParams,
+  ): Promise<{ quant: InventoryItemQuant; lot: InventoryItemLot | null; quantItems: InventoryItemSerial[] }> {
+    this.validateCreateParams(params);
+
+    return this.database.runInTransaction(async () => {
+      if (
+        (params.tracking === InventoryTrackingValues.LOT || params.tracking === InventoryTrackingValues.LOT_SERIAL) &&
+        params.lotId == null
+      ) {
+        throw new BadRequestException(
+          'lotId is required for tracking=lot or lot_serial. App-layer must resolve the lot.',
+        );
+      }
+
+      const quant = await this.repository.createBatch({
+        inventoryItemId: params.inventoryItemId,
+        locationId: params.locationId,
+        lotId: params.lotId ?? null,
+        quantity: params.quantity,
+        costCurrency: params.costCurrency,
+        sourceType: params.sourceType,
+        sourceId: params.sourceId,
+      });
+
+      let quantItems: InventoryItemSerial[] = [];
+      if (
+        params.tracking === InventoryTrackingValues.SERIAL ||
+        params.tracking === InventoryTrackingValues.LOT_SERIAL
+      ) {
+        const serials = params.serialNumbers ?? [];
+        quantItems = await this.repository.insertQuantItems(
+          serials.map((serialNumber) => ({
+            inventoryItemQuantId: quant.id,
+            inventoryItemId: params.inventoryItemId,
+            serialNumber,
+          })),
+        );
+      }
+
+      return { quant, lot: null, quantItems };
+    });
+  }
+
   private validateCreateParams(params: CreateQuantParams): void {
     if (params.quantity <= 0) {
       throw new BadRequestException('Quantity must be positive.');
@@ -256,11 +314,14 @@ export class InventoryItemQuantsService {
     params: AdjustQuantParams,
   ): Promise<{ quant: InventoryItemQuant; consumedItems: InventoryItemSerial[] }> {
     return this.database.runInTransaction(async () => {
+      // PR4 (cost-tracking foundation, plan §6): zero-qty quants STAY — cost history, returns,
+      // and period-end snapshots all read this row. The old auto-delete-on-zero behavior was
+      // removed; the row's cost_currency / source_type / source_id keep the audit trail intact
+      // even when quantity reaches 0.
       switch (params.tracking) {
         case 'quantity':
         case 'lot': {
           const quant = await this.repository.updateQuantity(batchId, params.delta);
-          if (quant.quantity <= 0) await this.repository.deleteQuant(batchId);
           return { quant, consumedItems: [] };
         }
         case 'serial':
@@ -271,7 +332,6 @@ export class InventoryItemQuantsService {
           }
           await this.repository.consumeQuantItems(items.map((i) => i.id));
           const quant = await this.repository.updateQuantity(batchId, -items.length);
-          if (quant.quantity <= 0) await this.repository.deleteQuant(batchId);
           return { quant, consumedItems: items };
         }
       }

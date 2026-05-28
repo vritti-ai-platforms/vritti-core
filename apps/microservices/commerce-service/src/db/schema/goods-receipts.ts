@@ -22,6 +22,9 @@ export const goodsReceipts = coreSchema.table(
     notes: text('notes'),
     metadata: jsonb('metadata').notNull().default({}),
     publishedAt: timestamp('published_at', { withTimezone: true }),
+    // Last time Associate Cost ran on this GR (informational). Repeats as freight, customs, etc.
+    // bills arrive — the timestamp reflects the most recent run, not the first.
+    costAssociatedAt: timestamp('cost_associated_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

@@ -1,5 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, DataTableStateService, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CreateResponseDto, type CurrencyCode, DataTableStateService, majorToMinor, NatsClientService, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import type { AssociateGoodsReceiptCostDto } from '../dto/request/associate-cost.dto';
+import type { UpdateGoodsReceiptCostDto } from '../dto/request/update-cost.dto';
+import type {
+  CostAllocationResponseDto,
+  GoodsReceiptCostResponseDto,
+  GoodsReceiptCostsResponseDto,
+} from '../dto/response/cost-response.dto';
 import type { AddGoodsReceiptItemDto } from '../dto/request/add-goods-receipt-item.dto';
 import type { AddGoodsReceiptLineDto } from '../dto/request/add-goods-receipt-line.dto';
 import type { AddGoodsReceiptLineItemDto } from '../dto/request/add-goods-receipt-line-item.dto';
@@ -75,6 +82,56 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'goodsReceipts.delete', { id });
   }
 
+  // Cost association (Hybrid PR5)
+
+  async findCostsForTable(grId: string, userId: string): Promise<GoodsReceiptCostsResponseDto> {
+    const { state } = await this.dataTableStateService.getCurrentState(userId, `commerce-gr-${grId}-costs`);
+    this.logger.log(`goodsReceipts.costs.findForTable — gr: ${grId}`);
+    return this.nats.send<GoodsReceiptCostsResponseDto>('commerce', 'goodsReceipts.costs.findForTable', {
+      grId,
+      ...(state as TableViewState),
+    });
+  }
+
+  findCostAllocations(costId: string): Promise<CostAllocationResponseDto[]> {
+    this.logger.log(`goodsReceipts.costs.allocations — cost: ${costId}`);
+    return this.nats.send('commerce', 'goodsReceipts.costs.allocations', { costId });
+  }
+
+  associateCost(grId: string, dto: AssociateGoodsReceiptCostDto, userId: string): Promise<GoodsReceiptCostResponseDto> {
+    this.logger.log(`goodsReceipts.costs.associate — gr: ${grId}, category: ${dto.categoryId}`);
+    const totalAmount = majorToMinor(dto.totalAmount.value, dto.totalAmount.currency as CurrencyCode);
+    return this.nats.send('commerce', 'goodsReceipts.costs.associate', {
+      grId,
+      createdBy: userId,
+      categoryId: dto.categoryId,
+      totalAmount: totalAmount.toString(),
+      currencyCode: dto.totalAmount.currency,
+      distributionMethod: dto.distributionMethod,
+      vendorRef: dto.vendorRef,
+      notes: dto.notes,
+    });
+  }
+
+  updateCost(costId: string, dto: UpdateGoodsReceiptCostDto): Promise<GoodsReceiptCostResponseDto> {
+    this.logger.log(`goodsReceipts.costs.update — cost: ${costId}`);
+    const totalAmount = dto.totalAmount
+      ? majorToMinor(dto.totalAmount.value, dto.totalAmount.currency as CurrencyCode).toString()
+      : undefined;
+    return this.nats.send('commerce', 'goodsReceipts.costs.update', {
+      costId,
+      totalAmount,
+      distributionMethod: dto.distributionMethod,
+      vendorRef: dto.vendorRef,
+      notes: dto.notes,
+    });
+  }
+
+  deleteCost(costId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`goodsReceipts.costs.delete — cost: ${costId}`);
+    return this.nats.send('commerce', 'goodsReceipts.costs.delete', { costId });
+  }
+
   // Items
 
   findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
@@ -106,7 +163,16 @@ export class GoodsReceiptsGatewayService {
     goodsReceiptId: string,
     dto: AddGoodsReceiptItemDto,
   ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
-    return this.nats.send('commerce', 'goodsReceipts.addItem', { goodsReceiptId, ...dto });
+    const { unitPrice, ...rest } = dto;
+    const unitPriceMinor = unitPrice
+      ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
+      : undefined;
+    return this.nats.send('commerce', 'goodsReceipts.addItem', {
+      goodsReceiptId,
+      ...rest,
+      unitPrice: unitPriceMinor,
+      currencyCode: unitPrice?.currency,
+    });
   }
 
   updateItem(
@@ -114,7 +180,30 @@ export class GoodsReceiptsGatewayService {
     itemId: string,
     dto: UpdateGoodsReceiptItemDto,
   ): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.updateItem', { goodsReceiptId, itemId, ...dto });
+    const { unitPrice, ...rest } = dto;
+    const unitPriceMinor = unitPrice
+      ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
+      : undefined;
+    return this.nats.send('commerce', 'goodsReceipts.updateItem', {
+      goodsReceiptId,
+      itemId,
+      ...rest,
+      unitPrice: unitPriceMinor,
+      currencyCode: unitPrice?.currency,
+    });
+  }
+
+  findPricePrefill(
+    goodsReceiptId: string,
+    inventoryItemId: string,
+    uomId: string,
+  ): Promise<{ unitPrice: { currency: string; value: string } | null; source: 'PO' | 'SUPPLIER_ITEM' | null }> {
+    this.logger.log(`goodsReceipts.items.pricePrefill — gr: ${goodsReceiptId}`);
+    return this.nats.send('commerce', 'goodsReceipts.items.pricePrefill', {
+      goodsReceiptId,
+      inventoryItemId,
+      uomId,
+    });
   }
 
   removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {

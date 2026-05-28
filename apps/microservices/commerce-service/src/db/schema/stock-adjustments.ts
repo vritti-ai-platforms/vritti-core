@@ -18,6 +18,9 @@ export const stockAdjustments = coreSchema.table(
     status: stockAdjustmentStatusEnum('status').notNull().default('DRAFT'),
     reason: text('reason'),
     publishedAt: timestamp('published_at', { withTimezone: true }),
+    // Last time Associate Cost ran on this SA (informational). Only meaningful for positive SAs
+    // (OPENING_STOCK, positive CORRECTION); negative SAs use the write-off snapshot path instead.
+    costAssociatedAt: timestamp('cost_associated_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

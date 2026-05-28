@@ -309,6 +309,10 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                     poOrderedQuantity: itemNode.poOrderedQuantity ?? null,
                     poReceivedQuantity: itemNode.poReceivedQuantity ?? null,
                     poRemainingQuantity: itemNode.poRemainingQuantity ?? null,
+                    // TODO PR5b follow-up: plumb the captured unit price through the tree query
+                    // so the Edit dialog can prefill from it. For now the dialog shows an empty
+                    // CurrencyField on items opened via the tree; the user re-enters as needed.
+                    unitPrice: null,
                     metadata: {},
                     createdAt: '',
                   }
@@ -409,6 +413,8 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
                   poOrderedQuantity: itemNode.poOrderedQuantity ?? null,
                   poReceivedQuantity: itemNode.poReceivedQuantity ?? null,
                   poRemainingQuantity: itemNode.poRemainingQuantity ?? null,
+                  // TODO PR5b follow-up: plumb the captured unit price through the tree query.
+                  unitPrice: null,
                   metadata: {},
                   createdAt: '',
                 }

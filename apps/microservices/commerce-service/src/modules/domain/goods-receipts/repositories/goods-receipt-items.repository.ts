@@ -10,6 +10,7 @@ import {
   type InventoryTracking,
   inventoryItems,
   purchaseOrderItems,
+  purchaseOrders,
   uom,
 } from '@/db/schema';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
@@ -338,11 +339,67 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     return rows[0] as GoodsReceiptItem | undefined;
   }
 
-  // Used by the publish flow — minimal projection: itemId, inventoryItemId, tracking, rejectedQuantity, poItemId
+  // Used by autoAssociateSupplierPrice (PR5b). Returns each GR-item that has a captured
+  // `primary_uom_unit_price > 0`, along with the data needed to build a SUPPLIER_PRICE cost row:
+  //   - grItemId             — per-item allocation scope (the GR-item's quants)
+  //   - inventoryItemCode    — populated into the cost row's `notes`
+  //   - uomSymbol            — populated into the cost row's `notes`
+  //   - primaryUomUnitPrice  — captured at the breakdown step; minor-units bigint
+  //   - currencyCode         — currency on the gr_item
+  //   - vendorRef            — po.poNumber when linked, else null
+  // Works for both PO-linked and un-linked GRs. PR5b shifted the source from `po_items` to
+  // `goods_receipt_items` so un-linked GRs participate too.
+  async findGrItemsForAutoCost(goodsReceiptId: string): Promise<
+    {
+      grItemId: string;
+      inventoryItemCode: string;
+      uomSymbol: string;
+      primaryUomUnitPrice: bigint;
+      currencyCode: string;
+      vendorRef: string | null;
+    }[]
+  > {
+    const rows = await this.db
+      .select({
+        grItemId: goodsReceiptItems.id,
+        inventoryItemCode: inventoryItems.code,
+        uomSymbol: uom.symbol,
+        primaryUomUnitPrice: goodsReceiptItems.primaryUomUnitPrice,
+        currencyCode: goodsReceiptItems.currencyCode,
+        vendorRef: purchaseOrders.poNumber,
+      })
+      .from(goodsReceiptItems)
+      .innerJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
+      .innerJoin(uom, eq(goodsReceiptItems.uomId, uom.id))
+      .innerJoin(goodsReceipts, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id))
+      .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
+      .where(
+        and(
+          eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
+          sql`${goodsReceiptItems.primaryUomUnitPrice} IS NOT NULL`,
+          sql`${goodsReceiptItems.primaryUomUnitPrice} > 0`,
+          sql`${goodsReceiptItems.currencyCode} IS NOT NULL`,
+        ),
+      )
+      .orderBy(asc(goodsReceiptItems.createdAt));
+
+    return rows.map((r) => ({
+      grItemId: r.grItemId,
+      inventoryItemCode: r.inventoryItemCode,
+      uomSymbol: r.uomSymbol,
+      primaryUomUnitPrice: BigInt(r.primaryUomUnitPrice as unknown as string),
+      currencyCode: r.currencyCode as string,
+      vendorRef: r.vendorRef ?? null,
+    }));
+  }
+
+  // Used by the publish flow — minimal projection: itemId, inventoryItemId, uomId, tracking,
+  // rejectedQuantity, poItemId
   async findByReceiptIdForPublish(goodsReceiptId: string): Promise<
     {
       id: string;
       inventoryItemId: string;
+      uomId: string;
       rejectedQuantity: number;
       tracking: InventoryTracking;
       poItemId: string | null;
@@ -354,6 +411,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       .select({
         id: goodsReceiptItems.id,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
+        uomId: goodsReceiptItems.uomId,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         tracking: inventoryItems.tracking,
         poItemId: purchaseOrderItems.id,
@@ -368,6 +426,10 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         and(
           eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
           eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
+          // Match the UOM too — without this, a PO that has the same item in multiple UOMs
+          // duplicates each GR-item row, which makes the publish loop run twice on the same line
+          // and double-insert serials. Matches the join in runRichSelect / the tree query.
+          eq(purchaseOrderItems.uomId, goodsReceiptItems.uomId),
         ),
       )
       .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId))
@@ -407,6 +469,9 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
+        unitPrice: goodsReceiptItems.unitPrice,
+        primaryUomUnitPrice: goodsReceiptItems.primaryUomUnitPrice,
+        currencyCode: goodsReceiptItems.currencyCode,
         metadata: goodsReceiptItems.metadata,
         createdAt: goodsReceiptItems.createdAt,
         updatedAt: goodsReceiptItems.updatedAt,

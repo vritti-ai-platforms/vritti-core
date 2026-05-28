@@ -1,18 +1,26 @@
 import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
+import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
   ConflictException,
   type CreateResponseDto,
+  type CurrencyCode,
   type FieldMap,
   FilterProcessor,
+  minorToMajor,
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
   ValidationException,
 } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import { and } from '@vritti/api-sdk/drizzle-orm';
+
+function minorToMajorAmount(minor: bigint, currency: string): { currency: string; value: string } {
+  return { currency, value: minorToMajor(minor, currency as CurrencyCode) };
+}
 import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
@@ -36,7 +44,27 @@ export class GoodsReceiptItemsService {
     private readonly itemsRepository: GoodsReceiptItemsRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
     private readonly supplierItemsRepository: SupplierItemsRepository,
+    private readonly uomConversionsService: UomConversionsService,
   ) {}
+
+  // Converts a unit price expressed in the GR-item's UOM to the inventory item's primary UOM
+  // via Decimal. `unitPrice` is per uom-unit; we divide by (uom_qty / primary_uom_qty) which is
+  // the same as multiplying by (primary_uom_qty / uom_qty) — i.e., one uom-unit = one factor of
+  // primary-units, so the per-primary-unit price is `unitPrice / factor`.
+  private async resolvePrimaryUomUnitPrice(
+    inventoryItemId: string,
+    uomId: string,
+    unitPrice: bigint,
+  ): Promise<bigint> {
+    const oneInPrimary = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, 1);
+    if (oneInPrimary <= 0) return unitPrice;
+    return BigInt(
+      new Decimal(unitPrice.toString())
+        .dividedBy(oneInPrimary)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toFixed(0),
+    );
+  }
 
   async findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
     await this.ensureReceiptExists(goodsReceiptId);
@@ -92,7 +120,14 @@ export class GoodsReceiptItemsService {
   // acceptedQuantity is derived from sum(lines.quantity); only rejectedQuantity is stored here.
   async addItem(
     goodsReceiptId: string,
-    data: { supplierItemId: string; rejectedQuantity?: number },
+    data: {
+      supplierItemId: string;
+      rejectedQuantity?: number;
+      // Captured at the breakdown step (Phase 5.5). Required for the auto-associate flow to
+      // create a SUPPLIER_PRICE cost row at publish, even when the GR has no PO link.
+      unitPrice?: bigint;
+      currencyCode?: string;
+    },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
 
@@ -136,6 +171,10 @@ export class GoodsReceiptItemsService {
       this.validateRejectedQuantity(data.rejectedQuantity);
     }
 
+    const primaryUomUnitPrice = data.unitPrice != null
+      ? await this.resolvePrimaryUomUnitPrice(inventoryItemId, uomId, data.unitPrice)
+      : null;
+
     let entity: Awaited<ReturnType<typeof this.itemsRepository.create>>;
     try {
       entity = await this.itemsRepository.create({
@@ -143,6 +182,9 @@ export class GoodsReceiptItemsService {
         inventoryItemId,
         uomId,
         rejectedQuantity: data.rejectedQuantity ?? 0,
+        unitPrice: data.unitPrice ?? null,
+        primaryUomUnitPrice,
+        currencyCode: data.currencyCode ?? null,
       });
     } catch (error: unknown) {
       if ((error as { code?: string })?.code === '23505') {
@@ -164,11 +206,16 @@ export class GoodsReceiptItemsService {
     };
   }
 
-  // Update an existing item (only rejectedQuantity is editable; inventoryItemId is set-once).
+  // Update an existing item. `rejectedQuantity` and the captured supplier price (unitPrice +
+  // currencyCode) are editable; inventoryItemId / uomId are set-once.
   async updateItem(
     goodsReceiptId: string,
     itemId: string,
-    data: { rejectedQuantity?: number },
+    data: {
+      rejectedQuantity?: number;
+      unitPrice?: bigint;
+      currencyCode?: string;
+    },
   ): Promise<SuccessResponseDto> {
     await this.ensureEditableReceipt(goodsReceiptId);
     const item = await this.itemsRepository.findByReceiptIdAndItemId(goodsReceiptId, itemId);
@@ -178,10 +225,61 @@ export class GoodsReceiptItemsService {
       this.validateRejectedQuantity(data.rejectedQuantity);
     }
 
-    await this.itemsRepository.update(item.id, {
-      rejectedQuantity: data.rejectedQuantity,
-    });
+    const update: Record<string, unknown> = {};
+    if (data.rejectedQuantity !== undefined) update.rejectedQuantity = data.rejectedQuantity;
+    if (data.unitPrice !== undefined) {
+      update.unitPrice = data.unitPrice;
+      update.primaryUomUnitPrice = await this.resolvePrimaryUomUnitPrice(
+        item.inventoryItemId,
+        item.uomId,
+        data.unitPrice,
+      );
+    }
+    if (data.currencyCode !== undefined) update.currencyCode = data.currencyCode;
+
+    if (Object.keys(update).length > 0) {
+      await this.itemsRepository.update(item.id, update);
+    }
     return { success: true, message: 'Item updated.' };
+  }
+
+  // Used by the Add Item dialog (PR5b) to pre-fill the supplier unit price after the user
+  // selects a supplier item. Resolution order: PO → supplier_items → null. Returned in major
+  // units so the gateway can hand it straight to a CurrencyField on the frontend.
+  async resolvePricePrefill(
+    goodsReceiptId: string,
+    inventoryItemId: string,
+    uomId: string,
+  ): Promise<{ unitPrice: { currency: string; value: string } | null; source: 'PO' | 'SUPPLIER_ITEM' | null }> {
+    const receipt = await this.ensureReceiptExists(goodsReceiptId);
+
+    if (receipt.purchaseOrderId) {
+      const poItem = await this.poItemsRepository.findItemByInventoryItemAndUom(
+        receipt.purchaseOrderId,
+        inventoryItemId,
+        uomId,
+      );
+      if (poItem) {
+        return {
+          unitPrice: minorToMajorAmount(BigInt(poItem.unitPrice as unknown as string), poItem.currencyCode),
+          source: 'PO',
+        };
+      }
+    }
+
+    const supplierItem = await this.supplierItemsRepository.findItemBySupplierInventoryItemAndUom(
+      receipt.supplierId,
+      inventoryItemId,
+      uomId,
+    );
+    if (supplierItem?.unitPrice != null && supplierItem.currencyCode) {
+      return {
+        unitPrice: minorToMajorAmount(BigInt(supplierItem.unitPrice as unknown as string), supplierItem.currencyCode),
+        source: 'SUPPLIER_ITEM',
+      };
+    }
+
+    return { unitPrice: null, source: null };
   }
 
   async removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {

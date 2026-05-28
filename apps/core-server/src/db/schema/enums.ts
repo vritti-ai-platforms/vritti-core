@@ -85,3 +85,14 @@ export const MediaStatusValues = {
   FAILED: 'failed' as const,
   DELETED: 'deleted' as const,
 };
+
+// BU-level default pick strategy used by commerce-service when removing stock (negative SAs,
+// future sales). Item-level `inventory_items.pick_strategy` (lowercase, has 'none' = "inherit")
+// can override per item; this enum carries no 'none' because the BU must always have a default.
+export const pickStrategyEnum = coreSchema.enum('pick_strategy', ['FEFO', 'FIFO', 'LIFO']);
+export type PickStrategy = (typeof pickStrategyEnum.enumValues)[number];
+export const PickStrategyValues = {
+  FEFO: 'FEFO' as const,
+  FIFO: 'FIFO' as const,
+  LIFO: 'LIFO' as const,
+};

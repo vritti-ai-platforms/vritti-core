@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, jsonb, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, decimal, index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceipts } from './goods-receipts';
 import { inventoryItems } from './inventory-items';
@@ -24,6 +24,16 @@ export const goodsReceiptItems = coreSchema.table(
       .notNull()
       .references(() => uom.id),
     rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    // Supplier price captured at the breakdown step. Pre-filled from PO when GR is linked, else
+    // from supplier_items, then editable. Used by autoAssociateSupplierPrice at publish so this
+    // works for un-linked GRs too. NULLABLE during transition; tighten to NOT NULL in a follow-up
+    // once every code path populates it.
+    unitPrice: bigint('unit_price', { mode: 'bigint' }),
+    // Snapshot of `unit_price` converted to the inventory item's primary UOM, computed at create/
+    // update time via UomConversionsService (Decimal precise). Cost-association math reads this
+    // directly so factor changes after publish don't retroactively shift the per-quant cost.
+    primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }),
+    currencyCode: varchar('currency_code', { length: 3 }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
