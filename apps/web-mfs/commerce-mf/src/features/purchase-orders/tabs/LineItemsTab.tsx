@@ -112,7 +112,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
       {
         accessorKey: 'totalPrice',
         header: 'Total',
-        cell: ({ row }) => <CurrencyCell value={row.original.totalPrice} />,
+        cell: ({ row }) => <CurrencyCell value={row.original.totalPrice} exchangeRate={purchaseOrder.exchangeRate} />,
       },
       ...(canModifyItems
         ? [
@@ -164,7 +164,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
           ]
         : []),
     ],
-    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode, fmt],
+    [canModifyItems, handleRemoveItem, purchaseOrderId, purchaseOrder.currencyCode, purchaseOrder.exchangeRate, fmt],
   );
 
   const { table } = useDataTable({
