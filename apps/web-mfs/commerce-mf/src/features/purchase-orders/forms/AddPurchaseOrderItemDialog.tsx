@@ -70,7 +70,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     >
       <SupplierItemSelector
         name="supplierItemId"
-        params={{ supplierId: purchaseOrder.supplierId, purchaseOrderId: purchaseOrder.id }}
+        params={{ supplierId: purchaseOrder.supplierId }}
         onOptionSelect={handleItemSelect}
       />
       <TextField

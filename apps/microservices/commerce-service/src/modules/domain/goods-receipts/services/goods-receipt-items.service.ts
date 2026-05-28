@@ -1,4 +1,5 @@
 import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
+import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
@@ -34,6 +35,7 @@ export class GoodsReceiptItemsService {
     private readonly receiptsRepository: GoodsReceiptsRepository,
     private readonly itemsRepository: GoodsReceiptItemsRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
+    private readonly supplierItemsRepository: SupplierItemsRepository,
   ) {}
 
   async findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
@@ -84,28 +86,49 @@ export class GoodsReceiptItemsService {
     return this.itemsRepository.findTreeNodesByReceiptId(goodsReceiptId);
   }
 
-  // Add an item to a goods receipt. acceptedQuantity is derived from sum(lines.quantity).
+  // Add an item to a goods receipt. The caller picks a supplier item; we resolve it to its
+  // inventoryItemId server-side (validating that it belongs to the GR's supplier first), then
+  // run the existing PO-line and duplicate checks against the resolved inventoryItemId.
+  // acceptedQuantity is derived from sum(lines.quantity); only rejectedQuantity is stored here.
   async addItem(
     goodsReceiptId: string,
-    data: { inventoryItemId: string; rejectedQuantity?: number },
+    data: { supplierItemId: string; rejectedQuantity?: number },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
+
+    const supplierItem = await this.supplierItemsRepository.findById(data.supplierItemId);
+    if (!supplierItem) throw new NotFoundException('Supplier item not found.');
+    if (supplierItem.supplierId !== receipt.supplierId) {
+      throw new BadRequestException({
+        label: 'Supplier Mismatch',
+        detail: "Supplier item does not belong to this goods receipt's supplier.",
+      });
+    }
+
+    const inventoryItemId = supplierItem.inventoryItemId;
+    const uomId = supplierItem.uomId;
+
     if (receipt.purchaseOrderId) {
-      const poItem = await this.poItemsRepository.findItemByInventoryItemId(
+      const poItem = await this.poItemsRepository.findItemByInventoryItemAndUom(
         receipt.purchaseOrderId,
-        data.inventoryItemId,
+        inventoryItemId,
+        uomId,
       );
       if (!poItem) {
-        throw new BadRequestException('Inventory item is not part of the linked purchase order.');
+        throw new BadRequestException('This item and UOM combination is not on the linked purchase order.');
       }
     }
 
     // Reject duplicate (DB also enforces unique constraint, but produce a clean error)
-    const existing = await this.itemsRepository.findByReceiptAndInventoryItem(goodsReceiptId, data.inventoryItemId);
+    const existing = await this.itemsRepository.findByReceiptInventoryItemAndUom(
+      goodsReceiptId,
+      inventoryItemId,
+      uomId,
+    );
     if (existing) {
       throw new ValidationException({
-        detail: 'This inventory item is already on the goods receipt.',
-        errors: [{ field: 'inventoryItemId', message: 'Already added to this goods receipt.' }],
+        detail: 'This item and UOM combination is already on the goods receipt.',
+        errors: [{ field: 'supplierItemId', message: 'Already added to this goods receipt.' }],
       });
     }
 
@@ -117,15 +140,16 @@ export class GoodsReceiptItemsService {
     try {
       entity = await this.itemsRepository.create({
         goodsReceiptId,
-        inventoryItemId: data.inventoryItemId,
+        inventoryItemId,
+        uomId,
         rejectedQuantity: data.rejectedQuantity ?? 0,
       });
     } catch (error: unknown) {
       if ((error as { code?: string })?.code === '23505') {
         throw new ConflictException({
           label: 'Duplicate Item',
-          detail: 'This inventory item is already on the goods receipt.',
-          errors: [{ field: 'inventoryItemId', message: 'Already added to this goods receipt.' }],
+          detail: 'This item and UOM combination is already on the goods receipt.',
+          errors: [{ field: 'supplierItemId', message: 'Already added to this goods receipt.' }],
         });
       }
       throw error;

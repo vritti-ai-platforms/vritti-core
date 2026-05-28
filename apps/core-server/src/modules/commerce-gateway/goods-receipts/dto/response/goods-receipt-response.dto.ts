@@ -39,6 +39,9 @@ export class GoodsReceiptResponseDto {
   @ApiPropertyOptional({ description: 'True when the GR is DRAFT, has no PO yet, and has no items.' })
   canLinkPurchaseOrder?: boolean;
 
+  @ApiPropertyOptional({ description: 'True when the GR is DRAFT, has a PO linked, and has no items.' })
+  canUnlinkPurchaseOrder?: boolean;
+
   @ApiPropertyOptional({ type: GoodsReceiptPoDto, nullable: true })
   po: GoodsReceiptPoDto | null;
 

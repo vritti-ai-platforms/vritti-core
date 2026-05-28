@@ -2,47 +2,40 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
+import type { SelectOption } from '@vritti/quantum-ui/Select';
+import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddGoodsReceiptItem } from '@/hooks/goods-receipts';
 import { type AddGoodsReceiptItemFormData, addGoodsReceiptItemSchema } from '@/schemas/goods-receipts';
 
-// Build the params payload for the inventory-item select endpoint.
-// poId takes precedence over supplierId at the gateway, and excludeIds is always allowed.
-const buildSelectorParams = (
-  excludeIds: string[],
-  poId?: string | null,
-  supplierId?: string | null,
-): Record<string, string> | undefined => {
-  const params: Record<string, string> = {};
-  if (poId) params.poId = poId;
-  else if (supplierId) params.supplierId = supplierId;
-  if (excludeIds.length) params.excludeIds = excludeIds.join(',');
-  return Object.keys(params).length ? params : undefined;
-};
+interface AddItemDialogContext {
+  goodsReceiptId: string;
+  supplierId: string;
+  poId?: string | null;
+}
 
 const AddItemForm = ({
   goodsReceiptId,
-  excludeIds,
-  poId,
   supplierId,
+  poId,
   onSuccess,
   onCancel,
-}: {
-  goodsReceiptId: string;
-  excludeIds: string[];
-  poId?: string | null;
-  supplierId?: string | null;
-  onSuccess: () => void;
-  onCancel: () => void;
-}) => {
+}: AddItemDialogContext & { onSuccess: () => void; onCancel: () => void }) => {
   const form = useForm<AddGoodsReceiptItemFormData>({
     resolver: zodResolver(addGoodsReceiptItemSchema),
-    defaultValues: { inventoryItemId: '', rejectedQuantity: undefined },
+    defaultValues: { supplierItemId: '', rejectedQuantity: undefined },
   });
   const mutation = useAddGoodsReceiptItem(goodsReceiptId, { onSuccess });
+  // The picked supplier item's UOM dictates whether the rejected qty input allows decimals (e.g.
+  // a "case" UOM is whole-number-only, a "kg" UOM allows fractions).
+  const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
+
+  const handleItemSelect = (option: SelectOption | null) => {
+    setAllowDecimal(option?.additionals?.allowDecimal === true);
+  };
 
   return (
     <Form
@@ -50,16 +43,27 @@ const AddItemForm = ({
       mutation={mutation}
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        inventoryItemId: data.inventoryItemId,
+        supplierItemId: data.supplierItemId,
         rejectedQuantity: data.rejectedQuantity,
       })}
     >
-      <InventoryItemSelector
-        name="inventoryItemId"
-        label="Inventory Item"
-        params={buildSelectorParams(excludeIds, poId, supplierId)}
+      <SupplierItemSelector
+        name="supplierItemId"
+        params={{
+          supplierId,
+          ...(poId ? { purchaseOrderId: poId } : {}),
+          goodsReceiptId,
+        }}
+        onOptionSelect={handleItemSelect}
       />
-      <TextField name="rejectedQuantity" label="Damaged on arrival (optional)" type="number" />
+      <TextField
+        name="rejectedQuantity"
+        label="Damaged on Arrival"
+        description="Optional. Quantity received but unusable — recorded for audit, not added to inventory."
+        type="number"
+        integer={!allowDecimal}
+        positive
+      />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
@@ -73,31 +77,23 @@ const AddItemForm = ({
 
 export const AddItemDialog = ({
   goodsReceiptId,
-  excludeIds,
-  poId,
   supplierId,
+  poId,
   handle,
-}: {
-  goodsReceiptId: string;
-  excludeIds: string[];
-  poId?: string | null;
-  supplierId?: string | null;
-  handle: ReturnType<typeof useDialog>;
-}) => (
+}: AddItemDialogContext & { handle: ReturnType<typeof useDialog> }) => (
   <Dialog
     handle={handle}
     title="Add Item"
     description={
       poId
-        ? 'Pick an inventory item from the linked purchase order.'
-        : 'Pick an inventory item to receive on this goods receipt.'
+        ? 'Pick a supplier item from the linked purchase order.'
+        : 'Pick a supplier item to receive on this goods receipt.'
     }
     content={(close) => (
       <AddItemForm
         goodsReceiptId={goodsReceiptId}
-        excludeIds={excludeIds}
-        poId={poId}
         supplierId={supplierId}
+        poId={poId}
         onSuccess={close}
         onCancel={close}
       />

@@ -31,6 +31,7 @@ export { useGoodsReceiptsTable } from './useGoodsReceiptsTable';
 export { useGoodsReceiptTree } from './useGoodsReceiptTree';
 export { useLinkGoodsReceiptPurchaseOrder } from './useLinkGoodsReceiptPurchaseOrder';
 export { usePublishGoodsReceipt } from './usePublishGoodsReceipt';
+export { useUnlinkGoodsReceiptPurchaseOrder } from './useUnlinkGoodsReceiptPurchaseOrder';
 export { useRemoveGoodsReceiptItem } from './useRemoveGoodsReceiptItem';
 export { useRemoveGoodsReceiptLine } from './useRemoveGoodsReceiptLine';
 export { useRemoveGoodsReceiptLineItem } from './useRemoveGoodsReceiptLineItem';

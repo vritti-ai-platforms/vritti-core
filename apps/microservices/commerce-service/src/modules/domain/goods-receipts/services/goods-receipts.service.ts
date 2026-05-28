@@ -138,9 +138,13 @@ export class GoodsReceiptsService {
   async findById(id: string): Promise<GoodsReceiptDto> {
     const gr = await this.repository.findByIdWithRefs(id);
     if (!gr) throw new NotFoundException('Goods receipt not found.');
-    const { isPublishable, canLinkPurchaseOrder } = await this.computeDraftSignals(id, gr.status, gr.purchaseOrderId);
+    const { isPublishable, canLinkPurchaseOrder, canUnlinkPurchaseOrder } = await this.computeDraftSignals(
+      id,
+      gr.status,
+      gr.purchaseOrderId,
+    );
     return GoodsReceiptDto.from(
-      { ...gr, isPublishable, canLinkPurchaseOrder },
+      { ...gr, isPublishable, canLinkPurchaseOrder, canUnlinkPurchaseOrder },
       {
         supplierName: gr.supplierName,
         poId: gr.purchaseOrderId ?? null,
@@ -192,6 +196,36 @@ export class GoodsReceiptsService {
     return { success: true, message: `Purchase order "${po.poNumber}" linked to goods receipt "${gr.grNumber}".` };
   }
 
+  // Unlinks the PO from a draft GR. Only allowed when the GR has zero items — unlinking after
+  // items exist would leave them orphaned from their PO source. Caller should remove all items first.
+  async unlinkPurchaseOrder(id: string): Promise<SuccessResponseDto> {
+    const gr = await this.repository.findById(id);
+    if (!gr) throw new NotFoundException('Goods receipt not found.');
+    if (gr.status !== GoodsReceiptStatusValues.DRAFT) {
+      throw new BadRequestException({
+        label: 'Cannot Unlink Purchase Order',
+        detail: 'Only draft goods receipts can be unlinked from a purchase order.',
+      });
+    }
+    if (!gr.purchaseOrderId) {
+      throw new BadRequestException({
+        label: 'Not Linked',
+        detail: 'This goods receipt is not linked to a purchase order.',
+      });
+    }
+    const itemsCount = await this.itemsRepository.countByReceiptId(id);
+    if (itemsCount > 0) {
+      throw new BadRequestException({
+        label: 'Cannot Unlink Purchase Order',
+        detail: 'Remove all items before unlinking the purchase order.',
+      });
+    }
+
+    await this.repository.update(id, { purchaseOrderId: null });
+    this.logger.log(`Unlinked PO from goods receipt ${gr.grNumber} (${id})`);
+    return { success: true, message: `Purchase order unlinked from goods receipt "${gr.grNumber}".` };
+  }
+
   async delete(id: string): Promise<SuccessResponseDto> {
     const gr = await this.repository.findById(id);
     if (!gr) throw new NotFoundException('Goods receipt not found.');
@@ -203,21 +237,23 @@ export class GoodsReceiptsService {
     return { success: true, message: `Goods receipt "${gr.grNumber}" deleted successfully.` };
   }
 
-  // Computes both per-detail signals from a single items fetch:
+  // Computes all per-detail signals from a single items fetch:
   //   - isPublishable: status='DRAFT' AND every item has accepted qty > 0 AND every line is balanced
   //                    AND (when PO is linked) PO cap respected.
   //   - canLinkPurchaseOrder: status='DRAFT' AND no PO yet AND no items added.
+  //   - canUnlinkPurchaseOrder: status='DRAFT' AND PO is linked AND no items added.
   private async computeDraftSignals(
     goodsReceiptId: string,
     status: string,
     purchaseOrderId: string | null,
-  ): Promise<{ isPublishable: boolean; canLinkPurchaseOrder: boolean }> {
+  ): Promise<{ isPublishable: boolean; canLinkPurchaseOrder: boolean; canUnlinkPurchaseOrder: boolean }> {
     if (status !== GoodsReceiptStatusValues.DRAFT) {
-      return { isPublishable: false, canLinkPurchaseOrder: false };
+      return { isPublishable: false, canLinkPurchaseOrder: false, canUnlinkPurchaseOrder: false };
     }
     const items = await this.itemsRepository.findByReceiptId(goodsReceiptId);
     const canLinkPurchaseOrder = !purchaseOrderId && items.length === 0;
-    if (items.length === 0) return { isPublishable: false, canLinkPurchaseOrder };
+    const canUnlinkPurchaseOrder = !!purchaseOrderId && items.length === 0;
+    if (items.length === 0) return { isPublishable: false, canLinkPurchaseOrder, canUnlinkPurchaseOrder };
     const isPublishable = items.every((item) => {
       if (item.unbalancedLinesCount > 0) return false;
       if (item.acceptedQuantity <= 0) return false;
@@ -227,6 +263,6 @@ export class GoodsReceiptsService {
       }
       return true;
     });
-    return { isPublishable, canLinkPurchaseOrder };
+    return { isPublishable, canLinkPurchaseOrder, canUnlinkPurchaseOrder };
   }
 }

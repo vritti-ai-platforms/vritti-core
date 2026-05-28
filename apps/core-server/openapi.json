@@ -4191,6 +4191,34 @@
         ]
       }
     },
+    "/commerce-api/goods-receipts/{id}/unlink-po": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_unlinkPurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/goods-receipts/{id}/items/inventory-item-ids": {
       "get": {
         "operationId": "GoodsReceiptsGatewayController_inventoryItemIds",
@@ -5409,7 +5437,16 @@
             "name": "purchaseOrderId",
             "required": false,
             "in": "query",
-            "description": "Exclude items already on this purchase order",
+            "description": "Restrict results to supplier items whose (inventoryItemId, uomId) matches a line on this purchase order.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "goodsReceiptId",
+            "required": false,
+            "in": "query",
+            "description": "Exclude supplier items whose inventoryItemId is already on this goods receipt.",
             "schema": {
               "type": "string"
             }
@@ -14176,9 +14213,9 @@
       "AddGoodsReceiptItemDto": {
         "type": "object",
         "properties": {
-          "inventoryItemId": {
+          "supplierItemId": {
             "type": "string",
-            "description": "Inventory item ID"
+            "description": "Supplier item ID — server resolves to the canonical inventory item."
           },
           "rejectedQuantity": {
             "type": "number",
@@ -14186,7 +14223,7 @@
           }
         },
         "required": [
-          "inventoryItemId"
+          "supplierItemId"
         ]
       },
       "UpdateGoodsReceiptItemDto": {

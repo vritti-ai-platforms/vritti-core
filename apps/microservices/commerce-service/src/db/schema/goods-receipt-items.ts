@@ -3,6 +3,7 @@ import { decimal, index, jsonb, pgPolicy, timestamp, unique, uuid } from '@vritt
 import { coreSchema } from './core-schema';
 import { goodsReceipts } from './goods-receipts';
 import { inventoryItems } from './inventory-items';
+import { uom } from './uom';
 
 export const goodsReceiptItems = coreSchema.table(
   'goods_receipt_items',
@@ -16,6 +17,12 @@ export const goodsReceiptItems = coreSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
+    // Snapshot of the supplier-item UOM picked at add time. Part of the natural key together with
+    // (goodsReceiptId, inventoryItemId), so the same product can appear multiple times under
+    // different UOMs (e.g. 5 cases + 12 loose pieces). Mirrors purchase_order_items's keying.
+    uomId: uuid('uom_id')
+      .notNull()
+      .references(() => uom.id),
     rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -25,9 +32,10 @@ export const goodsReceiptItems = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_goods_receipt_items_gr_item').on(table.goodsReceiptId, table.inventoryItemId),
+    unique('uq_goods_receipt_items_gr_item_uom').on(table.goodsReceiptId, table.inventoryItemId, table.uomId),
     index('idx_goods_receipt_items_receipt').on(table.goodsReceiptId),
     index('idx_goods_receipt_items_inventory').on(table.inventoryItemId),
+    index('idx_goods_receipt_items_uom').on(table.uomId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

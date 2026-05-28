@@ -8,7 +8,7 @@ import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/Tree
 import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Boxes, MapPin, Package, Plus } from 'lucide-react';
-import { useGoodsReceiptInventoryItemIds, useGoodsReceiptTree } from '@/hooks/goods-receipts';
+import { useGoodsReceiptTree } from '@/hooks/goods-receipts';
 import { type GoodsReceiptTreeNode, InventoryTrackingValues } from '@/schemas/goods-receipts';
 import { AddItemDialog } from '../forms/AddItemDialog';
 
@@ -124,7 +124,6 @@ export const GoodsReceiptTreePanel = ({
   onSelect,
 }: GoodsReceiptTreePanelProps) => {
   const { data: tree = [], isFetching } = useGoodsReceiptTree(goodsReceiptId);
-  const { data: existingItemIds = [] } = useGoodsReceiptInventoryItemIds(goodsReceiptId);
   const addItemDialog = useDialog();
 
   const treeData = toTreeData(tree);
@@ -191,9 +190,8 @@ export const GoodsReceiptTreePanel = ({
 
       <AddItemDialog
         goodsReceiptId={goodsReceiptId}
-        excludeIds={existingItemIds}
-        poId={poId}
         supplierId={supplierId}
+        poId={poId}
         handle={addItemDialog}
       />
     </>

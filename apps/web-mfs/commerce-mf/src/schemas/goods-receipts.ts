@@ -41,6 +41,7 @@ export interface GoodsReceiptData {
   status: GoodsReceiptStatus;
   isPublishable?: boolean;
   canLinkPurchaseOrder?: boolean;
+  canUnlinkPurchaseOrder?: boolean;
   supplierName: string;
   po: GoodsReceiptPoData | null;
   receivedBy: string | null;
@@ -157,7 +158,7 @@ export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineI
 const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
 
 export const addGoodsReceiptItemSchema = z.object({
-  inventoryItemId: z.string().min(1, 'Inventory item is required'),
+  supplierItemId: z.string({ error: 'Supplier item is required' }).min(1, 'Supplier item is required'),
   rejectedQuantity: zOptionalNonNegativeNumber,
 });
 export type AddGoodsReceiptItemFormData = z.infer<typeof addGoodsReceiptItemSchema>;

@@ -45,11 +45,11 @@ export class GoodsReceiptsItemsController {
 
   @MessagePattern({ cmd: 'goodsReceipts.addItem' })
   addItem(
-    @Payload() data: { goodsReceiptId: string; inventoryItemId: string; rejectedQuantity?: number },
+    @Payload() data: { goodsReceiptId: string; supplierItemId: string; rejectedQuantity?: number },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
-    this.logger.log(`goodsReceipts.addItem — item: ${data.inventoryItemId}`);
+    this.logger.log(`goodsReceipts.addItem — supplierItem: ${data.supplierItemId}`);
     return this.itemsService.addItem(data.goodsReceiptId, {
-      inventoryItemId: data.inventoryItemId,
+      supplierItemId: data.supplierItemId,
       rejectedQuantity: data.rejectedQuantity,
     });
   }

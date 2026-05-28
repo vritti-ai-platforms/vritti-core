@@ -11,13 +11,14 @@ import {
   categories,
   conversionInputs,
   conversionOutputs,
+  goodsReceiptItems,
   inventoryItems,
   inventoryItemUomConversions,
   purchaseOrderItems,
   stockAdjustments,
   stockTransfers,
-  suppliers,
   supplierItems,
+  suppliers,
   uom,
 } from '@/db/schema';
 
@@ -27,7 +28,10 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     super(database, inventoryItems);
   }
 
-  findForSelectWithUom(config: FindForSelectConfig, options?: { excludeForSupplierId?: string }): Promise<SelectQueryResult> {
+  findForSelectWithUom(
+    config: FindForSelectConfig,
+    options?: { excludeForSupplierId?: string },
+  ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
 
     if (options?.excludeForSupplierId) {
@@ -67,11 +71,14 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   // Returns paginated supplier item options filtered by supplier — one row per supplier item (item + UOM pair).
   // Uses supplierItems.id as the select value so each item+UOM combination is a distinct option.
   // When supplierId is absent, returns all active supplier items and includes supplier name as description.
-  // When purchaseOrderId is supplied, excludes item+UOM combos already on that PO.
+  // When purchaseOrderId is supplied, restricts the result to supplier items whose (inventoryItemId, uomId)
+  //   matches a line on that PO (i.e. the items the receiver is expected to receive). This is the include-only
+  //   semantics used by the GR add-item flow.
+  // When goodsReceiptId is supplied, excludes supplier items whose inventoryItemId is already on that GR.
   findForSelectBySupplier(
     supplierId: string | undefined,
     config: FindForSelectConfig,
-    options?: { purchaseOrderId?: string },
+    options?: { purchaseOrderId?: string; goodsReceiptId?: string },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [eq(supplierItems.isActive, true)];
 
@@ -81,11 +88,21 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
 
     if (options?.purchaseOrderId) {
       const poId = options.purchaseOrderId;
-      conditions.push(sql`NOT EXISTS (
+      conditions.push(sql`EXISTS (
         SELECT 1 FROM ${purchaseOrderItems} poi
         WHERE poi.purchase_order_id = ${poId}
           AND poi.inventory_item_id = ${inventoryItems.id}
           AND poi.uom_id = ${supplierItems.uomId}
+      )`);
+    }
+
+    if (options?.goodsReceiptId) {
+      const grId = options.goodsReceiptId;
+      conditions.push(sql`NOT EXISTS (
+        SELECT 1 FROM ${goodsReceiptItems} gri
+        WHERE gri.goods_receipt_id = ${grId}
+          AND gri.inventory_item_id = ${inventoryItems.id}
+          AND gri.uom_id = ${supplierItems.uomId}
       )`);
     }
 

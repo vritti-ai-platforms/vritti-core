@@ -159,13 +159,18 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       .select({ node })
       .from(goodsReceiptItems)
       .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
-      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
+      // UOM resolves from the GR item's snapshot, not the inventory item's primary UOM, so the
+      // displayed symbol matches what the receiver picked (e.g. "box" not the item's primary "pc").
+      .leftJoin(uom, eq(goodsReceiptItems.uomId, uom.id))
       .leftJoin(goodsReceipts, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id))
+      // PO join matches on the full (po_id, inventory_item_id, uom_id) triple to avoid multiplying
+      // rows when the PO has the same product in multiple UOMs.
       .leftJoin(
         purchaseOrderItems,
         and(
           eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
           eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
+          eq(purchaseOrderItems.uomId, goodsReceiptItems.uomId),
         ),
       )
       .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId))
@@ -265,13 +270,14 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       },
       leftJoins: [
         { table: inventoryItems, on: eq(goodsReceiptItems.inventoryItemId, inventoryItems.id) },
-        { table: uom, on: eq(inventoryItems.uomId, uom.id) },
+        { table: uom, on: eq(goodsReceiptItems.uomId, uom.id) },
         { table: goodsReceipts, on: eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id) },
         {
           table: purchaseOrderItems,
           on: and(
             eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
             eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
+            eq(purchaseOrderItems.uomId, goodsReceiptItems.uomId),
           ),
         },
       ],
@@ -283,10 +289,12 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     return { result, count };
   }
 
-  // For a given (receiptId, inventoryItemId), check if a row already exists (for unique enforcement at write time)
-  async findByReceiptAndInventoryItem(
+  // For a given (receiptId, inventoryItemId, uomId), check if a row already exists. Matches the
+  // unique constraint (gr_id, inventory_item_id, uom_id) — used by the duplicate check on add.
+  async findByReceiptInventoryItemAndUom(
     goodsReceiptId: string,
     inventoryItemId: string,
+    uomId: string,
   ): Promise<GoodsReceiptItem | undefined> {
     const rows = await this.db
       .select()
@@ -295,6 +303,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         and(
           eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
           eq(goodsReceiptItems.inventoryItemId, inventoryItemId),
+          eq(goodsReceiptItems.uomId, uomId),
         ),
       )
       .limit(1);
@@ -386,13 +395,14 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       })
       .from(goodsReceiptItems)
       .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
-      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
+      .leftJoin(uom, eq(goodsReceiptItems.uomId, uom.id))
       .leftJoin(goodsReceipts, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id))
       .leftJoin(
         purchaseOrderItems,
         and(
           eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
           eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
+          eq(purchaseOrderItems.uomId, goodsReceiptItems.uomId),
         ),
       )
       .where(where ?? sql`TRUE`)

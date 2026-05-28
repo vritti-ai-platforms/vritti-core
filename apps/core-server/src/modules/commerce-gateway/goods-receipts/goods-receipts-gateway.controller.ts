@@ -75,6 +75,12 @@ export class GoodsReceiptsGatewayController {
     return this.service.linkPurchaseOrder(id, dto.purchaseOrderId);
   }
 
+  @Post(':id/unlink-po')
+  unlinkPurchaseOrder(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${id}/unlink-po`);
+    return this.service.unlinkPurchaseOrder(id);
+  }
+
   @Delete(':id')
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/goods-receipts/${id}`);

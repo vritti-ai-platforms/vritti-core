@@ -22,7 +22,7 @@ export interface CreateGoodsReceiptPayload {
 }
 
 export interface AddGoodsReceiptItemPayload {
-  inventoryItemId: string;
+  supplierItemId: string;
   rejectedQuantity?: number;
 }
 
@@ -94,6 +94,10 @@ export function linkGoodsReceiptPurchaseOrder(id: string, purchaseOrderId: strin
   return axios
     .post<SuccessResponse>(`commerce-api/goods-receipts/${id}/link-po`, { purchaseOrderId })
     .then((r) => r.data);
+}
+
+export function unlinkGoodsReceiptPurchaseOrder(id: string): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`commerce-api/goods-receipts/${id}/unlink-po`).then((r) => r.data);
 }
 
 export function deleteGoodsReceipt(id: string): Promise<SuccessResponse> {

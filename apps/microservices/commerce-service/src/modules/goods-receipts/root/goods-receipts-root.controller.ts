@@ -45,6 +45,12 @@ export class GoodsReceiptsRootController {
     return this.service.linkPurchaseOrder(data.id, data.purchaseOrderId);
   }
 
+  @MessagePattern({ cmd: 'goodsReceipts.unlinkPo' })
+  unlinkPurchaseOrder(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`goodsReceipts.unlinkPo — id: ${data.id}`);
+    return this.service.unlinkPurchaseOrder(data.id);
+  }
+
   @MessagePattern({ cmd: 'goodsReceipts.delete' })
   delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.delete');

@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
@@ -213,15 +214,31 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-xl font-semibold">{itemNode?.name ?? '—'}</h3>
-                <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
-                  <div>
-                    Accepted: {itemNode?.acceptedQuantity ?? 0} {uomSymbol ?? ''}
-                  </div>
-                  <div>
-                    Damaged: {itemNode?.rejectedQuantity ?? 0} {uomSymbol ?? ''}
-                  </div>
-                  {poRemaining != null && <div className="col-span-2">PO remaining: {poRemaining}</div>}
-                </div>
+                <DetailSection wrap className="mt-2">
+                  <DetailField
+                    className="px-4 py-2"
+                    label="Accepted"
+                    type="string"
+                    mono
+                    value={`${itemNode?.acceptedQuantity ?? 0} ${uomSymbol ?? ''}`}
+                  />
+                  <DetailField
+                    className="px-4 py-2"
+                    label="Damaged"
+                    type="string"
+                    mono
+                    value={`${itemNode?.rejectedQuantity ?? 0} ${uomSymbol ?? ''}`}
+                  />
+                  {poRemaining != null && (
+                    <DetailField
+                      className="px-4 py-2"
+                      label="PO Remaining"
+                      type="string"
+                      mono
+                      value={`${poRemaining} ${uomSymbol ?? ''}`}
+                    />
+                  )}
+                </DetailSection>
               </div>
               {isDraft && itemNode && (
                 <div className="flex items-center gap-2">
@@ -306,15 +323,31 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold">{itemNode?.name ?? '—'}</h3>
-              <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
-                <div>
-                  Accepted: {itemNode?.acceptedQuantity ?? 0} {uomSymbol ?? ''}
-                </div>
-                <div>
-                  Damaged: {itemNode?.rejectedQuantity ?? 0} {uomSymbol ?? ''}
-                </div>
-                {poRemaining != null && <div className="col-span-2">PO remaining: {poRemaining}</div>}
-              </div>
+              <DetailSection wrap className="mt-2">
+                <DetailField
+                  className="px-4 py-2"
+                  label="Accepted"
+                  type="string"
+                  mono
+                  value={`${itemNode?.acceptedQuantity ?? 0} ${uomSymbol ?? ''}`}
+                />
+                <DetailField
+                  className="px-4 py-2"
+                  label="Damaged"
+                  type="string"
+                  mono
+                  value={`${itemNode?.rejectedQuantity ?? 0} ${uomSymbol ?? ''}`}
+                />
+                {poRemaining != null && (
+                  <DetailField
+                    className="px-4 py-2"
+                    label="PO Remaining"
+                    type="string"
+                    mono
+                    value={`${poRemaining} ${uomSymbol ?? ''}`}
+                  />
+                )}
+              </DetailSection>
             </div>
             {isDraft && itemNode && (
               <div className="flex items-center gap-2">

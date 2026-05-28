@@ -3,31 +3,39 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
-import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { CheckCircle, Link2 } from 'lucide-react';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
+import { CheckCircle, Link2, Unlink } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteGoodsReceipt, useGoodsReceipt, usePublishGoodsReceipt } from '@/hooks/goods-receipts';
+import {
+  useDeleteGoodsReceipt,
+  useGoodsReceipt,
+  useGoodsReceiptInventoryItemIds,
+  usePublishGoodsReceipt,
+  useUnlinkGoodsReceiptPurchaseOrder,
+} from '@/hooks/goods-receipts';
 import { GoodsReceiptStatus, goodsReceiptStatusLabels } from '@/schemas/goods-receipts';
-import { GoodsReceiptOverviewCard } from './components/GoodsReceiptOverviewCard';
-import { GoodsReceiptTreePanel, type TreeSelection } from './components/GoodsReceiptTreePanel';
-import { RightContent } from './components/RightContent';
 import { LinkPurchaseOrderDialog } from './forms/LinkPurchaseOrderDialog';
+import { BreakdownTab } from './tabs/BreakdownTab';
+import { OverviewTab } from './tabs/OverviewTab';
 
 export const GoodsReceiptDetailPage = () => {
   const { id } = useSlugParams('grSlug');
   const navigate = useNavigate();
   const confirm = useConfirm();
   const { data: receipt } = useGoodsReceipt(id);
+  const { data: existingInventoryItemIds = [] } = useGoodsReceiptInventoryItemIds(receipt.id);
   const publishMutation = usePublishGoodsReceipt(receipt.id);
   const deleteMutation = useDeleteGoodsReceipt();
+  const unlinkPoMutation = useUnlinkGoodsReceiptPurchaseOrder(receipt.id);
   const linkPoDialog = useDialog();
-  const [selection, setSelection] = useState<TreeSelection | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   const isDraft = receipt.status === GoodsReceiptStatus.DRAFT;
   const canPublish = isDraft && !!receipt.isPublishable;
   const canLinkPo = !!receipt.canLinkPurchaseOrder;
+  const canUnlinkPo = !!receipt.canUnlinkPurchaseOrder;
 
   const handlePublish = useCallback(async () => {
     const confirmed = await confirm({
@@ -48,6 +56,15 @@ export const GoodsReceiptDetailPage = () => {
     if (confirmed) deleteMutation.mutate(receipt.id, { onSuccess: () => navigate('..') });
   }, [confirm, deleteMutation, navigate, receipt.id]);
 
+  const handleUnlinkPo = useCallback(async () => {
+    const confirmed = await confirm({
+      title: 'Unlink purchase order?',
+      description: 'The PO link will be removed. You can link a different PO afterwards.',
+      confirmLabel: 'Unlink',
+    });
+    if (confirmed) unlinkPoMutation.mutate();
+  }, [confirm, unlinkPoMutation]);
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -60,6 +77,16 @@ export const GoodsReceiptDetailPage = () => {
               {canLinkPo && (
                 <Button variant="outline" startAdornment={<Link2 className="size-4" />} onClick={linkPoDialog.open}>
                   Link PO
+                </Button>
+              )}
+              {canUnlinkPo && (
+                <Button
+                  variant="outline"
+                  startAdornment={<Unlink className="size-4" />}
+                  onClick={handleUnlinkPo}
+                  isLoading={unlinkPoMutation.isPending}
+                >
+                  Unlink PO
                 </Button>
               )}
               <Button
@@ -76,33 +103,18 @@ export const GoodsReceiptDetailPage = () => {
         }
       />
 
-      <Dialog
-        handle={linkPoDialog}
-        title="Link Purchase Order"
-        description={`Attach a confirmed PO from ${receipt.supplierName} to this goods receipt.`}
-        content={(close) => (
-          <LinkPurchaseOrderDialog goodsReceipt={receipt} onSuccess={close} onCancel={close} />
-        )}
+      <Tabs
+        tabs={[
+          { value: 'overview', label: 'Overview', content: <OverviewTab receipt={receipt} /> },
+          {
+            value: 'breakdown',
+            label: `Breakdown (${existingInventoryItemIds.length})`,
+            content: <BreakdownTab receipt={receipt} isDraft={isDraft} />,
+          },
+        ]}
+        value={activeTab}
+        onValueChange={setActiveTab}
       />
-
-      <GoodsReceiptOverviewCard id={id} />
-
-      <PageContent>
-        <GoodsReceiptTreePanel
-          goodsReceiptId={receipt.id}
-          isDraft={isDraft}
-          poId={receipt.po?.id ?? null}
-          supplierId={receipt.supplierId}
-          selection={selection}
-          onSelect={setSelection}
-        />
-        <RightContent
-          goodsReceiptId={receipt.id}
-          isDraft={isDraft}
-          selection={selection}
-          onSelectionChange={setSelection}
-        />
-      </PageContent>
 
       {isDraft && (
         <DangerZone
@@ -114,6 +126,15 @@ export const GoodsReceiptDetailPage = () => {
           disabled={deleteMutation.isPending}
         />
       )}
+
+      <Dialog
+        handle={linkPoDialog}
+        title="Link Purchase Order"
+        description={`Attach a confirmed PO from ${receipt.supplierName} to this goods receipt.`}
+        content={(close) => (
+          <LinkPurchaseOrderDialog goodsReceipt={receipt} onSuccess={close} onCancel={close} />
+        )}
+      />
     </div>
   );
 };
