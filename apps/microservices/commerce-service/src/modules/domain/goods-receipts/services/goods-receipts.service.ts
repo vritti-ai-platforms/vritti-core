@@ -138,9 +138,9 @@ export class GoodsReceiptsService {
   async findById(id: string): Promise<GoodsReceiptDto> {
     const gr = await this.repository.findByIdWithRefs(id);
     if (!gr) throw new NotFoundException('Goods receipt not found.');
-    const isPublishable = await this.isPublishable(id, gr.status);
+    const { isPublishable, canLinkPurchaseOrder } = await this.computeDraftSignals(id, gr.status, gr.purchaseOrderId);
     return GoodsReceiptDto.from(
-      { ...gr, isPublishable },
+      { ...gr, isPublishable, canLinkPurchaseOrder },
       {
         supplierName: gr.supplierName,
         poId: gr.purchaseOrderId ?? null,
@@ -151,6 +151,45 @@ export class GoodsReceiptsService {
         poCurrencyCode: gr.poCurrencyCode ?? null,
       },
     );
+  }
+
+  // Links a PO to a draft GR that was created without one. Only allowed when the GR has zero
+  // items (linking after items exist would risk inconsistent PO caps). Supplier must match.
+  async linkPurchaseOrder(id: string, purchaseOrderId: string): Promise<SuccessResponseDto> {
+    const gr = await this.repository.findById(id);
+    if (!gr) throw new NotFoundException('Goods receipt not found.');
+    if (gr.status !== GoodsReceiptStatusValues.DRAFT) {
+      throw new BadRequestException({
+        label: 'Cannot Link Purchase Order',
+        detail: 'Only draft goods receipts can be linked to a purchase order.',
+      });
+    }
+    if (gr.purchaseOrderId) {
+      throw new BadRequestException({
+        label: 'Already Linked',
+        detail: 'This goods receipt is already linked to a purchase order.',
+      });
+    }
+    const itemsCount = await this.itemsRepository.countByReceiptId(id);
+    if (itemsCount > 0) {
+      throw new BadRequestException({
+        label: 'Cannot Link Purchase Order',
+        detail: 'Remove all items before linking a purchase order.',
+      });
+    }
+
+    const po = await this.poRepository.findById(purchaseOrderId);
+    if (!po) throw new NotFoundException('Purchase order not found.');
+    if (po.supplierId !== gr.supplierId) {
+      throw new BadRequestException({
+        label: 'Supplier Mismatch',
+        detail: "Purchase order's supplier does not match the goods receipt's supplier.",
+      });
+    }
+
+    await this.repository.update(id, { purchaseOrderId: po.id });
+    this.logger.log(`Linked PO ${po.poNumber} to goods receipt ${gr.grNumber} (${id})`);
+    return { success: true, message: `Purchase order "${po.poNumber}" linked to goods receipt "${gr.grNumber}".` };
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {
@@ -164,14 +203,22 @@ export class GoodsReceiptsService {
     return { success: true, message: `Goods receipt "${gr.grNumber}" deleted successfully.` };
   }
 
-  // is_publishable: status='DRAFT' AND every item has accepted qty > 0 AND every line is balanced
-  // AND (when PO is linked) PO cap respected. The lines.is_balanced flag captures the serial mismatch
-  // case; the items query gives us acceptedQuantity (sum of lines) and PO totals.
-  private async isPublishable(goodsReceiptId: string, status: string): Promise<boolean> {
-    if (status !== GoodsReceiptStatusValues.DRAFT) return false;
+  // Computes both per-detail signals from a single items fetch:
+  //   - isPublishable: status='DRAFT' AND every item has accepted qty > 0 AND every line is balanced
+  //                    AND (when PO is linked) PO cap respected.
+  //   - canLinkPurchaseOrder: status='DRAFT' AND no PO yet AND no items added.
+  private async computeDraftSignals(
+    goodsReceiptId: string,
+    status: string,
+    purchaseOrderId: string | null,
+  ): Promise<{ isPublishable: boolean; canLinkPurchaseOrder: boolean }> {
+    if (status !== GoodsReceiptStatusValues.DRAFT) {
+      return { isPublishable: false, canLinkPurchaseOrder: false };
+    }
     const items = await this.itemsRepository.findByReceiptId(goodsReceiptId);
-    if (items.length === 0) return false;
-    return items.every((item) => {
+    const canLinkPurchaseOrder = !purchaseOrderId && items.length === 0;
+    if (items.length === 0) return { isPublishable: false, canLinkPurchaseOrder };
+    const isPublishable = items.every((item) => {
       if (item.unbalancedLinesCount > 0) return false;
       if (item.acceptedQuantity <= 0) return false;
       if (item.poOrderedQuantity != null) {
@@ -180,5 +227,6 @@ export class GoodsReceiptsService {
       }
       return true;
     });
+    return { isPublishable, canLinkPurchaseOrder };
   }
 }

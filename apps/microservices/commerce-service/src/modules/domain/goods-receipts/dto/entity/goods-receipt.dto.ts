@@ -8,6 +8,7 @@ export class GoodsReceiptDto {
   supplierName: string;
   status: string;
   isPublishable?: boolean;
+  canLinkPurchaseOrder?: boolean;
   po: {
     id: string;
     poNumber: string;
@@ -22,7 +23,7 @@ export class GoodsReceiptDto {
   createdAt: string;
 
   static from(
-    entity: GoodsReceipt & { isPublishable?: boolean },
+    entity: GoodsReceipt & { isPublishable?: boolean; canLinkPurchaseOrder?: boolean },
     refs?: {
       supplierName?: string | null;
       poId?: string | null;
@@ -40,6 +41,7 @@ export class GoodsReceiptDto {
     dto.supplierName = refs?.supplierName ?? '';
     dto.status = entity.status;
     if (entity.isPublishable !== undefined) dto.isPublishable = entity.isPublishable;
+    if (entity.canLinkPurchaseOrder !== undefined) dto.canLinkPurchaseOrder = entity.canLinkPurchaseOrder;
     dto.po =
       refs?.poId && refs?.poNumber
         ? {

@@ -4153,6 +4153,44 @@
         ]
       }
     },
+    "/commerce-api/goods-receipts/{id}/link-po": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_linkPurchaseOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkGoodsReceiptPurchaseOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/goods-receipts/{id}/items/inventory-item-ids": {
       "get": {
         "operationId": "GoodsReceiptsGatewayController_inventoryItemIds",
@@ -14121,6 +14159,18 @@
         "required": [
           "supplierId",
           "receivedDate"
+        ]
+      },
+      "LinkGoodsReceiptPurchaseOrderDto": {
+        "type": "object",
+        "properties": {
+          "purchaseOrderId": {
+            "type": "string",
+            "description": "Purchase order ID to link to the goods receipt."
+          }
+        },
+        "required": [
+          "purchaseOrderId"
         ]
       },
       "AddGoodsReceiptItemDto": {

@@ -29,6 +29,7 @@ export { useGoodsReceiptLots } from './useGoodsReceiptLots';
 export { useGoodsReceipts } from './useGoodsReceipts';
 export { useGoodsReceiptsTable } from './useGoodsReceiptsTable';
 export { useGoodsReceiptTree } from './useGoodsReceiptTree';
+export { useLinkGoodsReceiptPurchaseOrder } from './useLinkGoodsReceiptPurchaseOrder';
 export { usePublishGoodsReceipt } from './usePublishGoodsReceipt';
 export { useRemoveGoodsReceiptItem } from './useRemoveGoodsReceiptItem';
 export { useRemoveGoodsReceiptLine } from './useRemoveGoodsReceiptLine';

@@ -1,10 +1,11 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Link2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteGoodsReceipt, useGoodsReceipt, usePublishGoodsReceipt } from '@/hooks/goods-receipts';
@@ -12,6 +13,7 @@ import { GoodsReceiptStatus, goodsReceiptStatusLabels } from '@/schemas/goods-re
 import { GoodsReceiptOverviewCard } from './components/GoodsReceiptOverviewCard';
 import { GoodsReceiptTreePanel, type TreeSelection } from './components/GoodsReceiptTreePanel';
 import { RightContent } from './components/RightContent';
+import { LinkPurchaseOrderDialog } from './forms/LinkPurchaseOrderDialog';
 
 export const GoodsReceiptDetailPage = () => {
   const { id } = useSlugParams('grSlug');
@@ -20,10 +22,12 @@ export const GoodsReceiptDetailPage = () => {
   const { data: receipt } = useGoodsReceipt(id);
   const publishMutation = usePublishGoodsReceipt(receipt.id);
   const deleteMutation = useDeleteGoodsReceipt();
+  const linkPoDialog = useDialog();
   const [selection, setSelection] = useState<TreeSelection | null>(null);
 
   const isDraft = receipt.status === GoodsReceiptStatus.DRAFT;
   const canPublish = isDraft && !!receipt.isPublishable;
+  const canLinkPo = !!receipt.canLinkPurchaseOrder;
 
   const handlePublish = useCallback(async () => {
     const confirmed = await confirm({
@@ -52,17 +56,33 @@ export const GoodsReceiptDetailPage = () => {
         description={receipt.supplierName ?? undefined}
         actions={
           isDraft ? (
-            <Button
-              startAdornment={<CheckCircle className="size-4" />}
-              onClick={handlePublish}
-              isLoading={publishMutation.isPending}
-              disabled={!canPublish}
-              disabledTip="Add items, balance lines, and stay within PO caps before publishing."
-            >
-              Publish
-            </Button>
+            <div className="flex gap-2">
+              {canLinkPo && (
+                <Button variant="outline" startAdornment={<Link2 className="size-4" />} onClick={linkPoDialog.open}>
+                  Link PO
+                </Button>
+              )}
+              <Button
+                startAdornment={<CheckCircle className="size-4" />}
+                onClick={handlePublish}
+                isLoading={publishMutation.isPending}
+                disabled={!canPublish}
+                disabledTip="Add items, balance lines, and stay within PO caps before publishing."
+              >
+                Publish
+              </Button>
+            </div>
           ) : null
         }
+      />
+
+      <Dialog
+        handle={linkPoDialog}
+        title="Link Purchase Order"
+        description={`Attach a confirmed PO from ${receipt.supplierName} to this goods receipt.`}
+        content={(close) => (
+          <LinkPurchaseOrderDialog goodsReceipt={receipt} onSuccess={close} onCancel={close} />
+        )}
       />
 
       <GoodsReceiptOverviewCard id={id} />

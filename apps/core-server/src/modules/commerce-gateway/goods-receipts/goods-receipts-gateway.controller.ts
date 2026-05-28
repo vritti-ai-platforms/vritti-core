@@ -7,6 +7,7 @@ import { AddGoodsReceiptLineDto } from './dto/request/add-goods-receipt-line.dto
 import { AddGoodsReceiptLineItemDto } from './dto/request/add-goods-receipt-line-item.dto';
 import { AddGoodsReceiptLotDto } from './dto/request/add-goods-receipt-lot.dto';
 import { CreateGoodsReceiptDto } from './dto/request/create-goods-receipt.dto';
+import { LinkGoodsReceiptPurchaseOrderDto } from './dto/request/link-goods-receipt-purchase-order.dto';
 import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
 import { UpdateGoodsReceiptLineItemDto } from './dto/request/update-goods-receipt-line-item.dto';
@@ -63,6 +64,15 @@ export class GoodsReceiptsGatewayController {
   publish(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
     this.logger.log(`POST /commerce-api/goods-receipts/${id}/publish`);
     return this.service.publish(id);
+  }
+
+  @Post(':id/link-po')
+  linkPurchaseOrder(
+    @Param('id') id: string,
+    @Body() dto: LinkGoodsReceiptPurchaseOrderDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${id}/link-po`);
+    return this.service.linkPurchaseOrder(id, dto.purchaseOrderId);
   }
 
   @Delete(':id')

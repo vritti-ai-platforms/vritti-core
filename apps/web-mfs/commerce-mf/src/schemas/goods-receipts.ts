@@ -21,7 +21,7 @@ export const goodsReceiptStatusConfig: Record<GoodsReceiptStatus, { label: strin
 export const createGoodsReceiptSchema = z.object({
   supplierId: z.string().min(1, 'Supplier is required'),
   purchaseOrderId: z.string().optional(),
-  receivedDate: z.string().min(1, 'Received date is required'),
+  receivedDate: z.string({ error: 'Received date is required' }).min(1, 'Received date is required'),
   notes: z.string().optional(),
 });
 export type CreateGoodsReceiptFormData = z.infer<typeof createGoodsReceiptSchema>;
@@ -40,6 +40,7 @@ export interface GoodsReceiptData {
   supplierId: string;
   status: GoodsReceiptStatus;
   isPublishable?: boolean;
+  canLinkPurchaseOrder?: boolean;
   supplierName: string;
   po: GoodsReceiptPoData | null;
   receivedBy: string | null;
@@ -48,6 +49,13 @@ export interface GoodsReceiptData {
   publishedAt: string | null;
   createdAt: string;
 }
+
+export const linkGoodsReceiptPurchaseOrderSchema = z.object({
+  purchaseOrderId: z
+    .string({ error: 'Purchase order is required' })
+    .min(1, 'Purchase order is required'),
+});
+export type LinkGoodsReceiptPurchaseOrderFormData = z.infer<typeof linkGoodsReceiptPurchaseOrderSchema>;
 
 export type InventoryTracking = 'quantity' | 'lot' | 'lot_serial' | 'serial';
 export const InventoryTrackingValues = {

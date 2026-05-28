@@ -60,6 +60,11 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'goodsReceipts.publish', { id });
   }
 
+  linkPurchaseOrder(id: string, purchaseOrderId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`goodsReceipts.linkPo — id: ${id}, po: ${purchaseOrderId}`);
+    return this.nats.send('commerce', 'goodsReceipts.linkPo', { id, purchaseOrderId });
+  }
+
   delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`goodsReceipts.delete — id: ${id}`);
     return this.nats.send('commerce', 'goodsReceipts.delete', { id });

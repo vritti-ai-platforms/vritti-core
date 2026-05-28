@@ -90,6 +90,12 @@ export function publishGoodsReceipt(id: string): Promise<GoodsReceiptData> {
   return axios.post<GoodsReceiptData>(`commerce-api/goods-receipts/${id}/publish`).then((r) => r.data);
 }
 
+export function linkGoodsReceiptPurchaseOrder(id: string, purchaseOrderId: string): Promise<SuccessResponse> {
+  return axios
+    .post<SuccessResponse>(`commerce-api/goods-receipts/${id}/link-po`, { purchaseOrderId })
+    .then((r) => r.data);
+}
+
 export function deleteGoodsReceipt(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}`).then((r) => r.data);
 }

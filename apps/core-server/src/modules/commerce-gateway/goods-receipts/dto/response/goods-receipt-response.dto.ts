@@ -36,6 +36,9 @@ export class GoodsReceiptResponseDto {
   @ApiPropertyOptional()
   isPublishable?: boolean;
 
+  @ApiPropertyOptional({ description: 'True when the GR is DRAFT, has no PO yet, and has no items.' })
+  canLinkPurchaseOrder?: boolean;
+
   @ApiPropertyOptional({ type: GoodsReceiptPoDto, nullable: true })
   po: GoodsReceiptPoDto | null;
 
