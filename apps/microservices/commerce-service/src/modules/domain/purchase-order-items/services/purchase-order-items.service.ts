@@ -109,8 +109,8 @@ export class PurchaseOrderItemsService {
     const duplicate = await this.repository.findItemByInventoryItemAndUom(po.id, inventoryItemId, uomId);
     if (duplicate) {
       throw new ValidationException({
-        detail: 'This inventory item with the same UOM is already added to the purchase order.',
-        errors: [{ field: 'uomId', message: 'This unit is already on the purchase order for this item.' }],
+        detail: 'This supplier item is already on the purchase order.',
+        errors: [{ field: 'supplierItemId', message: 'This supplier item is already on the purchase order.' }],
       });
     }
 

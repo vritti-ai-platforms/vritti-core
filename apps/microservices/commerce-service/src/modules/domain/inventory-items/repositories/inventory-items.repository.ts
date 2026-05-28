@@ -72,13 +72,20 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   // Uses supplierItems.id as the select value so each item+UOM combination is a distinct option.
   // When supplierId is absent, returns all active supplier items and includes supplier name as description.
   // When purchaseOrderId is supplied, restricts the result to supplier items whose (inventoryItemId, uomId)
-  //   matches a line on that PO (i.e. the items the receiver is expected to receive). This is the include-only
-  //   semantics used by the GR add-item flow.
-  // When goodsReceiptId is supplied, excludes supplier items whose inventoryItemId is already on that GR.
+  //   matches a line on that PO (i.e. the items the receiver is expected to receive). Used by the GR add-item
+  //   flow when a PO is linked, and shared with any SupplierItem filter component.
+  // When excludeOnPurchaseOrderId is supplied, excludes supplier items whose (inventoryItemId, uomId) is already
+  //   on that PO. Used by the PO add-line dialog to hide items already added.
+  // When excludeOnGoodsReceiptId is supplied, excludes supplier items whose (inventoryItemId, uomId) is already
+  //   on that GR. Used by the GR add-item dialog.
   findForSelectBySupplier(
     supplierId: string | undefined,
     config: FindForSelectConfig,
-    options?: { purchaseOrderId?: string; goodsReceiptId?: string },
+    options?: {
+      purchaseOrderId?: string;
+      excludeOnPurchaseOrderId?: string;
+      excludeOnGoodsReceiptId?: string;
+    },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [eq(supplierItems.isActive, true)];
 
@@ -96,8 +103,18 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
       )`);
     }
 
-    if (options?.goodsReceiptId) {
-      const grId = options.goodsReceiptId;
+    if (options?.excludeOnPurchaseOrderId) {
+      const poId = options.excludeOnPurchaseOrderId;
+      conditions.push(sql`NOT EXISTS (
+        SELECT 1 FROM ${purchaseOrderItems} poi
+        WHERE poi.purchase_order_id = ${poId}
+          AND poi.inventory_item_id = ${inventoryItems.id}
+          AND poi.uom_id = ${supplierItems.uomId}
+      )`);
+    }
+
+    if (options?.excludeOnGoodsReceiptId) {
+      const grId = options.excludeOnGoodsReceiptId;
       conditions.push(sql`NOT EXISTS (
         SELECT 1 FROM ${goodsReceiptItems} gri
         WHERE gri.goods_receipt_id = ${grId}

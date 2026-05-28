@@ -52,7 +52,7 @@ const AddItemForm = ({
         params={{
           supplierId,
           ...(poId ? { purchaseOrderId: poId } : {}),
-          goodsReceiptId,
+          excludeOnGoodsReceiptId: goodsReceiptId,
         }}
         onOptionSelect={handleItemSelect}
       />

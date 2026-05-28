@@ -5434,7 +5434,7 @@
             }
           },
           {
-            "name": "purchaseOrderId",
+            "name": "includeOnPurchaseOrderId",
             "required": false,
             "in": "query",
             "description": "Restrict results to supplier items whose (inventoryItemId, uomId) matches a line on this purchase order.",
@@ -5443,10 +5443,19 @@
             }
           },
           {
-            "name": "goodsReceiptId",
+            "name": "excludeOnPurchaseOrderId",
             "required": false,
             "in": "query",
-            "description": "Exclude supplier items whose inventoryItemId is already on this goods receipt.",
+            "description": "Exclude supplier items whose (inventoryItemId, uomId) is already on this purchase order.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeOnGoodsReceiptId",
+            "required": false,
+            "in": "query",
+            "description": "Exclude supplier items whose (inventoryItemId, uomId) is already on this goods receipt.",
             "schema": {
               "type": "string"
             }

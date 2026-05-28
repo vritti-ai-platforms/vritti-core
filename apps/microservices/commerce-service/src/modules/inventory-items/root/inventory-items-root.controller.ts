@@ -37,11 +37,21 @@ export class InventoryItemsRootController {
 
   @MessagePattern({ cmd: 'inventoryItems.selectBySupplier' })
   async selectBySupplier(
-    @Payload() data: SelectOptionsQueryDto & { supplierId?: string; purchaseOrderId?: string; goodsReceiptId?: string },
+    @Payload()
+    data: SelectOptionsQueryDto & {
+      supplierId?: string;
+      purchaseOrderId?: string;
+      excludeOnPurchaseOrderId?: string;
+      excludeOnGoodsReceiptId?: string;
+    },
   ): Promise<SelectQueryResult> {
-    const { supplierId, purchaseOrderId, goodsReceiptId, ...query } = data;
+    const { supplierId, purchaseOrderId, excludeOnPurchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
     this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${supplierId ?? 'all'}`);
-    return this.service.findForSelectBySupplier(supplierId, query, { purchaseOrderId, goodsReceiptId });
+    return this.service.findForSelectBySupplier(supplierId, query, {
+      purchaseOrderId,
+      excludeOnPurchaseOrderId,
+      excludeOnGoodsReceiptId,
+    });
   }
 
   @MessagePattern({ cmd: 'inventoryItems.selectByPurchaseOrder' })

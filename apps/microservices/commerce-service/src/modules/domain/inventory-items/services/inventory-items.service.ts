@@ -81,12 +81,20 @@ export class InventoryItemsService {
   // Returns inventory items linked to a supplier for select dropdowns.
   // When supplierId is absent, returns all active supplier items with supplier name as description.
   // When purchaseOrderId is supplied, restricts to supplier items whose (inventoryItemId, uomId) matches
-  //   a line on that PO (include-only — used by the GR add-item flow).
-  // When goodsReceiptId is supplied, excludes supplier items whose inventoryItemId is already on that GR.
+  //   a line on that PO (include-only — used by the GR add-item flow when PO is linked, and shared with
+  //   any SupplierItem filter component).
+  // When excludeOnPurchaseOrderId is supplied, excludes supplier items already on that PO (used by the
+  //   PO add-line dialog to hide items already added).
+  // When excludeOnGoodsReceiptId is supplied, excludes supplier items whose (inventoryItemId, uomId) is
+  //   already on that GR (used by the GR add-item dialog).
   findForSelectBySupplier(
     supplierId: string | undefined,
     query: SelectOptionsQueryDto,
-    options?: { purchaseOrderId?: string; goodsReceiptId?: string },
+    options?: {
+      purchaseOrderId?: string;
+      excludeOnPurchaseOrderId?: string;
+      excludeOnGoodsReceiptId?: string;
+    },
   ): Promise<SelectQueryResult> {
     return this.repository.findForSelectBySupplier(
       supplierId,
@@ -104,7 +112,11 @@ export class InventoryItemsService {
         orderByKey: query.orderByKey || 'name',
         orderDirection: query.orderDirection || 'asc',
       },
-      { purchaseOrderId: options?.purchaseOrderId, goodsReceiptId: options?.goodsReceiptId },
+      {
+        purchaseOrderId: options?.purchaseOrderId,
+        excludeOnPurchaseOrderId: options?.excludeOnPurchaseOrderId,
+        excludeOnGoodsReceiptId: options?.excludeOnGoodsReceiptId,
+      },
     );
   }
 
