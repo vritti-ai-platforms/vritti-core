@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
-import { Separator } from '@vritti/quantum-ui-native/Separator';
 import { Skeleton } from '@vritti/quantum-ui-native/Skeleton';
 import { Text } from '@vritti/quantum-ui-native/Typography';
 import { useConfirm } from '@vritti/quantum-ui-native';
@@ -108,9 +107,7 @@ export const SessionsScreen = () => {
                 {currentSession && <SessionCard session={currentSession} />}
 
                 {otherSessions.length > 0 ? (
-                  <>
-                    <Separator />
-                    <View className="gap-3">
+                  <View className="gap-3">
                       {otherSessions.map((session) => (
                         <SessionCard
                           key={session.sessionId}
@@ -123,14 +120,10 @@ export const SessionsScreen = () => {
                         />
                       ))}
                     </View>
-                  </>
                 ) : (
-                  <>
-                    <Separator />
-                    <Text className="text-sm text-muted-foreground text-center py-2">
+                  <Text className="text-sm text-muted-foreground text-center py-2">
                       No other active sessions
                     </Text>
-                  </>
                 )}
               </>
             )}
