@@ -76,7 +76,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
         onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
       />
       <div className="grid grid-cols-2 gap-4">
-        <CurrencyField name="unitPrice" label="Unit Price" defaultCurrencyCode={supplierCurrencyCode} />
+        <CurrencyField name="unitPrice" label="Unit Price" currencyCode={supplierCurrencyCode} />
         <TextField
           name="minOrderQuantity"
           label="Min Order Qty"

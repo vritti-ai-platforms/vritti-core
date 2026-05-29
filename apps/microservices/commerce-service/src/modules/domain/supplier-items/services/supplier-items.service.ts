@@ -13,6 +13,7 @@ import {
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
@@ -152,6 +153,15 @@ export class SupplierItemsService {
       });
     }
 
+    // Per-row currency must match the supplier's. If they drift, downstream FX math (PO, GR cost
+    // association, change-currency rescale) all go wrong. Reject early with a field-scoped error.
+    if (data.unitPrice.currency !== supplier.currencyCode) {
+      throw new ValidationException({
+        detail: `Unit price currency must match the supplier currency (${supplier.currencyCode}).`,
+        errors: [{ field: 'unitPrice', message: `Must be in ${supplier.currencyCode}.` }],
+      });
+    }
+
     const currencyCode = data.unitPrice.currency as CurrencyCode;
     const unitPriceMinor = majorToMinor(data.unitPrice.value, currencyCode, 'unitPrice');
 
@@ -207,6 +217,12 @@ export class SupplierItemsService {
     if (data.isActive !== undefined) update.isActive = data.isActive;
 
     if (data.unitPrice) {
+      if (data.unitPrice.currency !== supplier.currencyCode) {
+        throw new ValidationException({
+          detail: `Unit price currency must match the supplier currency (${supplier.currencyCode}).`,
+          errors: [{ field: 'unitPrice', message: `Must be in ${supplier.currencyCode}.` }],
+        });
+      }
       update.unitPrice = majorToMinor(data.unitPrice.value, data.unitPrice.currency as CurrencyCode, 'unitPrice');
       update.currencyCode = data.unitPrice.currency;
     }

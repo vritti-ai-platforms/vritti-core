@@ -4749,154 +4749,12 @@
         ]
       }
     },
-    "/commerce-api/goods-receipts/{id}/items": {
-      "get": {
-        "operationId": "GoodsReceiptsGatewayController_items",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
     "/commerce-api/goods-receipts/{id}/items/table": {
       "get": {
         "operationId": "GoodsReceiptsGatewayController_itemsTable",
         "parameters": [
           {
             "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
-    "/commerce-api/goods-receipts/{id}/items/{itemId}": {
-      "get": {
-        "operationId": "GoodsReceiptsGatewayController_itemById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      },
-      "patch": {
-        "operationId": "GoodsReceiptsGatewayController_updateItem",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGoodsReceiptItemDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      },
-      "delete": {
-        "operationId": "GoodsReceiptsGatewayController_removeItem",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4982,6 +4840,86 @@
         },
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}": {
+      "patch": {
+        "operationId": "GoodsReceiptsGatewayController_updateItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGoodsReceiptItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      },
+      "delete": {
+        "operationId": "GoodsReceiptsGatewayController_removeItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -5534,66 +5472,6 @@
       }
     },
     "/commerce-api/goods-receipts/{id}/items/{itemId}/lines/{lineId}/items/{subItemId}": {
-      "patch": {
-        "operationId": "GoodsReceiptsGatewayController_updateLineItem",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "itemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "lineId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "subItemId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGoodsReceiptLineItemDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      },
       "delete": {
         "operationId": "GoodsReceiptsGatewayController_removeLineItem",
         "parameters": [
@@ -5942,121 +5820,9 @@
         ]
       }
     },
-    "/commerce-api/inventory-items/{id}/allowed-uom-ids": {
-      "get": {
-        "operationId": "InventoryItemsGatewayController_findAllowedUomIds",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Inventory Items"
-        ]
-      }
-    },
     "/commerce-api/inventory-items/{id}/suppliers/table": {
       "get": {
         "operationId": "InventoryItemsGatewayController_getSuppliersTable",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Inventory Items"
-        ]
-      }
-    },
-    "/commerce-api/inventory-items/{id}/levels": {
-      "get": {
-        "operationId": "InventoryItemsGatewayController_findLevels",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Inventory Items"
-        ]
-      }
-    },
-    "/commerce-api/inventory-items/{id}/ledger": {
-      "get": {
-        "operationId": "InventoryItemsGatewayController_findLedger",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Inventory Items"
-        ]
-      }
-    },
-    "/commerce-api/inventory-items/{id}/levels/table": {
-      "get": {
-        "operationId": "InventoryItemsGatewayController_getLevelsTable",
         "parameters": [
           {
             "name": "id",
@@ -14937,6 +14703,10 @@
           "notes": {
             "type": "string",
             "description": "Notes"
+          },
+          "exchangeRate": {
+            "type": "number",
+            "description": "Supplier→BU exchange rate. Required when the supplier currency differs from the BU currency AND the rate cannot be inherited from a FIXED-rate purchase order. Ignored when supplier currency == BU currency or when inherited from a FIXED PO."
           }
         },
         "required": [
@@ -15175,18 +14945,6 @@
         }
       },
       "AddGoodsReceiptLineItemDto": {
-        "type": "object",
-        "properties": {
-          "serialNumber": {
-            "type": "string",
-            "description": "Serial number registered against this line."
-          }
-        },
-        "required": [
-          "serialNumber"
-        ]
-      },
-      "UpdateGoodsReceiptLineItemDto": {
         "type": "object",
         "properties": {
           "serialNumber": {
@@ -16860,8 +16618,8 @@
             "description": "Parent item name"
           },
           "basePrice": {
-            "type": "number",
-            "description": "Base price in minor units"
+            "type": "string",
+            "description": "Base price in minor units (bigint serialized as string)"
           },
           "categoryName": {
             "type": "object",
@@ -16870,7 +16628,7 @@
           },
           "priceOverride": {
             "type": "object",
-            "description": "Price override in minor units",
+            "description": "Price override in minor units (bigint serialized as string)",
             "nullable": true
           },
           "priority": {
@@ -16924,8 +16682,8 @@
             "description": "Parent item name"
           },
           "basePrice": {
-            "type": "number",
-            "description": "Base price in minor units"
+            "type": "string",
+            "description": "Base price in minor units (bigint serialized as string)"
           },
           "categoryName": {
             "type": "object",
@@ -16942,7 +16700,7 @@
           },
           "priceOverride": {
             "type": "object",
-            "description": "Price override in minor units",
+            "description": "Price override in minor units (bigint serialized as string)",
             "nullable": true
           },
           "createdAt": {

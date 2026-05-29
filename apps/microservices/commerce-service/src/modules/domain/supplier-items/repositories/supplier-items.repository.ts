@@ -5,7 +5,7 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { and, asc, desc, eq, ilike, inArray, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, inArray, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
   goodsReceiptItems,
@@ -26,12 +26,11 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   }
 
   // Returns paginated supplier item options — one row per (inventoryItem, uom) pair.
-  // Identity is `supplier_items.id`; the inventory item's name is the display label.
-  // When supplierId is absent, returns all active supplier items and includes the supplier name as description.
-  // When excludeOnPurchaseOrderId is supplied, excludes supplier items already on that PO (used by the PO add-line dialog).
-  // When excludeOnGoodsReceiptId is supplied, excludes supplier items whose (inventoryItemId, uomId) is already on that GR
-  //   (used by the GR add-item dialog when the receipt has no linked PO).
-  findForSelect(
+  // Identity is `supplier_items.id`; inventory item's name = label; tracking = description.
+  // Filters out inactive supplier items; optional supplier scope; optional NOT-EXISTS on PO/GR
+  // lines to hide combinations already on the target. Composes via super.findForSelect so the
+  // base bigint-string serialization, additionalKeys resolution, and pagination logic apply.
+  override findForSelect(
     config: FindForSelectConfig,
     options?: {
       supplierId?: string;
@@ -50,7 +49,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       conditions.push(sql`NOT EXISTS (
         SELECT 1 FROM ${purchaseOrderItems} poi
         WHERE poi.purchase_order_id = ${poId}
-          AND poi.inventory_item_id = ${inventoryItems.id}
+          AND poi.inventory_item_id = ${supplierItems.inventoryItemId}
           AND poi.uom_id = ${supplierItems.uomId}
       )`);
     }
@@ -60,70 +59,21 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       conditions.push(sql`NOT EXISTS (
         SELECT 1 FROM ${goodsReceiptItems} gri
         WHERE gri.goods_receipt_id = ${grId}
-          AND gri.inventory_item_id = ${inventoryItems.id}
+          AND gri.inventory_item_id = ${supplierItems.inventoryItemId}
           AND gri.uom_id = ${supplierItems.uomId}
       )`);
     }
 
-    const limit = Number(config.limit) || 20;
-    const offset = Number(config.offset) || 0;
-    const search = config.search?.trim();
-
-    if (search) {
-      conditions.push(ilike(inventoryItems.name, `%${search}%`));
-    }
-
-    return this.db
-      .select({
-        value: supplierItems.id,
-        label: inventoryItems.name,
-        groupId: inventoryItems.categoryId,
-        groupName: categories.name,
-        supplierName: suppliers.name,
-        symbol: uom.symbol,
-        inventoryItemId: inventoryItems.id,
-        uomId: supplierItems.uomId,
-        unitPrice: supplierItems.unitPrice,
-        currencyCode: supplierItems.currencyCode,
-        allowDecimal: uom.allowDecimal,
-      })
-      .from(supplierItems)
-      .innerJoin(inventoryItems, eq(inventoryItems.id, supplierItems.inventoryItemId))
-      .innerJoin(suppliers, eq(suppliers.id, supplierItems.supplierId))
-      .leftJoin(categories, eq(categories.id, inventoryItems.categoryId))
-      .leftJoin(uom, eq(uom.id, supplierItems.uomId))
-      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
-      .orderBy(asc(categories.id), asc(inventoryItems.name))
-      .limit(limit)
-      .offset(offset)
-      .then((rows) => {
-        const seenGroups = new Map<string, string>();
-        for (const row of rows) {
-          if (row.groupId != null && row.groupName != null && !seenGroups.has(row.groupId)) {
-            seenGroups.set(row.groupId, row.groupName);
-          }
-        }
-        return {
-          options: rows.map((row) => ({
-            value: row.value,
-            label: row.label,
-            ...(row.groupId != null ? { groupId: row.groupId } : {}),
-            ...(!options?.supplierId ? { description: row.supplierName } : {}),
-            additionals: {
-              symbol: row.symbol,
-              inventoryItemId: row.inventoryItemId,
-              uomId: row.uomId,
-              // bigint → string to dodge JSON's 2^53 precision ceiling. Consumer parses via BigInt(...)
-              // for arithmetic, or feeds straight into minorToMajor() which accepts a string.
-              unitPrice: row.unitPrice.toString(),
-              currencyCode: row.currencyCode,
-              allowDecimal: row.allowDecimal,
-            },
-          })),
-          groups: Array.from(seenGroups.entries()).map(([id, name]) => ({ id, name })),
-          hasMore: false,
-        };
-      });
+    return super.findForSelect({
+      ...config,
+      joins: [
+        { table: inventoryItems, on: eq(inventoryItems.id, supplierItems.inventoryItemId), type: 'inner' },
+        { table: categories, on: eq(categories.id, inventoryItems.categoryId), type: 'left' },
+        { table: uom, on: eq(uom.id, supplierItems.uomId), type: 'left' },
+      ],
+      groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
+      conditions,
+    });
   }
 
   async findSupplierById(id: string): Promise<Supplier | undefined> {

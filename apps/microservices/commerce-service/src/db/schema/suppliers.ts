@@ -2,10 +2,12 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   bigint,
   boolean,
+  foreignKey,
   index,
   integer,
   pgPolicy,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
   varchar,
@@ -43,6 +45,10 @@ export const suppliers = coreSchema.table(
   },
   (table) => [
     uniqueIndex('uq_suppliers_bu_code').on(table.businessUnitId, table.code),
+    // Composite uniqueness on (id, currency_code) exists purely as a target for the composite FK
+    // on supplier_items below. `id` is already PK so this adds no new uniqueness, but Postgres
+    // requires the FK target column tuple to have a matching UNIQUE / PRIMARY KEY constraint.
+    unique('uq_suppliers_id_currency').on(table.id, table.currencyCode),
     index('idx_suppliers_bu').on(table.organizationId, table.businessUnitId),
     pgPolicy('org_isolation', {
       for: 'all',
@@ -129,9 +135,9 @@ export const supplierItems = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    supplierId: uuid('supplier_id')
-      .notNull()
-      .references(() => suppliers.id, { onDelete: 'cascade' }),
+    // No inline .references() on supplier_id — the composite FK below covers it. A single-column
+    // FK in addition to the composite would conflict on the delete action.
+    supplierId: uuid('supplier_id').notNull(),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
@@ -155,6 +161,16 @@ export const supplierItems = coreSchema.table(
     uniqueIndex('uq_supplier_items_supplier_item_uom').on(table.supplierId, table.inventoryItemId, table.uomId),
     uniqueIndex('uq_supplier_items_preferred').on(table.inventoryItemId).where(sql`is_preferred = true`),
     index('idx_supplier_items_supplier').on(table.supplierId),
+    // Composite FK enforces per-row currency match with the parent supplier. ON UPDATE CASCADE
+    // means a supplier currency change propagates to its items automatically. ON DELETE CASCADE
+    // preserves the previous single-column FK behavior — deleting a supplier deletes its items.
+    foreignKey({
+      columns: [table.supplierId, table.currencyCode],
+      foreignColumns: [suppliers.id, suppliers.currencyCode],
+      name: 'fk_supplier_items_supplier_currency',
+    })
+      .onUpdate('cascade')
+      .onDelete('cascade'),
   ],
 );
 
