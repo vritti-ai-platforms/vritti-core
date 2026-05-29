@@ -3,7 +3,6 @@ import axios from '@vritti/quantum-ui/axios';
 import type {
   GoodsReceiptData,
   GoodsReceiptItemData,
-  GoodsReceiptItemPricePrefill,
   GoodsReceiptItemsTableResponse,
   GoodsReceiptLineData,
   GoodsReceiptLineItemData,
@@ -149,19 +148,6 @@ export function updateGoodsReceiptItem(
 
 export function removeGoodsReceiptItem(id: string, itemId: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}`).then((r) => r.data);
-}
-
-export function getGoodsReceiptItemPricePrefill(
-  id: string,
-  inventoryItemId: string,
-  uomId: string,
-): Promise<GoodsReceiptItemPricePrefill> {
-  return axios
-    .get<GoodsReceiptItemPricePrefill>(`commerce-api/goods-receipts/${id}/items/price-prefill`, {
-      params: { inventoryItemId, uomId },
-      showSuccessToast: false,
-    })
-    .then((r) => r.data);
 }
 
 // Lots (item-scoped)

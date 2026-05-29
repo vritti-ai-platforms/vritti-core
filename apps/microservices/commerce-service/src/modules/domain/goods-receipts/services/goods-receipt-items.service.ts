@@ -6,10 +6,8 @@ import {
   BadRequestException,
   ConflictException,
   type CreateResponseDto,
-  type CurrencyCode,
   type FieldMap,
   FilterProcessor,
-  minorToMajor,
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
@@ -17,10 +15,6 @@ import {
 } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-
-function minorToMajorAmount(minor: bigint, currency: string): { currency: string; value: string } {
-  return { currency, value: minorToMajor(minor, currency as CurrencyCode) };
-}
 import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
@@ -243,44 +237,6 @@ export class GoodsReceiptItemsService {
     return { success: true, message: 'Item updated.' };
   }
 
-  // Used by the Add Item dialog (PR5b) to pre-fill the supplier unit price after the user
-  // selects a supplier item. Resolution order: PO → supplier_items → null. Returned in major
-  // units so the gateway can hand it straight to a CurrencyField on the frontend.
-  async resolvePricePrefill(
-    goodsReceiptId: string,
-    inventoryItemId: string,
-    uomId: string,
-  ): Promise<{ unitPrice: { currency: string; value: string } | null; source: 'PO' | 'SUPPLIER_ITEM' | null }> {
-    const receipt = await this.ensureReceiptExists(goodsReceiptId);
-
-    if (receipt.purchaseOrderId) {
-      const poItem = await this.poItemsRepository.findItemByInventoryItemAndUom(
-        receipt.purchaseOrderId,
-        inventoryItemId,
-        uomId,
-      );
-      if (poItem) {
-        return {
-          unitPrice: minorToMajorAmount(BigInt(poItem.unitPrice as unknown as string), poItem.currencyCode),
-          source: 'PO',
-        };
-      }
-    }
-
-    const supplierItem = await this.supplierItemsRepository.findItemBySupplierInventoryItemAndUom(
-      receipt.supplierId,
-      inventoryItemId,
-      uomId,
-    );
-    if (supplierItem?.unitPrice != null && supplierItem.currencyCode) {
-      return {
-        unitPrice: minorToMajorAmount(BigInt(supplierItem.unitPrice as unknown as string), supplierItem.currencyCode),
-        source: 'SUPPLIER_ITEM',
-      };
-    }
-
-    return { unitPrice: null, source: null };
-  }
 
   async removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);

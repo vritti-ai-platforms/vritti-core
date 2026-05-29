@@ -193,19 +193,6 @@ export class GoodsReceiptsGatewayService {
     });
   }
 
-  findPricePrefill(
-    goodsReceiptId: string,
-    inventoryItemId: string,
-    uomId: string,
-  ): Promise<{ unitPrice: { currency: string; value: string } | null; source: 'PO' | 'SUPPLIER_ITEM' | null }> {
-    this.logger.log(`goodsReceipts.items.pricePrefill — gr: ${goodsReceiptId}`);
-    return this.nats.send('commerce', 'goodsReceipts.items.pricePrefill', {
-      goodsReceiptId,
-      inventoryItemId,
-      uomId,
-    });
-  }
-
   removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.removeItem', { goodsReceiptId, itemId });
   }

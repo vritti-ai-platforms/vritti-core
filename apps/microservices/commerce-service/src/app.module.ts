@@ -29,6 +29,7 @@ import { PriceListsModule } from './modules/price-lists/price-lists.module';
 import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
 import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjustments.module';
 import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
+import { SupplierItemsModule } from './modules/supplier-items/supplier-items.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.module';
 import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
 import { UomModule } from './modules/uom/uom.module';
@@ -79,6 +80,7 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
     InventoryItemsModule,
     BomModule,
     SuppliersModule,
+    SupplierItemsModule,
     PurchaseOrdersModule,
     GoodsReceiptsModule,
     LocationsModule,

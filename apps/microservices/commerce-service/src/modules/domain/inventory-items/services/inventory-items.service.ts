@@ -58,8 +58,8 @@ export class InventoryItemsService {
     return { result: dtos, count };
   }
 
-  findForSelect(query: SelectOptionsQueryDto, options?: { excludeForSupplierId?: string }): Promise<SelectQueryResult> {
-    return this.repository.findForSelectWithUom(
+  findForSelect(query: SelectOptionsQueryDto, options?: { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
+    return this.repository.findForSelect(
       {
         value: query.valueKey || 'id',
         label: query.labelKey || 'name',
@@ -76,66 +76,6 @@ export class InventoryItemsService {
       },
       options,
     );
-  }
-
-  // Returns inventory items linked to a supplier for select dropdowns.
-  // When supplierId is absent, returns all active supplier items with supplier name as description.
-  // When purchaseOrderId is supplied, restricts to supplier items whose (inventoryItemId, uomId) matches
-  //   a line on that PO (include-only — used by the GR add-item flow when PO is linked, and shared with
-  //   any SupplierItem filter component).
-  // When excludeOnPurchaseOrderId is supplied, excludes supplier items already on that PO (used by the
-  //   PO add-line dialog to hide items already added).
-  // When excludeOnGoodsReceiptId is supplied, excludes supplier items whose (inventoryItemId, uomId) is
-  //   already on that GR (used by the GR add-item dialog).
-  findForSelectBySupplier(
-    supplierId: string | undefined,
-    query: SelectOptionsQueryDto,
-    options?: {
-      purchaseOrderId?: string;
-      excludeOnPurchaseOrderId?: string;
-      excludeOnGoodsReceiptId?: string;
-    },
-  ): Promise<SelectQueryResult> {
-    return this.repository.findForSelectBySupplier(
-      supplierId,
-      {
-        value: query.valueKey || 'id',
-        label: query.labelKey || 'name',
-        description: query.descriptionKey,
-        additionalKeys: query.additionalKeys,
-        groupIdKey: query.groupIdKey || 'categoryId',
-        search: query.search,
-        limit: query.limit,
-        offset: query.offset,
-        values: query.values,
-        excludeIds: query.excludeIds,
-        orderByKey: query.orderByKey || 'name',
-        orderDirection: query.orderDirection || 'asc',
-      },
-      {
-        purchaseOrderId: options?.purchaseOrderId,
-        excludeOnPurchaseOrderId: options?.excludeOnPurchaseOrderId,
-        excludeOnGoodsReceiptId: options?.excludeOnGoodsReceiptId,
-      },
-    );
-  }
-
-  // Returns inventory items scoped to a purchase order for select dropdowns
-  findForSelectByPurchaseOrder(poId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelectByPurchaseOrder(poId, {
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
   }
 
   // Creates a new inventory item

@@ -8,7 +8,6 @@ import {
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
-import type { InventoryItemsSupplierSelectQueryDto } from '../dto/request/inventory-items-supplier-select-query.dto';
 import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
@@ -57,20 +56,10 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns paginated inventory item options; filters by PO when poId provided, else all (with optional excludeForSupplierId)
-  async select(params: SelectOptionsQueryDto, poId?: string, excludeForSupplierId?: string): Promise<SelectQueryResult> {
-    if (poId) {
-      this.logger.log(`inventoryItems.selectByPurchaseOrder — poId: ${poId}`);
-      return this.nats.send('commerce', 'inventoryItems.selectByPurchaseOrder', { ...params, poId });
-    }
+  // Returns paginated inventory item options (with optional excludeOnSupplierId)
+  async select(params: SelectOptionsQueryDto, excludeOnSupplierId?: string): Promise<SelectQueryResult> {
     this.logger.log('inventoryItems.select');
-    return this.nats.send('commerce', 'inventoryItems.select', { ...params, excludeForSupplierId });
-  }
-
-  // Returns supplier item options; when supplierId is absent, includes all active supplier items across all suppliers
-  async selectSupplierItems(query: InventoryItemsSupplierSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${query.supplierId ?? 'all'}`);
-    return this.nats.send('commerce', 'inventoryItems.selectBySupplier', query);
+    return this.nats.send('commerce', 'inventoryItems.select', { ...params, excludeOnSupplierId });
   }
 
   // Creates a new inventory item

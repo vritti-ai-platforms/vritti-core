@@ -175,11 +175,6 @@ export const updateGoodsReceiptItemSchema = z.object({
 });
 export type UpdateGoodsReceiptItemFormData = z.infer<typeof updateGoodsReceiptItemSchema>;
 
-export interface GoodsReceiptItemPricePrefill {
-  unitPrice: { currency: string; value: string } | null;
-  source: 'PO' | 'SUPPLIER_ITEM' | null;
-}
-
 export const addGoodsReceiptLotSchema = z
   .object({
     lotNumber: z.string().min(1, 'Lot number is required').max(100),

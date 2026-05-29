@@ -29,36 +29,10 @@ export class InventoryItemsRootController {
   }
 
   @MessagePattern({ cmd: 'inventoryItems.select' })
-  async select(@Payload() data: SelectOptionsQueryDto & { excludeForSupplierId?: string }): Promise<SelectQueryResult> {
-    const { excludeForSupplierId, ...query } = data;
+  async select(@Payload() data: SelectOptionsQueryDto & { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
+    const { excludeOnSupplierId, ...query } = data;
     this.logger.log('inventoryItems.select');
-    return this.service.findForSelect(query, { excludeForSupplierId });
-  }
-
-  @MessagePattern({ cmd: 'inventoryItems.selectBySupplier' })
-  async selectBySupplier(
-    @Payload()
-    data: SelectOptionsQueryDto & {
-      supplierId?: string;
-      purchaseOrderId?: string;
-      excludeOnPurchaseOrderId?: string;
-      excludeOnGoodsReceiptId?: string;
-    },
-  ): Promise<SelectQueryResult> {
-    const { supplierId, purchaseOrderId, excludeOnPurchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
-    this.logger.log(`inventoryItems.selectBySupplier — supplierId: ${supplierId ?? 'all'}`);
-    return this.service.findForSelectBySupplier(supplierId, query, {
-      purchaseOrderId,
-      excludeOnPurchaseOrderId,
-      excludeOnGoodsReceiptId,
-    });
-  }
-
-  @MessagePattern({ cmd: 'inventoryItems.selectByPurchaseOrder' })
-  async selectByPurchaseOrder(@Payload() data: SelectOptionsQueryDto & { poId: string }): Promise<SelectQueryResult> {
-    const { poId, ...query } = data;
-    this.logger.log(`inventoryItems.selectByPurchaseOrder — poId: ${poId}`);
-    return this.service.findForSelectByPurchaseOrder(poId, query);
+    return this.service.findForSelect(query, { excludeOnSupplierId });
   }
 
   @MessagePattern({ cmd: 'inventoryItems.create' })

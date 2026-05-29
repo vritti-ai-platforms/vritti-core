@@ -9,6 +9,8 @@ import {
   FilterProcessor,
   majorToMinor,
   NotFoundException,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
@@ -46,6 +48,39 @@ export class SupplierItemsService {
   };
 
   constructor(private readonly repository: SupplierItemsRepository) {}
+
+  // Returns paginated supplier item options for select dropdowns and filters.
+  // When supplierId is absent, returns all active supplier items across all suppliers (supplier name on description).
+  // When purchaseOrderId is supplied, restricts to supplier items whose (inventoryItemId, uomId) matches a PO line —
+  //   the LEFT JOIN surfaces the PO line's negotiated price on the option's additionals.
+  // When excludeOnPurchaseOrderId / excludeOnGoodsReceiptId is supplied, hides items already on that PO / GR.
+  findForSelect(
+    query: SelectOptionsQueryDto,
+    options?: {
+      supplierId?: string;
+      purchaseOrderId?: string;
+      excludeOnPurchaseOrderId?: string;
+      excludeOnGoodsReceiptId?: string;
+    },
+  ): Promise<SelectQueryResult> {
+    return this.repository.findForSelect(
+      {
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey || 'categoryId',
+        search: query.search,
+        limit: query.limit,
+        offset: query.offset,
+        values: query.values,
+        excludeIds: query.excludeIds,
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      options,
+    );
+  }
 
   async findForTable(supplierId: string, state: TableViewState): Promise<{ result: SupplierItemDto[]; count: number }> {
     const supplier = await this.repository.findSupplierById(supplierId);

@@ -5,20 +5,18 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { and, asc, eq, ilike, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   bomLines,
   categories,
   conversionInputs,
   conversionOutputs,
-  goodsReceiptItems,
   inventoryItems,
   inventoryItemUomConversions,
   purchaseOrderItems,
   stockAdjustments,
   stockTransfers,
   supplierItems,
-  suppliers,
   uom,
 } from '@/db/schema';
 
@@ -28,14 +26,19 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     super(database, inventoryItems);
   }
 
-  findForSelectWithUom(
+  // Returns paginated inventory item options for select dropdowns.
+  // When excludeOnSupplierId is supplied, hides items whose every allowed UOM (per-item overrides plus
+  // the global UOM family rooted on the item's primary UOM) is already linked to that supplier — i.e.
+  // no remaining (inventoryItemId, uomId) pair is available to create another supplier_items row.
+  // Overrides the base findForSelect to add the UOM LEFT JOIN (so `symbol` is reachable via additionalKeys)
+  // and the optional supplier filter.
+  override async findForSelect(
     config: FindForSelectConfig,
-    options?: { excludeForSupplierId?: string },
+    options?: { excludeOnSupplierId?: string },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
 
-    if (options?.excludeForSupplierId) {
-      // Keep items that have at least one allowed UOM not yet linked to the given supplier
+    if (options?.excludeOnSupplierId) {
       conditions.push(sql`EXISTS (
         WITH allowed AS (
           SELECT DISTINCT id AS uom_id FROM (
@@ -53,7 +56,7 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         SELECT 1 FROM allowed a
         WHERE NOT EXISTS (
           SELECT 1 FROM ${supplierItems} si
-          WHERE si.supplier_id = ${options.excludeForSupplierId}
+          WHERE si.supplier_id = ${options.excludeOnSupplierId}
             AND si.inventory_item_id = ${inventoryItems.id}
             AND si.uom_id = a.uom_id
         )
@@ -65,130 +68,6 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
       joins: [{ table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' }],
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions,
-    });
-  }
-
-  // Returns paginated supplier item options filtered by supplier — one row per supplier item (item + UOM pair).
-  // Uses supplierItems.id as the select value so each item+UOM combination is a distinct option.
-  // When supplierId is absent, returns all active supplier items and includes supplier name as description.
-  // When purchaseOrderId is supplied, restricts the result to supplier items whose (inventoryItemId, uomId)
-  //   matches a line on that PO (i.e. the items the receiver is expected to receive). Used by the GR add-item
-  //   flow when a PO is linked, and shared with any SupplierItem filter component.
-  // When excludeOnPurchaseOrderId is supplied, excludes supplier items whose (inventoryItemId, uomId) is already
-  //   on that PO. Used by the PO add-line dialog to hide items already added.
-  // When excludeOnGoodsReceiptId is supplied, excludes supplier items whose (inventoryItemId, uomId) is already
-  //   on that GR. Used by the GR add-item dialog.
-  findForSelectBySupplier(
-    supplierId: string | undefined,
-    config: FindForSelectConfig,
-    options?: {
-      purchaseOrderId?: string;
-      excludeOnPurchaseOrderId?: string;
-      excludeOnGoodsReceiptId?: string;
-    },
-  ): Promise<SelectQueryResult> {
-    const conditions: SQL[] = [eq(supplierItems.isActive, true)];
-
-    if (supplierId) {
-      conditions.push(eq(supplierItems.supplierId, supplierId));
-    }
-
-    if (options?.purchaseOrderId) {
-      const poId = options.purchaseOrderId;
-      conditions.push(sql`EXISTS (
-        SELECT 1 FROM ${purchaseOrderItems} poi
-        WHERE poi.purchase_order_id = ${poId}
-          AND poi.inventory_item_id = ${inventoryItems.id}
-          AND poi.uom_id = ${supplierItems.uomId}
-      )`);
-    }
-
-    if (options?.excludeOnPurchaseOrderId) {
-      const poId = options.excludeOnPurchaseOrderId;
-      conditions.push(sql`NOT EXISTS (
-        SELECT 1 FROM ${purchaseOrderItems} poi
-        WHERE poi.purchase_order_id = ${poId}
-          AND poi.inventory_item_id = ${inventoryItems.id}
-          AND poi.uom_id = ${supplierItems.uomId}
-      )`);
-    }
-
-    if (options?.excludeOnGoodsReceiptId) {
-      const grId = options.excludeOnGoodsReceiptId;
-      conditions.push(sql`NOT EXISTS (
-        SELECT 1 FROM ${goodsReceiptItems} gri
-        WHERE gri.goods_receipt_id = ${grId}
-          AND gri.inventory_item_id = ${inventoryItems.id}
-          AND gri.uom_id = ${supplierItems.uomId}
-      )`);
-    }
-
-    const limit = Number(config.limit) || 20;
-    const offset = Number(config.offset) || 0;
-    const search = config.search?.trim();
-
-    if (search) {
-      conditions.push(ilike(inventoryItems.name, `%${search}%`));
-    }
-
-    return this.db
-      .select({
-        value: supplierItems.id,
-        label: inventoryItems.name,
-        groupId: inventoryItems.categoryId,
-        groupName: categories.name,
-        supplierName: suppliers.name,
-        symbol: uom.symbol,
-        unitPrice: supplierItems.unitPrice,
-        currencyCode: supplierItems.currencyCode,
-        allowDecimal: uom.allowDecimal,
-      })
-      .from(inventoryItems)
-      .innerJoin(supplierItems, eq(supplierItems.inventoryItemId, inventoryItems.id))
-      .innerJoin(suppliers, eq(supplierItems.supplierId, suppliers.id))
-      .leftJoin(categories, eq(inventoryItems.categoryId, categories.id))
-      .leftJoin(uom, eq(supplierItems.uomId, uom.id))
-      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
-      .orderBy(asc(categories.id), asc(inventoryItems.name))
-      .limit(limit)
-      .offset(offset)
-      .then((rows) => {
-        const seenGroups = new Map<string, string>();
-        for (const row of rows) {
-          if (row.groupId != null && row.groupName != null && !seenGroups.has(row.groupId)) {
-            seenGroups.set(row.groupId, row.groupName);
-          }
-        }
-        return {
-          options: rows.map((row) => ({
-            value: row.value,
-            label: row.label,
-            ...(row.groupId != null ? { groupId: row.groupId } : {}),
-            ...(!supplierId ? { description: row.supplierName } : {}),
-            additionals: {
-              symbol: row.symbol,
-              unitPrice: row.unitPrice !== null ? Number(row.unitPrice) : null,
-              currencyCode: row.currencyCode,
-              allowDecimal: row.allowDecimal,
-            },
-          })),
-          groups: Array.from(seenGroups.entries()).map(([id, name]) => ({ id, name })),
-          hasMore: false,
-        };
-      });
-  }
-
-  // Returns inventory item options scoped to a purchase order with orderedQuantity/receivedQuantity available as additionalKeys
-  findForSelectByPurchaseOrder(poId: string, config: FindForSelectConfig): Promise<SelectQueryResult> {
-    return super.findForSelect({
-      ...config,
-      joins: [
-        { table: purchaseOrderItems, on: eq(purchaseOrderItems.inventoryItemId, inventoryItems.id), type: 'inner' },
-        { table: categories, on: eq(inventoryItems.categoryId, categories.id), type: 'left' },
-        { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' },
-      ],
-      groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
-      conditions: [eq(purchaseOrderItems.purchaseOrderId, poId)],
     });
   }
 

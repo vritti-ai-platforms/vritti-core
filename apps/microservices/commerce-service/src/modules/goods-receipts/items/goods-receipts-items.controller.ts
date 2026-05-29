@@ -88,12 +88,4 @@ export class GoodsReceiptsItemsController {
     this.logger.log('goodsReceipts.removeItem');
     return this.itemsService.removeItem(data.goodsReceiptId, data.itemId);
   }
-
-  @MessagePattern({ cmd: 'goodsReceipts.items.pricePrefill' })
-  pricePrefill(
-    @Payload() data: { goodsReceiptId: string; inventoryItemId: string; uomId: string },
-  ): Promise<{ unitPrice: { currency: string; value: string } | null; source: 'PO' | 'SUPPLIER_ITEM' | null }> {
-    this.logger.log(`goodsReceipts.items.pricePrefill — gr: ${data.goodsReceiptId}`);
-    return this.itemsService.resolvePricePrefill(data.goodsReceiptId, data.inventoryItemId, data.uomId);
-  }
 }

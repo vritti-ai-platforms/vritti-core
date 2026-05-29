@@ -12,7 +12,6 @@ import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto'
 import { CreateInventoryItemLocationDto } from './dto/request/create-inventory-item-location.dto';
 import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
-import { InventoryItemsSupplierSelectQueryDto } from './dto/request/inventory-items-supplier-select-query.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
 import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
@@ -43,30 +42,17 @@ export class InventoryItemsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Returns paginated inventory item options; filters by PO when poId provided, else all items (optionally excluding those fully linked to a supplier)
+  // Returns paginated inventory item options (optionally excluding those fully linked to a supplier)
   @Get('select')
   @ApiQuery({
-    name: 'poId',
-    required: false,
-    type: String,
-    description: 'Filter to items on a purchase order',
-  })
-  @ApiQuery({
-    name: 'excludeForSupplierId',
+    name: 'excludeOnSupplierId',
     required: false,
     type: String,
     description: 'Exclude items that have all UOMs already linked to this supplier',
   })
   select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-items/select');
-    return this.service.select(query, query.poId, query.excludeForSupplierId);
-  }
-
-  // Returns supplier item options; when supplierId is absent, includes supplier name as description on each option
-  @Get('supplier-items/select')
-  selectSupplierItems(@Query() query: InventoryItemsSupplierSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/inventory-items/supplier-items/select');
-    return this.service.selectSupplierItems(query);
+    return this.service.select(query, query.excludeOnSupplierId);
   }
 
   // Creates a new inventory item

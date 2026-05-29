@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk';
 import { IsOptional, IsUUID } from 'class-validator';
 
-export class InventoryItemsSupplierSelectQueryDto extends SelectOptionsQueryDto {
+export class SupplierItemsSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: 'Filter to a specific supplier' })
   @IsOptional()
   @IsUUID()

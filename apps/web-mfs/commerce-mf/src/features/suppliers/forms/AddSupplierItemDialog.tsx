@@ -65,7 +65,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         label="Inventory Item"
         placeholder="Select item"
         onOptionSelect={() => form.setValue('uomId', '')}
-        params={{ excludeForSupplierId: supplierId }}
+        params={{ excludeOnSupplierId: supplierId }}
       />
       <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
       <UomSelector

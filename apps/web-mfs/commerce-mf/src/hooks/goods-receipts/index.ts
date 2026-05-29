@@ -43,7 +43,6 @@ export { useRemoveGoodsReceiptItem } from './useRemoveGoodsReceiptItem';
 export { useRemoveGoodsReceiptLine } from './useRemoveGoodsReceiptLine';
 export { useRemoveGoodsReceiptLineItem } from './useRemoveGoodsReceiptLineItem';
 export { useRemoveGoodsReceiptLot } from './useRemoveGoodsReceiptLot';
-export { useGoodsReceiptItemPricePrefill } from './useGoodsReceiptItemPricePrefill';
 export { useUpdateGoodsReceiptItem } from './useUpdateGoodsReceiptItem';
 export { useUpdateGoodsReceiptLine } from './useUpdateGoodsReceiptLine';
 export { useUpdateGoodsReceiptLineItem } from './useUpdateGoodsReceiptLineItem';

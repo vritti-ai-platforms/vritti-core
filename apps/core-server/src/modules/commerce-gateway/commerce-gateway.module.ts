@@ -45,6 +45,8 @@ import { PosTerminalsGatewayController } from './pos-terminals/pos-terminals-gat
 import { PosTerminalsGatewayService } from './pos-terminals/services/pos-terminals-gateway.service';
 import { PriceListsGatewayController } from './price-lists/price-lists-gateway.controller';
 import { PriceListsGatewayService } from './price-lists/services/price-lists-gateway.service';
+import { SupplierItemsGatewayController } from './supplier-items/supplier-items-gateway.controller';
+import { SupplierItemsGatewayService } from './supplier-items/services/supplier-items-gateway.service';
 import { SuppliersGatewayController } from './suppliers/suppliers-gateway.controller';
 import { SuppliersGatewayService } from './suppliers/services/suppliers-gateway.service';
 import { TaxGroupsGatewayService } from './tax-groups/services/tax-groups-gateway.service';
@@ -79,6 +81,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     PurchaseOrdersGatewayController,
     StockAdjustmentsGatewayController,
     StockTransfersGatewayController,
+    SupplierItemsGatewayController,
     SuppliersGatewayController,
     TaxGroupsGatewayController,
     UomGatewayController,
@@ -107,6 +110,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     PurchaseOrdersGatewayService,
     StockAdjustmentsGatewayService,
     StockTransfersGatewayService,
+    SupplierItemsGatewayService,
     SuppliersGatewayService,
     TaxGroupsGatewayService,
     UomGatewayService,
