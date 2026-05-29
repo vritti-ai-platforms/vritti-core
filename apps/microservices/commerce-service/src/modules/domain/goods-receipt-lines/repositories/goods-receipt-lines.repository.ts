@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, inArray, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptLine,
   goodsReceiptItems,
@@ -102,6 +102,31 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       and(eq(goodsReceiptLines.goodsReceiptItemId, itemId), eq(goodsReceiptLines.id, lineId)),
     );
     return result[0];
+  }
+
+  // Lookup for the duplicate-line guard. Matches on (item, lot, location) — lot may be null for
+  // tracking='quantity' / 'serial' items. excludeLineId lets `updateLine` skip the row being
+  // edited so a no-op save doesn't trip the check on itself.
+  async findOneByItemLotLocation(args: {
+    itemId: string;
+    goodsReceiptLotId: string | null;
+    locationId: string;
+    excludeLineId?: string;
+  }): Promise<{ id: string } | undefined> {
+    const conditions: SQL[] = [
+      eq(goodsReceiptLines.goodsReceiptItemId, args.itemId),
+      eq(goodsReceiptLines.locationId, args.locationId),
+      args.goodsReceiptLotId === null
+        ? isNull(goodsReceiptLines.goodsReceiptLotId)
+        : eq(goodsReceiptLines.goodsReceiptLotId, args.goodsReceiptLotId),
+    ];
+    if (args.excludeLineId) conditions.push(ne(goodsReceiptLines.id, args.excludeLineId));
+    const [row] = await this.db
+      .select({ id: goodsReceiptLines.id })
+      .from(goodsReceiptLines)
+      .where(and(...conditions))
+      .limit(1);
+    return row;
   }
 
   async deleteLine(lineId: string): Promise<void> {

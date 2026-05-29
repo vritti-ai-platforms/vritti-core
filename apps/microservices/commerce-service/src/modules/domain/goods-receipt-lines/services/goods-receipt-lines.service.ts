@@ -121,6 +121,23 @@ export class GoodsReceiptLinesService {
       await this.validatePoCap(ctx, data.quantity);
     }
 
+    // Reject duplicate (item, lot?, location) — two lines on the same shelf for the same lot
+    // collapse into one logical receipt; allowing both produces confusing UI and double-counted
+    // accepted quantities. Lot may be null when tracking='quantity' / 'serial'.
+    const duplicate = await this.repository.findOneByItemLotLocation({
+      itemId,
+      goodsReceiptLotId: data.goodsReceiptLotId ?? null,
+      locationId: data.locationId,
+    });
+    if (duplicate) {
+      throw new ValidationException({
+        label: 'Duplicate Line',
+        detail: 'A line for this location already exists on this item. Edit that line instead.',
+        errors: [{ field: 'locationId', message: 'Already used for this item.' }],
+      });
+    }
+
+    // 23505 race fallback handled globally by api-sdk's pg-error filter.
     const created = await this.repository.create({
       goodsReceiptItemId: itemId,
       goodsReceiptLotId: data.goodsReceiptLotId ?? null,
@@ -164,6 +181,24 @@ export class GoodsReceiptLinesService {
     if (!isSerial && data.quantity !== undefined) {
       // PO cap re-check using the new quantity (excluding this line's existing contribution)
       await this.validatePoCap(ctx, data.quantity, lineId);
+    }
+
+    // Re-check the (item, lot, location) duplicate guard when either lot or location is being
+    // changed — excluding this line so a no-op edit doesn't collide with itself.
+    if (data.goodsReceiptLotId !== undefined || data.locationId !== undefined) {
+      const duplicate = await this.repository.findOneByItemLotLocation({
+        itemId,
+        goodsReceiptLotId: next.goodsReceiptLotId ?? null,
+        locationId: next.locationId,
+        excludeLineId: lineId,
+      });
+      if (duplicate) {
+        throw new ValidationException({
+          label: 'Duplicate Line',
+          detail: 'A line for this location already exists on this item. Edit that line instead.',
+          errors: [{ field: 'locationId', message: 'Already used for this item.' }],
+        });
+      }
     }
 
     await this.repository.update(lineId, {

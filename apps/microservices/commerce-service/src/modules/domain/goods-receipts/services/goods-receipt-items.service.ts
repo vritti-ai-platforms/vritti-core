@@ -206,27 +206,16 @@ export class GoodsReceiptItemsService {
       ? await this.resolvePrimaryUomUnitPrice(data.inventoryItemId, data.uomId, data.unitPrice)
       : null;
 
-    let entity: Awaited<ReturnType<typeof this.itemsRepository.create>>;
-    try {
-      entity = await this.itemsRepository.create({
-        goodsReceiptId: receipt.id,
-        inventoryItemId: data.inventoryItemId,
-        uomId: data.uomId,
-        rejectedQuantity: data.rejectedQuantity ?? 0,
-        unitPrice: data.unitPrice ?? null,
-        primaryUomUnitPrice,
-        currencyCode: data.currencyCode ?? null,
-      });
-    } catch (error: unknown) {
-      if ((error as { code?: string })?.code === '23505') {
-        throw new ConflictException({
-          label: 'Duplicate Item',
-          detail: 'This item and UOM combination is already on the goods receipt.',
-          errors: [{ field: 'inventoryItemId', message: 'Already added to this goods receipt.' }],
-        });
-      }
-      throw error;
-    }
+    // 23505 race fallback handled globally by api-sdk's pg-error filter.
+    const entity = await this.itemsRepository.create({
+      goodsReceiptId: receipt.id,
+      inventoryItemId: data.inventoryItemId,
+      uomId: data.uomId,
+      rejectedQuantity: data.rejectedQuantity ?? 0,
+      unitPrice: data.unitPrice ?? null,
+      primaryUomUnitPrice,
+      currencyCode: data.currencyCode ?? null,
+    });
 
     this.logger.log(`Added item ${entity.id} to goods receipt ${receipt.id}`);
     const dto = await this.findById(receipt.id, entity.id);

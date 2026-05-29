@@ -5,9 +5,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { isIP } from 'node:net';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
-
-import './db/schema.registry';
-
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import { RlsInterceptor } from '@/common/interceptors/rls.interceptor';
@@ -89,8 +86,7 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
 
-          drizzleSchema: schema,
-          // Relations must be passed separately for db.query to work (drizzle-orm v2)
+          // Relations drive db.query.X in Drizzle 1.0; schema generic was removed.
           drizzleRelations: relations,
 
           // Connection pool configuration

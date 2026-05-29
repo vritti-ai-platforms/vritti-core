@@ -1,11 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import * as schema from '@/db/schema';
 import { relations } from '@/db/schema/relations';
-
-import './db/schema.registry';
-
 import { DatabaseModule, type DatabaseModuleOptions, type NatsHeaders } from '@vritti/api-sdk';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
@@ -56,7 +52,6 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
             schema: config.get<string>('PRIMARY_DB_SCHEMA'),
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
-          drizzleSchema: schema,
           drizzleRelations: relations,
           maxConnections: 20,
           applyRlsContext: async (client, ctx) => {

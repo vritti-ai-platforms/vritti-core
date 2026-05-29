@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, decimal, index, jsonb, pgPolicy, timestamp, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { boolean, decimal, index, jsonb, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceiptItems } from './goods-receipt-items';
 import { goodsReceiptLots } from './goods-receipt-lots';
@@ -42,6 +42,13 @@ export const goodsReceiptLines = coreSchema.table(
     index('idx_goods_receipt_lines_lot').on(table.goodsReceiptLotId),
     index('idx_goods_receipt_lines_location').on(table.locationId),
     index('idx_goods_receipt_lines_resolved').on(table.resolvedQuantId),
+    // Backstop for the service-layer duplicate-line guard. Two lines on the same
+    // (item, lot, location) collapse into one logical receipt; allowing both produces confusing
+    // UI and double-counted accepted quantities. NULLS NOT DISTINCT so lot=NULL collisions are
+    // caught for tracking='quantity' and 'serial' items (PG 15+).
+    unique('uq_goods_receipt_lines_item_lot_location')
+      .on(table.goodsReceiptItemId, table.goodsReceiptLotId, table.locationId)
+      .nullsNotDistinct(),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

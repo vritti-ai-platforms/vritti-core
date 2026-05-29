@@ -108,19 +108,8 @@ export class GoodsReceiptLineItemsService {
     await this.validateSerialForRegister(ctx.inventoryItemId, trimmed);
     await this.linesService.validatePoCap(ctx, 1, lineId);
 
-    let entity: Awaited<ReturnType<typeof this.repository.create>>;
-    try {
-      entity = await this.repository.create({ goodsReceiptLineId: lineId, serialNumber: trimmed });
-    } catch (error: unknown) {
-      if ((error as { code?: string })?.code === '23505') {
-        throw new ConflictException({
-          label: 'Duplicate Serial',
-          detail: `Serial "${trimmed}" is already on this line.`,
-          errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
-        });
-      }
-      throw error;
-    }
+    // 23505 race fallback handled globally by api-sdk's pg-error filter.
+    const entity = await this.repository.create({ goodsReceiptLineId: lineId, serialNumber: trimmed });
     await this.linesRepository.refreshIsBalanced(lineId, ctx.tracking);
 
     this.logger.log(`Added line item ${entity.id} (serial=${trimmed}) to line ${lineId}`);
@@ -170,19 +159,8 @@ export class GoodsReceiptLineItemsService {
       await this.validateSerialForRegister(ctx.inventoryItemId, trimmed);
     }
 
-    let updated: Awaited<ReturnType<typeof this.repository.update>>;
-    try {
-      updated = await this.repository.update(subItemId, { serialNumber: trimmed });
-    } catch (error: unknown) {
-      if ((error as { code?: string })?.code === '23505') {
-        throw new ConflictException({
-          label: 'Duplicate Serial',
-          detail: `Serial "${trimmed}" is already on this line.`,
-          errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
-        });
-      }
-      throw error;
-    }
+    // 23505 race fallback handled globally by api-sdk's pg-error filter.
+    const updated = await this.repository.update(subItemId, { serialNumber: trimmed });
     await this.linesRepository.refreshIsBalanced(lineId, ctx.tracking);
     return GoodsReceiptLineItemDto.from(updated);
   }

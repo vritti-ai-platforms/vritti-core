@@ -102,19 +102,8 @@ export class StockAdjustmentLineItemsService {
       });
     }
 
-    let entity: Awaited<ReturnType<typeof this.repository.create>>;
-    try {
-      entity = await this.repository.create({ stockAdjustmentLineId: lineId, serialNumber: trimmed });
-    } catch (error: unknown) {
-      if ((error as { code?: string })?.code === '23505') {
-        throw new ConflictException({
-          label: 'Duplicate Serial',
-          detail: `Serial "${trimmed}" is already on this line.`,
-          errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
-        });
-      }
-      throw error;
-    }
+    // 23505 race fallback handled globally by api-sdk's pg-error filter.
+    const entity = await this.repository.create({ stockAdjustmentLineId: lineId, serialNumber: trimmed });
     this.logger.log(`Added line item ${entity.id} (serial=${trimmed}) to line ${lineId}`);
 
     return {
@@ -167,19 +156,8 @@ export class StockAdjustmentLineItemsService {
       }
     }
 
-    let updated: Awaited<ReturnType<typeof this.repository.update>>;
-    try {
-      updated = await this.repository.update(itemId, { serialNumber: trimmed });
-    } catch (error: unknown) {
-      if ((error as { code?: string })?.code === '23505') {
-        throw new ConflictException({
-          label: 'Duplicate Serial',
-          detail: `Serial "${trimmed}" is already on this line.`,
-          errors: [{ field: 'serialNumber', message: 'Serial already on this line.' }],
-        });
-      }
-      throw error;
-    }
+    // 23505 race fallback handled globally by api-sdk's pg-error filter.
+    const updated = await this.repository.update(itemId, { serialNumber: trimmed });
     return { success: true, message: `Serial "${updated.serialNumber}" updated successfully.` };
   }
 
