@@ -19,6 +19,7 @@ export type GoodsReceiptItemWithRefs = GoodsReceiptItem & {
   inventoryItemName: string;
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
+  inventoryItemAllowDecimal: boolean;
   acceptedQuantity: number;
   lotsCount: number;
   linesCount: number;
@@ -39,13 +40,18 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
   }
 
   // Returns the unified GR tree (items → lots → lines) as fully-formed GoodsReceiptTreeNode[]
-  // in a single query. SQL emits the wire shape directly via json_build_object/json_agg.
-  // Children depth varies by tracking: quantity/serial → empty array, lot → lots only,
-  // lot_serial → lots with line children.
+  // in a single query. Each node carries only what the tree row renders: id, label (name),
+  // balance flag, and pre-computed badge text. Per-kind detail (accepted quantities, PO context,
+  // tracking, UOM, etc.) is fetched via separate item/lot/line detail endpoints when a node is
+  // selected — keeping this query cheap and the response small.
   async findTreeNodesByReceiptId(goodsReceiptId: string): Promise<GoodsReceiptTreeNode[]> {
-    // Per-item line aggregations (acceptedQuantity, unbalancedLinesCount).
     const acceptedQty = sql`(
       SELECT COALESCE(SUM(quantity), 0)
+      FROM vritti_core.goods_receipt_lines
+      WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
+    )`;
+    const itemLinesCount = sql`(
+      SELECT COUNT(*)
       FROM vritti_core.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
@@ -54,19 +60,50 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       FROM vritti_core.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
+    // Item balance rules:
+    //   * Must have at least one line (a fresh item with no lines is not "balanced", it's empty).
+    //   * No line under it may be unbalanced (serial-fill mismatch, etc).
+    //   * For PO-linked items, the PO line's remaining quantity must be 0 — i.e. the receiver has
+    //     consumed everything still outstanding on the PO. Un-linked items don't have a target;
+    //     once they have at least one balanced line they're considered balanced.
+    const itemBalanced = sql`(
+      ${itemLinesCount} > 0
+      AND ${itemUnbalanced} = 0
+      AND CASE
+        WHEN ${purchaseOrderItems.uomQty} IS NOT NULL
+        THEN (${purchaseOrderItems.uomQty} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)) = 0
+        ELSE TRUE
+      END
+    )`;
+    // Item badge mirrors the FE format: `accepted/total uomSymbol` (PO-linked) or
+    // `accepted uomSymbol` (un-linked). The trailing UOM is optional — drops when uom.symbol is null.
+    // trim_scale strips trailing zeros from the numeric(12,3) columns so `100` renders as "100",
+    // not "100.000". Matches the legacy FE behavior where JS numbers dropped trailing zeros.
+    const itemBadge = sql`CASE
+      WHEN ${purchaseOrderItems.uomQty} IS NOT NULL
+      THEN CONCAT(
+        trim_scale(${acceptedQty})::text,
+        '/',
+        trim_scale(${acceptedQty} + (${purchaseOrderItems.uomQty} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)))::text,
+        CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
+      )
+      ELSE CONCAT(
+        trim_scale(${acceptedQty})::text,
+        CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
+      )
+    END`;
 
-    // tracking='lot': lots as leaves (no `children` key).
+    // tracking='lot': lots as leaves. Badge is just the lot's accepted total (no UOM — matches
+    // the pre-refactor FE behavior where lot rows omitted the symbol).
     const lotsOnlyJson = sql`(
       SELECT COALESCE(
         json_agg(
           json_build_object(
             'id', l.id,
             'name', l.lot_number,
-            'path', json_build_array(${goodsReceiptItems.id}, l.id),
             'kind', 'lot',
-            'totalQuantity', COALESCE(la.total_quantity, 0),
-            'linesCount', COALESCE(la.lines_count, 0),
-            'isBalanced', COALESCE(la.unbalanced_lines_count, 0) = 0
+            'balanced', COALESCE(la.lines_count, 0) > 0 AND COALESCE(la.unbalanced_lines_count, 0) = 0,
+            'badge', trim_scale(COALESCE(la.total_quantity, 0))::text
           ) ORDER BY l.created_at
         ),
         '[]'::json
@@ -83,18 +120,17 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
 
-    // tracking='lot_serial': lots with line children.
+    // tracking='lot_serial': lots with line children. Line badge is `lineItemsCount/quantity`
+    // (serial-fill progress).
     const lotsWithLinesJson = sql`(
       SELECT COALESCE(
         json_agg(
           json_build_object(
             'id', l.id,
             'name', l.lot_number,
-            'path', json_build_array(${goodsReceiptItems.id}, l.id),
             'kind', 'lot',
-            'totalQuantity', COALESCE(la.total_quantity, 0),
-            'linesCount', COALESCE(la.lines_count, 0),
-            'isBalanced', COALESCE(la.unbalanced_lines_count, 0) = 0,
+            'balanced', COALESCE(la.lines_count, 0) > 0 AND COALESCE(la.unbalanced_lines_count, 0) = 0,
+            'badge', trim_scale(COALESCE(la.total_quantity, 0))::text,
             'children', COALESCE(lc.lines_json, '[]'::json)
           ) ORDER BY l.created_at
         ),
@@ -114,14 +150,13 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
           json_build_object(
             'id', line.id,
             'name', COALESCE(loc.name, '—'),
-            'path', json_build_array(${goodsReceiptItems.id}, l.id, line.id),
             'kind', 'line',
-            'quantity', line.quantity,
-            'lineItemsCount', (
-              SELECT COUNT(*) FROM vritti_core.goods_receipt_line_items li
-              WHERE li.goods_receipt_line_id = line.id
-            ),
-            'isBalanced', line.is_balanced
+            'balanced', line.is_balanced,
+            'badge', CONCAT(
+              (SELECT COUNT(*) FROM vritti_core.goods_receipt_line_items li WHERE li.goods_receipt_line_id = line.id)::text,
+              '/',
+              trim_scale(line.quantity)::text
+            )
           ) ORDER BY line.created_at
         ) AS lines_json
         FROM vritti_core.goods_receipt_lines line
@@ -131,23 +166,20 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
 
-    // tracking='serial': lines as direct children of the item (no lot layer). Each line carries
-    // serial count via lineItemsCount so the tree-side balance indicator stays consistent with the
-    // lot_serial pattern.
+    // tracking='serial': lines as direct children of the item.
     const linesOnlyJson = sql`(
       SELECT COALESCE(
         json_agg(
           json_build_object(
             'id', line.id,
             'name', COALESCE(loc.name, '—'),
-            'path', json_build_array(${goodsReceiptItems.id}, line.id),
             'kind', 'line',
-            'quantity', line.quantity,
-            'lineItemsCount', (
-              SELECT COUNT(*) FROM vritti_core.goods_receipt_line_items li
-              WHERE li.goods_receipt_line_id = line.id
-            ),
-            'isBalanced', line.is_balanced
+            'balanced', line.is_balanced,
+            'badge', CONCAT(
+              (SELECT COUNT(*) FROM vritti_core.goods_receipt_line_items li WHERE li.goods_receipt_line_id = line.id)::text,
+              '/',
+              trim_scale(line.quantity)::text
+            )
           ) ORDER BY line.created_at
         ),
         '[]'::json
@@ -160,22 +192,9 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     const node = sql<GoodsReceiptTreeNode>`json_build_object(
       'id', ${goodsReceiptItems.id},
       'name', COALESCE(${inventoryItems.name}, ${goodsReceiptItems.inventoryItemId}::text),
-      'path', json_build_array(${goodsReceiptItems.id}),
       'kind', 'item',
-      'inventoryItemId', ${goodsReceiptItems.inventoryItemId},
-      'inventoryItemTracking', ${inventoryItems.tracking},
-      'inventoryItemUomSymbol', ${uom.symbol},
-      'inventoryItemAllowDecimal', ${uom.allowDecimal},
-      'acceptedQuantity', ${acceptedQty},
-      'rejectedQuantity', ${goodsReceiptItems.rejectedQuantity},
-      'poOrderedQuantity', ${purchaseOrderItems.uomQty},
-      'poReceivedQuantity', ${purchaseOrderItems.receivedQuantity},
-      'poRemainingQuantity', CASE
-        WHEN ${purchaseOrderItems.uomQty} IS NOT NULL
-        THEN ${purchaseOrderItems.uomQty} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)
-        ELSE NULL
-      END,
-      'isBalanced', ${itemUnbalanced} = 0,
+      'balanced', ${itemBalanced},
+      'badge', ${itemBadge},
       'children', CASE ${inventoryItems.tracking}
         WHEN 'lot' THEN ${lotsOnlyJson}
         WHEN 'lot_serial' THEN ${lotsWithLinesJson}
@@ -188,12 +207,8 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       .select({ node })
       .from(goodsReceiptItems)
       .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
-      // UOM resolves from the GR item's snapshot, not the inventory item's primary UOM, so the
-      // displayed symbol matches what the receiver picked (e.g. "box" not the item's primary "pc").
       .leftJoin(uom, eq(goodsReceiptItems.uomId, uom.id))
       .leftJoin(goodsReceipts, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id))
-      // PO join matches on the full (po_id, inventory_item_id, uom_id) triple to avoid multiplying
-      // rows when the PO has the same product in multiple UOMs.
       .leftJoin(
         purchaseOrderItems,
         and(
@@ -279,6 +294,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         inventoryItemName: inventoryItems.name,
         inventoryItemTracking: inventoryItems.tracking,
         inventoryItemUomSymbol: uom.symbol,
+        inventoryItemAllowDecimal: uom.allowDecimal,
         poItemId: purchaseOrderItems.id,
         poOrderedQuantity: purchaseOrderItems.uomQty,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,
@@ -468,6 +484,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         inventoryItemName: inventoryItems.name,
         inventoryItemTracking: inventoryItems.tracking,
         inventoryItemUomSymbol: uom.symbol,
+        inventoryItemAllowDecimal: uom.allowDecimal,
         poItemId: purchaseOrderItems.id,
         poOrderedQuantity: purchaseOrderItems.uomQty,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,

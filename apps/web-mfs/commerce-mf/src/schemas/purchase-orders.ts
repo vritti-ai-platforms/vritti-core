@@ -106,7 +106,6 @@ export interface GoodsReceiptData {
     expectedBy: string | null;
     totalAmount: { currency: string; value: string };
   } | null;
-  receivedBy: string | null;
   receivedDate: string;
   notes: string | null;
   publishedAt: string | null;

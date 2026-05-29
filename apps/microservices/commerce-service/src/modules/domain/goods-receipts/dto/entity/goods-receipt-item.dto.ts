@@ -9,6 +9,7 @@ export class GoodsReceiptItemDto {
   inventoryItemName: string;
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
+  inventoryItemAllowDecimal: boolean;
   acceptedQuantity: number;
   rejectedQuantity: number;
   lotsCount: number;
@@ -30,6 +31,7 @@ export class GoodsReceiptItemDto {
     dto.inventoryItemName = row.inventoryItemName ?? '';
     dto.inventoryItemTracking = row.inventoryItemTracking;
     dto.inventoryItemUomSymbol = row.inventoryItemUomSymbol ?? '';
+    dto.inventoryItemAllowDecimal = row.inventoryItemAllowDecimal ?? false;
     dto.acceptedQuantity = Number(row.acceptedQuantity ?? 0);
     dto.rejectedQuantity = row.rejectedQuantity ?? 0;
     dto.lotsCount = row.lotsCount;

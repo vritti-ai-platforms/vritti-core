@@ -153,6 +153,10 @@ export class GoodsReceiptsGatewayService {
     return { result, count, state, activeViewId };
   }
 
+  findItemById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemResponseDto> {
+    return this.nats.send('commerce', 'goodsReceipts.itemById', { goodsReceiptId, itemId });
+  }
+
 
   addItemFromSupplierItem(
     goodsReceiptId: string,

@@ -17,7 +17,6 @@ export class GoodsReceiptDto {
     expectedBy: string | null;
     totalAmount: CurrencyAmountDto;
   } | null;
-  receivedBy: string | null;
   receivedDate: string;
   notes: string | null;
   // Supplier→BU rate locked at GR creation. Used at publish to convert supplier-currency GR-item
@@ -61,7 +60,6 @@ export class GoodsReceiptDto {
             totalAmount: CurrencyAmountDto.from(refs.poTotalAmount ?? 0n, refs.poCurrencyCode ?? 'USD'),
           }
         : null;
-    dto.receivedBy = entity.receivedBy ?? null;
     dto.receivedDate = entity.receivedDate;
     dto.notes = entity.notes ?? null;
     dto.exchangeRate = Number(entity.exchangeRate);

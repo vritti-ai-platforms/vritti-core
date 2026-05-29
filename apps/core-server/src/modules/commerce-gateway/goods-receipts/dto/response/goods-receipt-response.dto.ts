@@ -45,9 +45,6 @@ export class GoodsReceiptResponseDto {
   @ApiPropertyOptional({ type: GoodsReceiptPoDto, nullable: true })
   po: GoodsReceiptPoDto | null;
 
-  @ApiPropertyOptional({ nullable: true })
-  receivedBy: string | null;
-
   @ApiProperty()
   receivedDate: string;
 

@@ -24,7 +24,6 @@ export const goodsReceipts = coreSchema.table(
     // Used at publish time by autoAssociateSupplierPrice to convert supplier-currency unit_price
     // into the BU-currency cost row + quant valuation.
     exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6, mode: 'number' }).notNull().default(1),
-    receivedBy: uuid('received_by'),
     receivedDate: timestamp('received_date', { withTimezone: true, mode: 'string' }).notNull(),
     notes: text('notes'),
     metadata: jsonb('metadata').notNull().default({}),

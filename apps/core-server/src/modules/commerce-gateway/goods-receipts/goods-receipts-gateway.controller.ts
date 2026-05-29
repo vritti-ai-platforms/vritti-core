@@ -170,6 +170,15 @@ export class GoodsReceiptsGatewayController {
     return this.service.addItemFromPurchaseOrderItem(goodsReceiptId, dto);
   }
 
+  @Get(':id/items/:itemId/detail')
+  itemDetail(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<GoodsReceiptItemResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/detail`);
+    return this.service.findItemById(goodsReceiptId, itemId);
+  }
+
   @Patch(':id/items/:itemId')
   updateItem(
     @Param('id') goodsReceiptId: string,

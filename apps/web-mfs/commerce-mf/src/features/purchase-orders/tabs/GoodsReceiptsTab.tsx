@@ -31,11 +31,6 @@ export const GoodsReceiptsTab = ({ poId }: GoodsReceiptsTabProps) => {
         cell: ({ row }) => <DateCell value={row.original.receivedDate} />,
       },
       {
-        accessorKey: 'receivedBy',
-        header: 'Received By',
-        cell: ({ row }) => row.original.receivedBy ?? '--',
-      },
-      {
         accessorKey: 'status',
         header: 'Status',
       },

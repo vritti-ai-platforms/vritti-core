@@ -11,11 +11,6 @@ export class CreateGoodsReceiptDto {
   @IsUUID()
   purchaseOrderId?: string;
 
-  @ApiPropertyOptional({ description: 'User ID of the person who received the goods' })
-  @IsOptional()
-  @IsUUID()
-  receivedBy?: string;
-
   @ApiProperty({ description: 'Date the goods were received (ISO string)', example: '2026-04-10' })
   @IsString()
   @IsNotEmpty()

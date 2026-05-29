@@ -17,7 +17,6 @@ export interface CreateGoodsReceiptPayload {
   supplierId: string;
   purchaseOrderId?: string;
   receivedDate: string;
-  receivedBy?: string;
   notes?: string;
   exchangeRate?: number;
 }
@@ -120,6 +119,12 @@ export function getGoodsReceiptInventoryItemIds(id: string): Promise<string[]> {
 export function getGoodsReceiptItemsTable(id: string): Promise<GoodsReceiptItemsTableResponse> {
   return axios
     .get<GoodsReceiptItemsTableResponse>(`commerce-api/goods-receipts/${id}/items/table`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function getGoodsReceiptItem(id: string, itemId: string): Promise<GoodsReceiptItemData> {
+  return axios
+    .get<GoodsReceiptItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}/detail`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 

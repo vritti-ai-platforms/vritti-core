@@ -81,13 +81,7 @@ export const AddLineForm = ({
         positive
         integer={!allowDecimal}
         max={poRemainingQuantity ?? undefined}
-        description={
-          isSerial
-            ? 'The line is balanced once this many serials have been added.'
-            : poRemainingQuantity != null
-              ? `Up to ${poRemainingQuantity} remaining on the linked PO.`
-              : undefined
-        }
+        description={isSerial ? 'The line is balanced once this many serials have been added.' : undefined}
       />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

@@ -121,15 +121,16 @@ export class GoodsReceiptLinesService {
       await this.validatePoCap(ctx, data.quantity);
     }
 
-    const initialIsBalanced = isSerial ? data.quantity === 0 : true;
-
     const created = await this.repository.create({
       goodsReceiptItemId: itemId,
       goodsReceiptLotId: data.goodsReceiptLotId ?? null,
       locationId: data.locationId,
       quantity: data.quantity,
-      isBalanced: initialIsBalanced,
     });
+
+    // Single source of truth for `is_balanced`: same predicate as updateLine and post-serial mutations.
+    // For serial/lot_serial tracking it becomes `quantity = count(line_items)`; for others it's `true`.
+    await this.repository.refreshIsBalanced(created.id, ctx.tracking);
 
     this.logger.log(`Added line ${created.id} to goods-receipt-item ${itemId}`);
     const refreshed = await this.repository.findByItemIdAndLineId(itemId, created.id);

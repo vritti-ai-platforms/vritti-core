@@ -2,6 +2,7 @@ export {
   GOODS_RECEIPT_COST_ALLOCATIONS_KEY,
   GOODS_RECEIPT_COSTS_KEY,
   GOODS_RECEIPT_INVENTORY_ITEM_IDS_KEY,
+  GOODS_RECEIPT_ITEM_DETAIL_KEY,
   GOODS_RECEIPT_ITEM_KEY,
   GOODS_RECEIPT_ITEMS_KEY,
   GOODS_RECEIPT_ITEMS_TABLE_KEY,
@@ -31,6 +32,7 @@ export { useCreateGoodsReceipt } from './useCreateGoodsReceipt';
 export { useDeleteGoodsReceipt } from './useDeleteGoodsReceipt';
 export { useGoodsReceipt } from './useGoodsReceipt';
 export { useGoodsReceiptInventoryItemIds } from './useGoodsReceiptInventoryItemIds';
+export { useGoodsReceiptItem } from './useGoodsReceiptItem';
 export { useGoodsReceiptLine } from './useGoodsReceiptLine';
 export { useGoodsReceiptLineItemsTable } from './useGoodsReceiptLineItemsTable';
 export { useGoodsReceiptLinesByLotTable } from './useGoodsReceiptLinesByLotTable';

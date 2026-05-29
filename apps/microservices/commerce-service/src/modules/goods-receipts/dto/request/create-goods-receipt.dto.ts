@@ -8,10 +8,6 @@ export class CreateGoodsReceiptDto {
   @IsUUID()
   purchaseOrderId?: string;
 
-  @IsOptional()
-  @IsUUID()
-  receivedBy?: string;
-
   @IsNotEmpty()
   @IsDateString()
   receivedDate: string;

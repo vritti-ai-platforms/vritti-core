@@ -6,7 +6,6 @@ import { removeGoodsReceiptItem } from '@/services/goods-receipts.service';
 import {
   GOODS_RECEIPT_INVENTORY_ITEM_IDS_KEY,
   GOODS_RECEIPT_ITEMS_KEY,
-  GOODS_RECEIPT_ITEMS_TABLE_KEY,
   GOODS_RECEIPT_KEY,
   GOODS_RECEIPT_TREE_KEY,
 } from './keys';
@@ -20,10 +19,9 @@ export function useRemoveGoodsReceiptItem(
     ...options,
     mutationFn: (itemId) => removeGoodsReceiptItem(goodsReceiptId, itemId),
     onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_KEY(goodsReceiptId), exact: true });
       queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_ITEMS_KEY(goodsReceiptId) });
-      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_ITEMS_TABLE_KEY(goodsReceiptId) });
       queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_INVENTORY_ITEM_IDS_KEY(goodsReceiptId) });
-      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_KEY(goodsReceiptId) });
       queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_TREE_KEY(goodsReceiptId) });
       options?.onSuccess?.(...args);
     },

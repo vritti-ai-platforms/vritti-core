@@ -11,16 +11,18 @@ import {
 import {
   GOODS_RECEIPT_INVENTORY_ITEM_IDS_KEY,
   GOODS_RECEIPT_ITEMS_KEY,
-  GOODS_RECEIPT_ITEMS_TABLE_KEY,
   GOODS_RECEIPT_KEY,
   GOODS_RECEIPT_TREE_KEY,
 } from './keys';
 
 function invalidate(queryClient: ReturnType<typeof useQueryClient>, goodsReceiptId: string) {
+  // GR record (isPublishable) — exact-only to skip Costs.
+  queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_KEY(goodsReceiptId), exact: true });
+  // Items subtree (table + per-item detail + lots/lines under each).
   queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_ITEMS_KEY(goodsReceiptId) });
-  queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_ITEMS_TABLE_KEY(goodsReceiptId) });
+  // Item-set changed — refetch the cached ID list used by add-item pickers / dedupe checks.
   queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_INVENTORY_ITEM_IDS_KEY(goodsReceiptId) });
-  queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_KEY(goodsReceiptId) });
+  // Breakdown tree.
   queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_TREE_KEY(goodsReceiptId) });
 }
 

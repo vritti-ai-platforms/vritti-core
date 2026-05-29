@@ -47,7 +47,6 @@ export interface GoodsReceiptData {
   canUnlinkPurchaseOrder?: boolean;
   supplierName: string;
   po: GoodsReceiptPoData | null;
-  receivedBy: string | null;
   receivedDate: string;
   notes: string | null;
   exchangeRate: number;
@@ -77,6 +76,7 @@ export interface GoodsReceiptItemData {
   inventoryItemName: string;
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
+  inventoryItemAllowDecimal: boolean;
   // derived from sum(lines.quantity)
   acceptedQuantity: number;
   rejectedQuantity: number;
@@ -133,26 +133,9 @@ export interface GoodsReceiptLineItemData {
 export interface GoodsReceiptTreeNode {
   id: string;
   name: string;
-  // [itemId] | [itemId, lotId] | [itemId, lotId, lineId]
-  path: string[];
   kind: 'item' | 'lot' | 'line';
-  // item-only:
-  inventoryItemId?: string;
-  inventoryItemTracking?: InventoryTracking;
-  inventoryItemUomSymbol?: string;
-  inventoryItemAllowDecimal?: boolean;
-  acceptedQuantity?: number;
-  rejectedQuantity?: number;
-  poOrderedQuantity?: number | null;
-  poReceivedQuantity?: number | null;
-  poRemainingQuantity?: number | null;
-  // lot-only:
-  totalQuantity?: number;
-  linesCount?: number;
-  // line-only:
-  quantity?: number;
-  lineItemsCount?: number;
-  isBalanced: boolean;
+  balanced: boolean;
+  badge: string;
   children?: GoodsReceiptTreeNode[];
 }
 

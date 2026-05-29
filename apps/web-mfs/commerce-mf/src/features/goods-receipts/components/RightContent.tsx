@@ -1,19 +1,25 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { CompactTableSkeleton } from '@vritti/quantum-ui/DataTable';
 import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import {
+  useGoodsReceiptItem,
   useGoodsReceiptLine,
   useGoodsReceiptLots,
-  useGoodsReceiptTree,
   useRemoveGoodsReceiptItem,
   useRemoveGoodsReceiptLot,
 } from '@/hooks/goods-receipts';
-import { type GoodsReceiptTreeNode, type InventoryTracking, InventoryTrackingValues } from '@/schemas/goods-receipts';
+import {
+  type GoodsReceiptItemData,
+  type GoodsReceiptLotData,
+  InventoryTrackingValues,
+} from '@/schemas/goods-receipts';
 import { AddLotDialog } from '../forms/AddLotDialog';
 import { EditItemDialog } from '../forms/EditItemDialog';
 import { EditLotDialog } from '../forms/EditLotDialog';
@@ -28,47 +34,8 @@ interface RightContentProps {
   onSelectionChange: (selection: TreeSelection | null) => void;
 }
 
-const findItemNode = (tree: GoodsReceiptTreeNode[], itemId: string) =>
-  tree.find((n) => n.kind === 'item' && n.id === itemId);
-
 export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionChange }: RightContentProps) => {
-  const confirm = useConfirm();
-  const editItemDialog = useDialog();
-  const editLotDialog = useDialog();
-  const addLotDialog = useDialog();
-  const removeItemMutation = useRemoveGoodsReceiptItem(goodsReceiptId, {
-    onSuccess: () => onSelectionChange(null),
-  });
-  const removeLotMutation = useRemoveGoodsReceiptLot(
-    goodsReceiptId,
-    selection?.kind === 'lot' || selection?.kind === 'line' ? selection.itemId : '',
-    { onSuccess: () => onSelectionChange(selection ? { kind: 'item', itemId: selection.itemId } : null) },
-  );
-
-  const { data: tree = [] } = useGoodsReceiptTree(goodsReceiptId);
-  const itemId = selection ? selection.itemId : null;
-  const itemNode = useMemo(() => (itemId ? findItemNode(tree, itemId) : undefined), [tree, itemId]);
-  const tracking = itemNode?.inventoryItemTracking;
-  const uomSymbol = itemNode?.inventoryItemUomSymbol ?? null;
-  const allowDecimal = itemNode?.inventoryItemAllowDecimal ?? false;
-  const poRemaining = itemNode?.poRemainingQuantity ?? null;
-
-  // Lots for the selected item — needed when selection.kind='lot' to derive lot details for the EditLot dialog
-  const { data: lots = [] } = useGoodsReceiptLots(goodsReceiptId, itemId);
-  const selectedLot = useMemo(
-    () => (selection?.kind === 'lot' ? (lots.find((l) => l.id === selection.lotId) ?? null) : null),
-    [lots, selection],
-  );
-
-  // Selected serial line — for the SerialsTable
-  const lineSelection = selection?.kind === 'line' ? selection : null;
-  const { data: selectedLine = null } = useGoodsReceiptLine(
-    goodsReceiptId,
-    lineSelection?.itemId ?? null,
-    lineSelection?.lineId ?? null,
-  );
-
-  if (!selection || !tracking) {
+  if (!selection) {
     return (
       <PageContentDetails className="flex items-center justify-center">
         <Empty
@@ -79,16 +46,137 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
       </PageContentDetails>
     );
   }
+  return (
+    <SelectedContent
+      goodsReceiptId={goodsReceiptId}
+      isDraft={isDraft}
+      selection={selection}
+      onSelectionChange={onSelectionChange}
+    />
+  );
+};
+
+// Inner component so the item-detail hook gates everything: the item shape carries the tracking,
+// uomSymbol, allowDecimal, etc. that the per-kind panels need. While it loads we show a skeleton
+// in the details column (mirrors the SA LotDetailPanel pattern).
+const SelectedContent = ({
+  goodsReceiptId,
+  isDraft,
+  selection,
+  onSelectionChange,
+}: RightContentProps & { selection: TreeSelection }) => {
+  const { data: item, isLoading: isItemLoading } = useGoodsReceiptItem(goodsReceiptId, selection.itemId);
+
+  return (
+    <PageContentDetails
+      isLoading={isItemLoading || !item}
+      loadingContent={<DetailSkeleton />}
+      isEmpty={false}
+    >
+      {item ? (
+        <Resolved
+          goodsReceiptId={goodsReceiptId}
+          isDraft={isDraft}
+          selection={selection}
+          onSelectionChange={onSelectionChange}
+          item={item}
+        />
+      ) : null}
+    </PageContentDetails>
+  );
+};
+
+// Skeleton for the details column. Mirrors LotDetailPanelSkeleton in stock-adjustments:
+// title row + stat plate + table toolbar + compact table.
+function DetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <Skeleton className="h-6 w-40" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-24 rounded-md" />
+          <Skeleton className="h-8 w-32 rounded-md" />
+        </div>
+      </div>
+      <DetailSection>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list>
+            key={`gr-stat-${i}`}
+            className="space-y-1.5 px-4 py-2"
+          >
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+        ))}
+      </DetailSection>
+      <div className="flex items-center justify-end">
+        <Skeleton className="h-8 w-28 rounded-md" />
+      </div>
+      <CompactTableSkeleton
+        rows={5}
+        actions
+        columns={[
+          { headerWidth: 'w-20', cellWidth: 'w-28' },
+          { headerWidth: 'w-16', cellWidth: 'w-16' },
+        ]}
+      />
+    </div>
+  );
+}
+
+interface ResolvedProps {
+  goodsReceiptId: string;
+  isDraft: boolean;
+  selection: TreeSelection;
+  onSelectionChange: (selection: TreeSelection | null) => void;
+  item: GoodsReceiptItemData;
+}
+
+const Resolved = ({ goodsReceiptId, isDraft, selection, onSelectionChange, item }: ResolvedProps) => {
+  const confirm = useConfirm();
+  const editItemDialog = useDialog();
+  const editLotDialog = useDialog();
+  const addLotDialog = useDialog();
+
+  const removeItemMutation = useRemoveGoodsReceiptItem(goodsReceiptId, {
+    onSuccess: () => onSelectionChange(null),
+  });
+  const removeLotMutation = useRemoveGoodsReceiptLot(goodsReceiptId, item.id, {
+    onSuccess: () => onSelectionChange({ kind: 'item', itemId: item.id }),
+  });
+
+  // Lots needed when a lot is selected — the LotsList endpoint is cheap enough to keep using
+  // here. Replace with a single-lot detail endpoint if we ever need richer lot fields.
+  const { data: lots = [], isLoading: isLotsLoading } = useGoodsReceiptLots(
+    goodsReceiptId,
+    selection.kind === 'lot' || selection.kind === 'line' ? item.id : null,
+  );
+  const selectedLot = useMemo<GoodsReceiptLotData | null>(
+    () => (selection.kind === 'lot' ? (lots.find((l) => l.id === selection.lotId) ?? null) : null),
+    [lots, selection],
+  );
+
+  const lineSelection = selection.kind === 'line' ? selection : null;
+  const { data: selectedLine = null } = useGoodsReceiptLine(
+    goodsReceiptId,
+    lineSelection?.itemId ?? null,
+    lineSelection?.lineId ?? null,
+  );
+
+  const tracking = item.inventoryItemTracking;
+  const uomSymbol = item.inventoryItemUomSymbol;
+  const allowDecimal = item.inventoryItemAllowDecimal;
+  const poRemaining = item.poRemainingQuantity;
 
   const handleRemoveItem = async () => {
-    if (!itemNode) return;
     const confirmed = await confirm({
-      title: `Remove ${itemNode.name}?`,
+      title: `Remove ${item.inventoryItemName}?`,
       description: 'This item and all its lots, lines, and serials will be removed.',
       confirmLabel: 'Remove',
       variant: 'destructive',
     });
-    if (confirmed) removeItemMutation.mutate(itemNode.id);
+    if (confirmed) removeItemMutation.mutate(item.id);
   };
 
   const handleRemoveLot = async () => {
@@ -111,7 +199,7 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
       <SerialsTable
         goodsReceiptId={goodsReceiptId}
         itemId={selection.itemId}
-        inventoryItemId={itemNode!.inventoryItemId!}
+        inventoryItemId={item.inventoryItemId}
         line={selectedLine}
         isDraft={isDraft}
         allowDecimal={allowDecimal}
@@ -128,74 +216,75 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
 
   // Selected = lot → LinesTable scoped to lot
   if (selection.kind === 'lot') {
+    if (isLotsLoading && !selectedLot) {
+      return <DetailSkeleton />;
+    }
     return (
-      <PageContentDetails>
-        <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">{selectedLot?.lotNumber ?? '—'}</h3>
-              <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
-                <div>
-                  Mfg: <FormattedDate value={selectedLot?.manufacturingDate} dateFormat="P" />
-                </div>
-                <div>
-                  Exp: <FormattedDate value={selectedLot?.expiryDate} dateFormat="P" />
-                </div>
-                <div>
-                  Total: {selectedLot?.totalQuantity ?? 0} {uomSymbol ?? ''}
-                </div>
-                <div>Lines: {selectedLot?.linesCount ?? 0}</div>
+      <div className="space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-semibold">{selectedLot?.lotNumber ?? '—'}</h3>
+            <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
+              <div>
+                Mfg: <FormattedDate value={selectedLot?.manufacturingDate} dateFormat="P" />
               </div>
+              <div>
+                Exp: <FormattedDate value={selectedLot?.expiryDate} dateFormat="P" />
+              </div>
+              <div>
+                Total: {selectedLot?.totalQuantity ?? 0} {uomSymbol ?? ''}
+              </div>
+              <div>Lines: {selectedLot?.linesCount ?? 0}</div>
             </div>
-            {isDraft && selectedLot && (
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  startAdornment={<Pencil className="size-3.5" />}
-                  onClick={editLotDialog.open}
-                >
-                  Edit Lot
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  startAdornment={<Trash2 className="size-3.5" />}
-                  onClick={handleRemoveLot}
-                  isLoading={removeLotMutation.isPending}
-                >
-                  Remove Lot
-                </Button>
-              </div>
-            )}
           </div>
-
-          <LinesTable
-            goodsReceiptId={goodsReceiptId}
-            scope={{
-              kind: 'lot',
-              itemId: selection.itemId,
-              inventoryItemId: itemNode!.inventoryItemId!,
-              lotId: selection.lotId,
-            }}
-            tracking={tracking}
-            isDraft={isDraft}
-            uomSymbol={uomSymbol}
-            allowDecimal={allowDecimal}
-            poRemainingQuantity={poRemaining}
-            selectedLineId={null}
-            onSelectLine={
-              tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL
-                ? (lineId) =>
-                    onSelectionChange(
-                      lineId
-                        ? { kind: 'line', itemId: selection.itemId, lotId: selection.lotId, lineId }
-                        : { kind: 'lot', itemId: selection.itemId, lotId: selection.lotId },
-                    )
-                : undefined
-            }
-          />
+          {isDraft && selectedLot && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                startAdornment={<Pencil className="size-3.5" />}
+                onClick={editLotDialog.open}
+              >
+                Edit Lot
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                startAdornment={<Trash2 className="size-3.5" />}
+                onClick={handleRemoveLot}
+                isLoading={removeLotMutation.isPending}
+              >
+                Remove Lot
+              </Button>
+            </div>
+          )}
         </div>
+
+        <LinesTable
+          goodsReceiptId={goodsReceiptId}
+          scope={{
+            kind: 'lot',
+            itemId: selection.itemId,
+            inventoryItemId: item.inventoryItemId,
+            lotId: selection.lotId,
+          }}
+          tracking={tracking}
+          isDraft={isDraft}
+          uomSymbol={uomSymbol}
+          allowDecimal={allowDecimal}
+          poRemainingQuantity={poRemaining}
+          selectedLineId={null}
+          onSelectLine={
+            tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL
+              ? (lineId) =>
+                  onSelectionChange(
+                    lineId
+                      ? { kind: 'line', itemId: selection.itemId, lotId: selection.lotId, lineId }
+                      : { kind: 'lot', itemId: selection.itemId, lotId: selection.lotId },
+                  )
+              : undefined
+          }
+        />
 
         <EditLotDialog
           goodsReceiptId={goodsReceiptId}
@@ -203,228 +292,122 @@ export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionCh
           lot={selectedLot}
           handle={editLotDialog}
         />
-      </PageContentDetails>
+      </div>
     );
   }
 
   // Selected = item: render LinesTable scoped to item (for tracking='quantity' and standalone 'serial').
   // For lot/lot_serial tracking with no lot selected, show a hint to pick a lot.
-  if (selection.kind === 'item') {
-    if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
-      return (
-        <PageContentDetails>
-          <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-semibold">{itemNode?.name ?? '—'}</h3>
-                <DetailSection wrap className="mt-2">
-                  <DetailField
-                    className="px-4 py-2"
-                    label="Accepted"
-                    type="string"
-                    mono
-                    value={`${itemNode?.acceptedQuantity ?? 0} ${uomSymbol ?? ''}`}
-                  />
-                  <DetailField
-                    className="px-4 py-2"
-                    label="Damaged"
-                    type="string"
-                    mono
-                    value={`${itemNode?.rejectedQuantity ?? 0} ${uomSymbol ?? ''}`}
-                  />
-                  {poRemaining != null && (
-                    <DetailField
-                      className="px-4 py-2"
-                      label="PO Remaining"
-                      type="string"
-                      mono
-                      value={`${poRemaining} ${uomSymbol ?? ''}`}
-                    />
-                  )}
-                </DetailSection>
-              </div>
-              {isDraft && itemNode && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    startAdornment={<Pencil className="size-3.5" />}
-                    onClick={editItemDialog.open}
-                  >
-                    Edit Item
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    startAdornment={<Trash2 className="size-3.5" />}
-                    onClick={handleRemoveItem}
-                    isLoading={removeItemMutation.isPending}
-                  >
-                    Remove Item
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <LinesTable
-              goodsReceiptId={goodsReceiptId}
-              scope={{
-                kind: 'item',
-                itemId: selection.itemId,
-                inventoryItemId: itemNode!.inventoryItemId!,
-              }}
-              tracking={tracking}
-              isDraft={isDraft}
-              uomSymbol={uomSymbol}
-              allowDecimal={allowDecimal}
-              poRemainingQuantity={poRemaining}
-              onSelectLine={
-                tracking === InventoryTrackingValues.SERIAL
-                  ? (lineId) =>
-                      onSelectionChange(
-                        lineId
-                          ? { kind: 'line', itemId: selection.itemId, lotId: null, lineId }
-                          : { kind: 'item', itemId: selection.itemId },
-                      )
-                  : undefined
-              }
-            />
-          </div>
-
-          <EditItemDialog
-            goodsReceiptId={goodsReceiptId}
-            item={
-              itemNode
-                ? {
-                    id: itemNode.id,
-                    goodsReceiptId,
-                    inventoryItemId: itemNode.inventoryItemId!,
-                    inventoryItemName: itemNode.name,
-                    inventoryItemTracking: tracking as InventoryTracking,
-                    inventoryItemUomSymbol: uomSymbol ?? '',
-                    acceptedQuantity: itemNode.acceptedQuantity ?? 0,
-                    rejectedQuantity: itemNode.rejectedQuantity ?? 0,
-                    lotsCount: 0,
-                    linesCount: 0,
-                    poOrderedQuantity: itemNode.poOrderedQuantity ?? null,
-                    poReceivedQuantity: itemNode.poReceivedQuantity ?? null,
-                    poRemainingQuantity: itemNode.poRemainingQuantity ?? null,
-                    // TODO PR5b follow-up: plumb the captured unit price through the tree query
-                    // so the Edit dialog can prefill from it. For now the dialog shows an empty
-                    // CurrencyField on items opened via the tree; the user re-enters as needed.
-                    unitPrice: null,
-                    metadata: {},
-                    createdAt: '',
-                  }
-                : null
-            }
-            handle={editItemDialog}
-          />
-        </PageContentDetails>
-      );
-    }
-
-    // tracking is 'lot' or 'lot_serial' — item is not a leaf; user should pick a lot
+  if (tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL) {
     return (
-      <PageContentDetails>
-        <div className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-semibold">{itemNode?.name ?? '—'}</h3>
-              <DetailSection wrap className="mt-2">
-                <DetailField
-                  className="px-4 py-2"
-                  label="Accepted"
-                  type="string"
-                  mono
-                  value={`${itemNode?.acceptedQuantity ?? 0} ${uomSymbol ?? ''}`}
-                />
-                <DetailField
-                  className="px-4 py-2"
-                  label="Damaged"
-                  type="string"
-                  mono
-                  value={`${itemNode?.rejectedQuantity ?? 0} ${uomSymbol ?? ''}`}
-                />
-                {poRemaining != null && (
-                  <DetailField
-                    className="px-4 py-2"
-                    label="PO Remaining"
-                    type="string"
-                    mono
-                    value={`${poRemaining} ${uomSymbol ?? ''}`}
-                  />
-                )}
-              </DetailSection>
-            </div>
-            {isDraft && itemNode && (
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  startAdornment={<Pencil className="size-3.5" />}
-                  onClick={editItemDialog.open}
-                >
-                  Edit Item
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  startAdornment={<Trash2 className="size-3.5" />}
-                  onClick={handleRemoveItem}
-                  isLoading={removeItemMutation.isPending}
-                >
-                  Remove Item
-                </Button>
-              </div>
-            )}
-          </div>
-          <Empty
-            icon={<Boxes />}
-            title="Pick a lot"
-            description="Select a lot from the tree (or add a new one) to receive stock under this item."
-            action={
-              isDraft ? (
-                <Button startAdornment={<Plus className="size-4" />} onClick={addLotDialog.open}>
-                  Add Lot
-                </Button>
-              ) : undefined
-            }
-          />
-        </div>
-
-        <AddLotDialog goodsReceiptId={goodsReceiptId} itemId={selection.itemId} handle={addLotDialog} />
-
-        <EditItemDialog
-          goodsReceiptId={goodsReceiptId}
-          item={
-            itemNode
-              ? {
-                  id: itemNode.id,
-                  goodsReceiptId,
-                  inventoryItemId: itemNode.inventoryItemId!,
-                  inventoryItemName: itemNode.name,
-                  inventoryItemTracking: tracking as InventoryTracking,
-                  inventoryItemUomSymbol: uomSymbol ?? '',
-                  acceptedQuantity: itemNode.acceptedQuantity ?? 0,
-                  rejectedQuantity: itemNode.rejectedQuantity ?? 0,
-                  lotsCount: 0,
-                  linesCount: 0,
-                  poOrderedQuantity: itemNode.poOrderedQuantity ?? null,
-                  poReceivedQuantity: itemNode.poReceivedQuantity ?? null,
-                  poRemainingQuantity: itemNode.poRemainingQuantity ?? null,
-                  // TODO PR5b follow-up: plumb the captured unit price through the tree query.
-                  unitPrice: null,
-                  metadata: {},
-                  createdAt: '',
-                }
-              : null
-          }
-          handle={editItemDialog}
+      <div className="space-y-4">
+        <ItemHeader
+          item={item}
+          uomSymbol={uomSymbol}
+          poRemaining={poRemaining}
+          isDraft={isDraft}
+          onEdit={editItemDialog.open}
+          onRemove={handleRemoveItem}
+          isRemovePending={removeItemMutation.isPending}
         />
-      </PageContentDetails>
+
+        <LinesTable
+          goodsReceiptId={goodsReceiptId}
+          scope={{
+            kind: 'item',
+            itemId: selection.itemId,
+            inventoryItemId: item.inventoryItemId,
+          }}
+          tracking={tracking}
+          isDraft={isDraft}
+          uomSymbol={uomSymbol}
+          allowDecimal={allowDecimal}
+          poRemainingQuantity={poRemaining}
+          onSelectLine={
+            tracking === InventoryTrackingValues.SERIAL
+              ? (lineId) =>
+                  onSelectionChange(
+                    lineId
+                      ? { kind: 'line', itemId: selection.itemId, lotId: null, lineId }
+                      : { kind: 'item', itemId: selection.itemId },
+                  )
+              : undefined
+          }
+        />
+
+        <EditItemDialog goodsReceiptId={goodsReceiptId} item={item} handle={editItemDialog} />
+      </div>
     );
   }
 
-  return null;
+  // tracking is 'lot' or 'lot_serial' — item is not a leaf; user should pick a lot
+  return (
+    <div className="space-y-4">
+      <ItemHeader
+        item={item}
+        uomSymbol={uomSymbol}
+        poRemaining={poRemaining}
+        isDraft={isDraft}
+        onEdit={editItemDialog.open}
+        onRemove={handleRemoveItem}
+        isRemovePending={removeItemMutation.isPending}
+      />
+      <Empty
+        icon={<Boxes />}
+        title="Pick a lot"
+        description="Select a lot from the tree (or add a new one) to receive stock under this item."
+        action={
+          isDraft ? (
+            <Button startAdornment={<Plus className="size-4" />} onClick={addLotDialog.open}>
+              Add Lot
+            </Button>
+          ) : undefined
+        }
+      />
+
+      <AddLotDialog goodsReceiptId={goodsReceiptId} itemId={selection.itemId} handle={addLotDialog} />
+      <EditItemDialog goodsReceiptId={goodsReceiptId} item={item} handle={editItemDialog} />
+    </div>
+  );
 };
+
+interface ItemHeaderProps {
+  item: GoodsReceiptItemData;
+  uomSymbol: string;
+  poRemaining: number | null;
+  isDraft: boolean;
+  onEdit: () => void;
+  onRemove: () => void;
+  isRemovePending: boolean;
+}
+
+const ItemHeader = ({ item, uomSymbol, poRemaining, isDraft, onEdit, onRemove, isRemovePending }: ItemHeaderProps) => (
+  <div className="flex items-start justify-between gap-4">
+    <div>
+      <h3 className="text-xl font-semibold">{item.inventoryItemName}</h3>
+      <DetailSection wrap className="mt-2">
+        <DetailField className="px-4 py-2" label="Accepted" type="string" mono value={`${item.acceptedQuantity} ${uomSymbol}`} />
+        <DetailField className="px-4 py-2" label="Damaged" type="string" mono value={`${item.rejectedQuantity} ${uomSymbol}`} />
+        {poRemaining != null && (
+          <DetailField className="px-4 py-2" label="PO Remaining" type="string" mono value={`${poRemaining} ${uomSymbol}`} />
+        )}
+      </DetailSection>
+    </div>
+    {isDraft && (
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" startAdornment={<Pencil className="size-3.5" />} onClick={onEdit}>
+          Edit Item
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          startAdornment={<Trash2 className="size-3.5" />}
+          onClick={onRemove}
+          isLoading={isRemovePending}
+        >
+          Remove Item
+        </Button>
+      </div>
+    )}
+  </div>
+);

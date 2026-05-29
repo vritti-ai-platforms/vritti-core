@@ -17,6 +17,12 @@ export class GoodsReceiptsItemsController {
     return this.itemsService.findTreeForReceipt(data.goodsReceiptId);
   }
 
+  @MessagePattern({ cmd: 'goodsReceipts.itemById' })
+  itemById(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptItemDto> {
+    this.logger.log(`goodsReceipts.itemById — item: ${data.itemId}`);
+    return this.itemsService.findById(data.goodsReceiptId, data.itemId);
+  }
+
   @MessagePattern({ cmd: 'goodsReceipts.inventoryItemIds' })
   inventoryItemIds(@Payload() data: { goodsReceiptId: string }): Promise<string[]> {
     this.logger.log('goodsReceipts.inventoryItemIds');

@@ -4853,6 +4853,42 @@
         ]
       }
     },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/detail": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_itemDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/goods-receipts/{id}/items/{itemId}": {
       "patch": {
         "operationId": "GoodsReceiptsGatewayController_updateItem",
@@ -14691,10 +14727,6 @@
             "type": "string",
             "description": "Purchase order ID (optional)"
           },
-          "receivedBy": {
-            "type": "string",
-            "description": "User ID of the person who received the goods"
-          },
           "receivedDate": {
             "type": "string",
             "description": "Date the goods were received (ISO string)",
@@ -14728,20 +14760,7 @@
       },
       "CurrencyAmountDto": {
         "type": "object",
-        "properties": {
-          "currency": {
-            "type": "string",
-            "description": "ISO 4217 currency code (e.g. OMR, INR, USD)."
-          },
-          "value": {
-            "type": "string",
-            "description": "Amount in major units as a decimal string (e.g. \"0.850\"). Precision must match the currency exponent."
-          }
-        },
-        "required": [
-          "currency",
-          "value"
-        ]
+        "properties": {}
       },
       "AssociateGoodsReceiptCostDto": {
         "type": "object",

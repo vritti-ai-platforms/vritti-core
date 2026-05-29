@@ -31,7 +31,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ receipt }) => {
             <DetailField label="Status" type="string" value={receipt.status} />
             <DetailField label="Publishable" type="string" value={receipt.isPublishable ? 'Yes' : 'No'} />
             <DetailField label="Received Date" type="date" value={receipt.receivedDate} />
-            <DetailField label="Received By" type="string" value={receipt.receivedBy} />
             {showExchangeRate && (
               <DetailField
                 label="Exchange Rate"

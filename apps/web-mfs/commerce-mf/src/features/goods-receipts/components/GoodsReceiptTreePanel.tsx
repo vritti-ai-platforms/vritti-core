@@ -9,7 +9,7 @@ import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Boxes, MapPin, Package, Plus } from 'lucide-react';
 import { useGoodsReceiptTree } from '@/hooks/goods-receipts';
-import { type GoodsReceiptTreeNode, InventoryTrackingValues } from '@/schemas/goods-receipts';
+import type { GoodsReceiptTreeNode } from '@/schemas/goods-receipts';
 import { AddItemDialog } from '../forms/AddItemDialog';
 
 export type TreeSelection =
@@ -28,15 +28,8 @@ interface GoodsReceiptTreePanelProps {
 
 interface TreeNodeData extends TreeDataItem {
   kind: 'item' | 'lot' | 'line';
-  inventoryItemTracking?: 'quantity' | 'lot' | 'lot_serial' | 'serial';
-  uomSymbol?: string;
-  acceptedQuantity?: number;
-  poRemainingQuantity?: number | null;
-  totalQuantity?: number;
-  linesCount?: number;
-  quantity?: number;
-  lineItemsCount?: number;
-  isBalanced: boolean;
+  balanced: boolean;
+  badge: string;
 }
 
 const toTreeData = (nodes: GoodsReceiptTreeNode[]): TreeNodeData[] =>
@@ -44,37 +37,14 @@ const toTreeData = (nodes: GoodsReceiptTreeNode[]): TreeNodeData[] =>
     id: n.id,
     name: n.name,
     kind: n.kind,
-    inventoryItemTracking: n.inventoryItemTracking,
-    uomSymbol: n.inventoryItemUomSymbol,
-    acceptedQuantity: n.acceptedQuantity,
-    poRemainingQuantity: n.poRemainingQuantity,
-    totalQuantity: n.totalQuantity,
-    linesCount: n.linesCount,
-    quantity: n.quantity,
-    lineItemsCount: n.lineItemsCount,
-    isBalanced: n.isBalanced,
+    balanced: n.balanced,
+    badge: n.badge,
     children: n.children?.length ? toTreeData(n.children) : undefined,
   }));
 
 const TreeRow = ({ item }: TreeRenderItemParams) => {
   const node = item as TreeNodeData;
   const Icon = node.kind === 'item' ? Package : node.kind === 'lot' ? Boxes : MapPin;
-
-  let badgeText: string;
-  if (node.kind === 'item') {
-    const accepted = node.acceptedQuantity ?? 0;
-    const symbol = node.uomSymbol ? ` ${node.uomSymbol}` : '';
-    badgeText =
-      node.poRemainingQuantity != null
-        ? `${accepted}/${accepted + node.poRemainingQuantity}${symbol}`
-        : `${accepted}${symbol}`;
-  } else if (node.kind === 'lot') {
-    badgeText = `${node.totalQuantity ?? 0}${node.uomSymbol ? ` ${node.uomSymbol}` : ''}`;
-  } else {
-    // line — only ever shown for serial-tracked items
-    badgeText = `${node.lineItemsCount ?? 0}/${node.quantity ?? 0}`;
-  }
-
   return (
     <div className="flex items-center gap-1.5 flex-1 min-w-0">
       <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -84,10 +54,10 @@ const TreeRow = ({ item }: TreeRenderItemParams) => {
       <Badge
         variant="secondary"
         className={`ml-auto text-[10px] rounded-full px-1.5 py-0.5 leading-none ${
-          node.isBalanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
+          node.balanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
         }`}
       >
-        {badgeText}
+        {node.badge}
       </Badge>
     </div>
   );
@@ -123,7 +93,7 @@ export const GoodsReceiptTreePanel = ({
   selection,
   onSelect,
 }: GoodsReceiptTreePanelProps) => {
-  const { data: tree = [], isFetching } = useGoodsReceiptTree(goodsReceiptId);
+  const { data: tree = [], isLoading } = useGoodsReceiptTree(goodsReceiptId);
   const addItemDialog = useDialog();
 
   const treeData = toTreeData(tree);
@@ -155,7 +125,7 @@ export const GoodsReceiptTreePanel = ({
             </Button>
           ) : null
         }
-        isEmpty={!isFetching && tree.length === 0}
+        isEmpty={!isLoading && tree.length === 0}
         emptyState={
           <Empty
             icon={<Package />}
@@ -166,7 +136,7 @@ export const GoodsReceiptTreePanel = ({
       >
         <TreeView
           data={treeData}
-          isLoading={isFetching}
+          isLoading={isLoading}
           initialSelectedItemId={selectedId}
           onSelectChange={(item) => {
             if (!item) return onSelect(null);
@@ -197,6 +167,3 @@ export const GoodsReceiptTreePanel = ({
     </>
   );
 };
-
-// Suppress unused — InventoryTrackingValues kept for future tracking-aware row decoration
-void InventoryTrackingValues;

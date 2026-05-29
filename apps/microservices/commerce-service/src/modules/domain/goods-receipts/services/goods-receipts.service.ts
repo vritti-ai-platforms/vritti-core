@@ -52,7 +52,6 @@ export class GoodsReceiptsService {
       status: GoodsReceiptStatusValues.DRAFT,
       purchaseOrderId: data.purchaseOrderId ?? null,
       exchangeRate,
-      receivedBy: data.receivedBy ?? null,
       receivedDate: data.receivedDate ?? new Date().toISOString().split('T')[0],
       notes: data.notes ?? null,
       publishedAt: null,

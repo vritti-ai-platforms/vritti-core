@@ -10,6 +10,8 @@ export const GOODS_RECEIPT_ITEMS_TABLE_KEY = (id: string) =>
   ['commerce', 'goods-receipts', id, 'items', 'table'] as const;
 export const GOODS_RECEIPT_ITEM_KEY = (id: string, itemId: string) =>
   ['commerce', 'goods-receipts', id, 'items', itemId] as const;
+export const GOODS_RECEIPT_ITEM_DETAIL_KEY = (id: string, itemId: string) =>
+  ['commerce', 'goods-receipts', id, 'items', itemId, 'detail'] as const;
 
 export const GOODS_RECEIPT_LOTS_KEY = (id: string, itemId: string) =>
   ['commerce', 'goods-receipts', id, 'items', itemId, 'lots'] as const;
