@@ -4775,42 +4775,6 @@
         "tags": [
           "Commerce - Goods Receipts"
         ]
-      },
-      "post": {
-        "operationId": "GoodsReceiptsGatewayController_addItem",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AddGoodsReceiptItemDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
       }
     },
     "/commerce-api/goods-receipts/{id}/items/table": {
@@ -4942,6 +4906,82 @@
         ],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/from-supplier-item": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_addItemFromSupplierItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddGoodsReceiptItemFromSupplierItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/from-purchase-order-item": {
+      "post": {
+        "operationId": "GoodsReceiptsGatewayController_addItemFromPurchaseOrderItem",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddGoodsReceiptItemFromPurchaseOrderItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -14990,23 +15030,19 @@
           }
         }
       },
-      "AddGoodsReceiptItemDto": {
+      "AddGoodsReceiptItemFromSupplierItemDto": {
         "type": "object",
         "properties": {
-          "inventoryItemId": {
+          "supplierItemId": {
             "type": "string",
-            "description": "Inventory item ID — resolved client-side from the PO line or supplier catalog selector."
-          },
-          "uomId": {
-            "type": "string",
-            "description": "UOM ID — must match a PO line UOM when the GR is linked to a PO."
+            "description": "Supplier item row ID — server resolves to (inventoryItemId, uomId)."
           },
           "rejectedQuantity": {
             "type": "number",
             "description": "Damage-on-arrival quantity (does not go to inventory)."
           },
           "unitPrice": {
-            "description": "Supplier unit price captured at the breakdown step. Pre-filled from PO when linked, else from supplier_items; user may edit. Required for auto-associating SUPPLIER_PRICE at publish.",
+            "description": "Supplier unit price captured at the breakdown step. Pre-filled from the supplier catalog; user may edit. Required for auto-associating SUPPLIER_PRICE at publish.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -15015,8 +15051,31 @@
           }
         },
         "required": [
-          "inventoryItemId",
-          "uomId"
+          "supplierItemId"
+        ]
+      },
+      "AddGoodsReceiptItemFromPurchaseOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "purchaseOrderItemId": {
+            "type": "string",
+            "description": "Purchase order line ID — server resolves to (inventoryItemId, uomId) after verifying it belongs to the GR's linked PO."
+          },
+          "rejectedQuantity": {
+            "type": "number",
+            "description": "Damage-on-arrival quantity (does not go to inventory)."
+          },
+          "unitPrice": {
+            "description": "Supplier unit price captured at the breakdown step. Pre-filled from the PO line; user may edit if the supplier delivered at a different price.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "purchaseOrderItemId"
         ]
       },
       "UpdateGoodsReceiptItemDto": {

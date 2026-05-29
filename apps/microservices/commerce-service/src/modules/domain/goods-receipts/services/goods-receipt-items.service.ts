@@ -1,4 +1,5 @@
 import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
+import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -36,6 +37,7 @@ export class GoodsReceiptItemsService {
     private readonly receiptsRepository: GoodsReceiptsRepository,
     private readonly itemsRepository: GoodsReceiptItemsRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
+    private readonly supplierItemsRepository: SupplierItemsRepository,
     private readonly uomConversionsService: UomConversionsService,
   ) {}
 
@@ -106,39 +108,92 @@ export class GoodsReceiptItemsService {
     return this.itemsRepository.findTreeNodesByReceiptId(goodsReceiptId);
   }
 
-  // Add an item to a goods receipt. The caller supplies (inventoryItemId, uomId) directly — the
-  // dialog has already resolved them from either the linked PO line (PurchaseOrderItemSelector) or
-  // the supplier catalog (SupplierItemSelector). When the GR is linked to a PO we still verify
-  // that the (inventoryItemId, uomId) pair is actually on the PO. acceptedQuantity is derived from
-  // sum(lines.quantity); only rejectedQuantity is stored here.
-  async addItem(
+  // Add an item to a GR by referencing a supplier_items row. Used when the GR has no linked PO —
+  // the supplier catalog is the source of truth for the price snapshot.
+  async addItemFromSupplierItem(
     goodsReceiptId: string,
     data: {
-      inventoryItemId: string;
-      uomId: string;
+      supplierItemId: string;
       rejectedQuantity?: number;
       // Captured at the breakdown step (Phase 5.5). Required for the auto-associate flow to
-      // create a SUPPLIER_PRICE cost row at publish, even when the GR has no PO link.
+      // create a SUPPLIER_PRICE cost row at publish.
       unitPrice?: bigint;
       currencyCode?: string;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
 
-    if (receipt.purchaseOrderId) {
-      const poItem = await this.poItemsRepository.findItemByInventoryItemAndUom(
-        receipt.purchaseOrderId,
-        data.inventoryItemId,
-        data.uomId,
-      );
-      if (!poItem) {
-        throw new BadRequestException('This item and UOM combination is not on the linked purchase order.');
-      }
+    const supplierItem = await this.supplierItemsRepository.findById(data.supplierItemId);
+    if (!supplierItem) throw new NotFoundException('Supplier item not found.');
+    if (supplierItem.supplierId !== receipt.supplierId) {
+      throw new BadRequestException({
+        label: 'Supplier Mismatch',
+        detail: "Supplier item does not belong to this goods receipt's supplier.",
+      });
     }
 
+    return this.addItemInternal(receipt, {
+      inventoryItemId: supplierItem.inventoryItemId,
+      uomId: supplierItem.uomId,
+      rejectedQuantity: data.rejectedQuantity,
+      unitPrice: data.unitPrice,
+      currencyCode: data.currencyCode,
+    });
+  }
+
+  // Add an item to a GR by referencing a purchase_order_items row. Used when the GR is linked to a PO.
+  async addItemFromPurchaseOrderItem(
+    goodsReceiptId: string,
+    data: {
+      purchaseOrderItemId: string;
+      rejectedQuantity?: number;
+      unitPrice?: bigint;
+      currencyCode?: string;
+    },
+  ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
+    const receipt = await this.ensureEditableReceipt(goodsReceiptId);
+
+    if (!receipt.purchaseOrderId) {
+      throw new BadRequestException({
+        label: 'No Purchase Order',
+        detail: 'Cannot add a purchase order line to a goods receipt that has no linked PO.',
+      });
+    }
+
+    const poItem = await this.poItemsRepository.findById(data.purchaseOrderItemId);
+    if (!poItem) throw new NotFoundException('Purchase order line not found.');
+    if (poItem.purchaseOrderId !== receipt.purchaseOrderId) {
+      throw new BadRequestException({
+        label: 'Purchase Order Mismatch',
+        detail: "Purchase order line does not belong to this goods receipt's purchase order.",
+      });
+    }
+
+    return this.addItemInternal(receipt, {
+      inventoryItemId: poItem.inventoryItemId,
+      uomId: poItem.uomId,
+      rejectedQuantity: data.rejectedQuantity,
+      unitPrice: data.unitPrice,
+      currencyCode: data.currencyCode,
+    });
+  }
+
+  // Shared internal — performs the duplicate guard, persist, and DTO load. Callers must have
+  // already resolved (inventoryItemId, uomId) and validated source-specific rules (supplier match
+  // or PO line membership).
+  private async addItemInternal(
+    receipt: { id: string; grNumber: string; purchaseOrderId: string | null },
+    data: {
+      inventoryItemId: string;
+      uomId: string;
+      rejectedQuantity?: number;
+      unitPrice?: bigint;
+      currencyCode?: string;
+    },
+  ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     // Reject duplicate (DB also enforces unique constraint, but produce a clean error)
     const existing = await this.itemsRepository.findByReceiptInventoryItemAndUom(
-      goodsReceiptId,
+      receipt.id,
       data.inventoryItemId,
       data.uomId,
     );
@@ -160,7 +215,7 @@ export class GoodsReceiptItemsService {
     let entity: Awaited<ReturnType<typeof this.itemsRepository.create>>;
     try {
       entity = await this.itemsRepository.create({
-        goodsReceiptId,
+        goodsReceiptId: receipt.id,
         inventoryItemId: data.inventoryItemId,
         uomId: data.uomId,
         rejectedQuantity: data.rejectedQuantity ?? 0,
@@ -179,8 +234,8 @@ export class GoodsReceiptItemsService {
       throw error;
     }
 
-    this.logger.log(`Added item ${entity.id} to goods receipt ${goodsReceiptId}`);
-    const dto = await this.findById(goodsReceiptId, entity.id);
+    this.logger.log(`Added item ${entity.id} to goods receipt ${receipt.id}`);
+    const dto = await this.findById(receipt.id, entity.id);
     return {
       success: true,
       message: `Item added to goods receipt "${receipt.grNumber}".`,

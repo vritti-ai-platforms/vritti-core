@@ -159,20 +159,29 @@ export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineI
 
 const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
 
-export const addGoodsReceiptItemSchema = z.object({
-  // The picker (PurchaseOrderItemSelector or SupplierItemSelector) is bound to `pickerSelection`;
-  // on selection its `additionals` populate the real fields below. Submitted to the API as
-  // (inventoryItemId, uomId, unitPrice?, rejectedQuantity?).
-  pickerSelection: z.string({ error: 'Item is required' }).min(1, 'Item is required'),
-  inventoryItemId: z.string().uuid('Item is required'),
-  uomId: z.string().uuid('UOM is required'),
+// GR Add-item has two source-specific shapes; the dialog picks the one matching whether the GR has a
+// linked PO. The server resolves the row identity (supplier_items.id / purchase_order_items.id) into
+// (inventoryItemId, uomId) and persists on the GR row. The unit-price is pre-filled by the picker
+// from the row's stored price; user may edit. Optional — when absent the publish-time auto-associate
+// skips this item and the user can post the SUPPLIER_PRICE manually via Add Cost.
+
+export const addGoodsReceiptItemFromSupplierItemSchema = z.object({
+  supplierItemId: z.string({ error: 'Supplier item is required' }).uuid('Supplier item is required'),
   rejectedQuantity: zOptionalNonNegativeNumber,
-  // Optional: when absent, the publish-time auto-associate skips this item and the user can
-  // still post the supplier price manually via Add Cost. Pre-filled by the picker (PO line or
-  // supplier catalog) so most users just accept the default.
   unitPrice: zodCurrencyField({ positive: true }).optional(),
 });
-export type AddGoodsReceiptItemFormData = z.infer<typeof addGoodsReceiptItemSchema>;
+export type AddGoodsReceiptItemFromSupplierItemFormData = z.infer<
+  typeof addGoodsReceiptItemFromSupplierItemSchema
+>;
+
+export const addGoodsReceiptItemFromPurchaseOrderItemSchema = z.object({
+  purchaseOrderItemId: z.string({ error: 'Purchase order line is required' }).uuid('Purchase order line is required'),
+  rejectedQuantity: zOptionalNonNegativeNumber,
+  unitPrice: zodCurrencyField({ positive: true }).optional(),
+});
+export type AddGoodsReceiptItemFromPurchaseOrderItemFormData = z.infer<
+  typeof addGoodsReceiptItemFromPurchaseOrderItemSchema
+>;
 
 export const updateGoodsReceiptItemSchema = z.object({
   rejectedQuantity: zOptionalNonNegativeNumber,

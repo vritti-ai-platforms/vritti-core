@@ -11,8 +11,16 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useAddGoodsReceiptItem } from '@/hooks/goods-receipts';
-import { type AddGoodsReceiptItemFormData, addGoodsReceiptItemSchema } from '@/schemas/goods-receipts';
+import {
+  useAddGoodsReceiptItemFromPurchaseOrderItem,
+  useAddGoodsReceiptItemFromSupplierItem,
+} from '@/hooks/goods-receipts';
+import {
+  type AddGoodsReceiptItemFromPurchaseOrderItemFormData,
+  type AddGoodsReceiptItemFromSupplierItemFormData,
+  addGoodsReceiptItemFromPurchaseOrderItemSchema,
+  addGoodsReceiptItemFromSupplierItemSchema,
+} from '@/schemas/goods-receipts';
 
 interface AddItemDialogContext {
   goodsReceiptId: string;
@@ -20,40 +28,30 @@ interface AddItemDialogContext {
   poId?: string | null;
 }
 
-const AddItemForm = ({
+// Two flows, kept side-by-side instead of a single mega-form, because the picker name, mutation
+// hook, and zod schema all differ between them. Sharing only the visual chrome (price + rejected
+// qty + buttons) is cheaper than collapsing the divergent identity into one schema.
+
+const SupplierItemForm = ({
   goodsReceiptId,
   supplierId,
-  poId,
   onSuccess,
   onCancel,
-}: AddItemDialogContext & { onSuccess: () => void; onCancel: () => void }) => {
+}: Pick<AddItemDialogContext, 'goodsReceiptId' | 'supplierId'> & { onSuccess: () => void; onCancel: () => void }) => {
   const buCurrencyCode = useBUCurrency() ?? 'INR';
-  const form = useForm<AddGoodsReceiptItemFormData>({
-    resolver: zodResolver(addGoodsReceiptItemSchema),
-    defaultValues: {
-      pickerSelection: '',
-      inventoryItemId: '',
-      uomId: '',
-      rejectedQuantity: undefined,
-      unitPrice: undefined,
-    },
+  const form = useForm<AddGoodsReceiptItemFromSupplierItemFormData>({
+    resolver: zodResolver(addGoodsReceiptItemFromSupplierItemSchema),
+    defaultValues: { supplierItemId: '', rejectedQuantity: undefined, unitPrice: undefined },
   });
-  const mutation = useAddGoodsReceiptItem(goodsReceiptId, { onSuccess });
-  // The picked option's UOM dictates whether the rejected qty input allows decimals (e.g.
-  // a "case" UOM is whole-number-only, a "kg" UOM allows fractions).
+  const mutation = useAddGoodsReceiptItemFromSupplierItem(goodsReceiptId, { onSuccess });
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
   const [hasPrefill, setHasPrefill] = useState<boolean>(false);
-  const [pickedItem, setPickedItem] = useState<boolean>(false);
+  const [picked, setPicked] = useState<boolean>(false);
 
-  const handleItemSelect = (option: SelectOption | null) => {
+  const handleSelect = (option: SelectOption | null) => {
     const a = option?.additionals;
     setAllowDecimal(a?.allowDecimal === true);
-    setPickedItem(!!option);
-
-    const inventoryItemId = typeof a?.inventoryItemId === 'string' ? a.inventoryItemId : '';
-    const uomId = typeof a?.uomId === 'string' ? a.uomId : '';
-    form.setValue('inventoryItemId', inventoryItemId, { shouldValidate: true });
-    form.setValue('uomId', uomId, { shouldValidate: true });
+    setPicked(!!option);
 
     const rawPrice = typeof a?.unitPrice === 'number' ? a.unitPrice : null;
     const currencyCode = typeof a?.currencyCode === 'string' ? a.currencyCode : null;
@@ -71,39 +69,18 @@ const AddItemForm = ({
   };
 
   const prefillNote = hasPrefill
-    ? poId
-      ? 'Pre-filled from the linked purchase order — edit if the supplier delivered at a different price.'
-      : 'Pre-filled from the supplier catalog — edit if needed.'
-    : pickedItem
+    ? 'Pre-filled from the supplier catalog — edit if needed.'
+    : picked
       ? 'No pre-fill available. Enter the supplier price so it auto-creates a SUPPLIER_PRICE cost row at publish.'
       : undefined;
 
   return (
-    <Form
-      form={form}
-      mutation={mutation}
-      onCancel={onCancel}
-      transformSubmit={(data) => ({
-        inventoryItemId: data.inventoryItemId,
-        uomId: data.uomId,
-        rejectedQuantity: data.rejectedQuantity,
-        unitPrice: data.unitPrice && data.unitPrice.value ? data.unitPrice : undefined,
-      })}
-    >
-      {poId ? (
-        <PurchaseOrderItemSelector
-          name="pickerSelection"
-          label="Purchase Order Item"
-          params={{ purchaseOrderId: poId, excludeOnGoodsReceiptId: goodsReceiptId }}
-          onOptionSelect={handleItemSelect}
-        />
-      ) : (
-        <SupplierItemSelector
-          name="pickerSelection"
-          params={{ supplierId, excludeOnGoodsReceiptId: goodsReceiptId }}
-          onOptionSelect={handleItemSelect}
-        />
-      )}
+    <Form form={form} mutation={mutation} onCancel={onCancel}>
+      <SupplierItemSelector
+        name="supplierItemId"
+        params={{ supplierId, excludeOnGoodsReceiptId: goodsReceiptId }}
+        onOptionSelect={handleSelect}
+      />
       <CurrencyField
         name="unitPrice"
         label="Supplier Unit Price"
@@ -118,7 +95,80 @@ const AddItemForm = ({
         integer={!allowDecimal}
         positive
       />
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" data-cancel>
+          Cancel
+        </Button>
+        <Button type="submit">Add Item</Button>
+      </div>
+    </Form>
+  );
+};
 
+const PurchaseOrderItemForm = ({
+  goodsReceiptId,
+  poId,
+  onSuccess,
+  onCancel,
+}: { goodsReceiptId: string; poId: string; onSuccess: () => void; onCancel: () => void }) => {
+  const buCurrencyCode = useBUCurrency() ?? 'INR';
+  const form = useForm<AddGoodsReceiptItemFromPurchaseOrderItemFormData>({
+    resolver: zodResolver(addGoodsReceiptItemFromPurchaseOrderItemSchema),
+    defaultValues: { purchaseOrderItemId: '', rejectedQuantity: undefined, unitPrice: undefined },
+  });
+  const mutation = useAddGoodsReceiptItemFromPurchaseOrderItem(goodsReceiptId, { onSuccess });
+  const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
+  const [hasPrefill, setHasPrefill] = useState<boolean>(false);
+  const [picked, setPicked] = useState<boolean>(false);
+
+  const handleSelect = (option: SelectOption | null) => {
+    const a = option?.additionals;
+    setAllowDecimal(a?.allowDecimal === true);
+    setPicked(!!option);
+
+    const rawPrice = typeof a?.unitPrice === 'number' ? a.unitPrice : null;
+    const currencyCode = typeof a?.currencyCode === 'string' ? a.currencyCode : null;
+    if (rawPrice != null && rawPrice > 0 && currencyCode) {
+      form.setValue(
+        'unitPrice',
+        { currency: currencyCode, value: minorToMajor(String(rawPrice), currencyCode) },
+        { shouldDirty: false },
+      );
+      setHasPrefill(true);
+    } else {
+      form.setValue('unitPrice', undefined, { shouldDirty: false });
+      setHasPrefill(false);
+    }
+  };
+
+  const prefillNote = hasPrefill
+    ? 'Pre-filled from the linked purchase order — edit if the supplier delivered at a different price.'
+    : picked
+      ? 'No pre-fill available. Enter the supplier price so it auto-creates a SUPPLIER_PRICE cost row at publish.'
+      : undefined;
+
+  return (
+    <Form form={form} mutation={mutation} onCancel={onCancel}>
+      <PurchaseOrderItemSelector
+        name="purchaseOrderItemId"
+        label="Purchase Order Item"
+        params={{ purchaseOrderId: poId, excludeOnGoodsReceiptId: goodsReceiptId }}
+        onOptionSelect={handleSelect}
+      />
+      <CurrencyField
+        name="unitPrice"
+        label="Supplier Unit Price"
+        currencyCode={buCurrencyCode}
+        description={prefillNote}
+      />
+      <TextField
+        name="rejectedQuantity"
+        label="Damaged on Arrival"
+        description="Optional. Quantity received but unusable — recorded for audit, not added to inventory."
+        type="number"
+        integer={!allowDecimal}
+        positive
+      />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
           Cancel
@@ -143,14 +193,22 @@ export const AddItemDialog = ({
         ? 'Pick a line from the linked purchase order. The price pre-fills from the PO.'
         : 'Pick a supplier item to receive on this goods receipt. The price pre-fills from the supplier catalog.'
     }
-    content={(close) => (
-      <AddItemForm
-        goodsReceiptId={goodsReceiptId}
-        supplierId={supplierId}
-        poId={poId}
-        onSuccess={close}
-        onCancel={close}
-      />
-    )}
+    content={(close) =>
+      poId ? (
+        <PurchaseOrderItemForm
+          goodsReceiptId={goodsReceiptId}
+          poId={poId}
+          onSuccess={close}
+          onCancel={close}
+        />
+      ) : (
+        <SupplierItemForm
+          goodsReceiptId={goodsReceiptId}
+          supplierId={supplierId}
+          onSuccess={close}
+          onCancel={close}
+        />
+      )
+    }
   />
 );

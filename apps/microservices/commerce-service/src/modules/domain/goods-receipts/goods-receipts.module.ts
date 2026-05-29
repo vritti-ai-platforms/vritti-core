@@ -2,6 +2,7 @@ import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/i
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
+import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { GoodsReceiptItemsRepository } from './repositories/goods-receipt-items.repository';
@@ -13,6 +14,7 @@ import { GoodsReceiptsService } from './services/goods-receipts.service';
   imports: [
     PurchaseOrdersDomainModule,
     PurchaseOrderItemsDomainModule,
+    SupplierItemsDomainModule,
     InventoryItemQuantsDomainModule,
     InventoryItemLedgerDomainModule,
     UomConversionsDomainModule,

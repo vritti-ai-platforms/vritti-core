@@ -20,7 +20,10 @@ export { useCostAllocations } from './useCostAllocations';
 export { useDeleteGoodsReceiptCost } from './useDeleteGoodsReceiptCost';
 export { useGoodsReceiptCosts } from './useGoodsReceiptCosts';
 export { useUpdateGoodsReceiptCost } from './useUpdateGoodsReceiptCost';
-export { useAddGoodsReceiptItem } from './useAddGoodsReceiptItem';
+export {
+  useAddGoodsReceiptItemFromPurchaseOrderItem,
+  useAddGoodsReceiptItemFromSupplierItem,
+} from './useAddGoodsReceiptItem';
 export { useAddGoodsReceiptLine } from './useAddGoodsReceiptLine';
 export { useAddGoodsReceiptLineItem } from './useAddGoodsReceiptLineItem';
 export { useAddGoodsReceiptLot } from './useAddGoodsReceiptLot';

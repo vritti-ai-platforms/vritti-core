@@ -7,7 +7,10 @@ import type {
   GoodsReceiptCostResponseDto,
   GoodsReceiptCostsResponseDto,
 } from '../dto/response/cost-response.dto';
-import type { AddGoodsReceiptItemDto } from '../dto/request/add-goods-receipt-item.dto';
+import type {
+  AddGoodsReceiptItemFromPurchaseOrderItemDto,
+  AddGoodsReceiptItemFromSupplierItemDto,
+} from '../dto/request/add-goods-receipt-item.dto';
 import type { AddGoodsReceiptLineDto } from '../dto/request/add-goods-receipt-line.dto';
 import type { AddGoodsReceiptLineItemDto } from '../dto/request/add-goods-receipt-line-item.dto';
 import type { AddGoodsReceiptLotDto } from '../dto/request/add-goods-receipt-lot.dto';
@@ -159,15 +162,31 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'goodsReceipts.itemById', { goodsReceiptId, itemId });
   }
 
-  addItem(
+  addItemFromSupplierItem(
     goodsReceiptId: string,
-    dto: AddGoodsReceiptItemDto,
+    dto: AddGoodsReceiptItemFromSupplierItemDto,
   ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
     const { unitPrice, ...rest } = dto;
     const unitPriceMinor = unitPrice
       ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
       : undefined;
-    return this.nats.send('commerce', 'goodsReceipts.addItem', {
+    return this.nats.send('commerce', 'goodsReceipts.addItemFromSupplierItem', {
+      goodsReceiptId,
+      ...rest,
+      unitPrice: unitPriceMinor,
+      currencyCode: unitPrice?.currency,
+    });
+  }
+
+  addItemFromPurchaseOrderItem(
+    goodsReceiptId: string,
+    dto: AddGoodsReceiptItemFromPurchaseOrderItemDto,
+  ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
+    const { unitPrice, ...rest } = dto;
+    const unitPriceMinor = unitPrice
+      ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
+      : undefined;
+    return this.nats.send('commerce', 'goodsReceipts.addItemFromPurchaseOrderItem', {
       goodsReceiptId,
       ...rest,
       unitPrice: unitPriceMinor,

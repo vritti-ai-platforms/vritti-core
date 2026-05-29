@@ -21,9 +21,14 @@ export interface CreateGoodsReceiptPayload {
   notes?: string;
 }
 
-export interface AddGoodsReceiptItemPayload {
-  inventoryItemId: string;
-  uomId: string;
+export interface AddGoodsReceiptItemFromSupplierItemPayload {
+  supplierItemId: string;
+  rejectedQuantity?: number;
+  unitPrice?: { currency: string; value: string };
+}
+
+export interface AddGoodsReceiptItemFromPurchaseOrderItemPayload {
+  purchaseOrderItemId: string;
   rejectedQuantity?: number;
   unitPrice?: { currency: string; value: string };
 }
@@ -133,9 +138,24 @@ export function getGoodsReceiptItemById(id: string, itemId: string): Promise<Goo
     .then((r) => r.data);
 }
 
-export function addGoodsReceiptItem(id: string, data: AddGoodsReceiptItemPayload): Promise<GoodsReceiptItemData> {
+export function addGoodsReceiptItemFromSupplierItem(
+  id: string,
+  data: AddGoodsReceiptItemFromSupplierItemPayload,
+): Promise<GoodsReceiptItemData> {
   return axios
-    .post<CreateResponse<GoodsReceiptItemData>>(`commerce-api/goods-receipts/${id}/items`, data)
+    .post<CreateResponse<GoodsReceiptItemData>>(`commerce-api/goods-receipts/${id}/items/from-supplier-item`, data)
+    .then((r) => r.data.data);
+}
+
+export function addGoodsReceiptItemFromPurchaseOrderItem(
+  id: string,
+  data: AddGoodsReceiptItemFromPurchaseOrderItemPayload,
+): Promise<GoodsReceiptItemData> {
+  return axios
+    .post<CreateResponse<GoodsReceiptItemData>>(
+      `commerce-api/goods-receipts/${id}/items/from-purchase-order-item`,
+      data,
+    )
     .then((r) => r.data.data);
 }
 

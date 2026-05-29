@@ -2,7 +2,10 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Pat
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import { AddGoodsReceiptItemDto } from './dto/request/add-goods-receipt-item.dto';
+import {
+  AddGoodsReceiptItemFromPurchaseOrderItemDto,
+  AddGoodsReceiptItemFromSupplierItemDto,
+} from './dto/request/add-goods-receipt-item.dto';
 import { AddGoodsReceiptLineDto } from './dto/request/add-goods-receipt-line.dto';
 import { AddGoodsReceiptLineItemDto } from './dto/request/add-goods-receipt-line-item.dto';
 import { AddGoodsReceiptLotDto } from './dto/request/add-goods-receipt-lot.dto';
@@ -160,14 +163,24 @@ export class GoodsReceiptsGatewayController {
     return this.service.findItemById(goodsReceiptId, itemId);
   }
 
-  @Post(':id/items')
+  @Post(':id/items/from-supplier-item')
   @HttpCode(HttpStatus.CREATED)
-  addItem(
+  addItemFromSupplierItem(
     @Param('id') goodsReceiptId: string,
-    @Body() dto: AddGoodsReceiptItemDto,
+    @Body() dto: AddGoodsReceiptItemFromSupplierItemDto,
   ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items`);
-    return this.service.addItem(goodsReceiptId, dto);
+    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/from-supplier-item`);
+    return this.service.addItemFromSupplierItem(goodsReceiptId, dto);
+  }
+
+  @Post(':id/items/from-purchase-order-item')
+  @HttpCode(HttpStatus.CREATED)
+  addItemFromPurchaseOrderItem(
+    @Param('id') goodsReceiptId: string,
+    @Body() dto: AddGoodsReceiptItemFromPurchaseOrderItemDto,
+  ): Promise<CreateResponseDto<GoodsReceiptItemResponseDto>> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/from-purchase-order-item`);
+    return this.service.addItemFromPurchaseOrderItem(goodsReceiptId, dto);
   }
 
   @Patch(':id/items/:itemId')
