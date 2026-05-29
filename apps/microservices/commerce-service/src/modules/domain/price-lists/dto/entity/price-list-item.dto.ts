@@ -7,11 +7,11 @@ export class PriceListItemDto {
   itemVariantName: string;
   itemId: string;
   itemName: string;
-  basePrice: number;
+  basePrice: string;
   categoryName: string | null;
   sortOrder: number;
   isVisible: boolean;
-  priceOverride: number | null;
+  priceOverride: string | null;
   createdAt: string;
   updatedAt: string;
 
@@ -33,11 +33,11 @@ export class PriceListItemDto {
     dto.itemVariantName = entity.itemVariantName;
     dto.itemId = entity.itemId;
     dto.itemName = entity.itemName;
-    dto.basePrice = Number(entity.basePrice);
+    dto.basePrice = entity.basePrice.toString();
     dto.categoryName = entity.categoryName ?? null;
     dto.sortOrder = entity.sortOrder;
     dto.isVisible = entity.isVisible;
-    dto.priceOverride = entity.priceOverride != null ? Number(entity.priceOverride) : null;
+    dto.priceOverride = entity.priceOverride != null ? entity.priceOverride.toString() : null;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

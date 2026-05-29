@@ -7,8 +7,8 @@ export class OrderItemModifierResponseDto {
   @ApiProperty({ description: 'Modifier display name' })
   name: string;
 
-  @ApiProperty({ description: 'Additional price for this modifier' })
-  additionalPrice: number;
+  @ApiProperty({ description: 'Additional price for this modifier in minor units (bigint serialized as string)' })
+  additionalPrice: string;
 }
 
 export class OrderItemResponseDto {
@@ -24,20 +24,20 @@ export class OrderItemResponseDto {
   @ApiProperty({ description: 'Quantity ordered' })
   quantity: number;
 
-  @ApiProperty({ description: 'Unit price at time of order' })
-  unitPrice: number;
+  @ApiProperty({ description: 'Unit price at time of order, in minor units (bigint serialized as string)' })
+  unitPrice: string;
 
   @ApiProperty({ description: 'Tax rate applied' })
   taxRate: number;
 
-  @ApiProperty({ description: 'Tax amount for this line item' })
-  taxAmount: number;
+  @ApiProperty({ description: 'Tax amount for this line item in minor units (bigint serialized as string)' })
+  taxAmount: string;
 
-  @ApiProperty({ description: 'Subtotal before tax' })
-  subtotal: number;
+  @ApiProperty({ description: 'Subtotal before tax in minor units (bigint serialized as string)' })
+  subtotal: string;
 
-  @ApiProperty({ description: 'Total including tax' })
-  total: number;
+  @ApiProperty({ description: 'Total including tax in minor units (bigint serialized as string)' })
+  total: string;
 
   @ApiPropertyOptional({ description: 'Special instructions', nullable: true })
   notes: string | null;
@@ -68,23 +68,23 @@ export class OrderResponseDto {
   @ApiPropertyOptional({ description: 'Customer phone', nullable: true })
   customerPhone: string | null;
 
-  @ApiProperty({ description: 'Subtotal before tax and charges' })
-  subtotal: number;
+  @ApiProperty({ description: 'Subtotal before tax and charges, in minor units (bigint serialized as string)' })
+  subtotal: string;
 
-  @ApiProperty({ description: 'Total tax amount' })
-  taxAmount: number;
+  @ApiProperty({ description: 'Total tax amount in minor units (bigint serialized as string)' })
+  taxAmount: string;
 
-  @ApiProperty({ description: 'Service charge' })
-  serviceCharge: number;
+  @ApiProperty({ description: 'Service charge in minor units (bigint serialized as string)' })
+  serviceCharge: string;
 
-  @ApiProperty({ description: 'Delivery charge' })
-  deliveryCharge: number;
+  @ApiProperty({ description: 'Delivery charge in minor units (bigint serialized as string)' })
+  deliveryCharge: string;
 
-  @ApiProperty({ description: 'Discount amount' })
-  discountAmount: number;
+  @ApiProperty({ description: 'Discount amount in minor units (bigint serialized as string)' })
+  discountAmount: string;
 
-  @ApiProperty({ description: 'Final total amount' })
-  totalAmount: number;
+  @ApiProperty({ description: 'Final total amount in minor units (bigint serialized as string)' })
+  totalAmount: string;
 
   @ApiProperty({ description: 'ISO timestamp when order was placed' })
   placedAt: string;

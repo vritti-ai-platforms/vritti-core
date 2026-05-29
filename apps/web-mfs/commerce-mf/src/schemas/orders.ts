@@ -7,10 +7,12 @@ export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY';
 export type OrderChannel = 'ONLINE' | 'WALK_IN';
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
 
+// Money fields below are bigint minor units serialized as strings — feed straight into
+// formatCurrency() / minorToMajor(). For arithmetic, parse with BigInt(...).
 export interface OrderItemModifierData {
   id: string;
   name: string;
-  additionalPrice: number;
+  additionalPrice: string;
 }
 
 export interface OrderItemData {
@@ -18,11 +20,11 @@ export interface OrderItemData {
   itemName: string;
   variantName: string | null;
   quantity: number;
-  unitPrice: number;
+  unitPrice: string;
   taxRate: number;
-  taxAmount: number;
-  subtotal: number;
-  total: number;
+  taxAmount: string;
+  subtotal: string;
+  total: string;
   notes: string | null;
   modifiers: OrderItemModifierData[];
 }
@@ -35,12 +37,12 @@ export interface OrderData {
   status: OrderStatus;
   customerName: string | null;
   customerPhone: string | null;
-  subtotal: number;
-  taxAmount: number;
-  serviceCharge: number;
-  deliveryCharge: number;
-  discountAmount: number;
-  totalAmount: number;
+  subtotal: string;
+  taxAmount: string;
+  serviceCharge: string;
+  deliveryCharge: string;
+  discountAmount: string;
+  totalAmount: string;
   placedAt: string;
   createdAt: string;
   updatedAt: string;

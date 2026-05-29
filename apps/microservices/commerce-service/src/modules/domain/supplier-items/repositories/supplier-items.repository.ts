@@ -5,7 +5,7 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { and, asc, desc, eq, ilike, inArray, ne, sql, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
   goodsReceiptItems,
@@ -113,7 +113,9 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
               symbol: row.symbol,
               inventoryItemId: row.inventoryItemId,
               uomId: row.uomId,
-              unitPrice: row.unitPrice !== null ? Number(row.unitPrice) : null,
+              // bigint → string to dodge JSON's 2^53 precision ceiling. Consumer parses via BigInt(...)
+              // for arithmetic, or feeds straight into minorToMajor() which accepts a string.
+              unitPrice: row.unitPrice.toString(),
               currencyCode: row.currencyCode,
               allowDecimal: row.allowDecimal,
             },

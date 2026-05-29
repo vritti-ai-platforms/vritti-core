@@ -4,7 +4,7 @@ export class ModifierOptionDto {
   id: string;
   groupId: string;
   name: string;
-  additionalPrice: number;
+  additionalPrice: string;
   isDefault: boolean;
   isAvailable: boolean;
   sortOrder: number;
@@ -15,7 +15,7 @@ export class ModifierOptionDto {
     dto.id = entity.id;
     dto.groupId = entity.groupId;
     dto.name = entity.name;
-    dto.additionalPrice = Number(entity.additionalPrice);
+    dto.additionalPrice = entity.additionalPrice.toString();
     dto.isDefault = entity.isDefault;
     dto.isAvailable = entity.isAvailable;
     dto.sortOrder = entity.sortOrder;

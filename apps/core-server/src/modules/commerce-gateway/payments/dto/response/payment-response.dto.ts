@@ -7,8 +7,8 @@ export class PaymentResponseDto {
   @ApiProperty({ description: 'Invoice ID' })
   invoiceId: string;
 
-  @ApiProperty({ description: 'Payment amount' })
-  amount: number;
+  @ApiProperty({ description: 'Payment amount in minor units (bigint serialized as string)' })
+  amount: string;
 
   @ApiProperty({ description: 'Payment method', enum: ['CASH', 'CARD', 'UPI', 'BANK_TRANSFER', 'WALLET', 'ONLINE'] })
   method: string;

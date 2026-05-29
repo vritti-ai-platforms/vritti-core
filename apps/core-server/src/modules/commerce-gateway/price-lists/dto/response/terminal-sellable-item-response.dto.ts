@@ -25,14 +25,14 @@ export class TerminalSellableItemResponseDto {
   @ApiProperty({ description: 'Parent item name' })
   itemName: string;
 
-  @ApiProperty({ description: 'Base price in minor units' })
-  basePrice: number;
+  @ApiProperty({ description: 'Base price in minor units (bigint serialized as string)' })
+  basePrice: string;
 
   @ApiPropertyOptional({ description: 'Category name', nullable: true })
   categoryName: string | null;
 
-  @ApiPropertyOptional({ description: 'Price override in minor units', nullable: true })
-  priceOverride: number | null;
+  @ApiPropertyOptional({ description: 'Price override in minor units (bigint serialized as string)', nullable: true })
+  priceOverride: string | null;
 
   @ApiProperty({ description: 'Resolved price list priority' })
   priority: number;

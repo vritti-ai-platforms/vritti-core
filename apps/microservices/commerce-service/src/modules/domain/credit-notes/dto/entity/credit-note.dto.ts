@@ -4,7 +4,7 @@ export class CreditNoteApplicationDto {
   id: string;
   creditNoteId: string;
   invoiceId: string;
-  amount: number;
+  amount: string;
   appliedAt: string;
 
   static from(entity: CreditNoteApplication): CreditNoteApplicationDto {
@@ -12,7 +12,7 @@ export class CreditNoteApplicationDto {
     dto.id = entity.id;
     dto.creditNoteId = entity.creditNoteId;
     dto.invoiceId = entity.invoiceId;
-    dto.amount = Number(entity.amount);
+    dto.amount = entity.amount.toString();
     dto.appliedAt = entity.appliedAt.toISOString();
     return dto;
   }
@@ -25,9 +25,9 @@ export class CreditNoteDto {
   partyId: string | null;
   partyName: string;
   creditNoteNumber: string;
-  amount: number;
-  appliedAmount: number;
-  remaining: number;
+  amount: string;
+  appliedAmount: string;
+  remaining: string;
   reason: string | null;
   status: string;
   issuedBy: string | null;
@@ -41,9 +41,9 @@ export class CreditNoteDto {
     dto.partyId = entity.partyId ?? null;
     dto.partyName = entity.partyName;
     dto.creditNoteNumber = entity.creditNoteNumber;
-    dto.amount = Number(entity.amount);
-    dto.appliedAmount = Number(entity.appliedAmount);
-    dto.remaining = Number(entity.remaining);
+    dto.amount = entity.amount.toString();
+    dto.appliedAmount = entity.appliedAmount.toString();
+    dto.remaining = entity.remaining.toString();
     dto.reason = entity.reason ?? null;
     dto.status = entity.status;
     dto.issuedBy = entity.issuedBy ?? null;

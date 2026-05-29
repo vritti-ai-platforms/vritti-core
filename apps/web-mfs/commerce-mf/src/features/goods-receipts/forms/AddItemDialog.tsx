@@ -44,35 +44,31 @@ const SupplierItemForm = ({
     defaultValues: { supplierItemId: '', rejectedQuantity: undefined, unitPrice: undefined },
   });
   const mutation = useAddGoodsReceiptItemFromSupplierItem(goodsReceiptId, { onSuccess });
+  // `allowDecimal` drives the rejected-qty input — can't be derived from form state since it's a
+  // UOM property of the picked supplier_items row.
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
-  const [hasPrefill, setHasPrefill] = useState<boolean>(false);
-  const [picked, setPicked] = useState<boolean>(false);
 
   const handleSelect = (option: SelectOption | null) => {
     const a = option?.additionals;
     setAllowDecimal(a?.allowDecimal === true);
-    setPicked(!!option);
 
-    const rawPrice = typeof a?.unitPrice === 'number' ? a.unitPrice : null;
+    const rawPrice = typeof a?.unitPrice === 'string' ? a.unitPrice : null;
     const currencyCode = typeof a?.currencyCode === 'string' ? a.currencyCode : null;
-    if (rawPrice != null && rawPrice > 0 && currencyCode) {
+    if (rawPrice != null && currencyCode) {
       form.setValue(
         'unitPrice',
-        { currency: currencyCode, value: minorToMajor(String(rawPrice), currencyCode) },
+        { currency: currencyCode, value: minorToMajor(rawPrice, currencyCode) },
         { shouldDirty: false },
       );
-      setHasPrefill(true);
     } else {
       form.setValue('unitPrice', undefined, { shouldDirty: false });
-      setHasPrefill(false);
     }
   };
 
-  const prefillNote = hasPrefill
-    ? 'Pre-filled from the supplier catalog — edit if needed.'
-    : picked
-      ? 'No pre-fill available. Enter the supplier price so it auto-creates a SUPPLIER_PRICE cost row at publish.'
-      : undefined;
+  const supplierItemId = form.watch('supplierItemId');
+  const prefillNote = supplierItemId
+    ? 'Pre-filled from the supplier catalog — edit if the supplier delivered at a different price.'
+    : undefined;
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
@@ -118,34 +114,28 @@ const PurchaseOrderItemForm = ({
   });
   const mutation = useAddGoodsReceiptItemFromPurchaseOrderItem(goodsReceiptId, { onSuccess });
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
-  const [hasPrefill, setHasPrefill] = useState<boolean>(false);
-  const [picked, setPicked] = useState<boolean>(false);
 
   const handleSelect = (option: SelectOption | null) => {
     const a = option?.additionals;
     setAllowDecimal(a?.allowDecimal === true);
-    setPicked(!!option);
 
-    const rawPrice = typeof a?.unitPrice === 'number' ? a.unitPrice : null;
+    const rawPrice = typeof a?.unitPrice === 'string' ? a.unitPrice : null;
     const currencyCode = typeof a?.currencyCode === 'string' ? a.currencyCode : null;
-    if (rawPrice != null && rawPrice > 0 && currencyCode) {
+    if (rawPrice != null && currencyCode) {
       form.setValue(
         'unitPrice',
-        { currency: currencyCode, value: minorToMajor(String(rawPrice), currencyCode) },
+        { currency: currencyCode, value: minorToMajor(rawPrice, currencyCode) },
         { shouldDirty: false },
       );
-      setHasPrefill(true);
     } else {
       form.setValue('unitPrice', undefined, { shouldDirty: false });
-      setHasPrefill(false);
     }
   };
 
-  const prefillNote = hasPrefill
+  const purchaseOrderItemId = form.watch('purchaseOrderItemId');
+  const prefillNote = purchaseOrderItemId
     ? 'Pre-filled from the linked purchase order — edit if the supplier delivered at a different price.'
-    : picked
-      ? 'No pre-fill available. Enter the supplier price so it auto-creates a SUPPLIER_PRICE cost row at publish.'
-      : undefined;
+    : undefined;
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>

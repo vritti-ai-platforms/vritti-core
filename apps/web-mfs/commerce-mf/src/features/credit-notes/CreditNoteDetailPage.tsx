@@ -45,7 +45,7 @@ export const CreditNoteDetailPage = () => {
   }
 
   const badge = statusVariant(creditNote.status);
-  const canApply = creditNote.remaining > 0 && creditNote.status !== 'VOID';
+  const canApply = BigInt(creditNote.remaining) > 0n && creditNote.status !== 'VOID';
 
   return (
     <div className="flex flex-col gap-6">
@@ -99,14 +99,14 @@ export const CreditNoteDetailPage = () => {
                     label="Amount"
                     type="string"
                     mono
-                    value={<span className="text-lg font-medium">{creditNote.amount.toFixed(2)}</span>}
+                    value={<span className="text-lg font-medium">{Number(creditNote.amount).toFixed(2)}</span>}
                   />
                   <DetailField label="Applied" type="number" value={creditNote.appliedAmount} />
                   <DetailField
                     label="Remaining"
                     type="string"
                     mono
-                    value={<span className="font-medium text-success">{creditNote.remaining.toFixed(2)}</span>}
+                    value={<span className="font-medium text-success">{Number(creditNote.remaining).toFixed(2)}</span>}
                   />
                   <DetailField label="Issued By" type="string" value={creditNote.issuedBy} />
                   <DetailField label="Reason" type="string" value={creditNote.reason} className="col-span-2" />
@@ -147,7 +147,7 @@ export const CreditNoteDetailPage = () => {
                           {creditNote.applications.map((app) => (
                             <tr key={app.id} className="border-b last:border-0">
                               <td className="py-3 font-mono">{app.invoiceId}</td>
-                              <td className="py-3 text-right font-mono font-medium">{app.amount.toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono font-medium">{Number(app.amount).toFixed(2)}</td>
                               <td className="py-3">
                                 <FormattedDate value={app.appliedAt} dateFormat="P" />
                               </td>
@@ -173,7 +173,7 @@ export const CreditNoteDetailPage = () => {
         content={(close) => (
           <ApplyCreditNoteDialog
             creditNoteId={creditNote.id}
-            remaining={creditNote.remaining}
+            remaining={Number(creditNote.remaining)}
             onSuccess={close}
             onCancel={close}
           />

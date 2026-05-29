@@ -10,8 +10,8 @@ export class CreditNoteApplicationResponseDto {
   @ApiProperty({ description: 'Invoice ID' })
   invoiceId: string;
 
-  @ApiProperty({ description: 'Applied amount' })
-  amount: number;
+  @ApiProperty({ description: 'Applied amount in minor units (bigint serialized as string)' })
+  amount: string;
 
   @ApiProperty({ description: 'ISO timestamp of application' })
   appliedAt: string;
@@ -36,14 +36,14 @@ export class CreditNoteResponseDto {
   @ApiProperty({ description: 'Credit note number' })
   creditNoteNumber: string;
 
-  @ApiProperty({ description: 'Total amount' })
-  amount: number;
+  @ApiProperty({ description: 'Total amount in minor units (bigint serialized as string)' })
+  amount: string;
 
-  @ApiProperty({ description: 'Amount applied to invoices' })
-  appliedAmount: number;
+  @ApiProperty({ description: 'Amount applied to invoices in minor units (bigint serialized as string)' })
+  appliedAmount: string;
 
-  @ApiProperty({ description: 'Remaining balance' })
-  remaining: number;
+  @ApiProperty({ description: 'Remaining balance in minor units (bigint serialized as string)' })
+  remaining: string;
 
   @ApiPropertyOptional({ description: 'Reason for credit note', nullable: true })
   reason: string | null;

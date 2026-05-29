@@ -95,9 +95,9 @@ export const CreditNotesPage = () => {
                         {cn.type === 'PAYABLE' ? 'Payable' : 'Receivable'}
                       </Badge>
                     </td>
-                    <td className="py-3 text-right font-mono">{cn.amount.toFixed(2)}</td>
-                    <td className="py-3 text-right font-mono">{cn.appliedAmount.toFixed(2)}</td>
-                    <td className="py-3 text-right font-mono">{cn.remaining.toFixed(2)}</td>
+                    <td className="py-3 text-right font-mono">{Number(cn.amount).toFixed(2)}</td>
+                    <td className="py-3 text-right font-mono">{Number(cn.appliedAmount).toFixed(2)}</td>
+                    <td className="py-3 text-right font-mono">{Number(cn.remaining).toFixed(2)}</td>
                     <td className="py-3">
                       <Badge variant={badge.variant} className={badge.className}>
                         {cn.status}

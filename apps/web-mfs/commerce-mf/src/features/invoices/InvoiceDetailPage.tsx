@@ -53,7 +53,7 @@ export const InvoiceDetailPage = () => {
 
   const statusBadge = statusConfig[invoice.status];
   const typeBadge = typeConfig[invoice.type];
-  const canRecordPayment = invoice.status !== 'PAID' && invoice.status !== 'VOID' && invoice.balance > 0;
+  const canRecordPayment = invoice.status !== 'PAID' && invoice.status !== 'VOID' && BigInt(invoice.balance) > 0n;
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,19 +123,19 @@ export const InvoiceDetailPage = () => {
                         label="Total"
                         type="string"
                         mono
-                        value={<span className="text-lg font-medium">{invoice.totalAmount.toFixed(2)}</span>}
+                        value={<span className="text-lg font-medium">{Number(invoice.totalAmount).toFixed(2)}</span>}
                       />
                       <DetailField
                         label="Paid"
                         type="string"
                         mono
-                        value={<span className="text-success">{invoice.paidAmount.toFixed(2)}</span>}
+                        value={<span className="text-success">{Number(invoice.paidAmount).toFixed(2)}</span>}
                       />
                       <DetailField
                         label="Balance"
                         type="string"
                         mono
-                        value={<span className="font-medium text-destructive">{invoice.balance.toFixed(2)}</span>}
+                        value={<span className="font-medium text-destructive">{Number(invoice.balance).toFixed(2)}</span>}
                       />
                     </div>
                   </div>
@@ -177,9 +177,9 @@ export const InvoiceDetailPage = () => {
                               <td className="py-3 text-muted-foreground">{index + 1}</td>
                               <td className="py-3 font-medium">{item.description}</td>
                               <td className="py-3 text-right font-mono">{item.quantity}</td>
-                              <td className="py-3 text-right font-mono">{item.unitPrice.toFixed(2)}</td>
-                              <td className="py-3 text-right font-mono">{item.taxAmount.toFixed(2)}</td>
-                              <td className="py-3 text-right font-mono">{item.total.toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono">{Number(item.unitPrice).toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono">{Number(item.taxAmount).toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono">{Number(item.total).toFixed(2)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -236,7 +236,7 @@ export const InvoiceDetailPage = () => {
                                 <Badge variant="outline">{payment.method}</Badge>
                               </td>
                               <td className="py-3 font-mono text-muted-foreground">{payment.reference ?? '—'}</td>
-                              <td className="py-3 text-right font-mono font-medium">{payment.amount.toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono font-medium">{Number(payment.amount).toFixed(2)}</td>
                               <td className="py-3">
                                 <Badge variant="secondary" className="bg-success/15 text-success">
                                   {payment.status}
@@ -263,7 +263,7 @@ export const InvoiceDetailPage = () => {
         title="Record Payment"
         description="Record a payment against this invoice."
         content={(close) => (
-          <RecordPaymentDialog invoiceId={invoice.id} balance={invoice.balance} onSuccess={close} onCancel={close} />
+          <RecordPaymentDialog invoiceId={invoice.id} balance={Number(invoice.balance)} onSuccess={close} onCancel={close} />
         )}
       />
     </div>

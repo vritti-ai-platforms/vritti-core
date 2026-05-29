@@ -3,13 +3,13 @@ import type { Order, OrderItem, OrderItemModifier } from '@/db/schema';
 export class OrderItemModifierDto {
   id: string;
   name: string;
-  additionalPrice: number;
+  additionalPrice: string;
 
   static from(entity: OrderItemModifier): OrderItemModifierDto {
     const dto = new OrderItemModifierDto();
     dto.id = entity.id;
     dto.name = entity.name;
-    dto.additionalPrice = Number(entity.additionalPrice);
+    dto.additionalPrice = entity.additionalPrice.toString();
     return dto;
   }
 }
@@ -19,11 +19,11 @@ export class OrderItemDto {
   itemName: string;
   variantName: string | null;
   quantity: number;
-  unitPrice: number;
+  unitPrice: string;
   taxRate: number;
-  taxAmount: number;
-  subtotal: number;
-  total: number;
+  taxAmount: string;
+  subtotal: string;
+  total: string;
   notes: string | null;
   modifiers: OrderItemModifierDto[];
 
@@ -33,11 +33,11 @@ export class OrderItemDto {
     dto.itemName = entity.itemName;
     dto.variantName = entity.variantName ?? null;
     dto.quantity = entity.quantity;
-    dto.unitPrice = Number(entity.unitPrice);
+    dto.unitPrice = entity.unitPrice.toString();
     dto.taxRate = entity.taxRate;
-    dto.taxAmount = Number(entity.taxAmount);
-    dto.subtotal = Number(entity.subtotal);
-    dto.total = Number(entity.total);
+    dto.taxAmount = entity.taxAmount.toString();
+    dto.subtotal = entity.subtotal.toString();
+    dto.total = entity.total.toString();
     dto.notes = entity.notes ?? null;
     dto.modifiers = modifiers;
     return dto;
@@ -52,12 +52,12 @@ export class OrderDto {
   status: string;
   customerName: string | null;
   customerPhone: string | null;
-  subtotal: number;
-  taxAmount: number;
-  serviceCharge: number;
-  deliveryCharge: number;
-  discountAmount: number;
-  totalAmount: number;
+  subtotal: string;
+  taxAmount: string;
+  serviceCharge: string;
+  deliveryCharge: string;
+  discountAmount: string;
+  totalAmount: string;
   placedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -71,12 +71,12 @@ export class OrderDto {
     dto.status = entity.status;
     dto.customerName = entity.customerName ?? null;
     dto.customerPhone = entity.customerPhone ?? null;
-    dto.subtotal = Number(entity.subtotal);
-    dto.taxAmount = Number(entity.taxAmount);
-    dto.serviceCharge = Number(entity.serviceCharge);
-    dto.deliveryCharge = Number(entity.deliveryCharge);
-    dto.discountAmount = Number(entity.discountAmount);
-    dto.totalAmount = Number(entity.totalAmount);
+    dto.subtotal = entity.subtotal.toString();
+    dto.taxAmount = entity.taxAmount.toString();
+    dto.serviceCharge = entity.serviceCharge.toString();
+    dto.deliveryCharge = entity.deliveryCharge.toString();
+    dto.discountAmount = entity.discountAmount.toString();
+    dto.totalAmount = entity.totalAmount.toString();
     dto.placedAt = entity.placedAt.toISOString();
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

@@ -168,33 +168,33 @@ export const OrderDetailPage = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-mono">{order.subtotal.toFixed(2)}</span>
+                        <span className="font-mono">{Number(order.subtotal).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Tax</span>
-                        <span className="font-mono">{order.taxAmount.toFixed(2)}</span>
+                        <span className="font-mono">{Number(order.taxAmount).toFixed(2)}</span>
                       </div>
-                      {order.serviceCharge > 0 && (
+                      {BigInt(order.serviceCharge) > 0n && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Service Charge</span>
-                          <span className="font-mono">{order.serviceCharge.toFixed(2)}</span>
+                          <span className="font-mono">{Number(order.serviceCharge).toFixed(2)}</span>
                         </div>
                       )}
-                      {order.deliveryCharge > 0 && (
+                      {BigInt(order.deliveryCharge) > 0n && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Delivery Charge</span>
-                          <span className="font-mono">{order.deliveryCharge.toFixed(2)}</span>
+                          <span className="font-mono">{Number(order.deliveryCharge).toFixed(2)}</span>
                         </div>
                       )}
-                      {order.discountAmount > 0 && (
+                      {BigInt(order.discountAmount) > 0n && (
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Discount</span>
-                          <span className="font-mono text-success">-{order.discountAmount.toFixed(2)}</span>
+                          <span className="font-mono text-success">-{Number(order.discountAmount).toFixed(2)}</span>
                         </div>
                       )}
                       <div className="flex justify-between border-t pt-2 font-medium">
                         <span>Total</span>
-                        <span className="font-mono">{order.totalAmount.toFixed(2)}</span>
+                        <span className="font-mono">{Number(order.totalAmount).toFixed(2)}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -241,9 +241,9 @@ export const OrderDetailPage = () => {
                                   {item.notes && <p className="mt-0.5 text-xs text-muted-foreground">{item.notes}</p>}
                                 </td>
                                 <td className="py-3 text-right font-mono">{item.quantity}</td>
-                                <td className="py-3 text-right font-mono">{item.unitPrice.toFixed(2)}</td>
-                                <td className="py-3 text-right font-mono">{item.taxAmount.toFixed(2)}</td>
-                                <td className="py-3 text-right font-mono">{item.total.toFixed(2)}</td>
+                                <td className="py-3 text-right font-mono">{Number(item.unitPrice).toFixed(2)}</td>
+                                <td className="py-3 text-right font-mono">{Number(item.taxAmount).toFixed(2)}</td>
+                                <td className="py-3 text-right font-mono">{Number(item.total).toFixed(2)}</td>
                               </tr>
                               {item.modifiers.length > 0 && (
                                 <tr key={`${item.id}-mods`}>
@@ -253,9 +253,9 @@ export const OrderDetailPage = () => {
                                       {item.modifiers.map((mod) => (
                                         <Badge key={mod.id} variant="outline" className="text-xs">
                                           {mod.name}
-                                          {mod.additionalPrice > 0 && (
+                                          {BigInt(mod.additionalPrice) > 0n && (
                                             <span className="ml-1 text-muted-foreground">
-                                              +{mod.additionalPrice.toFixed(2)}
+                                              +{Number(mod.additionalPrice).toFixed(2)}
                                             </span>
                                           )}
                                         </Badge>

@@ -4,9 +4,9 @@ export class InvoiceItemDto {
   id: string;
   description: string;
   quantity: number;
-  unitPrice: number;
-  taxAmount: number;
-  total: number;
+  unitPrice: string;
+  taxAmount: string;
+  total: string;
   referenceItemId: string | null;
 
   static from(entity: InvoiceItem): InvoiceItemDto {
@@ -14,9 +14,9 @@ export class InvoiceItemDto {
     dto.id = entity.id;
     dto.description = entity.description;
     dto.quantity = entity.quantity;
-    dto.unitPrice = Number(entity.unitPrice);
-    dto.taxAmount = Number(entity.taxAmount);
-    dto.total = Number(entity.total);
+    dto.unitPrice = entity.unitPrice.toString();
+    dto.taxAmount = entity.taxAmount.toString();
+    dto.total = entity.total.toString();
     dto.referenceItemId = entity.referenceItemId ?? null;
     return dto;
   }
@@ -31,12 +31,12 @@ export class InvoiceDto {
   partyName: string;
   referenceType: string | null;
   referenceId: string | null;
-  subtotal: number;
-  taxAmount: number;
-  discountAmount: number;
-  totalAmount: number;
-  paidAmount: number;
-  balance: number;
+  subtotal: string;
+  taxAmount: string;
+  discountAmount: string;
+  totalAmount: string;
+  paidAmount: string;
+  balance: string;
   status: string;
   paymentTerms: string | null;
   issuedDate: string | null;
@@ -55,12 +55,12 @@ export class InvoiceDto {
     dto.partyName = entity.partyName;
     dto.referenceType = entity.referenceType ?? null;
     dto.referenceId = entity.referenceId ?? null;
-    dto.subtotal = Number(entity.subtotal);
-    dto.taxAmount = Number(entity.taxAmount);
-    dto.discountAmount = Number(entity.discountAmount);
-    dto.totalAmount = Number(entity.totalAmount);
-    dto.paidAmount = Number(entity.paidAmount);
-    dto.balance = Number(entity.balance);
+    dto.subtotal = entity.subtotal.toString();
+    dto.taxAmount = entity.taxAmount.toString();
+    dto.discountAmount = entity.discountAmount.toString();
+    dto.totalAmount = entity.totalAmount.toString();
+    dto.paidAmount = entity.paidAmount.toString();
+    dto.balance = entity.balance.toString();
     dto.status = entity.status;
     dto.paymentTerms = entity.paymentTerms ?? null;
     dto.issuedDate = entity.issuedDate ?? null;

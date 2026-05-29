@@ -38,11 +38,12 @@ const AddPriceListItemsForm: React.FC<{
 
   const handleSave = () => {
     if (selectedIds.length === 0) return;
+    // Narrow `priceOverride` (string from API) to `number` for the save payload (form-state shape).
     const existing = currentItems.map((it) => ({
       itemVariantId: it.itemVariantId,
       sortOrder: it.sortOrder,
       isVisible: it.isVisible,
-      priceOverride: it.priceOverride,
+      priceOverride: it.priceOverride != null ? Number(it.priceOverride) : null,
     }));
     const added = selectedIds.map((id, i) => ({
       itemVariantId: id,

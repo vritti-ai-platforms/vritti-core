@@ -12,12 +12,15 @@ interface PriceListItemAssignment {
 const sortItems = (items: PriceListItemData[]) =>
   [...items].sort((a, b) => a.sortOrder - b.sortOrder || a.itemName.localeCompare(b.itemName));
 
+// PriceListItemAssignment.priceOverride is `number | null` (form-state shape sent back to the API as
+// a major-unit decimal). The API returns it as a string (precise bigint minor-units); we narrow at
+// the ingress here. Precision is bounded by typical retail prices.
 const toAssignments = (items: PriceListItemData[]): PriceListItemAssignment[] =>
   sortItems(items).map((item) => ({
     itemVariantId: item.itemVariantId,
     sortOrder: item.sortOrder,
     isVisible: item.isVisible,
-    priceOverride: item.priceOverride ?? null,
+    priceOverride: item.priceOverride != null ? Number(item.priceOverride) : null,
   }));
 
 const toSavePayload = (assignments: PriceListItemAssignment[]): SavePriceListItemsData => ({

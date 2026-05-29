@@ -10,14 +10,14 @@ export class InvoiceItemResponseDto {
   @ApiProperty({ description: 'Quantity' })
   quantity: number;
 
-  @ApiProperty({ description: 'Unit price' })
-  unitPrice: number;
+  @ApiProperty({ description: 'Unit price in minor units (bigint serialized as string)' })
+  unitPrice: string;
 
-  @ApiProperty({ description: 'Tax amount for this item' })
-  taxAmount: number;
+  @ApiProperty({ description: 'Tax amount for this item in minor units (bigint serialized as string)' })
+  taxAmount: string;
 
-  @ApiProperty({ description: 'Line total' })
-  total: number;
+  @ApiProperty({ description: 'Line total in minor units (bigint serialized as string)' })
+  total: string;
 
   @ApiPropertyOptional({ description: 'Reference item ID', nullable: true })
   referenceItemId: string | null;
@@ -48,23 +48,23 @@ export class InvoiceResponseDto {
   @ApiPropertyOptional({ description: 'Source reference ID', nullable: true })
   referenceId: string | null;
 
-  @ApiProperty({ description: 'Subtotal before tax and discount' })
-  subtotal: number;
+  @ApiProperty({ description: 'Subtotal before tax and discount, in minor units (bigint serialized as string)' })
+  subtotal: string;
 
-  @ApiProperty({ description: 'Total tax amount' })
-  taxAmount: number;
+  @ApiProperty({ description: 'Total tax amount in minor units (bigint serialized as string)' })
+  taxAmount: string;
 
-  @ApiProperty({ description: 'Total discount amount' })
-  discountAmount: number;
+  @ApiProperty({ description: 'Total discount amount in minor units (bigint serialized as string)' })
+  discountAmount: string;
 
-  @ApiProperty({ description: 'Total amount' })
-  totalAmount: number;
+  @ApiProperty({ description: 'Total amount in minor units (bigint serialized as string)' })
+  totalAmount: string;
 
-  @ApiProperty({ description: 'Amount paid so far' })
-  paidAmount: number;
+  @ApiProperty({ description: 'Amount paid so far, in minor units (bigint serialized as string)' })
+  paidAmount: string;
 
-  @ApiProperty({ description: 'Remaining balance' })
-  balance: number;
+  @ApiProperty({ description: 'Remaining balance in minor units (bigint serialized as string)' })
+  balance: string;
 
   @ApiProperty({ description: 'Invoice status', enum: ['DRAFT', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'VOID'] })
   status: string;

@@ -51,8 +51,10 @@ export const PosBillingPage = () => {
 
   // Adds an item to the cart or increments its quantity if already present
   const addToCart = (item: PosTerminalSellableItemData) => {
-    const unitPrice = item.priceOverride ?? item.basePrice;
-    if (unitPrice == null) return;
+    const rawUnitPrice = item.priceOverride ?? item.basePrice;
+    if (rawUnitPrice == null) return;
+    // CartLineData.unitPrice is number for cart-local arithmetic; precision OK for retail prices.
+    const unitPrice = Number(rawUnitPrice);
     setCart((prev) => {
       const existing = prev.find((l) => l.itemVariantId === item.itemVariantId);
       if (existing) {

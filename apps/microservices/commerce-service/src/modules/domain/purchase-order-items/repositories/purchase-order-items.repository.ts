@@ -91,11 +91,13 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
               symbol: row.symbol,
               inventoryItemId: row.inventoryItemId,
               uomId: row.uomId,
-              unitPrice: row.unitPrice !== null ? Number(row.unitPrice) : null,
+              // bigint → string to dodge JSON's 2^53 precision ceiling. orderedQuantity/receivedQuantity
+              // are decimal(12,3) so they fit safely in a JS number; only unitPrice is bigint money.
+              unitPrice: row.unitPrice.toString(),
               currencyCode: row.currencyCode,
               allowDecimal: row.allowDecimal,
-              orderedQuantity: row.orderedQuantity !== null ? Number(row.orderedQuantity) : null,
-              receivedQuantity: row.receivedQuantity !== null ? Number(row.receivedQuantity) : null,
+              orderedQuantity: Number(row.orderedQuantity),
+              receivedQuantity: Number(row.receivedQuantity),
             },
           })),
           groups: Array.from(seenGroups.entries()).map(([id, name]) => ({ id, name })),

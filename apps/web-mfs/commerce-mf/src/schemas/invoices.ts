@@ -5,13 +5,15 @@ export type InvoiceType = 'PAYABLE' | 'RECEIVABLE';
 export type InvoicePartyType = 'SUPPLIER' | 'CUSTOMER' | 'AGGREGATOR';
 export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'VOID';
 
+// Money fields below are bigint minor units serialized as strings — feed straight into
+// formatCurrency() / minorToMajor(). For arithmetic, parse with BigInt(...).
 export interface InvoiceItemData {
   id: string;
   description: string;
   quantity: number;
-  unitPrice: number;
-  taxAmount: number;
-  total: number;
+  unitPrice: string;
+  taxAmount: string;
+  total: string;
   referenceItemId: string | null;
 }
 
@@ -24,12 +26,12 @@ export interface InvoiceData {
   partyName: string;
   referenceType: string | null;
   referenceId: string | null;
-  subtotal: number;
-  taxAmount: number;
-  discountAmount: number;
-  totalAmount: number;
-  paidAmount: number;
-  balance: number;
+  subtotal: string;
+  taxAmount: string;
+  discountAmount: string;
+  totalAmount: string;
+  paidAmount: string;
+  balance: string;
   status: InvoiceStatus;
   paymentTerms: string | null;
   issuedDate: string;
@@ -48,7 +50,7 @@ export type InvoicesTableResponse = TableResponse<InvoiceData>;
 export interface PaymentData {
   id: string;
   invoiceId: string;
-  amount: number;
+  amount: string;
   method: string;
   reference: string | null;
   status: string;

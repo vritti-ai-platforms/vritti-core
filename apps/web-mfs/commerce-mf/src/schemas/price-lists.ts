@@ -62,6 +62,8 @@ export interface PriceListData {
   updatedAt: string;
 }
 
+// basePrice / priceOverride are bigint minor units serialized as strings — feed straight into
+// formatCurrency() / minorToMajor(). For arithmetic, parse with BigInt(...).
 export interface PriceListItemData {
   priceListId: string;
   itemVariantId: string;
@@ -69,11 +71,11 @@ export interface PriceListItemData {
   itemVariantName: string;
   itemId: string;
   itemName: string;
-  basePrice: number | null;
+  basePrice: string | null;
   categoryName: string | null;
   sortOrder: number;
   isVisible: boolean;
-  priceOverride: number | null;
+  priceOverride: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,8 +89,8 @@ export interface PosTerminalSellableItemData {
   itemVariantName: string;
   itemId: string;
   itemName: string;
-  basePrice: number | null;
-  priceOverride: number | null;
+  basePrice: string | null;
+  priceOverride: string | null;
   categoryName: string | null;
   priority: number;
   sortOrder: number;

@@ -3,7 +3,7 @@ import type { Payment } from '@/db/schema';
 export class PaymentDto {
   id: string;
   invoiceId: string;
-  amount: number;
+  amount: string;
   method: string;
   reference: string | null;
   status: string;
@@ -15,7 +15,7 @@ export class PaymentDto {
     const dto = new PaymentDto();
     dto.id = entity.id;
     dto.invoiceId = entity.invoiceId;
-    dto.amount = Number(entity.amount);
+    dto.amount = entity.amount.toString();
     dto.method = entity.method;
     dto.reference = entity.reference ?? null;
     dto.status = entity.status;

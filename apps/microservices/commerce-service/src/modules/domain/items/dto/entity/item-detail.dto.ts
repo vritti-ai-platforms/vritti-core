@@ -36,7 +36,7 @@ export class ItemVariantDto {
   id: string;
   sku: string;
   name: string;
-  price: number;
+  price: string;
   isAvailable: boolean;
   manageInventory: boolean;
   sortOrder: number;
@@ -50,7 +50,7 @@ export class ItemVariantDto {
     dto.id = entity.id;
     dto.sku = entity.sku;
     dto.name = entity.name;
-    dto.price = Number(entity.price);
+    dto.price = entity.price.toString();
     dto.isAvailable = entity.isAvailable;
     dto.manageInventory = entity.manageInventory;
     dto.sortOrder = entity.sortOrder;
