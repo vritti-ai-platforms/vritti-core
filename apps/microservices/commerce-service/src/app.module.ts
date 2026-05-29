@@ -26,6 +26,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PosTerminalsModule } from './modules/pos-terminals/pos-terminals.module';
 import { PriceListsModule } from './modules/price-lists/price-lists.module';
+import { PurchaseOrderItemsModule } from './modules/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
 import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjustments.module';
 import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
@@ -82,6 +83,7 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
     SuppliersModule,
     SupplierItemsModule,
     PurchaseOrdersModule,
+    PurchaseOrderItemsModule,
     GoodsReceiptsModule,
     LocationsModule,
     ConversionsModule,

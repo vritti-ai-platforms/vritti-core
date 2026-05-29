@@ -5,6 +5,7 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency, useDialog } from '@vritti/quantum-ui/hooks';
 import { minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
+import { PurchaseOrderItemSelector } from '@vritti/quantum-ui/selects/purchase-order-item';
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -19,36 +20,6 @@ interface AddItemDialogContext {
   poId?: string | null;
 }
 
-interface ResolvedPrefill {
-  unitPrice: { currency: string; value: string };
-  source: 'PO' | 'SUPPLIER_ITEM';
-}
-
-// Reads `option.additionals` to resolve the supplier unit price. PO line price wins when present
-// (the SupplierItemSelector projects it via a LEFT JOIN when purchaseOrderId is passed); otherwise
-// falls back to the supplier-catalog price. Returns null when neither is available.
-function resolvePrefillFromOption(option: SelectOption | null): ResolvedPrefill | null {
-  if (!option?.additionals) return null;
-  const a = option.additionals;
-  const poUnitPrice = typeof a.poUnitPrice === 'number' ? a.poUnitPrice : null;
-  const poCurrency = typeof a.poCurrencyCode === 'string' ? a.poCurrencyCode : null;
-  if (poUnitPrice != null && poUnitPrice > 0 && poCurrency) {
-    return {
-      unitPrice: { currency: poCurrency, value: minorToMajor(String(poUnitPrice), poCurrency) },
-      source: 'PO',
-    };
-  }
-  const supplierUnitPrice = typeof a.unitPrice === 'number' ? a.unitPrice : null;
-  const supplierCurrency = typeof a.currencyCode === 'string' ? a.currencyCode : null;
-  if (supplierUnitPrice != null && supplierUnitPrice > 0 && supplierCurrency) {
-    return {
-      unitPrice: { currency: supplierCurrency, value: minorToMajor(String(supplierUnitPrice), supplierCurrency) },
-      source: 'SUPPLIER_ITEM',
-    };
-  }
-  return null;
-}
-
 const AddItemForm = ({
   goodsReceiptId,
   supplierId,
@@ -59,36 +30,53 @@ const AddItemForm = ({
   const buCurrencyCode = useBUCurrency() ?? 'INR';
   const form = useForm<AddGoodsReceiptItemFormData>({
     resolver: zodResolver(addGoodsReceiptItemSchema),
-    defaultValues: { supplierItemId: '', rejectedQuantity: undefined, unitPrice: undefined },
+    defaultValues: {
+      pickerSelection: '',
+      inventoryItemId: '',
+      uomId: '',
+      rejectedQuantity: undefined,
+      unitPrice: undefined,
+    },
   });
   const mutation = useAddGoodsReceiptItem(goodsReceiptId, { onSuccess });
-  // The picked supplier item's UOM dictates whether the rejected qty input allows decimals (e.g.
+  // The picked option's UOM dictates whether the rejected qty input allows decimals (e.g.
   // a "case" UOM is whole-number-only, a "kg" UOM allows fractions).
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
-  const [prefillSource, setPrefillSource] = useState<'PO' | 'SUPPLIER_ITEM' | null>(null);
-  const [pickedSupplierItem, setPickedSupplierItem] = useState<boolean>(false);
+  const [hasPrefill, setHasPrefill] = useState<boolean>(false);
+  const [pickedItem, setPickedItem] = useState<boolean>(false);
 
   const handleItemSelect = (option: SelectOption | null) => {
-    setAllowDecimal(option?.additionals?.allowDecimal === true);
-    setPickedSupplierItem(!!option);
-    const prefill = resolvePrefillFromOption(option);
-    if (prefill) {
-      form.setValue('unitPrice', prefill.unitPrice, { shouldDirty: false });
-      setPrefillSource(prefill.source);
+    const a = option?.additionals;
+    setAllowDecimal(a?.allowDecimal === true);
+    setPickedItem(!!option);
+
+    const inventoryItemId = typeof a?.inventoryItemId === 'string' ? a.inventoryItemId : '';
+    const uomId = typeof a?.uomId === 'string' ? a.uomId : '';
+    form.setValue('inventoryItemId', inventoryItemId, { shouldValidate: true });
+    form.setValue('uomId', uomId, { shouldValidate: true });
+
+    const rawPrice = typeof a?.unitPrice === 'number' ? a.unitPrice : null;
+    const currencyCode = typeof a?.currencyCode === 'string' ? a.currencyCode : null;
+    if (rawPrice != null && rawPrice > 0 && currencyCode) {
+      form.setValue(
+        'unitPrice',
+        { currency: currencyCode, value: minorToMajor(String(rawPrice), currencyCode) },
+        { shouldDirty: false },
+      );
+      setHasPrefill(true);
     } else {
       form.setValue('unitPrice', undefined, { shouldDirty: false });
-      setPrefillSource(null);
+      setHasPrefill(false);
     }
   };
 
-  const prefillNote =
-    prefillSource === 'PO'
+  const prefillNote = hasPrefill
+    ? poId
       ? 'Pre-filled from the linked purchase order — edit if the supplier delivered at a different price.'
-      : prefillSource === 'SUPPLIER_ITEM'
-        ? 'Pre-filled from the supplier catalog — edit if needed.'
-        : pickedSupplierItem
-          ? 'No pre-fill available. Enter the supplier price so it auto-creates a SUPPLIER_PRICE cost row at publish.'
-          : undefined;
+      : 'Pre-filled from the supplier catalog — edit if needed.'
+    : pickedItem
+      ? 'No pre-fill available. Enter the supplier price so it auto-creates a SUPPLIER_PRICE cost row at publish.'
+      : undefined;
 
   return (
     <Form
@@ -96,20 +84,26 @@ const AddItemForm = ({
       mutation={mutation}
       onCancel={onCancel}
       transformSubmit={(data) => ({
-        supplierItemId: data.supplierItemId,
+        inventoryItemId: data.inventoryItemId,
+        uomId: data.uomId,
         rejectedQuantity: data.rejectedQuantity,
         unitPrice: data.unitPrice && data.unitPrice.value ? data.unitPrice : undefined,
       })}
     >
-      <SupplierItemSelector
-        name="supplierItemId"
-        params={{
-          supplierId,
-          ...(poId ? { purchaseOrderId: poId } : {}),
-          excludeOnGoodsReceiptId: goodsReceiptId,
-        }}
-        onOptionSelect={handleItemSelect}
-      />
+      {poId ? (
+        <PurchaseOrderItemSelector
+          name="pickerSelection"
+          label="Purchase Order Item"
+          params={{ purchaseOrderId: poId, excludeOnGoodsReceiptId: goodsReceiptId }}
+          onOptionSelect={handleItemSelect}
+        />
+      ) : (
+        <SupplierItemSelector
+          name="pickerSelection"
+          params={{ supplierId, excludeOnGoodsReceiptId: goodsReceiptId }}
+          onOptionSelect={handleItemSelect}
+        />
+      )}
       <CurrencyField
         name="unitPrice"
         label="Supplier Unit Price"
@@ -146,7 +140,7 @@ export const AddItemDialog = ({
     title="Add Item"
     description={
       poId
-        ? 'Pick a supplier item from the linked purchase order. The price pre-fills from the PO.'
+        ? 'Pick a line from the linked purchase order. The price pre-fills from the PO.'
         : 'Pick a supplier item to receive on this goods receipt. The price pre-fills from the supplier catalog.'
     }
     content={(close) => (

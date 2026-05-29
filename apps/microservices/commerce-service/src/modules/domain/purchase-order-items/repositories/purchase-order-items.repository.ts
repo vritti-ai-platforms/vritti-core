@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { aliasedTable, and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItems, type PurchaseOrderItem, purchaseOrderItems, uom } from '@/db/schema';
+import {
+  type FindForSelectConfig,
+  PrimaryBaseRepository,
+  PrimaryDatabaseService,
+  type SelectQueryResult,
+} from '@vritti/api-sdk';
+import { aliasedTable, and, asc, desc, eq, ilike, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { categories, goodsReceiptItems, inventoryItems, type PurchaseOrderItem, purchaseOrderItems, uom } from '@/db/schema';
 
 const orderUom = aliasedTable(uom, 'order_uom');
 
@@ -15,6 +20,88 @@ type EnrichedItem = PurchaseOrderItem & {
 export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof purchaseOrderItems> {
   constructor(database: PrimaryDatabaseService) {
     super(database, purchaseOrderItems);
+  }
+
+  // Returns paginated PO line options for the GR AddItem selector when a PO is linked.
+  // Identity is `purchase_order_items.id`; the inventory item's name is the display label and the
+  // additionals carry the resolved (inventoryItemId, uomId, unitPrice, currencyCode, allowDecimal,
+  // symbol) so the dialog can post the GR add-item payload directly without a supplier-items hop.
+  // When excludeOnGoodsReceiptId is supplied, hides PO lines whose (inventoryItemId, uomId) is
+  // already on that GR.
+  findForSelectByPo(
+    poId: string,
+    config: FindForSelectConfig,
+    options?: { excludeOnGoodsReceiptId?: string },
+  ): Promise<SelectQueryResult> {
+    const conditions: SQL[] = [eq(purchaseOrderItems.purchaseOrderId, poId)];
+
+    if (options?.excludeOnGoodsReceiptId) {
+      const grId = options.excludeOnGoodsReceiptId;
+      conditions.push(sql`NOT EXISTS (
+        SELECT 1 FROM ${goodsReceiptItems} gri
+        WHERE gri.goods_receipt_id = ${grId}
+          AND gri.inventory_item_id = ${purchaseOrderItems.inventoryItemId}
+          AND gri.uom_id = ${purchaseOrderItems.uomId}
+      )`);
+    }
+
+    const limit = Number(config.limit) || 20;
+    const offset = Number(config.offset) || 0;
+    const search = config.search?.trim();
+    if (search) {
+      conditions.push(ilike(inventoryItems.name, `%${search}%`));
+    }
+
+    return this.db
+      .select({
+        value: purchaseOrderItems.id,
+        label: inventoryItems.name,
+        groupId: inventoryItems.categoryId,
+        groupName: categories.name,
+        symbol: orderUom.symbol,
+        inventoryItemId: purchaseOrderItems.inventoryItemId,
+        uomId: purchaseOrderItems.uomId,
+        unitPrice: purchaseOrderItems.unitPrice,
+        currencyCode: purchaseOrderItems.currencyCode,
+        allowDecimal: orderUom.allowDecimal,
+        orderedQuantity: purchaseOrderItems.uomQty,
+        receivedQuantity: purchaseOrderItems.receivedQuantity,
+      })
+      .from(purchaseOrderItems)
+      .innerJoin(inventoryItems, eq(inventoryItems.id, purchaseOrderItems.inventoryItemId))
+      .leftJoin(categories, eq(categories.id, inventoryItems.categoryId))
+      .leftJoin(orderUom, eq(orderUom.id, purchaseOrderItems.uomId))
+      .where(conditions.length === 1 ? conditions[0] : and(...conditions))
+      .orderBy(asc(categories.id), asc(inventoryItems.name))
+      .limit(limit)
+      .offset(offset)
+      .then((rows) => {
+        const seenGroups = new Map<string, string>();
+        for (const row of rows) {
+          if (row.groupId != null && row.groupName != null && !seenGroups.has(row.groupId)) {
+            seenGroups.set(row.groupId, row.groupName);
+          }
+        }
+        return {
+          options: rows.map((row) => ({
+            value: row.value,
+            label: row.label,
+            ...(row.groupId != null ? { groupId: row.groupId } : {}),
+            additionals: {
+              symbol: row.symbol,
+              inventoryItemId: row.inventoryItemId,
+              uomId: row.uomId,
+              unitPrice: row.unitPrice !== null ? Number(row.unitPrice) : null,
+              currencyCode: row.currencyCode,
+              allowDecimal: row.allowDecimal,
+              orderedQuantity: row.orderedQuantity !== null ? Number(row.orderedQuantity) : null,
+              receivedQuantity: row.receivedQuantity !== null ? Number(row.receivedQuantity) : null,
+            },
+          })),
+          groups: Array.from(seenGroups.entries()).map(([id, name]) => ({ id, name })),
+          hasMore: false,
+        };
+      });
   }
 
   // Returns all line items for a PO with inventory item names, order UOM symbol, and primary UOM symbol

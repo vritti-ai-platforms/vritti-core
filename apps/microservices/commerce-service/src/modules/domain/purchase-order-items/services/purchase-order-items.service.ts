@@ -4,6 +4,8 @@ import {
   type FieldMap,
   FilterProcessor,
   NotFoundException,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
   ValidationException,
@@ -49,6 +51,33 @@ export class PurchaseOrderItemsService {
   };
 
   constructor(private readonly repository: PurchaseOrderItemsRepository) {}
+
+  // Returns paginated PO line options for the GR AddItem selector. Used when a GR is linked to a PO —
+  // the picker drives the GR add-item payload directly with (inventoryItemId, uomId, unitPrice).
+  findForSelectByPo(
+    poId: string,
+    query: SelectOptionsQueryDto,
+    options?: { excludeOnGoodsReceiptId?: string },
+  ): Promise<SelectQueryResult> {
+    return this.repository.findForSelectByPo(
+      poId,
+      {
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey || 'categoryId',
+        search: query.search,
+        limit: query.limit,
+        offset: query.offset,
+        values: query.values,
+        excludeIds: query.excludeIds,
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      options,
+    );
+  }
 
   private assertEditable(po: PurchaseOrderContext): void {
     if (!PurchaseOrderItemsService.EDITABLE_STATUSES.includes(po.status)) {

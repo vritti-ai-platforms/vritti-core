@@ -14,16 +14,14 @@ export class SupplierItemsController {
     @Payload()
     data: SelectOptionsQueryDto & {
       supplierId?: string;
-      purchaseOrderId?: string;
       excludeOnPurchaseOrderId?: string;
       excludeOnGoodsReceiptId?: string;
     },
   ): Promise<SelectQueryResult> {
-    const { supplierId, purchaseOrderId, excludeOnPurchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
+    const { supplierId, excludeOnPurchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
     this.logger.log(`supplierItems.select — supplierId: ${supplierId ?? 'all'}`);
     return this.service.findForSelect(query, {
       supplierId,
-      purchaseOrderId,
       excludeOnPurchaseOrderId,
       excludeOnGoodsReceiptId,
     });

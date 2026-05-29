@@ -4,9 +4,13 @@ import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsUUID, Min, ValidateNested } from 'class-validator';
 
 export class AddGoodsReceiptItemDto {
-  @ApiProperty({ description: 'Supplier item ID — server resolves to the canonical inventory item.' })
+  @ApiProperty({ description: 'Inventory item ID — resolved client-side from the PO line or supplier catalog selector.' })
   @IsUUID()
-  supplierItemId: string;
+  inventoryItemId: string;
+
+  @ApiProperty({ description: 'UOM ID — must match a PO line UOM when the GR is linked to a PO.' })
+  @IsUUID()
+  uomId: string;
 
   @ApiPropertyOptional({ description: 'Damage-on-arrival quantity (does not go to inventory).' })
   @IsOptional()

@@ -9,13 +9,6 @@ export class SupplierItemsSelectQueryDto extends SelectOptionsQueryDto {
   supplierId?: string;
 
   @ApiPropertyOptional({
-    description: 'Restrict results to supplier items whose (inventoryItemId, uomId) matches a line on this purchase order.',
-  })
-  @IsOptional()
-  @IsUUID()
-  purchaseOrderId?: string;
-
-  @ApiPropertyOptional({
     description: 'Exclude supplier items whose (inventoryItemId, uomId) is already on this purchase order.',
   })
   @IsOptional()

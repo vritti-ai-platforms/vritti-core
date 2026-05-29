@@ -48,16 +48,18 @@ export class GoodsReceiptsItemsController {
     @Payload()
     data: {
       goodsReceiptId: string;
-      supplierItemId: string;
+      inventoryItemId: string;
+      uomId: string;
       rejectedQuantity?: number;
       // bigint over NATS is serialized as string by the gateway to dodge JSON precision loss.
       unitPrice?: string;
       currencyCode?: string;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
-    this.logger.log(`goodsReceipts.addItem — supplierItem: ${data.supplierItemId}`);
+    this.logger.log(`goodsReceipts.addItem — item: ${data.inventoryItemId}, uom: ${data.uomId}`);
     return this.itemsService.addItem(data.goodsReceiptId, {
-      supplierItemId: data.supplierItemId,
+      inventoryItemId: data.inventoryItemId,
+      uomId: data.uomId,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
       currencyCode: data.currencyCode,

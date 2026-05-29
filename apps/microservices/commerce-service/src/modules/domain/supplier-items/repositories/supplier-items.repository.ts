@@ -28,17 +28,13 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   // Returns paginated supplier item options — one row per (inventoryItem, uom) pair.
   // Identity is `supplier_items.id`; the inventory item's name is the display label.
   // When supplierId is absent, returns all active supplier items and includes the supplier name as description.
-  // When purchaseOrderId is supplied, restricts to supplier items whose (inventoryItemId, uomId) matches a line
-  //   on that PO (include-only — used by the GR add-item flow when PO is linked).
   // When excludeOnPurchaseOrderId is supplied, excludes supplier items already on that PO (used by the PO add-line dialog).
-  // When excludeOnGoodsReceiptId is supplied, excludes supplier items whose (inventoryItemId, uomId) is already on that GR.
-  // The LEFT JOIN to purchase_order_items surfaces the negotiated PO line price on `additionals` when
-  // purchaseOrderId is provided — used by the GR AddItem dialog to pre-fill the unit-price field.
+  // When excludeOnGoodsReceiptId is supplied, excludes supplier items whose (inventoryItemId, uomId) is already on that GR
+  //   (used by the GR add-item dialog when the receipt has no linked PO).
   findForSelect(
     config: FindForSelectConfig,
     options?: {
       supplierId?: string;
-      purchaseOrderId?: string;
       excludeOnPurchaseOrderId?: string;
       excludeOnGoodsReceiptId?: string;
     },
@@ -47,16 +43,6 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
 
     if (options?.supplierId) {
       conditions.push(eq(supplierItems.supplierId, options.supplierId));
-    }
-
-    if (options?.purchaseOrderId) {
-      const poId = options.purchaseOrderId;
-      conditions.push(sql`EXISTS (
-        SELECT 1 FROM ${purchaseOrderItems} poi
-        WHERE poi.purchase_order_id = ${poId}
-          AND poi.inventory_item_id = ${inventoryItems.id}
-          AND poi.uom_id = ${supplierItems.uomId}
-      )`);
     }
 
     if (options?.excludeOnPurchaseOrderId) {
@@ -87,43 +73,25 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       conditions.push(ilike(inventoryItems.name, `%${search}%`));
     }
 
-    const baseSelect = {
-      value: supplierItems.id,
-      label: inventoryItems.name,
-      groupId: inventoryItems.categoryId,
-      groupName: categories.name,
-      supplierName: suppliers.name,
-      symbol: uom.symbol,
-      inventoryItemId: inventoryItems.id,
-      uomId: supplierItems.uomId,
-      unitPrice: supplierItems.unitPrice,
-      currencyCode: supplierItems.currencyCode,
-      allowDecimal: uom.allowDecimal,
-      poUnitPrice: purchaseOrderItems.unitPrice,
-      poPrimaryUomUnitPrice: purchaseOrderItems.primaryUomUnitPrice,
-      poCurrencyCode: purchaseOrderItems.currencyCode,
-    };
-
-    // Always LEFT JOIN purchase_order_items. When `options.purchaseOrderId` is undefined we pass a sentinel
-    // that can't match any row (`purchase_order_id` is NOT NULL on the table) so the po-side columns
-    // resolve to NULL; the projection shape stays stable for the response mapper.
-    const poIdForJoin = options?.purchaseOrderId ?? '00000000-0000-0000-0000-000000000000';
-
     return this.db
-      .select(baseSelect)
+      .select({
+        value: supplierItems.id,
+        label: inventoryItems.name,
+        groupId: inventoryItems.categoryId,
+        groupName: categories.name,
+        supplierName: suppliers.name,
+        symbol: uom.symbol,
+        inventoryItemId: inventoryItems.id,
+        uomId: supplierItems.uomId,
+        unitPrice: supplierItems.unitPrice,
+        currencyCode: supplierItems.currencyCode,
+        allowDecimal: uom.allowDecimal,
+      })
       .from(supplierItems)
       .innerJoin(inventoryItems, eq(inventoryItems.id, supplierItems.inventoryItemId))
       .innerJoin(suppliers, eq(suppliers.id, supplierItems.supplierId))
       .leftJoin(categories, eq(categories.id, inventoryItems.categoryId))
       .leftJoin(uom, eq(uom.id, supplierItems.uomId))
-      .leftJoin(
-        purchaseOrderItems,
-        and(
-          eq(purchaseOrderItems.purchaseOrderId, poIdForJoin),
-          eq(purchaseOrderItems.inventoryItemId, inventoryItems.id),
-          eq(purchaseOrderItems.uomId, supplierItems.uomId),
-        ) as SQL,
-      )
       .where(conditions.length === 1 ? conditions[0] : and(...conditions))
       .orderBy(asc(categories.id), asc(inventoryItems.name))
       .limit(limit)
@@ -148,13 +116,6 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
               unitPrice: row.unitPrice !== null ? Number(row.unitPrice) : null,
               currencyCode: row.currencyCode,
               allowDecimal: row.allowDecimal,
-              poUnitPrice:
-                row.poUnitPrice !== null && row.poUnitPrice !== undefined ? Number(row.poUnitPrice) : null,
-              poPrimaryUomUnitPrice:
-                row.poPrimaryUomUnitPrice !== null && row.poPrimaryUomUnitPrice !== undefined
-                  ? Number(row.poPrimaryUomUnitPrice)
-                  : null,
-              poCurrencyCode: row.poCurrencyCode ?? null,
             },
           })),
           groups: Array.from(seenGroups.entries()).map(([id, name]) => ({ id, name })),

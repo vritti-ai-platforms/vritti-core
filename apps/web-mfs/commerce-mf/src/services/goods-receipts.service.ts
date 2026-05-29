@@ -22,7 +22,8 @@ export interface CreateGoodsReceiptPayload {
 }
 
 export interface AddGoodsReceiptItemPayload {
-  supplierItemId: string;
+  inventoryItemId: string;
+  uomId: string;
   rejectedQuantity?: number;
   unitPrice?: { currency: string; value: string };
 }

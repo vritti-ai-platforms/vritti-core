@@ -160,11 +160,16 @@ export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineI
 const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
 
 export const addGoodsReceiptItemSchema = z.object({
-  supplierItemId: z.string({ error: 'Supplier item is required' }).min(1, 'Supplier item is required'),
+  // The picker (PurchaseOrderItemSelector or SupplierItemSelector) is bound to `pickerSelection`;
+  // on selection its `additionals` populate the real fields below. Submitted to the API as
+  // (inventoryItemId, uomId, unitPrice?, rejectedQuantity?).
+  pickerSelection: z.string({ error: 'Item is required' }).min(1, 'Item is required'),
+  inventoryItemId: z.string().uuid('Item is required'),
+  uomId: z.string().uuid('UOM is required'),
   rejectedQuantity: zOptionalNonNegativeNumber,
   // Optional: when absent, the publish-time auto-associate skips this item and the user can
-  // still post the supplier price manually via Add Cost. Pre-filled by the dialog (PO → supplier
-  // catalog) so most users just accept the default.
+  // still post the supplier price manually via Add Cost. Pre-filled by the picker (PO line or
+  // supplier catalog) so most users just accept the default.
   unitPrice: zodCurrencyField({ positive: true }).optional(),
 });
 export type AddGoodsReceiptItemFormData = z.infer<typeof addGoodsReceiptItemSchema>;

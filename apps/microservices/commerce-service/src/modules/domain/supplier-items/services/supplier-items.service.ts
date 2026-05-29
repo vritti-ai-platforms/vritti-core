@@ -51,14 +51,11 @@ export class SupplierItemsService {
 
   // Returns paginated supplier item options for select dropdowns and filters.
   // When supplierId is absent, returns all active supplier items across all suppliers (supplier name on description).
-  // When purchaseOrderId is supplied, restricts to supplier items whose (inventoryItemId, uomId) matches a PO line —
-  //   the LEFT JOIN surfaces the PO line's negotiated price on the option's additionals.
   // When excludeOnPurchaseOrderId / excludeOnGoodsReceiptId is supplied, hides items already on that PO / GR.
   findForSelect(
     query: SelectOptionsQueryDto,
     options?: {
       supplierId?: string;
-      purchaseOrderId?: string;
       excludeOnPurchaseOrderId?: string;
       excludeOnGoodsReceiptId?: string;
     },

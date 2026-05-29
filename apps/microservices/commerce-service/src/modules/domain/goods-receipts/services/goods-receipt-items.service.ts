@@ -1,5 +1,4 @@
 import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
-import { SupplierItemsRepository } from '@domain/supplier-items/repositories/supplier-items.repository';
 import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -37,7 +36,6 @@ export class GoodsReceiptItemsService {
     private readonly receiptsRepository: GoodsReceiptsRepository,
     private readonly itemsRepository: GoodsReceiptItemsRepository,
     private readonly poItemsRepository: PurchaseOrderItemsRepository,
-    private readonly supplierItemsRepository: SupplierItemsRepository,
     private readonly uomConversionsService: UomConversionsService,
   ) {}
 
@@ -108,14 +106,16 @@ export class GoodsReceiptItemsService {
     return this.itemsRepository.findTreeNodesByReceiptId(goodsReceiptId);
   }
 
-  // Add an item to a goods receipt. The caller picks a supplier item; we resolve it to its
-  // inventoryItemId server-side (validating that it belongs to the GR's supplier first), then
-  // run the existing PO-line and duplicate checks against the resolved inventoryItemId.
-  // acceptedQuantity is derived from sum(lines.quantity); only rejectedQuantity is stored here.
+  // Add an item to a goods receipt. The caller supplies (inventoryItemId, uomId) directly — the
+  // dialog has already resolved them from either the linked PO line (PurchaseOrderItemSelector) or
+  // the supplier catalog (SupplierItemSelector). When the GR is linked to a PO we still verify
+  // that the (inventoryItemId, uomId) pair is actually on the PO. acceptedQuantity is derived from
+  // sum(lines.quantity); only rejectedQuantity is stored here.
   async addItem(
     goodsReceiptId: string,
     data: {
-      supplierItemId: string;
+      inventoryItemId: string;
+      uomId: string;
       rejectedQuantity?: number;
       // Captured at the breakdown step (Phase 5.5). Required for the auto-associate flow to
       // create a SUPPLIER_PRICE cost row at publish, even when the GR has no PO link.
@@ -125,23 +125,11 @@ export class GoodsReceiptItemsService {
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
 
-    const supplierItem = await this.supplierItemsRepository.findById(data.supplierItemId);
-    if (!supplierItem) throw new NotFoundException('Supplier item not found.');
-    if (supplierItem.supplierId !== receipt.supplierId) {
-      throw new BadRequestException({
-        label: 'Supplier Mismatch',
-        detail: "Supplier item does not belong to this goods receipt's supplier.",
-      });
-    }
-
-    const inventoryItemId = supplierItem.inventoryItemId;
-    const uomId = supplierItem.uomId;
-
     if (receipt.purchaseOrderId) {
       const poItem = await this.poItemsRepository.findItemByInventoryItemAndUom(
         receipt.purchaseOrderId,
-        inventoryItemId,
-        uomId,
+        data.inventoryItemId,
+        data.uomId,
       );
       if (!poItem) {
         throw new BadRequestException('This item and UOM combination is not on the linked purchase order.');
@@ -151,13 +139,13 @@ export class GoodsReceiptItemsService {
     // Reject duplicate (DB also enforces unique constraint, but produce a clean error)
     const existing = await this.itemsRepository.findByReceiptInventoryItemAndUom(
       goodsReceiptId,
-      inventoryItemId,
-      uomId,
+      data.inventoryItemId,
+      data.uomId,
     );
     if (existing) {
       throw new ValidationException({
         detail: 'This item and UOM combination is already on the goods receipt.',
-        errors: [{ field: 'supplierItemId', message: 'Already added to this goods receipt.' }],
+        errors: [{ field: 'inventoryItemId', message: 'Already added to this goods receipt.' }],
       });
     }
 
@@ -166,15 +154,15 @@ export class GoodsReceiptItemsService {
     }
 
     const primaryUomUnitPrice = data.unitPrice != null
-      ? await this.resolvePrimaryUomUnitPrice(inventoryItemId, uomId, data.unitPrice)
+      ? await this.resolvePrimaryUomUnitPrice(data.inventoryItemId, data.uomId, data.unitPrice)
       : null;
 
     let entity: Awaited<ReturnType<typeof this.itemsRepository.create>>;
     try {
       entity = await this.itemsRepository.create({
         goodsReceiptId,
-        inventoryItemId,
-        uomId,
+        inventoryItemId: data.inventoryItemId,
+        uomId: data.uomId,
         rejectedQuantity: data.rejectedQuantity ?? 0,
         unitPrice: data.unitPrice ?? null,
         primaryUomUnitPrice,
@@ -185,7 +173,7 @@ export class GoodsReceiptItemsService {
         throw new ConflictException({
           label: 'Duplicate Item',
           detail: 'This item and UOM combination is already on the goods receipt.',
-          errors: [{ field: 'supplierItemId', message: 'Already added to this goods receipt.' }],
+          errors: [{ field: 'inventoryItemId', message: 'Already added to this goods receipt.' }],
         });
       }
       throw error;

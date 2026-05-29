@@ -33,6 +33,8 @@ import { ModifierGroupsGatewayController } from './modifier-groups/modifier-grou
 import { ModifierGroupsGatewayService } from './modifier-groups/services/modifier-groups-gateway.service';
 import { PaymentsGatewayController } from './payments/payments-gateway.controller';
 import { PaymentsGatewayService } from './payments/services/payments-gateway.service';
+import { PurchaseOrderItemsGatewayController } from './purchase-order-items/purchase-order-items-gateway.controller';
+import { PurchaseOrderItemsGatewayService } from './purchase-order-items/services/purchase-order-items-gateway.service';
 import { PurchaseOrdersGatewayController } from './purchase-orders/purchase-orders-gateway.controller';
 import { PurchaseOrdersGatewayService } from './purchase-orders/services/purchase-orders-gateway.service';
 import { StockAdjustmentsGatewayController } from './stock-adjustments/stock-adjustments-gateway.controller';
@@ -78,6 +80,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     PriceListsGatewayController,
     PosTerminalsGatewayController,
     PaymentsGatewayController,
+    PurchaseOrderItemsGatewayController,
     PurchaseOrdersGatewayController,
     StockAdjustmentsGatewayController,
     StockTransfersGatewayController,
@@ -107,6 +110,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
     PriceListsGatewayService,
     PosTerminalsGatewayService,
     PaymentsGatewayService,
+    PurchaseOrderItemsGatewayService,
     PurchaseOrdersGatewayService,
     StockAdjustmentsGatewayService,
     StockTransfersGatewayService,
