@@ -226,16 +226,6 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     return result[0];
   }
 
-  async getTrackingForItem(itemId: string): Promise<InventoryTracking | null> {
-    const rows = await this.db
-      .select({ tracking: inventoryItems.tracking })
-      .from(goodsReceiptItems)
-      .innerJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
-      .where(eq(goodsReceiptItems.id, itemId))
-      .limit(1);
-    return rows[0]?.tracking ?? null;
-  }
-
   async countByReceiptId(goodsReceiptId: string): Promise<number> {
     const [row] = await this.db
       .select({ count: sql<number>`COUNT(*)` })

@@ -15,7 +15,6 @@ import { LinkGoodsReceiptPurchaseOrderDto } from './dto/request/link-goods-recei
 import { UpdateGoodsReceiptCostDto } from './dto/request/update-cost.dto';
 import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
-import { UpdateGoodsReceiptLineItemDto } from './dto/request/update-goods-receipt-line-item.dto';
 import { UpdateGoodsReceiptLotDto } from './dto/request/update-goods-receipt-lot.dto';
 import type { GoodsReceiptItemResponseDto } from './dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from './dto/response/goods-receipt-item-table-response.dto';
@@ -145,22 +144,10 @@ export class GoodsReceiptsGatewayController {
     return this.service.findInventoryItemIds(goodsReceiptId);
   }
 
-  @Get(':id/items')
-  items(@Param('id') goodsReceiptId: string): Promise<GoodsReceiptItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items`);
-    return this.service.findItems(goodsReceiptId);
-  }
-
   @Get(':id/items/table')
   itemsTable(@Param('id') goodsReceiptId: string, @UserId() userId: string): Promise<GoodsReceiptItemTableResponseDto> {
     this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/table`);
     return this.service.findItemsTable(goodsReceiptId, userId);
-  }
-
-  @Get(':id/items/:itemId')
-  itemById(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<GoodsReceiptItemResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}`);
-    return this.service.findItemById(goodsReceiptId, itemId);
   }
 
   @Post(':id/items/from-supplier-item')
@@ -330,20 +317,6 @@ export class GoodsReceiptsGatewayController {
   ): Promise<GoodsReceiptLineItemResponseDto> {
     this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items`);
     return this.service.addLineItem(goodsReceiptId, itemId, lineId, dto);
-  }
-
-  @Patch(':id/items/:itemId/lines/:lineId/items/:subItemId')
-  updateLineItem(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Param('lineId') lineId: string,
-    @Param('subItemId') subItemId: string,
-    @Body() dto: UpdateGoodsReceiptLineItemDto,
-  ): Promise<GoodsReceiptLineItemResponseDto> {
-    this.logger.log(
-      `PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/${subItemId}`,
-    );
-    return this.service.updateLineItem(goodsReceiptId, itemId, lineId, subItemId, dto);
   }
 
   @Delete(':id/items/:itemId/lines/:lineId/items/:subItemId')

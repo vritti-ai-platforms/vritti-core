@@ -355,17 +355,6 @@ export class InventoryItemQuantsService {
     } as InventoryItemLot;
   }
 
-  async reserve(batchId: string, quantity: number): Promise<InventoryItemQuant> {
-    const batch = await this.repository.findById(batchId);
-    if (!batch) throw new NotFoundException('Batch not found.');
-    const available = batch.quantity - batch.reservedQuantity;
-    if (available < quantity) throw new BadRequestException('Insufficient available stock to reserve.');
-    return this.repository.updateReservedQuantity(batchId, quantity);
-  }
-
-  async releaseReserve(batchId: string, quantity: number): Promise<InventoryItemQuant> {
-    return this.repository.updateReservedQuantity(batchId, -quantity);
-  }
 
   async findQuantsForTable(
     inventoryItemId: string,

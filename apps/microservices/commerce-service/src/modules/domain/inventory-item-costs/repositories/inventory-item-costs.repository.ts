@@ -37,15 +37,6 @@ export class InventoryItemCostsRepository extends PrimaryBaseRepository<typeof i
     return rows[0] as InventoryItemCost | undefined;
   }
 
-  async findBySource(sourceType: CostSourceType, sourceId: string): Promise<InventoryItemCost[]> {
-    const rows = await this.db
-      .select()
-      .from(inventoryItemCosts)
-      .where(and(eq(inventoryItemCosts.sourceType, sourceType), eq(inventoryItemCosts.sourceId, sourceId)))
-      .orderBy(asc(inventoryItemCosts.createdAt));
-    return rows as InventoryItemCost[];
-  }
-
   // Joined projection used by the Costs tab DataTable — includes the category name + kind so the
   // gateway doesn't need a second roundtrip.
   async findBySourceWithCategory(

@@ -46,6 +46,13 @@ export const OverviewTab = ({ po, status }: OverviewTabProps) => {
               value={po.exchangeRate}
             />
           )}
+          {isCrossCurrency && (
+            <DetailField
+              label="Exchange Rate Type"
+              type="string"
+              value={po.exchangeRateType === 'FIXED' ? 'Fixed' : 'Variable'}
+            />
+          )}
           <DetailField label="Notes" type="string" value={po.notes} className="col-span-2" />
         </div>
       </CardContent>

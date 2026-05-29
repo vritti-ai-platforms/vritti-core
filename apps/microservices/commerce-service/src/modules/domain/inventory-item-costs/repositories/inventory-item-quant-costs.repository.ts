@@ -25,14 +25,6 @@ export class InventoryItemQuantCostsRepository extends PrimaryBaseRepository<typ
     super(database, inventoryItemQuantCosts);
   }
 
-  async findByQuantId(quantId: string): Promise<InventoryItemQuantCost[]> {
-    const rows = await this.db
-      .select()
-      .from(inventoryItemQuantCosts)
-      .where(eq(inventoryItemQuantCosts.quantId, quantId));
-    return rows as InventoryItemQuantCost[];
-  }
-
   async findByCostId(costId: string): Promise<InventoryItemQuantCost[]> {
     const rows = await this.db
       .select()

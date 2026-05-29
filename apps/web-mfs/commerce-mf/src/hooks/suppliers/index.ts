@@ -17,7 +17,7 @@ export { useBulkUnlinkSupplierItems } from './useBulkUnlinkSupplierItems';
 export { useMarkPrimarySupplierContact } from './useMarkPrimarySupplierContact';
 export { useSupplier } from './useSupplier';
 export { useSupplierContacts } from './useSupplierContacts';
-export { useSupplierInventoryItemIds, useSupplierItemIds } from './useSupplierItemIds';
+export { useSupplierInventoryItemIds } from './useSupplierItemIds';
 export { useSupplierItemsTable } from './useSupplierItemsTable';
 export { useSuppliersTable } from './useSuppliersTable';
 export { useUnlinkSupplierItem } from './useUnlinkSupplierItem';

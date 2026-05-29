@@ -91,12 +91,17 @@ export class CostAssociationService {
   // 1. Auto-associate at publish (works for PO-linked AND un-linked GRs)
   //
   // PR5b shifted the supplier-price source from `po_items` onto `goods_receipt_items`. The user
-  // captures (or accepts the pre-fill of) the unit price at the breakdown step; we just read
-  // `gr_item.primary_uom_unit_price × accepted_primary_uom_qty` here.
+  // captures (or accepts the pre-fill of) the unit price at the breakdown step; we read
+  // `gr_item.primary_uom_unit_price × accepted_primary_uom_qty × gr.exchange_rate` here. The
+  // multiplication by `gr.exchange_rate` converts the supplier-currency snapshot on the GR-item
+  // into a BU-currency total for the cost row — GR-items stay in supplier currency, cost rows +
+  // quants live in BU currency.
   // -------------------------------------------------------------------------
   async autoAssociateSupplierPrice(
     grId: string,
     createdBy: string | null,
+    buCurrencyCode: string,
+    exchangeRate: number,
   ): Promise<{ created: number; skipped: number; reason?: string }> {
     const itemCategory = await this.costCategoriesRepository.findByKind(CostCategoryKindValues.ITEM);
     if (!itemCategory) {
@@ -125,9 +130,11 @@ export class CostAssociationService {
         skipped++;
         continue;
       }
+      // Convert supplier-currency price to BU currency in one Decimal op so we round once at the end.
       const totalAmount = BigInt(
         new Decimal(it.primaryUomUnitPrice.toString())
           .times(acceptedPrimaryUomQty)
+          .times(exchangeRate)
           .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
           .toFixed(0),
       );
@@ -141,7 +148,7 @@ export class CostAssociationService {
         sourceId: grId,
         categoryId: itemCategory.id,
         totalAmount,
-        currencyCode: it.currencyCode,
+        currencyCode: buCurrencyCode,
         distributionMethod: 'by_quantity',
         vendorRef: it.vendorRef,
         notes: `Supplier price — Item: ${it.inventoryItemCode} (${it.uomSymbol})`,

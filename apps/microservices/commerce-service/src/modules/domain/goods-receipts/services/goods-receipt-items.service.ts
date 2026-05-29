@@ -65,12 +65,6 @@ export class GoodsReceiptItemsService {
     return this.itemsRepository.findInventoryItemIds(goodsReceiptId);
   }
 
-  async findByGoodsReceiptId(goodsReceiptId: string): Promise<GoodsReceiptItemDto[]> {
-    await this.ensureReceiptExists(goodsReceiptId);
-    const rows = await this.itemsRepository.findByReceiptId(goodsReceiptId);
-    return rows.map(GoodsReceiptItemDto.from);
-  }
-
   async findForTable(
     goodsReceiptId: string,
     state: TableViewState,

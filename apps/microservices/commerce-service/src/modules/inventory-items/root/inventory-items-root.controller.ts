@@ -41,13 +41,6 @@ export class InventoryItemsRootController {
     return this.rootService.create(dto);
   }
 
-  @MessagePattern({ cmd: 'inventoryItems.allowedUomIds' })
-  async allowedUomIds(@Payload() data: { id: string }): Promise<string[]> {
-    this.logger.log(`inventoryItems.allowedUomIds — id: ${data.id}`);
-    const { allowedUomIds } = await this.service.findAllowedUomIds(data.id);
-    return allowedUomIds;
-  }
-
   @MessagePattern({ cmd: 'inventoryItems.findById' })
   async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
     this.logger.log(`inventoryItems.findById — id: ${data.id}`);

@@ -103,18 +103,6 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results[0] as InventoryItemQuant;
   }
 
-  async updateReservedQuantity(id: string, delta: number): Promise<InventoryItemQuant> {
-    const results = await this.db
-      .update(inventoryItemQuants)
-      .set({
-        reservedQuantity: sql`${inventoryItemQuants.reservedQuantity} + ${delta}::decimal`,
-      })
-      .where(eq(inventoryItemQuants.id, id))
-      .returning();
-
-    return results[0] as InventoryItemQuant;
-  }
-
   async createBatch(data: typeof inventoryItemQuants.$inferInsert): Promise<InventoryItemQuant> {
     const results = await this.db.insert(inventoryItemQuants).values(data).returning();
     return results[0] as InventoryItemQuant;
@@ -127,16 +115,6 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     await this.db
       .update(inventoryItemQuants)
       .set({ totalUnitCost })
-      .where(eq(inventoryItemQuants.id, id));
-  }
-
-  // Optional: override the cost currency on a quant. Used by autoAssociatePoPrice when the GR is
-  // linked to a PO that's in a different currency than the BU — the quant's cost currency tracks
-  // whichever currency the cost rows are in.
-  async updateCostCurrency(id: string, costCurrency: string): Promise<void> {
-    await this.db
-      .update(inventoryItemQuants)
-      .set({ costCurrency })
       .where(eq(inventoryItemQuants.id, id));
   }
 
@@ -276,31 +254,6 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       .update(inventoryItemSerials)
       .set({ status: SerialStatusValues.CONSUMED })
       .where(inArray(inventoryItemSerials.id, quantItemIds));
-  }
-
-  // Loads the lot row associated with a quant (null when tracking='quantity')
-  async findLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
-    const rows = await this.db
-      .select({
-        id: inventoryItemLots.id,
-        organizationId: inventoryItemLots.organizationId,
-        businessUnitId: inventoryItemLots.businessUnitId,
-        inventoryItemId: inventoryItemLots.inventoryItemId,
-        lotNumber: inventoryItemLots.lotNumber,
-        manufacturingDate: inventoryItemLots.manufacturingDate,
-        expiryDate: inventoryItemLots.expiryDate,
-        createdAt: inventoryItemLots.createdAt,
-        updatedAt: inventoryItemLots.updatedAt,
-      })
-      .from(inventoryItemQuants)
-      .innerJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
-      .where(eq(inventoryItemQuants.id, quantId))
-      .limit(1);
-    return (rows[0] as InventoryItemLot | undefined) ?? null;
-  }
-
-  async deleteQuant(id: string): Promise<void> {
-    await this.db.delete(inventoryItemQuants).where(eq(inventoryItemQuants.id, id));
   }
 
   async findLocationStockByInventoryItemId(inventoryItemId: string): Promise<

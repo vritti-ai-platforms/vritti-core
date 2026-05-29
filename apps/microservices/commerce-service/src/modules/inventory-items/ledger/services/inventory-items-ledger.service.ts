@@ -13,13 +13,6 @@ export class InventoryItemsLedgerService {
     private readonly ledgerService: InventoryItemLedgerService,
   ) {}
 
-  // Returns all ledger entries for an inventory item
-  async findByInventoryItemId(inventoryItemId: string): Promise<InventoryItemLedgerDto[]> {
-    this.logger.log(`findByInventoryItemId — inventoryItemId=${inventoryItemId}`);
-    await this.inventoryItemsService.findById(inventoryItemId);
-    return this.ledgerService.findByInventoryItemId(inventoryItemId);
-  }
-
   // Returns paginated ledger entries for an inventory item data table
   async findForTable(
     inventoryItemId: string,

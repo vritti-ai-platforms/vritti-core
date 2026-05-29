@@ -13,5 +13,3 @@ export function useSupplierInventoryItemIds(
     ...options,
   });
 }
-
-export const useSupplierItemIds = useSupplierInventoryItemIds;

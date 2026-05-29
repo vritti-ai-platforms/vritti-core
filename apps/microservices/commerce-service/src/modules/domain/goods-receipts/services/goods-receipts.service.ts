@@ -8,9 +8,10 @@ import {
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
+  ValidationException,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { GoodsReceiptStatusValues, goodsReceipts, purchaseOrders, suppliers } from '@/db/schema';
+import { ExchangeRateTypeValues, GoodsReceiptStatusValues, goodsReceipts, purchaseOrders, suppliers } from '@/db/schema';
 import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
@@ -34,7 +35,7 @@ export class GoodsReceiptsService {
     private readonly poRepository: PurchaseOrdersRepository,
   ) {}
 
-  async create(data: CreateGoodsReceiptDto): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  async create(data: CreateGoodsReceiptDto, buCurrencyCode: string): Promise<CreateResponseDto<GoodsReceiptDto>> {
     const supplier = await this.repository.findSupplierById(data.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
@@ -44,10 +45,13 @@ export class GoodsReceiptsService {
       throw new BadRequestException('Purchase order does not belong to the provided supplier.');
     }
 
+    const exchangeRate = this.resolveExchangeRate(supplier.currencyCode, po, data.exchangeRate, buCurrencyCode);
+
     const entity = await this.repository.create({
       supplierId: data.supplierId,
       status: GoodsReceiptStatusValues.DRAFT,
       purchaseOrderId: data.purchaseOrderId ?? null,
+      exchangeRate,
       receivedBy: data.receivedBy ?? null,
       receivedDate: data.receivedDate ?? new Date().toISOString().split('T')[0],
       notes: data.notes ?? null,
@@ -235,6 +239,37 @@ export class GoodsReceiptsService {
     await this.repository.delete(id);
     this.logger.log(`Deleted DRAFT goods receipt ${gr.grNumber} (${id})`);
     return { success: true, message: `Goods receipt "${gr.grNumber}" deleted successfully.` };
+  }
+
+  // Resolves the supplier→BU exchange rate to snapshot on the new GR. Source per the rules:
+  //   * supplier currency == BU currency → 1 (user input ignored)
+  //   * PO-linked + FIXED                → po.exchange_rate (user input ignored)
+  //   * PO-linked + VARIABLE  /  no PO   → user-supplied `exchangeRate` (required, must be > 0)
+  // When a rate is required and missing, throws a ValidationException scoped to the `exchangeRate`
+  // field so the form can surface the error.
+  private resolveExchangeRate(
+    supplierCurrencyCode: string,
+    po: Awaited<ReturnType<PurchaseOrdersRepository['findById']>> | null,
+    userExchangeRate: number | undefined,
+    buCurrencyCode: string,
+  ): number {
+    if (supplierCurrencyCode === buCurrencyCode) return 1;
+
+    if (po && po.exchangeRateType === ExchangeRateTypeValues.FIXED) {
+      if (po.exchangeRate == null) {
+        throw new BadRequestException('Linked purchase order is FIXED-rate but has no exchange rate set.');
+      }
+      return Number(po.exchangeRate);
+    }
+
+    // VARIABLE PO or un-linked GR — caller must supply the rate.
+    if (userExchangeRate == null || userExchangeRate <= 0) {
+      throw new ValidationException({
+        detail: `Exchange rate is required (supplier currency ${supplierCurrencyCode} differs from business unit currency ${buCurrencyCode}).`,
+        errors: [{ field: 'exchangeRate', message: 'Required when supplier currency differs from BU currency.' }],
+      });
+    }
+    return userExchangeRate;
   }
 
   // Computes all per-detail signals from a single items fetch:

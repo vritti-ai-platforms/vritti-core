@@ -191,18 +191,6 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
     return (item as PurchaseOrderItem | undefined) ?? null;
   }
 
-  // Finds the first PO line item for a given inventory item, ignoring UOM.
-  // Use for "is this item on the PO at all" checks (e.g., GR validation).
-  async findItemByInventoryItemId(poId: string, inventoryItemId: string): Promise<PurchaseOrderItem | null> {
-    const [item] = await this.db
-      .select()
-      .from(purchaseOrderItems)
-      .where(
-        and(eq(purchaseOrderItems.purchaseOrderId, poId), eq(purchaseOrderItems.inventoryItemId, inventoryItemId)),
-      );
-    return (item as PurchaseOrderItem | undefined) ?? null;
-  }
-
   // Finds one PO line item by PO ID, inventory item ID, and UOM.
   // Use for the dedup check on add/edit since uniqueness is the (po_id, item_id, uom_id) triple —
   // the same inventory item is allowed multiple times if the UOMs differ (e.g., 5 cartons + 12 pieces).
@@ -222,16 +210,5 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         ),
       );
     return (item as PurchaseOrderItem | undefined) ?? null;
-  }
-
-  // Updates pricing fields for a PO line item
-  async updateLinePricing(itemId: string, data: { unitPrice: bigint; totalPrice: bigint }): Promise<void> {
-    await this.db
-      .update(purchaseOrderItems)
-      .set({
-        unitPrice: data.unitPrice,
-        totalPrice: data.totalPrice,
-      })
-      .where(eq(purchaseOrderItems.id, itemId));
   }
 }

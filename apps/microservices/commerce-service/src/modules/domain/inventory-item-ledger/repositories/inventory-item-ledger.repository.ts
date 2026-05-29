@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemLedgerEntry,
-  type InventoryItemLedgerReferenceType,
   inventoryItemLedger,
   inventoryItems,
   type NewInventoryItemLedgerEntry,
@@ -48,25 +47,4 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
     });
   }
 
-  // Returns all ledger entries for a given reference
-  async findByReference(
-    referenceType: InventoryItemLedgerReferenceType,
-    referenceId: string,
-  ): Promise<InventoryItemLedgerEntry[]> {
-    return this.db
-      .select()
-      .from(inventoryItemLedger)
-      .where(
-        and(eq(inventoryItemLedger.referenceType, referenceType), eq(inventoryItemLedger.referenceId, referenceId)),
-      ) as Promise<InventoryItemLedgerEntry[]>;
-  }
-
-  // Returns all ledger entries for a given inventory item, newest first
-  async findByInventoryItemId(inventoryItemId: string): Promise<InventoryItemLedgerEntry[]> {
-    return this.db
-      .select()
-      .from(inventoryItemLedger)
-      .where(eq(inventoryItemLedger.inventoryItemId, inventoryItemId))
-      .orderBy(desc(inventoryItemLedger.createdAt)) as Promise<InventoryItemLedgerEntry[]>;
-  }
 }

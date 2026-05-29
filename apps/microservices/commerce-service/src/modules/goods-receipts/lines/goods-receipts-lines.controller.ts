@@ -10,12 +10,6 @@ export class GoodsReceiptsLinesController {
 
   constructor(private readonly service: GoodsReceiptLinesService) {}
 
-  @MessagePattern({ cmd: 'goodsReceipts.lines' })
-  lines(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptLineDto[]> {
-    this.logger.log(`goodsReceipts.lines — item: ${data.itemId}`);
-    return this.service.findByItemId(data.goodsReceiptId, data.itemId);
-  }
-
   @MessagePattern({ cmd: 'goodsReceipts.linesTable' })
   linesTable(
     @Payload() data: { goodsReceiptId: string; itemId: string } & TableViewState,
@@ -32,14 +26,6 @@ export class GoodsReceiptsLinesController {
     this.logger.log(`goodsReceipts.linesByLotTable — item: ${data.itemId}, lot: ${data.lotId}`);
     const { goodsReceiptId, itemId, lotId, ...state } = data;
     return this.service.findForTable(goodsReceiptId, itemId, state, lotId);
-  }
-
-  @MessagePattern({ cmd: 'goodsReceipts.linesByLot' })
-  linesByLot(
-    @Payload() data: { goodsReceiptId: string; itemId: string; lotId: string },
-  ): Promise<GoodsReceiptLineDto[]> {
-    this.logger.log(`goodsReceipts.linesByLot — lot: ${data.lotId}`);
-    return this.service.findByLotId(data.goodsReceiptId, data.itemId, data.lotId);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.lineById' })

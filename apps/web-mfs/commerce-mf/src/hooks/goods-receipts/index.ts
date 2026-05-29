@@ -48,5 +48,4 @@ export { useRemoveGoodsReceiptLineItem } from './useRemoveGoodsReceiptLineItem';
 export { useRemoveGoodsReceiptLot } from './useRemoveGoodsReceiptLot';
 export { useUpdateGoodsReceiptItem } from './useUpdateGoodsReceiptItem';
 export { useUpdateGoodsReceiptLine } from './useUpdateGoodsReceiptLine';
-export { useUpdateGoodsReceiptLineItem } from './useUpdateGoodsReceiptLineItem';
 export { useUpdateGoodsReceiptLot } from './useUpdateGoodsReceiptLot';

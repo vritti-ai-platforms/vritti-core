@@ -23,24 +23,12 @@ export class GoodsReceiptsItemsController {
     return this.itemsService.findInventoryItemIds(data.goodsReceiptId);
   }
 
-  @MessagePattern({ cmd: 'goodsReceipts.items' })
-  items(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptItemDto[]> {
-    this.logger.log('goodsReceipts.items');
-    return this.itemsService.findByGoodsReceiptId(data.goodsReceiptId);
-  }
-
   @MessagePattern({ cmd: 'goodsReceipts.itemsTable' })
   itemsTable(
     @Payload() data: { goodsReceiptId: string } & TableViewState,
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     this.logger.log('goodsReceipts.itemsTable');
     return this.itemsService.findForTable(data.goodsReceiptId, data);
-  }
-
-  @MessagePattern({ cmd: 'goodsReceipts.itemById' })
-  itemById(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptItemDto> {
-    this.logger.log('goodsReceipts.itemById');
-    return this.itemsService.findById(data.goodsReceiptId, data.itemId);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.addItemFromSupplierItem' })

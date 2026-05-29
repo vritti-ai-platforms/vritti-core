@@ -8,7 +8,6 @@ import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-rece
 import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { type CreateNewQuantParams, InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException, NotFoundException, PrimaryDatabaseService } from '@vritti/api-sdk';
@@ -30,7 +29,6 @@ export class GoodsReceiptsPublishService {
     private readonly lotsRepository: GoodsReceiptLotsRepository,
     private readonly linesRepository: GoodsReceiptLinesRepository,
     private readonly lineItemsRepository: GoodsReceiptLineItemsRepository,
-    private readonly poItemsRepository: PurchaseOrderItemsRepository,
     private readonly quantsService: InventoryItemQuantsService,
     private readonly ledgerService: InventoryItemLedgerService,
     private readonly receiptsService: GoodsReceiptsService,
@@ -194,10 +192,14 @@ export class GoodsReceiptsPublishService {
       // supplier_items when un-linked). Works for both linked and un-linked GRs. Failures here
       // roll back the publish. If the org hasn't configured a kind=ITEM cost category yet, this
       // returns { created: 0 } and the publish proceeds with quants at total_unit_cost=0.
-      await this.costAssociationService.autoAssociateSupplierPrice(id, null);
+      await this.costAssociationService.autoAssociateSupplierPrice(
+        id,
+        null,
+        buCurrencyCode,
+        Number(receipt.exchangeRate),
+      );
     });
 
-    void this.poItemsRepository;
     return this.receiptsService.findById(id);
   }
 

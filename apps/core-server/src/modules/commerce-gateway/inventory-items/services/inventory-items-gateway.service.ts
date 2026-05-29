@@ -27,8 +27,6 @@ import type { InventoryItemTableResponseDto } from '../dto/response/inventory-it
 import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
 import type { InventoryItemLedgerResponseDto } from '../dto/response/inventory-item-ledger-response.dto';
 import type { InventoryItemLedgerTableResponseDto } from '../dto/response/inventory-item-ledger-table-response.dto';
-import type { InventoryLevelResponseDto } from '../dto/response/inventory-level-response.dto';
-import type { InventoryLevelTableResponseDto } from '../dto/response/inventory-level-table-response.dto';
 
 @Injectable()
 export class InventoryItemsGatewayService {
@@ -85,45 +83,10 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns the UOM IDs allowed to transact for a given inventory item
-  async findAllowedUomIds(id: string): Promise<string[]> {
-    this.logger.log(`inventoryItems.allowedUomIds — id: ${id}`);
-    return this.nats.send('commerce', 'inventoryItems.allowedUomIds', { id });
-  }
-
   // Returns a single inventory item
   async findById(id: string): Promise<InventoryItemResponseDto> {
     this.logger.log(`inventoryItems.findById — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.findById', { id });
-  }
-
-  // Returns stock levels for an inventory item
-  async findLevels(inventoryItemId: string) {
-    this.logger.log(`inventoryItems.levels — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'inventoryItems.levels', { inventoryItemId });
-  }
-
-  // Returns ledger entries for an inventory item
-  async findLedger(inventoryItemId: string) {
-    this.logger.log(`inventoryItems.ledger — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'inventoryItems.ledger', { inventoryItemId });
-  }
-
-  // Returns paginated stock levels for an inventory item data table
-  async findLevelsForTable(inventoryItemId: string, userId: string): Promise<InventoryLevelTableResponseDto> {
-    this.logger.log('inventoryItems.levelsTable');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
-      userId,
-      `inventory-item-${inventoryItemId}-levels`,
-    );
-
-    const { result, count } = await this.nats.send<{ result: InventoryLevelResponseDto[]; count: number }>(
-      'commerce',
-      'inventoryItems.levelsTable',
-      { inventoryItemId, ...state },
-    );
-
-    return { result, count, state, activeViewId };
   }
 
   // Returns paginated ledger entries for an inventory item data table

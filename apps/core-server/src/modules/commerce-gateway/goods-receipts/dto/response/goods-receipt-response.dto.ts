@@ -54,6 +54,11 @@ export class GoodsReceiptResponseDto {
   @ApiPropertyOptional({ nullable: true })
   notes: string | null;
 
+  @ApiProperty({
+    description: 'Supplier→BU exchange rate locked at GR creation. 1 when currencies match.',
+  })
+  exchangeRate: number;
+
   @ApiPropertyOptional({ nullable: true })
   publishedAt: string | null;
 

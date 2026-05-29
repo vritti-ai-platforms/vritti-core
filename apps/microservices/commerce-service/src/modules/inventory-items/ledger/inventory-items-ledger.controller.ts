@@ -10,13 +10,6 @@ export class InventoryItemsLedgerController {
 
   constructor(private readonly service: InventoryItemsLedgerService) {}
 
-  // Returns all ledger entries for an inventory item
-  @MessagePattern({ cmd: 'inventoryItems.ledger' })
-  async ledger(@Payload() data: { inventoryItemId: string }): Promise<InventoryItemLedgerDto[]> {
-    this.logger.log(`inventoryItems.ledger — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findByInventoryItemId(data.inventoryItemId);
-  }
-
   // Returns paginated ledger entries for an inventory item data table
   @MessagePattern({ cmd: 'inventoryItems.ledgerTable' })
   async ledgerTable(

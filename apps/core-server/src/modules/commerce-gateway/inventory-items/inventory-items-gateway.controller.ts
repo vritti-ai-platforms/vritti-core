@@ -23,7 +23,6 @@ import type { InventoryItemResponseDto } from './dto/response/inventory-item-res
 import type { InventoryItemStockResponseDto } from './dto/response/inventory-item-stock-response.dto';
 import type { InventoryItemTableResponseDto } from './dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from './dto/response/inventory-item-uom-conversion-response.dto';
-import type { InventoryLevelTableResponseDto } from './dto/response/inventory-level-table-response.dto';
 import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Inventory Items')
@@ -70,39 +69,11 @@ export class InventoryItemsGatewayController {
     return this.service.findById(id);
   }
 
-  // Returns UOM IDs the item can transact in (primary + per-item conversions + globally derivable family)
-  @Get(':id/allowed-uom-ids')
-  findAllowedUomIds(@Param('id') id: string): Promise<string[]> {
-    this.logger.log(`GET /commerce-api/inventory-items/${id}/allowed-uom-ids`);
-    return this.service.findAllowedUomIds(id);
-  }
-
   // Returns suppliers carrying this item, table-shaped
   @Get(':id/suppliers/table')
   getSuppliersTable(@Param('id') id: string, @UserId() userId: string) {
     this.logger.log(`GET /commerce-api/inventory-items/${id}/suppliers/table`);
     return this.service.findSuppliersTable(id, userId);
-  }
-
-  // Returns stock levels for an inventory item
-  @Get(':id/levels')
-  findLevels(@Param('id') id: string) {
-    this.logger.log(`GET /commerce-api/inventory-items/${id}/levels`);
-    return this.service.findLevels(id);
-  }
-
-  // Returns ledger entries for an inventory item
-  @Get(':id/ledger')
-  findLedger(@Param('id') id: string) {
-    this.logger.log(`GET /commerce-api/inventory-items/${id}/ledger`);
-    return this.service.findLedger(id);
-  }
-
-  // Returns paginated stock levels for an inventory item data table
-  @Get(':id/levels/table')
-  getLevelsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryLevelTableResponseDto> {
-    this.logger.log(`GET /commerce-api/inventory-items/${id}/levels/table`);
-    return this.service.findLevelsForTable(id, userId);
   }
 
   // Returns paginated ledger entries for an inventory item data table

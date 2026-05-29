@@ -17,7 +17,6 @@ import type { AddGoodsReceiptLotDto } from '../dto/request/add-goods-receipt-lot
 import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
 import type { UpdateGoodsReceiptItemDto } from '../dto/request/update-goods-receipt-item.dto';
 import type { UpdateGoodsReceiptLineDto } from '../dto/request/update-goods-receipt-line.dto';
-import type { UpdateGoodsReceiptLineItemDto } from '../dto/request/update-goods-receipt-line-item.dto';
 import type { UpdateGoodsReceiptLotDto } from '../dto/request/update-goods-receipt-lot.dto';
 import type { GoodsReceiptItemResponseDto } from '../dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from '../dto/response/goods-receipt-item-table-response.dto';
@@ -141,10 +140,6 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'goodsReceipts.inventoryItemIds', { goodsReceiptId });
   }
 
-  findItems(goodsReceiptId: string): Promise<GoodsReceiptItemResponseDto[]> {
-    return this.nats.send('commerce', 'goodsReceipts.items', { goodsReceiptId });
-  }
-
   async findItemsTable(goodsReceiptId: string, userId: string): Promise<GoodsReceiptItemTableResponseDto> {
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
@@ -158,9 +153,6 @@ export class GoodsReceiptsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  findItemById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.itemById', { goodsReceiptId, itemId });
-  }
 
   addItemFromSupplierItem(
     goodsReceiptId: string,
@@ -245,10 +237,6 @@ export class GoodsReceiptsGatewayService {
 
   // Lines (item-scoped)
 
-  findLines(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLineResponseDto[]> {
-    return this.nats.send('commerce', 'goodsReceipts.lines', { goodsReceiptId, itemId });
-  }
-
   async findLinesTable(
     goodsReceiptId: string,
     itemId: string,
@@ -315,14 +303,6 @@ export class GoodsReceiptsGatewayService {
 
   // Line items (serials, line-scoped)
 
-  findLineItems(
-    goodsReceiptId: string,
-    itemId: string,
-    lineId: string,
-  ): Promise<GoodsReceiptLineItemResponseDto[]> {
-    return this.nats.send('commerce', 'goodsReceipts.lineItems', { goodsReceiptId, itemId, lineId });
-  }
-
   async findLineItemsTable(
     goodsReceiptId: string,
     itemId: string,
@@ -348,22 +328,6 @@ export class GoodsReceiptsGatewayService {
     dto: AddGoodsReceiptLineItemDto,
   ): Promise<GoodsReceiptLineItemResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.addLineItem', { goodsReceiptId, itemId, lineId, ...dto });
-  }
-
-  updateLineItem(
-    goodsReceiptId: string,
-    itemId: string,
-    lineId: string,
-    subItemId: string,
-    dto: UpdateGoodsReceiptLineItemDto,
-  ): Promise<GoodsReceiptLineItemResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.updateLineItem', {
-      goodsReceiptId,
-      itemId,
-      lineId,
-      subItemId,
-      ...dto,
-    });
   }
 
   removeLineItem(

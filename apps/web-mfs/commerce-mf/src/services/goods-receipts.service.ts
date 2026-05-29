@@ -19,6 +19,7 @@ export interface CreateGoodsReceiptPayload {
   receivedDate: string;
   receivedBy?: string;
   notes?: string;
+  exchangeRate?: number;
 }
 
 export interface AddGoodsReceiptItemFromSupplierItemPayload {
@@ -63,10 +64,6 @@ export interface UpdateGoodsReceiptLinePayload {
 }
 
 export interface AddGoodsReceiptLineItemPayload {
-  serialNumber: string;
-}
-
-export interface UpdateGoodsReceiptLineItemPayload {
   serialNumber: string;
 }
 
@@ -120,21 +117,9 @@ export function getGoodsReceiptInventoryItemIds(id: string): Promise<string[]> {
     .then((r) => r.data);
 }
 
-export function getGoodsReceiptItems(id: string): Promise<GoodsReceiptItemData[]> {
-  return axios
-    .get<GoodsReceiptItemData[]>(`commerce-api/goods-receipts/${id}/items`, { showSuccessToast: false })
-    .then((r) => r.data);
-}
-
 export function getGoodsReceiptItemsTable(id: string): Promise<GoodsReceiptItemsTableResponse> {
   return axios
     .get<GoodsReceiptItemsTableResponse>(`commerce-api/goods-receipts/${id}/items/table`, { showSuccessToast: false })
-    .then((r) => r.data);
-}
-
-export function getGoodsReceiptItemById(id: string, itemId: string): Promise<GoodsReceiptItemData> {
-  return axios
-    .get<GoodsReceiptItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
@@ -287,21 +272,6 @@ export function addGoodsReceiptLineItem(
 ): Promise<GoodsReceiptLineItemData> {
   return axios
     .post<GoodsReceiptLineItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items`, data)
-    .then((r) => r.data);
-}
-
-export function updateGoodsReceiptLineItem(
-  id: string,
-  itemId: string,
-  lineId: string,
-  subItemId: string,
-  data: UpdateGoodsReceiptLineItemPayload,
-): Promise<GoodsReceiptLineItemData> {
-  return axios
-    .patch<GoodsReceiptLineItemData>(
-      `commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/${subItemId}`,
-      data,
-    )
     .then((r) => r.data);
 }
 

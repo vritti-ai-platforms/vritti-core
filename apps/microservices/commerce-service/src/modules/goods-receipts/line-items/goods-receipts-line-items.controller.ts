@@ -10,14 +10,6 @@ export class GoodsReceiptsLineItemsController {
 
   constructor(private readonly service: GoodsReceiptLineItemsService) {}
 
-  @MessagePattern({ cmd: 'goodsReceipts.lineItems' })
-  lineItems(
-    @Payload() data: { goodsReceiptId: string; itemId: string; lineId: string },
-  ): Promise<GoodsReceiptLineItemDto[]> {
-    this.logger.log(`goodsReceipts.lineItems — line: ${data.lineId}`);
-    return this.service.listByLine(data.goodsReceiptId, data.itemId, data.lineId);
-  }
-
   @MessagePattern({ cmd: 'goodsReceipts.lineItemsTable' })
   lineItemsTable(
     @Payload() data: { goodsReceiptId: string; itemId: string; lineId: string } & TableViewState,
@@ -33,17 +25,6 @@ export class GoodsReceiptsLineItemsController {
   ): Promise<GoodsReceiptLineItemDto> {
     this.logger.log(`goodsReceipts.addLineItem — line: ${data.lineId}`);
     return this.service.addLineItem(data.goodsReceiptId, data.itemId, data.lineId, {
-      serialNumber: data.serialNumber,
-    });
-  }
-
-  @MessagePattern({ cmd: 'goodsReceipts.updateLineItem' })
-  updateLineItem(
-    @Payload()
-    data: { goodsReceiptId: string; itemId: string; lineId: string; subItemId: string; serialNumber: string },
-  ): Promise<GoodsReceiptLineItemDto> {
-    this.logger.log(`goodsReceipts.updateLineItem — subItem: ${data.subItemId}`);
-    return this.service.updateLineItem(data.goodsReceiptId, data.itemId, data.lineId, data.subItemId, {
       serialNumber: data.serialNumber,
     });
   }

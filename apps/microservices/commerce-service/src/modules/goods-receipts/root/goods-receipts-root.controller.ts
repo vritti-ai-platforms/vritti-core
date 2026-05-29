@@ -16,9 +16,12 @@ export class GoodsReceiptsRootController {
   ) {}
 
   @MessagePattern({ cmd: 'goodsReceipts.create' })
-  create(@Payload() dto: CreateGoodsReceiptDto): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  create(
+    @Payload() dto: CreateGoodsReceiptDto,
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<CreateResponseDto<GoodsReceiptDto>> {
     this.logger.log(`goodsReceipts.create — supplier: ${dto.supplierId}`);
-    return this.service.create(dto);
+    return this.service.create(dto, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.table' })

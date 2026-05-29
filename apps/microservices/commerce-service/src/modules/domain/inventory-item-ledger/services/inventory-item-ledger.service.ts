@@ -1,11 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import type {
-  InventoryItemLedgerEntry,
-  InventoryItemLedgerReferenceType,
-  NewInventoryItemLedgerEntry,
-} from '@/db/schema';
+import type { InventoryItemLedgerEntry, NewInventoryItemLedgerEntry } from '@/db/schema';
 import { inventoryItemLedger, inventoryItems } from '@/db/schema';
 import { InventoryItemLedgerDto } from '../dto/entity/inventory-item-ledger.dto';
 import { InventoryItemLedgerRepository } from '../repositories/inventory-item-ledger.repository';
@@ -51,18 +47,4 @@ export class InventoryItemLedgerService {
     };
   }
 
-  // Returns all ledger entries for a given inventory item
-  async findByInventoryItemId(inventoryItemId: string): Promise<InventoryItemLedgerDto[]> {
-    const entries = await this.repository.findByInventoryItemId(inventoryItemId);
-    return entries.map((r) => InventoryItemLedgerDto.from(r));
-  }
-
-  // Returns all ledger entries for a given reference (e.g. a goods receipt or stock adjustment)
-  async findByReference(
-    referenceType: InventoryItemLedgerReferenceType,
-    referenceId: string,
-  ): Promise<InventoryItemLedgerDto[]> {
-    const entries = await this.repository.findByReference(referenceType, referenceId);
-    return entries.map((r) => InventoryItemLedgerDto.from(r));
-  }
 }
