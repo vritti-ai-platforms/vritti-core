@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, asc, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type CostSourceType,
-  costCategories,
-  type InventoryItemCost,
-  inventoryItemCosts,
-} from '@/db/schema';
+import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type CostSourceType, costCategories, type InventoryItemCost, inventoryItemCosts } from '@/db/schema';
 
 export interface CostRowWithCategory {
   id: string;
@@ -44,10 +39,7 @@ export class InventoryItemCostsRepository extends PrimaryBaseRepository<typeof i
     sourceId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number } = {},
   ): Promise<{ result: CostRowWithCategory[]; count: number }> {
-    const baseWhere = and(
-      eq(inventoryItemCosts.sourceType, sourceType),
-      eq(inventoryItemCosts.sourceId, sourceId),
-    );
+    const baseWhere = and(eq(inventoryItemCosts.sourceType, sourceType), eq(inventoryItemCosts.sourceId, sourceId));
     const where = options.where ? and(baseWhere, options.where) : baseWhere;
 
     const [{ count }] = await this.db
@@ -117,11 +109,7 @@ export class InventoryItemCostsRepository extends PrimaryBaseRepository<typeof i
       notes: string | null;
     }>,
   ): Promise<InventoryItemCost> {
-    const [row] = await this.db
-      .update(inventoryItemCosts)
-      .set(fields)
-      .where(eq(inventoryItemCosts.id, id))
-      .returning();
+    const [row] = await this.db.update(inventoryItemCosts).set(fields).where(eq(inventoryItemCosts.id, id)).returning();
     return row as InventoryItemCost;
   }
 

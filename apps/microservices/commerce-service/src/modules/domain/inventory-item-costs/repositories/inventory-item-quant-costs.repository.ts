@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemQuantCost,
   inventoryItemLots,
@@ -26,10 +26,7 @@ export class InventoryItemQuantCostsRepository extends PrimaryBaseRepository<typ
   }
 
   async findByCostId(costId: string): Promise<InventoryItemQuantCost[]> {
-    const rows = await this.db
-      .select()
-      .from(inventoryItemQuantCosts)
-      .where(eq(inventoryItemQuantCosts.costId, costId));
+    const rows = await this.db.select().from(inventoryItemQuantCosts).where(eq(inventoryItemQuantCosts.costId, costId));
     return rows as InventoryItemQuantCost[];
   }
 

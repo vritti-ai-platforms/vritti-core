@@ -7,7 +7,10 @@ import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goo
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
-import { type CreateNewQuantParams, InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import {
+  type CreateNewQuantParams,
+  InventoryItemQuantsService,
+} from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException, NotFoundException, PrimaryDatabaseService } from '@vritti/api-sdk';

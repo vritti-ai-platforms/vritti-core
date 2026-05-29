@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  type InventoryItemLot,
   type InventoryItemQuant,
   type InventoryItemSerial,
   type InventoryTracking,
@@ -112,10 +111,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
   // this from SUM(allocated_amount across all junction rows) / quantity each time a cost row
   // affecting the quant is inserted, edited, or deleted.
   async updateTotalUnitCost(id: string, totalUnitCost: bigint): Promise<void> {
-    await this.db
-      .update(inventoryItemQuants)
-      .set({ totalUnitCost })
-      .where(eq(inventoryItemQuants.id, id));
+    await this.db.update(inventoryItemQuants).set({ totalUnitCost }).where(eq(inventoryItemQuants.id, id));
   }
 
   // Per-source quant lookup — used by autoAssociatePoPrice (gr.id) and by associateCost when
@@ -124,12 +120,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     const rows = await this.db
       .select()
       .from(inventoryItemQuants)
-      .where(
-        and(
-          eq(inventoryItemQuants.sourceType, sourceType as never),
-          eq(inventoryItemQuants.sourceId, sourceId),
-        ),
-      );
+      .where(and(eq(inventoryItemQuants.sourceType, sourceType as never), eq(inventoryItemQuants.sourceId, sourceId)));
     return rows as InventoryItemQuant[];
   }
 

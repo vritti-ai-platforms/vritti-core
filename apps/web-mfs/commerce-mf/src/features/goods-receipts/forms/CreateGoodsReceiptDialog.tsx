@@ -55,7 +55,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
   useEffect(() => {
     form.setValue('purchaseOrderId', '');
     setPoSelection(null);
-  }, [form, supplierId]);
+  }, [form]);
 
   // Compute exchange-rate UX once we know supplier/PO context:
   //   - sameCurrency → field hidden; server resolves rate = 1.
