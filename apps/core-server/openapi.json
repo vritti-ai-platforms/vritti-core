@@ -14728,7 +14728,20 @@
       },
       "CurrencyAmountDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 currency code (e.g. OMR, INR, USD)."
+          },
+          "value": {
+            "type": "string",
+            "description": "Amount in major units as a decimal string (e.g. \"0.850\"). Precision must match the currency exponent."
+          }
+        },
+        "required": [
+          "currency",
+          "value"
+        ]
       },
       "AssociateGoodsReceiptCostDto": {
         "type": "object",

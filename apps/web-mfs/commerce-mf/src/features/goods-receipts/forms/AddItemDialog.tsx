@@ -49,25 +49,19 @@ const SupplierItemForm = ({
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
 
   const handleSelect = (option: SelectOption | null) => {
-    const a = option?.additionals;
-    setAllowDecimal(a?.allowDecimal === true);
-
-    const rawPrice = typeof a?.unitPrice === 'string' ? a.unitPrice : null;
-    const currencyCode = typeof a?.currencyCode === 'string' ? a.currencyCode : null;
-    if (rawPrice != null && currencyCode) {
-      form.setValue(
-        'unitPrice',
-        { currency: currencyCode, value: minorToMajor(rawPrice, currencyCode) },
-        { shouldDirty: false },
-      );
-    } else {
-      form.setValue('unitPrice', undefined, { shouldDirty: false });
+    const rawMinor = option?.additionals?.unitPrice;
+    setAllowDecimal(option?.additionals?.allowDecimal === true);
+    if (rawMinor) {
+      form.setValue('unitPrice', {
+        currency: buCurrencyCode,
+        value: minorToMajor(rawMinor.toString(), buCurrencyCode),
+      });
     }
   };
 
   const supplierItemId = form.watch('supplierItemId');
   const prefillNote = supplierItemId
-    ? 'Pre-filled from the supplier catalog — edit if the supplier delivered at a different price.'
+    ? 'Filled in from the supplier catalog. Change it if the actual price was different.'
     : undefined;
 
   return (
@@ -116,25 +110,19 @@ const PurchaseOrderItemForm = ({
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
 
   const handleSelect = (option: SelectOption | null) => {
-    const a = option?.additionals;
-    setAllowDecimal(a?.allowDecimal === true);
-
-    const rawPrice = typeof a?.unitPrice === 'string' ? a.unitPrice : null;
-    const currencyCode = typeof a?.currencyCode === 'string' ? a.currencyCode : null;
-    if (rawPrice != null && currencyCode) {
-      form.setValue(
-        'unitPrice',
-        { currency: currencyCode, value: minorToMajor(rawPrice, currencyCode) },
-        { shouldDirty: false },
-      );
-    } else {
-      form.setValue('unitPrice', undefined, { shouldDirty: false });
+    const rawMinor = option?.additionals?.unitPrice;
+    setAllowDecimal(option?.additionals?.allowDecimal === true);
+    if (rawMinor) {
+      form.setValue('unitPrice', {
+        currency: buCurrencyCode,
+        value: minorToMajor(rawMinor.toString(), buCurrencyCode),
+      });
     }
   };
 
   const purchaseOrderItemId = form.watch('purchaseOrderItemId');
   const prefillNote = purchaseOrderItemId
-    ? 'Pre-filled from the linked purchase order — edit if the supplier delivered at a different price.'
+    ? 'Filled in from this PO. Change it if the actual price was different.'
     : undefined;
 
   return (

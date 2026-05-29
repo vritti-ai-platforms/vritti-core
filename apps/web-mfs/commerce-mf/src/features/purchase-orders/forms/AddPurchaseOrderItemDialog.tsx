@@ -42,17 +42,13 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
 
   const handleItemSelect = (option: SelectOption | null) => {
     const rawMinor = option?.additionals?.unitPrice;
-    const catalogUnitPrice =
-      rawMinor != null ? Number(minorToMajor(String(rawMinor), purchaseOrder.currencyCode)) : null;
-
     setAllowDecimal(option?.additionals?.allowDecimal === true);
-
-    form.setValue(
-      'unitPrice',
-      catalogUnitPrice != null
-        ? { currency: purchaseOrder.currencyCode, value: String(catalogUnitPrice) }
-        : undefined,
-    );
+    if (rawMinor) {
+      form.setValue('unitPrice', {
+        currency: purchaseOrder.currencyCode,
+        value: minorToMajor(rawMinor.toString(), purchaseOrder.currencyCode),
+      });
+    }
   };
 
   return (
@@ -73,14 +69,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         params={{ supplierId: purchaseOrder.supplierId, excludeOnPurchaseOrderId: purchaseOrder.id }}
         onOptionSelect={handleItemSelect}
       />
-      <TextField
-        name="uomQty"
-        label="Quantity"
-        type="number"
-        placeholder="e.g. 500"
-        integer={!allowDecimal}
-        positive
-      />
+      <TextField name="uomQty" label="Quantity" type="number" placeholder="e.g. 500" integer={!allowDecimal} positive />
       <CurrencyField
         name="unitPrice"
         label="Unit Price"

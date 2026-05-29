@@ -16,6 +16,11 @@ import { UpdateGoodsReceiptCostDto } from './dto/request/update-cost.dto';
 import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
 import { UpdateGoodsReceiptLotDto } from './dto/request/update-goods-receipt-lot.dto';
+import type {
+  CostAllocationResponseDto,
+  GoodsReceiptCostResponseDto,
+  GoodsReceiptCostsResponseDto,
+} from './dto/response/cost-response.dto';
 import type { GoodsReceiptItemResponseDto } from './dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from './dto/response/goods-receipt-item-table-response.dto';
 import type { GoodsReceiptLineItemResponseDto } from './dto/response/goods-receipt-line-item-response.dto';
@@ -26,11 +31,6 @@ import type { GoodsReceiptLotResponseDto } from './dto/response/goods-receipt-lo
 import type { GoodsReceiptResponseDto } from './dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from './dto/response/goods-receipt-table-response.dto';
 import type { GoodsReceiptTreeNodeResponseDto } from './dto/response/goods-receipt-tree-response.dto';
-import type {
-  CostAllocationResponseDto,
-  GoodsReceiptCostResponseDto,
-  GoodsReceiptCostsResponseDto,
-} from './dto/response/cost-response.dto';
 import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.service';
 
 @ApiTags('Commerce - Goods Receipts')
@@ -189,10 +189,7 @@ export class GoodsReceiptsGatewayController {
   // Lots
 
   @Get(':id/items/:itemId/lots')
-  lots(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-  ): Promise<GoodsReceiptLotResponseDto[]> {
+  lots(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
     this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
     return this.service.findLots(goodsReceiptId, itemId);
   }

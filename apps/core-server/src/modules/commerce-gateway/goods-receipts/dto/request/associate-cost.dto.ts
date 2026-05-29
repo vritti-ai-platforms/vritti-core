@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { Type } from 'class-transformer';
-import { IsEnum, IsOptional, IsString, IsUUID, MaxLength, ValidateNested } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export const DISTRIBUTION_METHODS = ['by_value', 'by_quantity', 'equal'] as const;
 export type DistributionMethod = (typeof DISTRIBUTION_METHODS)[number];
@@ -12,9 +11,7 @@ export class AssociateGoodsReceiptCostDto {
   categoryId: string;
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Total amount in major units' })
-  @ValidateNested()
   @IsCurrency()
-  @Type(() => CurrencyAmountDto)
   totalAmount: CurrencyAmountDto;
 
   @ApiProperty({ enum: DISTRIBUTION_METHODS })
