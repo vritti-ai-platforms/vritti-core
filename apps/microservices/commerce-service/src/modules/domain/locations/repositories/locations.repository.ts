@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItemLocations, inventoryItemQuants, type LocationRole, locations } from '@/db/schema';
+import { and, asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  goodsReceiptLines,
+  inventoryItemLocations,
+  inventoryItemQuants,
+  type LocationRole,
+  locations,
+} from '@/db/schema';
 
 @Injectable()
 export class LocationsRepository extends PrimaryBaseRepository<typeof locations> {
@@ -22,6 +28,23 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
       .select({ id: inventoryItemLocations.locationId })
       .from(inventoryItemLocations)
       .where(eq(inventoryItemLocations.inventoryItemId, inventoryItemId));
+  }
+
+  // Returns a subquery resolving to the location IDs already used by lines on the given GR item,
+  // scoped to the lot (matching the (item, lot?, location) duplicate-line key). Used by the
+  // exclude filter in findForSelect so the GR add-line picker hides bins already taken.
+  usedLocationIdsOnGoodsReceiptItemSubquery(goodsReceiptItemId: string, goodsReceiptLotId: string | null) {
+    return this.db
+      .select({ id: goodsReceiptLines.locationId })
+      .from(goodsReceiptLines)
+      .where(
+        and(
+          eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItemId),
+          goodsReceiptLotId
+            ? eq(goodsReceiptLines.goodsReceiptLotId, goodsReceiptLotId)
+            : isNull(goodsReceiptLines.goodsReceiptLotId),
+        ),
+      );
   }
 
   // Returns hierarchy rows ordered in tree order using a recursive CTE

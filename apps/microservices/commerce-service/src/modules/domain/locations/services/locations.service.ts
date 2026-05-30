@@ -11,7 +11,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, asc, eq, inArray, ne, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, inArray, ne, notInArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { type LocationRole, LocationRoleValues, locations } from '@/db/schema';
 import type { CreateLocationDto } from '@/modules/locations/dto/request/create-location.dto';
 import type { UpdateLocationDto } from '@/modules/locations/dto/request/update-location.dto';
@@ -131,13 +131,29 @@ export class LocationsService {
   // When inventoryItemId is provided AND RESERVED_STORAGE is requested, RESERVED_STORAGE bins are
   // further restricted to those linked to that item via inventory_item_locations.
   findForSelect(
-    query: SelectOptionsQueryDto & { locationRoles?: string; inventoryItemId?: string },
+    query: SelectOptionsQueryDto & {
+      locationRoles?: string;
+      inventoryItemId?: string;
+      excludeUsedOnGoodsReceiptItemId?: string;
+      goodsReceiptLotId?: string;
+    },
   ): Promise<SelectQueryResult> {
     const roles = (query.locationRoles?.split(',') ?? []).map((r) => r.trim()).filter((r): r is LocationRole => !!r);
 
     const conditions: SQL[] = [];
     if (roles.length > 0) {
       conditions.push(inArray(locations.locationRole, roles));
+    }
+    if (query.excludeUsedOnGoodsReceiptItemId) {
+      conditions.push(
+        notInArray(
+          locations.id,
+          this.locationsRepository.usedLocationIdsOnGoodsReceiptItemSubquery(
+            query.excludeUsedOnGoodsReceiptItemId,
+            query.goodsReceiptLotId ?? null,
+          ),
+        ),
+      );
     }
     if (query.inventoryItemId && roles.includes(LocationRoleValues.RESERVED_STORAGE)) {
       // Non-RESERVED_STORAGE rows are unconstrained; RESERVED_STORAGE rows must be linked to the item.

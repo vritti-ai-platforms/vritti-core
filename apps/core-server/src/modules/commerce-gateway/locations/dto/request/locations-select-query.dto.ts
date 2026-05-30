@@ -23,4 +23,20 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID()
   inventoryItemId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Hide locations already used by lines on this goods receipt item (scoped by goodsReceiptLotId).',
+    example: 'b3f9a8c4-1234-4567-89ab-cdef01234567',
+  })
+  @IsOptional()
+  @IsUUID()
+  excludeUsedOnGoodsReceiptItemId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Lot scope for excludeUsedOnGoodsReceiptItemId; omit for non-lot-tracked items.',
+    example: 'b3f9a8c4-1234-4567-89ab-cdef01234567',
+  })
+  @IsOptional()
+  @IsUUID()
+  goodsReceiptLotId?: string;
 }

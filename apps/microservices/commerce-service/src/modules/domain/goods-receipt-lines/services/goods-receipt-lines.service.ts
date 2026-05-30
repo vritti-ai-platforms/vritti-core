@@ -131,7 +131,7 @@ export class GoodsReceiptLinesService {
       throw new ValidationException({
         label: 'Duplicate Line',
         detail: 'A line for this location already exists on this item. Edit that line instead.',
-        errors: [{ field: 'locationId', message: 'Already used for this item.' }],
+        errors: [{ field: 'locationId', message: 'This location already has a line for this item.' }],
       });
     }
 
@@ -192,7 +192,7 @@ export class GoodsReceiptLinesService {
         throw new ValidationException({
           label: 'Duplicate Line',
           detail: 'A line for this location already exists on this item. Edit that line instead.',
-          errors: [{ field: 'locationId', message: 'Already used for this item.' }],
+          errors: [{ field: 'locationId', message: 'This location already has a line for this item.' }],
         });
       }
     }

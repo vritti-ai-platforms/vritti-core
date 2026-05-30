@@ -79,6 +79,8 @@ export const EditLineForm = ({
         params={{
           locationRoles: `${LocationRoleValues.STORAGE},${LocationRoleValues.RESERVED_STORAGE}`,
           inventoryItemId,
+          excludeUsedOnGoodsReceiptItemId: itemId,
+          ...(line.goodsReceiptLotId ? { goodsReceiptLotId: line.goodsReceiptLotId } : {}),
         }}
       />
       <TextField

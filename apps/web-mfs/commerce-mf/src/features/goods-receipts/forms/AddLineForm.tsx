@@ -72,6 +72,8 @@ export const AddLineForm = ({
         params={{
           locationRoles: `${LocationRoleValues.STORAGE},${LocationRoleValues.RESERVED_STORAGE}`,
           inventoryItemId,
+          excludeUsedOnGoodsReceiptItemId: itemId,
+          ...(goodsReceiptLotId ? { goodsReceiptLotId } : {}),
         }}
       />
       <TextField
