@@ -41,7 +41,7 @@ export class PurchaseOrdersRootController {
   @MessagePattern({ cmd: 'purchaseOrders.findById' })
   findById(@Payload() data: { id: string }): Promise<PurchaseOrderDto> {
     this.logger.log(`purchaseOrders.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
+    return this.appService.findById(data.id);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.create' })

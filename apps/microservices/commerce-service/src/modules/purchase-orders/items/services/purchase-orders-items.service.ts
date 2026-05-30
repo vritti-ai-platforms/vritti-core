@@ -55,7 +55,7 @@ export class PurchaseOrdersItemsService {
 
   async addItem(poId: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const po = await this.getPurchaseOrderContext(poId);
-    await this.assertNoDraftGoodsReceipt(poId);
+    await this.assertNoGoodsReceipt(poId);
 
     const supplierItem = await this.supplierItemsRepository.findById(data.supplierItemId);
     if (!supplierItem) {
@@ -93,7 +93,7 @@ export class PurchaseOrdersItemsService {
 
   async updateItem(poId: string, itemId: string, data: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
     const po = await this.getPurchaseOrderContext(poId);
-    await this.assertNoDraftGoodsReceipt(poId);
+    await this.assertNoGoodsReceipt(poId);
 
     const existingItem = await this.itemsRepository.findItemById(poId, itemId);
     if (!existingItem) throw new NotFoundException('Purchase order line item not found.');
@@ -116,7 +116,7 @@ export class PurchaseOrdersItemsService {
 
   async removeItem(poId: string, itemId: string): Promise<SuccessResponseDto> {
     const po = await this.getPurchaseOrderContext(poId);
-    await this.assertNoDraftGoodsReceipt(poId);
+    await this.assertNoGoodsReceipt(poId);
 
     await this.database.runInTransaction(async () => {
       await this.itemsService.removeItem(po, itemId);
@@ -133,12 +133,11 @@ export class PurchaseOrdersItemsService {
     return po;
   }
 
-  private async assertNoDraftGoodsReceipt(poId: string): Promise<void> {
-    if (await this.goodsReceiptsService.hasDraftForPo(poId)) {
+  private async assertNoGoodsReceipt(poId: string): Promise<void> {
+    if (await this.goodsReceiptsService.hasGoodsReceiptForPo(poId)) {
       throw new BadRequestException({
         label: 'Cannot Edit Line Items',
-        detail:
-          'A draft goods receipt is open for this purchase order. Publish or delete it before editing line items.',
+        detail: 'A goods receipt exists for this purchase order, so its line items can no longer be edited.',
       });
     }
   }

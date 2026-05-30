@@ -15,6 +15,7 @@ export class PurchaseOrderDto {
   timezone: string;
   notes: string | null;
   totalAmount: CurrencyAmountDto;
+  goodsReceiptExists: boolean;
   createdAt: string;
   updatedAt: string;
 
@@ -33,6 +34,7 @@ export class PurchaseOrderDto {
     dto.timezone = entity.timezone;
     dto.notes = entity.notes ?? null;
     dto.totalAmount = CurrencyAmountDto.from(entity.totalAmount, entity.currencyCode);
+    dto.goodsReceiptExists = false;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     return dto;

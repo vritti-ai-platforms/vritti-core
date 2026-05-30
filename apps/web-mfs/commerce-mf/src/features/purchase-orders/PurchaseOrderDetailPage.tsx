@@ -20,7 +20,7 @@ export const PurchaseOrderDetailPage = () => {
   const { data: poItemIds } = usePurchaseOrderItemsIds(id);
 
   const statusBadgeConfig = purchaseOrderStatusConfig[po.status];
-  const canModifyItems = EDITABLE_PO_STATUSES.includes(po.status);
+  const canModifyItems = EDITABLE_PO_STATUSES.includes(po.status) && !po.goodsReceiptExists;
 
   return (
     <div className="flex flex-col gap-6">

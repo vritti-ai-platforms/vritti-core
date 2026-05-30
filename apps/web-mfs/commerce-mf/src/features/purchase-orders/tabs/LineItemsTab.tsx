@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
@@ -179,6 +180,15 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
 
   return (
     <>
+      {purchaseOrder.goodsReceiptExists && (
+        <Alert
+          variant="warning"
+          title="Editing locked"
+          description="A goods receipt exists for this purchase order, so its line items can no longer be edited."
+          className="mb-4"
+        />
+      )}
+
       <DataTable
         table={table}
         mode="tab"

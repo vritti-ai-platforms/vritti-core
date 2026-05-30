@@ -111,8 +111,8 @@ export class GoodsReceiptsService {
     return { result, count };
   }
 
-  hasDraftForPo(poId: string): Promise<boolean> {
-    return this.repository.existsDraftByPoId(poId);
+  hasGoodsReceiptForPo(poId: string): Promise<boolean> {
+    return this.repository.existsByPoId(poId);
   }
 
   async findForTable(state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {

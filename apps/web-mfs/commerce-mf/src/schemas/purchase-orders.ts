@@ -73,6 +73,7 @@ export interface PurchaseOrderData {
   timezone: string;
   notes: string | null;
   totalAmount: { currency: string; value: string };
+  goodsReceiptExists: boolean;
   createdAt: string;
   updatedAt: string;
 }

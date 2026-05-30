@@ -131,7 +131,7 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
 
   const isCrossCurrency = !!buCurrencyCode && po.currencyCode !== buCurrencyCode;
   const isPreReceipt = po.status === 'DRAFT' || po.status === 'SENT' || po.status === 'CONFIRMED';
-  const canChangeExchangeRate = isCrossCurrency && isPreReceipt;
+  const canChangeExchangeRate = isCrossCurrency && isPreReceipt && !po.goodsReceiptExists;
   const canClose = po.status === 'CONFIRMED' || po.status === 'PARTIALLY_RECEIVED';
 
   const nextAction = nextPurchaseOrderStatusAction[po.status];
@@ -188,7 +188,7 @@ export const PurchaseOrderActions = ({ po, poItemIds }: PurchaseOrderActionsProp
     },
   ];
 
-  if (po.status === 'DRAFT') {
+  if (po.status === 'DRAFT' && !po.goodsReceiptExists) {
     actionMenuItems.push({
       type: 'dialog',
       id: 'change-supplier',

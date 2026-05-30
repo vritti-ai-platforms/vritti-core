@@ -34,11 +34,17 @@ export class PurchaseOrdersRootService {
     return this.purchaseOrdersService.create(dto, supplier.currencyCode, buCurrencyCode);
   }
 
+  async findById(id: string): Promise<PurchaseOrderDto> {
+    const dto = await this.purchaseOrdersService.findById(id);
+    dto.goodsReceiptExists = await this.goodsReceiptsService.hasGoodsReceiptForPo(id);
+    return dto;
+  }
+
   async changeSupplier(id: string, dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     const supplier = await this.suppliersRepository.findById(dto.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
-    await this.assertNoDraftGoodsReceipt(id, 'Cannot Change Supplier');
+    await this.assertNoGoodsReceipt(id, 'Cannot Change Supplier');
 
     const inventoryItemIds = await this.itemsRepository.findInventoryItemIdsByPoId(id);
     if (inventoryItemIds.length > 0) {
@@ -59,7 +65,7 @@ export class PurchaseOrdersRootService {
     const po = await this.repository.findById(id);
     if (!po) throw new NotFoundException('Purchase order not found.');
 
-    await this.assertNoDraftGoodsReceipt(id, 'Cannot Change Exchange Rate');
+    await this.assertNoGoodsReceipt(id, 'Cannot Change Exchange Rate');
 
     const supplier = await this.suppliersRepository.findById(po.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
@@ -68,11 +74,11 @@ export class PurchaseOrdersRootService {
     return this.purchaseOrdersService.changeExchangeRate(id, dto, supplier.currencyCode, buCurrencyCode);
   }
 
-  private async assertNoDraftGoodsReceipt(poId: string, label: string): Promise<void> {
-    if (await this.goodsReceiptsService.hasDraftForPo(poId)) {
+  private async assertNoGoodsReceipt(poId: string, label: string): Promise<void> {
+    if (await this.goodsReceiptsService.hasGoodsReceiptForPo(poId)) {
       throw new BadRequestException({
         label,
-        detail: 'A draft goods receipt is open for this purchase order. Publish or delete it first.',
+        detail: 'A goods receipt exists for this purchase order.',
       });
     }
   }

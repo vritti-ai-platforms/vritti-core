@@ -51,6 +51,9 @@ export class PurchaseOrderResponseDto {
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true })
   totalAmount: CurrencyAmountDto | null;
 
+  @ApiProperty({ description: 'True when any goods receipt exists against this PO; edits are locked' })
+  goodsReceiptExists: boolean;
+
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
 
