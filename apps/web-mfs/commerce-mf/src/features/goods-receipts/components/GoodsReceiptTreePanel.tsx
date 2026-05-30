@@ -46,14 +46,17 @@ const TreeRow = ({ item }: TreeRenderItemParams) => {
   const node = item as TreeNodeData;
   const Icon = node.kind === 'item' ? Package : node.kind === 'lot' ? Boxes : MapPin;
   return (
-    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+    <div className="flex items-center gap-2 flex-1 min-w-0">
       <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-      <Typography variant="body2" className="truncate">
+      <Typography variant="body2" className="flex-1 truncate">
         {node.name}
       </Typography>
+      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+        {node.kind}
+      </span>
       <Badge
         variant="secondary"
-        className={`ml-auto text-[10px] rounded-full px-1.5 py-0.5 leading-none ${
+        className={`shrink-0 text-[10px] rounded-full px-1.5 py-0.5 leading-none ${
           node.balanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
         }`}
       >
@@ -85,6 +88,20 @@ const buildParentMap = (nodes: GoodsReceiptTreeNode[]) => {
   return { itemOfLot, itemAndLotOfLine };
 };
 
+// The selected tree node id is the leaf id of the active selection.
+function selectionNodeId(selection: TreeSelection | null): string | undefined {
+  switch (selection?.kind) {
+    case 'item':
+      return selection.itemId;
+    case 'lot':
+      return selection.lotId;
+    case 'line':
+      return selection.lineId;
+    default:
+      return undefined;
+  }
+}
+
 export const GoodsReceiptTreePanel = ({
   goodsReceiptId,
   isDraft,
@@ -99,14 +116,7 @@ export const GoodsReceiptTreePanel = ({
   const treeData = toTreeData(tree);
   const { itemOfLot, itemAndLotOfLine } = buildParentMap(tree);
 
-  const selectedId =
-    selection?.kind === 'item'
-      ? selection.itemId
-      : selection?.kind === 'lot'
-        ? selection.lotId
-        : selection?.kind === 'line'
-          ? selection.lineId
-          : undefined;
+  const selectedId = selectionNodeId(selection);
 
   return (
     <>

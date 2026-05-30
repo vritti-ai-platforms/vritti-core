@@ -167,7 +167,8 @@ const Resolved = ({ goodsReceiptId, isDraft, selection, onSelectionChange, item 
   const tracking = item.inventoryItemTracking;
   const uomSymbol = item.inventoryItemUomSymbol;
   const allowDecimal = item.inventoryItemAllowDecimal;
-  const poRemaining = item.poRemainingQuantity;
+  const poRemaining =
+    item.poRemainingQuantity != null ? Math.max(item.poRemainingQuantity - item.acceptedQuantity, 0) : null;
 
   const handleRemoveItem = async () => {
     const confirmed = await confirm({
