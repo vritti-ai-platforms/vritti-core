@@ -1,5 +1,14 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, index, pgPolicy, timestamp, unique, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  boolean,
+  index,
+  pgPolicy,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { costCategoryKindEnum } from './enums';
 
@@ -26,9 +35,7 @@ export const costCategories = coreSchema.table(
   (table) => [
     unique('uq_cost_categories_org_code').on(table.organizationId, table.code),
     // Exactly one ITEM-kind category per org — the deterministic target for GR publish auto-associate.
-    uniqueIndex('uq_cost_categories_org_kind_item')
-      .on(table.organizationId)
-      .where(sql`${table.kind} = 'ITEM'`),
+    uniqueIndex('uq_cost_categories_org_kind_item').on(table.organizationId).where(sql`${table.kind} = 'ITEM'`),
     index('idx_cost_categories_org').on(table.organizationId),
     index('idx_cost_categories_kind').on(table.kind),
     pgPolicy('org_isolation', {

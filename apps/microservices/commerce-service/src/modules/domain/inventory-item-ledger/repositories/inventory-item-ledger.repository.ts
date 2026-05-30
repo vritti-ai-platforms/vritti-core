@@ -46,5 +46,4 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
       offset: options.offset,
     });
   }
-
 }

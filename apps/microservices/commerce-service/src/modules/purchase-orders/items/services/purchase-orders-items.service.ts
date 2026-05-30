@@ -1,3 +1,4 @@
+import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import type { PurchaseOrderItemDto } from '@domain/purchase-order-items/dto/entity/purchase-order-item.dto';
 import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
@@ -8,6 +9,7 @@ import { SupplierItemsRepository } from '@domain/supplier-items/repositories/sup
 import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  BadRequestException,
   type CreateResponseDto,
   NotFoundException,
   PrimaryDatabaseService,
@@ -29,6 +31,7 @@ export class PurchaseOrdersItemsService {
     private readonly supplierItemsRepository: SupplierItemsRepository,
     private readonly uomConversionsService: UomConversionsService,
     private readonly database: PrimaryDatabaseService,
+    private readonly goodsReceiptsService: GoodsReceiptsService,
   ) {}
 
   async findItems(poId: string): Promise<PurchaseOrderItemDto[]> {
@@ -52,6 +55,7 @@ export class PurchaseOrdersItemsService {
 
   async addItem(poId: string, data: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const po = await this.getPurchaseOrderContext(poId);
+    await this.assertNoDraftGoodsReceipt(poId);
 
     const supplierItem = await this.supplierItemsRepository.findById(data.supplierItemId);
     if (!supplierItem) {
@@ -89,6 +93,7 @@ export class PurchaseOrdersItemsService {
 
   async updateItem(poId: string, itemId: string, data: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
     const po = await this.getPurchaseOrderContext(poId);
+    await this.assertNoDraftGoodsReceipt(poId);
 
     const existingItem = await this.itemsRepository.findItemById(poId, itemId);
     if (!existingItem) throw new NotFoundException('Purchase order line item not found.');
@@ -97,8 +102,7 @@ export class PurchaseOrdersItemsService {
     const uomId = existingItem.uomId;
     const orderedUomQty = data.uomQty ?? existingItem.uomQty;
 
-    // Always recompute against the current (item, uom, qty). The UOM doesn't change on update — this
-    // covers item-swap and qty-change cases.
+    // Recompute the primary-UOM quantity for the current item, uom, and qty
     const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, orderedUomQty);
 
     await this.database.runInTransaction(async () => {
@@ -112,6 +116,7 @@ export class PurchaseOrdersItemsService {
 
   async removeItem(poId: string, itemId: string): Promise<SuccessResponseDto> {
     const po = await this.getPurchaseOrderContext(poId);
+    await this.assertNoDraftGoodsReceipt(poId);
 
     await this.database.runInTransaction(async () => {
       await this.itemsService.removeItem(po, itemId);
@@ -126,5 +131,15 @@ export class PurchaseOrdersItemsService {
     const po = await this.repository.findByIdWithSupplierName(poId);
     if (!po) throw new NotFoundException('Purchase order not found.');
     return po;
+  }
+
+  private async assertNoDraftGoodsReceipt(poId: string): Promise<void> {
+    if (await this.goodsReceiptsService.hasDraftForPo(poId)) {
+      throw new BadRequestException({
+        label: 'Cannot Edit Line Items',
+        detail:
+          'A draft goods receipt is open for this purchase order. Publish or delete it before editing line items.',
+      });
+    }
   }
 }

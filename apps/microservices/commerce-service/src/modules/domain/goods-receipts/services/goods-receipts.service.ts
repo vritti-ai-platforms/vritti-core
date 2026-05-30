@@ -11,7 +11,13 @@ import {
   ValidationException,
 } from '@vritti/api-sdk';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
-import { ExchangeRateTypeValues, GoodsReceiptStatusValues, goodsReceipts, purchaseOrders, suppliers } from '@/db/schema';
+import {
+  ExchangeRateTypeValues,
+  GoodsReceiptStatusValues,
+  goodsReceipts,
+  purchaseOrders,
+  suppliers,
+} from '@/db/schema';
 import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
@@ -105,6 +111,10 @@ export class GoodsReceiptsService {
     return { result, count };
   }
 
+  hasDraftForPo(poId: string): Promise<boolean> {
+    return this.repository.existsDraftByPoId(poId);
+  }
+
   async findForTable(state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, GoodsReceiptsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
@@ -160,8 +170,7 @@ export class GoodsReceiptsService {
     );
   }
 
-  // Links a PO to a draft GR that was created without one. Only allowed when the GR has zero
-  // items (linking after items exist would risk inconsistent PO caps). Supplier must match.
+  // Links a PO to a draft GR that has no items, requiring a matching supplier
   async linkPurchaseOrder(id: string, purchaseOrderId: string): Promise<SuccessResponseDto> {
     const gr = await this.repository.findById(id);
     if (!gr) throw new NotFoundException('Goods receipt not found.');
@@ -199,8 +208,7 @@ export class GoodsReceiptsService {
     return { success: true, message: `Purchase order "${po.poNumber}" linked to goods receipt "${gr.grNumber}".` };
   }
 
-  // Unlinks the PO from a draft GR. Only allowed when the GR has zero items — unlinking after
-  // items exist would leave them orphaned from their PO source. Caller should remove all items first.
+  // Unlinks the PO from a draft GR that has no items
   async unlinkPurchaseOrder(id: string): Promise<SuccessResponseDto> {
     const gr = await this.repository.findById(id);
     if (!gr) throw new NotFoundException('Goods receipt not found.');
@@ -240,12 +248,7 @@ export class GoodsReceiptsService {
     return { success: true, message: `Goods receipt "${gr.grNumber}" deleted successfully.` };
   }
 
-  // Resolves the supplier→BU exchange rate to snapshot on the new GR. Source per the rules:
-  //   * supplier currency == BU currency → 1 (user input ignored)
-  //   * PO-linked + FIXED                → po.exchange_rate (user input ignored)
-  //   * PO-linked + VARIABLE  /  no PO   → user-supplied `exchangeRate` (required, must be > 0)
-  // When a rate is required and missing, throws a ValidationException scoped to the `exchangeRate`
-  // field so the form can surface the error.
+  // Resolves the supplier→BU exchange rate to snapshot on the new GR
   private resolveExchangeRate(
     supplierCurrencyCode: string,
     po: Awaited<ReturnType<PurchaseOrdersRepository['findById']>> | null,
@@ -271,11 +274,7 @@ export class GoodsReceiptsService {
     return userExchangeRate;
   }
 
-  // Computes all per-detail signals from a single items fetch:
-  //   - isPublishable: status='DRAFT' AND every item has accepted qty > 0 AND every line is balanced
-  //                    AND (when PO is linked) PO cap respected.
-  //   - canLinkPurchaseOrder: status='DRAFT' AND no PO yet AND no items added.
-  //   - canUnlinkPurchaseOrder: status='DRAFT' AND PO is linked AND no items added.
+  // Computes the publishable, link, and unlink draft signals from a single items fetch
   private async computeDraftSignals(
     goodsReceiptId: string,
     status: string,

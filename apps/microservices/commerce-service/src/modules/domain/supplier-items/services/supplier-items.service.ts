@@ -141,11 +141,19 @@ export class SupplierItemsService {
     return row?.inventoryItemId ?? null;
   }
 
-  async addItem(supplierId: string, data: AddSupplierItemDto, inventoryItemName: string): Promise<CreateResponseDto<SupplierItemDto>> {
+  async addItem(
+    supplierId: string,
+    data: AddSupplierItemDto,
+    inventoryItemName: string,
+  ): Promise<CreateResponseDto<SupplierItemDto>> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
-    const existing = await this.repository.findItemBySupplierInventoryItemAndUom(supplierId, data.inventoryItemId, data.uomId);
+    const existing = await this.repository.findItemBySupplierInventoryItemAndUom(
+      supplierId,
+      data.inventoryItemId,
+      data.uomId,
+    );
     if (existing) {
       throw new BadRequestException({
         label: 'Duplicate Item',
@@ -250,7 +258,10 @@ export class SupplierItemsService {
     }
 
     await this.repository.deleteSupplierItem(supplierItemId);
-    return { success: true, message: `"${existing.inventoryItemName}" (${existing.uomSymbol}) removed from supplier successfully.` };
+    return {
+      success: true,
+      message: `"${existing.inventoryItemName}" (${existing.uomSymbol}) removed from supplier successfully.`,
+    };
   }
 
   // Bulk-removes multiple supplier items for a supplier
@@ -258,7 +269,10 @@ export class SupplierItemsService {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
     await this.repository.bulkDeleteSupplierItems(supplierItemIds);
-    return { success: true, message: `${supplierItemIds.length} item${supplierItemIds.length === 1 ? '' : 's'} removed from supplier.` };
+    return {
+      success: true,
+      message: `${supplierItemIds.length} item${supplierItemIds.length === 1 ? '' : 's'} removed from supplier.`,
+    };
   }
 
   async findItemPrice(

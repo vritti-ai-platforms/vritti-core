@@ -197,6 +197,15 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     await this.db.update(purchaseOrders).set({ status }).where(eq(purchaseOrders.id, poId));
   }
 
+  async existsDraftByPoId(poId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ exists: sql<boolean>`true` })
+      .from(goodsReceipts)
+      .where(and(eq(goodsReceipts.purchaseOrderId, poId), eq(goodsReceipts.status, 'DRAFT')))
+      .limit(1);
+    return !!row;
+  }
+
   async updateStatus(
     id: string,
     status: (typeof goodsReceipts.$inferSelect)['status'],

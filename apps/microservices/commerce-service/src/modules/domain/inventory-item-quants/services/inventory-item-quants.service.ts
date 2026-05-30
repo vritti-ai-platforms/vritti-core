@@ -355,7 +355,6 @@ export class InventoryItemQuantsService {
     } as InventoryItemLot;
   }
 
-
   async findQuantsForTable(
     inventoryItemId: string,
     state: TableViewState,

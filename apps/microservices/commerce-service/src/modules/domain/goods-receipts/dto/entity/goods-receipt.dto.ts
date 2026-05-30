@@ -19,8 +19,6 @@ export class GoodsReceiptDto {
   } | null;
   receivedDate: string;
   notes: string | null;
-  // Supplier→BU rate locked at GR creation. Used at publish to convert supplier-currency GR-item
-  // prices into BU-currency cost rows. Always >= 0; equals 1 when supplier currency == BU currency.
   exchangeRate: number;
   publishedAt: string | null;
   createdAt: string;

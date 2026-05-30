@@ -1,7 +1,7 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk';
 import type { InventoryItemCost } from '@/db/schema';
-import type { AllocationRow } from '../../repositories/inventory-item-quant-costs.repository';
 import type { CostRowWithCategory } from '../../repositories/inventory-item-costs.repository';
+import type { AllocationRow } from '../../repositories/inventory-item-quant-costs.repository';
 
 export class InventoryItemCostDto {
   id: string;

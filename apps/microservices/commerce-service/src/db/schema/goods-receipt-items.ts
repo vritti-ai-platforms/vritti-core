@@ -1,5 +1,15 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, decimal, index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  bigint,
+  decimal,
+  index,
+  jsonb,
+  pgPolicy,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { goodsReceipts } from './goods-receipts';
 import { inventoryItems } from './inventory-items';

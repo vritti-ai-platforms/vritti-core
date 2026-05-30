@@ -104,10 +104,7 @@ export class GoodsReceiptLineItemsRepository extends PrimaryBaseRepository<typeo
       .innerJoin(goodsReceiptLines, eq(goodsReceiptLineItems.goodsReceiptLineId, goodsReceiptLines.id))
       .innerJoin(goodsReceiptItems, eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id))
       .where(
-        and(
-          eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
-          eq(goodsReceiptLineItems.serialNumber, serialNumber),
-        ),
+        and(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId), eq(goodsReceiptLineItems.serialNumber, serialNumber)),
       )
       .limit(1);
     return rows[0];

@@ -1,10 +1,16 @@
+import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { PurchaseOrderItemsRepository } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { SuppliersRepository } from '@domain/suppliers/repositories/suppliers.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { BadRequestException, type CreateResponseDto, NotFoundException, type SuccessResponseDto } from '@vritti/api-sdk';
+import {
+  BadRequestException,
+  type CreateResponseDto,
+  NotFoundException,
+  type SuccessResponseDto,
+} from '@vritti/api-sdk';
 import type { ChangePurchaseOrderExchangeRateDto } from '@/modules/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '@/modules/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
@@ -18,6 +24,7 @@ export class PurchaseOrdersRootService {
     private readonly repository: PurchaseOrdersRepository,
     private readonly itemsRepository: PurchaseOrderItemsRepository,
     private readonly suppliersRepository: SuppliersRepository,
+    private readonly goodsReceiptsService: GoodsReceiptsService,
   ) {}
 
   async create(dto: CreatePurchaseOrderDto, buCurrencyCode: string): Promise<CreateResponseDto<PurchaseOrderDto>> {
@@ -30,6 +37,8 @@ export class PurchaseOrdersRootService {
   async changeSupplier(id: string, dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     const supplier = await this.suppliersRepository.findById(dto.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
+
+    await this.assertNoDraftGoodsReceipt(id, 'Cannot Change Supplier');
 
     const inventoryItemIds = await this.itemsRepository.findInventoryItemIdsByPoId(id);
     if (inventoryItemIds.length > 0) {
@@ -50,10 +59,21 @@ export class PurchaseOrdersRootService {
     const po = await this.repository.findById(id);
     if (!po) throw new NotFoundException('Purchase order not found.');
 
+    await this.assertNoDraftGoodsReceipt(id, 'Cannot Change Exchange Rate');
+
     const supplier = await this.suppliersRepository.findById(po.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
     this.logger.log(`purchaseOrders.changeExchangeRate — id: ${id}, type: ${dto.exchangeRateType}`);
     return this.purchaseOrdersService.changeExchangeRate(id, dto, supplier.currencyCode, buCurrencyCode);
+  }
+
+  private async assertNoDraftGoodsReceipt(poId: string, label: string): Promise<void> {
+    if (await this.goodsReceiptsService.hasDraftForPo(poId)) {
+      throw new BadRequestException({
+        label,
+        detail: 'A draft goods receipt is open for this purchase order. Publish or delete it first.',
+      });
+    }
   }
 }

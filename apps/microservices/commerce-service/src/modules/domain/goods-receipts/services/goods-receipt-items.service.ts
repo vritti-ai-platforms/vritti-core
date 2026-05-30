@@ -41,22 +41,12 @@ export class GoodsReceiptItemsService {
     private readonly uomConversionsService: UomConversionsService,
   ) {}
 
-  // Converts a unit price expressed in the GR-item's UOM to the inventory item's primary UOM
-  // via Decimal. `unitPrice` is per uom-unit; we divide by (uom_qty / primary_uom_qty) which is
-  // the same as multiplying by (primary_uom_qty / uom_qty) — i.e., one uom-unit = one factor of
-  // primary-units, so the per-primary-unit price is `unitPrice / factor`.
-  private async resolvePrimaryUomUnitPrice(
-    inventoryItemId: string,
-    uomId: string,
-    unitPrice: bigint,
-  ): Promise<bigint> {
+  // Converts a unit price from the GR-item's UOM to the inventory item's primary UOM
+  private async resolvePrimaryUomUnitPrice(inventoryItemId: string, uomId: string, unitPrice: bigint): Promise<bigint> {
     const oneInPrimary = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, 1);
     if (oneInPrimary <= 0) return unitPrice;
     return BigInt(
-      new Decimal(unitPrice.toString())
-        .dividedBy(oneInPrimary)
-        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
-        .toFixed(0),
+      new Decimal(unitPrice.toString()).dividedBy(oneInPrimary).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
     );
   }
 
@@ -102,15 +92,12 @@ export class GoodsReceiptItemsService {
     return this.itemsRepository.findTreeNodesByReceiptId(goodsReceiptId);
   }
 
-  // Add an item to a GR by referencing a supplier_items row. Used when the GR has no linked PO —
-  // the supplier catalog is the source of truth for the price snapshot.
+  // Adds an item to a GR by referencing a supplier_items row when there is no linked PO
   async addItemFromSupplierItem(
     goodsReceiptId: string,
     data: {
       supplierItemId: string;
       rejectedQuantity?: number;
-      // Captured at the breakdown step (Phase 5.5). Required for the auto-associate flow to
-      // create a SUPPLIER_PRICE cost row at publish.
       unitPrice?: bigint;
       currencyCode?: string;
     },
@@ -172,9 +159,7 @@ export class GoodsReceiptItemsService {
     });
   }
 
-  // Shared internal — performs the duplicate guard, persist, and DTO load. Callers must have
-  // already resolved (inventoryItemId, uomId) and validated source-specific rules (supplier match
-  // or PO line membership).
+  // Performs the duplicate guard, persists the item, and loads the DTO
   private async addItemInternal(
     receipt: { id: string; grNumber: string; purchaseOrderId: string | null },
     data: {
@@ -202,9 +187,10 @@ export class GoodsReceiptItemsService {
       this.validateRejectedQuantity(data.rejectedQuantity);
     }
 
-    const primaryUomUnitPrice = data.unitPrice != null
-      ? await this.resolvePrimaryUomUnitPrice(data.inventoryItemId, data.uomId, data.unitPrice)
-      : null;
+    const primaryUomUnitPrice =
+      data.unitPrice != null
+        ? await this.resolvePrimaryUomUnitPrice(data.inventoryItemId, data.uomId, data.unitPrice)
+        : null;
 
     // 23505 race fallback handled globally by api-sdk's pg-error filter.
     const entity = await this.itemsRepository.create({
@@ -226,8 +212,7 @@ export class GoodsReceiptItemsService {
     };
   }
 
-  // Update an existing item. `rejectedQuantity` and the captured supplier price (unitPrice +
-  // currencyCode) are editable; inventoryItemId / uomId are set-once.
+  // Updates an existing item's rejected quantity and captured supplier price
   async updateItem(
     goodsReceiptId: string,
     itemId: string,
@@ -262,7 +247,6 @@ export class GoodsReceiptItemsService {
     }
     return { success: true, message: 'Item updated.' };
   }
-
 
   async removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);

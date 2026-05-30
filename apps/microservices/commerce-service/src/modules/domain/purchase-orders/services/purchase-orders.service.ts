@@ -66,8 +66,7 @@ export class PurchaseOrdersService {
 
   constructor(private readonly repository: PurchaseOrdersRepository) {}
 
-  // Returns paginated purchase order options for select dropdowns.
-  // `status` accepts a single value or a comma-separated list (e.g. "CONFIRMED,PARTIALLY_RECEIVED").
+  // Returns paginated purchase order options for select dropdowns
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     const { status, supplierId } = query as SelectOptionsQueryDto & { status?: string; supplierId?: string };
     const where: Record<string, string> = {};
@@ -247,8 +246,7 @@ export class PurchaseOrdersService {
     return { success: true, message: `Purchase order "${entity.poNumber}" closed.` };
   }
 
-  // Changes the exchange rate type and/or rate on a pre-receipt PO.
-  // App-layer is responsible for fetching supplier and passing the two currency codes.
+  // Changes the exchange rate type and/or rate on a pre-receipt PO
   async changeExchangeRate(
     id: string,
     data: { exchangeRateType: ExchangeRateType; exchangeRate?: number | null },

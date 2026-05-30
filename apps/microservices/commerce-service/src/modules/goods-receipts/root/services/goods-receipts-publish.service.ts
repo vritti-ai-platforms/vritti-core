@@ -61,9 +61,7 @@ export class GoodsReceiptsPublishService {
       for (const item of items) {
         const lines = await this.linesRepository.findByItemId(item.id);
 
-        // PO cap check: `acceptedInItemUom` stays in the GR-item UOM so it can be compared
-        // directly against the PO's `uomQty` / `receivedQuantity` (same UOM on both sides since
-        // the publish join was tightened to match (po_id, inventory_item_id, uom_id)).
+        // Track accepted quantity in the GR-item UOM for the PO cap check
         let acceptedInItemUom = 0;
 
         for (const line of lines) {
@@ -102,9 +100,7 @@ export class GoodsReceiptsPublishService {
             throw new BadRequestException(`Line ${line.id} has no serials.`);
           }
 
-          // Convert the line's quantity (in gr_item.uom_id) to the inventory item's primary UOM —
-          // quants are stored exclusively in primary UOM. Phase 3 design: every line gets its own
-          // new quant; no merging by (item, location, lot). The conversion is Decimal-precise.
+          // Convert the line's quantity to the inventory item's primary UOM
           const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
             item.inventoryItemId,
             item.uomId,
@@ -112,9 +108,7 @@ export class GoodsReceiptsPublishService {
           );
           await this.linesRepository.setPrimaryUomQty(line.id, primaryUomQty);
 
-          // For serial-tracked items the primary UOM should equal the serial unit; if the
-          // conversion produced a non-matching count we'd hit `validateCreateParams` below. The
-          // configuration check is left to product-onboarding for now.
+          // Build the quant creation params per the item's tracking type
           let createParams: CreateNewQuantParams;
           const base = {
             inventoryItemId: item.inventoryItemId,
@@ -146,8 +140,7 @@ export class GoodsReceiptsPublishService {
             await this.lotsRepository.setResolvedLotId(line.goodsReceiptLotId, createdLot.id);
           }
 
-          // Ledger entry is in primary UOM (matches the quant's UOM) so stock-on-hand aggregations
-          // against the ledger and quant table both speak the same units.
+          // Record the ledger entry in primary UOM to match the quant's UOM
           await this.ledgerService.createEntry({
             inventoryItemId: item.inventoryItemId,
             type: InventoryItemLedgerTypeValues.GOODS_RECEIPT,
@@ -160,9 +153,7 @@ export class GoodsReceiptsPublishService {
           acceptedInItemUom += lineQuantity;
         }
 
-        // PO cap re-check at publish time + bump receivedQuantity on the linked PO item.
-        // Comparison is done in the PO/GR-item UOM (the columns we read from `item` are matched
-        // on that UOM by `findByReceiptIdForPublish`).
+        // Re-check the PO cap and bump receivedQuantity on the linked PO item
         if (receipt.purchaseOrderId && item.poItemId) {
           const ordered = Number(item.poOrderedQuantity ?? 0);
           const received = Number(item.poReceivedQuantity ?? 0);
@@ -190,11 +181,7 @@ export class GoodsReceiptsPublishService {
 
       await this.receiptsRepository.updateStatus(id, GoodsReceiptStatusValues.PUBLISHED, new Date());
 
-      // Hybrid Phase 5.4 + 5.5 — auto-create SUPPLIER_PRICE cost row(s) for each GR-item that
-      // has a captured unit price (set at the breakdown step, pre-filled from PO when linked or
-      // supplier_items when un-linked). Works for both linked and un-linked GRs. Failures here
-      // roll back the publish. If the org hasn't configured a kind=ITEM cost category yet, this
-      // returns { created: 0 } and the publish proceeds with quants at total_unit_cost=0.
+      // Auto-create SUPPLIER_PRICE cost rows for each GR-item with a captured unit price
       await this.costAssociationService.autoAssociateSupplierPrice(
         id,
         null,

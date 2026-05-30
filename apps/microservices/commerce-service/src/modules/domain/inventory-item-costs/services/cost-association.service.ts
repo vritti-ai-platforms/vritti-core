@@ -1,6 +1,6 @@
 import { CostCategoriesRepository } from '@domain/cost-categories/repositories/cost-categories.repository';
-import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
 import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
+import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
 import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -202,8 +202,7 @@ export class CostAssociationService {
     }
 
     const nextTotalAmount = input.totalAmount ?? existing.totalAmount;
-    const nextDistribution = (input.distributionMethod ??
-      existing.distributionMethod) as DistributionMethod;
+    const nextDistribution = (input.distributionMethod ?? existing.distributionMethod) as DistributionMethod;
     if (nextTotalAmount === 0n) {
       throw new BadRequestException('Total amount must be non-zero.');
     }
@@ -277,16 +276,17 @@ export class CostAssociationService {
   async findCostsForGoodsReceipt(grId: string, state: TableViewState): Promise<CostsForSourceDto> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, CostAssociationService.COSTS_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, CostAssociationService.COSTS_FIELD_MAP);
-    const where = (filterWhere && searchWhere) ? and(filterWhere, searchWhere) : (filterWhere ?? searchWhere);
+    const where = filterWhere && searchWhere ? and(filterWhere, searchWhere) : (filterWhere ?? searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, CostAssociationService.COSTS_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
     const [{ result: rows, count }, kindBreakdownRows, gr] = await Promise.all([
-      this.costsRepository.findBySourceWithCategory(
-        CostSourceTypeValues.GOODS_RECEIPT,
-        grId,
-        { where, orderBy: orderBy.length ? orderBy : undefined, limit, offset },
-      ),
+      this.costsRepository.findBySourceWithCategory(CostSourceTypeValues.GOODS_RECEIPT, grId, {
+        where,
+        orderBy: orderBy.length ? orderBy : undefined,
+        limit,
+        offset,
+      }),
       this.costsRepository.findKindBreakdown(CostSourceTypeValues.GOODS_RECEIPT, grId),
       this.grRepository.findById(grId),
     ]);
@@ -301,9 +301,10 @@ export class CostAssociationService {
     const total = kindBreakdownRows.reduce((s, k) => s + k.amount, 0n);
     const allQuants = await this.quantsRepository.findBySource(CostSourceTypeValues.GOODS_RECEIPT, grId);
     const totalQty = allQuants.reduce((s, q) => s + Number(q.quantity), 0);
-    const perUnit = totalQty > 0
-      ? BigInt(new Decimal(total.toString()).dividedBy(totalQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0))
-      : 0n;
+    const perUnit =
+      totalQty > 0
+        ? BigInt(new Decimal(total.toString()).dividedBy(totalQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0))
+        : 0n;
 
     // Kind breakdown — always emit all 6 kinds with 0 for missing ones so the frontend table is
     // shape-stable (see plan §6.5).
@@ -311,9 +312,7 @@ export class CostAssociationService {
     for (const k of kindBreakdownRows) kindMap.set(k.kind, (kindMap.get(k.kind) ?? 0n) + k.amount);
     const kindBreakdown: CostKindBreakdownEntryDto[] = KIND_ENUM.map((kind) => {
       const amount = kindMap.get(kind) ?? 0n;
-      const pct = total > 0n
-        ? Number((amount * 10000n) / total) / 100
-        : 0;
+      const pct = total > 0n ? Number((amount * 10000n) / total) / 100 : 0;
       return {
         kind,
         amount: CurrencyAmountDto.from(amount, dominantCurrency),
@@ -347,9 +346,7 @@ export class CostAssociationService {
       // Validate every targetQuant actually belongs to this source.
       const stray = quants.find((q) => q.sourceType !== input.sourceType || q.sourceId !== input.sourceId);
       if (stray) {
-        throw new BadRequestException(
-          `Quant ${stray.id} does not belong to ${input.sourceType}=${input.sourceId}.`,
-        );
+        throw new BadRequestException(`Quant ${stray.id} does not belong to ${input.sourceType}=${input.sourceId}.`);
       }
     } else {
       quants = await this.quantsRepository.findBySource(input.sourceType, input.sourceId);
@@ -411,9 +408,7 @@ export class CostAssociationService {
             if (sumQty.isZero()) return quants.map(() => new Decimal(1).dividedBy(quants.length));
             return quants.map((q) => new Decimal(q.quantity).dividedBy(sumQty));
           }
-          return quants.map((q) =>
-            new Decimal(q.totalUnitCost.toString()).times(q.quantity).dividedBy(totalValue),
-          );
+          return quants.map((q) => new Decimal(q.totalUnitCost.toString()).times(q.quantity).dividedBy(totalValue));
         }
         case 'equal':
           return quants.map(() => new Decimal(1).dividedBy(quants.length));
@@ -422,9 +417,7 @@ export class CostAssociationService {
 
     const allocated = quants.map((q, i) => ({
       quantId: q.id,
-      allocatedAmount: BigInt(
-        total.times(shares[i]).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
-      ),
+      allocatedAmount: BigInt(total.times(shares[i]).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0)),
     }));
 
     const computedSum = allocated.reduce((s, a) => s + a.allocatedAmount, 0n);
@@ -447,9 +440,7 @@ export class CostAssociationService {
       const qty = new Decimal(q.quantity);
       const totalUnitCost = qty.isZero()
         ? 0n
-        : BigInt(
-            new Decimal(sum.toString()).dividedBy(qty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
-          );
+        : BigInt(new Decimal(sum.toString()).dividedBy(qty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
       await this.quantsRepository.updateTotalUnitCost(q.id, totalUnitCost);
     }
   }
@@ -467,5 +458,4 @@ export class CostAssociationService {
     if (!row) throw new NotFoundException('Cost row not found.');
     return InventoryItemCostDto.from(row, await this.isLocked(cost));
   }
-
 }

@@ -41,14 +41,10 @@ export class UomConversionsService {
       this.repository.findUom(uomId),
     ]);
     if (!inventoryItemPrimaryUom || !targetUom) return false;
-    return (
-      effectiveBaseId(inventoryItemPrimaryUom, inventoryItemPrimaryUomId) === effectiveBaseId(targetUom, uomId)
-    );
+    return effectiveBaseId(inventoryItemPrimaryUom, inventoryItemPrimaryUomId) === effectiveBaseId(targetUom, uomId);
   }
 
-  async toPrimaryQuantities(
-    inputs: { inventoryItemId: string; uomId: string; qty: number }[],
-  ): Promise<number[]> {
+  async toPrimaryQuantities(inputs: { inventoryItemId: string; uomId: string; qty: number }[]): Promise<number[]> {
     if (inputs.length === 0) return [];
 
     const inventoryItemIds = Array.from(new Set(inputs.map((i) => i.inventoryItemId)));
@@ -132,9 +128,7 @@ function assertSharedBase(
   targetUomId: string,
   inventoryItemId: string,
 ): void {
-  if (
-    effectiveBaseId(inventoryItemPrimaryUom, inventoryItemPrimaryUomId) !== effectiveBaseId(targetUom, targetUomId)
-  ) {
+  if (effectiveBaseId(inventoryItemPrimaryUom, inventoryItemPrimaryUomId) !== effectiveBaseId(targetUom, targetUomId)) {
     throw new BadRequestException(
       `No conversion from UOM ${targetUomId} to inventory item ${inventoryItemId}'s primary UOM. Add a per-inventory-item conversion row to define one.`,
     );

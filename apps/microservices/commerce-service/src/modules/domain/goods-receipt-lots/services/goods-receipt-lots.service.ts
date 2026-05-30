@@ -168,8 +168,7 @@ export class GoodsReceiptLotsService {
     });
   }
 
-  // Validates the receipt + item exist, returns both for downstream guards.
-  // Item DTO carries inventoryItemTracking + inventoryItemId so callers don't need a separate trip.
+  // Validates the receipt and item exist and returns both for downstream guards
   private async ensureItem(goodsReceiptId: string, itemId: string) {
     const receipt = await this.receiptsService.findById(goodsReceiptId);
     const item = await this.itemsService.findById(goodsReceiptId, itemId);

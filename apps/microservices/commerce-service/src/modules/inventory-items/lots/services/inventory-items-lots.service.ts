@@ -13,7 +13,10 @@ export class InventoryItemsLotsService {
     private readonly lotsService: InventoryItemLotsService,
   ) {}
 
-  async findForTable(inventoryItemId: string, state: TableViewState): Promise<{ result: InventoryItemLotDto[]; count: number }> {
+  async findForTable(
+    inventoryItemId: string,
+    state: TableViewState,
+  ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
     await this.inventoryItemsService.findById(inventoryItemId);
     return this.lotsService.findLotsForTable(inventoryItemId, state);

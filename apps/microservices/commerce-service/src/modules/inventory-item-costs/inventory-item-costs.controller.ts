@@ -1,9 +1,9 @@
-import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import {
   CostAllocationDto,
   CostsForSourceDto,
   InventoryItemCostDto,
 } from '@domain/inventory-item-costs/dto/entity/inventory-item-cost.dto';
+import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
@@ -50,9 +50,7 @@ export class InventoryItemCostsController {
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.costs.update' })
-  async updateCost(
-    @Payload() data: { costId: string } & UpdateCostDto,
-  ): Promise<InventoryItemCostDto> {
+  async updateCost(@Payload() data: { costId: string } & UpdateCostDto): Promise<InventoryItemCostDto> {
     const { costId, totalAmount, ...rest } = data;
     this.logger.log(`goodsReceipts.costs.update — cost: ${costId}`);
     return this.service.updateCost(costId, {

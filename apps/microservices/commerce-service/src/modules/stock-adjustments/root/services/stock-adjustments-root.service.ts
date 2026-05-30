@@ -336,10 +336,7 @@ export class StockAdjustmentsRootService {
     const totalUnitCost = BigInt(sourceQuant.totalUnitCost?.toString() ?? '0');
     if (totalUnitCost === 0n || primaryUomQty <= 0) return;
     const writeOffAmount = BigInt(
-      new Decimal(totalUnitCost.toString())
-        .times(primaryUomQty)
-        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
-        .toFixed(0),
+      new Decimal(totalUnitCost.toString()).times(primaryUomQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
     );
     const currency = sourceQuant.costCurrency ?? '';
     if (!currency) return;

@@ -104,9 +104,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     return result[0];
   }
 
-  // Lookup for the duplicate-line guard. Matches on (item, lot, location) — lot may be null for
-  // tracking='quantity' / 'serial' items. excludeLineId lets `updateLine` skip the row being
-  // edited so a no-op save doesn't trip the check on itself.
+  // Finds a line by (item, lot, location) for the duplicate-line guard
   async findOneByItemLotLocation(args: {
     itemId: string;
     goodsReceiptLotId: string | null;
@@ -137,9 +135,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     await this.db.update(goodsReceiptLines).set({ resolvedQuantId }).where(eq(goodsReceiptLines.id, lineId));
   }
 
-  // Snapshots the primary-UOM quantity onto the line at publish time. Computed by the publish
-  // service via UomConversionsService — never derived in SQL — so later factor changes don't
-  // retroactively shift the cost math on this line.
+  // Snapshots the primary-UOM quantity onto the line at publish time
   async setPrimaryUomQty(lineId: string, primaryUomQty: number): Promise<void> {
     await this.db.update(goodsReceiptLines).set({ primaryUomQty }).where(eq(goodsReceiptLines.id, lineId));
   }
@@ -163,15 +159,13 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
     return Number(row?.count ?? 0);
   }
 
-  // For tracking='serial' or 'lot_serial': sync quantity to count(line_items); isBalanced is always true.
-  // For other tracking types: isBalanced is always true (no derived count).
+  // Recomputes isBalanced for a line, syncing serial-tracked lines to their line-item count
   async refreshIsBalanced(lineId: string, tracking: InventoryTracking): Promise<void> {
     if (tracking !== 'serial' && tracking !== 'lot_serial') {
       await this.db.update(goodsReceiptLines).set({ isBalanced: true }).where(eq(goodsReceiptLines.id, lineId));
       return;
     }
-    // Serial lines: line.quantity is the user-declared expected count. Don't overwrite it — just flip
-    // isBalanced to true once the serial count catches up to (or matches) the declared quantity.
+    // Flip isBalanced once the serial count matches the declared quantity
     await this.db
       .update(goodsReceiptLines)
       .set({
@@ -184,8 +178,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       .where(eq(goodsReceiptLines.id, lineId));
   }
 
-  // Returns serial-tracked lines whose quantity != count(line_items). Skips quantity- and lot-tracked
-  // lines entirely — those don't have line_items rows by design.
+  // Returns serial-tracked lines whose quantity differs from their line-item count
   async findUnbalancedSerialLines(
     goodsReceiptId: string,
   ): Promise<{ lineId: string; lineQuantity: number; lineItemsCount: number; delta: number }[]> {

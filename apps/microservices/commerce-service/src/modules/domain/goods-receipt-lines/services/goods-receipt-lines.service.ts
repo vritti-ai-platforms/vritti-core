@@ -121,9 +121,7 @@ export class GoodsReceiptLinesService {
       await this.validatePoCap(ctx, data.quantity);
     }
 
-    // Reject duplicate (item, lot?, location) — two lines on the same shelf for the same lot
-    // collapse into one logical receipt; allowing both produces confusing UI and double-counted
-    // accepted quantities. Lot may be null when tracking='quantity' / 'serial'.
+    // Reject a duplicate (item, lot?, location) line
     const duplicate = await this.repository.findOneByItemLotLocation({
       itemId,
       goodsReceiptLotId: data.goodsReceiptLotId ?? null,
@@ -145,8 +143,7 @@ export class GoodsReceiptLinesService {
       quantity: data.quantity,
     });
 
-    // Single source of truth for `is_balanced`: same predicate as updateLine and post-serial mutations.
-    // For serial/lot_serial tracking it becomes `quantity = count(line_items)`; for others it's `true`.
+    // Recompute is_balanced for the new line
     await this.repository.refreshIsBalanced(created.id, ctx.tracking);
 
     this.logger.log(`Added line ${created.id} to goods-receipt-item ${itemId}`);
@@ -183,8 +180,7 @@ export class GoodsReceiptLinesService {
       await this.validatePoCap(ctx, data.quantity, lineId);
     }
 
-    // Re-check the (item, lot, location) duplicate guard when either lot or location is being
-    // changed — excluding this line so a no-op edit doesn't collide with itself.
+    // Re-check the duplicate guard when lot or location changed, excluding this line
     if (data.goodsReceiptLotId !== undefined || data.locationId !== undefined) {
       const duplicate = await this.repository.findOneByItemLotLocation({
         itemId,
@@ -229,9 +225,7 @@ export class GoodsReceiptLinesService {
     void itemId;
   }
 
-  // Validates: total quantity for this item ≤ remaining PO quantity (orderedQty - receivedQty)
-  // Throws on violation. Skips when no PO is linked. excludeLineId is used during update to exclude
-  // the line being modified from the existing-sum.
+  // Validates that the item's total quantity does not exceed the remaining PO quantity
   async validatePoCap(ctx: ItemContext, additionalQuantity: number, excludeLineId?: string): Promise<void> {
     if (!ctx.poItemId || ctx.poOrderedQuantity == null) return;
     const currentSum = await this.repository.totalQuantityForItem(ctx.itemId, excludeLineId);
@@ -245,9 +239,7 @@ export class GoodsReceiptLinesService {
     }
   }
 
-  // Validate the line shape against item.tracking:
-  //   tracking=quantity or serial: lot must NOT be set
-  //   tracking=lot or lot_serial:  lot must be set AND belong to the same item
+  // Validates the line shape against the item's tracking type
   private async validateIntent(
     ctx: ItemContext,
     data: { goodsReceiptLotId?: string | null; locationId?: string },

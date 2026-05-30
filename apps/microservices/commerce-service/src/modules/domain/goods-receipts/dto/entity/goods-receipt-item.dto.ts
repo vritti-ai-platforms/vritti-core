@@ -17,8 +17,6 @@ export class GoodsReceiptItemDto {
   poOrderedQuantity: number | null;
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
-  // Supplier price captured at the breakdown step (PR5b). NULL when the user hasn't entered one
-  // and no pre-fill was available.
   unitPrice: CurrencyAmountDto | null;
   metadata: Record<string, unknown>;
   createdAt: string;

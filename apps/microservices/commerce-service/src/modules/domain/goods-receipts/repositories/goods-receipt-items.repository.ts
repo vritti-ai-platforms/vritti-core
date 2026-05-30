@@ -39,11 +39,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     return this.runRichSelect(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId));
   }
 
-  // Returns the unified GR tree (items → lots → lines) as fully-formed GoodsReceiptTreeNode[]
-  // in a single query. Each node carries only what the tree row renders: id, label (name),
-  // balance flag, and pre-computed badge text. Per-kind detail (accepted quantities, PO context,
-  // tracking, UOM, etc.) is fetched via separate item/lot/line detail endpoints when a node is
-  // selected — keeping this query cheap and the response small.
+  // Returns the unified GR tree (items → lots → lines) as GoodsReceiptTreeNode[] in one query
   async findTreeNodesByReceiptId(goodsReceiptId: string): Promise<GoodsReceiptTreeNode[]> {
     const acceptedQty = sql`(
       SELECT COALESCE(SUM(quantity), 0)
@@ -60,12 +56,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       FROM vritti_core.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
-    // Item balance rules:
-    //   * Must have at least one line (a fresh item with no lines is not "balanced", it's empty).
-    //   * No line under it may be unbalanced (serial-fill mismatch, etc).
-    //   * For PO-linked items, the PO line's remaining quantity must be 0 — i.e. the receiver has
-    //     consumed everything still outstanding on the PO. Un-linked items don't have a target;
-    //     once they have at least one balanced line they're considered balanced.
+    // Balanced when it has lines, none unbalanced, and any PO remaining quantity is 0
     const itemBalanced = sql`(
       ${itemLinesCount} > 0
       AND ${itemUnbalanced} = 0
@@ -75,16 +66,12 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         ELSE TRUE
       END
     )`;
-    // Item badge mirrors the FE format: `accepted/total uomSymbol` (PO-linked) or
-    // `accepted uomSymbol` (un-linked). The trailing UOM is optional — drops when uom.symbol is null.
-    // trim_scale strips trailing zeros from the numeric(12,3) columns so `100` renders as "100",
-    // not "100.000". Matches the legacy FE behavior where JS numbers dropped trailing zeros.
     const itemBadge = sql`CASE
       WHEN ${purchaseOrderItems.uomQty} IS NOT NULL
       THEN CONCAT(
         trim_scale(${acceptedQty})::text,
         '/',
-        trim_scale(${acceptedQty} + (${purchaseOrderItems.uomQty} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)))::text,
+        trim_scale(${purchaseOrderItems.uomQty} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0))::text,
         CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
       )
       ELSE CONCAT(
@@ -93,8 +80,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       )
     END`;
 
-    // tracking='lot': lots as leaves. Badge is just the lot's accepted total (no UOM — matches
-    // the pre-refactor FE behavior where lot rows omitted the symbol).
+    // tracking='lot': lots as leaves, badge is the lot's accepted total
     const lotsOnlyJson = sql`(
       SELECT COALESCE(
         json_agg(
@@ -120,8 +106,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       WHERE l.goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
 
-    // tracking='lot_serial': lots with line children. Line badge is `lineItemsCount/quantity`
-    // (serial-fill progress).
+    // tracking='lot_serial': lots with line children showing serial-fill progress
     const lotsWithLinesJson = sql`(
       SELECT COALESCE(
         json_agg(
@@ -324,8 +309,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     return { result, count };
   }
 
-  // For a given (receiptId, inventoryItemId, uomId), check if a row already exists. Matches the
-  // unique constraint (gr_id, inventory_item_id, uom_id) — used by the duplicate check on add.
+  // Finds an existing GR-item row by receipt, inventory item, and UOM for duplicate checks
   async findByReceiptInventoryItemAndUom(
     goodsReceiptId: string,
     inventoryItemId: string,
@@ -345,16 +329,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     return rows[0] as GoodsReceiptItem | undefined;
   }
 
-  // Used by autoAssociateSupplierPrice (PR5b). Returns each GR-item that has a captured
-  // `primary_uom_unit_price > 0`, along with the data needed to build a SUPPLIER_PRICE cost row:
-  //   - grItemId             — per-item allocation scope (the GR-item's quants)
-  //   - inventoryItemCode    — populated into the cost row's `notes`
-  //   - uomSymbol            — populated into the cost row's `notes`
-  //   - primaryUomUnitPrice  — captured at the breakdown step; minor-units bigint
-  //   - currencyCode         — currency on the gr_item
-  //   - vendorRef            — po.poNumber when linked, else null
-  // Works for both PO-linked and un-linked GRs. PR5b shifted the source from `po_items` to
-  // `goods_receipt_items` so un-linked GRs participate too.
+  // Returns GR-items with a captured supplier price plus the data to build SUPPLIER_PRICE cost rows
   async findGrItemsForAutoCost(goodsReceiptId: string): Promise<
     {
       grItemId: string;
@@ -399,8 +374,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     }));
   }
 
-  // Used by the publish flow — minimal projection: itemId, inventoryItemId, uomId, tracking,
-  // rejectedQuantity, poItemId
+  // Returns a minimal GR-item projection used by the publish flow
   async findByReceiptIdForPublish(goodsReceiptId: string): Promise<
     {
       id: string;
@@ -432,9 +406,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         and(
           eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
           eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
-          // Match the UOM too — without this, a PO that has the same item in multiple UOMs
-          // duplicates each GR-item row, which makes the publish loop run twice on the same line
-          // and double-insert serials. Matches the join in runRichSelect / the tree query.
+          // Match the UOM too to avoid duplicate GR-item rows when a PO repeats an item per UOM
           eq(purchaseOrderItems.uomId, goodsReceiptItems.uomId),
         ),
       )

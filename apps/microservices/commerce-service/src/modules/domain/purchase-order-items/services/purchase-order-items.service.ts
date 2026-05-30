@@ -32,9 +32,6 @@ export interface PurchaseOrderContext {
 export class PurchaseOrderItemsService {
   private readonly logger = new Logger(PurchaseOrderItemsService.name);
 
-  // PO statuses in which line-item edits are permitted. Once a line has been received against
-  // (item.receivedQuantity > 0) per-line constraints apply: qty cannot drop below received and
-  // the line cannot be deleted.
   private static readonly EDITABLE_STATUSES: PurchaseOrderStatus[] = [
     PurchaseOrderStatusValues.DRAFT,
     PurchaseOrderStatusValues.SENT,
@@ -52,8 +49,7 @@ export class PurchaseOrderItemsService {
 
   constructor(private readonly repository: PurchaseOrderItemsRepository) {}
 
-  // Returns paginated PO line options for the GR AddItem selector. Used when a GR is linked to a PO —
-  // the picker drives the GR add-item payload directly with (inventoryItemId, uomId, unitPrice).
+  // Returns paginated PO line options for the GR AddItem selector
   findForSelectByPo(
     poId: string,
     query: SelectOptionsQueryDto,
@@ -100,10 +96,7 @@ export class PurchaseOrderItemsService {
   }
 
   // Returns paginated line items for a PO table
-  async findForTable(
-    poId: string,
-    state: TableViewState,
-  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+  async findForTable(poId: string, state: TableViewState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, PurchaseOrderItemsService.ITEM_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, PurchaseOrderItemsService.ITEM_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -123,9 +116,7 @@ export class PurchaseOrderItemsService {
     };
   }
 
-  // Adds a line item. Allowed while the PO is in an editable status (see EDITABLE_STATUSES).
-  // A new line always starts with receivedQuantity = 0, so no per-line constraint applies on add.
-  // Does not call syncTotalAmount — that is the app-layer's responsibility.
+  // Adds a line item to a PO that is in an editable status
   async addItem(
     po: PurchaseOrderContext,
     data: AddPurchaseOrderItemDto,
@@ -155,10 +146,7 @@ export class PurchaseOrderItemsService {
     const unitPriceMinor = majorToMinor(data.unitPrice.value, poCode, 'unitPrice');
 
     const totalPriceMinor = BigInt(
-      new Decimal(unitPriceMinor.toString())
-        .times(data.uomQty)
-        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
-        .toFixed(0),
+      new Decimal(unitPriceMinor.toString()).times(data.uomQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
     );
 
     // Price per primary UOM unit = totalPrice / primaryUomQty (minor units ÷ decimal qty → minor units).
@@ -184,11 +172,7 @@ export class PurchaseOrderItemsService {
     this.logger.log(`Added item to PO ${po.poNumber} (${po.id})`);
   }
 
-  // Updates a line item. Allowed while the PO is in an editable status. Once the line has been
-  // received against (item.receivedQuantity > 0), inventoryItemId becomes locked and the new
-  // uomQty cannot drop below receivedQuantity. Unit price remains editable.
-  // Does not call syncTotalAmount — that is the app-layer's responsibility.
-  // `primaryUomQty` must already be computed for the effective ordered quantity (data.uomQty ?? existing).
+  // Updates a line item on a PO that is in an editable status
   async updateItem(
     po: PurchaseOrderContext,
     itemId: string,
@@ -268,9 +252,7 @@ export class PurchaseOrderItemsService {
     return { success: true, message: `Line item updated for purchase order "${po.poNumber}".` };
   }
 
-  // Removes a line item. Allowed while the PO is in an editable status and the line has not yet
-  // been received against (item.receivedQuantity === 0). Once received, the line is locked.
-  // Does not call syncTotalAmount — that is the app-layer's responsibility.
+  // Removes a line item from a PO when it is editable and not yet received against
   async removeItem(po: PurchaseOrderContext, itemId: string): Promise<SuccessResponseDto> {
     this.assertEditable(po);
 

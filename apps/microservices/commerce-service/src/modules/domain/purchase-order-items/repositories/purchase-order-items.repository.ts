@@ -6,7 +6,14 @@ import {
   type SelectQueryResult,
 } from '@vritti/api-sdk';
 import { aliasedTable, and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { categories, goodsReceiptItems, inventoryItems, type PurchaseOrderItem, purchaseOrderItems, uom } from '@/db/schema';
+import {
+  categories,
+  goodsReceiptItems,
+  inventoryItems,
+  type PurchaseOrderItem,
+  purchaseOrderItems,
+  uom,
+} from '@/db/schema';
 
 const orderUom = aliasedTable(uom, 'order_uom');
 
@@ -22,13 +29,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
     super(database, purchaseOrderItems);
   }
 
-  // Returns paginated PO line options for the GR AddItem selector when a PO is linked.
-  // Identity is `purchase_order_items.id`; inventory item's name = label. Additionals carry the
-  // resolved (inventoryItemId, uomId, unitPrice, currencyCode, allowDecimal, symbol,
-  // orderedQuantity, receivedQuantity) so the dialog can post the GR add-item payload directly.
-  // `orderedQuantity` is renamed from `uom_qty` via additionalExpressions; the rest resolve by
-  // column-name match on owned / joined tables. Composes via super.findForSelect so the base's
-  // pagination, additionalKeys handling, and bigint-string serialization apply.
+  // Returns paginated PO line options for the GR AddItem selector when a PO is linked
   findForSelectByPo(
     poId: string,
     config: FindForSelectConfig,
@@ -146,9 +147,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
     return (item as PurchaseOrderItem | undefined) ?? null;
   }
 
-  // Finds one PO line item by PO ID, inventory item ID, and UOM.
-  // Use for the dedup check on add/edit since uniqueness is the (po_id, item_id, uom_id) triple —
-  // the same inventory item is allowed multiple times if the UOMs differ (e.g., 5 cartons + 12 pieces).
+  // Finds one PO line item by PO ID, inventory item ID, and UOM for the dedup check
   async findItemByInventoryItemAndUom(
     poId: string,
     inventoryItemId: string,

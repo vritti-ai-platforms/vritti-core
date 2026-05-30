@@ -1,7 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
-import { costCategories } from './cost-categories';
 import { coreSchema } from './core-schema';
+import { costCategories } from './cost-categories';
 import { costDistributionMethodEnum, costSourceTypeEnum } from './enums';
 
 // Org-scoped cost row (no business_unit_id) so that future stock-transfer flows can keep the same
