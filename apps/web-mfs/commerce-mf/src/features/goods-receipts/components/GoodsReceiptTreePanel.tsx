@@ -42,7 +42,7 @@ const toTreeData = (nodes: GoodsReceiptTreeNode[]): TreeNodeData[] =>
     children: n.children?.length ? toTreeData(n.children) : undefined,
   }));
 
-const TreeRow = ({ item }: TreeRenderItemParams) => {
+const TreeRow = ({ item, isLeaf }: TreeRenderItemParams) => {
   const node = item as TreeNodeData;
   const Icon = node.kind === 'item' ? Package : node.kind === 'lot' ? Boxes : MapPin;
   return (
@@ -62,6 +62,8 @@ const TreeRow = ({ item }: TreeRenderItemParams) => {
       >
         {node.badge}
       </Badge>
+      {/* Leaf rows have no expand chevron — reserve its width so the badge column aligns with parent rows. */}
+      {isLeaf && <span aria-hidden className="h-4 w-4 shrink-0" />}
     </div>
   );
 };
@@ -148,6 +150,9 @@ export const GoodsReceiptTreePanel = ({
           data={treeData}
           isLoading={isLoading}
           initialSelectedItemId={selectedId}
+          selectedItemId={selectedId ?? null}
+          defaultDraggable={false}
+          defaultDroppable={false}
           onSelectChange={(item) => {
             if (!item) return onSelect(null);
             const node = item as TreeNodeData;

@@ -77,7 +77,9 @@ export interface GoodsReceiptItemData {
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
   inventoryItemAllowDecimal: boolean;
-  // derived from sum(lines.quantity)
+  // operator-declared accepted quantity for this item
+  quantity: number;
+  // distributed so far — sum(lines.quantity); item is balanced when this equals quantity
   acceptedQuantity: number;
   rejectedQuantity: number;
   lotsCount: number;
@@ -152,29 +154,52 @@ const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(und
 // from the row's stored price; user may edit. Optional — when absent the publish-time auto-associate
 // skips this item and the user can post the SUPPLIER_PRICE manually via Add Cost.
 
-export const addGoodsReceiptItemFromSupplierItemSchema = z.object({
-  supplierItemId: z.string({ error: 'Supplier item is required' }).uuid('Supplier item is required'),
-  rejectedQuantity: zOptionalNonNegativeNumber,
-  unitPrice: zodCurrencyField({ positive: true }).optional(),
-});
+// The operator-declared item quantity is required; integer unless the UOM allows decimals, and
+// (when PO-linked) capped by the PO line's remaining quantity. Built per mount like the line schema.
+function buildItemQuantityField(options: { allowDecimal: boolean; min?: number; max?: number }) {
+  return zodNumericField({
+    required: 'Quantity is required',
+    positive: true,
+    integer: !options.allowDecimal,
+    ...(options.min != null
+      ? { min: options.min, minMessage: `Cannot be less than the ${options.min} already distributed across lines.` }
+      : {}),
+    ...(options.max != null ? { max: options.max } : {}),
+  });
+}
+
+export function buildAddGoodsReceiptItemFromSupplierItemSchema(options: { allowDecimal: boolean; max?: number }) {
+  return z.object({
+    supplierItemId: z.string({ error: 'Supplier item is required' }).uuid('Supplier item is required'),
+    quantity: buildItemQuantityField(options),
+    rejectedQuantity: zOptionalNonNegativeNumber,
+    unitPrice: zodCurrencyField({ positive: true }).optional(),
+  });
+}
 export type AddGoodsReceiptItemFromSupplierItemFormData = z.infer<
-  typeof addGoodsReceiptItemFromSupplierItemSchema
+  ReturnType<typeof buildAddGoodsReceiptItemFromSupplierItemSchema>
 >;
 
-export const addGoodsReceiptItemFromPurchaseOrderItemSchema = z.object({
-  purchaseOrderItemId: z.string({ error: 'Purchase order line is required' }).uuid('Purchase order line is required'),
-  rejectedQuantity: zOptionalNonNegativeNumber,
-  unitPrice: zodCurrencyField({ positive: true }).optional(),
-});
+export function buildAddGoodsReceiptItemFromPurchaseOrderItemSchema(options: { allowDecimal: boolean; max?: number }) {
+  return z.object({
+    purchaseOrderItemId: z.string({ error: 'Purchase order line is required' }).uuid('Purchase order line is required'),
+    quantity: buildItemQuantityField(options),
+    rejectedQuantity: zOptionalNonNegativeNumber,
+    unitPrice: zodCurrencyField({ positive: true }).optional(),
+  });
+}
 export type AddGoodsReceiptItemFromPurchaseOrderItemFormData = z.infer<
-  typeof addGoodsReceiptItemFromPurchaseOrderItemSchema
+  ReturnType<typeof buildAddGoodsReceiptItemFromPurchaseOrderItemSchema>
 >;
 
-export const updateGoodsReceiptItemSchema = z.object({
-  rejectedQuantity: zOptionalNonNegativeNumber,
-  unitPrice: zodCurrencyField({ positive: true }).optional(),
-});
-export type UpdateGoodsReceiptItemFormData = z.infer<typeof updateGoodsReceiptItemSchema>;
+export function buildUpdateGoodsReceiptItemSchema(options: { allowDecimal: boolean; min?: number; max?: number }) {
+  return z.object({
+    quantity: buildItemQuantityField(options),
+    rejectedQuantity: zOptionalNonNegativeNumber,
+    unitPrice: zodCurrencyField({ positive: true }).optional(),
+  });
+}
+export type UpdateGoodsReceiptItemFormData = z.infer<ReturnType<typeof buildUpdateGoodsReceiptItemSchema>>;
 
 export const addGoodsReceiptLotSchema = z
   .object({

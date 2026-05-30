@@ -14859,6 +14859,10 @@
             "type": "string",
             "description": "Supplier item row ID — server resolves to (inventoryItemId, uomId)."
           },
+          "quantity": {
+            "type": "number",
+            "description": "Operator-declared accepted quantity for this item, in the item UOM."
+          },
           "rejectedQuantity": {
             "type": "number",
             "description": "Damage-on-arrival quantity (does not go to inventory)."
@@ -14873,7 +14877,8 @@
           }
         },
         "required": [
-          "supplierItemId"
+          "supplierItemId",
+          "quantity"
         ]
       },
       "AddGoodsReceiptItemFromPurchaseOrderItemDto": {
@@ -14882,6 +14887,10 @@
           "purchaseOrderItemId": {
             "type": "string",
             "description": "Purchase order line ID — server resolves to (inventoryItemId, uomId) after verifying it belongs to the GR's linked PO."
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Operator-declared accepted quantity for this item, in the item UOM. Capped by the PO line remaining quantity."
           },
           "rejectedQuantity": {
             "type": "number",
@@ -14897,12 +14906,17 @@
           }
         },
         "required": [
-          "purchaseOrderItemId"
+          "purchaseOrderItemId",
+          "quantity"
         ]
       },
       "UpdateGoodsReceiptItemDto": {
         "type": "object",
         "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Operator-declared accepted quantity for this item, in the item UOM."
+          },
           "rejectedQuantity": {
             "type": "number",
             "description": "Damage-on-arrival quantity (does not go to inventory)."

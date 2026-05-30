@@ -43,6 +43,7 @@ export class GoodsReceiptsItemsController {
     data: {
       goodsReceiptId: string;
       supplierItemId: string;
+      quantity: number;
       rejectedQuantity?: number;
       // bigint over NATS is serialized as string by the gateway to dodge JSON precision loss.
       unitPrice?: string;
@@ -52,6 +53,7 @@ export class GoodsReceiptsItemsController {
     this.logger.log(`goodsReceipts.addItemFromSupplierItem — supplierItem: ${data.supplierItemId}`);
     return this.itemsService.addItemFromSupplierItem(data.goodsReceiptId, {
       supplierItemId: data.supplierItemId,
+      quantity: data.quantity,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
       currencyCode: data.currencyCode,
@@ -64,6 +66,7 @@ export class GoodsReceiptsItemsController {
     data: {
       goodsReceiptId: string;
       purchaseOrderItemId: string;
+      quantity: number;
       rejectedQuantity?: number;
       unitPrice?: string;
       currencyCode?: string;
@@ -72,6 +75,7 @@ export class GoodsReceiptsItemsController {
     this.logger.log(`goodsReceipts.addItemFromPurchaseOrderItem — poItem: ${data.purchaseOrderItemId}`);
     return this.itemsService.addItemFromPurchaseOrderItem(data.goodsReceiptId, {
       purchaseOrderItemId: data.purchaseOrderItemId,
+      quantity: data.quantity,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
       currencyCode: data.currencyCode,
@@ -84,6 +88,7 @@ export class GoodsReceiptsItemsController {
     data: {
       goodsReceiptId: string;
       itemId: string;
+      quantity?: number;
       rejectedQuantity?: number;
       unitPrice?: string;
       currencyCode?: string;
@@ -91,6 +96,7 @@ export class GoodsReceiptsItemsController {
   ): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.updateItem');
     return this.itemsService.updateItem(data.goodsReceiptId, data.itemId, {
+      quantity: data.quantity,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
       currencyCode: data.currencyCode,

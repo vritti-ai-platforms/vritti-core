@@ -1,7 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Form } from '@vritti/quantum-ui/Form';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { useBUCurrency, useDialog } from '@vritti/quantum-ui/hooks';
 import { minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
@@ -9,7 +9,7 @@ import { PurchaseOrderItemSelector } from '@vritti/quantum-ui/selects/purchase-o
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   useAddGoodsReceiptItemFromPurchaseOrderItem,
@@ -18,8 +18,8 @@ import {
 import {
   type AddGoodsReceiptItemFromPurchaseOrderItemFormData,
   type AddGoodsReceiptItemFromSupplierItemFormData,
-  addGoodsReceiptItemFromPurchaseOrderItemSchema,
-  addGoodsReceiptItemFromSupplierItemSchema,
+  buildAddGoodsReceiptItemFromPurchaseOrderItemSchema,
+  buildAddGoodsReceiptItemFromSupplierItemSchema,
 } from '@/schemas/goods-receipts';
 
 interface AddItemDialogContext {
@@ -29,8 +29,8 @@ interface AddItemDialogContext {
 }
 
 // Two flows, kept side-by-side instead of a single mega-form, because the picker name, mutation
-// hook, and zod schema all differ between them. Sharing only the visual chrome (price + rejected
-// qty + buttons) is cheaper than collapsing the divergent identity into one schema.
+// hook, and zod schema all differ between them. Sharing only the visual chrome (quantity + price +
+// rejected qty + buttons) is cheaper than collapsing the divergent identity into one schema.
 
 const SupplierItemForm = ({
   goodsReceiptId,
@@ -39,18 +39,22 @@ const SupplierItemForm = ({
   onCancel,
 }: Pick<AddItemDialogContext, 'goodsReceiptId' | 'supplierId'> & { onSuccess: () => void; onCancel: () => void }) => {
   const buCurrencyCode = useBUCurrency() ?? 'INR';
+  // `allowDecimal` drives the quantity/rejected inputs — a UOM property of the picked row, not form state.
+  const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
+  // Schema depends on the selected row's allowDecimal, known only after select — keep the resolver
+  // pointed at the latest build via a ref so the dynamic integer rule applies without a remount.
+  const schema = useMemo(() => buildAddGoodsReceiptItemFromSupplierItemSchema({ allowDecimal }), [allowDecimal]);
+  const schemaRef = useRef(schema);
+  schemaRef.current = schema;
   const form = useForm<AddGoodsReceiptItemFromSupplierItemFormData>({
-    resolver: zodResolver(addGoodsReceiptItemFromSupplierItemSchema),
-    defaultValues: { supplierItemId: '', rejectedQuantity: undefined, unitPrice: undefined },
+    resolver: (values, context, options) => zodResolver(schemaRef.current)(values, context, options),
+    defaultValues: { supplierItemId: '', quantity: 0, rejectedQuantity: undefined, unitPrice: undefined },
   });
   const mutation = useAddGoodsReceiptItemFromSupplierItem(goodsReceiptId, { onSuccess });
-  // `allowDecimal` drives the rejected-qty input — can't be derived from form state since it's a
-  // UOM property of the picked supplier_items row.
-  const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
 
   const handleSelect = (option: SelectOption | null) => {
-    const rawMinor = option?.additionals?.unitPrice;
     setAllowDecimal(option?.additionals?.allowDecimal === true);
+    const rawMinor = option?.additionals?.unitPrice;
     if (rawMinor) {
       form.setValue('unitPrice', {
         currency: buCurrencyCode,
@@ -60,31 +64,43 @@ const SupplierItemForm = ({
   };
 
   const supplierItemId = form.watch('supplierItemId');
-  const prefillNote = supplierItemId
-    ? 'Filled in from the supplier catalog. Change it if the actual price was different.'
-    : undefined;
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
-      <SupplierItemSelector
-        name="supplierItemId"
-        params={{ supplierId, excludeOnGoodsReceiptId: goodsReceiptId }}
-        onOptionSelect={handleSelect}
-      />
-      <CurrencyField
-        name="unitPrice"
-        label="Supplier Unit Price"
-        currencyCode={buCurrencyCode}
-        description={prefillNote}
-      />
-      <TextField
-        name="rejectedQuantity"
-        label="Damaged on Arrival"
-        description="Optional. Quantity received but unusable — recorded for audit, not added to inventory."
-        type="number"
-        integer={!allowDecimal}
-        positive
-      />
+      <div className="flex flex-col gap-6">
+        <FormSection title="Item">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <SupplierItemSelector
+                name="supplierItemId"
+                params={{ supplierId, excludeOnGoodsReceiptId: goodsReceiptId }}
+                onOptionSelect={handleSelect}
+              />
+            </div>
+            <CurrencyField
+              name="unitPrice"
+              label="Unit Price"
+              currencyCode={buCurrencyCode}
+              disabled={!supplierItemId}
+              disabledTip="Pick an item first."
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Received">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField name="quantity" label="Quantity" type="number" integer={!allowDecimal} positive />
+            <TextField
+              name="rejectedQuantity"
+              label="Damaged on Arrival"
+              description="Optional. Items that arrived damaged or unusable."
+              type="number"
+              integer={!allowDecimal}
+              positive
+            />
+          </div>
+        </FormSection>
+      </div>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
           Cancel
@@ -102,16 +118,29 @@ const PurchaseOrderItemForm = ({
   onCancel,
 }: { goodsReceiptId: string; poId: string; onSuccess: () => void; onCancel: () => void }) => {
   const buCurrencyCode = useBUCurrency() ?? 'INR';
+  const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
+  const [poRemaining, setPoRemaining] = useState<number | undefined>(undefined);
+  const schema = useMemo(
+    () => buildAddGoodsReceiptItemFromPurchaseOrderItemSchema({ allowDecimal, max: poRemaining }),
+    [allowDecimal, poRemaining],
+  );
+  const schemaRef = useRef(schema);
+  schemaRef.current = schema;
   const form = useForm<AddGoodsReceiptItemFromPurchaseOrderItemFormData>({
-    resolver: zodResolver(addGoodsReceiptItemFromPurchaseOrderItemSchema),
-    defaultValues: { purchaseOrderItemId: '', rejectedQuantity: undefined, unitPrice: undefined },
+    resolver: (values, context, options) => zodResolver(schemaRef.current)(values, context, options),
+    defaultValues: { purchaseOrderItemId: '', quantity: 0, rejectedQuantity: undefined, unitPrice: undefined },
   });
   const mutation = useAddGoodsReceiptItemFromPurchaseOrderItem(goodsReceiptId, { onSuccess });
-  const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
 
   const handleSelect = (option: SelectOption | null) => {
-    const rawMinor = option?.additionals?.unitPrice;
     setAllowDecimal(option?.additionals?.allowDecimal === true);
+    // Prefill + cap the quantity at the PO line's remaining (ordered − received). Editable down.
+    const ordered = Number(option?.additionals?.orderedQuantity ?? 0);
+    const received = Number(option?.additionals?.receivedQuantity ?? 0);
+    const remaining = Math.max(ordered - received, 0);
+    setPoRemaining(remaining);
+    form.setValue('quantity', remaining);
+    const rawMinor = option?.additionals?.unitPrice;
     if (rawMinor) {
       form.setValue('unitPrice', {
         currency: buCurrencyCode,
@@ -121,32 +150,44 @@ const PurchaseOrderItemForm = ({
   };
 
   const purchaseOrderItemId = form.watch('purchaseOrderItemId');
-  const prefillNote = purchaseOrderItemId
-    ? 'Filled in from this PO. Change it if the actual price was different.'
-    : undefined;
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
-      <PurchaseOrderItemSelector
-        name="purchaseOrderItemId"
-        label="Purchase Order Item"
-        params={{ purchaseOrderId: poId, excludeOnGoodsReceiptId: goodsReceiptId }}
-        onOptionSelect={handleSelect}
-      />
-      <CurrencyField
-        name="unitPrice"
-        label="Supplier Unit Price"
-        currencyCode={buCurrencyCode}
-        description={prefillNote}
-      />
-      <TextField
-        name="rejectedQuantity"
-        label="Damaged on Arrival"
-        description="Optional. Quantity received but unusable — recorded for audit, not added to inventory."
-        type="number"
-        integer={!allowDecimal}
-        positive
-      />
+      <div className="flex flex-col gap-6">
+        <FormSection title="Item">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <PurchaseOrderItemSelector
+                name="purchaseOrderItemId"
+                label="Purchase Order Item"
+                params={{ purchaseOrderId: poId, excludeOnGoodsReceiptId: goodsReceiptId }}
+                onOptionSelect={handleSelect}
+              />
+            </div>
+            <CurrencyField
+              name="unitPrice"
+              label="Unit Price"
+              currencyCode={buCurrencyCode}
+              disabled={!purchaseOrderItemId}
+              disabledTip="Pick an item first."
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Received">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField name="quantity" label="Quantity" type="number" integer={!allowDecimal} positive max={poRemaining} />
+            <TextField
+              name="rejectedQuantity"
+              label="Damaged on Arrival"
+              description="Optional. Items that arrived damaged or unusable."
+              type="number"
+              integer={!allowDecimal}
+              positive
+            />
+          </div>
+        </FormSection>
+      </div>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
           Cancel
@@ -165,12 +206,9 @@ export const AddItemDialog = ({
 }: AddItemDialogContext & { handle: ReturnType<typeof useDialog> }) => (
   <Dialog
     handle={handle}
+    className="max-w-3xl"
     title="Add Item"
-    description={
-      poId
-        ? 'Pick a line from the linked purchase order. The price pre-fills from the PO.'
-        : 'Pick a supplier item to receive on this goods receipt. The price pre-fills from the supplier catalog.'
-    }
+    description={poId ? 'Add an item from the linked purchase order.' : 'Add an item to this goods receipt.'}
     content={(close) =>
       poId ? (
         <PurchaseOrderItemForm

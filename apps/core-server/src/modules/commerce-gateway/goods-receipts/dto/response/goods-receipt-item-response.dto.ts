@@ -9,7 +9,9 @@ export class GoodsReceiptItemResponseDto {
   inventoryItemTracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
   @ApiPropertyOptional({ nullable: true }) inventoryItemUomSymbol: string | null;
   @ApiProperty() inventoryItemAllowDecimal: boolean;
-  @ApiProperty({ description: 'Derived from sum(lines.quantity).' })
+  @ApiProperty({ description: 'Operator-declared accepted quantity for this item.' })
+  quantity: number;
+  @ApiProperty({ description: 'Distributed so far — sum(lines.quantity). Item is balanced when this equals quantity.' })
   acceptedQuantity: number;
   @ApiProperty() rejectedQuantity: number;
   @ApiProperty() lotsCount: number;

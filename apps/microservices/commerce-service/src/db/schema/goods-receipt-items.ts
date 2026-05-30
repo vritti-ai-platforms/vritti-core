@@ -33,6 +33,10 @@ export const goodsReceiptItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
+    // Operator-declared accepted quantity for this item, in the item's UOM. Capped by the PO line's
+    // remaining quantity when the GR is PO-linked; free otherwise. The item is balanced once its
+    // lines distribute exactly this much (SUM(lines.quantity) == quantity).
+    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     // Supplier price captured at the breakdown step. Pre-filled from PO when GR is linked, else
     // from supplier_items, then editable. Used by autoAssociateSupplierPrice at publish so this

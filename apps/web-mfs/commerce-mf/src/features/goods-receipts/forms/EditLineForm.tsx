@@ -91,11 +91,6 @@ export const EditLineForm = ({
         integer={!allowDecimal}
         min={minQty}
         max={effectiveMax}
-        description={
-          isSerial
-            ? `Currently ${line.lineItemsCount} of ${line.quantity} serials added. Adjusting this changes the expected count.`
-            : undefined
-        }
       />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

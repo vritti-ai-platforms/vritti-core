@@ -4,7 +4,7 @@ import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from 
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ClipboardList, Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   GOODS_RECEIPT_LINES_BY_LOT_TABLE_KEY,
@@ -120,46 +120,53 @@ export const LinesTable = ({
             } satisfies ColumnDef<GoodsReceiptLineData>,
           ]
         : []),
-      ...(isDraft
+      // Serial / lot_serial lines drill into their serials (View). Quantity / lot lines are leaves,
+      // edited and removed in place.
+      ...((isSerial && onSelectLine) || (!isSerial && isDraft)
         ? [
             {
               id: 'actions',
               header: '',
-              cell: ({ row }) => (
-                <RowActions
-                  actions={[
-                    {
-                      id: 'edit',
-                      icon: Pencil,
-                      label: 'Edit',
-                      dialog: {
-                        title: 'Edit Line',
-                        description: 'Update the storage location or quantity for this line.',
-                        content: (close) => (
-                          <EditLineForm
-                            goodsReceiptId={goodsReceiptId}
-                            itemId={scope.itemId}
-                            inventoryItemId={scope.inventoryItemId}
-                            line={row.original}
-                            tracking={tracking}
-                            allowDecimal={allowDecimal}
-                            poRemainingQuantity={poRemainingQuantity}
-                            onSuccess={close}
-                            onCancel={close}
-                          />
-                        ),
+              cell: ({ row }) =>
+                isSerial ? (
+                  <RowActions
+                    actions={[{ id: 'view', icon: Eye, label: 'View', onClick: () => onSelectLine?.(row.original.id) }]}
+                  />
+                ) : (
+                  <RowActions
+                    actions={[
+                      {
+                        id: 'edit',
+                        icon: Pencil,
+                        label: 'Edit',
+                        dialog: {
+                          title: 'Edit Line',
+                          description: 'Update the storage location or quantity for this line.',
+                          content: (close) => (
+                            <EditLineForm
+                              goodsReceiptId={goodsReceiptId}
+                              itemId={scope.itemId}
+                              inventoryItemId={scope.inventoryItemId}
+                              line={row.original}
+                              tracking={tracking}
+                              allowDecimal={allowDecimal}
+                              poRemainingQuantity={poRemainingQuantity}
+                              onSuccess={close}
+                              onCancel={close}
+                            />
+                          ),
+                        },
                       },
-                    },
-                    {
-                      id: 'delete',
-                      icon: Trash2,
-                      label: 'Remove',
-                      variant: 'destructive',
-                      onClick: () => handleRemoveLine(row.original),
-                    },
-                  ]}
-                />
-              ),
+                      {
+                        id: 'delete',
+                        icon: Trash2,
+                        label: 'Remove',
+                        variant: 'destructive',
+                        onClick: () => handleRemoveLine(row.original),
+                      },
+                    ]}
+                  />
+                ),
               enableSorting: false,
               enableHiding: false,
             } satisfies ColumnDef<GoodsReceiptLineData>,
@@ -167,16 +174,17 @@ export const LinesTable = ({
         : []),
     ],
     [
-      isDraft,
       isSerial,
-      tracking,
+      isDraft,
+      onSelectLine,
       uomSymbol,
+      tracking,
       scope.itemId,
-      goodsReceiptId,
-      handleRemoveLine,
       scope.inventoryItemId,
+      goodsReceiptId,
       allowDecimal,
       poRemainingQuantity,
+      handleRemoveLine,
     ],
   );
 

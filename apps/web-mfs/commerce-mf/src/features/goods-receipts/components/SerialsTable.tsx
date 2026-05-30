@@ -13,10 +13,9 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { Empty } from '@vritti/quantum-ui/Empty';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
-import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { ScanBarcodeButton } from '@vritti/quantum-ui/ScanBarcodeButton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -35,9 +34,10 @@ interface SerialsTableProps {
   goodsReceiptId: string;
   itemId: string;
   inventoryItemId: string;
-  line: GoodsReceiptLineData | null;
+  line: GoodsReceiptLineData;
   isDraft: boolean;
   allowDecimal: boolean;
+  poRemainingQuantity: number | null;
   onLineRemoved?: () => void;
 }
 
@@ -48,13 +48,14 @@ export const SerialsTable = ({
   line,
   isDraft,
   allowDecimal,
+  poRemainingQuantity,
   onLineRemoved,
 }: SerialsTableProps) => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const addSerialDialog = useDialog();
   const editLineDialog = useDialog();
-  const lineId = line?.id ?? null;
+  const lineId = line.id;
 
   const { data: response, isLoading } = useGoodsReceiptLineItemsTable(goodsReceiptId, itemId, lineId);
   const removeSerialMutation = useRemoveGoodsReceiptLineItem(goodsReceiptId, itemId, lineId ?? '');
@@ -171,18 +172,10 @@ export const SerialsTable = ({
     [confirm, removeSerialMutation, table],
   );
 
-  if (!line) {
-    return (
-      <PageContentDetails className="flex items-center justify-center">
-        <Empty icon={<Tags />} title="No line selected" description="Pick a line to add serials." />
-      </PageContentDetails>
-    );
-  }
-
   const lastSerial = response?.result?.[response.result.length - 1]?.serialNumber;
 
   return (
-    <PageContentDetails>
+    <>
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -198,16 +191,7 @@ export const SerialsTable = ({
           </div>
           {isDraft && (
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant={scanner.isActive ? 'default' : 'outline'}
-                startAdornment={<ScanBarcode className="size-4" />}
-                endAdornment={<KbdGroup className="ml-1" shortcut={scanner.toggleShortcut} />}
-                onClick={scanner.toggle}
-                disabled={!!line.isBalanced}
-              >
-                Scan Barcode
-              </Button>
+              <ScanBarcodeButton scanner={scanner} disabled={!!line.isBalanced} />
               <Button
                 size="sm"
                 variant="outline"
@@ -315,11 +299,12 @@ export const SerialsTable = ({
             line={line}
             tracking="serial"
             allowDecimal={allowDecimal}
+            poRemainingQuantity={poRemainingQuantity}
             onSuccess={close}
             onCancel={close}
           />
         )}
       />
-    </PageContentDetails>
+    </>
   );
 };

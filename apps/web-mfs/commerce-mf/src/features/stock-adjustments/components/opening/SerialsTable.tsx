@@ -18,6 +18,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { ScanBarcodeButton } from '@vritti/quantum-ui/ScanBarcodeButton';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
@@ -208,9 +209,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold">Serials</h3>
               {line && (
-                <Badge
-                  variant={line.isBalanced ? 'success' : 'warning'}
-                >
+                <Badge variant={line.isBalanced ? 'success' : 'warning'}>
                   {line.lineItemsCount}/{line.uomQty} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
                 </Badge>
               )}
@@ -221,15 +220,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
           </div>
           {isDraft && (
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant={scanner.isActive ? 'default' : 'outline'}
-                startAdornment={<ScanBarcode className="size-4" />}
-                endAdornment={<KbdGroup className="ml-1" shortcut={scanner.toggleShortcut} />}
-                onClick={scanner.toggle}
-              >
-                Scan Barcode
-              </Button>
+              <ScanBarcodeButton scanner={scanner} />
               <Button
                 size="sm"
                 variant="outline"

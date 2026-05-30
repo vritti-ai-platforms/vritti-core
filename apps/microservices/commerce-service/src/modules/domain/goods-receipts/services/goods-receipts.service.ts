@@ -290,10 +290,8 @@ export class GoodsReceiptsService {
     const isPublishable = items.every((item) => {
       if (item.unbalancedLinesCount > 0) return false;
       if (item.acceptedQuantity <= 0) return false;
-      if (item.poOrderedQuantity != null) {
-        const remaining = Number(item.poOrderedQuantity) - Number(item.poReceivedQuantity ?? 0);
-        if (item.acceptedQuantity > remaining + 1e-9) return false;
-      }
+      // Balanced ⇔ the lines distribute exactly the declared item quantity.
+      if (Math.abs(item.acceptedQuantity - Number(item.quantity)) > 1e-9) return false;
       return true;
     });
     return { isPublishable, canLinkPurchaseOrder, canUnlinkPurchaseOrder };

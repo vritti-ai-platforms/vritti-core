@@ -97,6 +97,7 @@ export class GoodsReceiptItemsService {
     goodsReceiptId: string,
     data: {
       supplierItemId: string;
+      quantity: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
@@ -113,9 +114,11 @@ export class GoodsReceiptItemsService {
       });
     }
 
+    // Un-linked GR: the accepted quantity is uncapped.
     return this.addItemInternal(receipt, {
       inventoryItemId: supplierItem.inventoryItemId,
       uomId: supplierItem.uomId,
+      quantity: data.quantity,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice,
       currencyCode: data.currencyCode,
@@ -127,6 +130,7 @@ export class GoodsReceiptItemsService {
     goodsReceiptId: string,
     data: {
       purchaseOrderItemId: string;
+      quantity: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
@@ -150,9 +154,13 @@ export class GoodsReceiptItemsService {
       });
     }
 
+    // PO-linked: the accepted quantity can't exceed what's still outstanding on the PO line.
+    this.validateQuantityAgainstPoRemaining(data.quantity, Number(poItem.uomQty), Number(poItem.receivedQuantity ?? 0));
+
     return this.addItemInternal(receipt, {
       inventoryItemId: poItem.inventoryItemId,
       uomId: poItem.uomId,
+      quantity: data.quantity,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice,
       currencyCode: data.currencyCode,
@@ -165,6 +173,7 @@ export class GoodsReceiptItemsService {
     data: {
       inventoryItemId: string;
       uomId: string;
+      quantity: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
@@ -183,6 +192,7 @@ export class GoodsReceiptItemsService {
       });
     }
 
+    this.validateAcceptedQuantity(data.quantity);
     if (data.rejectedQuantity !== undefined) {
       this.validateRejectedQuantity(data.rejectedQuantity);
     }
@@ -197,6 +207,7 @@ export class GoodsReceiptItemsService {
       goodsReceiptId: receipt.id,
       inventoryItemId: data.inventoryItemId,
       uomId: data.uomId,
+      quantity: data.quantity,
       rejectedQuantity: data.rejectedQuantity ?? 0,
       unitPrice: data.unitPrice ?? null,
       primaryUomUnitPrice,
@@ -217,20 +228,35 @@ export class GoodsReceiptItemsService {
     goodsReceiptId: string,
     itemId: string,
     data: {
+      quantity?: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
     },
   ): Promise<SuccessResponseDto> {
     await this.ensureEditableReceipt(goodsReceiptId);
-    const item = await this.itemsRepository.findByReceiptIdAndItemId(goodsReceiptId, itemId);
+    const item = await this.itemsRepository.findByReceiptIdAndItemIdWithRefs(goodsReceiptId, itemId);
     if (!item) throw new NotFoundException('Goods receipt item not found.');
 
+    if (data.quantity !== undefined) {
+      this.validateAcceptedQuantity(data.quantity);
+      // PO-linked: keep the accepted quantity within the PO line's outstanding amount. Lowering it
+      // below what's already distributed across lines is allowed — the item just shows unbalanced
+      // until the operator removes lines.
+      if (item.poOrderedQuantity != null) {
+        this.validateQuantityAgainstPoRemaining(
+          data.quantity,
+          Number(item.poOrderedQuantity),
+          Number(item.poReceivedQuantity ?? 0),
+        );
+      }
+    }
     if (data.rejectedQuantity !== undefined) {
       this.validateRejectedQuantity(data.rejectedQuantity);
     }
 
     const update: Record<string, unknown> = {};
+    if (data.quantity !== undefined) update.quantity = data.quantity;
     if (data.rejectedQuantity !== undefined) update.rejectedQuantity = data.rejectedQuantity;
     if (data.unitPrice !== undefined) {
       update.unitPrice = data.unitPrice;
@@ -259,6 +285,25 @@ export class GoodsReceiptItemsService {
   private validateRejectedQuantity(rejectedQuantity: number) {
     if (!Number.isFinite(rejectedQuantity) || rejectedQuantity < 0) {
       throw new BadRequestException('rejectedQuantity must be greater than or equal to 0.');
+    }
+  }
+
+  private validateAcceptedQuantity(quantity: number) {
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      throw new ValidationException({
+        detail: 'Quantity must be greater than 0.',
+        errors: [{ field: 'quantity', message: 'Quantity must be greater than 0.' }],
+      });
+    }
+  }
+
+  private validateQuantityAgainstPoRemaining(quantity: number, poOrderedQuantity: number, poReceivedQuantity: number) {
+    const remaining = poOrderedQuantity - poReceivedQuantity;
+    if (quantity > remaining + 1e-9) {
+      throw new ValidationException({
+        detail: `Quantity ${quantity} exceeds the remaining PO quantity ${remaining}.`,
+        errors: [{ field: 'quantity', message: 'Exceeds the remaining PO quantity.' }],
+      });
     }
   }
 

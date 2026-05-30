@@ -56,29 +56,20 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       FROM vritti_core.goods_receipt_lines
       WHERE goods_receipt_item_id = ${goodsReceiptItems.id}
     )`;
-    // Balanced when it has lines, none unbalanced, and any PO remaining quantity is 0
+    // Balanced when the lines distribute exactly the operator-declared item quantity (and there are
+    // lines, none serial-unbalanced). Decoupled from the PO — the PO only caps the quantity at entry.
     const itemBalanced = sql`(
       ${itemLinesCount} > 0
       AND ${itemUnbalanced} = 0
-      AND CASE
-        WHEN ${purchaseOrderItems.uomQty} IS NOT NULL
-        THEN (${purchaseOrderItems.uomQty} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0)) = 0
-        ELSE TRUE
-      END
+      AND ${acceptedQty} = ${goodsReceiptItems.quantity}
     )`;
-    const itemBadge = sql`CASE
-      WHEN ${purchaseOrderItems.uomQty} IS NOT NULL
-      THEN CONCAT(
-        trim_scale(${acceptedQty})::text,
-        '/',
-        trim_scale(${purchaseOrderItems.uomQty} - COALESCE(${purchaseOrderItems.receivedQuantity}, 0))::text,
-        CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
-      )
-      ELSE CONCAT(
-        trim_scale(${acceptedQty})::text,
-        CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
-      )
-    END`;
+    // Badge reads `<distributed>/<item quantity> <uom>` for every item.
+    const itemBadge = sql`CONCAT(
+      trim_scale(${acceptedQty})::text,
+      '/',
+      trim_scale(${goodsReceiptItems.quantity})::text,
+      CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
+    )`;
 
     // tracking='lot': lots as leaves, badge is the lot's accepted total
     const lotsOnlyJson = sql`(
@@ -193,15 +184,6 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       .from(goodsReceiptItems)
       .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
       .leftJoin(uom, eq(goodsReceiptItems.uomId, uom.id))
-      .leftJoin(goodsReceipts, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id))
-      .leftJoin(
-        purchaseOrderItems,
-        and(
-          eq(purchaseOrderItems.purchaseOrderId, goodsReceipts.purchaseOrderId),
-          eq(purchaseOrderItems.inventoryItemId, goodsReceiptItems.inventoryItemId),
-          eq(purchaseOrderItems.uomId, goodsReceiptItems.uomId),
-        ),
-      )
       .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId))
       .orderBy(asc(goodsReceiptItems.createdAt));
 
@@ -272,6 +254,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         businessUnitId: goodsReceiptItems.businessUnitId,
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
+        quantity: goodsReceiptItems.quantity,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         metadata: goodsReceiptItems.metadata,
         createdAt: goodsReceiptItems.createdAt,
@@ -446,6 +429,8 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         businessUnitId: goodsReceiptItems.businessUnitId,
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
+        uomId: goodsReceiptItems.uomId,
+        quantity: goodsReceiptItems.quantity,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         unitPrice: goodsReceiptItems.unitPrice,
         primaryUomUnitPrice: goodsReceiptItems.primaryUomUnitPrice,

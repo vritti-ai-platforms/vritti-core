@@ -1,11 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
 
 export class AddGoodsReceiptItemFromSupplierItemDto {
   @ApiProperty({ description: 'Supplier item row ID — server resolves to (inventoryItemId, uomId).' })
   @IsUUID()
   supplierItemId: string;
+
+  @ApiProperty({ description: 'Operator-declared accepted quantity for this item, in the item UOM.' })
+  @IsNumber()
+  @IsPositive()
+  quantity: number;
 
   @ApiPropertyOptional({ description: 'Damage-on-arrival quantity (does not go to inventory).' })
   @IsOptional()
@@ -26,6 +31,11 @@ export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
   @ApiProperty({ description: 'Purchase order line ID — server resolves to (inventoryItemId, uomId) after verifying it belongs to the GR\'s linked PO.' })
   @IsUUID()
   purchaseOrderItemId: string;
+
+  @ApiProperty({ description: 'Operator-declared accepted quantity for this item, in the item UOM. Capped by the PO line remaining quantity.' })
+  @IsNumber()
+  @IsPositive()
+  quantity: number;
 
   @ApiPropertyOptional({ description: 'Damage-on-arrival quantity (does not go to inventory).' })
   @IsOptional()

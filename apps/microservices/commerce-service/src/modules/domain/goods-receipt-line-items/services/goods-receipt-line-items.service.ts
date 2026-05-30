@@ -106,7 +106,6 @@ export class GoodsReceiptLineItemsService {
     }
 
     await this.validateSerialForRegister(ctx.inventoryItemId, trimmed);
-    await this.linesService.validatePoCap(ctx, 1, lineId);
 
     // 23505 race fallback handled globally by api-sdk's pg-error filter.
     const entity = await this.repository.create({ goodsReceiptLineId: lineId, serialNumber: trimmed });

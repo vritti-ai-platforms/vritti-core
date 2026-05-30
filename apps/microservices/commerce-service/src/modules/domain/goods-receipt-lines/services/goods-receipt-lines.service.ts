@@ -28,9 +28,7 @@ interface ItemContext {
   itemId: string;
   inventoryItemId: string;
   tracking: InventoryTracking;
-  poItemId: string | null;
-  poOrderedQuantity: number | null;
-  poReceivedQuantity: number | null;
+  itemQuantity: number;
 }
 
 @Injectable()
@@ -118,7 +116,7 @@ export class GoodsReceiptLinesService {
     }
 
     if (!isSerial) {
-      await this.validatePoCap(ctx, data.quantity);
+      await this.validateItemQuantityCap(ctx, data.quantity);
     }
 
     // Reject a duplicate (item, lot?, location) line
@@ -177,7 +175,7 @@ export class GoodsReceiptLinesService {
       ctx.tracking === InventoryTrackingValues.SERIAL || ctx.tracking === InventoryTrackingValues.LOT_SERIAL;
     if (!isSerial && data.quantity !== undefined) {
       // PO cap re-check using the new quantity (excluding this line's existing contribution)
-      await this.validatePoCap(ctx, data.quantity, lineId);
+      await this.validateItemQuantityCap(ctx, data.quantity, lineId);
     }
 
     // Re-check the duplicate guard when lot or location changed, excluding this line
@@ -225,16 +223,14 @@ export class GoodsReceiptLinesService {
     void itemId;
   }
 
-  // Validates that the item's total quantity does not exceed the remaining PO quantity
-  async validatePoCap(ctx: ItemContext, additionalQuantity: number, excludeLineId?: string): Promise<void> {
-    if (!ctx.poItemId || ctx.poOrderedQuantity == null) return;
+  // Validates that the lines' distributed total does not exceed the item's declared quantity
+  async validateItemQuantityCap(ctx: ItemContext, additionalQuantity: number, excludeLineId?: string): Promise<void> {
     const currentSum = await this.repository.totalQuantityForItem(ctx.itemId, excludeLineId);
-    const remaining = ctx.poOrderedQuantity - (ctx.poReceivedQuantity ?? 0);
     const total = currentSum + additionalQuantity;
-    if (total > remaining + 1e-9) {
+    if (total > ctx.itemQuantity + 1e-9) {
       throw new ValidationException({
-        detail: `Total quantity ${total} exceeds remaining PO quantity ${remaining}.`,
-        errors: [{ field: 'quantity', message: 'Exceeds remaining PO quantity.' }],
+        detail: `Total distributed quantity ${total} exceeds the item quantity ${ctx.itemQuantity}.`,
+        errors: [{ field: 'quantity', message: 'Exceeds the item quantity.' }],
       });
     }
   }
@@ -287,9 +283,7 @@ export class GoodsReceiptLinesService {
       itemId,
       inventoryItemId: item.inventoryItemId,
       tracking: item.inventoryItemTracking,
-      poItemId: item.poItemId,
-      poOrderedQuantity: item.poOrderedQuantity != null ? Number(item.poOrderedQuantity) : null,
-      poReceivedQuantity: item.poReceivedQuantity != null ? Number(item.poReceivedQuantity) : null,
+      itemQuantity: Number(item.quantity),
     };
   }
 

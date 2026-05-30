@@ -58,6 +58,8 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
       conditions,
       additionalExpressions: {
         orderedQuantity: sql`${purchaseOrderItems.uomQty}`,
+        receivedQuantity: sql`COALESCE(${purchaseOrderItems.receivedQuantity}, 0)`,
+        allowDecimal: sql`${orderUom.allowDecimal}`,
       },
     });
   }

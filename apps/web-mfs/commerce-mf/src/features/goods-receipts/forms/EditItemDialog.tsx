@@ -8,9 +8,9 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
 import { useUpdateGoodsReceiptItem } from '@/hooks/goods-receipts';
 import {
+  buildUpdateGoodsReceiptItemSchema,
   type GoodsReceiptItemData,
   type UpdateGoodsReceiptItemFormData,
-  updateGoodsReceiptItemSchema,
 } from '@/schemas/goods-receipts';
 
 const EditItemForm = ({
@@ -25,9 +25,17 @@ const EditItemForm = ({
   onCancel: () => void;
 }) => {
   const buCurrencyCode = useBUCurrency() ?? 'INR';
+  // PO remaining (ordered − received) caps the quantity for PO-linked items; for a draft it excludes
+  // this receipt, so it's the correct editable ceiling. Null (un-linked) → uncapped.
+  const maxQuantity = item.poRemainingQuantity ?? undefined;
+  // Can't drop below what's already distributed across lots/lines.
+  const minQuantity = item.acceptedQuantity > 0 ? item.acceptedQuantity : undefined;
   const form = useForm<UpdateGoodsReceiptItemFormData>({
-    resolver: zodResolver(updateGoodsReceiptItemSchema),
+    resolver: zodResolver(
+      buildUpdateGoodsReceiptItemSchema({ allowDecimal: item.inventoryItemAllowDecimal, min: minQuantity, max: maxQuantity }),
+    ),
     defaultValues: {
+      quantity: item.quantity,
       rejectedQuantity: item.rejectedQuantity,
       unitPrice: item.unitPrice ?? undefined,
     },
@@ -41,10 +49,20 @@ const EditItemForm = ({
       mutation={mutation}
       onCancel={onCancel}
       transformSubmit={(data) => ({
+        quantity: data.quantity,
         rejectedQuantity: data.rejectedQuantity ?? 0,
         unitPrice: data.unitPrice && data.unitPrice.value ? data.unitPrice : undefined,
       })}
     >
+      <TextField
+        name="quantity"
+        label="Quantity"
+        type="number"
+        integer={!item.inventoryItemAllowDecimal}
+        positive
+        min={minQuantity}
+        max={maxQuantity}
+      />
       <CurrencyField
         name="unitPrice"
         label="Supplier Unit Price"

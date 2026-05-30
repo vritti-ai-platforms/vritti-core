@@ -18,6 +18,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
+import { ScanBarcodeButton } from '@vritti/quantum-ui/ScanBarcodeButton';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
@@ -206,15 +207,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
         </div>
         {isDraft && (
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant={scanner.isActive ? 'default' : 'outline'}
-              startAdornment={<ScanBarcode className="size-3.5" />}
-              endAdornment={<KbdGroup className="ml-1" shortcut={scanner.toggleShortcut} />}
-              onClick={scanner.toggle}
-            >
-              Scan Barcode
-            </Button>
+            <ScanBarcodeButton scanner={scanner} />
             <Button
               size="sm"
               variant="outline"

@@ -23,17 +23,20 @@ export interface CreateGoodsReceiptPayload {
 
 export interface AddGoodsReceiptItemFromSupplierItemPayload {
   supplierItemId: string;
+  quantity: number;
   rejectedQuantity?: number;
   unitPrice?: { currency: string; value: string };
 }
 
 export interface AddGoodsReceiptItemFromPurchaseOrderItemPayload {
   purchaseOrderItemId: string;
+  quantity: number;
   rejectedQuantity?: number;
   unitPrice?: { currency: string; value: string };
 }
 
 export interface UpdateGoodsReceiptItemPayload {
+  quantity?: number;
   rejectedQuantity?: number;
   unitPrice?: { currency: string; value: string };
 }
