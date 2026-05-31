@@ -9,6 +9,8 @@ export interface ConversionPair {
 }
 
 export interface UomRow {
+  name: string;
+  symbol: string;
   baseUomQty: number;
   uomQty: number;
   dimensionId: string;
@@ -50,6 +52,8 @@ export class UomConversionsRepository extends PrimaryBaseRepository<typeof inven
   async findUom(uomId: string): Promise<UomRow | null> {
     const [row] = await this.db
       .select({
+        name: uom.name,
+        symbol: uom.symbol,
         baseUomQty: uom.baseUomQty,
         uomQty: uom.uomQty,
         dimensionId: uom.dimensionId,
@@ -57,6 +61,17 @@ export class UomConversionsRepository extends PrimaryBaseRepository<typeof inven
       })
       .from(uom)
       .where(eq(uom.id, uomId))
+      .limit(1);
+    return row ?? null;
+  }
+
+  // Primary UOM id + name in one read — used by resolveFactor so it doesn't re-query the item just
+  // to label an error.
+  async findInventoryItem(inventoryItemId: string): Promise<{ primaryUomId: string; name: string } | null> {
+    const [row] = await this.db
+      .select({ primaryUomId: inventoryItems.uomId, name: inventoryItems.name })
+      .from(inventoryItems)
+      .where(eq(inventoryItems.id, inventoryItemId))
       .limit(1);
     return row ?? null;
   }
@@ -101,6 +116,8 @@ export class UomConversionsRepository extends PrimaryBaseRepository<typeof inven
     const rows = await this.db
       .select({
         id: uom.id,
+        name: uom.name,
+        symbol: uom.symbol,
         baseUomQty: uom.baseUomQty,
         uomQty: uom.uomQty,
         dimensionId: uom.dimensionId,

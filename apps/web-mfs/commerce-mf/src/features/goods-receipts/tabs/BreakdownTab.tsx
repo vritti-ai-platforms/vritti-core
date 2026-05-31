@@ -20,6 +20,7 @@ export const BreakdownTab: React.FC<BreakdownTabProps> = ({ receipt, isDraft }) 
         isDraft={isDraft}
         poId={receipt.po?.id ?? null}
         supplierId={receipt.supplierId}
+        supplierCurrencyCode={receipt.supplierCurrencyCode}
         selection={selection}
         onSelect={setSelection}
       />

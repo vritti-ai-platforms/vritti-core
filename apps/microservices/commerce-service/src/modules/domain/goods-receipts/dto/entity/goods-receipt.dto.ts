@@ -6,6 +6,7 @@ export class GoodsReceiptDto {
   grNumber: string;
   supplierId: string;
   supplierName: string;
+  supplierCurrencyCode: string;
   status: string;
   isPublishable?: boolean;
   canLinkPurchaseOrder?: boolean;
@@ -31,6 +32,7 @@ export class GoodsReceiptDto {
     },
     refs?: {
       supplierName?: string | null;
+      supplierCurrencyCode?: string | null;
       poId?: string | null;
       poNumber?: string | null;
       poOrderDate?: string | null;
@@ -44,6 +46,7 @@ export class GoodsReceiptDto {
     dto.grNumber = entity.grNumber;
     dto.supplierId = entity.supplierId;
     dto.supplierName = refs?.supplierName ?? '';
+    dto.supplierCurrencyCode = refs?.supplierCurrencyCode ?? '';
     dto.status = entity.status;
     if (entity.isPublishable !== undefined) dto.isPublishable = entity.isPublishable;
     if (entity.canLinkPurchaseOrder !== undefined) dto.canLinkPurchaseOrder = entity.canLinkPurchaseOrder;

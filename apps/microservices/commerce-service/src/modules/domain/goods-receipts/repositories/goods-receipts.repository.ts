@@ -130,6 +130,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
   async findByIdWithRefs(id: string): Promise<
     | (typeof goodsReceipts.$inferSelect & {
         supplierName: string | null;
+        supplierCurrencyCode: string | null;
         poNumber: string | null;
         poOrderDate: string | null;
         poExpectedBy: string | null;
@@ -155,6 +156,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         costAssociatedAt: goodsReceipts.costAssociatedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
+        supplierCurrencyCode: suppliers.currencyCode,
         poNumber: purchaseOrders.poNumber,
         poOrderDate: purchaseOrders.orderDate,
         poExpectedBy: purchaseOrders.expectedBy,

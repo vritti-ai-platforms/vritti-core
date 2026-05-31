@@ -1,5 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
+import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -70,43 +70,45 @@ const LotDetailContent = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="space-y-6">
+        <div className="flex items-start justify-between gap-4">
           <h3 className="text-xl font-semibold">{lot.lotNumber}</h3>
-          <div className="mt-1 grid grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            <div>
-              Mfg: <FormattedDate value={lot.manufacturingDate} dateFormat="P" />
+          {isDraft && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                startAdornment={<Pencil className="size-3.5" />}
+                onClick={editLotDialog.open}
+              >
+                Edit Lot
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                startAdornment={<Trash2 className="size-3.5" />}
+                onClick={handleRemoveLot}
+                isLoading={removeLotMutation.isPending}
+              >
+                Remove Lot
+              </Button>
             </div>
-            <div>
-              Exp: <FormattedDate value={lot.expiryDate} dateFormat="P" />
-            </div>
-            <div>
-              Total: {lot.totalQuantity} {uomSymbol ?? ''}
-            </div>
-            <div>Lines: {lot.linesCount}</div>
-          </div>
+          )}
         </div>
-        {isDraft && (
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              startAdornment={<Pencil className="size-3.5" />}
-              onClick={editLotDialog.open}
-            >
-              Edit Lot
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              startAdornment={<Trash2 className="size-3.5" />}
-              onClick={handleRemoveLot}
-              isLoading={removeLotMutation.isPending}
-            >
-              Remove Lot
-            </Button>
-          </div>
-        )}
+        <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
+          <DetailSection wrap>
+            <DetailField className="px-4 py-2" label="Mfg Date" type="date" value={lot.manufacturingDate} />
+            <DetailField className="px-4 py-2" label="Exp Date" type="date" value={lot.expiryDate} />
+            <DetailField
+              className="px-4 py-2"
+              label="Total"
+              type="string"
+              mono
+              value={`${lot.totalQuantity} ${uomSymbol ?? ''}`}
+            />
+            <DetailField className="px-4 py-2" label="Lines" type="number" value={lot.linesCount} />
+          </DetailSection>
+        </div>
       </div>
 
       <LinesTable

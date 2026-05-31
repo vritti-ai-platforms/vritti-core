@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, asc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { type InventoryItemUomConversion, inventoryItems, inventoryItemUomConversions, uom } from '@/db/schema';
+import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  type InventoryItemUomConversion,
+  inventoryItems,
+  inventoryItemUomConversions,
+  supplierItems,
+  uom,
+} from '@/db/schema';
 
 export type ConversionWithUom = InventoryItemUomConversion & {
   uomName: string | null;
@@ -76,5 +82,25 @@ export class InventoryItemUomConversionsRepository extends PrimaryBaseRepository
       .where(eq(inventoryItems.id, inventoryItemId))
       .limit(1);
     return row?.uomId;
+  }
+
+  // True when a supplier item is priced in this (inventory item, UOM) pair — deleting the
+  // conversion would orphan it, so the delete is blocked.
+  async isUsedBySupplierItem(inventoryItemId: string, uomId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ one: sql<number>`1` })
+      .from(supplierItems)
+      .where(and(eq(supplierItems.inventoryItemId, inventoryItemId), eq(supplierItems.uomId, uomId)))
+      .limit(1);
+    return !!row;
+  }
+
+  // UOM ids referenced by supplier items for this inventory item — drives per-row canDelete.
+  async findUomIdsUsedBySupplierItems(inventoryItemId: string): Promise<string[]> {
+    const rows = await this.db
+      .selectDistinct({ uomId: supplierItems.uomId })
+      .from(supplierItems)
+      .where(eq(supplierItems.inventoryItemId, inventoryItemId));
+    return rows.map((r) => r.uomId);
   }
 }

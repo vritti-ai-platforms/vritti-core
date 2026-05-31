@@ -123,17 +123,29 @@ interface ItemHeaderProps {
 }
 
 const ItemHeader = ({ item, uomSymbol, isDraft, onEdit, onRemove, isRemovePending }: ItemHeaderProps) => (
-  <div className="flex items-start justify-between gap-4">
-    <div>
+  <div className="space-y-6">
+    <div className="flex items-start justify-between gap-4">
       <h3 className="text-xl font-semibold">{item.inventoryItemName}</h3>
-      <DetailSection wrap className="mt-2">
-        <DetailField
-          className="px-4 py-2"
-          label="Quantity"
-          type="string"
-          mono
-          value={`${item.quantity} ${uomSymbol}`}
-        />
+      {isDraft && (
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" startAdornment={<Pencil className="size-3.5" />} onClick={onEdit}>
+            Edit Item
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            startAdornment={<Trash2 className="size-3.5" />}
+            onClick={onRemove}
+            isLoading={isRemovePending}
+          >
+            Remove Item
+          </Button>
+        </div>
+      )}
+    </div>
+    <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
+      <DetailSection wrap>
+        <DetailField className="px-4 py-2" label="Quantity" type="string" mono value={`${item.quantity} ${uomSymbol}`} />
         <DetailField
           className="px-4 py-2"
           label="Distributed"
@@ -148,48 +160,32 @@ const ItemHeader = ({ item, uomSymbol, isDraft, onEdit, onRemove, isRemovePendin
           mono
           value={`${item.rejectedQuantity} ${uomSymbol}`}
         />
-        {item.poOrderedQuantity != null && (
-          <>
-            <DetailField
-              className="px-4 py-2"
-              label="PO Ordered"
-              type="string"
-              mono
-              value={`${item.poOrderedQuantity} ${uomSymbol}`}
-            />
-            <DetailField
-              className="px-4 py-2"
-              label="PO Received"
-              type="string"
-              mono
-              value={`${item.poReceivedQuantity ?? 0} ${uomSymbol}`}
-            />
-            <DetailField
-              className="px-4 py-2"
-              label="PO Remaining"
-              type="string"
-              mono
-              value={`${item.poRemainingQuantity ?? 0} ${uomSymbol}`}
-            />
-          </>
-        )}
       </DetailSection>
+      {item.poOrderedQuantity != null && (
+        <DetailSection wrap>
+          <DetailField
+            className="px-4 py-2"
+            label="PO Ordered"
+            type="string"
+            mono
+            value={`${item.poOrderedQuantity} ${uomSymbol}`}
+          />
+          <DetailField
+            className="px-4 py-2"
+            label="PO Received"
+            type="string"
+            mono
+            value={`${item.poReceivedQuantity ?? 0} ${uomSymbol}`}
+          />
+          <DetailField
+            className="px-4 py-2"
+            label="PO Remaining"
+            type="string"
+            mono
+            value={`${item.poRemainingQuantity ?? 0} ${uomSymbol}`}
+          />
+        </DetailSection>
+      )}
     </div>
-    {isDraft && (
-      <div className="flex items-center gap-2">
-        <Button size="sm" variant="outline" startAdornment={<Pencil className="size-3.5" />} onClick={onEdit}>
-          Edit Item
-        </Button>
-        <Button
-          size="sm"
-          variant="destructive"
-          startAdornment={<Trash2 className="size-3.5" />}
-          onClick={onRemove}
-          isLoading={isRemovePending}
-        >
-          Remove Item
-        </Button>
-      </div>
-    )}
   </div>
 );

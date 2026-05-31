@@ -2,7 +2,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { useBUCurrency, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { PurchaseOrderItemSelector } from '@vritti/quantum-ui/selects/purchase-order-item';
@@ -25,6 +25,8 @@ import {
 interface AddItemDialogContext {
   goodsReceiptId: string;
   supplierId: string;
+  // Supplier (transaction) currency — GR-item prices are entered in this, not the BU currency.
+  supplierCurrencyCode: string;
   poId?: string | null;
 }
 
@@ -35,10 +37,13 @@ interface AddItemDialogContext {
 const SupplierItemForm = ({
   goodsReceiptId,
   supplierId,
+  supplierCurrencyCode,
   onSuccess,
   onCancel,
-}: Pick<AddItemDialogContext, 'goodsReceiptId' | 'supplierId'> & { onSuccess: () => void; onCancel: () => void }) => {
-  const buCurrencyCode = useBUCurrency() ?? 'INR';
+}: Pick<AddItemDialogContext, 'goodsReceiptId' | 'supplierId' | 'supplierCurrencyCode'> & {
+  onSuccess: () => void;
+  onCancel: () => void;
+}) => {
   // `allowDecimal` drives the quantity/rejected inputs — a UOM property of the picked row, not form state.
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
   // Schema depends on the selected row's allowDecimal, known only after select — keep the resolver
@@ -57,8 +62,8 @@ const SupplierItemForm = ({
     const rawMinor = option?.additionals?.unitPrice;
     if (rawMinor) {
       form.setValue('unitPrice', {
-        currency: buCurrencyCode,
-        value: minorToMajor(rawMinor.toString(), buCurrencyCode),
+        currency: supplierCurrencyCode,
+        value: minorToMajor(rawMinor.toString(), supplierCurrencyCode),
       });
     }
   };
@@ -80,7 +85,7 @@ const SupplierItemForm = ({
             <CurrencyField
               name="unitPrice"
               label="Unit Price"
-              currencyCode={buCurrencyCode}
+              currencyCode={supplierCurrencyCode}
               disabled={!supplierItemId}
               disabledTip="Pick an item first."
             />
@@ -114,10 +119,16 @@ const SupplierItemForm = ({
 const PurchaseOrderItemForm = ({
   goodsReceiptId,
   poId,
+  supplierCurrencyCode,
   onSuccess,
   onCancel,
-}: { goodsReceiptId: string; poId: string; onSuccess: () => void; onCancel: () => void }) => {
-  const buCurrencyCode = useBUCurrency() ?? 'INR';
+}: {
+  goodsReceiptId: string;
+  poId: string;
+  supplierCurrencyCode: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}) => {
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
   const [poRemaining, setPoRemaining] = useState<number | undefined>(undefined);
   const schema = useMemo(
@@ -143,8 +154,8 @@ const PurchaseOrderItemForm = ({
     const rawMinor = option?.additionals?.unitPrice;
     if (rawMinor) {
       form.setValue('unitPrice', {
-        currency: buCurrencyCode,
-        value: minorToMajor(rawMinor.toString(), buCurrencyCode),
+        currency: supplierCurrencyCode,
+        value: minorToMajor(rawMinor.toString(), supplierCurrencyCode),
       });
     }
   };
@@ -167,7 +178,7 @@ const PurchaseOrderItemForm = ({
             <CurrencyField
               name="unitPrice"
               label="Unit Price"
-              currencyCode={buCurrencyCode}
+              currencyCode={supplierCurrencyCode}
               disabled={!purchaseOrderItemId}
               disabledTip="Pick an item first."
             />
@@ -201,6 +212,7 @@ const PurchaseOrderItemForm = ({
 export const AddItemDialog = ({
   goodsReceiptId,
   supplierId,
+  supplierCurrencyCode,
   poId,
   handle,
 }: AddItemDialogContext & { handle: ReturnType<typeof useDialog> }) => (
@@ -214,6 +226,7 @@ export const AddItemDialog = ({
         <PurchaseOrderItemForm
           goodsReceiptId={goodsReceiptId}
           poId={poId}
+          supplierCurrencyCode={supplierCurrencyCode}
           onSuccess={close}
           onCancel={close}
         />
@@ -221,6 +234,7 @@ export const AddItemDialog = ({
         <SupplierItemForm
           goodsReceiptId={goodsReceiptId}
           supplierId={supplierId}
+          supplierCurrencyCode={supplierCurrencyCode}
           onSuccess={close}
           onCancel={close}
         />

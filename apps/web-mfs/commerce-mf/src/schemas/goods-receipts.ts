@@ -46,6 +46,7 @@ export interface GoodsReceiptData {
   canLinkPurchaseOrder?: boolean;
   canUnlinkPurchaseOrder?: boolean;
   supplierName: string;
+  supplierCurrencyCode: string;
   po: GoodsReceiptPoData | null;
   receivedDate: string;
   notes: string | null;

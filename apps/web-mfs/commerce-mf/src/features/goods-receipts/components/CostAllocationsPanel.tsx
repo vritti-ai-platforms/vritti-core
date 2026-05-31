@@ -1,5 +1,5 @@
-import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { useFormatters } from '@vritti/quantum-ui/hooks';
+import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { useCostAllocations } from '@/hooks/goods-receipts';
 
 interface CostAllocationsPanelProps {
@@ -16,9 +16,7 @@ export const CostAllocationsPanel = ({ goodsReceiptId, costId }: CostAllocations
 
   return (
     <div className="px-3 py-2">
-      <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
-        Per-quant allocation
-      </div>
+      <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">Per-quant allocation</div>
       <div className="overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-muted-foreground">

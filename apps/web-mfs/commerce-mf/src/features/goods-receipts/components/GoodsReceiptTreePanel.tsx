@@ -22,6 +22,7 @@ interface GoodsReceiptTreePanelProps {
   isDraft: boolean;
   poId: string | null;
   supplierId: string;
+  supplierCurrencyCode: string;
   selection: TreeSelection | null;
   onSelect: (selection: TreeSelection | null) => void;
 }
@@ -109,6 +110,7 @@ export const GoodsReceiptTreePanel = ({
   isDraft,
   poId,
   supplierId,
+  supplierCurrencyCode,
   selection,
   onSelect,
 }: GoodsReceiptTreePanelProps) => {
@@ -176,6 +178,7 @@ export const GoodsReceiptTreePanel = ({
       <AddItemDialog
         goodsReceiptId={goodsReceiptId}
         supplierId={supplierId}
+        supplierCurrencyCode={supplierCurrencyCode}
         poId={poId}
         handle={addItemDialog}
       />

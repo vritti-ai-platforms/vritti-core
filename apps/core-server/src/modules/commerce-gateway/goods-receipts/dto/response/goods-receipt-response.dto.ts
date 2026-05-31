@@ -30,6 +30,9 @@ export class GoodsReceiptResponseDto {
   @ApiProperty()
   supplierName: string;
 
+  @ApiProperty({ description: 'Supplier transaction currency (ISO 4217) — the currency GR-item prices are entered in' })
+  supplierCurrencyCode: string;
+
   @ApiProperty()
   status: string;
 

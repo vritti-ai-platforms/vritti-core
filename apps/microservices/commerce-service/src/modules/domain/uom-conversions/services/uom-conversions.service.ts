@@ -78,8 +78,9 @@ export class UomConversionsService {
   // Resolves the "primary units per uom unit" factor for an (inventory item, uom) pair.
   // Per-item conversion wins; otherwise we go through the dimension base via the global uom pair.
   private async resolveFactor(inventoryItemId: string, uomId: string): Promise<Decimal> {
-    const inventoryItemPrimaryUomId = await this.repository.findInventoryItemPrimaryUomId(inventoryItemId);
-    if (!inventoryItemPrimaryUomId) throw new NotFoundException(`Inventory item ${inventoryItemId} not found.`);
+    const inventoryItem = await this.repository.findInventoryItem(inventoryItemId);
+    if (!inventoryItem) throw new NotFoundException(`Inventory item ${inventoryItemId} not found.`);
+    const inventoryItemPrimaryUomId = inventoryItem.primaryUomId;
     if (inventoryItemPrimaryUomId === uomId) return new Decimal(1);
 
     const conversion = await this.repository.findInventoryItemConversion(inventoryItemId, uomId);
@@ -93,7 +94,7 @@ export class UomConversionsService {
       throw new NotFoundException(`Inventory item primary UOM ${inventoryItemPrimaryUomId} not found.`);
     }
     if (!targetUom) throw new NotFoundException(`UOM ${uomId} not found.`);
-    assertSharedBase(inventoryItemPrimaryUom, inventoryItemPrimaryUomId, targetUom, uomId, inventoryItemId);
+    assertSharedBase(inventoryItemPrimaryUom, inventoryItemPrimaryUomId, targetUom, uomId, inventoryItem.name);
     return globalPairToInventoryItemFactor(targetUom, inventoryItemPrimaryUom);
   }
 }
@@ -121,16 +122,20 @@ function effectiveBaseId(uomRow: UomRow, uomId: string): string {
 // A global conversion only exists when both UOMs share an effective base unit.
 // Two distinct base UOMs (each with baseUnitId=null) in the same dimension have no derivable
 // relationship — they require a per-inventory-item conversion row.
+function formatUom(uomRow: UomRow): string {
+  return uomRow.symbol ? `${uomRow.name} (${uomRow.symbol})` : uomRow.name;
+}
+
 function assertSharedBase(
   inventoryItemPrimaryUom: UomRow,
   inventoryItemPrimaryUomId: string,
   targetUom: UomRow,
   targetUomId: string,
-  inventoryItemId: string,
+  inventoryItemLabel: string,
 ): void {
   if (effectiveBaseId(inventoryItemPrimaryUom, inventoryItemPrimaryUomId) !== effectiveBaseId(targetUom, targetUomId)) {
     throw new BadRequestException(
-      `No conversion from UOM ${targetUomId} to inventory item ${inventoryItemId}'s primary UOM. Add a per-inventory-item conversion row to define one.`,
+      `No UOM conversion from ${formatUom(targetUom)} to ${formatUom(inventoryItemPrimaryUom)} for "${inventoryItemLabel}". Add one to continue.`,
     );
   }
 }

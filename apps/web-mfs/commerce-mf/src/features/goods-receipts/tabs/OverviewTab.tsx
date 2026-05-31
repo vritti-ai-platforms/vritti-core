@@ -10,12 +10,7 @@ interface OverviewTabProps {
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ receipt }) => {
   const buCurrencyCode = useBUCurrency();
-  // We only render the exchange-rate field when there's a meaningful conversion to surface — i.e.
-  // when supplier currency differs from BU (which is the only case where the schema lets `exchange_rate`
-  // be anything other than 1). The directional label `XXX → YYY` only appears when we have both
-  // sides: PO-linked GR gives us the supplier currency via `po.totalAmount.currency`; un-linked GRs
-  // currently don't carry the supplier currency on this DTO, so the rate renders bare.
-  const supplierCurrencyCode = receipt.po?.totalAmount.currency ?? null;
+  const supplierCurrencyCode = receipt.supplierCurrencyCode;
   const showExchangeRate = receipt.exchangeRate !== 1;
 
   return (
@@ -28,6 +23,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ receipt }) => {
           <div className="grid grid-cols-2 gap-6">
             <DetailField label="GR Number" type="string" mono value={receipt.grNumber} />
             <DetailField label="Supplier" type="string" value={receipt.supplierName} />
+            <DetailField label="Supplier Currency" type="string" mono value={supplierCurrencyCode} />
             <DetailField label="Status" type="string" value={receipt.status} />
             <DetailField label="Publishable" type="string" value={receipt.isPublishable ? 'Yes' : 'No'} />
             <DetailField label="Received Date" type="date" value={receipt.receivedDate} />

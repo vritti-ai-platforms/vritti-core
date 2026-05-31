@@ -160,6 +160,7 @@ export class GoodsReceiptsService {
       { ...gr, isPublishable, canLinkPurchaseOrder, canUnlinkPurchaseOrder },
       {
         supplierName: gr.supplierName,
+        supplierCurrencyCode: gr.supplierCurrencyCode,
         poId: gr.purchaseOrderId ?? null,
         poNumber: gr.poNumber,
         poOrderDate: gr.poOrderDate ?? null,

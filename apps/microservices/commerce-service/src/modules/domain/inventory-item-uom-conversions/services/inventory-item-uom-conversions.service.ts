@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  ConflictException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
@@ -51,7 +52,12 @@ export class InventoryItemUomConversionsService {
       offset,
     });
 
-    return { result: result.map((row) => InventoryItemUomConversionDto.from(row, currentBuId)), count };
+    const usedUomIds = new Set(await this.repository.findUomIdsUsedBySupplierItems(inventoryItemId));
+
+    return {
+      result: result.map((row) => InventoryItemUomConversionDto.from(row, currentBuId, usedUomIds.has(row.uomId))),
+      count,
+    };
   }
 
   // Creates a per-item UOM conversion. Only base UOMs (no global derivation) are eligible —
@@ -129,6 +135,13 @@ export class InventoryItemUomConversionsService {
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
+
+    if (await this.repository.isUsedBySupplierItem(existing.inventoryItemId, existing.uomId)) {
+      const unit = existing.uomSymbol ? `${existing.uomName} (${existing.uomSymbol})` : existing.uomName;
+      throw new ConflictException(
+        `Can't delete the ${unit ?? 'unit'} conversion — a supplier item is priced in this unit. Remove or repoint those supplier items first.`,
+      );
+    }
 
     await this.repository.delete(id);
     this.logger.log(`Deleted UOM conversion ${id}`);
