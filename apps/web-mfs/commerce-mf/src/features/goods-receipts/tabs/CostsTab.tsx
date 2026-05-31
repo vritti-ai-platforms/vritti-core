@@ -166,7 +166,7 @@ export const CostsTab = ({ goodsReceiptId, isDraft }: CostsTabProps) => {
   const total = data?.totalAmount;
   const perUnit = data?.perUnitCost;
   const kindBreakdown = data?.kindBreakdown ?? [];
-  const populatedKinds = kindBreakdown.filter((k) => BigInt(k.amount.value || '0') !== 0n);
+  const populatedKinds = kindBreakdown.filter((k) => Number(k.amount.value || '0') !== 0);
   const showAutoAssociateWarning = !isLoading && data?.costAssociatedAt == null;
 
   return (

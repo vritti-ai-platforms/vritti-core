@@ -7,6 +7,7 @@ import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goo
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
+import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import {
   type CreateNewQuantParams,
   InventoryItemQuantsService,
@@ -33,6 +34,7 @@ export class GoodsReceiptsPublishService {
     private readonly linesRepository: GoodsReceiptLinesRepository,
     private readonly lineItemsRepository: GoodsReceiptLineItemsRepository,
     private readonly quantsService: InventoryItemQuantsService,
+    private readonly lotsService: InventoryItemLotsService,
     private readonly ledgerService: InventoryItemLedgerService,
     private readonly receiptsService: GoodsReceiptsService,
     private readonly uomConversionsService: UomConversionsService,
@@ -63,6 +65,8 @@ export class GoodsReceiptsPublishService {
 
         // Track accepted quantity in the GR-item UOM for the PO cap check
         let acceptedInItemUom = 0;
+        // Resolve each receipt lot to an inventory lot once, then reuse across its lines.
+        const resolvedLotIdByGrLot = new Map<string, string>();
 
         for (const line of lines) {
           const lineQuantity = line.quantity; // in gr_item.uom_id
@@ -100,6 +104,24 @@ export class GoodsReceiptsPublishService {
             throw new BadRequestException(`Line ${line.id} has no serials.`);
           }
 
+          // App-layer resolves the inventory lot (find-or-create) for lot/lot_serial lines, since
+          // createNewQuantScoped requires a pre-resolved lotId. Cached per receipt lot.
+          let resolvedLotId: string | null = null;
+          if (requiresLot && line.goodsReceiptLotId && lotInfo) {
+            resolvedLotId = resolvedLotIdByGrLot.get(line.goodsReceiptLotId) ?? null;
+            if (!resolvedLotId) {
+              const lot = await this.lotsService.findOrCreateLot({
+                inventoryItemId: item.inventoryItemId,
+                lotNumber: lotInfo.lotNumber,
+                manufacturingDate: lotInfo.manufacturingDate,
+                expiryDate: lotInfo.expiryDate,
+              });
+              resolvedLotId = lot.id;
+              resolvedLotIdByGrLot.set(line.goodsReceiptLotId, resolvedLotId);
+              await this.lotsRepository.setResolvedLotId(line.goodsReceiptLotId, resolvedLotId);
+            }
+          }
+
           // Convert the line's quantity to the inventory item's primary UOM
           const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
             item.inventoryItemId,
@@ -121,7 +143,7 @@ export class GoodsReceiptsPublishService {
           if (item.tracking === InventoryTrackingValues.QUANTITY) {
             createParams = { ...base, tracking: InventoryTrackingValues.QUANTITY };
           } else if (item.tracking === InventoryTrackingValues.LOT) {
-            createParams = { ...base, tracking: InventoryTrackingValues.LOT, lot: lotInfo!, lotId: null };
+            createParams = { ...base, tracking: InventoryTrackingValues.LOT, lot: lotInfo!, lotId: resolvedLotId };
           } else if (item.tracking === InventoryTrackingValues.SERIAL) {
             createParams = { ...base, tracking: InventoryTrackingValues.SERIAL, serialNumbers: serials! };
           } else {
@@ -129,16 +151,13 @@ export class GoodsReceiptsPublishService {
               ...base,
               tracking: InventoryTrackingValues.LOT_SERIAL,
               lot: lotInfo!,
-              lotId: null,
+              lotId: resolvedLotId,
               serialNumbers: serials!,
             };
           }
 
-          const { quant, lot: createdLot } = await this.quantsService.createNewQuantScoped(createParams);
+          const { quant } = await this.quantsService.createNewQuantScoped(createParams);
           await this.linesRepository.setResolvedQuant(line.id, quant.id);
-          if (createdLot && line.goodsReceiptLotId) {
-            await this.lotsRepository.setResolvedLotId(line.goodsReceiptLotId, createdLot.id);
-          }
 
           // Record the ledger entry in primary UOM to match the quant's UOM
           await this.ledgerService.createEntry({
