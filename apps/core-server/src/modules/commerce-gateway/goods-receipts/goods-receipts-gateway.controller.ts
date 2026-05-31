@@ -23,6 +23,7 @@ import type {
 } from './dto/response/cost-response.dto';
 import type { GoodsReceiptItemResponseDto } from './dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from './dto/response/goods-receipt-item-table-response.dto';
+import type { GoodsReceiptItemsCostResponseDto } from './dto/response/goods-receipt-items-cost-response.dto';
 import type { GoodsReceiptLineItemResponseDto } from './dto/response/goods-receipt-line-item-response.dto';
 import type { GoodsReceiptLineItemTableResponseDto } from './dto/response/goods-receipt-line-item-table-response.dto';
 import type { GoodsReceiptLineResponseDto } from './dto/response/goods-receipt-line-response.dto';
@@ -148,6 +149,12 @@ export class GoodsReceiptsGatewayController {
   itemsTable(@Param('id') goodsReceiptId: string, @UserId() userId: string): Promise<GoodsReceiptItemTableResponseDto> {
     this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/table`);
     return this.service.findItemsTable(goodsReceiptId, userId);
+  }
+
+  @Get(':id/items/cost')
+  itemsCost(@Param('id') goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/cost`);
+    return this.service.findItemsCost(goodsReceiptId);
   }
 
   @Post(':id/items/from-supplier-item')

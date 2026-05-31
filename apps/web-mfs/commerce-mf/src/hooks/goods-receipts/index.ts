@@ -33,6 +33,8 @@ export { useDeleteGoodsReceipt } from './useDeleteGoodsReceipt';
 export { useGoodsReceipt } from './useGoodsReceipt';
 export { useGoodsReceiptInventoryItemIds } from './useGoodsReceiptInventoryItemIds';
 export { useGoodsReceiptItem } from './useGoodsReceiptItem';
+export { useGoodsReceiptItemsCost } from './useGoodsReceiptItemsCost';
+export { useGoodsReceiptItemsTable } from './useGoodsReceiptItemsTable';
 export { useGoodsReceiptLine } from './useGoodsReceiptLine';
 export { useGoodsReceiptLineItemsTable } from './useGoodsReceiptLineItemsTable';
 export { useGoodsReceiptLinesByLotTable } from './useGoodsReceiptLinesByLotTable';

@@ -1,4 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import type { InventoryTracking } from '@/db/schema';
 import type { GoodsReceiptItemWithRefs } from '../../repositories/goods-receipt-items.repository';
 
@@ -19,6 +20,7 @@ export class GoodsReceiptItemDto {
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
   unitPrice: CurrencyAmountDto | null;
+  lineTotal: CurrencyAmountDto | null;
   metadata: Record<string, unknown>;
   createdAt: string;
 
@@ -40,10 +42,15 @@ export class GoodsReceiptItemDto {
     dto.poReceivedQuantity = row.poReceivedQuantity != null ? Number(row.poReceivedQuantity) : null;
     dto.poRemainingQuantity =
       dto.poOrderedQuantity != null ? dto.poOrderedQuantity - (dto.poReceivedQuantity ?? 0) : null;
-    dto.unitPrice =
-      row.unitPrice != null && row.currencyCode
-        ? CurrencyAmountDto.from(BigInt(row.unitPrice as unknown as string), row.currencyCode)
-        : null;
+    if (row.unitPrice != null && row.currencyCode) {
+      const unitPriceMinor = BigInt(row.unitPrice as unknown as string);
+      dto.unitPrice = CurrencyAmountDto.from(unitPriceMinor, row.currencyCode);
+      const lineTotalMinor = BigInt(new Decimal(unitPriceMinor.toString()).times(dto.quantity).toFixed(0));
+      dto.lineTotal = CurrencyAmountDto.from(lineTotalMinor, row.currencyCode);
+    } else {
+      dto.unitPrice = null;
+      dto.lineTotal = null;
+    }
     dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;
     dto.createdAt = row.createdAt.toISOString();
     return dto;

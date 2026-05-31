@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CurrencyAmountDto } from '@vritti/api-sdk';
 
 export class GoodsReceiptItemResponseDto {
   @ApiProperty() id: string;
@@ -19,6 +20,8 @@ export class GoodsReceiptItemResponseDto {
   @ApiPropertyOptional({ nullable: true }) poOrderedQuantity: number | null;
   @ApiPropertyOptional({ nullable: true }) poReceivedQuantity: number | null;
   @ApiPropertyOptional({ nullable: true }) poRemainingQuantity: number | null;
+  @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true }) unitPrice: CurrencyAmountDto | null;
+  @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true }) lineTotal: CurrencyAmountDto | null;
   @ApiProperty() metadata: Record<string, unknown>;
   @ApiProperty() createdAt: string;
 }

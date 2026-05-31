@@ -17,6 +17,7 @@ import Decimal from '@vritti/api-sdk/decimal';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
+import { GoodsReceiptItemsCostDto } from '../dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
@@ -77,6 +78,12 @@ export class GoodsReceiptItemsService {
     });
 
     return { result: result.map(GoodsReceiptItemDto.from), count };
+  }
+
+  async findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostDto> {
+    await this.ensureReceiptExists(goodsReceiptId);
+    const items = await this.itemsRepository.findByReceiptId(goodsReceiptId);
+    return GoodsReceiptItemsCostDto.from(items);
   }
 
   async findById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemDto> {

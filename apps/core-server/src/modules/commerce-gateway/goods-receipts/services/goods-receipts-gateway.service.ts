@@ -20,6 +20,7 @@ import type { UpdateGoodsReceiptLineDto } from '../dto/request/update-goods-rece
 import type { UpdateGoodsReceiptLotDto } from '../dto/request/update-goods-receipt-lot.dto';
 import type { GoodsReceiptItemResponseDto } from '../dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from '../dto/response/goods-receipt-item-table-response.dto';
+import type { GoodsReceiptItemsCostResponseDto } from '../dto/response/goods-receipt-items-cost-response.dto';
 import type { GoodsReceiptLineItemResponseDto } from '../dto/response/goods-receipt-line-item-response.dto';
 import type { GoodsReceiptLineItemTableResponseDto } from '../dto/response/goods-receipt-line-item-table-response.dto';
 import type { GoodsReceiptLineResponseDto } from '../dto/response/goods-receipt-line-response.dto';
@@ -138,6 +139,11 @@ export class GoodsReceiptsGatewayService {
 
   findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
     return this.nats.send('commerce', 'goodsReceipts.inventoryItemIds', { goodsReceiptId });
+  }
+
+  findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
+    this.logger.log(`goodsReceipts.itemsCost — gr: ${goodsReceiptId}`);
+    return this.nats.send('commerce', 'goodsReceipts.itemsCost', { goodsReceiptId });
   }
 
   async findItemsTable(goodsReceiptId: string, userId: string): Promise<GoodsReceiptItemTableResponseDto> {

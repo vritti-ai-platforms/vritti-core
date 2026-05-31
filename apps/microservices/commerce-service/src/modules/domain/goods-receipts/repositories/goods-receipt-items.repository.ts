@@ -256,6 +256,8 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         inventoryItemId: goodsReceiptItems.inventoryItemId,
         quantity: goodsReceiptItems.quantity,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
+        unitPrice: goodsReceiptItems.unitPrice,
+        currencyCode: goodsReceiptItems.currencyCode,
         metadata: goodsReceiptItems.metadata,
         createdAt: goodsReceiptItems.createdAt,
         updatedAt: goodsReceiptItems.updatedAt,

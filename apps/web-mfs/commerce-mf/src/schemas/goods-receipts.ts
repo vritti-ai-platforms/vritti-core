@@ -89,8 +89,25 @@ export interface GoodsReceiptItemData {
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
   unitPrice: { currency: string; value: string } | null;
+  lineTotal: { currency: string; value: string } | null;
   metadata: Record<string, unknown>;
   createdAt: string;
+}
+
+export interface GoodsReceiptItemsCostRow {
+  id: string;
+  inventoryItemId: string;
+  inventoryItemName: string;
+  uomSymbol: string;
+  quantity: number;
+  unitPrice: { currency: string; value: string } | null;
+  lineTotal: { currency: string; value: string } | null;
+}
+
+export interface GoodsReceiptItemsCostData {
+  rows: GoodsReceiptItemsCostRow[];
+  currencyCode: string | null;
+  grandTotal: { currency: string; value: string } | null;
 }
 
 export interface GoodsReceiptLotData {

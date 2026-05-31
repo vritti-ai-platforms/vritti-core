@@ -1,4 +1,5 @@
 import type { GoodsReceiptItemDto } from '@domain/goods-receipts/dto/entity/goods-receipt-item.dto';
+import type { GoodsReceiptItemsCostDto } from '@domain/goods-receipts/dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '@domain/goods-receipts/dto/entity/goods-receipt-tree.dto';
 import { GoodsReceiptItemsService } from '@domain/goods-receipts/services/goods-receipt-items.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -35,6 +36,12 @@ export class GoodsReceiptsItemsController {
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     this.logger.log('goodsReceipts.itemsTable');
     return this.itemsService.findForTable(data.goodsReceiptId, data);
+  }
+
+  @MessagePattern({ cmd: 'goodsReceipts.itemsCost' })
+  itemsCost(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptItemsCostDto> {
+    this.logger.log(`goodsReceipts.itemsCost — receipt: ${data.goodsReceiptId}`);
+    return this.itemsService.findItemsCost(data.goodsReceiptId);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.addItemFromSupplierItem' })
