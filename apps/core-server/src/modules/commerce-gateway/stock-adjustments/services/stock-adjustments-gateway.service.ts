@@ -1,7 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
+  type CurrencyCode,
   DataTableStateService,
+  majorToMinor,
   NatsClientService,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
@@ -136,12 +138,21 @@ export class StockAdjustmentsGatewayService {
 
   async create(dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
     this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
-    return this.nats.send('commerce', 'stockAdjustments.create', dto);
+    const { unitCost, ...rest } = dto;
+    return this.nats.send('commerce', 'stockAdjustments.create', {
+      ...rest,
+      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency as CurrencyCode).toString() : undefined,
+    });
   }
 
   async update(id: string, dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
     this.logger.log(`stockAdjustments.update — id: ${id}`);
-    return this.nats.send('commerce', 'stockAdjustments.update', { id, ...dto });
+    const { unitCost, ...rest } = dto;
+    return this.nats.send('commerce', 'stockAdjustments.update', {
+      id,
+      ...rest,
+      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency as CurrencyCode).toString() : undefined,
+    });
   }
 
   async addOpeningLine(

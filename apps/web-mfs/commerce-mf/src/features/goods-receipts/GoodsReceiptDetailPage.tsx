@@ -115,7 +115,7 @@ export const GoodsReceiptDetailPage = () => {
           {
             value: 'items-cost',
             label: 'Items Cost',
-            content: <ItemsCostTab goodsReceiptId={receipt.id} />,
+            content: <ItemsCostTab goodsReceiptId={receipt.id} isDraft={isDraft} />,
           },
         ]}
         value={activeTab}

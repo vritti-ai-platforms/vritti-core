@@ -169,6 +169,8 @@ export const StockAdjustmentDetailPage = () => {
           <EditStockAdjustmentDialog
             adjustmentId={adjustment.id}
             reason={adjustment.reason}
+            type={adjustment.type}
+            unitCost={adjustment.unitCost}
             onSuccess={close}
             onCancel={close}
           />

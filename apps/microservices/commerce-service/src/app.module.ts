@@ -12,7 +12,6 @@ import { CostCategoriesModule } from './modules/cost-categories/cost-categories.
 import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.module';
-import { InventoryItemCostsModule } from './modules/inventory-item-costs/inventory-item-costs.module';
 import { InventoryItemsModule } from './modules/inventory-items/inventory-items.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { ItemsModule } from './modules/items/items.module';
@@ -67,7 +66,6 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
     }),
     CategoriesModule,
     CostCategoriesModule,
-    InventoryItemCostsModule,
     ItemsModule,
     ModifierGroupsModule,
     TaxGroupsModule,

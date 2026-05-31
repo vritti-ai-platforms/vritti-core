@@ -9,18 +9,12 @@ import {
 import { AddGoodsReceiptLineDto } from './dto/request/add-goods-receipt-line.dto';
 import { AddGoodsReceiptLineItemDto } from './dto/request/add-goods-receipt-line-item.dto';
 import { AddGoodsReceiptLotDto } from './dto/request/add-goods-receipt-lot.dto';
-import { AssociateGoodsReceiptCostDto } from './dto/request/associate-cost.dto';
 import { CreateGoodsReceiptDto } from './dto/request/create-goods-receipt.dto';
 import { LinkGoodsReceiptPurchaseOrderDto } from './dto/request/link-goods-receipt-purchase-order.dto';
-import { UpdateGoodsReceiptCostDto } from './dto/request/update-cost.dto';
 import { UpdateGoodsReceiptItemDto } from './dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from './dto/request/update-goods-receipt-line.dto';
 import { UpdateGoodsReceiptLotDto } from './dto/request/update-goods-receipt-lot.dto';
-import type {
-  CostAllocationResponseDto,
-  GoodsReceiptCostResponseDto,
-  GoodsReceiptCostsResponseDto,
-} from './dto/response/cost-response.dto';
+import type { GoodsReceiptItemQuantsResponseDto } from './dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemResponseDto } from './dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from './dto/response/goods-receipt-item-table-response.dto';
 import type { GoodsReceiptItemsCostResponseDto } from './dto/response/goods-receipt-items-cost-response.dto';
@@ -97,46 +91,6 @@ export class GoodsReceiptsGatewayController {
     return this.service.delete(id);
   }
 
-  // Costs (Hybrid PR5)
-
-  @Get(':id/costs')
-  getCosts(@Param('id') id: string, @UserId() userId: string): Promise<GoodsReceiptCostsResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${id}/costs`);
-    return this.service.findCostsForTable(id, userId);
-  }
-
-  @Get(':id/costs/:costId/allocations')
-  getCostAllocations(@Param('costId') costId: string): Promise<CostAllocationResponseDto[]> {
-    this.logger.log(`GET /commerce-api/goods-receipts/.../costs/${costId}/allocations`);
-    return this.service.findCostAllocations(costId);
-  }
-
-  @Post(':id/associate-cost')
-  @HttpCode(HttpStatus.CREATED)
-  associateCost(
-    @Param('id') id: string,
-    @Body() dto: AssociateGoodsReceiptCostDto,
-    @UserId() userId: string,
-  ): Promise<GoodsReceiptCostResponseDto> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${id}/associate-cost`);
-    return this.service.associateCost(id, dto, userId);
-  }
-
-  @Patch(':id/costs/:costId')
-  updateCost(
-    @Param('costId') costId: string,
-    @Body() dto: UpdateGoodsReceiptCostDto,
-  ): Promise<GoodsReceiptCostResponseDto> {
-    this.logger.log(`PATCH /commerce-api/goods-receipts/.../costs/${costId}`);
-    return this.service.updateCost(costId, dto);
-  }
-
-  @Delete(':id/costs/:costId')
-  deleteCost(@Param('costId') costId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/.../costs/${costId}`);
-    return this.service.deleteCost(costId);
-  }
-
   // Items
 
   @Get(':id/items/inventory-item-ids')
@@ -155,6 +109,15 @@ export class GoodsReceiptsGatewayController {
   itemsCost(@Param('id') goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
     this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/cost`);
     return this.service.findItemsCost(goodsReceiptId);
+  }
+
+  @Get(':id/items/:itemId/quants')
+  itemQuants(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<GoodsReceiptItemQuantsResponseDto> {
+    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/quants`);
+    return this.service.findItemQuants(goodsReceiptId, itemId);
   }
 
   @Post(':id/items/from-supplier-item')

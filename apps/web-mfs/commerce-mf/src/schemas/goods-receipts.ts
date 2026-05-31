@@ -110,6 +110,21 @@ export interface GoodsReceiptItemsCostData {
   grandTotal: { currency: string; value: string } | null;
 }
 
+export interface GoodsReceiptItemQuantRow {
+  quantId: string;
+  locationName: string | null;
+  lotNumber: string | null;
+  quantity: number;
+  unitCost: { currency: string; value: string } | null;
+  totalCost: { currency: string; value: string } | null;
+}
+
+export interface GoodsReceiptItemQuantsData {
+  rows: GoodsReceiptItemQuantRow[];
+  currencyCode: string | null;
+  grandTotal: { currency: string; value: string } | null;
+}
+
 export interface GoodsReceiptLotData {
   id: string;
   goodsReceiptItemId: string;

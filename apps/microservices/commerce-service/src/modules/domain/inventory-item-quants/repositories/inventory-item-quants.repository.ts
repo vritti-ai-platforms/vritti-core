@@ -22,6 +22,15 @@ export type InventoryItemQuantWithRefs = InventoryItemQuant & {
   expiryDate: string | null;
 };
 
+export interface GrItemQuantCostRow {
+  quantId: string;
+  locationName: string | null;
+  lotNumber: string | null;
+  quantity: number;
+  unitCost: bigint;
+  costCurrency: string | null;
+}
+
 @Injectable()
 export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof inventoryItemQuants> {
   constructor(database: PrimaryDatabaseService) {
@@ -107,11 +116,11 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results[0] as InventoryItemQuant;
   }
 
-  // Updates the denormalized total_unit_cost on a quant. The cost-association service recomputes
+  // Updates the denormalized unit_cost on a quant. The cost-association service recomputes
   // this from SUM(allocated_amount across all junction rows) / quantity each time a cost row
   // affecting the quant is inserted, edited, or deleted.
-  async updateTotalUnitCost(id: string, totalUnitCost: bigint): Promise<void> {
-    await this.db.update(inventoryItemQuants).set({ totalUnitCost }).where(eq(inventoryItemQuants.id, id));
+  async updateUnitCost(id: string, unitCost: bigint): Promise<void> {
+    await this.db.update(inventoryItemQuants).set({ unitCost }).where(eq(inventoryItemQuants.id, id));
   }
 
   // Per-source quant lookup — used by autoAssociatePoPrice (gr.id) and by associateCost when
@@ -137,6 +146,31 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         )`,
       );
     return rows as InventoryItemQuant[];
+  }
+
+  // Quants resolved from a GR-item's lines, with location + lot labels and the denormalized landed
+  // cost. Powers the Items Cost tab's per-item "view quants & cost" dialog.
+  async findCostsByGrItemId(grItemId: string): Promise<GrItemQuantCostRow[]> {
+    const rows = await this.db
+      .select({
+        quantId: inventoryItemQuants.id,
+        locationName: locations.name,
+        lotNumber: inventoryItemLots.lotNumber,
+        quantity: inventoryItemQuants.quantity,
+        unitCost: inventoryItemQuants.unitCost,
+        costCurrency: inventoryItemQuants.costCurrency,
+      })
+      .from(inventoryItemQuants)
+      .leftJoin(locations, eq(inventoryItemQuants.locationId, locations.id))
+      .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
+      .where(
+        sql`${inventoryItemQuants.id} IN (
+          SELECT resolved_quant_id FROM ${sql.identifier('vritti_core')}.goods_receipt_lines
+          WHERE goods_receipt_item_id = ${grItemId} AND resolved_quant_id IS NOT NULL
+        )`,
+      )
+      .orderBy(inventoryItemQuants.createdAt);
+    return rows.map((r) => ({ ...r, unitCost: BigInt(r.unitCost as unknown as string) }));
   }
 
   // Loads a set of quants by ID — used by associateCostInternal to score the distribution math.

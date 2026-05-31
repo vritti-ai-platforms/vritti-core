@@ -17,23 +17,35 @@ export class StockAdjustmentsRootController {
   constructor(private readonly service: StockAdjustmentsRootService) {}
 
   @MessagePattern({ cmd: 'stockAdjustments.table' })
-  table(@Payload() state: TableViewState): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+  table(
+    @Payload() state: TableViewState,
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     this.logger.log('stockAdjustments.table');
-    return this.service.table(state);
+    return this.service.table(state, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.findById' })
-  findById(@Payload() data: { id: string }): Promise<StockAdjustmentDto> {
+  findById(
+    @Payload() data: { id: string },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<StockAdjustmentDto> {
     this.logger.log(`stockAdjustments.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
+    return this.service.findById(data.id, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.create' })
   create(
-    @Payload() data: { inventoryItemId: string; type: StockAdjustmentType; reason: string },
+    @Payload()
+    data: { inventoryItemId: string; type: StockAdjustmentType; reason: string; unitCost?: string },
   ): Promise<CreateResponseDto<StockAdjustmentDto>> {
     this.logger.log(`stockAdjustments.create — item: ${data.inventoryItemId}, type: ${data.type}`);
-    return this.service.create(data);
+    return this.service.create({
+      inventoryItemId: data.inventoryItemId,
+      type: data.type,
+      reason: data.reason,
+      unitCost: data.unitCost !== undefined ? BigInt(data.unitCost) : undefined,
+    });
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.publish' })
@@ -43,9 +55,19 @@ export class StockAdjustmentsRootController {
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.update' })
-  update(@Payload() data: { id: string; reason?: string }): Promise<StockAdjustmentDto> {
+  update(
+    @Payload() data: { id: string; reason?: string; unitCost?: string },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<StockAdjustmentDto> {
     this.logger.log(`stockAdjustments.update — id: ${data.id}`);
-    return this.service.update(data.id, { reason: data.reason });
+    return this.service.update(
+      data.id,
+      {
+        reason: data.reason,
+        unitCost: data.unitCost !== undefined ? BigInt(data.unitCost) : undefined,
+      },
+      buCurrencyCode,
+    );
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.delete' })

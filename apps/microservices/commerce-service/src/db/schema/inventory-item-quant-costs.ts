@@ -6,7 +6,7 @@ import { inventoryItemQuants } from './inventory-item-quants';
 
 // Junction edge with allocated amount: many cost rows can contribute to one quant, and one cost
 // row can split across many quants. The signed minor-units `allocated_amount` is what each cost
-// row contributed to this quant; the quant's denormalized `total_unit_cost` is recomputed from
+// row contributed to this quant; the quant's denormalized `unit_cost` is recomputed from
 // `SUM(allocated_amount) / quantity` after each association.
 export const inventoryItemQuantCosts = coreSchema.table(
   'inventory_item_quant_costs',

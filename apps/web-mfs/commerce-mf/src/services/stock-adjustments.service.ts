@@ -18,10 +18,12 @@ export interface CreateStockAdjustmentPayload {
   inventoryItemId: string;
   type: StockAdjustmentType;
   reason: string;
+  unitCost?: { currency: string; value: string };
 }
 
 export interface UpdateStockAdjustmentPayload {
   reason?: string;
+  unitCost?: { currency: string; value: string };
 }
 
 // Lots

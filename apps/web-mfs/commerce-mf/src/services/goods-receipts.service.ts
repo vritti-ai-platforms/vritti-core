@@ -3,6 +3,7 @@ import axios from '@vritti/quantum-ui/axios';
 import type {
   GoodsReceiptData,
   GoodsReceiptItemData,
+  GoodsReceiptItemQuantsData,
   GoodsReceiptItemsCostData,
   GoodsReceiptItemsTableResponse,
   GoodsReceiptLineData,
@@ -135,6 +136,14 @@ export function getGoodsReceiptItem(id: string, itemId: string): Promise<GoodsRe
 export function getGoodsReceiptItemsCost(id: string): Promise<GoodsReceiptItemsCostData> {
   return axios
     .get<GoodsReceiptItemsCostData>(`commerce-api/goods-receipts/${id}/items/cost`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+export function getGoodsReceiptItemQuants(id: string, itemId: string): Promise<GoodsReceiptItemQuantsData> {
+  return axios
+    .get<GoodsReceiptItemQuantsData>(`commerce-api/goods-receipts/${id}/items/${itemId}/quants`, {
+      showSuccessToast: false,
+    })
     .then((r) => r.data);
 }
 

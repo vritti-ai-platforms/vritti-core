@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateStockAdjustmentDto {
@@ -6,4 +7,12 @@ export class UpdateStockAdjustmentDto {
   @IsOptional()
   @IsString()
   reason?: string;
+
+  @ApiPropertyOptional({
+    type: CurrencyAmountDto,
+    description: 'Opening-stock unit cost (BU currency, per primary UOM).',
+  })
+  @IsOptional()
+  @IsCurrency()
+  unitCost?: CurrencyAmountDto;
 }

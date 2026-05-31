@@ -1,3 +1,4 @@
+import { CurrencyAmountDto } from '@vritti/api-sdk';
 import type { InventoryTracking, StockAdjustment, StockAdjustmentStatus, StockAdjustmentType } from '@/db/schema';
 
 export class StockAdjustmentDto {
@@ -12,6 +13,8 @@ export class StockAdjustmentDto {
   totalQuantity: number; // derived from sum(lines.quantity)
   status: StockAdjustmentStatus;
   reason: string | null;
+  // Opening-stock unit cost (BU currency, per primary UOM). Null until set / for non-OPENING types.
+  unitCost: CurrencyAmountDto | null;
   isPublishable: boolean;
   publishedAt: string | null;
   createdAt: string;
@@ -25,6 +28,7 @@ export class StockAdjustmentDto {
       totalQuantity?: number | string | null;
       isPublishable?: boolean;
     },
+    buCurrencyCode?: string,
   ): StockAdjustmentDto {
     const dto = new StockAdjustmentDto();
     dto.id = entity.id;
@@ -44,6 +48,10 @@ export class StockAdjustmentDto {
     dto.totalQuantity = Number(entity.totalQuantity ?? 0);
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
+    dto.unitCost =
+      entity.unitCost != null && buCurrencyCode
+        ? CurrencyAmountDto.from(BigInt(entity.unitCost as unknown as string), buCurrencyCode)
+        : null;
     dto.isPublishable = Boolean(entity.isPublishable);
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
@@ -63,6 +71,7 @@ export class StockAdjustmentDto {
     dto.totalQuantity = 0;
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
+    dto.unitCost = null;
     dto.isPublishable = false;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();

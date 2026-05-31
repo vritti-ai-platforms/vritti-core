@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateStockAdjustmentDto {
   @ApiProperty({ description: 'Inventory item ID' })
@@ -16,4 +17,12 @@ export class CreateStockAdjustmentDto {
   @IsString()
   @IsNotEmpty()
   reason: string;
+
+  @ApiPropertyOptional({
+    type: CurrencyAmountDto,
+    description: 'Opening-stock unit cost (BU currency, per primary UOM). Required for OPENING_STOCK.',
+  })
+  @IsOptional()
+  @IsCurrency()
+  unitCost?: CurrencyAmountDto;
 }

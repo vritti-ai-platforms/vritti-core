@@ -2,6 +2,8 @@ import type { GoodsReceiptItemDto } from '@domain/goods-receipts/dto/entity/good
 import type { GoodsReceiptItemsCostDto } from '@domain/goods-receipts/dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '@domain/goods-receipts/dto/entity/goods-receipt-tree.dto';
 import { GoodsReceiptItemsService } from '@domain/goods-receipts/services/goods-receipt-items.service';
+import type { GoodsReceiptItemQuantsDto } from '@domain/inventory-item-quants/dto/entity/goods-receipt-item-quants.dto';
+import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
@@ -10,7 +12,10 @@ import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vri
 export class GoodsReceiptsItemsController {
   private readonly logger = new Logger(GoodsReceiptsItemsController.name);
 
-  constructor(private readonly itemsService: GoodsReceiptItemsService) {}
+  constructor(
+    private readonly itemsService: GoodsReceiptItemsService,
+    private readonly quantsService: InventoryItemQuantsService,
+  ) {}
 
   @MessagePattern({ cmd: 'goodsReceipts.tree' })
   tree(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptTreeNode[]> {
@@ -42,6 +47,12 @@ export class GoodsReceiptsItemsController {
   itemsCost(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptItemsCostDto> {
     this.logger.log(`goodsReceipts.itemsCost — receipt: ${data.goodsReceiptId}`);
     return this.itemsService.findItemsCost(data.goodsReceiptId);
+  }
+
+  @MessagePattern({ cmd: 'goodsReceipts.itemQuants' })
+  itemQuants(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptItemQuantsDto> {
+    this.logger.log(`goodsReceipts.itemQuants — item: ${data.itemId}`);
+    return this.quantsService.findCostsByGrItemId(data.itemId);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.addItemFromSupplierItem' })

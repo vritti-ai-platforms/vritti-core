@@ -4,7 +4,6 @@ import { UomConversionsService } from '@domain/uom-conversions/services/uom-conv
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
-  ConflictException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,

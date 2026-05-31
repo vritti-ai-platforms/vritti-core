@@ -25,6 +25,7 @@ import {
   locations,
   uom,
 } from '@/db/schema';
+import { GoodsReceiptItemQuantsDto } from '../dto/entity/goods-receipt-item-quants.dto';
 import { InventoryItemQuantDto, LocationStockDto } from '../dto/entity/inventory-item-quant.dto';
 import { InventoryItemQuantsRepository } from '../repositories/inventory-item-quants.repository';
 
@@ -67,6 +68,12 @@ export class InventoryItemQuantsService {
     private readonly database: PrimaryDatabaseService,
     private readonly repository: InventoryItemQuantsRepository,
   ) {}
+
+  // Quants produced by a GR-item (post-publish) with their landed cost, for the Items Cost dialog.
+  async findCostsByGrItemId(grItemId: string): Promise<GoodsReceiptItemQuantsDto> {
+    const rows = await this.repository.findCostsByGrItemId(grItemId);
+    return GoodsReceiptItemQuantsDto.from(rows);
+  }
 
   // Creates a new quant in its own transaction and writes the ledger entry. Tracking-aware.
   // For lot/lot_serial tracking: caller must pass a pre-resolved `lotId` (app-layer resolves/creates the lot).

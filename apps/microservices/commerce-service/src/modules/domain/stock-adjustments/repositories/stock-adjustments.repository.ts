@@ -46,6 +46,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         type: stockAdjustments.type,
         status: stockAdjustments.status,
         reason: stockAdjustments.reason,
+        unitCost: stockAdjustments.unitCost,
         publishedAt: stockAdjustments.publishedAt,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
@@ -76,6 +77,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         type: stockAdjustments.type,
         status: stockAdjustments.status,
         reason: stockAdjustments.reason,
+        unitCost: stockAdjustments.unitCost,
         publishedAt: stockAdjustments.publishedAt,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
@@ -115,6 +117,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         type: stockAdjustments.type,
         status: stockAdjustments.status,
         reason: stockAdjustments.reason,
+        unitCost: stockAdjustments.unitCost,
         publishedAt: stockAdjustments.publishedAt,
         createdAt: stockAdjustments.createdAt,
         inventoryItemName: inventoryItems.name,
@@ -127,6 +130,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) > 0
           AND COUNT(DISTINCT ${stockAdjustmentLines.id}) =
               COUNT(DISTINCT CASE WHEN ${stockAdjustmentLines.isBalanced} THEN ${stockAdjustmentLines.id} END)
+          AND (${stockAdjustments.type} <> 'OPENING_STOCK' OR ${stockAdjustments.unitCost} IS NOT NULL)
           AND NOT EXISTS(
             SELECT 1 FROM ${stockAdjustmentLots}
             WHERE ${stockAdjustmentLots.stockAdjustmentId} = ${stockAdjustments.id}
@@ -151,6 +155,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
         stockAdjustments.type,
         stockAdjustments.status,
         stockAdjustments.reason,
+        stockAdjustments.unitCost,
         stockAdjustments.publishedAt,
         stockAdjustments.createdAt,
         inventoryItems.name,
@@ -173,6 +178,10 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       .update(stockAdjustments)
       .set({ status, ...(publishedAt ? { publishedAt } : {}) })
       .where(eq(stockAdjustments.id, id));
+  }
+
+  async setCostAssociatedAt(id: string, at: Date): Promise<void> {
+    await this.db.update(stockAdjustments).set({ costAssociatedAt: at }).where(eq(stockAdjustments.id, id));
   }
 
   // Generates a unique stock adjustment code (org-scoped via RLS)

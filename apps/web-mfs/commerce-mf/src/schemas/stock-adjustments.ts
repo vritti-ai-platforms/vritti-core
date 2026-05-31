@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z, zodNumericField } from '@vritti/quantum-ui/zod';
+import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { InventoryTracking } from './inventory-items';
 
 export const StockAdjustmentTypeValues = {
@@ -111,6 +111,7 @@ export interface StockAdjustmentData {
   totalQuantity: number;
   status: StockAdjustmentStatus;
   reason: string | null;
+  unitCost: { currency: string; value: string } | null;
   isPublishable: boolean;
   metadata: Record<string, unknown>;
   publishedAt: string | null;
@@ -136,17 +137,30 @@ export type StockAdjustmentLineItemsTableResponse = TableResponse<StockAdjustmen
 
 // Form schemas
 
-export const createStockAdjustmentSchema = z.object({
-  inventoryItemId: z.string().min(1, 'Inventory item is required'),
-  type: z.enum(['OPENING_STOCK', 'WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'CORRECTION'], {
-    message: 'Adjustment type is required',
-  }),
-  reason: z.string().min(1, 'Reason is required'),
-});
+export const createStockAdjustmentSchema = z
+  .object({
+    inventoryItemId: z.string().min(1, 'Inventory item is required'),
+    type: z.enum(['OPENING_STOCK', 'WASTE', 'DAMAGE', 'THEFT', 'EXPIRED', 'CORRECTION'], {
+      message: 'Adjustment type is required',
+    }),
+    reason: z.string().min(1, 'Reason is required'),
+    // Opening-stock valuation (BU currency, per primary UOM). Required when type is OPENING_STOCK.
+    unitCost: zodCurrencyField({ positive: true }).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === 'OPENING_STOCK' && (!data.unitCost?.value || Number(data.unitCost.value) <= 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['unitCost'],
+        message: 'Unit cost is required for opening stock',
+      });
+    }
+  });
 export type CreateStockAdjustmentFormData = z.infer<typeof createStockAdjustmentSchema>;
 
 export const updateStockAdjustmentSchema = z.object({
   reason: z.string().min(1, 'Reason is required'),
+  unitCost: zodCurrencyField({ positive: true }).optional(),
 });
 export type UpdateStockAdjustmentFormData = z.infer<typeof updateStockAdjustmentSchema>;
 

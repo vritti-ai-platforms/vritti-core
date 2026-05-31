@@ -1,5 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
+import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import { Select } from '@vritti/quantum-ui/Select';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -25,14 +27,18 @@ const adjustmentTypeOptions = [
 ];
 
 export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogProps> = ({ onSuccess, onCancel }) => {
+  const buCurrencyCode = useBUCurrency();
   const form = useForm<CreateStockAdjustmentFormData>({
     resolver: zodResolver(createStockAdjustmentSchema),
     defaultValues: {
       inventoryItemId: '',
       type: undefined,
       reason: '',
+      unitCost: undefined,
     },
   });
+
+  const isOpeningStock = form.watch('type') === 'OPENING_STOCK';
 
   const createMutation = useCreateStockAdjustment({
     onSuccess: (data) => onSuccess(data),
@@ -48,6 +54,7 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
         inventoryItemId: data.inventoryItemId,
         type: data.type,
         reason: data.reason,
+        unitCost: data.type === 'OPENING_STOCK' ? data.unitCost : undefined,
       })}
     >
       <InventoryItemSelector
@@ -63,6 +70,14 @@ export const CreateStockAdjustmentDialog: React.FC<CreateStockAdjustmentDialogPr
         }
       />
       <Select name="type" label="Adjustment Type" placeholder="Select type" options={adjustmentTypeOptions} />
+      {isOpeningStock && (
+        <CurrencyField
+          name="unitCost"
+          label="Unit Cost"
+          description="Cost per primary unit, in your base currency. Used to value the opening stock."
+          currencyCode={buCurrencyCode ?? undefined}
+        />
+      )}
       <TextArea name="reason" label="Reason" placeholder="Enter reason for adjustment" />
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">

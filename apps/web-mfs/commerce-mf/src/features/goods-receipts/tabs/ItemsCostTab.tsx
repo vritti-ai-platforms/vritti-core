@@ -1,23 +1,28 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { type ColumnDef, CurrencyCell, DataTable, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { useFormatters } from '@vritti/quantum-ui/hooks';
-import { Coins } from 'lucide-react';
-import { useMemo } from 'react';
 import {
-  GOODS_RECEIPT_ITEMS_TABLE_KEY,
-  useGoodsReceiptItemsCost,
-  useGoodsReceiptItemsTable,
-} from '@/hooks/goods-receipts';
+  type ColumnDef,
+  CurrencyCell,
+  DataTable,
+  type RowAction,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
+import { Coins, Eye } from 'lucide-react';
+import { useMemo } from 'react';
+import { ItemQuantsDialogContent } from '@/features/goods-receipts/components/ItemQuantsDialogContent';
+import { GOODS_RECEIPT_ITEMS_TABLE_KEY, useGoodsReceiptItemsTable } from '@/hooks/goods-receipts';
 import type { GoodsReceiptItemData } from '@/schemas/goods-receipts';
 
 interface ItemsCostTabProps {
   goodsReceiptId: string;
+  isDraft: boolean;
 }
 
-export const ItemsCostTab = ({ goodsReceiptId }: ItemsCostTabProps) => {
+export const ItemsCostTab = ({ goodsReceiptId, isDraft }: ItemsCostTabProps) => {
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useGoodsReceiptItemsTable(goodsReceiptId);
-  const { data: cost } = useGoodsReceiptItemsCost(goodsReceiptId);
   const fmt = useFormatters();
 
   const columns = useMemo<ColumnDef<GoodsReceiptItemData>[]>(
@@ -48,8 +53,37 @@ export const ItemsCostTab = ({ goodsReceiptId }: ItemsCostTabProps) => {
         header: 'Total',
         cell: ({ row }) => (row.original.lineTotal ? <CurrencyCell value={row.original.lineTotal} /> : '—'),
       },
+      // Quants exist only after publish, so the cost breakdown is published-only.
+      ...(isDraft
+        ? []
+        : [
+            {
+              id: 'actions',
+              header: '',
+              cell: ({ row }) => {
+                const actions: RowAction[] = [
+                  {
+                    id: 'view-quants',
+                    icon: Eye,
+                    label: 'View',
+                    dialog: {
+                      title: row.original.inventoryItemName,
+                      description: 'Stock batches created from this item and their landed cost.',
+                      className: 'max-w-3xl',
+                      content: () => (
+                        <ItemQuantsDialogContent goodsReceiptId={goodsReceiptId} itemId={row.original.id} />
+                      ),
+                    },
+                  },
+                ];
+                return <RowActions actions={actions} />;
+              },
+              enableSorting: false,
+              enableHiding: false,
+            } satisfies ColumnDef<GoodsReceiptItemData>,
+          ]),
     ],
-    [fmt],
+    [fmt, isDraft, goodsReceiptId],
   );
 
   const { table } = useDataTable({
@@ -63,24 +97,15 @@ export const ItemsCostTab = ({ goodsReceiptId }: ItemsCostTabProps) => {
   });
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between rounded-md border bg-card p-4">
-        <div className="text-sm text-muted-foreground">Grand Total</div>
-        <div className="text-2xl font-semibold font-mono">
-          {cost?.grandTotal ? fmt.currency(cost.grandTotal).primary : '—'}
-        </div>
-      </div>
-
-      <DataTable
-        table={table}
-        mode="tab"
-        isLoading={isLoading}
-        emptyStateConfig={{
-          icon: Coins,
-          title: 'No items',
-          description: 'Add items to this receipt to see their cost.',
-        }}
-      />
-    </div>
+    <DataTable
+      table={table}
+      mode="tab"
+      isLoading={isLoading}
+      emptyStateConfig={{
+        icon: Coins,
+        title: 'No items',
+        description: 'Add items to this receipt to see their cost.',
+      }}
+    />
   );
 };

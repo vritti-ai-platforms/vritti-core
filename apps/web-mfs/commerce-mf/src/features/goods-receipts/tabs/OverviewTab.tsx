@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Car
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import type React from 'react';
+import { useGoodsReceiptItemsCost } from '@/hooks/goods-receipts';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 
 interface OverviewTabProps {
@@ -12,6 +13,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ receipt }) => {
   const buCurrencyCode = useBUCurrency();
   const supplierCurrencyCode = receipt.supplierCurrencyCode;
   const showExchangeRate = receipt.exchangeRate !== 1;
+  const { data: cost } = useGoodsReceiptItemsCost(receipt.id);
 
   return (
     <div className="flex flex-col gap-4">
@@ -24,6 +26,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ receipt }) => {
             <DetailField label="GR Number" type="string" mono value={receipt.grNumber} />
             <DetailField label="Supplier" type="string" value={receipt.supplierName} />
             <DetailField label="Supplier Currency" type="string" mono value={supplierCurrencyCode} />
+            <DetailField label="Total Value" type="currency" value={cost?.grandTotal ?? null} />
             <DetailField label="Status" type="string" value={receipt.status} />
             <DetailField label="Publishable" type="string" value={receipt.isPublishable ? 'Yes' : 'No'} />
             <DetailField label="Received Date" type="date" value={receipt.receivedDate} />

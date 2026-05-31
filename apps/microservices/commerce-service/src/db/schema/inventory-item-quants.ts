@@ -26,7 +26,7 @@ export const inventoryItemQuants = coreSchema.table(
     // Denormalized snapshot of `SUM(allocated_amount) / quantity` across all junction rows. Updated
     // by the cost-association service after each association; reads use this column directly so
     // pick / COGS hot paths don't have to roll up junction rows.
-    totalUnitCost: bigint('total_unit_cost', { mode: 'bigint' }).notNull().default(0n),
+    unitCost: bigint('unit_cost', { mode: 'bigint' }).notNull().default(0n),
     // NULL during the PR1 transition for legacy rows + new inserts from un-updated callers. Phase 3
     // (GR publish) and Phase 4 (SA publish) always set them; a follow-up PR can tighten to NOT NULL.
     costCurrency: varchar('cost_currency', { length: 3 }),

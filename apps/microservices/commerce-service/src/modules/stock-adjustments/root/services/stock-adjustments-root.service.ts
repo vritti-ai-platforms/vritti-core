@@ -1,3 +1,4 @@
+import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import {
@@ -54,20 +55,22 @@ export class StockAdjustmentsRootService {
     private readonly quantsRepository: InventoryItemQuantsRepository,
     private readonly ledgerService: InventoryItemLedgerService,
     private readonly adjustmentsService: StockAdjustmentsService,
+    private readonly costAssociationService: CostAssociationService,
   ) {}
 
-  table(state: TableViewState): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    return this.adjustmentsService.findForTable(state);
+  table(state: TableViewState, buCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+    return this.adjustmentsService.findForTable(state, buCurrencyCode);
   }
 
-  findById(id: string): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.findById(id);
+  findById(id: string, buCurrencyCode?: string): Promise<StockAdjustmentDto> {
+    return this.adjustmentsService.findById(id, buCurrencyCode);
   }
 
   create(data: {
     inventoryItemId: string;
     type: StockAdjustmentType;
     reason: string;
+    unitCost?: bigint | null;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     return this.adjustmentsService.create(data);
   }
@@ -76,8 +79,12 @@ export class StockAdjustmentsRootService {
     return this.adjustmentsService.delete(id);
   }
 
-  update(id: string, data: { reason?: string }): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.updateAdjustment(id, data);
+  update(
+    id: string,
+    data: { reason?: string; unitCost?: bigint | null },
+    buCurrencyCode?: string,
+  ): Promise<StockAdjustmentDto> {
+    return this.adjustmentsService.updateAdjustment(id, data, buCurrencyCode);
   }
 
   async publish(id: string, buCurrencyCode: string): Promise<StockAdjustmentDto> {
@@ -85,6 +92,11 @@ export class StockAdjustmentsRootService {
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be published.');
+    }
+
+    const unitCostMinor = adjustment.unitCost == null ? null : BigInt(adjustment.unitCost as unknown as string);
+    if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK && (unitCostMinor == null || unitCostMinor <= 0n)) {
+      throw new BadRequestException('Opening stock requires a unit cost before publishing.');
     }
 
     const linesCount = await this.linesRepository.countByAdjustmentId(id);
@@ -149,10 +161,21 @@ export class StockAdjustmentsRootService {
       }
 
       await this.repository.updateStatus(id, StockAdjustmentStatusValues.PUBLISHED, new Date());
+
+      // Value the opening stock: associate the entered unit cost onto the freshly created quants.
+      if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK && unitCostMinor != null) {
+        const result = await this.costAssociationService.autoAssociateOpeningCost(
+          id,
+          unitCostMinor,
+          buCurrencyCode,
+          null,
+        );
+        if (result.created > 0) await this.repository.setCostAssociatedAt(id, new Date());
+      }
     });
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
-    return this.adjustmentsService.findById(id);
+    return this.adjustmentsService.findById(id, buCurrencyCode);
   }
 
   // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials]).
@@ -275,7 +298,7 @@ export class StockAdjustmentsRootService {
 
   // Deduct/CORRECTION: line carries (quantId, quantity, [serials]).
   // PR4: for deduct types (WASTE/DAMAGE/THEFT/EXPIRED) and negative CORRECTIONs we snapshot
-  // `write_off_amount = sourceQuant.total_unit_cost × primaryUomQty` plus `write_off_currency`
+  // `write_off_amount = sourceQuant.unit_cost × primaryUomQty` plus `write_off_currency`
   // onto the SA line so loss reporting + period-end queries don't have to re-join the quant's
   // cost history. The snapshot is taken BEFORE the decrement (the quant value is unchanged at
   // that moment).
@@ -326,17 +349,17 @@ export class StockAdjustmentsRootService {
     await this.linesRepository.setResolvedQuant(line.id, line.quantId);
   }
 
-  // PR4: reads the source quant's denormalized total_unit_cost + cost_currency and snapshots
-  // `total_unit_cost × primaryUomQty` onto the SA line. Cheap because quant.total_unit_cost is
+  // PR4: reads the source quant's denormalized unit_cost + cost_currency and snapshots
+  // `unit_cost × primaryUomQty` onto the SA line. Cheap because quant.unit_cost is
   // already denormalized — no cost-row roll-up needed at write-off time.
   private async snapshotWriteOff(line: StockAdjustmentLineWithRefs, primaryUomQty: number): Promise<void> {
     if (!line.quantId) return;
     const sourceQuant = await this.quantsRepository.findById(line.quantId);
     if (!sourceQuant) return;
-    const totalUnitCost = BigInt(sourceQuant.totalUnitCost?.toString() ?? '0');
-    if (totalUnitCost === 0n || primaryUomQty <= 0) return;
+    const unitCost = BigInt(sourceQuant.unitCost?.toString() ?? '0');
+    if (unitCost === 0n || primaryUomQty <= 0) return;
     const writeOffAmount = BigInt(
-      new Decimal(totalUnitCost.toString()).times(primaryUomQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
+      new Decimal(unitCost.toString()).times(primaryUomQty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
     );
     const currency = sourceQuant.costCurrency ?? '';
     if (!currency) return;

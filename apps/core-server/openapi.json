@@ -4563,164 +4563,6 @@
         ]
       }
     },
-    "/commerce-api/goods-receipts/{id}/costs": {
-      "get": {
-        "operationId": "GoodsReceiptsGatewayController_getCosts",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
-    "/commerce-api/goods-receipts/{id}/costs/{costId}/allocations": {
-      "get": {
-        "operationId": "GoodsReceiptsGatewayController_getCostAllocations",
-        "parameters": [
-          {
-            "name": "costId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
-    "/commerce-api/goods-receipts/{id}/associate-cost": {
-      "post": {
-        "operationId": "GoodsReceiptsGatewayController_associateCost",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssociateGoodsReceiptCostDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
-    "/commerce-api/goods-receipts/{id}/costs/{costId}": {
-      "patch": {
-        "operationId": "GoodsReceiptsGatewayController_updateCost",
-        "parameters": [
-          {
-            "name": "costId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGoodsReceiptCostDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      },
-      "delete": {
-        "operationId": "GoodsReceiptsGatewayController_deleteCost",
-        "parameters": [
-          {
-            "name": "costId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Goods Receipts"
-        ]
-      }
-    },
     "/commerce-api/goods-receipts/{id}/items/inventory-item-ids": {
       "get": {
         "operationId": "GoodsReceiptsGatewayController_inventoryItemIds",
@@ -4783,6 +4625,42 @@
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
+    "/commerce-api/goods-receipts/{id}/items/{itemId}/quants": {
+      "get": {
+        "operationId": "GoodsReceiptsGatewayController_itemQuants",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
             "required": true,
             "in": "path",
             "schema": {
@@ -14810,76 +14688,6 @@
         "type": "object",
         "properties": {}
       },
-      "AssociateGoodsReceiptCostDto": {
-        "type": "object",
-        "properties": {
-          "categoryId": {
-            "type": "string",
-            "description": "Cost category ID"
-          },
-          "totalAmount": {
-            "description": "Total amount in major units",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyAmountDto"
-              }
-            ]
-          },
-          "distributionMethod": {
-            "type": "string",
-            "enum": [
-              "by_value",
-              "by_quantity",
-              "equal"
-            ]
-          },
-          "vendorRef": {
-            "type": "string",
-            "description": "Invoice / vendor reference",
-            "example": "INV-FR-99"
-          },
-          "notes": {
-            "type": "string",
-            "description": "Notes"
-          }
-        },
-        "required": [
-          "categoryId",
-          "totalAmount",
-          "distributionMethod"
-        ]
-      },
-      "UpdateGoodsReceiptCostDto": {
-        "type": "object",
-        "properties": {
-          "totalAmount": {
-            "description": "Total amount in major units",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyAmountDto"
-              }
-            ]
-          },
-          "distributionMethod": {
-            "type": "string",
-            "enum": [
-              "by_value",
-              "by_quantity",
-              "equal"
-            ]
-          },
-          "vendorRef": {
-            "type": "object",
-            "description": "Invoice / vendor reference",
-            "nullable": true
-          },
-          "notes": {
-            "type": "object",
-            "description": "Notes",
-            "nullable": true
-          }
-        }
-      },
       "AddGoodsReceiptItemFromSupplierItemDto": {
         "type": "object",
         "properties": {
@@ -17317,6 +17125,14 @@
           "reason": {
             "type": "string",
             "description": "Reason for adjustment"
+          },
+          "unitCost": {
+            "description": "Opening-stock unit cost (BU currency, per primary UOM). Required for OPENING_STOCK.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         },
         "required": [
@@ -17331,6 +17147,14 @@
           "reason": {
             "type": "string",
             "description": "Reason for adjustment"
+          },
+          "unitCost": {
+            "description": "Opening-stock unit cost (BU currency, per primary UOM).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         }
       },

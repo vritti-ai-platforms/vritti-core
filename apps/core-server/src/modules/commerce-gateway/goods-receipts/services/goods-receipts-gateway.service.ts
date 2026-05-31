@@ -1,12 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, type CurrencyCode, DataTableStateService, majorToMinor, NatsClientService, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
-import type { AssociateGoodsReceiptCostDto } from '../dto/request/associate-cost.dto';
-import type { UpdateGoodsReceiptCostDto } from '../dto/request/update-cost.dto';
-import type {
-  CostAllocationResponseDto,
-  GoodsReceiptCostResponseDto,
-  GoodsReceiptCostsResponseDto,
-} from '../dto/response/cost-response.dto';
+import { type CreateResponseDto, type CurrencyCode, DataTableStateService, majorToMinor, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
 import type {
   AddGoodsReceiptItemFromPurchaseOrderItemDto,
   AddGoodsReceiptItemFromSupplierItemDto,
@@ -20,6 +13,7 @@ import type { UpdateGoodsReceiptLineDto } from '../dto/request/update-goods-rece
 import type { UpdateGoodsReceiptLotDto } from '../dto/request/update-goods-receipt-lot.dto';
 import type { GoodsReceiptItemResponseDto } from '../dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from '../dto/response/goods-receipt-item-table-response.dto';
+import type { GoodsReceiptItemQuantsResponseDto } from '../dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemsCostResponseDto } from '../dto/response/goods-receipt-items-cost-response.dto';
 import type { GoodsReceiptLineItemResponseDto } from '../dto/response/goods-receipt-line-item-response.dto';
 import type { GoodsReceiptLineItemTableResponseDto } from '../dto/response/goods-receipt-line-item-table-response.dto';
@@ -85,56 +79,6 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'goodsReceipts.delete', { id });
   }
 
-  // Cost association (Hybrid PR5)
-
-  async findCostsForTable(grId: string, userId: string): Promise<GoodsReceiptCostsResponseDto> {
-    const { state } = await this.dataTableStateService.getCurrentState(userId, `commerce-gr-${grId}-costs`);
-    this.logger.log(`goodsReceipts.costs.findForTable — gr: ${grId}`);
-    return this.nats.send<GoodsReceiptCostsResponseDto>('commerce', 'goodsReceipts.costs.findForTable', {
-      grId,
-      ...(state as TableViewState),
-    });
-  }
-
-  findCostAllocations(costId: string): Promise<CostAllocationResponseDto[]> {
-    this.logger.log(`goodsReceipts.costs.allocations — cost: ${costId}`);
-    return this.nats.send('commerce', 'goodsReceipts.costs.allocations', { costId });
-  }
-
-  associateCost(grId: string, dto: AssociateGoodsReceiptCostDto, userId: string): Promise<GoodsReceiptCostResponseDto> {
-    this.logger.log(`goodsReceipts.costs.associate — gr: ${grId}, category: ${dto.categoryId}`);
-    const totalAmount = majorToMinor(dto.totalAmount.value, dto.totalAmount.currency as CurrencyCode);
-    return this.nats.send('commerce', 'goodsReceipts.costs.associate', {
-      grId,
-      createdBy: userId,
-      categoryId: dto.categoryId,
-      totalAmount: totalAmount.toString(),
-      currencyCode: dto.totalAmount.currency,
-      distributionMethod: dto.distributionMethod,
-      vendorRef: dto.vendorRef,
-      notes: dto.notes,
-    });
-  }
-
-  updateCost(costId: string, dto: UpdateGoodsReceiptCostDto): Promise<GoodsReceiptCostResponseDto> {
-    this.logger.log(`goodsReceipts.costs.update — cost: ${costId}`);
-    const totalAmount = dto.totalAmount
-      ? majorToMinor(dto.totalAmount.value, dto.totalAmount.currency as CurrencyCode).toString()
-      : undefined;
-    return this.nats.send('commerce', 'goodsReceipts.costs.update', {
-      costId,
-      totalAmount,
-      distributionMethod: dto.distributionMethod,
-      vendorRef: dto.vendorRef,
-      notes: dto.notes,
-    });
-  }
-
-  deleteCost(costId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`goodsReceipts.costs.delete — cost: ${costId}`);
-    return this.nats.send('commerce', 'goodsReceipts.costs.delete', { costId });
-  }
-
   // Items
 
   findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
@@ -144,6 +88,11 @@ export class GoodsReceiptsGatewayService {
   findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
     this.logger.log(`goodsReceipts.itemsCost — gr: ${goodsReceiptId}`);
     return this.nats.send('commerce', 'goodsReceipts.itemsCost', { goodsReceiptId });
+  }
+
+  findItemQuants(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemQuantsResponseDto> {
+    this.logger.log(`goodsReceipts.itemQuants — gr: ${goodsReceiptId}, item: ${itemId}`);
+    return this.nats.send('commerce', 'goodsReceipts.itemQuants', { goodsReceiptId, itemId });
   }
 
   async findItemsTable(goodsReceiptId: string, userId: string): Promise<GoodsReceiptItemTableResponseDto> {

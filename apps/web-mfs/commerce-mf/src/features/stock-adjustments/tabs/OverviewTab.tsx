@@ -32,6 +32,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ adjustment, typeLabel,
           value={`${adjustment.totalQuantity} ${adjustment.inventoryItemUomSymbol}`}
           mono
         />
+        {adjustment.type === 'OPENING_STOCK' && (
+          <DetailField label="Unit Cost" type="currency" value={adjustment.unitCost} />
+        )}
         <DetailField label="Created" type="dateTime" value={adjustment.createdAt} />
         <DetailField label="Published At" type="dateTime" value={adjustment.publishedAt} />
       </div>

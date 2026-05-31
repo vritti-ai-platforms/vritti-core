@@ -48,7 +48,7 @@ export const stockAdjustmentLines = coreSchema.table(
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),
     // Write-off snapshot for negative SAs (WASTE / DAMAGE / EXPIRED / THEFT / negative CORRECTION):
-    // captures `source_quant.total_unit_cost × primary_uom_qty` at publish so loss reporting and
+    // captures `source_quant.unit_cost × primary_uom_qty` at publish so loss reporting and
     // P&L don't have to rejoin to the quant history. Positive SAs (OPENING_STOCK, positive
     // CORRECTION) leave this at 0 — they go through Associate Cost instead. writeOffCurrency is
     // NULL during PR1 transition; Phase 4 (SA publish) always sets it. Tighten to NOT NULL later.

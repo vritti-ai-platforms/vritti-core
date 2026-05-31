@@ -1,3 +1,4 @@
+import { InventoryItemCostsDomainModule } from '@domain/inventory-item-costs/inventory-item-costs.module';
 import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/inventory-item-ledger.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
@@ -28,6 +29,7 @@ import { StockAdjustmentsRootController } from './root/stock-adjustments-root.co
     InventoryItemQuantsDomainModule,
     UomConversionsDomainModule,
     InventoryItemLedgerDomainModule,
+    InventoryItemCostsDomainModule,
   ],
   controllers: [
     StockAdjustmentsRootController,

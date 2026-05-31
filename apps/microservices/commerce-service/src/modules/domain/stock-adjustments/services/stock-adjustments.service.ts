@@ -30,7 +30,10 @@ export class StockAdjustmentsService {
   constructor(private readonly repository: StockAdjustmentsRepository) {}
 
   // Returns paginated stock adjustments for the data table
-  async findForTable(state: TableViewState): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+  async findForTable(
+    state: TableViewState,
+    buCurrencyCode?: string,
+  ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -46,13 +49,13 @@ export class StockAdjustmentsService {
       offset,
     });
 
-    return { result: rows.map((r) => StockAdjustmentDto.from(r)), count };
+    return { result: rows.map((r) => StockAdjustmentDto.from(r, buCurrencyCode)), count };
   }
 
-  async findById(id: string): Promise<StockAdjustmentDto> {
+  async findById(id: string, buCurrencyCode?: string): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findById(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(adjustment);
+    return StockAdjustmentDto.from(adjustment, buCurrencyCode);
   }
 
   async ensureExists(id: string): Promise<void> {
@@ -66,11 +69,13 @@ export class StockAdjustmentsService {
     inventoryItemId: string;
     type: StockAdjustmentType;
     reason: string;
+    unitCost?: bigint | null;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
       type: data.type,
       reason: data.reason,
+      unitCost: data.unitCost ?? null,
     });
 
     this.logger.log(`Created DRAFT adjustment ${entity.code} (${data.type}) for item ${data.inventoryItemId}`);
@@ -94,7 +99,11 @@ export class StockAdjustmentsService {
     return { success: true, message: `Stock adjustment "${adjustment.code}" deleted successfully.` };
   }
 
-  async updateAdjustment(id: string, data: { reason?: string }): Promise<StockAdjustmentDto> {
+  async updateAdjustment(
+    id: string,
+    data: { reason?: string; unitCost?: bigint | null },
+    buCurrencyCode?: string,
+  ): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -103,9 +112,10 @@ export class StockAdjustmentsService {
 
     await this.repository.update(id, {
       ...(data.reason !== undefined ? { reason: data.reason } : {}),
+      ...(data.unitCost !== undefined ? { unitCost: data.unitCost } : {}),
     });
     const updated = await this.repository.findById(id);
     if (!updated) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(updated);
+    return StockAdjustmentDto.from(updated, buCurrencyCode);
   }
 }
