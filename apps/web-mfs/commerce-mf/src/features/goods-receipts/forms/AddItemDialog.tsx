@@ -133,7 +133,7 @@ const SupplierItemForm = ({
           </div>
         </FormSection>
 
-        <FormSection title="Free Goods Scheme" description="Free quantity is calculated from the scheme on save.">
+        <FormSection title="Free Goods Scheme">
           <div className="flex flex-col gap-4">
             <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
             {schemeMode !== 'none' && (
@@ -258,7 +258,7 @@ const PurchaseOrderItemForm = ({
           </div>
         </FormSection>
 
-        <FormSection title="Free Goods Scheme" description="Free quantity is calculated from the scheme on save.">
+        <FormSection title="Free Goods Scheme">
           <div className="flex flex-col gap-4">
             <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
             {schemeMode !== 'none' && (

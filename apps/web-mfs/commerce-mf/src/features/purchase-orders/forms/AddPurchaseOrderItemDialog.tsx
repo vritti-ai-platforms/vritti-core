@@ -4,6 +4,7 @@ import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { minorToMajor } from '@vritti/quantum-ui/money';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -44,6 +45,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   const mutation = useAddPurchaseOrderItem({ onSuccess });
 
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
+  const [overrideScheme, setOverrideScheme] = useState<boolean>(false);
 
   const form = useForm<AddPurchaseOrderItemFormData>({
     resolver: zodResolver(addPurchaseOrderItemSchema),
@@ -113,18 +115,27 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
             currencyCode={purchaseOrder.currencyCode}
             placeholder="Enter unit price"
           />
+          <Switch
+            label="Override scheme"
+            description="Edit the prefilled scheme and quantities ."
+            checked={overrideScheme}
+            onCheckedChange={setOverrideScheme}
+          />
         </div>
       </FormSection>
-      <FormSection
-        title="Free Goods Scheme"
-        description="Expected free quantity is calculated from the scheme on save."
-      >
+      <FormSection title="Free Goods Scheme">
         <div className="flex flex-col gap-4">
-          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
+          <RadioGroup
+            name="schemeMode"
+            label="Scheme"
+            options={schemeModeOptions}
+            orientation="horizontal"
+            disabled={!overrideScheme}
+          />
           {schemeMode !== 'none' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+              <TextField name="schemeBuyQty" label="Buy Quantity" type="number" positive disabled={!overrideScheme} />
+              <TextField name="schemeFreeQty" label="Free Quantity" type="number" positive disabled={!overrideScheme} />
             </div>
           )}
         </div>

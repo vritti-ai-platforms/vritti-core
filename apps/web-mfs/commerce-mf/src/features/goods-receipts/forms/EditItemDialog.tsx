@@ -52,7 +52,6 @@ const EditItemForm = ({
   const mutation = useUpdateGoodsReceiptItem(goodsReceiptId, item.id, { onSuccess });
   const lockedCurrency = item.unitPrice?.currency ?? buCurrencyCode;
 
-  const uomSymbol = item.inventoryItemUomSymbol;
   const schemeMode = form.watch('schemeMode');
 
   return (
@@ -85,10 +84,7 @@ const EditItemForm = ({
       />
       <TextField name="rejectedQuantity" label="Damaged on arrival" type="number" />
 
-      <FormSection
-        title="Free Goods Scheme"
-        description={`Saved free: ${item.freeQty} ${uomSymbol} · Total: ${item.totalQty} ${uomSymbol}. Recalculated from the scheme on save.`}
-      >
+      <FormSection title="Free Goods Scheme">
         <div className="flex flex-col gap-4">
           <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
           {schemeMode !== 'none' && (

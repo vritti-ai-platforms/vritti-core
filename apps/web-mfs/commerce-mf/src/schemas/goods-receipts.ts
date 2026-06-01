@@ -225,39 +225,61 @@ const schemeShape = {
   schemeMode: z.enum(['none', 'slab', 'pro_rata']),
 };
 
+// When a scheme mode is chosen, the buy/free ratio is required; "none" leaves them blank.
+const enforceSchemeRatio = (
+  data: { schemeMode: FreeSchemeMode; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
+  ctx: z.RefinementCtx,
+) => {
+  if (data.schemeMode === 'none') return;
+  if (data.schemeBuyQty == null) {
+    ctx.addIssue({ code: 'custom', path: ['schemeBuyQty'], message: 'Buy qty is required for a scheme.' });
+  }
+  if (data.schemeFreeQty == null) {
+    ctx.addIssue({ code: 'custom', path: ['schemeFreeQty'], message: 'Free qty is required for a scheme.' });
+  }
+};
+
 export function buildAddGoodsReceiptItemFromSupplierItemSchema(options: { allowDecimal: boolean; max?: number }) {
-  return z.object({
-    supplierItemId: z.string({ error: 'Supplier item is required' }).uuid('Supplier item is required'),
-    orderedQty: buildOrderedQtyField(options),
-    rejectedQuantity: zOptionalNonNegativeNumber,
-    unitPrice: zodCurrencyField({ positive: true }).optional(),
-    ...schemeShape,
-  });
+  return z
+    .object({
+      supplierItemId: z.string({ error: 'Supplier item is required' }).uuid('Supplier item is required'),
+      orderedQty: buildOrderedQtyField(options),
+      rejectedQuantity: zOptionalNonNegativeNumber,
+      unitPrice: zodCurrencyField({ positive: true }).optional(),
+      ...schemeShape,
+    })
+    .superRefine(enforceSchemeRatio);
 }
 export type AddGoodsReceiptItemFromSupplierItemFormData = z.infer<
   ReturnType<typeof buildAddGoodsReceiptItemFromSupplierItemSchema>
 >;
 
 export function buildAddGoodsReceiptItemFromPurchaseOrderItemSchema(options: { allowDecimal: boolean; max?: number }) {
-  return z.object({
-    purchaseOrderItemId: z.string({ error: 'Purchase order line is required' }).uuid('Purchase order line is required'),
-    orderedQty: buildOrderedQtyField(options),
-    rejectedQuantity: zOptionalNonNegativeNumber,
-    unitPrice: zodCurrencyField({ positive: true }).optional(),
-    ...schemeShape,
-  });
+  return z
+    .object({
+      purchaseOrderItemId: z
+        .string({ error: 'Purchase order line is required' })
+        .uuid('Purchase order line is required'),
+      orderedQty: buildOrderedQtyField(options),
+      rejectedQuantity: zOptionalNonNegativeNumber,
+      unitPrice: zodCurrencyField({ positive: true }).optional(),
+      ...schemeShape,
+    })
+    .superRefine(enforceSchemeRatio);
 }
 export type AddGoodsReceiptItemFromPurchaseOrderItemFormData = z.infer<
   ReturnType<typeof buildAddGoodsReceiptItemFromPurchaseOrderItemSchema>
 >;
 
 export function buildUpdateGoodsReceiptItemSchema(options: { allowDecimal: boolean; min?: number; max?: number }) {
-  return z.object({
-    orderedQty: buildOrderedQtyField(options),
-    rejectedQuantity: zOptionalNonNegativeNumber,
-    unitPrice: zodCurrencyField({ positive: true }).optional(),
-    ...schemeShape,
-  });
+  return z
+    .object({
+      orderedQty: buildOrderedQtyField(options),
+      rejectedQuantity: zOptionalNonNegativeNumber,
+      unitPrice: zodCurrencyField({ positive: true }).optional(),
+      ...schemeShape,
+    })
+    .superRefine(enforceSchemeRatio);
 }
 export type UpdateGoodsReceiptItemFormData = z.infer<ReturnType<typeof buildUpdateGoodsReceiptItemSchema>>;
 

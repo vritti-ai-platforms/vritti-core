@@ -133,12 +133,28 @@ const poSchemeShape = {
   schemeMode: z.enum(['none', 'slab', 'pro_rata']),
 };
 
-export const addPurchaseOrderItemSchema = z.object({
-  supplierItemId: z.string().min(1, 'Item is required'),
-  uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
-  unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
-  ...poSchemeShape,
-});
+// When a scheme mode is chosen, the buy/free ratio is required; "none" leaves them blank.
+const enforceSchemeRatio = (
+  data: { schemeMode: FreeSchemeMode; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
+  ctx: z.RefinementCtx,
+) => {
+  if (data.schemeMode === 'none') return;
+  if (data.schemeBuyQty == null) {
+    ctx.addIssue({ code: 'custom', path: ['schemeBuyQty'], message: 'Buy qty is required for a scheme.' });
+  }
+  if (data.schemeFreeQty == null) {
+    ctx.addIssue({ code: 'custom', path: ['schemeFreeQty'], message: 'Free qty is required for a scheme.' });
+  }
+};
+
+export const addPurchaseOrderItemSchema = z
+  .object({
+    supplierItemId: z.string().min(1, 'Item is required'),
+    uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
+    unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+    ...poSchemeShape,
+  })
+  .superRefine(enforceSchemeRatio);
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
 
@@ -146,17 +162,19 @@ export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSc
 // reducing the ordered qty below what's been received. Defaults to no minimum.
 export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } = {}) {
   const { minQty } = options;
-  return z.object({
-    uomQty: zodNumericField({
-      required: 'Quantity is required',
-      positive: true,
-      ...(minQty != null && minQty > 0
-        ? { min: minQty, minMessage: `Cannot be less than received quantity (${minQty}).` }
-        : {}),
-    }),
-    unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
-    ...poSchemeShape,
-  });
+  return z
+    .object({
+      uomQty: zodNumericField({
+        required: 'Quantity is required',
+        positive: true,
+        ...(minQty != null && minQty > 0
+          ? { min: minQty, minMessage: `Cannot be less than received quantity (${minQty}).` }
+          : {}),
+      }),
+      unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+      ...poSchemeShape,
+    })
+    .superRefine(enforceSchemeRatio);
 }
 
 export type UpdatePurchaseOrderItemFormData = z.infer<ReturnType<typeof buildUpdatePurchaseOrderItemSchema>>;

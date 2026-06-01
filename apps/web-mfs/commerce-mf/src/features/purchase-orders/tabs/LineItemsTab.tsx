@@ -212,6 +212,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
 
       <Dialog
         handle={addItemDialog}
+        className="max-w-3xl"
         title="Add Line Item"
         description="Add an inventory item to this purchase order."
         content={(close) => (

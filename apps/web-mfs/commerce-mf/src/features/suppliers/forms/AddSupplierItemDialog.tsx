@@ -124,10 +124,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
           />
         </div>
       </FormSection>
-      <FormSection
-        title="Free Goods Scheme"
-        description='Standing scheme prefilled onto POs and goods receipts (e.g. "9+1").'
-      >
+      <FormSection title="Free Goods Scheme">
         <div className="flex flex-col gap-4">
           <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
           {schemeMode !== 'none' && (
