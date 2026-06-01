@@ -9,7 +9,7 @@ const QTY_DP = 3;
 export class UomConversionsService {
   constructor(private readonly repository: UomConversionsRepository) {}
 
-  async toPrimaryQuantity(inventoryItemId: string, uomId: string, qty: number): Promise<number> {
+  async toPrimaryUomQuantity(inventoryItemId: string, uomId: string, qty: number): Promise<number> {
     const factor = await this.resolveFactor(inventoryItemId, uomId);
     return roundQty(new Decimal(qty).times(factor));
   }

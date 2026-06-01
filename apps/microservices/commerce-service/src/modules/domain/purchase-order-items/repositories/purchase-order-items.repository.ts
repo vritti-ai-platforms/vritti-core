@@ -60,6 +60,10 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         orderedQuantity: sql`${purchaseOrderItems.uomQty}`,
         receivedQuantity: sql`COALESCE(${purchaseOrderItems.receivedQuantity}, 0)`,
         allowDecimal: sql`${orderUom.allowDecimal}`,
+        schemeBuyQty: sql`${purchaseOrderItems.schemeBuyQty}`,
+        schemeFreeQty: sql`${purchaseOrderItems.schemeFreeQty}`,
+        schemeMode: sql`${purchaseOrderItems.schemeMode}`,
+        freeQty: sql`${purchaseOrderItems.freeQty}`,
       },
     });
   }
@@ -124,6 +128,10 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         unitPrice: purchaseOrderItems.unitPrice,
         totalPrice: purchaseOrderItems.totalPrice,
         currencyCode: purchaseOrderItems.currencyCode,
+        schemeBuyQty: purchaseOrderItems.schemeBuyQty,
+        schemeFreeQty: purchaseOrderItems.schemeFreeQty,
+        schemeMode: purchaseOrderItems.schemeMode,
+        freeQty: purchaseOrderItems.freeQty,
         inventoryItemName: inventoryItems.name,
         orderUomSymbol: orderUom.symbol,
         primaryUomSymbol: uom.symbol,

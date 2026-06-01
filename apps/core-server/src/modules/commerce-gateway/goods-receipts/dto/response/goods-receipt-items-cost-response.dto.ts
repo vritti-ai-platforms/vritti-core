@@ -14,8 +14,14 @@ export class GoodsReceiptItemsCostRowResponseDto {
   @ApiProperty()
   uomSymbol: string;
 
-  @ApiProperty()
-  quantity: number;
+  @ApiProperty({ description: 'Ordered (paid) quantity.' })
+  orderedQty: number;
+
+  @ApiProperty({ description: 'Derived free (bonus) quantity.' })
+  freeQty: number;
+
+  @ApiProperty({ description: 'Total received quantity (ordered + free).' })
+  totalQty: number;
 
   @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true })
   unitPrice: CurrencyAmountDto | null;

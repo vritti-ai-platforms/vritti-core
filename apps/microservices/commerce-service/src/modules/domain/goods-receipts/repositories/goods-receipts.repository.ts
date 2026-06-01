@@ -2,14 +2,31 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type GoodsReceipt,
   goodsReceiptNumberSeq,
   goodsReceipts,
   type NewGoodsReceipt,
   type PurchaseOrderStatus,
   purchaseOrderItems,
   purchaseOrders,
+  type Supplier,
   suppliers,
 } from '@/db/schema';
+
+// GR row joined with supplier + purchase-order display fields. Supplier fields are non-null in
+// practice (supplier_id is a required FK) but left-joined; PO fields are null when no PO is linked.
+export type GoodsReceiptWithRefs = GoodsReceipt & {
+  supplierName: string | null;
+  supplierCurrencyCode: string | null;
+  poNumber: string | null;
+  poOrderDate: string | null;
+  poExpectedBy: string | null;
+  poTotalAmount: bigint | null;
+  poCurrencyCode: string | null;
+};
+
+// Table rows carry the same refs minus the supplier currency (not needed in list views).
+export type GoodsReceiptTableRow = Omit<GoodsReceiptWithRefs, 'supplierCurrencyCode'>;
 
 @Injectable()
 export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsReceipts> {
@@ -24,20 +41,13 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     return `GR-${yearMonth}-${String(nextNumber).padStart(4, '0')}`;
   }
 
-  async create(data: Omit<NewGoodsReceipt, 'grNumber'>): Promise<typeof goodsReceipts.$inferSelect> {
+  async create(data: Omit<NewGoodsReceipt, 'grNumber'>): Promise<GoodsReceipt> {
     const grNumber = await this.generateGrNumber();
     return super.create({ ...data, grNumber });
   }
 
   async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (typeof goodsReceipts.$inferSelect & {
-      supplierName: string | null;
-      poNumber: string | null;
-      poOrderDate: string | null;
-      poExpectedBy: string | null;
-      poTotalAmount: bigint | null;
-      poCurrencyCode: string | null;
-    })[];
+    result: GoodsReceiptTableRow[];
     count: number;
   }> {
     return this.findAllAndCount({
@@ -54,7 +64,6 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         notes: goodsReceipts.notes,
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
-        costAssociatedAt: goodsReceipts.costAssociatedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         poNumber: purchaseOrders.poNumber,
@@ -78,14 +87,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     poId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{
-    result: (typeof goodsReceipts.$inferSelect & {
-      supplierName: string | null;
-      poNumber: string | null;
-      poOrderDate: string | null;
-      poExpectedBy: string | null;
-      poTotalAmount: bigint | null;
-      poCurrencyCode: string | null;
-    })[];
+    result: GoodsReceiptTableRow[];
     count: number;
   }> {
     return this.findAllAndCount({
@@ -102,7 +104,6 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         notes: goodsReceipts.notes,
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
-        costAssociatedAt: goodsReceipts.costAssociatedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         poNumber: purchaseOrders.poNumber,
@@ -122,24 +123,13 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     });
   }
 
-  async findSupplierById(id: string): Promise<typeof suppliers.$inferSelect | null> {
-    const rows = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
-    return rows[0] ?? null;
+  async findSupplierById(id: string): Promise<Supplier | null> {
+    const [row] = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
+    return row ?? null;
   }
 
-  async findByIdWithRefs(id: string): Promise<
-    | (typeof goodsReceipts.$inferSelect & {
-        supplierName: string | null;
-        supplierCurrencyCode: string | null;
-        poNumber: string | null;
-        poOrderDate: string | null;
-        poExpectedBy: string | null;
-        poTotalAmount: bigint | null;
-        poCurrencyCode: string | null;
-      })
-    | null
-  > {
-    const rows = await this.db
+  async findByIdWithRefs(id: string): Promise<GoodsReceiptWithRefs | null> {
+    const [row] = await this.db
       .select({
         id: goodsReceipts.id,
         organizationId: goodsReceipts.organizationId,
@@ -153,7 +143,6 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         notes: goodsReceipts.notes,
         metadata: goodsReceipts.metadata,
         publishedAt: goodsReceipts.publishedAt,
-        costAssociatedAt: goodsReceipts.costAssociatedAt,
         createdAt: goodsReceipts.createdAt,
         supplierName: suppliers.name,
         supplierCurrencyCode: suppliers.currencyCode,
@@ -168,7 +157,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       .leftJoin(purchaseOrders, eq(goodsReceipts.purchaseOrderId, purchaseOrders.id))
       .where(eq(goodsReceipts.id, id))
       .limit(1);
-    return rows[0] ?? null;
+    return row ?? null;
   }
 
   async updatePoItemReceivedQty(poItemId: string, addQty: number): Promise<void> {
@@ -208,11 +197,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     return !!row;
   }
 
-  async updateStatus(
-    id: string,
-    status: (typeof goodsReceipts.$inferSelect)['status'],
-    publishedAt?: Date,
-  ): Promise<void> {
+  async updateStatus(id: string, status: GoodsReceipt['status'], publishedAt?: Date): Promise<void> {
     await this.db
       .update(goodsReceipts)
       .set({
@@ -220,10 +205,5 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
         ...(publishedAt ? { publishedAt } : {}),
       })
       .where(eq(goodsReceipts.id, id));
-  }
-
-  // Re-stamped every time a cost row affecting this GR is inserted, edited, or deleted (PR5).
-  async setCostAssociatedAt(id: string, at: Date): Promise<void> {
-    await this.db.update(goodsReceipts).set({ costAssociatedAt: at }).where(eq(goodsReceipts.id, id));
   }
 }

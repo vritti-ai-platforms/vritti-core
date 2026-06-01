@@ -56,7 +56,7 @@ const LotDetailContent = ({
   });
 
   const uomSymbol = item.inventoryItemUomSymbol;
-  const remainingToDistribute = Math.max(item.quantity - item.acceptedQuantity, 0);
+  const remainingToDistribute = Math.max(item.totalQty - item.acceptedQuantity, 0);
 
   const handleRemoveLot = async () => {
     const confirmed = await confirm({

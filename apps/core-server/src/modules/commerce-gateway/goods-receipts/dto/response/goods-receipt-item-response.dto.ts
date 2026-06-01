@@ -10,9 +10,21 @@ export class GoodsReceiptItemResponseDto {
   inventoryItemTracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
   @ApiPropertyOptional({ nullable: true }) inventoryItemUomSymbol: string | null;
   @ApiProperty() inventoryItemAllowDecimal: boolean;
-  @ApiProperty({ description: 'Operator-declared accepted quantity for this item.' })
-  quantity: number;
-  @ApiProperty({ description: 'Distributed so far — sum(lines.quantity). Item is balanced when this equals quantity.' })
+  @ApiProperty({ description: 'Ordered (paid) quantity for this item, in the item UOM.' })
+  orderedQty: number;
+  @ApiProperty({ description: 'Derived free (bonus) quantity from the scheme.' })
+  freeQty: number;
+  @ApiProperty({
+    description: 'Total received quantity = orderedQty + freeQty. Item is balanced when distributed equals this.',
+  })
+  totalQty: number;
+  @ApiPropertyOptional({ nullable: true, description: 'Free-goods scheme buy qty (e.g. 9 in "9+1").' })
+  schemeBuyQty: number | null;
+  @ApiPropertyOptional({ nullable: true, description: 'Free-goods scheme free qty (e.g. 1 in "9+1").' })
+  schemeFreeQty: number | null;
+  @ApiProperty({ enum: ['none', 'slab', 'pro_rata'] })
+  schemeMode: 'none' | 'slab' | 'pro_rata';
+  @ApiProperty({ description: 'Distributed so far — sum(lines.quantity). Item is balanced when this equals totalQty.' })
   acceptedQuantity: number;
   @ApiProperty() rejectedQuantity: number;
   @ApiProperty() lotsCount: number;

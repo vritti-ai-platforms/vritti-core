@@ -96,11 +96,21 @@ export const LinesTable = ({
       {
         accessorKey: 'quantity',
         header: 'Quantity',
-        cell: ({ row }) => (
-          <span className="font-mono">
-            <NumberCell value={row.original.quantity} /> {uomSymbol ?? ''}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const { quantity, primaryUomQty, primaryUomSymbol } = row.original;
+          const isCrossUom = primaryUomQty !== quantity;
+          return (
+            <span className="font-mono">
+              <NumberCell value={quantity} /> {uomSymbol ?? ''}
+              {isCrossUom && (
+                <span className="text-xs text-muted-foreground">
+                  {' ('}
+                  <NumberCell value={primaryUomQty} /> {primaryUomSymbol})
+                </span>
+              )}
+            </span>
+          );
+        },
         enableSorting: true,
       },
       ...(isSerial

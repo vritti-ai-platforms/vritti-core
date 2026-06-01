@@ -11,6 +11,7 @@ import {
   InventoryTrackingValues,
   inventoryItems,
   locations,
+  uom,
 } from '@/db/schema';
 
 export type GoodsReceiptLineWithRefs = GoodsReceiptLine & {
@@ -20,6 +21,8 @@ export type GoodsReceiptLineWithRefs = GoodsReceiptLine & {
   lotNumber: string | null;
   lotManufacturingDate: string | null;
   lotExpiryDate: string | null;
+  // Symbol of the inventory item's primary UOM (for cross-UOM display alongside primaryUomQty):
+  primaryUomSymbol: string | null;
   // Computed:
   lineItemsCount: number;
 };
@@ -73,6 +76,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         goodsReceiptLotId: goodsReceiptLines.goodsReceiptLotId,
         locationId: goodsReceiptLines.locationId,
         quantity: goodsReceiptLines.quantity,
+        primaryUomQty: goodsReceiptLines.primaryUomQty,
         resolvedQuantId: goodsReceiptLines.resolvedQuantId,
         isBalanced: goodsReceiptLines.isBalanced,
         metadata: goodsReceiptLines.metadata,
@@ -83,11 +87,15 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         lotNumber: goodsReceiptLots.lotNumber,
         lotManufacturingDate: goodsReceiptLots.manufacturingDate,
         lotExpiryDate: goodsReceiptLots.expiryDate,
+        primaryUomSymbol: uom.symbol,
         lineItemsCount: lineItemsCountSql,
       },
       leftJoins: [
         { table: goodsReceiptLots, on: eq(goodsReceiptLines.goodsReceiptLotId, goodsReceiptLots.id) },
         { table: locations, on: eq(goodsReceiptLines.locationId, locations.id) },
+        { table: goodsReceiptItems, on: eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id) },
+        { table: inventoryItems, on: eq(goodsReceiptItems.inventoryItemId, inventoryItems.id) },
+        { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       ],
       where: combinedWhere,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(goodsReceiptLines.createdAt)],
@@ -133,11 +141,6 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
 
   async setResolvedQuant(lineId: string, resolvedQuantId: string): Promise<void> {
     await this.db.update(goodsReceiptLines).set({ resolvedQuantId }).where(eq(goodsReceiptLines.id, lineId));
-  }
-
-  // Snapshots the primary-UOM quantity onto the line at publish time
-  async setPrimaryUomQty(lineId: string, primaryUomQty: number): Promise<void> {
-    await this.db.update(goodsReceiptLines).set({ primaryUomQty }).where(eq(goodsReceiptLines.id, lineId));
   }
 
   async totalQuantityForItem(itemId: string, excludeLineId?: string): Promise<number> {
@@ -228,6 +231,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         goodsReceiptLotId: goodsReceiptLines.goodsReceiptLotId,
         locationId: goodsReceiptLines.locationId,
         quantity: goodsReceiptLines.quantity,
+        primaryUomQty: goodsReceiptLines.primaryUomQty,
         resolvedQuantId: goodsReceiptLines.resolvedQuantId,
         isBalanced: goodsReceiptLines.isBalanced,
         metadata: goodsReceiptLines.metadata,
@@ -238,11 +242,15 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         lotNumber: goodsReceiptLots.lotNumber,
         lotManufacturingDate: goodsReceiptLots.manufacturingDate,
         lotExpiryDate: goodsReceiptLots.expiryDate,
+        primaryUomSymbol: uom.symbol,
         lineItemsCount: lineItemsCountSql,
       })
       .from(goodsReceiptLines)
       .leftJoin(goodsReceiptLots, eq(goodsReceiptLines.goodsReceiptLotId, goodsReceiptLots.id))
       .leftJoin(locations, eq(goodsReceiptLines.locationId, locations.id))
+      .leftJoin(goodsReceiptItems, eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id))
+      .leftJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
+      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
       .where(where ?? sql`TRUE`)
       .orderBy(...(orderBy?.length ? orderBy : [desc(goodsReceiptLines.createdAt)]));
 

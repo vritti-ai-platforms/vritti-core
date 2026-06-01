@@ -7,6 +7,7 @@ import { InventoryItemQuantsService } from '@domain/inventory-item-quants/servic
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { FreeSchemeMode } from '@/db/schema';
 
 @Controller()
 export class GoodsReceiptsItemsController {
@@ -61,20 +62,26 @@ export class GoodsReceiptsItemsController {
     data: {
       goodsReceiptId: string;
       supplierItemId: string;
-      quantity: number;
+      orderedQty: number;
       rejectedQuantity?: number;
       // bigint over NATS is serialized as string by the gateway to dodge JSON precision loss.
       unitPrice?: string;
       currencyCode?: string;
+      schemeBuyQty?: number;
+      schemeFreeQty?: number;
+      schemeMode?: FreeSchemeMode;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromSupplierItem — supplierItem: ${data.supplierItemId}`);
     return this.itemsService.addItemFromSupplierItem(data.goodsReceiptId, {
       supplierItemId: data.supplierItemId,
-      quantity: data.quantity,
+      orderedQty: data.orderedQty,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
       currencyCode: data.currencyCode,
+      schemeBuyQty: data.schemeBuyQty,
+      schemeFreeQty: data.schemeFreeQty,
+      schemeMode: data.schemeMode,
     });
   }
 
@@ -84,19 +91,25 @@ export class GoodsReceiptsItemsController {
     data: {
       goodsReceiptId: string;
       purchaseOrderItemId: string;
-      quantity: number;
+      orderedQty: number;
       rejectedQuantity?: number;
       unitPrice?: string;
       currencyCode?: string;
+      schemeBuyQty?: number;
+      schemeFreeQty?: number;
+      schemeMode?: FreeSchemeMode;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromPurchaseOrderItem — poItem: ${data.purchaseOrderItemId}`);
     return this.itemsService.addItemFromPurchaseOrderItem(data.goodsReceiptId, {
       purchaseOrderItemId: data.purchaseOrderItemId,
-      quantity: data.quantity,
+      orderedQty: data.orderedQty,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
       currencyCode: data.currencyCode,
+      schemeBuyQty: data.schemeBuyQty,
+      schemeFreeQty: data.schemeFreeQty,
+      schemeMode: data.schemeMode,
     });
   }
 
@@ -106,18 +119,24 @@ export class GoodsReceiptsItemsController {
     data: {
       goodsReceiptId: string;
       itemId: string;
-      quantity?: number;
+      orderedQty?: number;
       rejectedQuantity?: number;
       unitPrice?: string;
       currencyCode?: string;
+      schemeBuyQty?: number;
+      schemeFreeQty?: number;
+      schemeMode?: FreeSchemeMode;
     },
   ): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.updateItem');
     return this.itemsService.updateItem(data.goodsReceiptId, data.itemId, {
-      quantity: data.quantity,
+      orderedQty: data.orderedQty,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
       currencyCode: data.currencyCode,
+      schemeBuyQty: data.schemeBuyQty,
+      schemeFreeQty: data.schemeFreeQty,
+      schemeMode: data.schemeMode,
     });
   }
 

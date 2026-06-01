@@ -1,5 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk';
-import type { PurchaseOrderItem } from '@/db/schema';
+import type { FreeSchemeMode, PurchaseOrderItem } from '@/db/schema';
 
 export class PurchaseOrderItemDto {
   id: string;
@@ -15,6 +15,10 @@ export class PurchaseOrderItemDto {
   unitPrice: CurrencyAmountDto;
   primaryUomUnitPrice: CurrencyAmountDto;
   totalPrice: CurrencyAmountDto;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  schemeMode: FreeSchemeMode;
+  freeQty: number;
 
   static from(
     entity: PurchaseOrderItem & { orderUomSymbol?: string | null; primaryUomSymbol?: string | null },
@@ -35,6 +39,11 @@ export class PurchaseOrderItemDto {
     dto.unitPrice = CurrencyAmountDto.from(entity.unitPrice, entity.currencyCode);
     dto.primaryUomUnitPrice = CurrencyAmountDto.from(entity.primaryUomUnitPrice, entity.currencyCode);
     dto.totalPrice = CurrencyAmountDto.from(entity.totalPrice, entity.currencyCode);
+
+    dto.schemeBuyQty = entity.schemeBuyQty ?? null;
+    dto.schemeFreeQty = entity.schemeFreeQty ?? null;
+    dto.schemeMode = entity.schemeMode ?? 'none';
+    dto.freeQty = entity.freeQty ?? 0;
 
     return dto;
   }

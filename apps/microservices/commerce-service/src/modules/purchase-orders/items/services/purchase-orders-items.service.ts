@@ -72,14 +72,28 @@ export class PurchaseOrdersItemsService {
       });
     }
 
-    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
+    const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(
       supplierItem.inventoryItemId,
       supplierItem.uomId,
       data.uomQty,
     );
 
+    // Scheme override from the form, falling back to the supplier item's standing scheme.
+    const scheme = {
+      buyQty: data.schemeBuyQty ?? supplierItem.schemeBuyQty ?? null,
+      freeQty: data.schemeFreeQty ?? supplierItem.schemeFreeQty ?? null,
+      mode: data.schemeMode ?? supplierItem.schemeMode ?? 'none',
+    };
+
     await this.database.runInTransaction(async () => {
-      await this.itemsService.addItem(po, data, supplierItem.inventoryItemId, supplierItem.uomId, primaryUomQty);
+      await this.itemsService.addItem(
+        po,
+        data,
+        supplierItem.inventoryItemId,
+        supplierItem.uomId,
+        primaryUomQty,
+        scheme,
+      );
       await this.repository.syncTotalAmount(poId);
     });
 
@@ -103,10 +117,17 @@ export class PurchaseOrdersItemsService {
     const orderedUomQty = data.uomQty ?? existingItem.uomQty;
 
     // Recompute the primary-UOM quantity for the current item, uom, and qty
-    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, orderedUomQty);
+    const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, uomId, orderedUomQty);
+
+    // Scheme override from the form, falling back to the line's existing scheme.
+    const scheme = {
+      buyQty: data.schemeBuyQty ?? existingItem.schemeBuyQty ?? null,
+      freeQty: data.schemeFreeQty ?? existingItem.schemeFreeQty ?? null,
+      mode: data.schemeMode ?? existingItem.schemeMode ?? 'none',
+    };
 
     await this.database.runInTransaction(async () => {
-      await this.itemsService.updateItem(po, itemId, data, primaryUomQty);
+      await this.itemsService.updateItem(po, itemId, data, primaryUomQty, scheme);
       await this.repository.syncTotalAmount(poId);
     });
 

@@ -14,7 +14,11 @@ import {
 } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
+import { computeFreeQty } from '@/common/free-qty';
+import { type FreeSchemeMode, GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
+
+type FreeScheme = { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode };
+
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
 import { GoodsReceiptItemsCostDto } from '../dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
@@ -43,7 +47,7 @@ export class GoodsReceiptItemsService {
 
   // Converts a unit price from the GR-item's UOM to the inventory item's primary UOM
   private async resolvePrimaryUomUnitPrice(inventoryItemId: string, uomId: string, unitPrice: bigint): Promise<bigint> {
-    const oneInPrimary = await this.uomConversionsService.toPrimaryQuantity(inventoryItemId, uomId, 1);
+    const oneInPrimary = await this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, uomId, 1);
     if (oneInPrimary <= 0) return unitPrice;
     return BigInt(
       new Decimal(unitPrice.toString()).dividedBy(oneInPrimary).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
@@ -103,10 +107,13 @@ export class GoodsReceiptItemsService {
     goodsReceiptId: string,
     data: {
       supplierItemId: string;
-      quantity: number;
+      orderedQty: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
+      schemeBuyQty?: number;
+      schemeFreeQty?: number;
+      schemeMode?: FreeSchemeMode;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
@@ -120,14 +127,22 @@ export class GoodsReceiptItemsService {
       });
     }
 
-    // Un-linked GR: the accepted quantity is uncapped.
+    // Scheme from the form, falling back to the supplier item's standing scheme.
+    const scheme: FreeScheme = {
+      buyQty: data.schemeBuyQty ?? supplierItem.schemeBuyQty ?? null,
+      freeQty: data.schemeFreeQty ?? supplierItem.schemeFreeQty ?? null,
+      mode: data.schemeMode ?? supplierItem.schemeMode ?? 'none',
+    };
+
+    // Un-linked GR: the ordered (paid) quantity is uncapped.
     return this.addItemInternal(receipt, {
       inventoryItemId: supplierItem.inventoryItemId,
       uomId: supplierItem.uomId,
-      quantity: data.quantity,
+      orderedQty: data.orderedQty,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice,
       currencyCode: data.currencyCode,
+      scheme,
     });
   }
 
@@ -136,10 +151,13 @@ export class GoodsReceiptItemsService {
     goodsReceiptId: string,
     data: {
       purchaseOrderItemId: string;
-      quantity: number;
+      orderedQty: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
+      schemeBuyQty?: number;
+      schemeFreeQty?: number;
+      schemeMode?: FreeSchemeMode;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
@@ -160,16 +178,28 @@ export class GoodsReceiptItemsService {
       });
     }
 
-    // PO-linked: the accepted quantity can't exceed what's still outstanding on the PO line.
-    this.validateQuantityAgainstPoRemaining(data.quantity, Number(poItem.uomQty), Number(poItem.receivedQuantity ?? 0));
+    // PO-linked: the ordered (paid) quantity can't exceed what's still outstanding on the PO line.
+    this.validateQuantityAgainstPoRemaining(
+      data.orderedQty,
+      Number(poItem.uomQty),
+      Number(poItem.receivedQuantity ?? 0),
+    );
+
+    // Scheme from the form, falling back to the PO line's scheme.
+    const scheme: FreeScheme = {
+      buyQty: data.schemeBuyQty ?? poItem.schemeBuyQty ?? null,
+      freeQty: data.schemeFreeQty ?? poItem.schemeFreeQty ?? null,
+      mode: data.schemeMode ?? poItem.schemeMode ?? 'none',
+    };
 
     return this.addItemInternal(receipt, {
       inventoryItemId: poItem.inventoryItemId,
       uomId: poItem.uomId,
-      quantity: data.quantity,
+      orderedQty: data.orderedQty,
       rejectedQuantity: data.rejectedQuantity,
       unitPrice: data.unitPrice,
       currencyCode: data.currencyCode,
+      scheme,
     });
   }
 
@@ -179,10 +209,11 @@ export class GoodsReceiptItemsService {
     data: {
       inventoryItemId: string;
       uomId: string;
-      quantity: number;
+      orderedQty: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
+      scheme: FreeScheme;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     // Reject duplicate (DB also enforces unique constraint, but produce a clean error)
@@ -198,7 +229,7 @@ export class GoodsReceiptItemsService {
       });
     }
 
-    this.validateAcceptedQuantity(data.quantity);
+    this.validateOrderedQty(data.orderedQty);
     if (data.rejectedQuantity !== undefined) {
       this.validateRejectedQuantity(data.rejectedQuantity);
     }
@@ -208,12 +239,19 @@ export class GoodsReceiptItemsService {
         ? await this.resolvePrimaryUomUnitPrice(data.inventoryItemId, data.uomId, data.unitPrice)
         : null;
 
+    const freeQty = computeFreeQty(data.orderedQty, data.scheme.buyQty, data.scheme.freeQty, data.scheme.mode);
+
     // 23505 race fallback handled globally by api-sdk's pg-error filter.
     const entity = await this.itemsRepository.create({
       goodsReceiptId: receipt.id,
       inventoryItemId: data.inventoryItemId,
       uomId: data.uomId,
-      quantity: data.quantity,
+      orderedQty: data.orderedQty,
+      freeQty,
+      totalQty: data.orderedQty + freeQty,
+      schemeBuyQty: data.scheme.buyQty,
+      schemeFreeQty: data.scheme.freeQty,
+      schemeMode: data.scheme.mode,
       rejectedQuantity: data.rejectedQuantity ?? 0,
       unitPrice: data.unitPrice ?? null,
       primaryUomUnitPrice,
@@ -229,29 +267,32 @@ export class GoodsReceiptItemsService {
     };
   }
 
-  // Updates an existing item's rejected quantity and captured supplier price
+  // Updates an existing item's ordered quantity, free-goods scheme, rejected quantity and price.
   async updateItem(
     goodsReceiptId: string,
     itemId: string,
     data: {
-      quantity?: number;
+      orderedQty?: number;
       rejectedQuantity?: number;
       unitPrice?: bigint;
       currencyCode?: string;
+      schemeBuyQty?: number;
+      schemeFreeQty?: number;
+      schemeMode?: FreeSchemeMode;
     },
   ): Promise<SuccessResponseDto> {
     await this.ensureEditableReceipt(goodsReceiptId);
     const item = await this.itemsRepository.findByReceiptIdAndItemIdWithRefs(goodsReceiptId, itemId);
     if (!item) throw new NotFoundException('Goods receipt item not found.');
 
-    if (data.quantity !== undefined) {
-      this.validateAcceptedQuantity(data.quantity);
-      // PO-linked: keep the accepted quantity within the PO line's outstanding amount. Lowering it
-      // below what's already distributed across lines is allowed — the item just shows unbalanced
+    if (data.orderedQty !== undefined) {
+      this.validateOrderedQty(data.orderedQty);
+      // PO-linked: keep the ordered (paid) quantity within the PO line's outstanding amount. Lowering
+      // it below what's already distributed across lines is allowed — the item just shows unbalanced
       // until the operator removes lines.
       if (item.poOrderedQuantity != null) {
         this.validateQuantityAgainstPoRemaining(
-          data.quantity,
+          data.orderedQty,
           Number(item.poOrderedQuantity),
           Number(item.poReceivedQuantity ?? 0),
         );
@@ -262,7 +303,6 @@ export class GoodsReceiptItemsService {
     }
 
     const update: Record<string, unknown> = {};
-    if (data.quantity !== undefined) update.quantity = data.quantity;
     if (data.rejectedQuantity !== undefined) update.rejectedQuantity = data.rejectedQuantity;
     if (data.unitPrice !== undefined) {
       update.unitPrice = data.unitPrice;
@@ -273,6 +313,29 @@ export class GoodsReceiptItemsService {
       );
     }
     if (data.currencyCode !== undefined) update.currencyCode = data.currencyCode;
+
+    // Recompute free_qty + total_qty whenever ordered qty or any scheme field changes. free_qty is
+    // always derived from the (possibly updated) ordered qty and scheme — never an operator input.
+    const schemeOrQtyChanged =
+      data.orderedQty !== undefined ||
+      data.schemeBuyQty !== undefined ||
+      data.schemeFreeQty !== undefined ||
+      data.schemeMode !== undefined;
+    if (schemeOrQtyChanged) {
+      const orderedQty = data.orderedQty ?? Number(item.orderedQty);
+      const scheme: FreeScheme = {
+        buyQty: data.schemeBuyQty ?? item.schemeBuyQty ?? null,
+        freeQty: data.schemeFreeQty ?? item.schemeFreeQty ?? null,
+        mode: data.schemeMode ?? item.schemeMode ?? 'none',
+      };
+      const freeQty = computeFreeQty(orderedQty, scheme.buyQty, scheme.freeQty, scheme.mode);
+      update.orderedQty = orderedQty;
+      update.freeQty = freeQty;
+      update.totalQty = orderedQty + freeQty;
+      update.schemeBuyQty = scheme.buyQty;
+      update.schemeFreeQty = scheme.freeQty;
+      update.schemeMode = scheme.mode;
+    }
 
     if (Object.keys(update).length > 0) {
       await this.itemsRepository.update(item.id, update);
@@ -294,11 +357,11 @@ export class GoodsReceiptItemsService {
     }
   }
 
-  private validateAcceptedQuantity(quantity: number) {
-    if (!Number.isFinite(quantity) || quantity <= 0) {
+  private validateOrderedQty(orderedQty: number) {
+    if (!Number.isFinite(orderedQty) || orderedQty <= 0) {
       throw new ValidationException({
-        detail: 'Quantity must be greater than 0.',
-        errors: [{ field: 'quantity', message: 'Quantity must be greater than 0.' }],
+        detail: 'Ordered quantity must be greater than 0.',
+        errors: [{ field: 'orderedQty', message: 'Ordered quantity must be greater than 0.' }],
       });
     }
   }

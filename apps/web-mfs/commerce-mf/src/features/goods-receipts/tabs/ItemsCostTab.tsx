@@ -34,14 +34,32 @@ export const ItemsCostTab = ({ goodsReceiptId, isDraft }: ItemsCostTabProps) => 
         enableSorting: true,
       },
       {
-        accessorKey: 'quantity',
-        header: 'Quantity',
+        accessorKey: 'orderedQty',
+        header: 'Ordered',
         cell: ({ row }) => (
           <span className="font-mono">
-            {fmt.number(row.original.quantity).primary} {row.original.inventoryItemUomSymbol}
+            {fmt.number(row.original.orderedQty).primary} {row.original.inventoryItemUomSymbol}
           </span>
         ),
         enableSorting: true,
+      },
+      {
+        accessorKey: 'freeQty',
+        header: 'Free',
+        cell: ({ row }) => (
+          <span className="font-mono">
+            {fmt.number(row.original.freeQty).primary} {row.original.inventoryItemUomSymbol}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'totalQty',
+        header: 'Total',
+        cell: ({ row }) => (
+          <span className="font-mono">
+            {fmt.number(row.original.totalQty).primary} {row.original.inventoryItemUomSymbol}
+          </span>
+        ),
       },
       {
         accessorKey: 'unitPrice',

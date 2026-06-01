@@ -13,7 +13,16 @@ import {
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
-import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems } from '@/db/schema';
+import { computeFreeQty } from '@/common/free-qty';
+import {
+  type FreeSchemeMode,
+  type PurchaseOrderStatus,
+  PurchaseOrderStatusValues,
+  purchaseOrderItems,
+} from '@/db/schema';
+
+export type FreeScheme = { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode };
+
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
 import { PurchaseOrderItemDto } from '../dto/entity/purchase-order-item.dto';
@@ -123,6 +132,7 @@ export class PurchaseOrderItemsService {
     inventoryItemId: string,
     uomId: string,
     primaryUomQty: number,
+    scheme: FreeScheme,
   ): Promise<void> {
     this.assertEditable(po);
 
@@ -157,6 +167,8 @@ export class PurchaseOrderItemsService {
         .toFixed(0),
     );
 
+    const freeQty = computeFreeQty(data.uomQty, scheme.buyQty, scheme.freeQty, scheme.mode);
+
     await this.repository.create({
       purchaseOrderId: po.id,
       inventoryItemId,
@@ -167,6 +179,10 @@ export class PurchaseOrderItemsService {
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
       currencyCode: po.currencyCode,
+      schemeBuyQty: scheme.buyQty,
+      schemeFreeQty: scheme.freeQty,
+      schemeMode: scheme.mode,
+      freeQty,
     });
 
     this.logger.log(`Added item to PO ${po.poNumber} (${po.id})`);
@@ -178,6 +194,7 @@ export class PurchaseOrderItemsService {
     itemId: string,
     data: UpdatePurchaseOrderItemDto,
     primaryUomQty: number,
+    scheme: FreeScheme,
   ): Promise<SuccessResponseDto> {
     this.assertEditable(po);
 
@@ -239,6 +256,8 @@ export class PurchaseOrderItemsService {
         .toFixed(0),
     );
 
+    const freeQty = computeFreeQty(orderedQuantity, scheme.buyQty, scheme.freeQty, scheme.mode);
+
     await this.repository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
       uomQty: orderedQuantity,
@@ -246,6 +265,10 @@ export class PurchaseOrderItemsService {
       primaryUomUnitPrice: primaryUomUnitPriceMinor,
       unitPrice: unitPriceMinor,
       totalPrice: totalPriceMinor,
+      schemeBuyQty: scheme.buyQty,
+      schemeFreeQty: scheme.freeQty,
+      schemeMode: scheme.mode,
+      freeQty,
     });
 
     this.logger.log(`Updated item ${itemId} on PO ${po.poNumber}`);

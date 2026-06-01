@@ -180,10 +180,6 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       .where(eq(stockAdjustments.id, id));
   }
 
-  async setCostAssociatedAt(id: string, at: Date): Promise<void> {
-    await this.db.update(stockAdjustments).set({ costAssociatedAt: at }).where(eq(stockAdjustments.id, id));
-  }
-
   // Generates a unique stock adjustment code (org-scoped via RLS)
   async generateCode(): Promise<string> {
     const now = new Date();

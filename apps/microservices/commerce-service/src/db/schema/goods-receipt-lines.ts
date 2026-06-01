@@ -21,13 +21,10 @@ export const goodsReceiptLines = coreSchema.table(
       .notNull()
       .references(() => locations.id),
     quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
-    // Snapshot of `quantity` converted to the inventory item's primary UOM at publish time. Computed
-    // in the service via UomConversionsService (Decimal math); never derived in SQL. Cost-association
-    // math reads this column so factor changes after publish don't retroactively shift the unit cost.
-    // Matches the purchase_order_items pattern. NULL during PR1 transition for legacy rows + new
-    // inserts from un-updated callers; Phase 3 (GR publish) always sets it. Tighten to NOT NULL in
-    // a follow-up PR.
-    primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }),
+    // Snapshot of `quantity` converted to the inventory item's primary UOM. Computed in the service
+    // via UomConversionsService (Decimal math) at line add/edit and re-derived at publish; never in
+    // SQL. Cost-association math reads it so factor changes after publish don't retroactively shift cost.
+    primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     resolvedQuantId: uuid('resolved_quant_id').references(() => inventoryItemQuants.id, { onDelete: 'set null' }),
     isBalanced: boolean('is_balanced').notNull().default(true),
     metadata: jsonb('metadata').notNull().default({}),

@@ -1,13 +1,18 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsNumber, IsOptional, IsPositive, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsPositive, Min } from 'class-validator';
+
+export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
+const FREE_SCHEME_MODES: FreeSchemeMode[] = ['none', 'slab', 'pro_rata'];
 
 export class UpdateGoodsReceiptItemDto {
-  @ApiPropertyOptional({ description: 'Operator-declared accepted quantity for this item, in the item UOM.' })
+  @ApiPropertyOptional({
+    description: 'Ordered (paid) quantity for this item, in the item UOM. Free qty is derived from the scheme.',
+  })
   @IsOptional()
   @IsNumber()
   @IsPositive()
-  quantity?: number;
+  orderedQty?: number;
 
   @ApiPropertyOptional({ description: 'Damage-on-arrival quantity (does not go to inventory).' })
   @IsOptional()
@@ -22,4 +27,21 @@ export class UpdateGoodsReceiptItemDto {
   @IsOptional()
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
+
+  @ApiPropertyOptional({ description: 'Free-goods scheme buy qty (e.g. 9 in "9+1").' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  schemeBuyQty?: number;
+
+  @ApiPropertyOptional({ description: 'Free-goods scheme free qty (e.g. 1 in "9+1").' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  schemeFreeQty?: number;
+
+  @ApiPropertyOptional({ enum: FREE_SCHEME_MODES, description: 'How free qty is derived: slab or pro_rata.' })
+  @IsOptional()
+  @IsIn(FREE_SCHEME_MODES)
+  schemeMode?: FreeSchemeMode;
 }

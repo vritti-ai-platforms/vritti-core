@@ -1,5 +1,17 @@
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+} from 'class-validator';
+import { type FreeSchemeMode, FreeSchemeModeValues } from '@/db/schema';
 
 export class AddSupplierItemDto {
   @IsUUID()
@@ -30,4 +42,19 @@ export class AddSupplierItemDto {
   @IsOptional()
   @IsBoolean()
   isPreferred?: boolean;
+
+  // Standing free-goods scheme (e.g. buy 9 get 1). Prefills PO/GR lines for this supplier item.
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  schemeBuyQty?: number;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  schemeFreeQty?: number;
+
+  @IsOptional()
+  @IsEnum(FreeSchemeModeValues)
+  schemeMode?: FreeSchemeMode;
 }

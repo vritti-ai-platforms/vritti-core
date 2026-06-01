@@ -51,6 +51,9 @@ export interface AddSupplierItemPayload {
   minOrderQuantity?: number;
   leadTimeDays?: number;
   isPreferred?: boolean;
+  schemeBuyQty?: number;
+  schemeFreeQty?: number;
+  schemeMode?: 'none' | 'slab' | 'pro_rata';
 }
 
 export interface UpdateSupplierItemPayload {
@@ -61,6 +64,9 @@ export interface UpdateSupplierItemPayload {
   leadTimeDays?: number | null;
   isPreferred?: boolean;
   isActive?: boolean;
+  schemeBuyQty?: number | null;
+  schemeFreeQty?: number | null;
+  schemeMode?: 'none' | 'slab' | 'pro_rata' | null;
 }
 
 export interface CreateSupplierContactPayload {

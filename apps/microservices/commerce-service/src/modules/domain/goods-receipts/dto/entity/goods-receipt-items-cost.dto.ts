@@ -7,7 +7,9 @@ export class GoodsReceiptItemsCostRowDto {
   inventoryItemId: string;
   inventoryItemName: string;
   uomSymbol: string;
-  quantity: number;
+  orderedQty: number;
+  freeQty: number;
+  totalQty: number;
   unitPrice: CurrencyAmountDto | null;
   lineTotal: CurrencyAmountDto | null;
 }
@@ -17,8 +19,9 @@ export class GoodsReceiptItemsCostDto {
   currencyCode: string | null;
   grandTotal: CurrencyAmountDto | null;
 
-  // Line total = unitPrice (minor) × quantity, rounded once to minor units; grand total sums the
-  // line totals. All prices share the GR's single supplier currency.
+  // Line total = unitPrice (minor) × orderedQty (the paid quantity; free units are not billed),
+  // rounded once to minor units; grand total sums the line totals. All prices share the GR's
+  // single supplier currency.
   static from(items: GoodsReceiptItemWithRefs[]): GoodsReceiptItemsCostDto {
     const dto = new GoodsReceiptItemsCostDto();
     let currencyCode: string | null = null;
@@ -30,12 +33,14 @@ export class GoodsReceiptItemsCostDto {
       row.inventoryItemId = item.inventoryItemId;
       row.inventoryItemName = item.inventoryItemName ?? '';
       row.uomSymbol = item.inventoryItemUomSymbol ?? '';
-      row.quantity = Number(item.quantity ?? 0);
+      row.orderedQty = Number(item.orderedQty ?? 0);
+      row.freeQty = Number(item.freeQty ?? 0);
+      row.totalQty = Number(item.totalQty ?? 0);
 
       const unitPriceMinor = item.unitPrice != null ? BigInt(item.unitPrice as unknown as string) : null;
       if (unitPriceMinor != null && item.currencyCode) {
         currencyCode ??= item.currencyCode;
-        const lineTotalMinor = BigInt(new Decimal(unitPriceMinor.toString()).times(row.quantity).toFixed(0));
+        const lineTotalMinor = BigInt(new Decimal(unitPriceMinor.toString()).times(row.orderedQty).toFixed(0));
         grandTotalMinor += lineTotalMinor;
         row.unitPrice = CurrencyAmountDto.from(unitPriceMinor, item.currencyCode);
         row.lineTotal = CurrencyAmountDto.from(lineTotalMinor, item.currencyCode);

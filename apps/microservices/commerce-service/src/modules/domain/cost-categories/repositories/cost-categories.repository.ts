@@ -5,8 +5,8 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { and, eq, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type CostCategory, type CostCategoryKind, costCategories, inventoryItemCosts } from '@/db/schema';
+import { and, eq } from '@vritti/api-sdk/drizzle-orm';
+import { type CostCategory, type CostCategoryKind, costCategories } from '@/db/schema';
 
 @Injectable()
 export class CostCategoriesRepository extends PrimaryBaseRepository<typeof costCategories> {
@@ -33,14 +33,9 @@ export class CostCategoriesRepository extends PrimaryBaseRepository<typeof costC
     return rows[0] as CostCategory | undefined;
   }
 
-  // Counts non-cascading references — `inventory_item_costs.category_id` is ON DELETE RESTRICT,
-  // so any reference blocks hard delete (deactivate is preferred).
-  async countReferences(id: string): Promise<{ costRows: number }> {
-    const result = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryItemCosts)
-      .where(eq(inventoryItemCosts.categoryId, id));
-    return { costRows: Number(result[0]?.count ?? 0) };
+  // Cost categories no longer have any referencing cost rows, so hard delete is always allowed.
+  async countReferences(_id: string): Promise<{ costRows: number }> {
+    return { costRows: 0 };
   }
 
   // Sets isActive=false without touching anything else. Used by the deactivate flow when the

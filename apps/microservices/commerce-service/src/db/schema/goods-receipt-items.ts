@@ -11,6 +11,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { freeSchemeModeEnum } from './enums';
 import { goodsReceipts } from './goods-receipts';
 import { inventoryItems } from './inventory-items';
 import { uom } from './uom';
@@ -33,10 +34,18 @@ export const goodsReceiptItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
-    // Operator-declared accepted quantity for this item, in the item's UOM. Capped by the PO line's
-    // remaining quantity when the GR is PO-linked; free otherwise. The item is balanced once its
-    // lines distribute exactly this much (SUM(lines.quantity) == quantity).
-    quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    // Paid quantity in the item's UOM. Capped by the PO line's remaining quantity when PO-linked; the
+    // anchor that reconciles against the PO (free qty is bonus on top, not counted against the PO).
+    orderedQty: decimal('ordered_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    // Free-goods scheme prefilled from the PO/supplier item, editable on the GR. `free_qty` is derived
+    // from `ordered_qty` via the scheme; `total_qty = ordered_qty + free_qty`.
+    schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
+    schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
+    schemeMode: freeSchemeModeEnum('scheme_mode').notNull().default('none'),
+    freeQty: decimal('free_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    // Total received quantity = ordered_qty + free_qty, in the item's UOM. The item is balanced once
+    // its lines distribute exactly this much (SUM(lines.quantity) == total_qty).
+    totalQty: decimal('total_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     rejectedQuantity: decimal('rejected_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     // Supplier price captured at the breakdown step. Pre-filled from PO when GR is linked, else
     // from supplier_items, then editable. Used by autoAssociateSupplierPrice at publish so this

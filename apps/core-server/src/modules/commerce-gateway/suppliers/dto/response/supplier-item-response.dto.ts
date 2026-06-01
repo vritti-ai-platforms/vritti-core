@@ -34,4 +34,13 @@ export class SupplierItemResponseDto {
 
   @ApiProperty({ description: 'Whether this supplier-item link is active' })
   isActive: boolean;
+
+  @ApiPropertyOptional({ description: 'Standing free-goods scheme buy qty (e.g. 9 in "9+1").', nullable: true })
+  schemeBuyQty: number | null;
+
+  @ApiPropertyOptional({ description: 'Standing free-goods scheme free qty (e.g. 1 in "9+1").', nullable: true })
+  schemeFreeQty: number | null;
+
+  @ApiProperty({ enum: ['none', 'slab', 'pro_rata'] })
+  schemeMode: 'none' | 'slab' | 'pro_rata';
 }

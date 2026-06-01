@@ -73,6 +73,11 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       ],
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions,
+      additionalExpressions: {
+        schemeBuyQty: sql`${supplierItems.schemeBuyQty}`,
+        schemeFreeQty: sql`${supplierItems.schemeFreeQty}`,
+        schemeMode: sql`${supplierItems.schemeMode}`,
+      },
     });
   }
 
@@ -102,6 +107,9 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
         leadTimeDays: supplierItems.leadTimeDays,
         isPreferred: supplierItems.isPreferred,
         isActive: supplierItems.isActive,
+        schemeBuyQty: supplierItems.schemeBuyQty,
+        schemeFreeQty: supplierItems.schemeFreeQty,
+        schemeMode: supplierItems.schemeMode,
         createdAt: supplierItems.createdAt,
         updatedAt: supplierItems.updatedAt,
         inventoryItemName: inventoryItems.name,

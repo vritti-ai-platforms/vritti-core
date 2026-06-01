@@ -1,12 +1,25 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, CurrencyCell, DataTable, NumberCell, RowActions, getSelectionColumn, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  CurrencyCell,
+  DataTable,
+  getSelectionColumn,
+  NumberCell,
+  RowActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import { SUPPLIER_ITEMS_TABLE_KEY, useBulkUnlinkSupplierItems, useSupplierItemsTable, useUnlinkSupplierItem } from '@/hooks/suppliers';
+import {
+  SUPPLIER_ITEMS_TABLE_KEY,
+  useBulkUnlinkSupplierItems,
+  useSupplierItemsTable,
+  useUnlinkSupplierItem,
+} from '@/hooks/suppliers';
 import type { SupplierItemData } from '@/schemas/suppliers';
 import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
 import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
@@ -92,6 +105,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
                 dialog: {
                   title: 'Edit Supplier Item',
                   description: 'Update pricing, UOM, and terms for this linked item.',
+                  className: 'max-w-3xl',
                   content: (close) => (
                     <UpdateSupplierItemDialog
                       supplierId={supplierId}
@@ -167,6 +181,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
 
       <Dialog
         handle={addItemDialog}
+        className="max-w-3xl"
         title="Add Supplier Item"
         description="Associate an inventory item with this supplier."
         content={(close) => (

@@ -56,9 +56,7 @@ export interface GoodsReceiptData {
 }
 
 export const linkGoodsReceiptPurchaseOrderSchema = z.object({
-  purchaseOrderId: z
-    .string({ error: 'Purchase order is required' })
-    .min(1, 'Purchase order is required'),
+  purchaseOrderId: z.string({ error: 'Purchase order is required' }).min(1, 'Purchase order is required'),
 });
 export type LinkGoodsReceiptPurchaseOrderFormData = z.infer<typeof linkGoodsReceiptPurchaseOrderSchema>;
 
@@ -70,6 +68,13 @@ export const InventoryTrackingValues = {
   SERIAL: 'serial' as const,
 };
 
+export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
+export const freeSchemeModeLabels: Record<FreeSchemeMode, string> = {
+  none: 'No Scheme',
+  slab: 'Slab (per full block)',
+  pro_rata: 'Pro-rata',
+};
+
 export interface GoodsReceiptItemData {
   id: string;
   goodsReceiptId: string;
@@ -78,9 +83,16 @@ export interface GoodsReceiptItemData {
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
   inventoryItemAllowDecimal: boolean;
-  // operator-declared accepted quantity for this item
-  quantity: number;
-  // distributed so far — sum(lines.quantity); item is balanced when this equals quantity
+  // ordered (paid) quantity for this item
+  orderedQty: number;
+  // derived bonus quantity from the scheme
+  freeQty: number;
+  // total received = orderedQty + freeQty; item is balanced when distributed equals this
+  totalQty: number;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  schemeMode: FreeSchemeMode;
+  // distributed so far — sum(lines.quantity); item is balanced when this equals totalQty
   acceptedQuantity: number;
   rejectedQuantity: number;
   lotsCount: number;
@@ -99,7 +111,9 @@ export interface GoodsReceiptItemsCostRow {
   inventoryItemId: string;
   inventoryItemName: string;
   uomSymbol: string;
-  quantity: number;
+  orderedQty: number;
+  freeQty: number;
+  totalQty: number;
   unitPrice: { currency: string; value: string } | null;
   lineTotal: { currency: string; value: string } | null;
 }
@@ -150,6 +164,8 @@ export interface GoodsReceiptLineData {
   manufacturingDate: string | null;
   expiryDate: string | null;
   quantity: number;
+  primaryUomQty: number;
+  primaryUomSymbol: string | null;
   resolvedQuantId: string | null;
   isBalanced: boolean;
   lineItemsCount: number;
@@ -189,9 +205,9 @@ const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(und
 
 // The operator-declared item quantity is required; integer unless the UOM allows decimals, and
 // (when PO-linked) capped by the PO line's remaining quantity. Built per mount like the line schema.
-function buildItemQuantityField(options: { allowDecimal: boolean; min?: number; max?: number }) {
+function buildOrderedQtyField(options: { allowDecimal: boolean; min?: number; max?: number }) {
   return zodNumericField({
-    required: 'Quantity is required',
+    required: 'Ordered quantity is required',
     positive: true,
     integer: !options.allowDecimal,
     ...(options.min != null
@@ -201,12 +217,21 @@ function buildItemQuantityField(options: { allowDecimal: boolean; min?: number; 
   });
 }
 
+// Free-goods scheme inputs (buy + free ratio + mode). free_qty itself is derived server-side; the
+// form only captures the editable ratio + mode and shows a computed preview.
+const schemeShape = {
+  schemeBuyQty: z.number().nonnegative().optional().catch(undefined),
+  schemeFreeQty: z.number().nonnegative().optional().catch(undefined),
+  schemeMode: z.enum(['none', 'slab', 'pro_rata']),
+};
+
 export function buildAddGoodsReceiptItemFromSupplierItemSchema(options: { allowDecimal: boolean; max?: number }) {
   return z.object({
     supplierItemId: z.string({ error: 'Supplier item is required' }).uuid('Supplier item is required'),
-    quantity: buildItemQuantityField(options),
+    orderedQty: buildOrderedQtyField(options),
     rejectedQuantity: zOptionalNonNegativeNumber,
     unitPrice: zodCurrencyField({ positive: true }).optional(),
+    ...schemeShape,
   });
 }
 export type AddGoodsReceiptItemFromSupplierItemFormData = z.infer<
@@ -216,9 +241,10 @@ export type AddGoodsReceiptItemFromSupplierItemFormData = z.infer<
 export function buildAddGoodsReceiptItemFromPurchaseOrderItemSchema(options: { allowDecimal: boolean; max?: number }) {
   return z.object({
     purchaseOrderItemId: z.string({ error: 'Purchase order line is required' }).uuid('Purchase order line is required'),
-    quantity: buildItemQuantityField(options),
+    orderedQty: buildOrderedQtyField(options),
     rejectedQuantity: zOptionalNonNegativeNumber,
     unitPrice: zodCurrencyField({ positive: true }).optional(),
+    ...schemeShape,
   });
 }
 export type AddGoodsReceiptItemFromPurchaseOrderItemFormData = z.infer<
@@ -227,9 +253,10 @@ export type AddGoodsReceiptItemFromPurchaseOrderItemFormData = z.infer<
 
 export function buildUpdateGoodsReceiptItemSchema(options: { allowDecimal: boolean; min?: number; max?: number }) {
   return z.object({
-    quantity: buildItemQuantityField(options),
+    orderedQty: buildOrderedQtyField(options),
     rejectedQuantity: zOptionalNonNegativeNumber,
     unitPrice: zodCurrencyField({ positive: true }).optional(),
+    ...schemeShape,
   });
 }
 export type UpdateGoodsReceiptItemFormData = z.infer<ReturnType<typeof buildUpdateGoodsReceiptItemSchema>>;
@@ -250,11 +277,7 @@ export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema
 // remaining quantity, and — for serial-tracked edit flows — the current serial count (so the user
 // can't shrink the line below the serials already attached). Build the schema per form mount so
 // zod enforces the same caps the input does.
-export function buildAddGoodsReceiptLineSchema(options: {
-  allowDecimal: boolean;
-  min?: number;
-  max?: number;
-}) {
+export function buildAddGoodsReceiptLineSchema(options: { allowDecimal: boolean; min?: number; max?: number }) {
   return z.object({
     goodsReceiptLotId: z.string().optional(),
     locationId: z.string().min(1, 'Location is required'),

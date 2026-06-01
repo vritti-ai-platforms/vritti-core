@@ -46,12 +46,12 @@ export class StockAdjustmentsLinesService {
     await this.validateUomId(adjustment, data.uomId);
     this.logger.log(`addOpeningLine [validateUomId] ${Date.now() - t0}ms`);
 
-    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
+    const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(
       adjustment.inventoryItemId,
       data.uomId,
       data.uomQty,
     );
-    this.logger.log(`addOpeningLine [toPrimaryQuantity] ${Date.now() - t0}ms`);
+    this.logger.log(`addOpeningLine [toPrimaryUomQuantity] ${Date.now() - t0}ms`);
 
     if (data.stockAdjustmentLotId) {
       await this.validateLotOwnership(adjustmentId, data.stockAdjustmentLotId);
@@ -79,7 +79,7 @@ export class StockAdjustmentsLinesService {
     this.logger.log(`addChangeLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.uomQty}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     await this.validateUomId(adjustment, data.uomId);
-    const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
+    const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(
       adjustment.inventoryItemId,
       data.uomId,
       data.uomQty,
@@ -170,7 +170,7 @@ export class StockAdjustmentsLinesService {
     const existing = await this.linesService.findById(adjustmentId, lineId);
     const effectiveQty = data.uomQty ?? existing.uomQty;
     const effectiveUomId = data.uomId ?? existing.uomId;
-    return this.uomConversionsService.toPrimaryQuantity(inventoryItemId, effectiveUomId, effectiveQty);
+    return this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, effectiveUomId, effectiveQty);
   }
 
   private async getAdjustmentContext(adjustmentId: string) {

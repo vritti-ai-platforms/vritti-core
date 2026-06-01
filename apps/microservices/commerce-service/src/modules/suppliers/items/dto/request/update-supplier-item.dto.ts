@@ -1,5 +1,6 @@
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsBoolean, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { type FreeSchemeMode, FreeSchemeModeValues } from '@/db/schema';
 
 export class UpdateSupplierItemDto {
   @IsOptional()
@@ -32,4 +33,18 @@ export class UpdateSupplierItemDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  schemeBuyQty?: number | null;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  schemeFreeQty?: number | null;
+
+  @IsOptional()
+  @IsEnum(FreeSchemeModeValues)
+  schemeMode?: FreeSchemeMode | null;
 }

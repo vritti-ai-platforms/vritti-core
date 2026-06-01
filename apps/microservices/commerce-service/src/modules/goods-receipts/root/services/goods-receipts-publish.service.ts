@@ -1,215 +1,224 @@
 import { GoodsReceiptLineItemsRepository } from '@domain/goods-receipt-line-items/repositories/goods-receipt-line-items.repository';
-import { GoodsReceiptLinesRepository } from '@domain/goods-receipt-lines/repositories/goods-receipt-lines.repository';
+import {
+  GoodsReceiptLinesRepository,
+  type GoodsReceiptLineWithRefs,
+} from '@domain/goods-receipt-lines/repositories/goods-receipt-lines.repository';
 import { GoodsReceiptLotsRepository } from '@domain/goods-receipt-lots/repositories/goods-receipt-lots.repository';
 import { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
 import { GoodsReceiptItemsRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
-import { GoodsReceiptsRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
+import {
+  GoodsReceiptsRepository,
+  type GoodsReceiptWithRefs,
+} from '@domain/goods-receipts/repositories/goods-receipts.repository';
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
-import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
-import {
-  type CreateNewQuantParams,
-  InventoryItemQuantsService,
-} from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
+import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException, NotFoundException, PrimaryDatabaseService } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import {
   CostSourceTypeValues,
   GoodsReceiptStatusValues,
   InventoryItemLedgerReferenceTypeValues,
   InventoryItemLedgerTypeValues,
+  type InventoryTracking,
   InventoryTrackingValues,
   PurchaseOrderStatusValues,
 } from '@/db/schema';
+
+const SERIAL_TRACKINGS = new Set<InventoryTracking>([
+  InventoryTrackingValues.SERIAL,
+  InventoryTrackingValues.LOT_SERIAL,
+]);
+
+type PublishItem = Awaited<ReturnType<GoodsReceiptItemsRepository['findByReceiptIdForPublish']>>[number];
+
+// Lot snapshot for quant creation; a lot line missing its expiry is a hard error.
+function toLotInfo(line: GoodsReceiptLineWithRefs) {
+  if (!line.lotNumber) return undefined;
+  if (!line.lotExpiryDate) {
+    throw new BadRequestException({
+      label: 'Missing Expiry Date',
+      detail: `Line ${line.id} has a lot without an expiry date.`,
+    });
+  }
+  return {
+    lotNumber: line.lotNumber,
+    manufacturingDate: line.lotManufacturingDate ?? null,
+    expiryDate: line.lotExpiryDate,
+  };
+}
 
 @Injectable()
 export class GoodsReceiptsPublishService {
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly receiptsRepository: GoodsReceiptsRepository,
-    private readonly itemsRepository: GoodsReceiptItemsRepository,
-    private readonly lotsRepository: GoodsReceiptLotsRepository,
-    private readonly linesRepository: GoodsReceiptLinesRepository,
-    private readonly lineItemsRepository: GoodsReceiptLineItemsRepository,
+    private readonly goodsReceiptsRepository: GoodsReceiptsRepository,
+    private readonly grItemsRepository: GoodsReceiptItemsRepository,
+    private readonly grLotsRepository: GoodsReceiptLotsRepository,
+    private readonly grLinesRepository: GoodsReceiptLinesRepository,
+    private readonly grLineItemsRepository: GoodsReceiptLineItemsRepository,
     private readonly quantsService: InventoryItemQuantsService,
-    private readonly lotsService: InventoryItemLotsService,
+    private readonly inventoryLotsService: InventoryItemLotsService,
     private readonly ledgerService: InventoryItemLedgerService,
-    private readonly receiptsService: GoodsReceiptsService,
-    private readonly uomConversionsService: UomConversionsService,
-    private readonly costAssociationService: CostAssociationService,
+    private readonly goodsReceiptsService: GoodsReceiptsService,
   ) {}
 
   async publish(id: string, buCurrencyCode: string): Promise<GoodsReceiptDto> {
-    const receipt = await this.receiptsRepository.findByIdWithRefs(id);
-    if (!receipt) throw new NotFoundException('Goods receipt not found.');
-    if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
-      throw new BadRequestException('Only DRAFT goods receipts can be published.');
+    const goodsReceipt = await this.goodsReceiptsRepository.findByIdWithRefs(id);
+    if (!goodsReceipt) {
+      throw new NotFoundException({ label: 'Goods Receipt Not Found', detail: 'Goods receipt not found.' });
+    }
+    if (goodsReceipt.status !== GoodsReceiptStatusValues.DRAFT) {
+      throw new BadRequestException({
+        label: 'Cannot Publish',
+        detail: 'Only DRAFT goods receipts can be published.',
+      });
     }
 
-    const items = await this.itemsRepository.findByReceiptIdForPublish(id);
-    if (items.length === 0) throw new BadRequestException('Cannot publish a goods receipt with no items.');
+    const grItems = await this.grItemsRepository.findByReceiptIdForPublish(id);
+    if (grItems.length === 0) {
+      throw new BadRequestException({
+        label: 'Cannot Publish',
+        detail: 'Add at least one item before publishing this goods receipt.',
+      });
+    }
+    // Same gate as the UI's Publish button: every item fully distributed + all serial lines balanced.
+    await this.goodsReceiptsService.assertPublishable(id, goodsReceipt.status, goodsReceipt.purchaseOrderId);
 
-    // Pre-flight: every serial-tracked line must be balanced (line_items count == quantity)
-    const unbalanced = await this.linesRepository.findUnbalancedSerialLines(id);
-    if (unbalanced.length > 0) {
-      throw new BadRequestException(
-        `Cannot publish: ${unbalanced.length} serial-tracked line(s) have a serial count mismatch.`,
-      );
+    // Cost is set on the quant at creation (price × exchange rate), so every item must carry a price.
+    const itemsMissingPrice = grItems.filter((grItem) => (grItem.primaryUomUnitPrice ?? 0n) <= 0n);
+    if (itemsMissingPrice.length > 0) {
+      throw new BadRequestException({
+        label: 'Missing Unit Price',
+        detail: `${itemsMissingPrice.length} item(s) have no unit price. Set a price for every item before publishing.`,
+      });
     }
 
     await this.database.runInTransaction(async () => {
-      for (const item of items) {
-        const lines = await this.linesRepository.findByItemId(item.id);
-
-        // Track accepted quantity in the GR-item UOM for the PO cap check
-        let acceptedInItemUom = 0;
-        // Resolve each receipt lot to an inventory lot once, then reuse across its lines.
-        const resolvedLotIdByGrLot = new Map<string, string>();
-
-        for (const line of lines) {
-          const lineQuantity = line.quantity; // in gr_item.uom_id
-          const isSerialBearing =
-            item.tracking === InventoryTrackingValues.SERIAL || item.tracking === InventoryTrackingValues.LOT_SERIAL;
-          const requiresLot =
-            item.tracking === InventoryTrackingValues.LOT || item.tracking === InventoryTrackingValues.LOT_SERIAL;
-
-          if (lineQuantity <= 0 && !isSerialBearing) {
-            throw new BadRequestException(`Line ${line.id} has zero quantity.`);
-          }
-          if (requiresLot && !line.goodsReceiptLotId) {
-            throw new BadRequestException(`Line ${line.id} requires a lot for tracking=${item.tracking}.`);
-          }
-
-          const lotInfo =
-            requiresLot && line.lotNumber
-              ? (() => {
-                  if (!line.lotExpiryDate) {
-                    throw new BadRequestException(`Line ${line.id} lot is missing expiry date.`);
-                  }
-                  return {
-                    lotNumber: line.lotNumber,
-                    manufacturingDate: line.lotManufacturingDate ?? null,
-                    expiryDate: line.lotExpiryDate,
-                  };
-                })()
-              : undefined;
-
-          const serials = isSerialBearing
-            ? (await this.lineItemsRepository.findByLineId(line.id)).map((li) => li.serialNumber)
-            : undefined;
-
-          if (isSerialBearing && serials && serials.length === 0) {
-            throw new BadRequestException(`Line ${line.id} has no serials.`);
-          }
-
-          // App-layer resolves the inventory lot (find-or-create) for lot/lot_serial lines, since
-          // createNewQuantScoped requires a pre-resolved lotId. Cached per receipt lot.
-          let resolvedLotId: string | null = null;
-          if (requiresLot && line.goodsReceiptLotId && lotInfo) {
-            resolvedLotId = resolvedLotIdByGrLot.get(line.goodsReceiptLotId) ?? null;
-            if (!resolvedLotId) {
-              const lot = await this.lotsService.findOrCreateLot({
-                inventoryItemId: item.inventoryItemId,
-                lotNumber: lotInfo.lotNumber,
-                manufacturingDate: lotInfo.manufacturingDate,
-                expiryDate: lotInfo.expiryDate,
-              });
-              resolvedLotId = lot.id;
-              resolvedLotIdByGrLot.set(line.goodsReceiptLotId, resolvedLotId);
-              await this.lotsRepository.setResolvedLotId(line.goodsReceiptLotId, resolvedLotId);
-            }
-          }
-
-          // Convert the line's quantity to the inventory item's primary UOM
-          const primaryUomQty = await this.uomConversionsService.toPrimaryQuantity(
-            item.inventoryItemId,
-            item.uomId,
-            lineQuantity,
-          );
-          await this.linesRepository.setPrimaryUomQty(line.id, primaryUomQty);
-
-          // Build the quant creation params per the item's tracking type
-          let createParams: CreateNewQuantParams;
-          const base = {
-            inventoryItemId: item.inventoryItemId,
-            locationId: line.locationId,
-            quantity: primaryUomQty,
-            costCurrency: buCurrencyCode,
-            sourceType: CostSourceTypeValues.GOODS_RECEIPT,
-            sourceId: receipt.id,
-          };
-          if (item.tracking === InventoryTrackingValues.QUANTITY) {
-            createParams = { ...base, tracking: InventoryTrackingValues.QUANTITY };
-          } else if (item.tracking === InventoryTrackingValues.LOT) {
-            createParams = { ...base, tracking: InventoryTrackingValues.LOT, lot: lotInfo!, lotId: resolvedLotId };
-          } else if (item.tracking === InventoryTrackingValues.SERIAL) {
-            createParams = { ...base, tracking: InventoryTrackingValues.SERIAL, serialNumbers: serials! };
-          } else {
-            createParams = {
-              ...base,
-              tracking: InventoryTrackingValues.LOT_SERIAL,
-              lot: lotInfo!,
-              lotId: resolvedLotId,
-              serialNumbers: serials!,
-            };
-          }
-
-          const { quant } = await this.quantsService.createNewQuantScoped(createParams);
-          await this.linesRepository.setResolvedQuant(line.id, quant.id);
-
-          // Record the ledger entry in primary UOM to match the quant's UOM
-          await this.ledgerService.createEntry({
-            inventoryItemId: item.inventoryItemId,
-            type: InventoryItemLedgerTypeValues.GOODS_RECEIPT,
-            quantity: primaryUomQty,
-            referenceType: InventoryItemLedgerReferenceTypeValues.GOODS_RECEIPT,
-            referenceId: receipt.id,
-            notes: receipt.notes ?? null,
-          });
-
-          acceptedInItemUom += lineQuantity;
-        }
-
-        // Re-check the PO cap and bump receivedQuantity on the linked PO item
-        if (receipt.purchaseOrderId && item.poItemId) {
-          const ordered = Number(item.poOrderedQuantity ?? 0);
-          const received = Number(item.poReceivedQuantity ?? 0);
-          if (this.toScaled(received + acceptedInItemUom) > this.toScaled(ordered)) {
-            throw new BadRequestException(
-              `Accepted quantity ${acceptedInItemUom} exceeds remaining PO quantity ${ordered - received} for item ${item.id}.`,
-            );
-          }
-          await this.receiptsRepository.updatePoItemReceivedQty(item.poItemId, acceptedInItemUom);
-        }
+      for (const grItem of grItems) {
+        await this.publishItem(goodsReceipt, grItem, buCurrencyCode);
       }
-
-      // Update PO status overall
-      if (receipt.purchaseOrderId) {
-        const totals = await this.receiptsRepository.getPoTotals(receipt.purchaseOrderId);
-        if (this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.uomQty) && totals.uomQty > 0) {
-          await this.receiptsRepository.updatePoStatus(receipt.purchaseOrderId, PurchaseOrderStatusValues.RECEIVED);
-        } else if (totals.receivedQuantity > 0) {
-          await this.receiptsRepository.updatePoStatus(
-            receipt.purchaseOrderId,
-            PurchaseOrderStatusValues.PARTIALLY_RECEIVED,
-          );
-        }
-      }
-
-      await this.receiptsRepository.updateStatus(id, GoodsReceiptStatusValues.PUBLISHED, new Date());
-
-      // Auto-create SUPPLIER_PRICE cost rows for each GR-item with a captured unit price
-      await this.costAssociationService.autoAssociateSupplierPrice(
-        id,
-        null,
-        buCurrencyCode,
-        Number(receipt.exchangeRate),
-      );
+      if (goodsReceipt.purchaseOrderId) await this.finalizePoStatus(goodsReceipt.purchaseOrderId);
+      await this.goodsReceiptsRepository.updateStatus(id, GoodsReceiptStatusValues.PUBLISHED, new Date());
     });
 
-    return this.receiptsService.findById(id);
+    return this.goodsReceiptsService.findById(id);
+  }
+
+  // Turns one item's lines into quants, then reconciles the linked PO line.
+  private async publishItem(
+    goodsReceipt: GoodsReceiptWithRefs,
+    grItem: PublishItem,
+    buCurrencyCode: string,
+  ): Promise<void> {
+    const grLines = await this.grLinesRepository.findByItemId(grItem.id);
+    const inventoryLotByGrLot = await this.resolveLots(grItem, grLines);
+
+    for (const grLine of grLines) {
+      await this.publishLine(goodsReceipt, grItem, grLine, inventoryLotByGrLot, buCurrencyCode);
+    }
+
+    // Only the paid (ordered) qty reconciles against the PO; free qty is bonus stock, not ordered.
+    await this.reconcilePoItem(goodsReceipt, grItem, grItem.orderedQty);
+  }
+
+  // Find-or-create the inventory lot for each distinct receipt lot once → { grLotId: inventoryLotId }.
+  private async resolveLots(grItem: PublishItem, grLines: GoodsReceiptLineWithRefs[]): Promise<Map<string, string>> {
+    const inventoryLotByGrLot = new Map<string, string>();
+    for (const grLine of grLines) {
+      const grLotId = grLine.goodsReceiptLotId;
+      if (!grLotId || inventoryLotByGrLot.has(grLotId)) continue;
+      const lotInfo = toLotInfo(grLine);
+      if (!lotInfo) continue;
+      const inventoryLot = await this.inventoryLotsService.findOrCreateLot({
+        inventoryItemId: grItem.inventoryItemId,
+        ...lotInfo,
+      });
+      inventoryLotByGrLot.set(grLotId, inventoryLot.id);
+      await this.grLotsRepository.setResolvedLotId(grLotId, inventoryLot.id);
+    }
+    return inventoryLotByGrLot;
+  }
+
+  // Creates the quant for one line (tracking-aware via optional fields) + the ledger entry.
+  private async publishLine(
+    goodsReceipt: GoodsReceiptWithRefs,
+    grItem: PublishItem,
+    grLine: GoodsReceiptLineWithRefs,
+    inventoryLotByGrLot: Map<string, string>,
+    buCurrencyCode: string,
+  ): Promise<void> {
+    // Snapshotted in the item's primary UOM at line add/edit — read it as-is.
+    const primaryUomQuantity = grLine.primaryUomQty;
+
+    // Effective landed unit cost in BU minor units. The amount paid (price × exchange rate × ordered
+    // qty) is spread across the TOTAL received qty (ordered + free), so free goods pull the per-unit
+    // cost down without ever reaching 0 (ordered_qty > 0 is guaranteed at item add).
+    const unitCost = BigInt(
+      new Decimal((grItem.primaryUomUnitPrice ?? 0n).toString())
+        .times(goodsReceipt.exchangeRate)
+        .times(grItem.orderedQty)
+        .div(grItem.totalQty)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toFixed(0),
+    );
+
+    const serials = SERIAL_TRACKINGS.has(grItem.tracking)
+      ? (await this.grLineItemsRepository.findByLineId(grLine.id)).map((li) => li.serialNumber)
+      : undefined;
+
+    const { quant } = await this.quantsService.createQuantScoped({
+      inventoryItemId: grItem.inventoryItemId,
+      locationId: grLine.locationId,
+      quantity: primaryUomQuantity,
+      tracking: grItem.tracking,
+      unitCost,
+      lotId: grLine.goodsReceiptLotId ? (inventoryLotByGrLot.get(grLine.goodsReceiptLotId) ?? null) : null,
+      lot: grLine.goodsReceiptLotId ? toLotInfo(grLine) : undefined,
+      serialNumbers: serials,
+      costCurrency: buCurrencyCode,
+      sourceType: CostSourceTypeValues.GOODS_RECEIPT,
+      sourceId: goodsReceipt.id,
+    });
+    await this.grLinesRepository.setResolvedQuant(grLine.id, quant.id);
+
+    await this.ledgerService.createEntry({
+      inventoryItemId: grItem.inventoryItemId,
+      type: InventoryItemLedgerTypeValues.GOODS_RECEIPT,
+      quantity: primaryUomQuantity,
+      referenceType: InventoryItemLedgerReferenceTypeValues.GOODS_RECEIPT,
+      referenceId: goodsReceipt.id,
+      notes: goodsReceipt.notes ?? null,
+    });
+  }
+
+  // PO-linked items only: enforce the remaining-quantity cap, then bump received_quantity.
+  private async reconcilePoItem(
+    goodsReceipt: GoodsReceiptWithRefs,
+    grItem: PublishItem,
+    accepted: number,
+  ): Promise<void> {
+    if (!goodsReceipt.purchaseOrderId || !grItem.poItemId) return;
+    const ordered = Number(grItem.poOrderedQuantity ?? 0);
+    const received = Number(grItem.poReceivedQuantity ?? 0);
+    if (this.toScaled(received + accepted) > this.toScaled(ordered)) {
+      throw new BadRequestException({
+        label: 'Exceeds PO Quantity',
+        detail: `Accepted quantity ${accepted} exceeds the remaining PO quantity ${ordered - received} for item ${grItem.id}.`,
+      });
+    }
+    await this.goodsReceiptsRepository.updatePoItemReceivedQty(grItem.poItemId, accepted);
+  }
+
+  private async finalizePoStatus(purchaseOrderId: string): Promise<void> {
+    const totals = await this.goodsReceiptsRepository.getPoTotals(purchaseOrderId);
+    if (this.toScaled(totals.receivedQuantity) >= this.toScaled(totals.uomQty) && totals.uomQty > 0) {
+      await this.goodsReceiptsRepository.updatePoStatus(purchaseOrderId, PurchaseOrderStatusValues.RECEIVED);
+    } else if (totals.receivedQuantity > 0) {
+      await this.goodsReceiptsRepository.updatePoStatus(purchaseOrderId, PurchaseOrderStatusValues.PARTIALLY_RECEIVED);
+    }
   }
 
   private toScaled(value: number): number {

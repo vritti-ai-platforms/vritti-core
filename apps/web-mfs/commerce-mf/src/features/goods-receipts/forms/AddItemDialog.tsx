@@ -4,6 +4,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { minorToMajor } from '@vritti/quantum-ui/money';
+import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { PurchaseOrderItemSelector } from '@vritti/quantum-ui/selects/purchase-order-item';
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
@@ -20,7 +21,20 @@ import {
   type AddGoodsReceiptItemFromSupplierItemFormData,
   buildAddGoodsReceiptItemFromPurchaseOrderItemSchema,
   buildAddGoodsReceiptItemFromSupplierItemSchema,
+  type FreeSchemeMode,
+  freeSchemeModeLabels,
 } from '@/schemas/goods-receipts';
+
+const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
+  value: mode,
+  label: freeSchemeModeLabels[mode],
+}));
+
+const toOptionalNumber = (raw: unknown): number | undefined => {
+  if (raw == null || raw === '') return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+};
 
 interface AddItemDialogContext {
   goodsReceiptId: string;
@@ -53,7 +67,15 @@ const SupplierItemForm = ({
   schemaRef.current = schema;
   const form = useForm<AddGoodsReceiptItemFromSupplierItemFormData>({
     resolver: (values, context, options) => zodResolver(schemaRef.current)(values, context, options),
-    defaultValues: { supplierItemId: '', quantity: 0, rejectedQuantity: undefined, unitPrice: undefined },
+    defaultValues: {
+      supplierItemId: '',
+      orderedQty: 0,
+      rejectedQuantity: undefined,
+      unitPrice: undefined,
+      schemeBuyQty: undefined,
+      schemeFreeQty: undefined,
+      schemeMode: 'none',
+    },
   });
   const mutation = useAddGoodsReceiptItemFromSupplierItem(goodsReceiptId, { onSuccess });
 
@@ -66,9 +88,14 @@ const SupplierItemForm = ({
         value: minorToMajor(rawMinor.toString(), supplierCurrencyCode),
       });
     }
+    // Prefill the standing scheme from the supplier item; operator can edit.
+    form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
+    form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
+    form.setValue('schemeMode', (option?.additionals?.schemeMode as FreeSchemeMode | undefined) ?? 'none');
   };
 
   const supplierItemId = form.watch('supplierItemId');
+  const schemeMode = form.watch('schemeMode');
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
@@ -94,7 +121,7 @@ const SupplierItemForm = ({
 
         <FormSection title="Received">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextField name="quantity" label="Quantity" type="number" integer={!allowDecimal} positive />
+            <TextField name="orderedQty" label="Ordered Qty" type="number" integer={!allowDecimal} positive />
             <TextField
               name="rejectedQuantity"
               label="Damaged on Arrival"
@@ -103,6 +130,18 @@ const SupplierItemForm = ({
               integer={!allowDecimal}
               positive
             />
+          </div>
+        </FormSection>
+
+        <FormSection title="Free Goods Scheme" description="Free quantity is calculated from the scheme on save.">
+          <div className="flex flex-col gap-4">
+            <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
+            {schemeMode !== 'none' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
+                <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+              </div>
+            )}
           </div>
         </FormSection>
       </div>
@@ -139,18 +178,26 @@ const PurchaseOrderItemForm = ({
   schemaRef.current = schema;
   const form = useForm<AddGoodsReceiptItemFromPurchaseOrderItemFormData>({
     resolver: (values, context, options) => zodResolver(schemaRef.current)(values, context, options),
-    defaultValues: { purchaseOrderItemId: '', quantity: 0, rejectedQuantity: undefined, unitPrice: undefined },
+    defaultValues: {
+      purchaseOrderItemId: '',
+      orderedQty: 0,
+      rejectedQuantity: undefined,
+      unitPrice: undefined,
+      schemeBuyQty: undefined,
+      schemeFreeQty: undefined,
+      schemeMode: 'none',
+    },
   });
   const mutation = useAddGoodsReceiptItemFromPurchaseOrderItem(goodsReceiptId, { onSuccess });
 
   const handleSelect = (option: SelectOption | null) => {
     setAllowDecimal(option?.additionals?.allowDecimal === true);
-    // Prefill + cap the quantity at the PO line's remaining (ordered − received). Editable down.
+    // Prefill + cap the ordered (paid) qty at the PO line's remaining (ordered − received). Editable down.
     const ordered = Number(option?.additionals?.orderedQuantity ?? 0);
     const received = Number(option?.additionals?.receivedQuantity ?? 0);
     const remaining = Math.max(ordered - received, 0);
     setPoRemaining(remaining);
-    form.setValue('quantity', remaining);
+    form.setValue('orderedQty', remaining);
     const rawMinor = option?.additionals?.unitPrice;
     if (rawMinor) {
       form.setValue('unitPrice', {
@@ -158,9 +205,14 @@ const PurchaseOrderItemForm = ({
         value: minorToMajor(rawMinor.toString(), supplierCurrencyCode),
       });
     }
+    // Prefill the scheme from the PO line; operator can edit.
+    form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
+    form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
+    form.setValue('schemeMode', (option?.additionals?.schemeMode as FreeSchemeMode | undefined) ?? 'none');
   };
 
   const purchaseOrderItemId = form.watch('purchaseOrderItemId');
+  const schemeMode = form.watch('schemeMode');
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
@@ -187,7 +239,14 @@ const PurchaseOrderItemForm = ({
 
         <FormSection title="Received">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextField name="quantity" label="Quantity" type="number" integer={!allowDecimal} positive max={poRemaining} />
+            <TextField
+              name="orderedQty"
+              label="Ordered Qty"
+              type="number"
+              integer={!allowDecimal}
+              positive
+              max={poRemaining}
+            />
             <TextField
               name="rejectedQuantity"
               label="Damaged on Arrival"
@@ -196,6 +255,18 @@ const PurchaseOrderItemForm = ({
               integer={!allowDecimal}
               positive
             />
+          </div>
+        </FormSection>
+
+        <FormSection title="Free Goods Scheme" description="Free quantity is calculated from the scheme on save.">
+          <div className="flex flex-col gap-4">
+            <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
+            {schemeMode !== 'none' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
+                <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+              </div>
+            )}
           </div>
         </FormSection>
       </div>

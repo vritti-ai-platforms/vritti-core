@@ -3,12 +3,16 @@ import { GoodsReceiptLinesService } from '@domain/goods-receipt-lines/services/g
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import { GoodsReceiptsLinesService } from './services/goods-receipts-lines.service';
 
 @Controller()
 export class GoodsReceiptsLinesController {
   private readonly logger = new Logger(GoodsReceiptsLinesController.name);
 
-  constructor(private readonly service: GoodsReceiptLinesService) {}
+  constructor(
+    private readonly service: GoodsReceiptLinesService,
+    private readonly appService: GoodsReceiptsLinesService,
+  ) {}
 
   @MessagePattern({ cmd: 'goodsReceipts.linesTable' })
   linesTable(
@@ -46,7 +50,7 @@ export class GoodsReceiptsLinesController {
     },
   ): Promise<CreateResponseDto<GoodsReceiptLineDto>> {
     this.logger.log(`goodsReceipts.addLine — item: ${data.itemId}`);
-    return this.service.addLine(data.goodsReceiptId, data.itemId, {
+    return this.appService.addLine(data.goodsReceiptId, data.itemId, {
       goodsReceiptLotId: data.goodsReceiptLotId,
       locationId: data.locationId,
       quantity: data.quantity,
@@ -66,7 +70,7 @@ export class GoodsReceiptsLinesController {
     },
   ): Promise<GoodsReceiptLineDto> {
     this.logger.log(`goodsReceipts.updateLine — line: ${data.lineId}`);
-    return this.service.updateLine(data.goodsReceiptId, data.itemId, data.lineId, {
+    return this.appService.updateLine(data.goodsReceiptId, data.itemId, data.lineId, {
       goodsReceiptLotId: data.goodsReceiptLotId,
       locationId: data.locationId,
       quantity: data.quantity,
@@ -76,6 +80,6 @@ export class GoodsReceiptsLinesController {
   @MessagePattern({ cmd: 'goodsReceipts.removeLine' })
   removeLine(@Payload() data: { goodsReceiptId: string; itemId: string; lineId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`goodsReceipts.removeLine — line: ${data.lineId}`);
-    return this.service.removeLine(data.goodsReceiptId, data.itemId, data.lineId);
+    return this.appService.removeLine(data.goodsReceiptId, data.itemId, data.lineId);
   }
 }

@@ -189,6 +189,9 @@ export class SupplierItemsService {
         minOrderQuantity: data.minOrderQuantity ?? null,
         leadTimeDays: data.leadTimeDays ?? null,
         isPreferred: data.isPreferred ?? false,
+        schemeBuyQty: data.schemeBuyQty ?? null,
+        schemeFreeQty: data.schemeFreeQty ?? null,
+        schemeMode: data.schemeMode ?? 'none',
       }),
       this.repository.findUomSymbol(data.uomId),
     ]);
@@ -223,6 +226,9 @@ export class SupplierItemsService {
     if (data.leadTimeDays !== undefined) update.leadTimeDays = data.leadTimeDays;
     if (data.isPreferred !== undefined) update.isPreferred = data.isPreferred;
     if (data.isActive !== undefined) update.isActive = data.isActive;
+    if (data.schemeBuyQty !== undefined) update.schemeBuyQty = data.schemeBuyQty;
+    if (data.schemeFreeQty !== undefined) update.schemeFreeQty = data.schemeFreeQty;
+    if (data.schemeMode !== undefined) update.schemeMode = data.schemeMode ?? 'none';
 
     if (data.unitPrice) {
       if (data.unitPrice.currency !== supplier.currencyCode) {

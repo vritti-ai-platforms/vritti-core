@@ -61,13 +61,13 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
     const itemBalanced = sql`(
       ${itemLinesCount} > 0
       AND ${itemUnbalanced} = 0
-      AND ${acceptedQty} = ${goodsReceiptItems.quantity}
+      AND ${acceptedQty} = ${goodsReceiptItems.totalQty}
     )`;
-    // Badge reads `<distributed>/<item quantity> <uom>` for every item.
+    // Badge reads `<distributed>/<total received qty> <uom>` for every item.
     const itemBadge = sql`CONCAT(
       trim_scale(${acceptedQty})::text,
       '/',
-      trim_scale(${goodsReceiptItems.quantity})::text,
+      trim_scale(${goodsReceiptItems.totalQty})::text,
       CASE WHEN ${uom.symbol} IS NOT NULL THEN CONCAT(' ', ${uom.symbol}) ELSE '' END
     )`;
 
@@ -254,7 +254,12 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         businessUnitId: goodsReceiptItems.businessUnitId,
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
-        quantity: goodsReceiptItems.quantity,
+        orderedQty: goodsReceiptItems.orderedQty,
+        freeQty: goodsReceiptItems.freeQty,
+        totalQty: goodsReceiptItems.totalQty,
+        schemeBuyQty: goodsReceiptItems.schemeBuyQty,
+        schemeFreeQty: goodsReceiptItems.schemeFreeQty,
+        schemeMode: goodsReceiptItems.schemeMode,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         unitPrice: goodsReceiptItems.unitPrice,
         currencyCode: goodsReceiptItems.currencyCode,
@@ -370,6 +375,9 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       poItemId: string | null;
       poOrderedQuantity: number | null;
       poReceivedQuantity: number | null;
+      primaryUomUnitPrice: bigint | null;
+      orderedQty: number;
+      totalQty: number;
     }[]
   > {
     const rows = await this.db
@@ -382,6 +390,9 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         poItemId: purchaseOrderItems.id,
         poOrderedQuantity: purchaseOrderItems.uomQty,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,
+        primaryUomUnitPrice: goodsReceiptItems.primaryUomUnitPrice,
+        orderedQty: goodsReceiptItems.orderedQty,
+        totalQty: goodsReceiptItems.totalQty,
       })
       .from(goodsReceiptItems)
       .innerJoin(inventoryItems, eq(goodsReceiptItems.inventoryItemId, inventoryItems.id))
@@ -432,7 +443,12 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
         uomId: goodsReceiptItems.uomId,
-        quantity: goodsReceiptItems.quantity,
+        orderedQty: goodsReceiptItems.orderedQty,
+        freeQty: goodsReceiptItems.freeQty,
+        totalQty: goodsReceiptItems.totalQty,
+        schemeBuyQty: goodsReceiptItems.schemeBuyQty,
+        schemeFreeQty: goodsReceiptItems.schemeFreeQty,
+        schemeMode: goodsReceiptItems.schemeMode,
         rejectedQuantity: goodsReceiptItems.rejectedQuantity,
         unitPrice: goodsReceiptItems.unitPrice,
         primaryUomUnitPrice: goodsReceiptItems.primaryUomUnitPrice,

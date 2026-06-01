@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, check, decimal, index, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { costSourceTypeEnum } from './enums';
 import { inventoryItemLots } from './inventory-item-lots';
@@ -23,12 +23,10 @@ export const inventoryItemQuants = coreSchema.table(
     supplierId: uuid('supplier_id').references(() => suppliers.id, { onDelete: 'restrict' }),
     quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     reservedQuantity: decimal('reserved_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
-    // Denormalized snapshot of `SUM(allocated_amount) / quantity` across all junction rows. Updated
-    // by the cost-association service after each association; reads use this column directly so
-    // pick / COGS hot paths don't have to roll up junction rows.
-    unitCost: bigint('unit_cost', { mode: 'bigint' }).notNull().default(0n),
-    // NULL during the PR1 transition for legacy rows + new inserts from un-updated callers. Phase 3
-    // (GR publish) and Phase 4 (SA publish) always set them; a follow-up PR can tighten to NOT NULL.
+    // Landed unit cost (BU minor units), set at creation and always > 0. Part of the cost-batch
+    // identity: stock at the same (item, location, lot) but a different unit cost is a separate quant.
+    unitCost: bigint('unit_cost', { mode: 'bigint' }).notNull(),
+    // BU currency the unit cost is expressed in, captured when the quant is first created.
     costCurrency: varchar('cost_currency', { length: 3 }),
     // Polymorphic provenance: which document created this quant. No DB-level FK — the application
     // resolves the `source_type` enum to the right table.
@@ -51,6 +49,7 @@ export const inventoryItemQuants = coreSchema.table(
     index('idx_inventory_item_quants_active')
       .on(table.inventoryItemId, table.locationId)
       .where(sql`${table.quantity} > 0`),
+    check('ck_inventory_item_quants_unit_cost_positive', sql`${table.unitCost} > 0`),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

@@ -275,6 +275,18 @@ export class GoodsReceiptsService {
     return userExchangeRate;
   }
 
+  // Throws unless the draft is publishable — reuses the same signal the UI's Publish button reads,
+  // so publish and the button stay in lock-step.
+  async assertPublishable(id: string, status: string, purchaseOrderId: string | null): Promise<void> {
+    const { isPublishable } = await this.computeDraftSignals(id, status, purchaseOrderId);
+    if (!isPublishable) {
+      throw new BadRequestException({
+        label: 'Not Ready to Publish',
+        detail: 'Every item must be fully distributed and all serial lines balanced before publishing.',
+      });
+    }
+  }
+
   // Computes the publishable, link, and unlink draft signals from a single items fetch
   private async computeDraftSignals(
     goodsReceiptId: string,
@@ -291,8 +303,8 @@ export class GoodsReceiptsService {
     const isPublishable = items.every((item) => {
       if (item.unbalancedLinesCount > 0) return false;
       if (item.acceptedQuantity <= 0) return false;
-      // Balanced ⇔ the lines distribute exactly the declared item quantity.
-      if (Math.abs(item.acceptedQuantity - Number(item.quantity)) > 1e-9) return false;
+      // Balanced ⇔ the lines distribute exactly the total received quantity (ordered + free).
+      if (Math.abs(item.acceptedQuantity - Number(item.totalQty)) > 1e-9) return false;
       return true;
     });
     return { isPublishable, canLinkPurchaseOrder, canUnlinkPurchaseOrder };

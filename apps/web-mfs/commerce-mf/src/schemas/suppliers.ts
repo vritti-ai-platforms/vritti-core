@@ -101,6 +101,20 @@ export const updateSupplierContactSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
+export const freeSchemeModeLabels: Record<FreeSchemeMode, string> = {
+  none: 'No Scheme',
+  slab: 'Slab (per full block)',
+  pro_rata: 'Pro-rata',
+};
+
+// Standing free-goods scheme (buy + free ratio + mode) carried on a supplier item.
+const supplierSchemeShape = {
+  schemeBuyQty: zodNumericField({ positive: true, nullable: true }).optional(),
+  schemeFreeQty: zodNumericField({ positive: true, nullable: true }).optional(),
+  schemeMode: z.enum(['none', 'slab', 'pro_rata']),
+};
+
 export const addSupplierItemSchema = z.object({
   inventoryItemId: z.string().min(1, 'Inventory item is required'),
   supplierItemCode: z.string().max(100).optional(),
@@ -109,6 +123,7 @@ export const addSupplierItemSchema = z.object({
   minOrderQuantity: zodNumericField({ integer: true, positive: true }).optional(),
   leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
   isPreferred: z.boolean().optional(),
+  ...supplierSchemeShape,
 });
 
 export const updateSupplierItemSchema = z.object({
@@ -119,6 +134,7 @@ export const updateSupplierItemSchema = z.object({
   leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
   isPreferred: z.boolean().optional(),
   isActive: z.boolean().optional(),
+  ...supplierSchemeShape,
 });
 
 export type CreateSupplierFormData = z.infer<typeof createSupplierSchema>;
@@ -162,6 +178,9 @@ export interface SupplierItemData {
   leadTimeDays: number | null;
   isPreferred: boolean;
   isActive: boolean;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  schemeMode: FreeSchemeMode;
 }
 
 export interface InventoryItemSupplierData {

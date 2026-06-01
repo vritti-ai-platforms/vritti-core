@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
-import { Form } from '@vritti/quantum-ui/Form';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
+import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
@@ -9,9 +10,16 @@ import { useForm } from 'react-hook-form';
 import { useUpdatePurchaseOrderItem } from '@/hooks/purchase-orders';
 import {
   buildUpdatePurchaseOrderItemSchema,
+  type FreeSchemeMode,
+  freeSchemeModeLabels,
   type PurchaseOrderItemData,
   type UpdatePurchaseOrderItemFormData,
 } from '@/schemas/purchase-orders';
+
+const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
+  value: mode,
+  label: freeSchemeModeLabels[mode],
+}));
 
 interface UpdatePurchaseOrderItemDialogProps {
   purchaseOrderId: string;
@@ -37,9 +45,13 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
     defaultValues: {
       uomQty: item.uomQty,
       unitPrice: item.unitPrice,
+      schemeBuyQty: item.schemeBuyQty ?? undefined,
+      schemeFreeQty: item.schemeFreeQty ?? undefined,
+      schemeMode: item.schemeMode ?? 'none',
     },
   });
   const mutation = useUpdatePurchaseOrderItem({ onSuccess });
+  const schemeMode = form.watch('schemeMode');
 
   return (
     <Form
@@ -52,16 +64,44 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
         itemId: item.id,
         uomQty: data.uomQty ?? undefined,
         unitPrice: data.unitPrice as { currency: string; value: string } | undefined,
+        schemeBuyQty: data.schemeBuyQty,
+        schemeFreeQty: data.schemeFreeQty,
+        schemeMode: data.schemeMode,
       })}
     >
-      {item.orderUomSymbol && (
-        <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-foreground">UOM</span>
-          <span className="text-sm text-muted-foreground">{item.orderUomSymbol}</span>
+      <FormSection title="Item">
+        <div className="flex flex-col gap-4">
+          {item.orderUomSymbol && (
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-foreground">UOM</span>
+              <span className="text-sm text-muted-foreground">{item.orderUomSymbol}</span>
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField name="uomQty" label="Quantity" type="number" placeholder="e.g. 500" />
+            <CurrencyField
+              name="unitPrice"
+              label="Unit Price"
+              currencyCode={poCurrencyCode}
+              placeholder="Enter unit price"
+            />
+          </div>
         </div>
-      )}
-      <TextField name="uomQty" label="Quantity" type="number" placeholder="e.g. 500" />
-      <CurrencyField name="unitPrice" label="Unit Price" currencyCode={poCurrencyCode} placeholder="Enter unit price" />
+      </FormSection>
+      <FormSection
+        title="Free Goods Scheme"
+        description="Expected free quantity is calculated from the scheme on save."
+      >
+        <div className="flex flex-col gap-4">
+          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
+          {schemeMode !== 'none' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
+              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+            </div>
+          )}
+        </div>
+      </FormSection>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

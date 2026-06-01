@@ -32,7 +32,7 @@ export const LineDetailPanel = ({ goodsReceiptId, isDraft, selection, onSelectio
           line={line}
           isDraft={isDraft}
           allowDecimal={item.inventoryItemAllowDecimal}
-          poRemainingQuantity={Math.max(item.quantity - item.acceptedQuantity, 0)}
+          poRemainingQuantity={Math.max(item.totalQty - item.acceptedQuantity, 0)}
           onLineRemoved={() =>
             onSelectionChange(
               selection.lotId

@@ -1,7 +1,8 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
-import { Form } from '@vritti/quantum-ui/Form';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { minorToMajor } from '@vritti/quantum-ui/money';
+import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -13,8 +14,21 @@ import { useAddPurchaseOrderItem } from '@/hooks/purchase-orders';
 import {
   type AddPurchaseOrderItemFormData,
   addPurchaseOrderItemSchema,
+  type FreeSchemeMode,
+  freeSchemeModeLabels,
   type PurchaseOrderDetail,
 } from '@/schemas/purchase-orders';
+
+const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
+  value: mode,
+  label: freeSchemeModeLabels[mode],
+}));
+
+const toOptionalNumber = (raw: unknown): number | undefined => {
+  if (raw == null || raw === '') return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
+};
 
 interface AddPurchaseOrderItemDialogProps {
   purchaseOrder: PurchaseOrderDetail;
@@ -37,8 +51,13 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       supplierItemId: '',
       uomQty: 0,
       unitPrice: undefined,
+      schemeBuyQty: undefined,
+      schemeFreeQty: undefined,
+      schemeMode: 'none',
     },
   });
+
+  const schemeMode = form.watch('schemeMode');
 
   const handleItemSelect = (option: SelectOption | null) => {
     const rawMinor = option?.additionals?.unitPrice;
@@ -49,6 +68,10 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         value: minorToMajor(rawMinor.toString(), purchaseOrder.currencyCode),
       });
     }
+    // Prefill the standing scheme from the supplier item; buyer can edit at PO time.
+    form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
+    form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
+    form.setValue('schemeMode', (option?.additionals?.schemeMode as FreeSchemeMode | undefined) ?? 'none');
   };
 
   return (
@@ -62,20 +85,50 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         supplierItemId: data.supplierItemId,
         uomQty: data.uomQty,
         unitPrice: data.unitPrice as { currency: string; value: string },
+        schemeBuyQty: data.schemeBuyQty,
+        schemeFreeQty: data.schemeFreeQty,
+        schemeMode: data.schemeMode,
       })}
     >
-      <SupplierItemSelector
-        name="supplierItemId"
-        params={{ supplierId: purchaseOrder.supplierId, excludeOnPurchaseOrderId: purchaseOrder.id }}
-        onOptionSelect={handleItemSelect}
-      />
-      <TextField name="uomQty" label="Quantity" type="number" placeholder="e.g. 500" integer={!allowDecimal} positive />
-      <CurrencyField
-        name="unitPrice"
-        label="Unit Price"
-        currencyCode={purchaseOrder.currencyCode}
-        placeholder="Enter unit price"
-      />
+      <FormSection title="Item">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <SupplierItemSelector
+              name="supplierItemId"
+              params={{ supplierId: purchaseOrder.supplierId, excludeOnPurchaseOrderId: purchaseOrder.id }}
+              onOptionSelect={handleItemSelect}
+            />
+          </div>
+          <TextField
+            name="uomQty"
+            label="Quantity"
+            type="number"
+            placeholder="e.g. 500"
+            integer={!allowDecimal}
+            positive
+          />
+          <CurrencyField
+            name="unitPrice"
+            label="Unit Price"
+            currencyCode={purchaseOrder.currencyCode}
+            placeholder="Enter unit price"
+          />
+        </div>
+      </FormSection>
+      <FormSection
+        title="Free Goods Scheme"
+        description="Expected free quantity is calculated from the scheme on save."
+      >
+        <div className="flex flex-col gap-4">
+          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
+          {schemeMode !== 'none' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
+              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+            </div>
+          )}
+        </div>
+      </FormSection>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

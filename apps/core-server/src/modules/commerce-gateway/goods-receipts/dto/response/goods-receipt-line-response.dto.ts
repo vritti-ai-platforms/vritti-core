@@ -12,6 +12,8 @@ export class GoodsReceiptLineResponseDto {
   @ApiPropertyOptional({ nullable: true }) expiryDate: string | null;
 
   @ApiProperty() quantity: number;
+  @ApiProperty({ description: "Quantity in the inventory item's primary UOM" }) primaryUomQty: number;
+  @ApiPropertyOptional({ nullable: true }) primaryUomSymbol: string | null;
   @ApiPropertyOptional({ nullable: true, description: 'Set after publish' })
   resolvedQuantId: string | null;
   @ApiProperty() isBalanced: boolean;

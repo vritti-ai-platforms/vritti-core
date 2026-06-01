@@ -50,8 +50,8 @@ const ItemDetailContent = ({
   const tracking = item.inventoryItemTracking;
   const uomSymbol = item.inventoryItemUomSymbol;
   const allowDecimal = item.inventoryItemAllowDecimal;
-  // How much of the declared item quantity is still undistributed — the cap for adding/editing lines.
-  const remainingToDistribute = Math.max(item.quantity - item.acceptedQuantity, 0);
+  // How much of the total received quantity is still undistributed — the cap for adding/editing lines.
+  const remainingToDistribute = Math.max(item.totalQty - item.acceptedQuantity, 0);
 
   // Quantity/serial items are received directly into location lines; lot/lot_serial items break down
   // into lots first.
@@ -145,7 +145,15 @@ const ItemHeader = ({ item, uomSymbol, isDraft, onEdit, onRemove, isRemovePendin
     </div>
     <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
       <DetailSection wrap>
-        <DetailField className="px-4 py-2" label="Quantity" type="string" mono value={`${item.quantity} ${uomSymbol}`} />
+        <DetailField
+          className="px-4 py-2"
+          label="Ordered"
+          type="string"
+          mono
+          value={`${item.orderedQty} ${uomSymbol}`}
+        />
+        <DetailField className="px-4 py-2" label="Free" type="string" mono value={`${item.freeQty} ${uomSymbol}`} />
+        <DetailField className="px-4 py-2" label="Total" type="string" mono value={`${item.totalQty} ${uomSymbol}`} />
         <DetailField
           className="px-4 py-2"
           label="Distributed"

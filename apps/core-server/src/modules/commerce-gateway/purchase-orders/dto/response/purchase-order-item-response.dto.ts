@@ -25,4 +25,16 @@ export class PurchaseOrderItemResponseDto {
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Line total in PO/supplier currency' })
   totalPrice: CurrencyAmountDto;
+
+  @ApiProperty({ description: 'Free-goods scheme buy qty (e.g. 9 in "9+1").', nullable: true })
+  schemeBuyQty: number | null;
+
+  @ApiProperty({ description: 'Free-goods scheme free qty (e.g. 1 in "9+1").', nullable: true })
+  schemeFreeQty: number | null;
+
+  @ApiProperty({ enum: ['none', 'slab', 'pro_rata'] })
+  schemeMode: 'none' | 'slab' | 'pro_rata';
+
+  @ApiProperty({ description: 'Derived free (bonus) quantity from the scheme.' })
+  freeQty: number;
 }

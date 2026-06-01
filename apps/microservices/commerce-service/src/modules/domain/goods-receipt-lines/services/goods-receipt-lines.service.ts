@@ -23,10 +23,11 @@ import {
 import { GoodsReceiptLineDto } from '../dto/entity/goods-receipt-line.dto';
 import { GoodsReceiptLinesRepository } from '../repositories/goods-receipt-lines.repository';
 
-interface ItemContext {
+export interface ItemContext {
   goodsReceiptId: string;
   itemId: string;
   inventoryItemId: string;
+  uomId: string;
   tracking: InventoryTracking;
   itemQuantity: number;
 }
@@ -101,7 +102,7 @@ export class GoodsReceiptLinesService {
   async addLine(
     goodsReceiptId: string,
     itemId: string,
-    data: { goodsReceiptLotId?: string | null; locationId: string; quantity: number },
+    data: { goodsReceiptLotId?: string | null; locationId: string; quantity: number; primaryUomQty: number },
   ): Promise<CreateResponseDto<GoodsReceiptLineDto>> {
     const ctx = await this.getItemContext(goodsReceiptId, itemId);
     await this.validateIntent(ctx, data);
@@ -139,6 +140,7 @@ export class GoodsReceiptLinesService {
       goodsReceiptLotId: data.goodsReceiptLotId ?? null,
       locationId: data.locationId,
       quantity: data.quantity,
+      primaryUomQty: data.primaryUomQty,
     });
 
     // Recompute is_balanced for the new line
@@ -158,7 +160,7 @@ export class GoodsReceiptLinesService {
     goodsReceiptId: string,
     itemId: string,
     lineId: string,
-    data: { goodsReceiptLotId?: string | null; locationId?: string; quantity?: number },
+    data: { goodsReceiptLotId?: string | null; locationId?: string; quantity?: number; primaryUomQty?: number },
   ): Promise<GoodsReceiptLineDto> {
     const ctx = await this.getItemContext(goodsReceiptId, itemId);
     const line = await this.repository.findById(lineId);
@@ -197,6 +199,7 @@ export class GoodsReceiptLinesService {
 
     await this.repository.update(lineId, {
       ...(data.quantity !== undefined ? { quantity: data.quantity } : {}),
+      ...(data.primaryUomQty !== undefined ? { primaryUomQty: data.primaryUomQty } : {}),
       ...(data.goodsReceiptLotId !== undefined ? { goodsReceiptLotId: data.goodsReceiptLotId } : {}),
       ...(data.locationId !== undefined ? { locationId: data.locationId } : {}),
     });
@@ -282,8 +285,10 @@ export class GoodsReceiptLinesService {
       goodsReceiptId,
       itemId,
       inventoryItemId: item.inventoryItemId,
+      uomId: item.uomId,
       tracking: item.inventoryItemTracking,
-      itemQuantity: Number(item.quantity),
+      // Lines distribute the TOTAL received quantity (ordered + free).
+      itemQuantity: Number(item.totalQty),
     };
   }
 

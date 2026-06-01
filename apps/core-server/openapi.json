@@ -14695,26 +14695,43 @@
             "type": "string",
             "description": "Supplier item row ID — server resolves to (inventoryItemId, uomId)."
           },
-          "quantity": {
+          "orderedQty": {
             "type": "number",
-            "description": "Operator-declared accepted quantity for this item, in the item UOM."
+            "description": "Ordered (paid) quantity for this item, in the item UOM. Free qty is derived from the scheme."
           },
           "rejectedQuantity": {
             "type": "number",
             "description": "Damage-on-arrival quantity (does not go to inventory)."
           },
           "unitPrice": {
-            "description": "Supplier unit price captured at the breakdown step. Pre-filled from the supplier catalog; user may edit. Required for auto-associating SUPPLIER_PRICE at publish.",
+            "description": "Supplier unit price captured at the breakdown step. Pre-filled from the supplier catalog; user may edit. Required at publish (cost is spread across the total received quantity).",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\"). Prefilled from the supplier item."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: slab (per complete block) or pro_rata."
           }
         },
         "required": [
           "supplierItemId",
-          "quantity"
+          "orderedQty"
         ]
       },
       "AddGoodsReceiptItemFromPurchaseOrderItemDto": {
@@ -14724,9 +14741,9 @@
             "type": "string",
             "description": "Purchase order line ID — server resolves to (inventoryItemId, uomId) after verifying it belongs to the GR's linked PO."
           },
-          "quantity": {
+          "orderedQty": {
             "type": "number",
-            "description": "Operator-declared accepted quantity for this item, in the item UOM. Capped by the PO line remaining quantity."
+            "description": "Ordered (paid) quantity for this item, in the item UOM. Capped by the PO line remaining quantity; free qty is derived from the scheme."
           },
           "rejectedQuantity": {
             "type": "number",
@@ -14739,19 +14756,36 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\"). Prefilled from the PO line."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: slab (per complete block) or pro_rata."
           }
         },
         "required": [
           "purchaseOrderItemId",
-          "quantity"
+          "orderedQty"
         ]
       },
       "UpdateGoodsReceiptItemDto": {
         "type": "object",
         "properties": {
-          "quantity": {
+          "orderedQty": {
             "type": "number",
-            "description": "Operator-declared accepted quantity for this item, in the item UOM."
+            "description": "Ordered (paid) quantity for this item, in the item UOM. Free qty is derived from the scheme."
           },
           "rejectedQuantity": {
             "type": "number",
@@ -14764,6 +14798,23 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: slab or pro_rata."
           }
         }
       },
@@ -16990,6 +17041,23 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\"). Prefilled from the supplier item."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: slab or pro_rata."
           }
         },
         "required": [
@@ -17017,6 +17085,23 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: slab or pro_rata."
           }
         }
       },
@@ -17581,6 +17666,23 @@
             "type": "boolean",
             "description": "Whether this is the preferred supplier for this item",
             "default": false
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Standing free-goods scheme buy qty (e.g. 9 in \"9+1\")."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Standing free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: slab or pro_rata."
           }
         },
         "required": [
@@ -17624,6 +17726,23 @@
           "isActive": {
             "type": "boolean",
             "description": "Whether this supplier link is active"
+          },
+          "schemeBuyQty": {
+            "type": "object",
+            "description": "Standing free-goods scheme buy qty (e.g. 9 in \"9+1\")."
+          },
+          "schemeFreeQty": {
+            "type": "object",
+            "description": "Standing free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: slab or pro_rata."
           }
         }
       },

@@ -1,16 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
+
+export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
+const FREE_SCHEME_MODES: FreeSchemeMode[] = ['none', 'slab', 'pro_rata'];
 
 export class AddGoodsReceiptItemFromSupplierItemDto {
   @ApiProperty({ description: 'Supplier item row ID — server resolves to (inventoryItemId, uomId).' })
   @IsUUID()
   supplierItemId: string;
 
-  @ApiProperty({ description: 'Operator-declared accepted quantity for this item, in the item UOM.' })
+  @ApiProperty({
+    description: 'Ordered (paid) quantity for this item, in the item UOM. Free qty is derived from the scheme.',
+  })
   @IsNumber()
   @IsPositive()
-  quantity: number;
+  orderedQty: number;
 
   @ApiPropertyOptional({ description: 'Damage-on-arrival quantity (does not go to inventory).' })
   @IsOptional()
@@ -20,22 +25,51 @@ export class AddGoodsReceiptItemFromSupplierItemDto {
 
   @ApiPropertyOptional({
     type: CurrencyAmountDto,
-    description: 'Supplier unit price captured at the breakdown step. Pre-filled from the supplier catalog; user may edit. Required for auto-associating SUPPLIER_PRICE at publish.',
+    description:
+      'Supplier unit price captured at the breakdown step. Pre-filled from the supplier catalog; user may edit. Required at publish (cost is spread across the total received quantity).',
   })
   @IsOptional()
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
+
+  @ApiPropertyOptional({
+    description: 'Free-goods scheme buy qty (e.g. 9 in "9+1"). Prefilled from the supplier item.',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  schemeBuyQty?: number;
+
+  @ApiPropertyOptional({ description: 'Free-goods scheme free qty (e.g. 1 in "9+1").' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  schemeFreeQty?: number;
+
+  @ApiPropertyOptional({
+    enum: FREE_SCHEME_MODES,
+    description: 'How free qty is derived: slab (per complete block) or pro_rata.',
+  })
+  @IsOptional()
+  @IsIn(FREE_SCHEME_MODES)
+  schemeMode?: FreeSchemeMode;
 }
 
 export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
-  @ApiProperty({ description: 'Purchase order line ID — server resolves to (inventoryItemId, uomId) after verifying it belongs to the GR\'s linked PO.' })
+  @ApiProperty({
+    description:
+      "Purchase order line ID — server resolves to (inventoryItemId, uomId) after verifying it belongs to the GR's linked PO.",
+  })
   @IsUUID()
   purchaseOrderItemId: string;
 
-  @ApiProperty({ description: 'Operator-declared accepted quantity for this item, in the item UOM. Capped by the PO line remaining quantity.' })
+  @ApiProperty({
+    description:
+      'Ordered (paid) quantity for this item, in the item UOM. Capped by the PO line remaining quantity; free qty is derived from the scheme.',
+  })
   @IsNumber()
   @IsPositive()
-  quantity: number;
+  orderedQty: number;
 
   @ApiPropertyOptional({ description: 'Damage-on-arrival quantity (does not go to inventory).' })
   @IsOptional()
@@ -45,9 +79,30 @@ export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
 
   @ApiPropertyOptional({
     type: CurrencyAmountDto,
-    description: 'Supplier unit price captured at the breakdown step. Pre-filled from the PO line; user may edit if the supplier delivered at a different price.',
+    description:
+      'Supplier unit price captured at the breakdown step. Pre-filled from the PO line; user may edit if the supplier delivered at a different price.',
   })
   @IsOptional()
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
+
+  @ApiPropertyOptional({ description: 'Free-goods scheme buy qty (e.g. 9 in "9+1"). Prefilled from the PO line.' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  schemeBuyQty?: number;
+
+  @ApiPropertyOptional({ description: 'Free-goods scheme free qty (e.g. 1 in "9+1").' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  schemeFreeQty?: number;
+
+  @ApiPropertyOptional({
+    enum: FREE_SCHEME_MODES,
+    description: 'How free qty is derived: slab (per complete block) or pro_rata.',
+  })
+  @IsOptional()
+  @IsIn(FREE_SCHEME_MODES)
+  schemeMode?: FreeSchemeMode;
 }

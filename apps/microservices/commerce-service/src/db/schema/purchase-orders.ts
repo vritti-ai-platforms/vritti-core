@@ -12,7 +12,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { exchangeRateTypeEnum, purchaseOrderStatusEnum } from './enums';
+import { exchangeRateTypeEnum, freeSchemeModeEnum, purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 import { suppliers } from './suppliers';
 import { uom } from './uom';
@@ -88,9 +88,15 @@ export const purchaseOrderItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
-    // Ordered amount in the line's UOM (e.g. 5 if buying "5 boxes").
+    // Ordered (paid) amount in the line's UOM (e.g. 5 if buying "5 boxes").
     uomQty: decimal('uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    // Free-goods scheme prefilled from supplier_items, editable at PO creation. `free_qty` is derived
+    // from `uom_qty` via the scheme (scheme_buy_qty / scheme_free_qty / scheme_mode); 0 when no scheme.
+    schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
+    schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
+    schemeMode: freeSchemeModeEnum('scheme_mode').notNull().default('none'),
+    freeQty: decimal('free_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     // Snapshot of `uom_qty` converted to the item's primary UOM at create/update time. Computed in
     // the service via UomConversionsService (Decimal math); never derived in SQL.
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),

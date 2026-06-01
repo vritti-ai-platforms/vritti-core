@@ -23,6 +23,9 @@ export interface AddPurchaseOrderItemPayload {
   supplierItemId: string;
   uomQty: number;
   unitPrice: { currency: string; value: string };
+  schemeBuyQty?: number;
+  schemeFreeQty?: number;
+  schemeMode?: 'none' | 'slab' | 'pro_rata';
 }
 
 export interface UpdatePurchaseOrderItemPayload {
@@ -31,6 +34,9 @@ export interface UpdatePurchaseOrderItemPayload {
   inventoryItemId?: string;
   uomQty?: number;
   unitPrice?: { currency: string; value: string };
+  schemeBuyQty?: number;
+  schemeFreeQty?: number;
+  schemeMode?: 'none' | 'slab' | 'pro_rata';
 }
 
 export interface UpdatePurchaseOrderNotesPayload {
@@ -103,12 +109,18 @@ export function addPurchaseOrderItem({
   supplierItemId,
   uomQty,
   unitPrice,
+  schemeBuyQty,
+  schemeFreeQty,
+  schemeMode,
 }: AddPurchaseOrderItemPayload): Promise<CreateResponse<PurchaseOrderData>> {
   return axios
     .post<CreateResponse<PurchaseOrderData>>(`commerce-api/purchase-orders/${id}/items`, {
       supplierItemId,
       uomQty,
       unitPrice,
+      schemeBuyQty,
+      schemeFreeQty,
+      schemeMode,
     })
     .then((r) => r.data);
 }
@@ -120,12 +132,18 @@ export function updatePurchaseOrderItem({
   inventoryItemId,
   uomQty,
   unitPrice,
+  schemeBuyQty,
+  schemeFreeQty,
+  schemeMode,
 }: UpdatePurchaseOrderItemPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/items/${itemId}`, {
       inventoryItemId,
       uomQty,
       unitPrice,
+      schemeBuyQty,
+      schemeFreeQty,
+      schemeMode,
     })
     .then((r) => r.data);
 }

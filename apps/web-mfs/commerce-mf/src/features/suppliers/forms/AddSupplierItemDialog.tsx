@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
-import { Form } from '@vritti/quantum-ui/Form';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
+import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
@@ -10,7 +11,17 @@ import type React from 'react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useAddSupplierItem } from '@/hooks/suppliers';
-import { type AddSupplierItemFormData, addSupplierItemSchema } from '@/schemas/suppliers';
+import {
+  type AddSupplierItemFormData,
+  addSupplierItemSchema,
+  type FreeSchemeMode,
+  freeSchemeModeLabels,
+} from '@/schemas/suppliers';
+
+const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
+  value: mode,
+  label: freeSchemeModeLabels[mode],
+}));
 
 interface AddSupplierItemDialogProps {
   supplierId: string;
@@ -35,11 +46,15 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       minOrderQuantity: undefined,
       leadTimeDays: undefined,
       isPreferred: false,
+      schemeBuyQty: undefined,
+      schemeFreeQty: undefined,
+      schemeMode: 'none',
     },
   });
 
   const addMutation = useAddSupplierItem(supplierId, { onSuccess });
   const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
+  const schemeMode = useWatch({ control: form.control, name: 'schemeMode' });
   const [allowDecimal, setAllowDecimal] = useState(true);
 
   const uomDisabled = !inventoryItemId;
@@ -58,37 +73,71 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         minOrderQuantity: data.minOrderQuantity ?? undefined,
         leadTimeDays: data.leadTimeDays ?? undefined,
         isPreferred: data.isPreferred,
+        schemeBuyQty: data.schemeBuyQty ?? undefined,
+        schemeFreeQty: data.schemeFreeQty ?? undefined,
+        schemeMode: data.schemeMode,
       })}
     >
-      <InventoryItemSelector
-        name="inventoryItemId"
-        label="Inventory Item"
-        placeholder="Select item"
-        onOptionSelect={() => form.setValue('uomId', '')}
-        params={{ excludeOnSupplierId: supplierId }}
-      />
-      <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
-      <UomSelector
-        name="uomId"
-        label="Unit of Measure"
-        placeholder={inventoryItemId ? 'Select unit' : 'Select inventory item first'}
-        disabled={uomDisabled}
-        params={inventoryItemId ? { inventoryItemId, supplierId } : undefined}
-        onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
-      />
-      <div className="grid grid-cols-2 gap-4">
-        <CurrencyField name="unitPrice" label="Unit Price" currencyCode={supplierCurrencyCode} />
-        <TextField
-          name="minOrderQuantity"
-          label="Min Order Qty"
-          type="number"
-          placeholder="e.g. 100"
-          integer={!allowDecimal}
-          positive
-        />
-      </div>
-      <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 3" integer positive />
-      <Switch name="isPreferred" label="Preferred Supplier" description="Surfaced first when picking suppliers for this item" />
+      <FormSection title="Item">
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <InventoryItemSelector
+                name="inventoryItemId"
+                label="Inventory Item"
+                placeholder="Select item"
+                onOptionSelect={() => form.setValue('uomId', '')}
+                params={{ excludeOnSupplierId: supplierId }}
+              />
+            </div>
+            <UomSelector
+              name="uomId"
+              label="Unit of Measure"
+              placeholder={inventoryItemId ? 'Select unit' : 'Select inventory item first'}
+              disabled={uomDisabled}
+              params={inventoryItemId ? { inventoryItemId, supplierId } : undefined}
+              onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal !== false)}
+            />
+            <TextField name="supplierItemCode" label="Supplier Item Code" placeholder="Supplier's code for this item" />
+            <CurrencyField name="unitPrice" label="Unit Price" currencyCode={supplierCurrencyCode} />
+            <TextField
+              name="minOrderQuantity"
+              label="Min Order Qty"
+              type="number"
+              placeholder="e.g. 100"
+              integer={!allowDecimal}
+              positive
+            />
+            <TextField
+              name="leadTimeDays"
+              label="Lead Time (days)"
+              type="number"
+              placeholder="e.g. 3"
+              integer
+              positive
+            />
+          </div>
+          <Switch
+            name="isPreferred"
+            label="Preferred Supplier"
+            description="Surfaced first when picking suppliers for this item"
+          />
+        </div>
+      </FormSection>
+      <FormSection
+        title="Free Goods Scheme"
+        description='Standing scheme prefilled onto POs and goods receipts (e.g. "9+1").'
+      >
+        <div className="flex flex-col gap-4">
+          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
+          {schemeMode !== 'none' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
+              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+            </div>
+          )}
+        </div>
+      </FormSection>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

@@ -111,41 +111,9 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results[0] as InventoryItemQuant;
   }
 
-  async createBatch(data: typeof inventoryItemQuants.$inferInsert): Promise<InventoryItemQuant> {
+  async createQuant(data: typeof inventoryItemQuants.$inferInsert): Promise<InventoryItemQuant> {
     const results = await this.db.insert(inventoryItemQuants).values(data).returning();
     return results[0] as InventoryItemQuant;
-  }
-
-  // Updates the denormalized unit_cost on a quant. The cost-association service recomputes
-  // this from SUM(allocated_amount across all junction rows) / quantity each time a cost row
-  // affecting the quant is inserted, edited, or deleted.
-  async updateUnitCost(id: string, unitCost: bigint): Promise<void> {
-    await this.db.update(inventoryItemQuants).set({ unitCost }).where(eq(inventoryItemQuants.id, id));
-  }
-
-  // Per-source quant lookup — used by autoAssociatePoPrice (gr.id) and by associateCost when
-  // targetQuantIds is omitted.
-  async findBySource(sourceType: string, sourceId: string): Promise<InventoryItemQuant[]> {
-    const rows = await this.db
-      .select()
-      .from(inventoryItemQuants)
-      .where(and(eq(inventoryItemQuants.sourceType, sourceType as never), eq(inventoryItemQuants.sourceId, sourceId)));
-    return rows as InventoryItemQuant[];
-  }
-
-  // Quants resolved from a specific GR-item (via gr_lines.resolved_quant_id). Used by
-  // autoAssociatePoPrice to scope the cost row's junction rows to just the lines for one GR-item.
-  async findByGrItemId(grItemId: string): Promise<InventoryItemQuant[]> {
-    const rows = await this.db
-      .select()
-      .from(inventoryItemQuants)
-      .where(
-        sql`${inventoryItemQuants.id} IN (
-          SELECT resolved_quant_id FROM ${sql.identifier('vritti_core')}.goods_receipt_lines
-          WHERE goods_receipt_item_id = ${grItemId} AND resolved_quant_id IS NOT NULL
-        )`,
-      );
-    return rows as InventoryItemQuant[];
   }
 
   // Quants resolved from a GR-item's lines, with location + lot labels and the denormalized landed
@@ -173,13 +141,6 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return rows.map((r) => ({ ...r, unitCost: BigInt(r.unitCost as unknown as string) }));
   }
 
-  // Loads a set of quants by ID — used by associateCostInternal to score the distribution math.
-  async findByIds(ids: string[]): Promise<InventoryItemQuant[]> {
-    if (ids.length === 0) return [];
-    const rows = await this.db.select().from(inventoryItemQuants).where(inArray(inventoryItemQuants.id, ids));
-    return rows as InventoryItemQuant[];
-  }
-
   // Returns the tracking type for an item (none | lot | item)
   async findItemTracking(inventoryItemId: string): Promise<InventoryTracking> {
     const rows = await this.db
@@ -193,23 +154,20 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Find an existing quant by item + location + lotId. lotId=null matches NULL (tracking='quantity').
-  async findByItemLocationLot(
+  // Quant identity for merging includes unit_cost: stock at the same (item, location, lot) but a
+  // different cost is a distinct cost batch and must not be merged.
+  async findByItemLocationLotCost(
     inventoryItemId: string,
     locationId: string,
     lotId: string | null,
+    unitCost: bigint,
   ): Promise<InventoryItemQuant | undefined> {
-    const condition =
-      lotId != null
-        ? and(
-            eq(inventoryItemQuants.inventoryItemId, inventoryItemId),
-            eq(inventoryItemQuants.locationId, locationId),
-            eq(inventoryItemQuants.lotId, lotId),
-          )
-        : and(
-            eq(inventoryItemQuants.inventoryItemId, inventoryItemId),
-            eq(inventoryItemQuants.locationId, locationId),
-            sql`${inventoryItemQuants.lotId} IS NULL`,
-          );
+    const condition = and(
+      eq(inventoryItemQuants.inventoryItemId, inventoryItemId),
+      eq(inventoryItemQuants.locationId, locationId),
+      eq(inventoryItemQuants.unitCost, unitCost),
+      lotId != null ? eq(inventoryItemQuants.lotId, lotId) : sql`${inventoryItemQuants.lotId} IS NULL`,
+    );
     const rows = await this.db.select().from(inventoryItemQuants).where(condition).limit(1);
     return rows[0] as InventoryItemQuant | undefined;
   }

@@ -18,12 +18,9 @@ export const stockAdjustments = coreSchema.table(
     status: stockAdjustmentStatusEnum('status').notNull().default('DRAFT'),
     reason: text('reason'),
     // Operator-entered opening-stock unit cost (BU currency, minor units, per the item's primary UOM).
-    // Required for OPENING_STOCK before publish; auto-associated onto the created quants at publish.
+    // Required for OPENING_STOCK before publish; set on the created quants at publish.
     unitCost: bigint('unit_cost', { mode: 'bigint' }),
     publishedAt: timestamp('published_at', { withTimezone: true }),
-    // Last time Associate Cost ran on this SA (informational). Only meaningful for positive SAs
-    // (OPENING_STOCK, positive CORRECTION); negative SAs use the write-off snapshot path instead.
-    costAssociatedAt: timestamp('cost_associated_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

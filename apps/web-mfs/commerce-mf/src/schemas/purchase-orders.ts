@@ -78,6 +78,13 @@ export interface PurchaseOrderData {
   updatedAt: string;
 }
 
+export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
+export const freeSchemeModeLabels: Record<FreeSchemeMode, string> = {
+  none: 'No Scheme',
+  slab: 'Slab (per full block)',
+  pro_rata: 'Pro-rata',
+};
+
 export interface PurchaseOrderItemData {
   id: string;
   inventoryItemId: string;
@@ -92,6 +99,10 @@ export interface PurchaseOrderItemData {
   orderUomSymbol: string | null;
   primaryUomSymbol: string | null;
   primaryUomUnitPrice: { currency: string; value: string };
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  schemeMode: FreeSchemeMode;
+  freeQty: number;
 }
 
 export interface GoodsReceiptData {
@@ -115,10 +126,18 @@ export interface GoodsReceiptData {
 
 export type PurchaseOrderDetail = PurchaseOrderData;
 
+// Free-goods scheme inputs (buy + free ratio + mode). free_qty is derived server-side from uomQty.
+const poSchemeShape = {
+  schemeBuyQty: z.number().nonnegative().optional().catch(undefined),
+  schemeFreeQty: z.number().nonnegative().optional().catch(undefined),
+  schemeMode: z.enum(['none', 'slab', 'pro_rata']),
+};
+
 export const addPurchaseOrderItemSchema = z.object({
   supplierItemId: z.string().min(1, 'Item is required'),
   uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
   unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+  ...poSchemeShape,
 });
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
@@ -136,6 +155,7 @@ export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } 
         : {}),
     }),
     unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
+    ...poSchemeShape,
   });
 }
 

@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+
+export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
+const FREE_SCHEME_MODES: FreeSchemeMode[] = ['none', 'slab', 'pro_rata'];
 
 export class AddSupplierItemDto {
   @ApiProperty({ description: 'Inventory item ID to link' })
@@ -39,4 +42,21 @@ export class AddSupplierItemDto {
   @IsOptional()
   @IsBoolean()
   isPreferred?: boolean;
+
+  @ApiPropertyOptional({ description: 'Standing free-goods scheme buy qty (e.g. 9 in "9+1").' })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  schemeBuyQty?: number;
+
+  @ApiPropertyOptional({ description: 'Standing free-goods scheme free qty (e.g. 1 in "9+1").' })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  schemeFreeQty?: number;
+
+  @ApiPropertyOptional({ enum: FREE_SCHEME_MODES, description: 'How free qty is derived: slab or pro_rata.' })
+  @IsOptional()
+  @IsIn(FREE_SCHEME_MODES)
+  schemeMode?: FreeSchemeMode;
 }

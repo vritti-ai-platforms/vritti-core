@@ -1,8 +1,7 @@
-import { CostAssociationService } from '@domain/inventory-item-costs/services/cost-association.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import {
-  type CreateNewQuantParams,
+  type CreateQuantParams,
   InventoryItemQuantsService,
 } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { StockAdjustmentLineItemsRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
@@ -55,7 +54,6 @@ export class StockAdjustmentsRootService {
     private readonly quantsRepository: InventoryItemQuantsRepository,
     private readonly ledgerService: InventoryItemLedgerService,
     private readonly adjustmentsService: StockAdjustmentsService,
-    private readonly costAssociationService: CostAssociationService,
   ) {}
 
   table(state: TableViewState, buCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
@@ -142,8 +140,8 @@ export class StockAdjustmentsRootService {
       }
 
       // Re-fetch lots after Phase A so each draft carries its now-populated `resolvedLotId`. The
-      // publishRegisterLine path uses `createNewQuantScoped` (PR3/PR4) which expects a pre-resolved
-      // lot id, so we can't rely on the stale snapshot taken before Phase A.
+      // publishRegisterLine path creates quants that expect a pre-resolved lot id, so we can't rely
+      // on the stale snapshot taken before Phase A.
       const resolvedLots =
         adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK &&
         (tracking === InventoryTrackingValues.LOT || tracking === InventoryTrackingValues.LOT_SERIAL)
@@ -154,24 +152,23 @@ export class StockAdjustmentsRootService {
       for (const line of lines) {
         const lineItems = lineItemsByLineId[line.id] ?? [];
         if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK) {
-          await this.publishRegisterLine(id, adjustment, tracking, line, lineItems, resolvedLots, buCurrencyCode);
+          // unitCostMinor is non-null for OPENING_STOCK (validated above).
+          await this.publishRegisterLine(
+            id,
+            adjustment,
+            tracking,
+            line,
+            lineItems,
+            resolvedLots,
+            buCurrencyCode,
+            unitCostMinor as bigint,
+          );
         } else {
           await this.publishChangeLine(id, adjustment, tracking, line, lineItems);
         }
       }
 
       await this.repository.updateStatus(id, StockAdjustmentStatusValues.PUBLISHED, new Date());
-
-      // Value the opening stock: associate the entered unit cost onto the freshly created quants.
-      if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK && unitCostMinor != null) {
-        const result = await this.costAssociationService.autoAssociateOpeningCost(
-          id,
-          unitCostMinor,
-          buCurrencyCode,
-          null,
-        );
-        if (result.created > 0) await this.repository.setCostAssociatedAt(id, new Date());
-      }
     });
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
@@ -179,8 +176,7 @@ export class StockAdjustmentsRootService {
   }
 
   // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials]).
-  // PR4: each line creates a NEW quant (no merge) with cost provenance — matches the GR pattern
-  // so cost-association can later target these quants via (sourceType, sourceId).
+  // The entered unit cost is set on the quant at creation, so opening stock is valued immediately.
   private async publishRegisterLine(
     adjustmentId: string,
     adjustment: StockAdjustment & { inventoryItemName: string },
@@ -189,6 +185,7 @@ export class StockAdjustmentsRootService {
     lineItems: StockAdjustmentLineItem[],
     lots: StockAdjustmentLot[],
     buCurrencyCode: string,
+    unitCost: bigint,
   ): Promise<void> {
     if (!line.locationId) {
       throw new BadRequestException(`Line ${line.id} is missing locationId for OPENING_STOCK.`);
@@ -200,12 +197,13 @@ export class StockAdjustmentsRootService {
     const primaryUomQty = line.primaryUomQty;
 
     const costProvenance = {
+      unitCost,
       costCurrency: buCurrencyCode,
       sourceType: CostSourceTypeValues.STOCK_ADJUSTMENT,
       sourceId: adjustmentId,
     };
 
-    let createParams: CreateNewQuantParams;
+    let createParams: CreateQuantParams;
     if (tracking === InventoryTrackingValues.QUANTITY) {
       if (line.stockAdjustmentLotId) {
         throw new BadRequestException(`Line ${line.id}: lot must not be set for tracking=quantity.`);
@@ -245,7 +243,7 @@ export class StockAdjustmentsRootService {
       const lot = lots.find((l) => l.id === line.stockAdjustmentLotId);
       if (!lot) throw new BadRequestException(`Line ${line.id}: lot draft not found.`);
       // Phase A resolved each SA lot draft into an inventory_item_lots row and stamped its id
-      // onto `resolved_lot_id`. createNewQuantScoped requires that resolved id.
+      // onto `resolved_lot_id`. createQuantScoped requires that resolved id.
       if (!lot.resolvedLotId) {
         throw new BadRequestException(`Line ${line.id}: lot draft is missing resolvedLotId (Phase A skipped).`);
       }
@@ -282,7 +280,7 @@ export class StockAdjustmentsRootService {
       }
     }
 
-    const { quant } = await this.batchesService.createNewQuantScoped(createParams);
+    const { quant } = await this.batchesService.createQuantScoped(createParams);
 
     await this.ledgerService.createEntry({
       inventoryItemId: adjustment.inventoryItemId,
@@ -325,7 +323,7 @@ export class StockAdjustmentsRootService {
       writeOffPrimaryUomQty = serials.length;
       // Take the write-off snapshot before consuming the serials.
       if (isDeduct) await this.snapshotWriteOff(line, writeOffPrimaryUomQty);
-      await this.batchesService.adjustBatchScoped(line.quantId, { tracking, serials });
+      await this.batchesService.adjustQuantScoped(line.quantId, { tracking, serials });
       signedDelta = isDeduct ? -serials.length : serials.length;
     } else {
       // Snapshot of line qty in the item's primary UOM, computed at create/update time.
@@ -333,7 +331,7 @@ export class StockAdjustmentsRootService {
       const delta = isDeduct ? -Math.abs(primaryUomQty) : primaryUomQty;
       writeOffPrimaryUomQty = Math.abs(delta);
       if (isDeduct) await this.snapshotWriteOff(line, writeOffPrimaryUomQty);
-      await this.batchesService.adjustBatchScoped(line.quantId, { tracking, delta });
+      await this.batchesService.adjustQuantScoped(line.quantId, { tracking, delta });
       signedDelta = delta;
     }
 
