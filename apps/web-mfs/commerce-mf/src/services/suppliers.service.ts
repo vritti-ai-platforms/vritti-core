@@ -190,6 +190,48 @@ export function bulkUnlinkSupplierItems({
     .then((r) => r.data);
 }
 
+// Bulk-sets the free-goods scheme on multiple supplier items in a single request
+export function bulkSetSupplierItemScheme({
+  supplierId,
+  supplierItemIds,
+  schemeBuyQty,
+  schemeFreeQty,
+  schemeMode,
+}: {
+  supplierId: string;
+  supplierItemIds: string[];
+  schemeBuyQty?: number;
+  schemeFreeQty?: number;
+  schemeMode: 'none' | 'slab' | 'pro_rata';
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/scheme`, {
+      supplierItemIds,
+      schemeBuyQty,
+      schemeFreeQty,
+      schemeMode,
+    })
+    .then((r) => r.data);
+}
+
+// Bulk-marks multiple supplier items as preferred (or clears it) in a single request
+export function bulkSetSupplierItemPreferred({
+  supplierId,
+  supplierItemIds,
+  isPreferred,
+}: {
+  supplierId: string;
+  supplierItemIds: string[];
+  isPreferred: boolean;
+}): Promise<SuccessResponse> {
+  return axios
+    .patch<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/preferred`, {
+      supplierItemIds,
+      isPreferred,
+    })
+    .then((r) => r.data);
+}
+
 // Adds a contact to a supplier
 export function addSupplierContact({
   supplierId,

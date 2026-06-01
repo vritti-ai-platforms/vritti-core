@@ -10,14 +10,16 @@ import {
   UserId,
 } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import { CreateSupplierDto } from './dto/request/create-supplier.dto';
-import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
+import { BulkSetSupplierItemPreferredDto } from './dto/request/bulk-set-supplier-item-preferred.dto';
+import { BulkSetSupplierItemSchemeDto } from './dto/request/bulk-set-supplier-item-scheme.dto';
 import { BulkUnlinkSupplierItemsDto } from './dto/request/bulk-unlink-supplier-items.dto';
 import { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
+import { CreateSupplierDto } from './dto/request/create-supplier.dto';
+import { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import { UpdateSupplierDto } from './dto/request/update-supplier.dto';
-import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
+import { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import type { SupplierContactResponseDto } from './dto/response/supplier-contact-response.dto';
 import type { SupplierItemResponseDto } from './dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from './dto/response/supplier-item-table-response.dto';
@@ -130,6 +132,28 @@ export class SuppliersGatewayController {
   ): Promise<CreateResponseDto<SupplierItemResponseDto>> {
     this.logger.log(`POST /commerce-api/suppliers/${supplierId}/items`);
     return this.suppliersGatewayService.addItem(supplierId, dto);
+  }
+
+  // Bulk-sets the free-goods scheme on multiple supplier items. Declared before :itemId so the
+  // static "scheme" segment is not captured as an item id.
+  @Patch(':id/items/scheme')
+  bulkSetItemScheme(
+    @Param('id') supplierId: string,
+    @Body() dto: BulkSetSupplierItemSchemeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/suppliers/${supplierId}/items/scheme`);
+    return this.suppliersGatewayService.bulkSetItemScheme(supplierId, dto);
+  }
+
+  // Bulk-marks supplier items as preferred. Declared before :itemId so the static "preferred"
+  // segment is not captured as an item id.
+  @Patch(':id/items/preferred')
+  bulkSetItemPreferred(
+    @Param('id') supplierId: string,
+    @Body() dto: BulkSetSupplierItemPreferredDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/suppliers/${supplierId}/items/preferred`);
+    return this.suppliersGatewayService.bulkSetItemPreferred(supplierId, dto);
   }
 
   // Updates a supplier item link

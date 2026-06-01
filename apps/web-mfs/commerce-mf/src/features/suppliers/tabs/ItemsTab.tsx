@@ -12,17 +12,24 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { ClipboardList, Gift, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   SUPPLIER_ITEMS_TABLE_KEY,
+  useBulkSetSupplierItemPreferred,
   useBulkUnlinkSupplierItems,
   useSupplierItemsTable,
   useUnlinkSupplierItem,
 } from '@/hooks/suppliers';
 import type { SupplierItemData } from '@/schemas/suppliers';
 import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
+import { SetSupplierItemSchemeDialog } from '../forms/SetSupplierItemSchemeDialog';
 import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
+
+const schemeModeShortLabels: Record<'slab' | 'pro_rata', string> = {
+  slab: 'Slab',
+  pro_rata: 'Pro-rata',
+};
 
 interface ItemsTabProps {
   supplierId: string;
@@ -32,9 +39,12 @@ interface ItemsTabProps {
 export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) => {
   const queryClient = useQueryClient();
   const addItemDialog = useDialog();
+  const setSchemeDialog = useDialog();
+  const [schemeTargetIds, setSchemeTargetIds] = useState<string[]>([]);
   const confirm = useConfirm();
   const unlinkMutation = useUnlinkSupplierItem(supplierId);
   const bulkUnlinkMutation = useBulkUnlinkSupplierItems(supplierId);
+  const bulkSetPreferredMutation = useBulkSetSupplierItemPreferred(supplierId);
   const { data: response, isLoading } = useSupplierItemsTable(supplierId);
 
   const handleUnlinkItem = useCallback(
@@ -48,6 +58,21 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       if (confirmed) unlinkMutation.mutate(itemId);
     },
     [confirm, unlinkMutation],
+  );
+
+  const handleSetPreferred = useCallback(
+    async (ids: string[], onDone: () => void) => {
+      const confirmed = await confirm({
+        title: `Set ${ids.length} item${ids.length === 1 ? '' : 's'} as preferred?`,
+        description:
+          'This supplier becomes the preferred source for the selected inventory items, replacing any other preferred supplier.',
+        confirmLabel: 'Set Preferred',
+      });
+      if (confirmed) {
+        bulkSetPreferredMutation.mutate({ supplierItemIds: ids, isPreferred: true }, { onSuccess: onDone });
+      }
+    },
+    [confirm, bulkSetPreferredMutation],
   );
 
   const linkedItemColumns = useMemo<ColumnDef<SupplierItemData>[]>(
@@ -90,6 +115,20 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
           ) : (
             '—'
           ),
+      },
+      {
+        accessorKey: 'schemeMode',
+        header: 'Scheme',
+        cell: ({ row }) => {
+          const { schemeMode, schemeBuyQty, schemeFreeQty } = row.original;
+          if (schemeMode === 'none' || !schemeBuyQty || !schemeFreeQty) return 'None';
+          return (
+            <span className="font-mono">
+              {schemeBuyQty}+{schemeFreeQty}
+              <span className="text-xs text-muted-foreground"> ({schemeModeShortLabels[schemeMode]})</span>
+            </span>
+          );
+        },
       },
       {
         id: 'actions',
@@ -149,20 +188,47 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
         table={linkedItemsTable}
         isLoading={isLoading}
         selectActions={(rows) => (
-          <Button
-            size="sm"
-            variant="destructive"
-            startAdornment={<Trash2 className="size-4" />}
-            isLoading={bulkUnlinkMutation.isPending}
-            onClick={() => {
-              const ids = rows.map((r) => r.original.id);
-              bulkUnlinkMutation.mutate(ids, {
-                onSuccess: () => linkedItemsTable.resetRowSelection(),
-              });
-            }}
-          >
-            Unlink
-          </Button>
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              startAdornment={<Star className="size-4" />}
+              isLoading={bulkSetPreferredMutation.isPending}
+              onClick={() =>
+                handleSetPreferred(
+                  rows.map((r) => r.original.id),
+                  () => linkedItemsTable.resetRowSelection(),
+                )
+              }
+            >
+              Set Preferred
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              startAdornment={<Gift className="size-4" />}
+              onClick={() => {
+                setSchemeTargetIds(rows.map((r) => r.original.id));
+                setSchemeDialog.open();
+              }}
+            >
+              Set Scheme
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              startAdornment={<Trash2 className="size-4" />}
+              isLoading={bulkUnlinkMutation.isPending}
+              onClick={() => {
+                const ids = rows.map((r) => r.original.id);
+                bulkUnlinkMutation.mutate(ids, {
+                  onSuccess: () => linkedItemsTable.resetRowSelection(),
+                });
+              }}
+            >
+              Unlink
+            </Button>
+          </>
         )}
         toolbarActions={{
           actions: (
@@ -189,6 +255,23 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
             supplierId={supplierId}
             supplierCurrencyCode={supplierCurrencyCode}
             onSuccess={close}
+            onCancel={close}
+          />
+        )}
+      />
+
+      <Dialog
+        handle={setSchemeDialog}
+        title="Set Free Goods Scheme"
+        description="Apply a free-goods scheme to the selected supplier items."
+        content={(close) => (
+          <SetSupplierItemSchemeDialog
+            supplierId={supplierId}
+            supplierItemIds={schemeTargetIds}
+            onSuccess={() => {
+              close();
+              linkedItemsTable.resetRowSelection();
+            }}
             onCancel={close}
           />
         )}

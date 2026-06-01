@@ -5,9 +5,10 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { and, desc, eq, inArray, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, inArray, ne, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
+  type FreeSchemeMode,
   goodsReceiptItems,
   inventoryItems,
   type NewSupplierItem,
@@ -208,6 +209,39 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   async bulkDeleteSupplierItems(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     await this.db.delete(supplierItems).where(inArray(supplierItems.id, ids));
+  }
+
+  // Bulk-sets the free-goods scheme on the given supplier item links
+  async bulkSetScheme(
+    ids: string[],
+    scheme: { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode },
+  ): Promise<void> {
+    if (ids.length === 0) return;
+    await this.db
+      .update(supplierItems)
+      .set({ schemeBuyQty: scheme.buyQty, schemeFreeQty: scheme.freeQty, schemeMode: scheme.mode })
+      .where(inArray(supplierItems.id, ids));
+  }
+
+  // Bulk-sets is_preferred on the given supplier item links. When flipping to preferred, first clears
+  // preferred on every other supplier for the same inventory items so the at-most-one-preferred unique
+  // index is never violated.
+  async bulkSetPreferred(ids: string[], isPreferred: boolean): Promise<void> {
+    if (ids.length === 0) return;
+    if (isPreferred) {
+      const rows = await this.db
+        .select({ inventoryItemId: supplierItems.inventoryItemId })
+        .from(supplierItems)
+        .where(inArray(supplierItems.id, ids));
+      const inventoryItemIds = [...new Set(rows.map((row) => row.inventoryItemId))];
+      if (inventoryItemIds.length > 0) {
+        await this.db
+          .update(supplierItems)
+          .set({ isPreferred: false })
+          .where(and(inArray(supplierItems.inventoryItemId, inventoryItemIds), notInArray(supplierItems.id, ids)));
+      }
+    }
+    await this.db.update(supplierItems).set({ isPreferred }).where(inArray(supplierItems.id, ids));
   }
 
   // Finds a supplier item by ID with inventory item name and UOM symbol

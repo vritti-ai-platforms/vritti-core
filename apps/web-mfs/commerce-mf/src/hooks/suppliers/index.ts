@@ -8,12 +8,14 @@ export {
   SUPPLIERS_TABLE_KEY,
 } from './keys';
 export { useAddSupplierContact } from './useAddSupplierContact';
+export { useAddSupplierItem } from './useAddSupplierItem';
+export { useBulkSetSupplierItemPreferred } from './useBulkSetSupplierItemPreferred';
+export { useBulkSetSupplierItemScheme } from './useBulkSetSupplierItemScheme';
+export { useBulkUnlinkSupplierItems } from './useBulkUnlinkSupplierItems';
 export { useChangeSupplierCurrency } from './useChangeSupplierCurrency';
 export { useCreateSupplier } from './useCreateSupplier';
 export { useDeleteSupplier } from './useDeleteSupplier';
 export { useDeleteSupplierContact } from './useDeleteSupplierContact';
-export { useAddSupplierItem } from './useAddSupplierItem';
-export { useBulkUnlinkSupplierItems } from './useBulkUnlinkSupplierItems';
 export { useMarkPrimarySupplierContact } from './useMarkPrimarySupplierContact';
 export { useSupplier } from './useSupplier';
 export { useSupplierContacts } from './useSupplierContacts';

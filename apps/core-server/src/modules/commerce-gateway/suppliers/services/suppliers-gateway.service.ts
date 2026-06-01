@@ -9,6 +9,8 @@ import {
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
+import type { BulkSetSupplierItemPreferredDto } from '../dto/request/bulk-set-supplier-item-preferred.dto';
+import type { BulkSetSupplierItemSchemeDto } from '../dto/request/bulk-set-supplier-item-scheme.dto';
 import type { BulkUnlinkSupplierItemsDto } from '../dto/request/bulk-unlink-supplier-items.dto';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
@@ -135,7 +137,32 @@ export class SuppliersGatewayService {
   // Bulk-unlinks multiple inventory items from a supplier
   async bulkUnlinkItems(supplierId: string, dto: BulkUnlinkSupplierItemsDto): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkUnlinkItems');
-    return this.nats.send('commerce', 'suppliers.bulkUnlinkItems', { supplierId, supplierItemIds: dto.supplierItemIds });
+    return this.nats.send('commerce', 'suppliers.bulkUnlinkItems', {
+      supplierId,
+      supplierItemIds: dto.supplierItemIds,
+    });
+  }
+
+  // Bulk-sets the free-goods scheme on multiple supplier items
+  async bulkSetItemScheme(supplierId: string, dto: BulkSetSupplierItemSchemeDto): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.bulkSetItemScheme');
+    return this.nats.send('commerce', 'suppliers.bulkSetItemScheme', {
+      supplierId,
+      supplierItemIds: dto.supplierItemIds,
+      schemeBuyQty: dto.schemeBuyQty,
+      schemeFreeQty: dto.schemeFreeQty,
+      schemeMode: dto.schemeMode,
+    });
+  }
+
+  // Bulk-marks supplier items as preferred (or clears it)
+  async bulkSetItemPreferred(supplierId: string, dto: BulkSetSupplierItemPreferredDto): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.bulkSetItemPreferred');
+    return this.nats.send('commerce', 'suppliers.bulkSetItemPreferred', {
+      supplierId,
+      supplierItemIds: dto.supplierItemIds,
+      isPreferred: dto.isPreferred,
+    });
   }
 
   // Adds a contact to a supplier

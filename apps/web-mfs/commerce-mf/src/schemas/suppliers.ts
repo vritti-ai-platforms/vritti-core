@@ -115,27 +115,49 @@ const supplierSchemeShape = {
   schemeMode: z.enum(['none', 'slab', 'pro_rata']),
 };
 
-export const addSupplierItemSchema = z.object({
-  inventoryItemId: z.string().min(1, 'Inventory item is required'),
-  supplierItemCode: z.string().max(100).optional(),
-  unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
-  uomId: z.uuid('Unit of measure is required'),
-  minOrderQuantity: zodNumericField({ integer: true, positive: true }).optional(),
-  leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
-  isPreferred: z.boolean().optional(),
-  ...supplierSchemeShape,
-});
+// When a scheme mode is chosen, the buy/free ratio is required; "none" leaves them blank.
+const enforceSchemeRatio = (
+  data: { schemeMode: FreeSchemeMode; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
+  ctx: z.RefinementCtx,
+) => {
+  if (data.schemeMode === 'none') return;
+  if (data.schemeBuyQty == null) {
+    ctx.addIssue({ code: 'custom', path: ['schemeBuyQty'], message: 'Buy qty is required for a scheme.' });
+  }
+  if (data.schemeFreeQty == null) {
+    ctx.addIssue({ code: 'custom', path: ['schemeFreeQty'], message: 'Free qty is required for a scheme.' });
+  }
+};
 
-export const updateSupplierItemSchema = z.object({
-  supplierItemCode: z.string().max(100).optional(),
-  unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
-  uomId: z.uuid('Unit of measure is required'),
-  minOrderQuantity: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-  leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
-  isPreferred: z.boolean().optional(),
-  isActive: z.boolean().optional(),
-  ...supplierSchemeShape,
-});
+// Scheme-only form used by the bulk "Set Scheme" action on the supplier items table.
+export const setSupplierItemSchemeSchema = z.object(supplierSchemeShape).superRefine(enforceSchemeRatio);
+export type SetSupplierItemSchemeFormData = z.infer<typeof setSupplierItemSchemeSchema>;
+
+export const addSupplierItemSchema = z
+  .object({
+    inventoryItemId: z.string().min(1, 'Inventory item is required'),
+    supplierItemCode: z.string().max(100).optional(),
+    unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
+    uomId: z.uuid('Unit of measure is required'),
+    minOrderQuantity: zodNumericField({ integer: true, positive: true }).optional(),
+    leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
+    isPreferred: z.boolean().optional(),
+    ...supplierSchemeShape,
+  })
+  .superRefine(enforceSchemeRatio);
+
+export const updateSupplierItemSchema = z
+  .object({
+    supplierItemCode: z.string().max(100).optional(),
+    unitPrice: zodCurrencyField({ required: 'Unit price is required', positive: true }),
+    uomId: z.uuid('Unit of measure is required'),
+    minOrderQuantity: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+    leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+    isPreferred: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+    ...supplierSchemeShape,
+  })
+  .superRefine(enforceSchemeRatio);
 
 export type CreateSupplierFormData = z.infer<typeof createSupplierSchema>;
 export type UpdateSupplierFormData = z.infer<typeof updateSupplierSchema>;

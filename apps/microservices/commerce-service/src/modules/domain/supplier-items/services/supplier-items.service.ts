@@ -16,7 +16,7 @@ import {
   ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
+import { type FreeSchemeMode, inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
 import type { AddSupplierItemDto } from '@/modules/suppliers/items/dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '@/modules/suppliers/items/dto/request/update-supplier-item.dto';
 import { SupplierItemsRepository } from '../repositories/supplier-items.repository';
@@ -278,6 +278,36 @@ export class SupplierItemsService {
     return {
       success: true,
       message: `${supplierItemIds.length} item${supplierItemIds.length === 1 ? '' : 's'} removed from supplier.`,
+    };
+  }
+
+  // Bulk-sets the free-goods scheme on multiple supplier items at once
+  async bulkSetScheme(
+    supplierId: string,
+    supplierItemIds: string[],
+    scheme: { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode },
+  ): Promise<SuccessResponseDto> {
+    const supplier = await this.repository.findSupplierById(supplierId);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    await this.repository.bulkSetScheme(supplierItemIds, scheme);
+    return {
+      success: true,
+      message: `Scheme updated for ${supplierItemIds.length} item${supplierItemIds.length === 1 ? '' : 's'}.`,
+    };
+  }
+
+  // Bulk-marks multiple supplier items as preferred (or clears it) in a single request
+  async bulkSetPreferred(
+    supplierId: string,
+    supplierItemIds: string[],
+    isPreferred: boolean,
+  ): Promise<SuccessResponseDto> {
+    const supplier = await this.repository.findSupplierById(supplierId);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    await this.repository.bulkSetPreferred(supplierItemIds, isPreferred);
+    return {
+      success: true,
+      message: `${supplierItemIds.length} item${supplierItemIds.length === 1 ? '' : 's'} marked ${isPreferred ? 'preferred' : 'not preferred'}.`,
     };
   }
 

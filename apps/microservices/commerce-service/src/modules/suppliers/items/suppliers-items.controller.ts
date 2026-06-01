@@ -3,6 +3,7 @@ import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto'
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, CurrencyAmountDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { FreeSchemeMode } from '@/db/schema';
 import type { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { SuppliersItemsService } from './services/suppliers-items.service';
@@ -57,6 +58,33 @@ export class SuppliersItemsController {
   bulkUnlinkItems(@Payload() data: { supplierId: string; supplierItemIds: string[] }): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkUnlinkItems');
     return this.domainService.bulkUnlinkItems(data.supplierId, data.supplierItemIds);
+  }
+
+  @MessagePattern({ cmd: 'suppliers.bulkSetItemScheme' })
+  bulkSetItemScheme(
+    @Payload()
+    data: {
+      supplierId: string;
+      supplierItemIds: string[];
+      schemeBuyQty?: number | null;
+      schemeFreeQty?: number | null;
+      schemeMode: FreeSchemeMode;
+    },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.bulkSetItemScheme');
+    return this.domainService.bulkSetScheme(data.supplierId, data.supplierItemIds, {
+      buyQty: data.schemeBuyQty ?? null,
+      freeQty: data.schemeFreeQty ?? null,
+      mode: data.schemeMode ?? 'none',
+    });
+  }
+
+  @MessagePattern({ cmd: 'suppliers.bulkSetItemPreferred' })
+  bulkSetItemPreferred(
+    @Payload() data: { supplierId: string; supplierItemIds: string[]; isPreferred: boolean },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.bulkSetItemPreferred');
+    return this.domainService.bulkSetPreferred(data.supplierId, data.supplierItemIds, data.isPreferred);
   }
 
   @MessagePattern({ cmd: 'suppliers.findItemPrice' })

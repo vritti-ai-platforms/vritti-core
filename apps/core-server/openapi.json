@@ -11517,6 +11517,82 @@
         ]
       }
     },
+    "/commerce-api/suppliers/{id}/items/scheme": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_bulkSetItemScheme",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetSupplierItemSchemeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/suppliers/{id}/items/preferred": {
+      "patch": {
+        "operationId": "SuppliersGatewayController_bulkSetItemPreferred",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSetSupplierItemPreferredDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
     "/commerce-api/suppliers/{id}/items/{itemId}": {
       "patch": {
         "operationId": "SuppliersGatewayController_updateItem",
@@ -17688,6 +17764,59 @@
         "required": [
           "inventoryItemId",
           "uomId"
+        ]
+      },
+      "BulkSetSupplierItemSchemeDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemIds": {
+            "description": "Supplier item IDs to apply the scheme to.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\")."
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
+          },
+          "schemeMode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "slab",
+              "pro_rata"
+            ],
+            "description": "How free qty is derived: none, slab or pro_rata."
+          }
+        },
+        "required": [
+          "supplierItemIds",
+          "schemeMode"
+        ]
+      },
+      "BulkSetSupplierItemPreferredDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemIds": {
+            "description": "Supplier item IDs to update.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isPreferred": {
+            "type": "boolean",
+            "description": "Whether to mark the items as the preferred supplier for their inventory items."
+          }
+        },
+        "required": [
+          "supplierItemIds",
+          "isPreferred"
         ]
       },
       "UpdateSupplierItemDto": {
