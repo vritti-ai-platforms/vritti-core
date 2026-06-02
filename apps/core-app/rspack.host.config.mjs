@@ -274,7 +274,7 @@ export default (rspackEnv) => {
           },
           // Single portal store app-wide so the host <PortalHost> renders popovers from any container
           '@rn-primitives/portal': { singleton: true, eager: true },
-          'react-native-reanimated': { singleton: true, eager: true },
+          'react-native-reanimated': { singleton: true, eager: true, version: '4.3.0', requiredVersion: '>=0.0.0-0' },
           'react-native-worklets': { singleton: true, eager: true, requiredVersion: '0.8.1' },
           nativewind: { singleton: true, eager: true, version: '5.0.0-preview.3', requiredVersion: '>=0.0.0-0' },
           // native modules — must be singletons so each registers its native views exactly once

@@ -279,7 +279,7 @@ export default (rspackEnv) => {
             requiredVersion: '>=0.0.0-0',
           },
           '@rn-primitives/portal': { singleton: true, eager: false, import: false },
-          'react-native-reanimated': { singleton: true, eager: false, import: false },
+          'react-native-reanimated': { singleton: true, eager: false, import: false, requiredVersion: '>=0.0.0-0' },
           'react-native-worklets': { singleton: true, eager: false, import: false, requiredVersion: '0.8.1' },
           nativewind: {
             singleton: true,
