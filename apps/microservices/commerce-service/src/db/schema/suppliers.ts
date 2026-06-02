@@ -14,7 +14,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { freeSchemeModeEnum, taxIdTypeEnum } from './enums';
+import { taxIdTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
 import { uom } from './uom';
 
@@ -153,7 +153,7 @@ export const supplierItems = coreSchema.table(
     // Standing free-goods scheme template (e.g. buy 9 get 1). Prefills PO/GR lines; null = no scheme.
     schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
     schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
-    schemeMode: freeSchemeModeEnum('scheme_mode').notNull().default('none'),
+    hasScheme: boolean('has_scheme').notNull().default(false),
     isPreferred: boolean('is_preferred').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

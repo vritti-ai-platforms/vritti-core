@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
@@ -11,18 +10,7 @@ import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateSupplierItem } from '@/hooks/suppliers';
-import {
-  type FreeSchemeMode,
-  freeSchemeModeLabels,
-  type SupplierItemData,
-  type UpdateSupplierItemFormData,
-  updateSupplierItemSchema,
-} from '@/schemas/suppliers';
-
-const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
-  value: mode,
-  label: freeSchemeModeLabels[mode],
-}));
+import { type SupplierItemData, type UpdateSupplierItemFormData, updateSupplierItemSchema } from '@/schemas/suppliers';
 
 interface UpdateSupplierItemDialogProps {
   supplierId: string;
@@ -51,12 +39,12 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
       isActive: item.isActive,
       schemeBuyQty: item.schemeBuyQty ?? undefined,
       schemeFreeQty: item.schemeFreeQty ?? undefined,
-      schemeMode: item.schemeMode ?? 'none',
+      hasScheme: item.hasScheme ?? false,
     },
   });
 
   const updateMutation = useUpdateSupplierItem(supplierId, { onSuccess });
-  const schemeMode = form.watch('schemeMode');
+  const hasScheme = form.watch('hasScheme');
   const [allowDecimal, setAllowDecimal] = useState(true);
 
   return (
@@ -76,7 +64,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
           isActive: data.isActive,
           schemeBuyQty: data.schemeBuyQty ?? null,
           schemeFreeQty: data.schemeFreeQty ?? null,
-          schemeMode: data.schemeMode ?? null,
+          hasScheme: data.hasScheme,
         },
       })}
     >
@@ -129,11 +117,11 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
       </FormSection>
       <FormSection title="Free Goods Scheme">
         <div className="flex flex-col gap-4">
-          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
-          {schemeMode !== 'none' && (
+          <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+          {hasScheme && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+              <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
+              <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
             </div>
           )}
         </div>

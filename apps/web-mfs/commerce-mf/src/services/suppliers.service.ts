@@ -53,7 +53,7 @@ export interface AddSupplierItemPayload {
   isPreferred?: boolean;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
-  schemeMode?: 'none' | 'slab' | 'pro_rata';
+  hasScheme?: boolean;
 }
 
 export interface UpdateSupplierItemPayload {
@@ -66,7 +66,7 @@ export interface UpdateSupplierItemPayload {
   isActive?: boolean;
   schemeBuyQty?: number | null;
   schemeFreeQty?: number | null;
-  schemeMode?: 'none' | 'slab' | 'pro_rata' | null;
+  hasScheme?: boolean | null;
 }
 
 export interface CreateSupplierContactPayload {
@@ -196,20 +196,20 @@ export function bulkSetSupplierItemScheme({
   supplierItemIds,
   schemeBuyQty,
   schemeFreeQty,
-  schemeMode,
+  hasScheme,
 }: {
   supplierId: string;
   supplierItemIds: string[];
   schemeBuyQty?: number;
   schemeFreeQty?: number;
-  schemeMode: 'none' | 'slab' | 'pro_rata';
+  hasScheme: boolean;
 }): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/suppliers/${supplierId}/items/scheme`, {
       supplierItemIds,
       schemeBuyQty,
       schemeFreeQty,
-      schemeMode,
+      hasScheme,
     })
     .then((r) => r.data);
 }

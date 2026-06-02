@@ -3,23 +3,18 @@ import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { useBUCurrency, useDialog } from '@vritti/quantum-ui/hooks';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useForm } from 'react-hook-form';
+import { FreeQtyPreview } from '@/components/FreeQtyPreview';
 import { useUpdateGoodsReceiptItem } from '@/hooks/goods-receipts';
 import {
   buildUpdateGoodsReceiptItemSchema,
-  type FreeSchemeMode,
-  freeSchemeModeLabels,
   type GoodsReceiptItemData,
   type UpdateGoodsReceiptItemFormData,
 } from '@/schemas/goods-receipts';
-
-const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
-  value: mode,
-  label: freeSchemeModeLabels[mode],
-}));
+import { computeFreeQty } from '@/utils/freeQty';
 
 const EditItemForm = ({
   goodsReceiptId,
@@ -46,13 +41,19 @@ const EditItemForm = ({
       unitPrice: item.unitPrice ?? undefined,
       schemeBuyQty: item.schemeBuyQty ?? undefined,
       schemeFreeQty: item.schemeFreeQty ?? undefined,
-      schemeMode: item.schemeMode ?? 'none',
+      hasScheme: item.hasScheme ?? false,
     },
   });
   const mutation = useUpdateGoodsReceiptItem(goodsReceiptId, item.id, { onSuccess });
   const lockedCurrency = item.unitPrice?.currency ?? buCurrencyCode;
 
-  const schemeMode = form.watch('schemeMode');
+  const hasScheme = form.watch('hasScheme');
+  const freeQtyPreview = computeFreeQty(
+    form.watch('orderedQty'),
+    form.watch('schemeBuyQty'),
+    form.watch('schemeFreeQty'),
+    hasScheme,
+  );
 
   return (
     <Form
@@ -65,7 +66,7 @@ const EditItemForm = ({
         unitPrice: data.unitPrice?.value ? data.unitPrice : undefined,
         schemeBuyQty: data.schemeBuyQty,
         schemeFreeQty: data.schemeFreeQty,
-        schemeMode: data.schemeMode,
+        hasScheme: data.hasScheme,
       })}
     >
       <TextField
@@ -84,13 +85,15 @@ const EditItemForm = ({
       />
       <TextField name="rejectedQuantity" label="Damaged on arrival" type="number" />
 
+      {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
+
       <FormSection title="Free Goods Scheme">
         <div className="flex flex-col gap-4">
-          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
-          {schemeMode !== 'none' && (
+          <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+          {hasScheme && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+              <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
+              <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
             </div>
           )}
         </div>

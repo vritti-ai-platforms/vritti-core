@@ -101,26 +101,19 @@ export const updateSupplierContactSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
-export const freeSchemeModeLabels: Record<FreeSchemeMode, string> = {
-  none: 'No Scheme',
-  slab: 'Slab (per full block)',
-  pro_rata: 'Pro-rata',
-};
-
-// Standing free-goods scheme (buy + free ratio + mode) carried on a supplier item.
+// Standing free-goods scheme (buy + free ratio) carried on a supplier item.
 const supplierSchemeShape = {
-  schemeBuyQty: zodNumericField({ positive: true, nullable: true }).optional(),
-  schemeFreeQty: zodNumericField({ positive: true, nullable: true }).optional(),
-  schemeMode: z.enum(['none', 'slab', 'pro_rata']),
+  schemeBuyQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  schemeFreeQty: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
+  hasScheme: z.boolean(),
 };
 
-// When a scheme mode is chosen, the buy/free ratio is required; "none" leaves them blank.
+// When a scheme is enabled, the buy/free ratio is required.
 const enforceSchemeRatio = (
-  data: { schemeMode: FreeSchemeMode; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
+  data: { hasScheme: boolean; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
   ctx: z.RefinementCtx,
 ) => {
-  if (data.schemeMode === 'none') return;
+  if (!data.hasScheme) return;
   if (data.schemeBuyQty == null) {
     ctx.addIssue({ code: 'custom', path: ['schemeBuyQty'], message: 'Buy qty is required for a scheme.' });
   }
@@ -202,7 +195,7 @@ export interface SupplierItemData {
   isActive: boolean;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
-  schemeMode: FreeSchemeMode;
+  hasScheme: boolean;
 }
 
 export interface InventoryItemSupplierData {

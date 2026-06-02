@@ -22,8 +22,8 @@ export class GoodsReceiptItemResponseDto {
   schemeBuyQty: number | null;
   @ApiPropertyOptional({ nullable: true, description: 'Free-goods scheme free qty (e.g. 1 in "9+1").' })
   schemeFreeQty: number | null;
-  @ApiProperty({ enum: ['none', 'slab', 'pro_rata'] })
-  schemeMode: 'none' | 'slab' | 'pro_rata';
+  @ApiProperty({ description: 'Whether a free-goods scheme applies.' })
+  hasScheme: boolean;
   @ApiProperty({ description: 'Distributed so far — sum(lines.quantity). Item is balanced when this equals totalQty.' })
   acceptedQuantity: number;
   @ApiProperty() rejectedQuantity: number;
@@ -33,6 +33,7 @@ export class GoodsReceiptItemResponseDto {
   @ApiPropertyOptional({ nullable: true }) poReceivedQuantity: number | null;
   @ApiPropertyOptional({ nullable: true }) poRemainingQuantity: number | null;
   @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true }) unitPrice: CurrencyAmountDto | null;
+  @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true }) unitCost: CurrencyAmountDto | null;
   @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true }) lineTotal: CurrencyAmountDto | null;
   @ApiProperty() metadata: Record<string, unknown>;
   @ApiProperty() createdAt: string;

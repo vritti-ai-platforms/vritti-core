@@ -1,25 +1,20 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { FreeQtyPreview } from '@/components/FreeQtyPreview';
 import { useUpdatePurchaseOrderItem } from '@/hooks/purchase-orders';
 import {
   buildUpdatePurchaseOrderItemSchema,
-  type FreeSchemeMode,
-  freeSchemeModeLabels,
   type PurchaseOrderItemData,
   type UpdatePurchaseOrderItemFormData,
 } from '@/schemas/purchase-orders';
-
-const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
-  value: mode,
-  label: freeSchemeModeLabels[mode],
-}));
+import { computeFreeQty } from '@/utils/freeQty';
 
 interface UpdatePurchaseOrderItemDialogProps {
   purchaseOrderId: string;
@@ -47,11 +42,17 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
       unitPrice: item.unitPrice,
       schemeBuyQty: item.schemeBuyQty ?? undefined,
       schemeFreeQty: item.schemeFreeQty ?? undefined,
-      schemeMode: item.schemeMode ?? 'none',
+      hasScheme: item.hasScheme ?? false,
     },
   });
   const mutation = useUpdatePurchaseOrderItem({ onSuccess });
-  const schemeMode = form.watch('schemeMode');
+  const hasScheme = form.watch('hasScheme');
+  const freeQtyPreview = computeFreeQty(
+    form.watch('uomQty'),
+    form.watch('schemeBuyQty'),
+    form.watch('schemeFreeQty'),
+    hasScheme,
+  );
 
   return (
     <Form
@@ -66,7 +67,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
         unitPrice: data.unitPrice as { currency: string; value: string } | undefined,
         schemeBuyQty: data.schemeBuyQty,
         schemeFreeQty: data.schemeFreeQty,
-        schemeMode: data.schemeMode,
+        hasScheme: data.hasScheme,
       })}
     >
       <FormSection title="Item">
@@ -85,16 +86,17 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
               currencyCode={poCurrencyCode}
               placeholder="Enter unit price"
             />
+            {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
           </div>
         </div>
       </FormSection>
       <FormSection title="Free Goods Scheme">
         <div className="flex flex-col gap-4">
-          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
-          {schemeMode !== 'none' && (
+          <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+          {hasScheme && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+              <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
+              <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
             </div>
           )}
         </div>

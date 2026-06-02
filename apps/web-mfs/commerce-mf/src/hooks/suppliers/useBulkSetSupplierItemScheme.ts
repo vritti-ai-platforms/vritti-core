@@ -9,7 +9,7 @@ export interface BulkSetSupplierItemSchemePayload {
   supplierItemIds: string[];
   schemeBuyQty?: number;
   schemeFreeQty?: number;
-  schemeMode: 'none' | 'slab' | 'pro_rata';
+  hasScheme: boolean;
 }
 
 export function useBulkSetSupplierItemScheme(

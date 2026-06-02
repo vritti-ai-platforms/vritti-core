@@ -19,6 +19,12 @@ export class GoodsReceiptItemQuantRowResponseDto {
 
   @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true })
   totalCost: CurrencyAmountDto | null;
+
+  @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true })
+  quantCost: CurrencyAmountDto | null;
+
+  @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true })
+  quantValue: CurrencyAmountDto | null;
 }
 
 export class GoodsReceiptItemQuantsResponseDto {

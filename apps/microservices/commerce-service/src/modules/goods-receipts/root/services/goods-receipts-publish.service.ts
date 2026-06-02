@@ -13,11 +13,14 @@ import {
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
+import { InventoryItemCostsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-costs.repository';
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Injectable } from '@nestjs/common';
 import { BadRequestException, NotFoundException, PrimaryDatabaseService } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
+import { allocateByWeight } from '@/common/allocate';
 import {
+  CostDistributionMethodValues,
   CostSourceTypeValues,
   GoodsReceiptStatusValues,
   InventoryItemLedgerReferenceTypeValues,
@@ -60,6 +63,7 @@ export class GoodsReceiptsPublishService {
     private readonly grLinesRepository: GoodsReceiptLinesRepository,
     private readonly grLineItemsRepository: GoodsReceiptLineItemsRepository,
     private readonly quantsService: InventoryItemQuantsService,
+    private readonly costsRepository: InventoryItemCostsRepository,
     private readonly inventoryLotsService: InventoryItemLotsService,
     private readonly ledgerService: InventoryItemLedgerService,
     private readonly goodsReceiptsService: GoodsReceiptsService,
@@ -116,12 +120,70 @@ export class GoodsReceiptsPublishService {
     const grLines = await this.grLinesRepository.findByItemId(grItem.id);
     const inventoryLotByGrLot = await this.resolveLots(grItem, grLines);
 
+    // Sum the primary-UOM qty added per quant — a line may merge into an already-seen quant.
+    const qtyByQuant = new Map<string, number>();
     for (const grLine of grLines) {
-      await this.publishLine(goodsReceipt, grItem, grLine, inventoryLotByGrLot, buCurrencyCode);
+      const { quantId, quantity } = await this.publishLine(
+        goodsReceipt,
+        grItem,
+        grLine,
+        inventoryLotByGrLot,
+        buCurrencyCode,
+      );
+      qtyByQuant.set(quantId, (qtyByQuant.get(quantId) ?? 0) + quantity);
     }
+
+    await this.allocateItemCost(goodsReceipt, grItem, qtyByQuant, buCurrencyCode);
 
     // Only the paid (ordered) qty reconciles against the PO; free qty is bonus stock, not ordered.
     await this.reconcilePoItem(goodsReceipt, grItem, grItem.orderedQty);
+  }
+
+  // Splits the item's paid amount across its quants by received qty so Σ quant_cost == paid exactly,
+  // pinning each slice in inventory_item_costs/_quant_costs when an ITEM cost category exists.
+  private async allocateItemCost(
+    goodsReceipt: GoodsReceiptWithRefs,
+    grItem: PublishItem,
+    qtyByQuant: Map<string, number>,
+    buCurrencyCode: string,
+  ): Promise<void> {
+    const quants = [...qtyByQuant.entries()].map(([quantId, qty]) => ({ quantId, qty }));
+    if (quants.length === 0) return;
+
+    const total = BigInt(
+      new Decimal((grItem.primaryUomUnitPrice ?? 0n).toString())
+        .times(goodsReceipt.exchangeRate)
+        .times(grItem.orderedQty)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toFixed(0),
+    );
+    if (total <= 0n) return;
+
+    const allocs = allocateByWeight(
+      total,
+      quants.map((q) => q.qty),
+    );
+
+    const categoryId = await this.costsRepository.findItemCategoryId();
+    if (categoryId) {
+      const costId = await this.costsRepository.insertCost({
+        categoryId,
+        totalAmount: total,
+        currencyCode: buCurrencyCode,
+        sourceType: CostSourceTypeValues.GOODS_RECEIPT,
+        sourceId: goodsReceipt.id,
+        distributionMethod: CostDistributionMethodValues.BY_QUANTITY,
+        unallocatedAmount: 0n,
+      });
+      await this.costsRepository.insertQuantCosts(
+        quants.map((q, i) => ({ quantId: q.quantId, costId, allocatedAmount: allocs[i] })),
+      );
+    }
+
+    // Bumps cost/value by this receipt's slice — works whether the quant is fresh or merged.
+    for (let i = 0; i < quants.length; i++) {
+      await this.quantsService.addQuantCostValue(quants[i].quantId, allocs[i], allocs[i]);
+    }
   }
 
   // Find-or-create the inventory lot for each distinct receipt lot once → { grLotId: inventoryLotId }.
@@ -143,13 +205,15 @@ export class GoodsReceiptsPublishService {
   }
 
   // Creates the quant for one line (tracking-aware via optional fields) + the ledger entry.
+  // Returns the created/merged quant id and the primary-UOM qty added on this line; the cost
+  // baseline is skipped — allocateItemCost owns quant_cost/value for GR.
   private async publishLine(
     goodsReceipt: GoodsReceiptWithRefs,
     grItem: PublishItem,
     grLine: GoodsReceiptLineWithRefs,
     inventoryLotByGrLot: Map<string, string>,
     buCurrencyCode: string,
-  ): Promise<void> {
+  ): Promise<{ quantId: string; quantity: number }> {
     // Snapshotted in the item's primary UOM at line add/edit — read it as-is.
     const primaryUomQuantity = grLine.primaryUomQty;
 
@@ -181,6 +245,7 @@ export class GoodsReceiptsPublishService {
       costCurrency: buCurrencyCode,
       sourceType: CostSourceTypeValues.GOODS_RECEIPT,
       sourceId: goodsReceipt.id,
+      skipCostBaseline: true,
     });
     await this.grLinesRepository.setResolvedQuant(grLine.id, quant.id);
 
@@ -192,6 +257,8 @@ export class GoodsReceiptsPublishService {
       referenceId: goodsReceipt.id,
       notes: goodsReceipt.notes ?? null,
     });
+
+    return { quantId: quant.id, quantity: primaryUomQuantity };
   }
 
   // PO-linked items only: enforce the remaining-quantity cap, then bump received_quantity.

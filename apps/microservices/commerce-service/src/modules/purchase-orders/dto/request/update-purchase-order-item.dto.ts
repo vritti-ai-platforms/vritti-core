@@ -1,6 +1,6 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
-import { IsEnum, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
-import { type FreeSchemeMode, FreeSchemeModeValues } from '@/db/schema';
+import { IsBoolean, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class UpdatePurchaseOrderItemDto {
   @IsOptional()
@@ -26,7 +26,8 @@ export class UpdatePurchaseOrderItemDto {
   @Min(0)
   schemeFreeQty?: number;
 
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(FreeSchemeModeValues)
-  schemeMode?: FreeSchemeMode;
+  @IsBoolean()
+  hasScheme?: boolean;
 }

@@ -9,9 +9,12 @@ import {
   type SelectQueryResult,
   type TableViewState,
 } from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
 import { and, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
+  CostDistributionMethodValues,
   type CostSourceType,
+  CostSourceTypeValues,
   type InventoryItemLedgerReferenceType,
   type InventoryItemLedgerType,
   type InventoryItemLot,
@@ -27,6 +30,7 @@ import {
 } from '@/db/schema';
 import { GoodsReceiptItemQuantsDto } from '../dto/entity/goods-receipt-item-quants.dto';
 import { InventoryItemQuantDto, LocationStockDto } from '../dto/entity/inventory-item-quant.dto';
+import { InventoryItemCostsRepository } from '../repositories/inventory-item-costs.repository';
 import { InventoryItemQuantsRepository } from '../repositories/inventory-item-quants.repository';
 
 export type CreateQuantParams = {
@@ -48,6 +52,8 @@ export type CreateQuantParams = {
   costCurrency?: string;
   sourceType?: CostSourceType;
   sourceId?: string;
+  // GR publish owns the cost/value via its allocation pass; skip the unit_cost × qty baseline here.
+  skipCostBaseline?: boolean;
 };
 
 export type AdjustQuantParams =
@@ -67,7 +73,18 @@ export class InventoryItemQuantsService {
   constructor(
     private readonly database: PrimaryDatabaseService,
     private readonly repository: InventoryItemQuantsRepository,
+    private readonly costsRepository: InventoryItemCostsRepository,
   ) {}
+
+  // Rounds unit_cost × qty to whole minor units (ROUND_HALF_UP).
+  private roundMinor(unitCost: bigint, qty: number): bigint {
+    return BigInt(new Decimal(unitCost.toString()).times(qty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
+  }
+
+  // Adds a freshly-allocated cost slice to a quant's cost + value (GR publish allocation pass).
+  async addQuantCostValue(quantId: string, addCost: bigint, addValue: bigint): Promise<InventoryItemQuant> {
+    return this.repository.addQuantCostValue(quantId, addCost, addValue);
+  }
 
   // Quants produced by a GR-item (post-publish) with their landed cost, for the Items Cost dialog.
   async findCostsByGrItemId(grItemId: string): Promise<GoodsReceiptItemQuantsDto> {
@@ -173,9 +190,15 @@ export class InventoryItemQuantsService {
         params.unitCost,
       );
 
+      // GR publish passes skipCostBaseline: the allocation pass sets quant_cost/value exactly.
+      const baseline = params.skipCostBaseline ? 0n : this.roundMinor(params.unitCost, params.quantity);
+
       let quant: InventoryItemQuant;
       if (existing) {
         quant = await this.repository.updateQuantity(existing.id, params.quantity);
+        if (baseline > 0n) {
+          quant = await this.repository.addQuantCostValue(existing.id, baseline, baseline);
+        }
       } else {
         quant = await this.repository.createQuant({
           inventoryItemId: params.inventoryItemId,
@@ -186,7 +209,16 @@ export class InventoryItemQuantsService {
           costCurrency: params.costCurrency,
           sourceType: params.sourceType,
           sourceId: params.sourceId,
+          quantCost: baseline,
+          quantValue: baseline,
         });
+      }
+
+      // Non-GR creation books its baseline as its own cost header (transfers/conversions create a
+      // fresh header for the destination quant's value; the source outflow already reduced its
+      // value, so system cost nets out). Junction is additive — a quant can hold many cost rows.
+      if (baseline > 0n) {
+        await this.bookBaselineCost(quant, baseline, params);
       }
 
       let quantItems: InventoryItemSerial[] = [];
@@ -206,6 +238,29 @@ export class InventoryItemQuantsService {
 
       return { quant, lot: null, quantItems };
     });
+  }
+
+  // Creates a cost header + one junction row for a non-GR baseline; skips gracefully when no ITEM
+  // category is seeded or no currency is known (header.currency_code is NOT NULL).
+  private async bookBaselineCost(
+    quant: InventoryItemQuant,
+    baseline: bigint,
+    params: CreateQuantParams,
+  ): Promise<void> {
+    const currencyCode = params.costCurrency ?? quant.costCurrency;
+    if (!currencyCode) return;
+    const categoryId = await this.costsRepository.findItemCategoryId();
+    if (!categoryId) return;
+    const costId = await this.costsRepository.insertCost({
+      categoryId,
+      totalAmount: baseline,
+      currencyCode,
+      sourceType: params.sourceType ?? CostSourceTypeValues.MANUAL_ADJUSTMENT,
+      sourceId: params.sourceId ?? quant.id,
+      distributionMethod: CostDistributionMethodValues.EQUAL,
+      unallocatedAmount: 0n,
+    });
+    await this.costsRepository.insertQuantCosts([{ quantId: quant.id, costId, allocatedAmount: baseline }]);
   }
 
   private validateCreateParams(params: CreateQuantParams): void {
@@ -305,7 +360,14 @@ export class InventoryItemQuantsService {
       switch (params.tracking) {
         case 'quantity':
         case 'lot': {
-          const quant = await this.repository.updateQuantity(quantId, params.delta);
+          let quant = await this.repository.updateQuantity(quantId, params.delta);
+          // Outflow: decrement value (clears to 0 on final depletion). Inflow (rare): add baseline.
+          if (params.delta < 0) {
+            quant = await this.repository.applyOutflowValue(quantId, Math.abs(params.delta));
+          } else if (params.delta > 0) {
+            const add = this.roundMinor(quant.unitCost, params.delta);
+            quant = await this.repository.addQuantCostValue(quantId, add, add);
+          }
           return { quant, consumedItems: [] };
         }
         case 'serial':
@@ -315,7 +377,8 @@ export class InventoryItemQuantsService {
             throw new BadRequestException('Some serials are not AVAILABLE or do not belong to the given quant.');
           }
           await this.repository.consumeQuantItems(items.map((i) => i.id));
-          const quant = await this.repository.updateQuantity(quantId, -items.length);
+          await this.repository.updateQuantity(quantId, -items.length);
+          const quant = await this.repository.applyOutflowValue(quantId, items.length);
           return { quant, consumedItems: items };
         }
       }

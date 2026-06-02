@@ -16,7 +16,7 @@ import {
   ValidationException,
 } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
-import { type FreeSchemeMode, inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
+import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
 import type { AddSupplierItemDto } from '@/modules/suppliers/items/dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '@/modules/suppliers/items/dto/request/update-supplier-item.dto';
 import { SupplierItemsRepository } from '../repositories/supplier-items.repository';
@@ -191,7 +191,7 @@ export class SupplierItemsService {
         isPreferred: data.isPreferred ?? false,
         schemeBuyQty: data.schemeBuyQty ?? null,
         schemeFreeQty: data.schemeFreeQty ?? null,
-        schemeMode: data.schemeMode ?? 'none',
+        hasScheme: data.hasScheme ?? false,
       }),
       this.repository.findUomSymbol(data.uomId),
     ]);
@@ -228,7 +228,7 @@ export class SupplierItemsService {
     if (data.isActive !== undefined) update.isActive = data.isActive;
     if (data.schemeBuyQty !== undefined) update.schemeBuyQty = data.schemeBuyQty;
     if (data.schemeFreeQty !== undefined) update.schemeFreeQty = data.schemeFreeQty;
-    if (data.schemeMode !== undefined) update.schemeMode = data.schemeMode ?? 'none';
+    if (data.hasScheme !== undefined) update.hasScheme = data.hasScheme;
 
     if (data.unitPrice) {
       if (data.unitPrice.currency !== supplier.currencyCode) {
@@ -285,7 +285,7 @@ export class SupplierItemsService {
   async bulkSetScheme(
     supplierId: string,
     supplierItemIds: string[],
-    scheme: { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode },
+    scheme: { buyQty: number | null; freeQty: number | null; hasScheme: boolean },
   ): Promise<SuccessResponseDto> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');

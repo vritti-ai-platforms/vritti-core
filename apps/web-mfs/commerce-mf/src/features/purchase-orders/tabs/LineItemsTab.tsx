@@ -84,6 +84,15 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
         },
       },
       {
+        accessorKey: 'freeQty',
+        header: 'Free',
+        cell: ({ row }) => (
+          <span className="font-mono">
+            <NumberCell value={row.original.freeQty} /> {row.original.orderUomSymbol}
+          </span>
+        ),
+      },
+      {
         accessorKey: 'receivedQuantity',
         header: 'Received',
         cell: ({ row }) => (
@@ -216,11 +225,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
         title="Add Line Item"
         description="Add an inventory item to this purchase order."
         content={(close) => (
-          <AddPurchaseOrderItemDialog
-            purchaseOrder={purchaseOrder}
-            onSuccess={close}
-            onCancel={close}
-          />
+          <AddPurchaseOrderItemDialog purchaseOrder={purchaseOrder} onSuccess={close} onCancel={close} />
         )}
       />
     </>

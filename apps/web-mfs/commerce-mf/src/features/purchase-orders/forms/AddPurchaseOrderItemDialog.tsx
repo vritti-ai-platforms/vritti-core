@@ -1,8 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
-import { Form, FormSection } from '@vritti/quantum-ui/Form';
+import { Form } from '@vritti/quantum-ui/Form';
 import { minorToMajor } from '@vritti/quantum-ui/money';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
@@ -11,19 +10,14 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { FreeQtyPreview } from '@/components/FreeQtyPreview';
 import { useAddPurchaseOrderItem } from '@/hooks/purchase-orders';
 import {
   type AddPurchaseOrderItemFormData,
   addPurchaseOrderItemSchema,
-  type FreeSchemeMode,
-  freeSchemeModeLabels,
   type PurchaseOrderDetail,
 } from '@/schemas/purchase-orders';
-
-const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
-  value: mode,
-  label: freeSchemeModeLabels[mode],
-}));
+import { computeFreeQty } from '@/utils/freeQty';
 
 const toOptionalNumber = (raw: unknown): number | undefined => {
   if (raw == null || raw === '') return undefined;
@@ -45,7 +39,6 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   const mutation = useAddPurchaseOrderItem({ onSuccess });
 
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
-  const [overrideScheme, setOverrideScheme] = useState<boolean>(false);
 
   const form = useForm<AddPurchaseOrderItemFormData>({
     resolver: zodResolver(addPurchaseOrderItemSchema),
@@ -55,11 +48,17 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       unitPrice: undefined,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
-      schemeMode: 'none',
+      hasScheme: false,
     },
   });
 
-  const schemeMode = form.watch('schemeMode');
+  const hasScheme = form.watch('hasScheme');
+  const freeQtyPreview = computeFreeQty(
+    form.watch('uomQty'),
+    form.watch('schemeBuyQty'),
+    form.watch('schemeFreeQty'),
+    hasScheme,
+  );
 
   const handleItemSelect = (option: SelectOption | null) => {
     const rawMinor = option?.additionals?.unitPrice;
@@ -73,7 +72,7 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     // Prefill the standing scheme from the supplier item; buyer can edit at PO time.
     form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
     form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
-    form.setValue('schemeMode', (option?.additionals?.schemeMode as FreeSchemeMode | undefined) ?? 'none');
+    form.setValue('hasScheme', option?.additionals?.hasScheme === true);
   };
 
   return (
@@ -89,10 +88,10 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
         unitPrice: data.unitPrice as { currency: string; value: string },
         schemeBuyQty: data.schemeBuyQty,
         schemeFreeQty: data.schemeFreeQty,
-        schemeMode: data.schemeMode,
+        hasScheme: data.hasScheme,
       })}
     >
-      <FormSection title="Item">
+      <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <SupplierItemSelector
@@ -115,31 +114,16 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
             currencyCode={purchaseOrder.currencyCode}
             placeholder="Enter unit price"
           />
-          <Switch
-            label="Override scheme"
-            description="Edit the prefilled scheme and quantities ."
-            checked={overrideScheme}
-            onCheckedChange={setOverrideScheme}
-          />
+          {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
         </div>
-      </FormSection>
-      <FormSection title="Free Goods Scheme">
-        <div className="flex flex-col gap-4">
-          <RadioGroup
-            name="schemeMode"
-            label="Scheme"
-            options={schemeModeOptions}
-            orientation="horizontal"
-            disabled={!overrideScheme}
-          />
-          {schemeMode !== 'none' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField name="schemeBuyQty" label="Buy Quantity" type="number" positive disabled={!overrideScheme} />
-              <TextField name="schemeFreeQty" label="Free Quantity" type="number" positive disabled={!overrideScheme} />
-            </div>
-          )}
-        </div>
-      </FormSection>
+        <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+        {hasScheme && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField name="schemeBuyQty" label="Buy Quantity" type="number" integer positive />
+            <TextField name="schemeFreeQty" label="Free Quantity" type="number" integer positive />
+          </div>
+        )}
+      </div>
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

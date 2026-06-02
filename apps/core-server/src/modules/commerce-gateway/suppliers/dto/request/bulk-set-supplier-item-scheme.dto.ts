@@ -1,8 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayNotEmpty, IsArray, IsIn, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
-
-export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
-const FREE_SCHEME_MODES: FreeSchemeMode[] = ['none', 'slab', 'pro_rata'];
+import { ArrayNotEmpty, IsArray, IsBoolean, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class BulkSetSupplierItemSchemeDto {
   @ApiProperty({ type: [String], description: 'Supplier item IDs to apply the scheme to.' })
@@ -23,7 +20,7 @@ export class BulkSetSupplierItemSchemeDto {
   @Min(0)
   schemeFreeQty?: number;
 
-  @ApiProperty({ enum: FREE_SCHEME_MODES, description: 'How free qty is derived: none, slab or pro_rata.' })
-  @IsIn(FREE_SCHEME_MODES)
-  schemeMode: FreeSchemeMode;
+  @ApiProperty({ description: 'Whether a free-goods scheme applies.' })
+  @IsBoolean()
+  hasScheme: boolean;
 }

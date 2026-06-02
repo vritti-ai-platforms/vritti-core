@@ -395,11 +395,3 @@ export const CostDistributionMethodValues = {
   EQUAL: 'equal' as const,
 };
 export type CostDistributionMethod = (typeof costDistributionMethodEnum.enumValues)[number];
-
-export const freeSchemeModeEnum = coreSchema.enum('free_scheme_mode', ['none', 'slab', 'pro_rata']);
-export const FreeSchemeModeValues = {
-  NONE: 'none' as const,
-  SLAB: 'slab' as const,
-  PRO_RATA: 'pro_rata' as const,
-};
-export type FreeSchemeMode = (typeof freeSchemeModeEnum.enumValues)[number];

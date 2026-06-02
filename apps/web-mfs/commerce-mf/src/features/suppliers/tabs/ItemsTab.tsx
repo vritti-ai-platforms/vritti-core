@@ -26,11 +26,6 @@ import { AddSupplierItemDialog } from '../forms/AddSupplierItemDialog';
 import { SetSupplierItemSchemeDialog } from '../forms/SetSupplierItemSchemeDialog';
 import { UpdateSupplierItemDialog } from '../forms/UpdateSupplierItemDialog';
 
-const schemeModeShortLabels: Record<'slab' | 'pro_rata', string> = {
-  slab: 'Slab',
-  pro_rata: 'Pro-rata',
-};
-
 interface ItemsTabProps {
   supplierId: string;
   supplierCurrencyCode?: string;
@@ -117,15 +112,14 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
           ),
       },
       {
-        accessorKey: 'schemeMode',
+        accessorKey: 'hasScheme',
         header: 'Scheme',
         cell: ({ row }) => {
-          const { schemeMode, schemeBuyQty, schemeFreeQty } = row.original;
-          if (schemeMode === 'none' || !schemeBuyQty || !schemeFreeQty) return 'None';
+          const { hasScheme, schemeBuyQty, schemeFreeQty } = row.original;
+          if (!hasScheme || !schemeBuyQty || !schemeFreeQty) return 'None';
           return (
             <span className="font-mono">
               {schemeBuyQty}+{schemeFreeQty}
-              <span className="text-xs text-muted-foreground"> ({schemeModeShortLabels[schemeMode]})</span>
             </span>
           );
         },

@@ -82,7 +82,7 @@ export class PurchaseOrdersItemsService {
     const scheme = {
       buyQty: data.schemeBuyQty ?? supplierItem.schemeBuyQty ?? null,
       freeQty: data.schemeFreeQty ?? supplierItem.schemeFreeQty ?? null,
-      mode: data.schemeMode ?? supplierItem.schemeMode ?? 'none',
+      hasScheme: data.hasScheme ?? supplierItem.hasScheme ?? false,
     };
 
     await this.database.runInTransaction(async () => {
@@ -123,7 +123,7 @@ export class PurchaseOrdersItemsService {
     const scheme = {
       buyQty: data.schemeBuyQty ?? existingItem.schemeBuyQty ?? null,
       freeQty: data.schemeFreeQty ?? existingItem.schemeFreeQty ?? null,
-      mode: data.schemeMode ?? existingItem.schemeMode ?? 'none',
+      hasScheme: data.hasScheme ?? existingItem.hasScheme ?? false,
     };
 
     await this.database.runInTransaction(async () => {

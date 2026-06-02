@@ -28,6 +28,12 @@ export const inventoryItemQuants = coreSchema.table(
     unitCost: bigint('unit_cost', { mode: 'bigint' }).notNull(),
     // BU currency the unit cost is expressed in, captured when the quant is first created.
     costCurrency: varchar('cost_currency', { length: 3 }),
+    // Total cost laid into this quant (BU minor units). For GR-sourced quants it equals the sum of
+    // this quant's inventory_item_quant_costs.allocated_amount rows exactly.
+    quantCost: bigint('quant_cost', { mode: 'bigint' }).notNull().default(0n),
+    // Remaining value (BU minor units). Starts == quant_cost; decremented on each outflow and set to
+    // 0 on the final depletion to absorb the rounding residual.
+    quantValue: bigint('quant_value', { mode: 'bigint' }).notNull().default(0n),
     // Polymorphic provenance: which document created this quant. No DB-level FK — the application
     // resolves the `source_type` enum to the right table.
     sourceType: costSourceTypeEnum('source_type'),

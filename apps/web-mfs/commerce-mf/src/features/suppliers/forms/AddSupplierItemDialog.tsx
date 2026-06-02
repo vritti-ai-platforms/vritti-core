@@ -1,7 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
@@ -11,17 +10,7 @@ import type React from 'react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useAddSupplierItem } from '@/hooks/suppliers';
-import {
-  type AddSupplierItemFormData,
-  addSupplierItemSchema,
-  type FreeSchemeMode,
-  freeSchemeModeLabels,
-} from '@/schemas/suppliers';
-
-const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
-  value: mode,
-  label: freeSchemeModeLabels[mode],
-}));
+import { type AddSupplierItemFormData, addSupplierItemSchema } from '@/schemas/suppliers';
 
 interface AddSupplierItemDialogProps {
   supplierId: string;
@@ -48,13 +37,13 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       isPreferred: false,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
-      schemeMode: 'none',
+      hasScheme: false,
     },
   });
 
   const addMutation = useAddSupplierItem(supplierId, { onSuccess });
   const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
-  const schemeMode = useWatch({ control: form.control, name: 'schemeMode' });
+  const hasScheme = useWatch({ control: form.control, name: 'hasScheme' });
   const [allowDecimal, setAllowDecimal] = useState(true);
 
   const uomDisabled = !inventoryItemId;
@@ -75,7 +64,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         isPreferred: data.isPreferred,
         schemeBuyQty: data.schemeBuyQty ?? undefined,
         schemeFreeQty: data.schemeFreeQty ?? undefined,
-        schemeMode: data.schemeMode,
+        hasScheme: data.hasScheme,
       })}
     >
       <FormSection title="Item">
@@ -126,11 +115,11 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       </FormSection>
       <FormSection title="Free Goods Scheme">
         <div className="flex flex-col gap-4">
-          <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
-          {schemeMode !== 'none' && (
+          <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+          {hasScheme && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-              <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+              <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
+              <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
             </div>
           )}
         </div>

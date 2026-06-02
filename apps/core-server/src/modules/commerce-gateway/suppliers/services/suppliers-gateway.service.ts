@@ -151,7 +151,7 @@ export class SuppliersGatewayService {
       supplierItemIds: dto.supplierItemIds,
       schemeBuyQty: dto.schemeBuyQty,
       schemeFreeQty: dto.schemeFreeQty,
-      schemeMode: dto.schemeMode,
+      hasScheme: dto.hasScheme,
     });
   }
 

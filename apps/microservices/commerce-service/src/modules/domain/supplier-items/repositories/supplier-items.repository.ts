@@ -8,7 +8,6 @@ import {
 import { and, desc, eq, inArray, ne, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
-  type FreeSchemeMode,
   goodsReceiptItems,
   inventoryItems,
   type NewSupplierItem,
@@ -77,7 +76,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
       additionalExpressions: {
         schemeBuyQty: sql`${supplierItems.schemeBuyQty}`,
         schemeFreeQty: sql`${supplierItems.schemeFreeQty}`,
-        schemeMode: sql`${supplierItems.schemeMode}`,
+        hasScheme: sql`${supplierItems.hasScheme}`,
       },
     });
   }
@@ -110,7 +109,7 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
         isActive: supplierItems.isActive,
         schemeBuyQty: supplierItems.schemeBuyQty,
         schemeFreeQty: supplierItems.schemeFreeQty,
-        schemeMode: supplierItems.schemeMode,
+        hasScheme: supplierItems.hasScheme,
         createdAt: supplierItems.createdAt,
         updatedAt: supplierItems.updatedAt,
         inventoryItemName: inventoryItems.name,
@@ -214,12 +213,12 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   // Bulk-sets the free-goods scheme on the given supplier item links
   async bulkSetScheme(
     ids: string[],
-    scheme: { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode },
+    scheme: { buyQty: number | null; freeQty: number | null; hasScheme: boolean },
   ): Promise<void> {
     if (ids.length === 0) return;
     await this.db
       .update(supplierItems)
-      .set({ schemeBuyQty: scheme.buyQty, schemeFreeQty: scheme.freeQty, schemeMode: scheme.mode })
+      .set({ schemeBuyQty: scheme.buyQty, schemeFreeQty: scheme.freeQty, hasScheme: scheme.hasScheme })
       .where(inArray(supplierItems.id, ids));
   }
 

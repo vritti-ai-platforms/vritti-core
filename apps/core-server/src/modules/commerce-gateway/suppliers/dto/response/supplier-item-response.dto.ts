@@ -41,6 +41,6 @@ export class SupplierItemResponseDto {
   @ApiPropertyOptional({ description: 'Standing free-goods scheme free qty (e.g. 1 in "9+1").', nullable: true })
   schemeFreeQty: number | null;
 
-  @ApiProperty({ enum: ['none', 'slab', 'pro_rata'] })
-  schemeMode: 'none' | 'slab' | 'pro_rata';
+  @ApiProperty({ description: 'Whether a free-goods scheme applies.' })
+  hasScheme: boolean;
 }

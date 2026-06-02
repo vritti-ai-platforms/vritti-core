@@ -14795,14 +14795,9 @@
             "type": "number",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: slab (per complete block) or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         },
         "required": [
@@ -14841,14 +14836,9 @@
             "type": "number",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: slab (per complete block) or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         },
         "required": [
@@ -14883,14 +14873,9 @@
             "type": "number",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: slab or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         }
       },
@@ -17126,14 +17111,9 @@
             "type": "number",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: slab or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         },
         "required": [
@@ -17170,14 +17150,9 @@
             "type": "number",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: slab or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         }
       },
@@ -17751,14 +17726,9 @@
             "type": "number",
             "description": "Standing free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: slab or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         },
         "required": [
@@ -17784,19 +17754,14 @@
             "type": "number",
             "description": "Free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: none, slab or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         },
         "required": [
           "supplierItemIds",
-          "schemeMode"
+          "hasScheme"
         ]
       },
       "BulkSetSupplierItemPreferredDto": {
@@ -17864,14 +17829,9 @@
             "type": "object",
             "description": "Standing free-goods scheme free qty (e.g. 1 in \"9+1\")."
           },
-          "schemeMode": {
-            "type": "string",
-            "enum": [
-              "none",
-              "slab",
-              "pro_rata"
-            ],
-            "description": "How free qty is derived: slab or pro_rata."
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies."
           }
         }
       },

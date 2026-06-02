@@ -78,13 +78,6 @@ export interface PurchaseOrderData {
   updatedAt: string;
 }
 
-export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
-export const freeSchemeModeLabels: Record<FreeSchemeMode, string> = {
-  none: 'No Scheme',
-  slab: 'Slab (per full block)',
-  pro_rata: 'Pro-rata',
-};
-
 export interface PurchaseOrderItemData {
   id: string;
   inventoryItemId: string;
@@ -101,7 +94,7 @@ export interface PurchaseOrderItemData {
   primaryUomUnitPrice: { currency: string; value: string };
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
-  schemeMode: FreeSchemeMode;
+  hasScheme: boolean;
   freeQty: number;
 }
 
@@ -126,19 +119,19 @@ export interface GoodsReceiptData {
 
 export type PurchaseOrderDetail = PurchaseOrderData;
 
-// Free-goods scheme inputs (buy + free ratio + mode). free_qty is derived server-side from uomQty.
+// Free-goods scheme inputs (buy + free ratio). free_qty is derived server-side from uomQty.
 const poSchemeShape = {
-  schemeBuyQty: z.number().nonnegative().optional().catch(undefined),
-  schemeFreeQty: z.number().nonnegative().optional().catch(undefined),
-  schemeMode: z.enum(['none', 'slab', 'pro_rata']),
+  schemeBuyQty: zodNumericField({ integer: true, positive: true }).optional(),
+  schemeFreeQty: zodNumericField({ integer: true, positive: true }).optional(),
+  hasScheme: z.boolean(),
 };
 
-// When a scheme mode is chosen, the buy/free ratio is required; "none" leaves them blank.
+// When a scheme is enabled, the buy/free ratio is required.
 const enforceSchemeRatio = (
-  data: { schemeMode: FreeSchemeMode; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
+  data: { hasScheme: boolean; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
   ctx: z.RefinementCtx,
 ) => {
-  if (data.schemeMode === 'none') return;
+  if (!data.hasScheme) return;
   if (data.schemeBuyQty == null) {
     ctx.addIssue({ code: 'custom', path: ['schemeBuyQty'], message: 'Buy qty is required for a scheme.' });
   }

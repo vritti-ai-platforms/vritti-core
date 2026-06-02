@@ -7,7 +7,6 @@ import { InventoryItemQuantsService } from '@domain/inventory-item-quants/servic
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
-import type { FreeSchemeMode } from '@/db/schema';
 
 @Controller()
 export class GoodsReceiptsItemsController {
@@ -69,7 +68,7 @@ export class GoodsReceiptsItemsController {
       currencyCode?: string;
       schemeBuyQty?: number;
       schemeFreeQty?: number;
-      schemeMode?: FreeSchemeMode;
+      hasScheme?: boolean;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromSupplierItem — supplierItem: ${data.supplierItemId}`);
@@ -81,7 +80,7 @@ export class GoodsReceiptsItemsController {
       currencyCode: data.currencyCode,
       schemeBuyQty: data.schemeBuyQty,
       schemeFreeQty: data.schemeFreeQty,
-      schemeMode: data.schemeMode,
+      hasScheme: data.hasScheme,
     });
   }
 
@@ -97,7 +96,7 @@ export class GoodsReceiptsItemsController {
       currencyCode?: string;
       schemeBuyQty?: number;
       schemeFreeQty?: number;
-      schemeMode?: FreeSchemeMode;
+      hasScheme?: boolean;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromPurchaseOrderItem — poItem: ${data.purchaseOrderItemId}`);
@@ -109,7 +108,7 @@ export class GoodsReceiptsItemsController {
       currencyCode: data.currencyCode,
       schemeBuyQty: data.schemeBuyQty,
       schemeFreeQty: data.schemeFreeQty,
-      schemeMode: data.schemeMode,
+      hasScheme: data.hasScheme,
     });
   }
 
@@ -125,7 +124,7 @@ export class GoodsReceiptsItemsController {
       currencyCode?: string;
       schemeBuyQty?: number;
       schemeFreeQty?: number;
-      schemeMode?: FreeSchemeMode;
+      hasScheme?: boolean;
     },
   ): Promise<SuccessResponseDto> {
     this.logger.log('goodsReceipts.updateItem');
@@ -136,7 +135,7 @@ export class GoodsReceiptsItemsController {
       currencyCode: data.currencyCode,
       schemeBuyQty: data.schemeBuyQty,
       schemeFreeQty: data.schemeFreeQty,
-      schemeMode: data.schemeMode,
+      hasScheme: data.hasScheme,
     });
   }
 

@@ -1,6 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   bigint,
+  boolean,
   decimal,
   index,
   jsonb,
@@ -11,7 +12,6 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
-import { freeSchemeModeEnum } from './enums';
 import { goodsReceipts } from './goods-receipts';
 import { inventoryItems } from './inventory-items';
 import { uom } from './uom';
@@ -41,7 +41,7 @@ export const goodsReceiptItems = coreSchema.table(
     // from `ordered_qty` via the scheme; `total_qty = ordered_qty + free_qty`.
     schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
     schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
-    schemeMode: freeSchemeModeEnum('scheme_mode').notNull().default('none'),
+    hasScheme: boolean('has_scheme').notNull().default(false),
     freeQty: decimal('free_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     // Total received quantity = ordered_qty + free_qty, in the item's UOM. The item is balanced once
     // its lines distribute exactly this much (SUM(lines.quantity) == total_qty).
@@ -56,6 +56,10 @@ export const goodsReceiptItems = coreSchema.table(
     // update time via UomConversionsService (Decimal precise). Cost-association math reads this
     // directly so factor changes after publish don't retroactively shift the per-quant cost.
     primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }),
+    // Effective landed cost per unit after the free-goods scheme, in the item's UOM and supplier
+    // currency: unit_price × ordered_qty / total_qty. Diluted by free units, so unit_cost × total_qty
+    // equals the amount paid. Recomputed on every price/quantity/scheme change.
+    unitCost: bigint('unit_cost', { mode: 'bigint' }),
     currencyCode: varchar('currency_code', { length: 3 }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

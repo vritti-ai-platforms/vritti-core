@@ -68,13 +68,6 @@ export const InventoryTrackingValues = {
   SERIAL: 'serial' as const,
 };
 
-export type FreeSchemeMode = 'none' | 'slab' | 'pro_rata';
-export const freeSchemeModeLabels: Record<FreeSchemeMode, string> = {
-  none: 'No Scheme',
-  slab: 'Slab (per full block)',
-  pro_rata: 'Pro-rata',
-};
-
 export interface GoodsReceiptItemData {
   id: string;
   goodsReceiptId: string;
@@ -91,7 +84,7 @@ export interface GoodsReceiptItemData {
   totalQty: number;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
-  schemeMode: FreeSchemeMode;
+  hasScheme: boolean;
   // distributed so far — sum(lines.quantity); item is balanced when this equals totalQty
   acceptedQuantity: number;
   rejectedQuantity: number;
@@ -101,6 +94,7 @@ export interface GoodsReceiptItemData {
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
   unitPrice: { currency: string; value: string } | null;
+  unitCost: { currency: string; value: string } | null;
   lineTotal: { currency: string; value: string } | null;
   metadata: Record<string, unknown>;
   createdAt: string;
@@ -115,6 +109,7 @@ export interface GoodsReceiptItemsCostRow {
   freeQty: number;
   totalQty: number;
   unitPrice: { currency: string; value: string } | null;
+  unitCost: { currency: string; value: string } | null;
   lineTotal: { currency: string; value: string } | null;
 }
 
@@ -131,6 +126,8 @@ export interface GoodsReceiptItemQuantRow {
   quantity: number;
   unitCost: { currency: string; value: string } | null;
   totalCost: { currency: string; value: string } | null;
+  quantCost: { currency: string; value: string } | null;
+  quantValue: { currency: string; value: string } | null;
 }
 
 export interface GoodsReceiptItemQuantsData {
@@ -217,20 +214,20 @@ function buildOrderedQtyField(options: { allowDecimal: boolean; min?: number; ma
   });
 }
 
-// Free-goods scheme inputs (buy + free ratio + mode). free_qty itself is derived server-side; the
-// form only captures the editable ratio + mode and shows a computed preview.
+// Free-goods scheme inputs (buy + free ratio). free_qty itself is derived server-side; the
+// form only captures the editable ratio and shows a computed preview.
 const schemeShape = {
-  schemeBuyQty: z.number().nonnegative().optional().catch(undefined),
-  schemeFreeQty: z.number().nonnegative().optional().catch(undefined),
-  schemeMode: z.enum(['none', 'slab', 'pro_rata']),
+  schemeBuyQty: zodNumericField({ integer: true, positive: true }).optional(),
+  schemeFreeQty: zodNumericField({ integer: true, positive: true }).optional(),
+  hasScheme: z.boolean(),
 };
 
-// When a scheme mode is chosen, the buy/free ratio is required; "none" leaves them blank.
+// When a scheme is enabled, the buy/free ratio is required.
 const enforceSchemeRatio = (
-  data: { schemeMode: FreeSchemeMode; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
+  data: { hasScheme: boolean; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
   ctx: z.RefinementCtx,
 ) => {
-  if (data.schemeMode === 'none') return;
+  if (!data.hasScheme) return;
   if (data.schemeBuyQty == null) {
     ctx.addIssue({ code: 'custom', path: ['schemeBuyQty'], message: 'Buy qty is required for a scheme.' });
   }

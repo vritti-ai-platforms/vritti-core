@@ -1,22 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useBulkSetSupplierItemScheme } from '@/hooks/suppliers';
-import {
-  type FreeSchemeMode,
-  freeSchemeModeLabels,
-  type SetSupplierItemSchemeFormData,
-  setSupplierItemSchemeSchema,
-} from '@/schemas/suppliers';
-
-const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
-  value: mode,
-  label: freeSchemeModeLabels[mode],
-}));
+import { type SetSupplierItemSchemeFormData, setSupplierItemSchemeSchema } from '@/schemas/suppliers';
 
 interface SetSupplierItemSchemeDialogProps {
   supplierId: string;
@@ -36,12 +26,12 @@ export const SetSupplierItemSchemeDialog: React.FC<SetSupplierItemSchemeDialogPr
     defaultValues: {
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
-      schemeMode: 'none',
+      hasScheme: false,
     },
   });
 
   const mutation = useBulkSetSupplierItemScheme(supplierId, { onSuccess });
-  const schemeMode = form.watch('schemeMode');
+  const hasScheme = form.watch('hasScheme');
 
   return (
     <Form
@@ -50,20 +40,20 @@ export const SetSupplierItemSchemeDialog: React.FC<SetSupplierItemSchemeDialogPr
       onCancel={onCancel}
       transformSubmit={(data) => ({
         supplierItemIds,
-        schemeBuyQty: schemeMode === 'none' ? undefined : (data.schemeBuyQty ?? undefined),
-        schemeFreeQty: schemeMode === 'none' ? undefined : (data.schemeFreeQty ?? undefined),
-        schemeMode: data.schemeMode,
+        schemeBuyQty: data.hasScheme ? (data.schemeBuyQty ?? undefined) : undefined,
+        schemeFreeQty: data.hasScheme ? (data.schemeFreeQty ?? undefined) : undefined,
+        hasScheme: data.hasScheme,
       })}
     >
       <p className="text-sm text-muted-foreground">
         Applying to {supplierItemIds.length} selected item{supplierItemIds.length === 1 ? '' : 's'}.
       </p>
       <div className="flex flex-col gap-4">
-        <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
-        {schemeMode !== 'none' && (
+        <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+        {hasScheme && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-            <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+            <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
+            <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
           </div>
         )}
       </div>

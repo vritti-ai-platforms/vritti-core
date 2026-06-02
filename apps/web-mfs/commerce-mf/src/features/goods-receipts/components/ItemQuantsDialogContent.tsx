@@ -23,6 +23,8 @@ export const ItemQuantsDialogContent = ({ goodsReceiptId, itemId }: ItemQuantsDi
           { headerWidth: 'w-16', cellWidth: 'w-16' },
           { headerWidth: 'w-20', cellWidth: 'w-24' },
           { headerWidth: 'w-20', cellWidth: 'w-24' },
+          { headerWidth: 'w-20', cellWidth: 'w-24' },
+          { headerWidth: 'w-20', cellWidth: 'w-24' },
         ]}
       />
     );
@@ -48,6 +50,8 @@ export const ItemQuantsDialogContent = ({ goodsReceiptId, itemId }: ItemQuantsDi
             <th className="px-3 py-2.5 text-right font-medium">Quantity</th>
             <th className="px-3 py-2.5 text-right font-medium">Unit Cost</th>
             <th className="px-3 py-2.5 text-right font-medium">Total Cost</th>
+            <th className="px-3 py-2.5 text-right font-medium">Quant Cost</th>
+            <th className="px-3 py-2.5 text-right font-medium">Quant Value</th>
           </tr>
         </thead>
         <tbody>
@@ -62,12 +66,18 @@ export const ItemQuantsDialogContent = ({ goodsReceiptId, itemId }: ItemQuantsDi
               <td className="px-3 py-2.5 text-right font-mono">
                 {row.totalCost ? fmt.currency(row.totalCost).primary : '—'}
               </td>
+              <td className="px-3 py-2.5 text-right font-mono">
+                {row.quantCost ? fmt.currency(row.quantCost).primary : '—'}
+              </td>
+              <td className="px-3 py-2.5 text-right font-mono">
+                {row.quantValue ? fmt.currency(row.quantValue).primary : '—'}
+              </td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr className="border-t bg-muted/40 font-semibold">
-            <td className="px-3 py-2.5" colSpan={4}>
+            <td className="px-3 py-2.5" colSpan={6}>
               Grand Total
             </td>
             <td className="px-3 py-2.5 text-right font-mono">

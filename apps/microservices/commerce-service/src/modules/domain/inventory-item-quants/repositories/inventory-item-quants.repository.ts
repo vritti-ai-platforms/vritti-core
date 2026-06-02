@@ -28,6 +28,8 @@ export interface GrItemQuantCostRow {
   lotNumber: string | null;
   quantity: number;
   unitCost: bigint;
+  quantCost: bigint;
+  quantValue: bigint;
   costCurrency: string | null;
 }
 
@@ -53,6 +55,10 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         lotId: inventoryItemQuants.lotId,
         quantity: inventoryItemQuants.quantity,
         reservedQuantity: inventoryItemQuants.reservedQuantity,
+        unitCost: inventoryItemQuants.unitCost,
+        costCurrency: inventoryItemQuants.costCurrency,
+        quantCost: inventoryItemQuants.quantCost,
+        quantValue: inventoryItemQuants.quantValue,
         createdAt: inventoryItemQuants.createdAt,
         updatedAt: inventoryItemQuants.updatedAt,
         locationName: locations.name,
@@ -83,6 +89,10 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         lotId: inventoryItemQuants.lotId,
         quantity: inventoryItemQuants.quantity,
         reservedQuantity: inventoryItemQuants.reservedQuantity,
+        unitCost: inventoryItemQuants.unitCost,
+        costCurrency: inventoryItemQuants.costCurrency,
+        quantCost: inventoryItemQuants.quantCost,
+        quantValue: inventoryItemQuants.quantValue,
         createdAt: inventoryItemQuants.createdAt,
         updatedAt: inventoryItemQuants.updatedAt,
         locationName: locations.name,
@@ -111,6 +121,33 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     return results[0] as InventoryItemQuant;
   }
 
+  // Decrements quant_value by ROUND(unit_cost × qtyOut); clears it to 0 once quantity has reached 0
+  // (read post-decrement), absorbing the rounding residual on final depletion.
+  async applyOutflowValue(quantId: string, qtyOut: number): Promise<InventoryItemQuant> {
+    const results = await this.db
+      .update(inventoryItemQuants)
+      .set({
+        quantValue: sql`CASE WHEN ${inventoryItemQuants.quantity} = 0 THEN 0
+          ELSE GREATEST(0, ${inventoryItemQuants.quantValue} - ROUND(${inventoryItemQuants.unitCost}::numeric * ${qtyOut})::bigint) END`,
+      })
+      .where(eq(inventoryItemQuants.id, quantId))
+      .returning();
+    return results[0] as InventoryItemQuant;
+  }
+
+  // Adds to both quant_cost and quant_value (a freshly received slice or a positive adjust inflow).
+  async addQuantCostValue(quantId: string, addCost: bigint, addValue: bigint): Promise<InventoryItemQuant> {
+    const results = await this.db
+      .update(inventoryItemQuants)
+      .set({
+        quantCost: sql`${inventoryItemQuants.quantCost} + ${addCost}`,
+        quantValue: sql`${inventoryItemQuants.quantValue} + ${addValue}`,
+      })
+      .where(eq(inventoryItemQuants.id, quantId))
+      .returning();
+    return results[0] as InventoryItemQuant;
+  }
+
   async createQuant(data: typeof inventoryItemQuants.$inferInsert): Promise<InventoryItemQuant> {
     const results = await this.db.insert(inventoryItemQuants).values(data).returning();
     return results[0] as InventoryItemQuant;
@@ -126,6 +163,8 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         lotNumber: inventoryItemLots.lotNumber,
         quantity: inventoryItemQuants.quantity,
         unitCost: inventoryItemQuants.unitCost,
+        quantCost: inventoryItemQuants.quantCost,
+        quantValue: inventoryItemQuants.quantValue,
         costCurrency: inventoryItemQuants.costCurrency,
       })
       .from(inventoryItemQuants)
@@ -138,7 +177,12 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         )`,
       )
       .orderBy(inventoryItemQuants.createdAt);
-    return rows.map((r) => ({ ...r, unitCost: BigInt(r.unitCost as unknown as string) }));
+    return rows.map((r) => ({
+      ...r,
+      unitCost: BigInt(r.unitCost as unknown as string),
+      quantCost: BigInt(r.quantCost as unknown as string),
+      quantValue: BigInt(r.quantValue as unknown as string),
+    }));
   }
 
   // Returns the tracking type for an item (none | lot | item)

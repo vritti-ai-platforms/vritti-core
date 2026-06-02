@@ -15,9 +15,9 @@ import {
 import Decimal from '@vritti/api-sdk/decimal';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { computeFreeQty } from '@/common/free-qty';
-import { type FreeSchemeMode, GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
+import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 
-type FreeScheme = { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode };
+type FreeScheme = { buyQty: number | null; freeQty: number | null; hasScheme: boolean };
 
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
 import { GoodsReceiptItemsCostDto } from '../dto/entity/goods-receipt-items-cost.dto';
@@ -51,6 +51,19 @@ export class GoodsReceiptItemsService {
     if (oneInPrimary <= 0) return unitPrice;
     return BigInt(
       new Decimal(unitPrice.toString()).dividedBy(oneInPrimary).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0),
+    );
+  }
+
+  // Effective per-unit cost after the scheme = unit_price × ordered_qty / total_qty (free units dilute
+  // it). In the item's UOM and supplier currency; null when there's no price or no quantity yet.
+  private computeUnitCost(unitPrice: bigint | null, orderedQty: number, totalQty: number): bigint | null {
+    if (unitPrice == null || totalQty <= 0) return null;
+    return BigInt(
+      new Decimal(unitPrice.toString())
+        .times(orderedQty)
+        .dividedBy(totalQty)
+        .toDecimalPlaces(0, Decimal.ROUND_HALF_UP)
+        .toFixed(0),
     );
   }
 
@@ -113,7 +126,7 @@ export class GoodsReceiptItemsService {
       currencyCode?: string;
       schemeBuyQty?: number;
       schemeFreeQty?: number;
-      schemeMode?: FreeSchemeMode;
+      hasScheme?: boolean;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
@@ -131,7 +144,7 @@ export class GoodsReceiptItemsService {
     const scheme: FreeScheme = {
       buyQty: data.schemeBuyQty ?? supplierItem.schemeBuyQty ?? null,
       freeQty: data.schemeFreeQty ?? supplierItem.schemeFreeQty ?? null,
-      mode: data.schemeMode ?? supplierItem.schemeMode ?? 'none',
+      hasScheme: data.hasScheme ?? supplierItem.hasScheme ?? false,
     };
 
     // Un-linked GR: the ordered (paid) quantity is uncapped.
@@ -157,7 +170,7 @@ export class GoodsReceiptItemsService {
       currencyCode?: string;
       schemeBuyQty?: number;
       schemeFreeQty?: number;
-      schemeMode?: FreeSchemeMode;
+      hasScheme?: boolean;
     },
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
@@ -189,7 +202,7 @@ export class GoodsReceiptItemsService {
     const scheme: FreeScheme = {
       buyQty: data.schemeBuyQty ?? poItem.schemeBuyQty ?? null,
       freeQty: data.schemeFreeQty ?? poItem.schemeFreeQty ?? null,
-      mode: data.schemeMode ?? poItem.schemeMode ?? 'none',
+      hasScheme: data.hasScheme ?? poItem.hasScheme ?? false,
     };
 
     return this.addItemInternal(receipt, {
@@ -239,7 +252,9 @@ export class GoodsReceiptItemsService {
         ? await this.resolvePrimaryUomUnitPrice(data.inventoryItemId, data.uomId, data.unitPrice)
         : null;
 
-    const freeQty = computeFreeQty(data.orderedQty, data.scheme.buyQty, data.scheme.freeQty, data.scheme.mode);
+    const freeQty = computeFreeQty(data.orderedQty, data.scheme.buyQty, data.scheme.freeQty, data.scheme.hasScheme);
+    const totalQty = data.orderedQty + freeQty;
+    const unitCost = this.computeUnitCost(data.unitPrice ?? null, data.orderedQty, totalQty);
 
     // 23505 race fallback handled globally by api-sdk's pg-error filter.
     const entity = await this.itemsRepository.create({
@@ -248,13 +263,14 @@ export class GoodsReceiptItemsService {
       uomId: data.uomId,
       orderedQty: data.orderedQty,
       freeQty,
-      totalQty: data.orderedQty + freeQty,
+      totalQty,
       schemeBuyQty: data.scheme.buyQty,
       schemeFreeQty: data.scheme.freeQty,
-      schemeMode: data.scheme.mode,
+      hasScheme: data.scheme.hasScheme,
       rejectedQuantity: data.rejectedQuantity ?? 0,
       unitPrice: data.unitPrice ?? null,
       primaryUomUnitPrice,
+      unitCost,
       currencyCode: data.currencyCode ?? null,
     });
 
@@ -278,7 +294,7 @@ export class GoodsReceiptItemsService {
       currencyCode?: string;
       schemeBuyQty?: number;
       schemeFreeQty?: number;
-      schemeMode?: FreeSchemeMode;
+      hasScheme?: boolean;
     },
   ): Promise<SuccessResponseDto> {
     await this.ensureEditableReceipt(goodsReceiptId);
@@ -320,21 +336,34 @@ export class GoodsReceiptItemsService {
       data.orderedQty !== undefined ||
       data.schemeBuyQty !== undefined ||
       data.schemeFreeQty !== undefined ||
-      data.schemeMode !== undefined;
+      data.hasScheme !== undefined;
     if (schemeOrQtyChanged) {
       const orderedQty = data.orderedQty ?? Number(item.orderedQty);
       const scheme: FreeScheme = {
         buyQty: data.schemeBuyQty ?? item.schemeBuyQty ?? null,
         freeQty: data.schemeFreeQty ?? item.schemeFreeQty ?? null,
-        mode: data.schemeMode ?? item.schemeMode ?? 'none',
+        hasScheme: data.hasScheme ?? item.hasScheme ?? false,
       };
-      const freeQty = computeFreeQty(orderedQty, scheme.buyQty, scheme.freeQty, scheme.mode);
+      const freeQty = computeFreeQty(orderedQty, scheme.buyQty, scheme.freeQty, scheme.hasScheme);
       update.orderedQty = orderedQty;
       update.freeQty = freeQty;
       update.totalQty = orderedQty + freeQty;
       update.schemeBuyQty = scheme.buyQty;
       update.schemeFreeQty = scheme.freeQty;
-      update.schemeMode = scheme.mode;
+      update.hasScheme = scheme.hasScheme;
+    }
+
+    // Recompute the effective unit cost whenever the price, ordered qty, or scheme changed.
+    if (data.unitPrice !== undefined || schemeOrQtyChanged) {
+      const finalUnitPrice =
+        data.unitPrice !== undefined
+          ? data.unitPrice
+          : item.unitPrice != null
+            ? BigInt(item.unitPrice as unknown as string)
+            : null;
+      const finalOrderedQty = (update.orderedQty as number | undefined) ?? Number(item.orderedQty);
+      const finalTotalQty = (update.totalQty as number | undefined) ?? Number(item.totalQty);
+      update.unitCost = this.computeUnitCost(finalUnitPrice, finalOrderedQty, finalTotalQty);
     }
 
     if (Object.keys(update).length > 0) {

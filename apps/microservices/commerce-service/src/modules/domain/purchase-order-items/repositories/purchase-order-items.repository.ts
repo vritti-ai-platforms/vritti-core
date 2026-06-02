@@ -62,7 +62,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         allowDecimal: sql`${orderUom.allowDecimal}`,
         schemeBuyQty: sql`${purchaseOrderItems.schemeBuyQty}`,
         schemeFreeQty: sql`${purchaseOrderItems.schemeFreeQty}`,
-        schemeMode: sql`${purchaseOrderItems.schemeMode}`,
+        hasScheme: sql`${purchaseOrderItems.hasScheme}`,
         freeQty: sql`${purchaseOrderItems.freeQty}`,
       },
     });
@@ -130,7 +130,7 @@ export class PurchaseOrderItemsRepository extends PrimaryBaseRepository<typeof p
         currencyCode: purchaseOrderItems.currencyCode,
         schemeBuyQty: purchaseOrderItems.schemeBuyQty,
         schemeFreeQty: purchaseOrderItems.schemeFreeQty,
-        schemeMode: purchaseOrderItems.schemeMode,
+        hasScheme: purchaseOrderItems.hasScheme,
         freeQty: purchaseOrderItems.freeQty,
         inventoryItemName: inventoryItems.name,
         orderUomSymbol: orderUom.symbol,

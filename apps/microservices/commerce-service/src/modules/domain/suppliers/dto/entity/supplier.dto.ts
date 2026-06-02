@@ -1,5 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk';
-import type { FreeSchemeMode, Supplier, SupplierItem } from '@/db/schema';
+import type { Supplier, SupplierItem } from '@/db/schema';
 
 export class SupplierItemDto {
   id: string;
@@ -15,7 +15,7 @@ export class SupplierItemDto {
   isActive: boolean;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
-  schemeMode: FreeSchemeMode;
+  hasScheme: boolean;
 
   static from(entity: SupplierItem, itemName?: string | null, uomSymbol?: string | null): SupplierItemDto {
     const dto = new SupplierItemDto();
@@ -32,7 +32,7 @@ export class SupplierItemDto {
     dto.isActive = entity.isActive;
     dto.schemeBuyQty = entity.schemeBuyQty ?? null;
     dto.schemeFreeQty = entity.schemeFreeQty ?? null;
-    dto.schemeMode = entity.schemeMode ?? 'none';
+    dto.hasScheme = entity.hasScheme;
     return dto;
   }
 }

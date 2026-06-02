@@ -4,14 +4,15 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { minorToMajor } from '@vritti/quantum-ui/money';
-import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { PurchaseOrderItemSelector } from '@vritti/quantum-ui/selects/purchase-order-item';
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { FreeQtyPreview } from '@/components/FreeQtyPreview';
 import {
   useAddGoodsReceiptItemFromPurchaseOrderItem,
   useAddGoodsReceiptItemFromSupplierItem,
@@ -21,14 +22,8 @@ import {
   type AddGoodsReceiptItemFromSupplierItemFormData,
   buildAddGoodsReceiptItemFromPurchaseOrderItemSchema,
   buildAddGoodsReceiptItemFromSupplierItemSchema,
-  type FreeSchemeMode,
-  freeSchemeModeLabels,
 } from '@/schemas/goods-receipts';
-
-const schemeModeOptions = (Object.keys(freeSchemeModeLabels) as FreeSchemeMode[]).map((mode) => ({
-  value: mode,
-  label: freeSchemeModeLabels[mode],
-}));
+import { computeFreeQty } from '@/utils/freeQty';
 
 const toOptionalNumber = (raw: unknown): number | undefined => {
   if (raw == null || raw === '') return undefined;
@@ -74,7 +69,7 @@ const SupplierItemForm = ({
       unitPrice: undefined,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
-      schemeMode: 'none',
+      hasScheme: false,
     },
   });
   const mutation = useAddGoodsReceiptItemFromSupplierItem(goodsReceiptId, { onSuccess });
@@ -91,11 +86,17 @@ const SupplierItemForm = ({
     // Prefill the standing scheme from the supplier item; operator can edit.
     form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
     form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
-    form.setValue('schemeMode', (option?.additionals?.schemeMode as FreeSchemeMode | undefined) ?? 'none');
+    form.setValue('hasScheme', option?.additionals?.hasScheme === true);
   };
 
   const supplierItemId = form.watch('supplierItemId');
-  const schemeMode = form.watch('schemeMode');
+  const hasScheme = form.watch('hasScheme');
+  const freeQtyPreview = computeFreeQty(
+    form.watch('orderedQty'),
+    form.watch('schemeBuyQty'),
+    form.watch('schemeFreeQty'),
+    hasScheme,
+  );
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
@@ -116,6 +117,7 @@ const SupplierItemForm = ({
               disabled={!supplierItemId}
               disabledTip="Pick an item first."
             />
+            {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
           </div>
         </FormSection>
 
@@ -135,11 +137,11 @@ const SupplierItemForm = ({
 
         <FormSection title="Free Goods Scheme">
           <div className="flex flex-col gap-4">
-            <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
-            {schemeMode !== 'none' && (
+            <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+            {hasScheme && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-                <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+                <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
+                <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
               </div>
             )}
           </div>
@@ -185,7 +187,7 @@ const PurchaseOrderItemForm = ({
       unitPrice: undefined,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
-      schemeMode: 'none',
+      hasScheme: false,
     },
   });
   const mutation = useAddGoodsReceiptItemFromPurchaseOrderItem(goodsReceiptId, { onSuccess });
@@ -208,11 +210,17 @@ const PurchaseOrderItemForm = ({
     // Prefill the scheme from the PO line; operator can edit.
     form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
     form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
-    form.setValue('schemeMode', (option?.additionals?.schemeMode as FreeSchemeMode | undefined) ?? 'none');
+    form.setValue('hasScheme', option?.additionals?.hasScheme === true);
   };
 
   const purchaseOrderItemId = form.watch('purchaseOrderItemId');
-  const schemeMode = form.watch('schemeMode');
+  const hasScheme = form.watch('hasScheme');
+  const freeQtyPreview = computeFreeQty(
+    form.watch('orderedQty'),
+    form.watch('schemeBuyQty'),
+    form.watch('schemeFreeQty'),
+    hasScheme,
+  );
 
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
@@ -234,6 +242,7 @@ const PurchaseOrderItemForm = ({
               disabled={!purchaseOrderItemId}
               disabledTip="Pick an item first."
             />
+            {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
           </div>
         </FormSection>
 
@@ -260,11 +269,11 @@ const PurchaseOrderItemForm = ({
 
         <FormSection title="Free Goods Scheme">
           <div className="flex flex-col gap-4">
-            <RadioGroup name="schemeMode" label="Scheme" options={schemeModeOptions} orientation="horizontal" />
-            {schemeMode !== 'none' && (
+            <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
+            {hasScheme && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <TextField name="schemeBuyQty" label="Buy Qty" type="number" positive />
-                <TextField name="schemeFreeQty" label="Free Qty" type="number" positive />
+                <TextField name="schemeBuyQty" label="Buy Qty" type="number" integer positive />
+                <TextField name="schemeFreeQty" label="Free Qty" type="number" integer positive />
               </div>
             )}
           </div>

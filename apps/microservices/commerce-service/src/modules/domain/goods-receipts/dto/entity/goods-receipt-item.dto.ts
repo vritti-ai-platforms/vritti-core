@@ -1,6 +1,6 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
-import type { FreeSchemeMode, InventoryTracking } from '@/db/schema';
+import type { InventoryTracking } from '@/db/schema';
 import type { GoodsReceiptItemWithRefs } from '../../repositories/goods-receipt-items.repository';
 
 export class GoodsReceiptItemDto {
@@ -16,7 +16,7 @@ export class GoodsReceiptItemDto {
   totalQty: number;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
-  schemeMode: FreeSchemeMode;
+  hasScheme: boolean;
   acceptedQuantity: number;
   rejectedQuantity: number;
   lotsCount: number;
@@ -25,6 +25,7 @@ export class GoodsReceiptItemDto {
   poReceivedQuantity: number | null;
   poRemainingQuantity: number | null;
   unitPrice: CurrencyAmountDto | null;
+  unitCost: CurrencyAmountDto | null;
   lineTotal: CurrencyAmountDto | null;
   metadata: Record<string, unknown>;
   createdAt: string;
@@ -43,7 +44,7 @@ export class GoodsReceiptItemDto {
     dto.totalQty = Number(row.totalQty ?? 0);
     dto.schemeBuyQty = row.schemeBuyQty != null ? Number(row.schemeBuyQty) : null;
     dto.schemeFreeQty = row.schemeFreeQty != null ? Number(row.schemeFreeQty) : null;
-    dto.schemeMode = row.schemeMode ?? 'none';
+    dto.hasScheme = row.hasScheme;
     dto.acceptedQuantity = Number(row.acceptedQuantity ?? 0);
     dto.rejectedQuantity = row.rejectedQuantity ?? 0;
     dto.lotsCount = row.lotsCount;
@@ -58,8 +59,13 @@ export class GoodsReceiptItemDto {
       // Line total = the value paid = unit price × ordered (paid) quantity; free units are not billed.
       const lineTotalMinor = BigInt(new Decimal(unitPriceMinor.toString()).times(dto.orderedQty).toFixed(0));
       dto.lineTotal = CurrencyAmountDto.from(lineTotalMinor, row.currencyCode);
+      dto.unitCost =
+        row.unitCost != null
+          ? CurrencyAmountDto.from(BigInt(row.unitCost as unknown as string), row.currencyCode)
+          : null;
     } else {
       dto.unitPrice = null;
+      dto.unitCost = null;
       dto.lineTotal = null;
     }
     dto.metadata = (row.metadata ?? {}) as Record<string, unknown>;

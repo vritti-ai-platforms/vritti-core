@@ -9,6 +9,8 @@ export class GoodsReceiptItemQuantRowDto {
   quantity: number;
   unitCost: CurrencyAmountDto | null;
   totalCost: CurrencyAmountDto | null;
+  quantCost: CurrencyAmountDto | null;
+  quantValue: CurrencyAmountDto | null;
 }
 
 export class GoodsReceiptItemQuantsDto {
@@ -35,9 +37,13 @@ export class GoodsReceiptItemQuantsDto {
         grandTotalMinor += totalMinor;
         row.unitCost = CurrencyAmountDto.from(r.unitCost, r.costCurrency);
         row.totalCost = CurrencyAmountDto.from(totalMinor, r.costCurrency);
+        row.quantCost = CurrencyAmountDto.from(r.quantCost, r.costCurrency);
+        row.quantValue = CurrencyAmountDto.from(r.quantValue, r.costCurrency);
       } else {
         row.unitCost = null;
         row.totalCost = null;
+        row.quantCost = null;
+        row.quantValue = null;
       }
       return row;
     });

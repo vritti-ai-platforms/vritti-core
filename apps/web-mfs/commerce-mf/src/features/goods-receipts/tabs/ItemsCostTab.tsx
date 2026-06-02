@@ -67,6 +67,11 @@ export const ItemsCostTab = ({ goodsReceiptId, isDraft }: ItemsCostTabProps) => 
         cell: ({ row }) => (row.original.unitPrice ? <CurrencyCell value={row.original.unitPrice} /> : '—'),
       },
       {
+        accessorKey: 'unitCost',
+        header: 'Unit Cost',
+        cell: ({ row }) => (row.original.unitCost ? <CurrencyCell value={row.original.unitCost} /> : '—'),
+      },
+      {
         accessorKey: 'lineTotal',
         header: 'Total',
         cell: ({ row }) => (row.original.lineTotal ? <CurrencyCell value={row.original.lineTotal} /> : '—'),

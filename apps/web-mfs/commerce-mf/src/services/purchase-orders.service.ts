@@ -25,7 +25,7 @@ export interface AddPurchaseOrderItemPayload {
   unitPrice: { currency: string; value: string };
   schemeBuyQty?: number;
   schemeFreeQty?: number;
-  schemeMode?: 'none' | 'slab' | 'pro_rata';
+  hasScheme?: boolean;
 }
 
 export interface UpdatePurchaseOrderItemPayload {
@@ -36,7 +36,7 @@ export interface UpdatePurchaseOrderItemPayload {
   unitPrice?: { currency: string; value: string };
   schemeBuyQty?: number;
   schemeFreeQty?: number;
-  schemeMode?: 'none' | 'slab' | 'pro_rata';
+  hasScheme?: boolean;
 }
 
 export interface UpdatePurchaseOrderNotesPayload {
@@ -111,7 +111,7 @@ export function addPurchaseOrderItem({
   unitPrice,
   schemeBuyQty,
   schemeFreeQty,
-  schemeMode,
+  hasScheme,
 }: AddPurchaseOrderItemPayload): Promise<CreateResponse<PurchaseOrderData>> {
   return axios
     .post<CreateResponse<PurchaseOrderData>>(`commerce-api/purchase-orders/${id}/items`, {
@@ -120,7 +120,7 @@ export function addPurchaseOrderItem({
       unitPrice,
       schemeBuyQty,
       schemeFreeQty,
-      schemeMode,
+      hasScheme,
     })
     .then((r) => r.data);
 }
@@ -134,7 +134,7 @@ export function updatePurchaseOrderItem({
   unitPrice,
   schemeBuyQty,
   schemeFreeQty,
-  schemeMode,
+  hasScheme,
 }: UpdatePurchaseOrderItemPayload): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`commerce-api/purchase-orders/${id}/items/${itemId}`, {
@@ -143,7 +143,7 @@ export function updatePurchaseOrderItem({
       unitPrice,
       schemeBuyQty,
       schemeFreeQty,
-      schemeMode,
+      hasScheme,
     })
     .then((r) => r.data);
 }

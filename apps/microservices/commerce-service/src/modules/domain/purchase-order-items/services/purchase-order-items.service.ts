@@ -14,14 +14,9 @@ import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { computeFreeQty } from '@/common/free-qty';
-import {
-  type FreeSchemeMode,
-  type PurchaseOrderStatus,
-  PurchaseOrderStatusValues,
-  purchaseOrderItems,
-} from '@/db/schema';
+import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems } from '@/db/schema';
 
-export type FreeScheme = { buyQty: number | null; freeQty: number | null; mode: FreeSchemeMode };
+export type FreeScheme = { buyQty: number | null; freeQty: number | null; hasScheme: boolean };
 
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
@@ -167,7 +162,7 @@ export class PurchaseOrderItemsService {
         .toFixed(0),
     );
 
-    const freeQty = computeFreeQty(data.uomQty, scheme.buyQty, scheme.freeQty, scheme.mode);
+    const freeQty = computeFreeQty(data.uomQty, scheme.buyQty, scheme.freeQty, scheme.hasScheme);
 
     await this.repository.create({
       purchaseOrderId: po.id,
@@ -181,7 +176,7 @@ export class PurchaseOrderItemsService {
       currencyCode: po.currencyCode,
       schemeBuyQty: scheme.buyQty,
       schemeFreeQty: scheme.freeQty,
-      schemeMode: scheme.mode,
+      hasScheme: scheme.hasScheme,
       freeQty,
     });
 
@@ -256,7 +251,7 @@ export class PurchaseOrderItemsService {
         .toFixed(0),
     );
 
-    const freeQty = computeFreeQty(orderedQuantity, scheme.buyQty, scheme.freeQty, scheme.mode);
+    const freeQty = computeFreeQty(orderedQuantity, scheme.buyQty, scheme.freeQty, scheme.hasScheme);
 
     await this.repository.update(itemId, {
       inventoryItemId: data.inventoryItemId,
@@ -267,7 +262,7 @@ export class PurchaseOrderItemsService {
       totalPrice: totalPriceMinor,
       schemeBuyQty: scheme.buyQty,
       schemeFreeQty: scheme.freeQty,
-      schemeMode: scheme.mode,
+      hasScheme: scheme.hasScheme,
       freeQty,
     });
 

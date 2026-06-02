@@ -11,6 +11,7 @@ export class GoodsReceiptItemsCostRowDto {
   freeQty: number;
   totalQty: number;
   unitPrice: CurrencyAmountDto | null;
+  unitCost: CurrencyAmountDto | null;
   lineTotal: CurrencyAmountDto | null;
 }
 
@@ -43,9 +44,14 @@ export class GoodsReceiptItemsCostDto {
         const lineTotalMinor = BigInt(new Decimal(unitPriceMinor.toString()).times(row.orderedQty).toFixed(0));
         grandTotalMinor += lineTotalMinor;
         row.unitPrice = CurrencyAmountDto.from(unitPriceMinor, item.currencyCode);
+        row.unitCost =
+          item.unitCost != null
+            ? CurrencyAmountDto.from(BigInt(item.unitCost as unknown as string), item.currencyCode)
+            : null;
         row.lineTotal = CurrencyAmountDto.from(lineTotalMinor, item.currencyCode);
       } else {
         row.unitPrice = null;
+        row.unitCost = null;
         row.lineTotal = null;
       }
       return row;

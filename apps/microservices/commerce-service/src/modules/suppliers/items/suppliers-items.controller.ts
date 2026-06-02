@@ -3,7 +3,6 @@ import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto'
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, CurrencyAmountDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
-import type { FreeSchemeMode } from '@/db/schema';
 import type { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { SuppliersItemsService } from './services/suppliers-items.service';
@@ -68,14 +67,14 @@ export class SuppliersItemsController {
       supplierItemIds: string[];
       schemeBuyQty?: number | null;
       schemeFreeQty?: number | null;
-      schemeMode: FreeSchemeMode;
+      hasScheme: boolean;
     },
   ): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkSetItemScheme');
     return this.domainService.bulkSetScheme(data.supplierId, data.supplierItemIds, {
       buyQty: data.schemeBuyQty ?? null,
       freeQty: data.schemeFreeQty ?? null,
-      mode: data.schemeMode ?? 'none',
+      hasScheme: data.hasScheme ?? false,
     });
   }
 
