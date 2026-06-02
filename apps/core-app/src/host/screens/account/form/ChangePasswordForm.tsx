@@ -2,7 +2,7 @@ import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { PasswordField } from '@vritti/quantum-ui-native/PasswordField';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import type { UseFormReturn } from 'react-hook-form';
 import type { ChangePasswordFormValues } from '../../../schemas/account/changePassword';
 

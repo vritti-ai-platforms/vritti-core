@@ -2,7 +2,7 @@ import { Button } from '@vritti/quantum-ui-native/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Skeleton } from '@vritti/quantum-ui-native/Skeleton';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { useConfirm } from '@vritti/quantum-ui-native';
 import { View } from 'react-native';
 import { useRevokeAllSessions, useRevokeSession, useSessions } from '../../hooks/account';

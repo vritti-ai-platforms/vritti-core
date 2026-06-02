@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { mapApiErrorsToForm, setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';

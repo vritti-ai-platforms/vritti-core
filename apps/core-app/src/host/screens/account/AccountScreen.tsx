@@ -8,7 +8,7 @@ import { SectionHeader } from '@vritti/quantum-ui-native/Label';
 import { ListItem } from '@vritti/quantum-ui-native/ListItem';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { useRef } from 'react';
 import { Alert as NativeAlert, View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';

@@ -1,5 +1,5 @@
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { View } from 'react-native';
 
 export function ComingSoonScreen({ name }: { name: string }) {

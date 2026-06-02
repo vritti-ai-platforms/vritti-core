@@ -143,15 +143,15 @@ const { push } = usePushNavigator<HostAppRoute>();
 push('AccountScreen');
 ```
 
-## Text — always use Typography Text, never raw RN Text for content
+## Text — always use the Text component, never raw RN Text for content
 
 ```tsx
 // WRONG — raw React Native Text
 import { Text } from 'react-native';
 <Text>Hello</Text>
 
-// CORRECT — quantum-ui Typography
-import { Text } from '@vritti/quantum-ui-native/Typography';
+// CORRECT — quantum-ui-native Text
+import { Text } from '@vritti/quantum-ui-native/Text';
 <Text className="text-foreground text-base">Hello</Text>
 ```
 

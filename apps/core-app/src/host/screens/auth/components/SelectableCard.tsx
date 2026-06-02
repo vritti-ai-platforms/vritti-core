@@ -1,5 +1,5 @@
 import { CardPressable } from '@vritti/quantum-ui-native/CardPressable';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import * as React from 'react';
 import { View } from 'react-native';
 

@@ -5,7 +5,7 @@ import {
   type ScreenHeaderTabConfig,
   useScreenHeaderTabContent,
 } from '@vritti/quantum-ui-native/ScreenHeader';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { Pressable, View } from 'react-native';
 
 type InventoryRoute = 'InventoryList';

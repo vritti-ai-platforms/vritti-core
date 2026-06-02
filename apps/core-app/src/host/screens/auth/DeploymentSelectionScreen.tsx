@@ -4,7 +4,7 @@ import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { setSelectedDeploymentBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
 import { View } from 'react-native';

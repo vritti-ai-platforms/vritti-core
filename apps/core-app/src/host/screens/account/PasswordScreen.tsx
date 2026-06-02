@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { mapApiErrorsToForm } from '@vritti/quantum-ui-native/utils';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
@@ -37,21 +37,13 @@ export const PasswordScreen = () => {
 
   return (
     <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
-      <View className="gap-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Change password</CardTitle>
-            <CardDescription>Update your password to keep your account secure.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChangePasswordForm
-              form={form}
-              isSubmitting={changePasswordMutation.isPending}
-              onSubmit={handleSubmit}
-            />
-          </CardContent>
-        </Card>
+      <View className="gap-1.5">
+        <Text className="text-2xl font-bold text-foreground">Choose a new password</Text>
+        <Text className="text-base text-muted-foreground">
+          Enter and confirm your new password to keep your account secure.
+        </Text>
       </View>
+      <ChangePasswordForm form={form} isSubmitting={changePasswordMutation.isPending} onSubmit={handleSubmit} />
     </ScreenContainer>
   );
 };

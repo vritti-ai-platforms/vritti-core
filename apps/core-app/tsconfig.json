@@ -28,7 +28,8 @@
       "@react-navigation/bottom-tabs": [
         "../../node_modules/@react-navigation/bottom-tabs",
         "../../../quantum-ui-native/node_modules/@react-navigation/bottom-tabs"
-      ]
+      ],
+      "@rn-primitives/portal": ["../../../quantum-ui-native/node_modules/@rn-primitives/portal"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"],

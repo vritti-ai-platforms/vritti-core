@@ -61,7 +61,6 @@ const componentDirs = [
   'DynamicIcon',
   'FlashList',
   'Form',
-  'Input',
   'Label',
   'ListItem',
   'NativeStack',
@@ -71,6 +70,7 @@ const componentDirs = [
   'RadioGroup',
   'ScreenContainer',
   'ScreenHeader',
+  'Select',
   'Separator',
   'Skeleton',
   'Spinner',
@@ -78,7 +78,7 @@ const componentDirs = [
   'StaticAlert',
   'Switch',
   'TextField',
-  'Typography',
+  'Text',
 ];
 
 const quantumAliases = {
@@ -252,12 +252,28 @@ export default (rspackEnv) => {
           '@tanstack/react-query': { singleton: true, eager: true },
           axios: { singleton: true, eager: true },
           '@gorhom/bottom-sheet': { singleton: true, eager: true },
+          '@vritti/quantum-ui-native': {
+            singleton: true,
+            eager: true,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
           '@vritti/quantum-ui-native/BottomSheet': {
             singleton: true,
             eager: true,
             version: '0.1.0',
             requiredVersion: '>=0.0.0-0',
           },
+          // Shared (host-owned) so micro-apps use the host's configured + authenticated axios
+          // and the host's portal store — see @vritti/quantum-ui-native/BottomSheet pattern.
+          '@vritti/quantum-ui-native/Select': {
+            singleton: true,
+            eager: true,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          // Single portal store app-wide so the host <PortalHost> renders popovers from any container
+          '@rn-primitives/portal': { singleton: true, eager: true },
           'react-native-reanimated': { singleton: true, eager: true },
           'react-native-worklets': { singleton: true, eager: true, requiredVersion: '0.8.1' },
           nativewind: { singleton: true, eager: true, version: '5.0.0-preview.3', requiredVersion: '>=0.0.0-0' },

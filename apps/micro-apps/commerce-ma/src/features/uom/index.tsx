@@ -1,12 +1,16 @@
 import { type RouteProp, useNavigation } from '@react-navigation/native';
 import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
 import { Button } from '@vritti/quantum-ui-native/Button';
+import { Checkbox } from '@vritti/quantum-ui-native/Checkbox';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { PushNavigator, type PushScreenConfig } from '@vritti/quantum-ui-native/PushNavigator';
+import { RadioGroup } from '@vritti/quantum-ui-native/RadioGroup';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { ScreenHeader } from '@vritti/quantum-ui-native/ScreenHeader';
-import { Text } from '@vritti/quantum-ui-native/Typography';
-import { useRef } from 'react';
+import { Select, type SelectOption, type SelectValue } from '@vritti/quantum-ui-native/Select';
+import { TextField } from '@vritti/quantum-ui-native/TextField';
+import { Text } from '@vritti/quantum-ui-native/Text';
+import { useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 type UOMRoute = 'UOMList' | 'UOMDetail';
@@ -42,6 +46,113 @@ function UOMList() {
   );
 }
 
+const UOM_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'weight', label: 'Weight', description: 'kg, g, lb, oz' },
+  { value: 'volume', label: 'Volume', description: 'L, mL, gal' },
+  { value: 'length', label: 'Length', description: 'm, cm, ft, in' },
+  { value: 'count', label: 'Count', description: 'pcs, dozen, box' },
+  { value: 'area', label: 'Area', description: 'm², ft²' },
+  { value: 'temperature', label: 'Temperature', description: '°C, °F (coming soon)', disabled: true },
+];
+
+// Async options load from this endpoint, which must return { options: [{ value, label }], hasMore }
+const BOM_ENDPOINT = 'commerce-api/bom/select';
+
+// Demonstrates Checkbox + single/multi Select (static and async) from quantum-ui-native
+function SelectCheckboxExamples() {
+  const [active, setActive] = useState(true);
+  const [allowDecimals, setAllowDecimals] = useState(false);
+  const [singleType, setSingleType] = useState<SelectValue | undefined>('weight');
+  const [multiTypes, setMultiTypes] = useState<SelectValue[]>(['weight', 'count']);
+  const [singleBom, setSingleBom] = useState<SelectValue | undefined>(undefined);
+  const [multiBom, setMultiBom] = useState<SelectValue[]>([]);
+  const [unitName, setUnitName] = useState('');
+  const [system, setSystem] = useState('metric');
+  const [rounding, setRounding] = useState('nearest');
+
+  return (
+    <View className="gap-5">
+      <Text className="text-base font-semibold text-foreground">Select, Checkbox & Radio examples</Text>
+
+      <TextField
+        label="Name"
+        placeholder="e.g. Kilogram"
+        value={unitName}
+        onChangeText={setUnitName}
+        autoCapitalize="words"
+      />
+
+      <View className="gap-3">
+        <Checkbox label="Active" checked={active} onCheckedChange={setActive} />
+        <Checkbox label="Allow decimal quantities" checked={allowDecimals} onCheckedChange={setAllowDecimals} />
+        <Checkbox label="System unit (locked)" checked disabled onCheckedChange={() => {}} />
+      </View>
+
+
+
+      <Select
+        multiple
+        label="Compatible types"
+        placeholder="Select types"
+        options={UOM_TYPE_OPTIONS}
+        value={multiTypes}
+        onChange={(values: SelectValue[]) => setMultiTypes(values)}
+        searchable
+      />
+
+      <Select
+        label="Measurement type"
+        placeholder="Select a type"
+        options={UOM_TYPE_OPTIONS}
+        value={singleType}
+        onChange={(value: SelectValue) => setSingleType(value)}
+        searchable
+        clearable
+      />
+
+      <RadioGroup
+        label="Measurement system"
+        value={system}
+        onValueChange={setSystem}
+        options={[
+          { value: 'metric', label: 'Metric', description: 'kg, m, L' },
+          { value: 'imperial', label: 'Imperial', description: 'lb, ft, gal' },
+        ]}
+      />
+
+      <RadioGroup
+        label="Rounding"
+        variant="card"
+        value={rounding}
+        onValueChange={setRounding}
+        options={[
+          { value: 'nearest', label: 'Nearest', description: 'Round to the nearest whole unit' },
+          { value: 'up', label: 'Round up', description: 'Always round up' },
+          { value: 'down', label: 'Round down', description: 'Always round down' },
+        ]}
+      />
+
+      {/* <Select
+        label="Bill of materials"
+        placeholder="Search BOM…"
+        optionsEndpoint={BOM_ENDPOINT}
+        value={singleBom}
+        onChange={(value: SelectValue) => setSingleBom(value)}
+        clearable
+      />
+
+      <Select
+        multiple
+        label="Linked BOMs"
+        placeholder="Search BOMs…"
+        optionsEndpoint={BOM_ENDPOINT}
+        value={multiBom}
+        onChange={(values: SelectValue[]) => setMultiBom(values)}
+      /> */}
+    </View>
+  );
+}
+
 function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams }, 'UOMDetail'> }) {
   const id = route.params?.id ?? '?';
   const fullSheetRef = useRef<BottomSheetRef>(null);
@@ -69,6 +180,8 @@ function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams },
             <Text className="text-base font-semibold text-foreground">Placeholder</Text>
           </View>
         </View>
+
+        <SelectCheckboxExamples />
 
         <View className="gap-3">
           <Text className="text-base font-semibold text-foreground">Bottom sheet examples</Text>
@@ -104,8 +217,14 @@ function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams },
         </View>
       </BottomSheet>
 
-      <BottomSheet ref={halfSheetRef} detents={['50%']}>
+      <BottomSheet ref={halfSheetRef} detents={['80%']}>
         <View className="gap-3 px-4 pb-8 pt-2">
+        <TextField
+        label="Name"
+        placeholder="e.g. Kilogram"
+        value={''}
+        autoCapitalize="words"
+      />
           <Text className="text-base font-semibold text-foreground">Half-height sheet</Text>
           <Text className="text-sm text-muted-foreground">
             Opens to roughly half the screen height. Drag the grabber up to expand or down to dismiss.

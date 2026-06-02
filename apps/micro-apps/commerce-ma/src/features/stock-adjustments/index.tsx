@@ -1,5 +1,5 @@
 import { ScreenContainer, useScreenScrollY } from '@vritti/quantum-ui-native/ScreenContainer';
-import { Text } from '@vritti/quantum-ui-native/Typography';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { StyleSheet, View } from 'react-native';
 import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

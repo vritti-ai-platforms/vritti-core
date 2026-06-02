@@ -61,7 +61,6 @@ const componentDirs = [
   'DynamicIcon',
   'FlashList',
   'Form',
-  'Input',
   'Label',
   'ListItem',
   'NativeStack',
@@ -70,6 +69,7 @@ const componentDirs = [
   'RadioGroup',
   'ScreenContainer',
   'ScreenHeader',
+  'Select',
   'Separator',
   'Skeleton',
   'Spinner',
@@ -77,7 +77,7 @@ const componentDirs = [
   'StaticAlert',
   'Switch',
   'TextField',
-  'Typography',
+  'Text',
 ];
 
 const quantumAliases = {
@@ -255,6 +255,13 @@ export default (rspackEnv) => {
           '@tanstack/react-query': { singleton: true, eager: false, import: false },
           axios: { singleton: true, eager: false, import: false },
           '@gorhom/bottom-sheet': { singleton: true, eager: false, import: false },
+          '@vritti/quantum-ui-native': {
+            singleton: true,
+            eager: false,
+            import: false,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
           '@vritti/quantum-ui-native/BottomSheet': {
             singleton: true,
             eager: false,
@@ -262,6 +269,16 @@ export default (rspackEnv) => {
             version: '0.1.0',
             requiredVersion: '>=0.0.0-0',
           },
+          // Consume the host's Select so its async axios is configured + authenticated
+          // (this micro-app never configures its own copy) and its popover uses the host portal.
+          '@vritti/quantum-ui-native/Select': {
+            singleton: true,
+            eager: false,
+            import: false,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          '@rn-primitives/portal': { singleton: true, eager: false, import: false },
           'react-native-reanimated': { singleton: true, eager: false, import: false },
           'react-native-worklets': { singleton: true, eager: false, import: false, requiredVersion: '0.8.1' },
           nativewind: {
