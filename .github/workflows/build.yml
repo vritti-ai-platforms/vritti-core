@@ -73,3 +73,15 @@ jobs:
       output_dir: apps/core-web/dist
       production_domain: https://dev.vrittiai.com
     secrets: inherit
+
+  # Module-federation remote — core-web loads it at runtime via the feature catalog
+  commerce-mf:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'commerce-mf')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-web.yml@main
+    with:
+      app_name: commerce-mf
+      build_command: pnpm exec nx build commerce-mf
+      output_dir: apps/web-mfs/commerce-mf/dist
+      production_domain: https://dev.vrittiai.com
+    secrets: inherit
