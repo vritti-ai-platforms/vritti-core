@@ -6,6 +6,7 @@ import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { BomModule } from './modules/bom/bom.module';
+import { CatalogsModule } from './modules/catalogs/catalogs.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ConversionsModule } from './modules/conversions/conversions.module';
 import { CostCategoriesModule } from './modules/cost-categories/cost-categories.module';
@@ -14,15 +15,13 @@ import { CustomersModule } from './modules/customers/customers.module';
 import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.module';
 import { InventoryItemsModule } from './modules/inventory-items/inventory-items.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
-import { ItemsModule } from './modules/items/items.module';
 import { LocationsModule } from './modules/locations/locations.module';
-import { ModifierGroupsModule } from './modules/modifier-groups/modifier-groups.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PosTerminalsModule } from './modules/pos-terminals/pos-terminals.module';
-import { PriceListsModule } from './modules/price-lists/price-lists.module';
 import { PurchaseOrderItemsModule } from './modules/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
+import { SalesChannelsModule } from './modules/sales-channels/sales-channels.module';
 import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjustments.module';
 import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
 import { SupplierItemsModule } from './modules/supplier-items/supplier-items.module';
@@ -66,8 +65,8 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
     }),
     CategoriesModule,
     CostCategoriesModule,
-    ItemsModule,
-    ModifierGroupsModule,
+    SalesChannelsModule,
+    CatalogsModule,
     TaxGroupsModule,
     UomDimensionsModule,
     UomModule,
@@ -84,7 +83,6 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
     StockTransfersModule,
     InvoicesModule,
     PaymentsModule,
-    PriceListsModule,
     PosTerminalsModule,
     CreditNotesModule,
     CustomersModule,

@@ -3,6 +3,7 @@ import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritt
 import { categories } from './categories';
 import { coreSchema } from './core-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
+import { taxGroups } from './tax-groups';
 import { uom } from './uom';
 
 export const inventoryItems = coreSchema.table(
@@ -23,6 +24,8 @@ export const inventoryItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
+    purchaseTaxGroupId: uuid('purchase_tax_group_id').references(() => taxGroups.id),
+    hsnCode: varchar('hsn_code', { length: 20 }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

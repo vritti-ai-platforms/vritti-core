@@ -37,4 +37,13 @@ export class CreateInventoryItemDto {
 
   @IsUUID()
   uomId: string;
+
+  @IsOptional()
+  @IsUUID()
+  purchaseTaxGroupId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  hsnCode?: string;
 }

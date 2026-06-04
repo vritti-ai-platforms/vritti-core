@@ -34,6 +34,12 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ nullable: true })
   uomSymbol: string | null;
 
+  @ApiPropertyOptional({ description: 'Purchase tax group ID', nullable: true })
+  purchaseTaxGroupId: string | null;
+
+  @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
+  hsnCode: string | null;
+
   @ApiProperty({ description: 'Whether this item can be deleted' })
   canDelete: boolean;
 

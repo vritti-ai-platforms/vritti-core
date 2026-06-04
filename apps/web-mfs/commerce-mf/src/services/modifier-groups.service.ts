@@ -1,39 +1,48 @@
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { ModifierGroupData, ModifierOptionData } from '@/schemas/items';
 import type { ModifierGroupDetail } from '@/schemas/modifiers';
+import type { ModifierGroupData, ModifierOptionData } from '@/schemas/offerings';
 
-// Lists all modifier groups for a business unit
-export function listModifierGroups(buId: string): Promise<ModifierGroupData[]> {
+// Lists all modifier groups for a catalog
+export function listModifierGroups(catalogId: string): Promise<ModifierGroupData[]> {
   return axios
-    .get<ModifierGroupData[]>(`commerce-api/modifier-groups?buId=${buId}`, { showSuccessToast: false })
+    .get<ModifierGroupData[]>(`commerce-api/catalogs/${catalogId}/modifiers`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
 // Fetches a single modifier group with its options
-export function getModifierGroup(id: string): Promise<ModifierGroupDetail> {
+export function getModifierGroup({
+  catalogId,
+  groupId,
+}: {
+  catalogId: string;
+  groupId: string;
+}): Promise<ModifierGroupDetail> {
   return axios
-    .get<ModifierGroupDetail>(`commerce-api/modifier-groups/${id}`, { showSuccessToast: false })
+    .get<ModifierGroupDetail>(`commerce-api/catalogs/${catalogId}/modifiers/${groupId}`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
 export interface CreateModifierGroupPayload {
-  businessUnitId: string;
-  name: string;
-  selectionType: 'SINGLE' | 'MULTI';
-  minSelections?: number;
-  maxSelections?: number;
-  sortOrder?: number;
-  isActive?: boolean;
+  catalogId: string;
+  data: {
+    name: string;
+    selectionType: 'SINGLE' | 'MULTI';
+    minSelections?: number;
+    maxSelections?: number;
+    sortOrder?: number;
+    isActive?: boolean;
+  };
 }
 
-// Creates a new modifier group
-export function createModifierGroup(data: CreateModifierGroupPayload): Promise<ModifierGroupData> {
-  return axios.post<ModifierGroupData>('commerce-api/modifier-groups', data).then((r) => r.data);
+// Creates a new modifier group within a catalog
+export function createModifierGroup({ catalogId, data }: CreateModifierGroupPayload): Promise<ModifierGroupData> {
+  return axios.post<ModifierGroupData>(`commerce-api/catalogs/${catalogId}/modifiers`, data).then((r) => r.data);
 }
 
 export interface UpdateModifierGroupPayload {
-  id: string;
+  catalogId: string;
+  groupId: string;
   data: {
     name?: string;
     selectionType?: 'SINGLE' | 'MULTI';
@@ -45,16 +54,29 @@ export interface UpdateModifierGroupPayload {
 }
 
 // Updates a modifier group by ID
-export function updateModifierGroup({ id, data }: UpdateModifierGroupPayload): Promise<ModifierGroupData> {
-  return axios.patch<ModifierGroupData>(`commerce-api/modifier-groups/${id}`, data).then((r) => r.data);
+export function updateModifierGroup({
+  catalogId,
+  groupId,
+  data,
+}: UpdateModifierGroupPayload): Promise<ModifierGroupData> {
+  return axios
+    .patch<ModifierGroupData>(`commerce-api/catalogs/${catalogId}/modifiers/${groupId}`, data)
+    .then((r) => r.data);
 }
 
 // Deletes a modifier group by ID
-export function deleteModifierGroup(id: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/modifier-groups/${id}`).then((r) => r.data);
+export function deleteModifierGroup({
+  catalogId,
+  groupId,
+}: {
+  catalogId: string;
+  groupId: string;
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`commerce-api/catalogs/${catalogId}/modifiers/${groupId}`).then((r) => r.data);
 }
 
 export interface CreateModifierOptionPayload {
+  catalogId: string;
   groupId: string;
   data: {
     name: string;
@@ -64,16 +86,24 @@ export interface CreateModifierOptionPayload {
 }
 
 // Adds an option to a modifier group
-export function createModifierOption({ groupId, data }: CreateModifierOptionPayload): Promise<ModifierOptionData> {
-  return axios.post<ModifierOptionData>(`commerce-api/modifier-groups/${groupId}/options`, data).then((r) => r.data);
+export function createModifierOption({
+  catalogId,
+  groupId,
+  data,
+}: CreateModifierOptionPayload): Promise<ModifierOptionData> {
+  return axios
+    .post<ModifierOptionData>(`commerce-api/catalogs/${catalogId}/modifiers/${groupId}/options`, data)
+    .then((r) => r.data);
 }
 
 export interface DeleteModifierOptionPayload {
+  catalogId: string;
   groupId: string;
   optionId: string;
 }
 
 export interface UpdateModifierOptionPayload {
+  catalogId: string;
   groupId: string;
   optionId: string;
   data: { name?: string; additionalPrice?: number; isDefault?: boolean; isAvailable?: boolean };
@@ -81,18 +111,23 @@ export interface UpdateModifierOptionPayload {
 
 // Updates a modifier option's properties
 export function updateModifierOption({
+  catalogId,
   groupId,
   optionId,
   data,
 }: UpdateModifierOptionPayload): Promise<ModifierOptionData> {
   return axios
-    .patch<ModifierOptionData>(`commerce-api/modifier-groups/${groupId}/options/${optionId}`, data)
+    .patch<ModifierOptionData>(`commerce-api/catalogs/${catalogId}/modifiers/${groupId}/options/${optionId}`, data)
     .then((r) => r.data);
 }
 
 // Deletes an option from a modifier group
-export function deleteModifierOption({ groupId, optionId }: DeleteModifierOptionPayload): Promise<SuccessResponse> {
+export function deleteModifierOption({
+  catalogId,
+  groupId,
+  optionId,
+}: DeleteModifierOptionPayload): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/modifier-groups/${groupId}/options/${optionId}`)
+    .delete<SuccessResponse>(`commerce-api/catalogs/${catalogId}/modifiers/${groupId}/options/${optionId}`)
     .then((r) => r.data);
 }

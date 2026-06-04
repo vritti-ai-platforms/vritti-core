@@ -1,0 +1,154 @@
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  type CreateResponseDto,
+  type FieldMap,
+  FilterProcessor,
+  NotFoundException,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type SuccessResponseDto,
+  type TableViewState,
+} from '@vritti/api-sdk';
+import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { type SalesChannel, type SalesChannelKind, salesChannels } from '@/db/schema';
+import { SalesChannelDto } from '../dto/entity/sales-channel.dto';
+import { SalesChannelsRepository } from '../repositories/sales-channels.repository';
+
+export interface CreateSalesChannelInput {
+  code: string;
+  name: string;
+  kind: SalesChannelKind;
+  isActive?: boolean;
+}
+
+export interface UpdateSalesChannelInput {
+  name?: string;
+  isActive?: boolean;
+}
+
+@Injectable()
+export class SalesChannelsService {
+  private readonly logger = new Logger(SalesChannelsService.name);
+
+  private static readonly FIELD_MAP: FieldMap = {
+    name: { column: salesChannels.name, type: 'string' },
+    code: { column: salesChannels.code, type: 'string' },
+    kind: { column: salesChannels.kind, type: 'string' },
+    isActive: { column: salesChannels.isActive, type: 'boolean' },
+    isSystem: { column: salesChannels.isSystem, type: 'boolean' },
+  };
+
+  constructor(private readonly repository: SalesChannelsRepository) {}
+
+  // Returns paginated, filtered, and sorted sales channels for the data table
+  async findForTable(state: TableViewState): Promise<{ result: SalesChannelDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, SalesChannelsService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, SalesChannelsService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, SalesChannelsService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findAllAndCount({
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(salesChannels.createdAt)],
+      limit,
+      offset,
+    });
+
+    const refCounts = await Promise.all(rows.map((row) => this.repository.countReferences(row.id)));
+    const dtos = rows.map((row, i) => SalesChannelDto.from(row, refCounts[i] === 0 && !row.isSystem));
+    return { result: dtos, count };
+  }
+
+  // Returns paginated sales-channel options for select dropdowns
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey || 'kind',
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
+  }
+
+  // Creates a new sales channel, rejecting duplicate codes
+  async create(data: CreateSalesChannelInput): Promise<CreateResponseDto<SalesChannelDto>> {
+    const existing = await this.repository.findByCode(data.code.trim());
+    if (existing) {
+      throw new ConflictException({
+        label: 'Code already exists',
+        detail: `A sales channel with code "${data.code.trim()}" already exists.`,
+      });
+    }
+
+    const entity = await this.repository.create({
+      code: data.code.trim(),
+      name: data.name.trim(),
+      kind: data.kind,
+      isActive: data.isActive ?? true,
+      isSystem: false,
+    });
+
+    this.logger.log(`Created sales channel: ${entity.code} (${entity.kind})`);
+    return {
+      success: true,
+      message: `Sales channel "${entity.name}" created successfully.`,
+      data: SalesChannelDto.from(entity, true),
+    };
+  }
+
+  // Returns a single sales channel by ID
+  async findById(id: string): Promise<SalesChannelDto> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Sales channel not found.');
+    const refs = await this.repository.countReferences(id);
+    return SalesChannelDto.from(entity, refs === 0 && !entity.isSystem);
+  }
+
+  // Updates a sales channel's name and active flag
+  async update(id: string, data: UpdateSalesChannelInput): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Sales channel not found.');
+
+    const payload: Partial<SalesChannel> = {};
+    if (data.name !== undefined) payload.name = data.name.trim();
+    if (data.isActive !== undefined) payload.isActive = data.isActive;
+
+    if (Object.keys(payload).length > 0) {
+      await this.repository.update(id, payload);
+    }
+
+    this.logger.log(`Updated sales channel: ${existing.code} (${id})`);
+    return { success: true, message: `Sales channel "${data.name ?? existing.name}" updated successfully.` };
+  }
+
+  // Deletes a sales channel; rejects system rows and rows still in use
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Sales channel not found.');
+    if (existing.isSystem) {
+      throw new ConflictException({
+        label: 'System channel',
+        detail: `Cannot delete "${existing.name}" — it is reserved by the system.`,
+      });
+    }
+    const refs = await this.repository.countReferences(id);
+    if (refs > 0) {
+      throw new ConflictException({
+        label: 'Sales channel in use',
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${refs} record${refs > 1 ? 's' : ''}.`,
+      });
+    }
+    await this.repository.delete(id);
+    this.logger.log(`Deleted sales channel: ${existing.code} (${id})`);
+    return { success: true, message: `Sales channel "${existing.name}" deleted successfully.` };
+  }
+}

@@ -12,6 +12,8 @@ export const createInventoryItemSchema = z.object({
   description: z.string().optional(),
   uomId: z.string().uuid('Unit of measure is required'),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
+  purchaseTaxGroupId: z.string().optional(),
+  hsnCode: z.string().max(20).optional(),
 });
 
 export const updateInventoryItemSchema = z.object({
@@ -22,6 +24,8 @@ export const updateInventoryItemSchema = z.object({
   categoryId: z.uuid('Category is required').optional(),
   uomId: z.uuid('Unit of measure is required').optional(),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
+  purchaseTaxGroupId: z.string().nullable().optional(),
+  hsnCode: z.string().max(20).nullable().optional(),
 });
 
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
@@ -92,6 +96,9 @@ export interface InventoryItemData {
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
+  purchaseTaxGroupId: string | null;
+  purchaseTaxGroupName: string | null;
+  hsnCode: string | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;

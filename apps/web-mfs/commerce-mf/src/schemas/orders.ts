@@ -70,7 +70,7 @@ const orderItemModifierSchema = z.object({
 });
 
 const orderItemSchema = z.object({
-  variantId: z.string().min(1, 'Variant is required'),
+  offeringVariantId: z.string().min(1, 'Variant is required'),
   quantity: z.number().min(1, 'Quantity must be at least 1'),
   notes: z.string().optional(),
   modifiers: z.array(orderItemModifierSchema).optional(),
@@ -79,6 +79,7 @@ const orderItemSchema = z.object({
 export const createOrderSchema = z.object({
   type: z.enum(['DINE_IN', 'TAKEAWAY', 'DELIVERY'], { message: 'Order type is required' }),
   channel: z.enum(['ONLINE', 'WALK_IN'], { message: 'Channel is required' }),
+  channelId: z.string().optional(),
   customerName: z.string().optional(),
   customerPhone: z.string().optional(),
   deliveryAddress: z.string().optional(),

@@ -5,8 +5,10 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { Monitor, Pencil, Plus, Trash2 } from 'lucide-react';
+import { buildSlug } from '@vritti/quantum-ui/slug';
+import { Eye, Monitor, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { POS_TERMINALS_TABLE_KEY, useDeletePosTerminal, usePosTerminalsTable } from '@/hooks/pos-terminals';
 import type { PosTerminalData } from '@/schemas/pos-terminals';
 import { getErrorMessage } from '@/utils/error';
@@ -14,6 +16,7 @@ import { PosTerminalForm } from '../forms/PosTerminalForm';
 
 export const PosTerminalsTab = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const confirm = useConfirm();
   const { data: response, isLoading, error } = usePosTerminalsTable();
   const deleteMutation = useDeletePosTerminal();
@@ -99,6 +102,12 @@ export const PosTerminalsTab = () => {
           <RowActions
             actions={[
               {
+                id: 'view',
+                icon: Eye,
+                label: 'View',
+                onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
+              },
+              {
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
@@ -117,7 +126,7 @@ export const PosTerminalsTab = () => {
         ),
       },
     ],
-    [deleteMutation.isPending, handleDelete, handleEdit],
+    [deleteMutation.isPending, handleDelete, handleEdit, navigate],
   );
 
   const { table } = useDataTable({

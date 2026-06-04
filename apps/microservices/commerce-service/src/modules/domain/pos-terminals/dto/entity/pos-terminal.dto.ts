@@ -9,6 +9,7 @@ export class PosTerminalDto {
   locationId: string;
   locationName: string | null;
   locationPath: string | null;
+  catalogId: string | null;
   description: string | null;
   isActive: boolean;
   createdAt: string;
@@ -24,6 +25,7 @@ export class PosTerminalDto {
     dto.locationId = entity.locationId;
     dto.locationName = entity.locationName ?? null;
     dto.locationPath = entity.locationPath ?? null;
+    dto.catalogId = entity.catalogId ?? null;
     dto.description = entity.description ?? null;
     dto.isActive = entity.isActive;
     dto.createdAt = entity.createdAt.toISOString();

@@ -89,6 +89,8 @@ export class InventoryItemsService {
       categoryId: data.categoryId,
       description: data.description || null,
       uomId: data.uomId,
+      purchaseTaxGroupId: data.purchaseTaxGroupId ?? null,
+      hsnCode: data.hsnCode ?? null,
     });
     const [uomSymbol, categoryName] = await Promise.all([
       this.repository.findUomSymbol(entity.uomId),

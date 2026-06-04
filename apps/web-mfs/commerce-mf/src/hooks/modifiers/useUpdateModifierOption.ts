@@ -1,10 +1,11 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { ModifierOptionData } from '@/schemas/items';
+import type { ModifierOptionData } from '@/schemas/offerings';
 import { updateModifierOption } from '@/services/modifier-groups.service';
 import { MODIFIER_GROUPS_KEY } from './keys';
 
 interface UpdateModifierOptionParams {
+  catalogId: string;
   groupId: string;
   optionId: string;
   data: { name?: string; additionalPrice?: number; isDefault?: boolean; isAvailable?: boolean };

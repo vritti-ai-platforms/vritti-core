@@ -1,7 +1,7 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
-import type { ModifierGroupData } from '@/schemas/items';
+import type { ModifierGroupData } from '@/schemas/offerings';
 import { type CreateModifierGroupPayload, createModifierGroup } from '@/services/modifier-groups.service';
 import { MODIFIER_GROUPS_KEY } from './keys';
 

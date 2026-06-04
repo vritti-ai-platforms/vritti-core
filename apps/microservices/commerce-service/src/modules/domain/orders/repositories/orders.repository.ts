@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  items,
-  itemVariants,
+  modifierOptions,
   type NewOrderItem,
   type NewOrderItemModifier,
   type OrderItem,
   type OrderItemModifier,
+  offeringModifierGroups,
+  offerings,
+  offeringVariants,
   orderItemModifiers,
   orderItems,
   orderNumberSeq,
@@ -55,29 +57,50 @@ export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
     return `ORD-${String(nextNumber).padStart(5, '0')}`;
   }
 
-  // Looks up variant details with item info for denormalization during order creation
-  async findVariantWithItem(variantId: string): Promise<
+  // Looks up variant details with offering info for denormalization during order creation
+  async findVariantWithOffering(variantId: string): Promise<
     | {
-        itemId: string;
-        itemName: string;
+        offeringId: string;
+        offeringName: string;
         variantName: string;
         price: bigint;
-        taxGroupId: string | null;
+        salesTaxGroupId: string | null;
       }
     | undefined
   > {
-    const rows = await this.db
+    const [row] = await this.db
       .select({
-        itemId: items.id,
-        itemName: items.name,
-        variantName: itemVariants.name,
-        price: itemVariants.price,
-        taxGroupId: items.taxGroupId,
+        offeringId: offerings.id,
+        offeringName: offerings.name,
+        variantName: offeringVariants.name,
+        price: offeringVariants.price,
+        salesTaxGroupId: offerings.salesTaxGroupId,
       })
-      .from(itemVariants)
-      .innerJoin(items, eq(itemVariants.itemId, items.id))
-      .where(eq(itemVariants.id, variantId));
-    return rows[0];
+      .from(offeringVariants)
+      .innerJoin(offerings, eq(offeringVariants.offeringId, offerings.id))
+      .where(eq(offeringVariants.id, variantId));
+    return row;
+  }
+
+  // Returns the valid modifier options attached to an offering for server-side price resolution
+  async findOfferingModifierOptions(offeringId: string): Promise<
+    {
+      optionId: string;
+      groupId: string;
+      name: string;
+      additionalPrice: bigint;
+    }[]
+  > {
+    return this.db
+      .select({
+        optionId: modifierOptions.id,
+        groupId: modifierOptions.groupId,
+        name: modifierOptions.name,
+        additionalPrice: modifierOptions.additionalPrice,
+      })
+      .from(offeringModifierGroups)
+      .innerJoin(modifierOptions, eq(offeringModifierGroups.groupId, modifierOptions.groupId))
+      .where(eq(offeringModifierGroups.offeringId, offeringId));
   }
 
   // Returns the effective tax rate for a tax group (sum of all component rates)

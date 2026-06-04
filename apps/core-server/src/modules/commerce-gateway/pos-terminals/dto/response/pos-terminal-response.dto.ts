@@ -25,6 +25,9 @@ export class PosTerminalResponseDto {
   @ApiPropertyOptional({ description: 'Human-readable breadcrumb of the location path', nullable: true })
   locationPath: string | null;
 
+  @ApiPropertyOptional({ description: 'Catalog this terminal sells from', nullable: true })
+  catalogId: string | null;
+
   @ApiPropertyOptional({ description: 'Terminal description', nullable: true })
   description: string | null;
 

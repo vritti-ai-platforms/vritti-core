@@ -59,7 +59,7 @@ export class OrdersService {
   async create(data: CreateOrderDto): Promise<OrderDto> {
     const orderNumber = await this.repository.generateOrderNumber();
 
-    // Build order items with denormalized catalog data
+    // Build order items using the variant's own price
     const { itemRows, modifierRows, subtotal, taxAmount } = await this.buildOrderItems(data.items);
 
     const serviceCharge = new Decimal(data.serviceCharge ?? 0);
@@ -71,6 +71,7 @@ export class OrdersService {
       orderNumber,
       type: data.type as OrderType,
       channel: data.channel as OrderSource,
+      channelId: data.channelId ?? null,
       customerId: data.customerId ?? null,
       customerName: data.customerName ?? null,
       customerPhone: data.customerPhone ?? null,
@@ -88,8 +89,8 @@ export class OrdersService {
     const createdItems = await this.repository.createItems(
       itemRows.map((item) => ({
         orderId: entity.id,
-        itemId: item.itemId,
-        variantId: item.variantId,
+        offeringId: item.offeringId,
+        offeringVariantId: item.offeringVariantId,
         itemName: item.itemName,
         variantName: item.variantName,
         quantity: item.quantity,
@@ -179,11 +180,11 @@ export class OrdersService {
     return OrderDto.from(entity);
   }
 
-  // Builds denormalized order item rows from variant catalog data
+  // Builds denormalized order item rows using the variant's own price
   private async buildOrderItems(items: CreateOrderItemDto[]): Promise<{
     itemRows: {
-      itemId: string;
-      variantId: string;
+      offeringId: string;
+      offeringVariantId: string;
       itemName: string;
       variantName: string | null;
       quantity: number;
@@ -204,8 +205,8 @@ export class OrdersService {
     taxAmount: Decimal;
   }> {
     const itemRows: {
-      itemId: string;
-      variantId: string;
+      offeringId: string;
+      offeringVariantId: string;
       itemName: string;
       variantName: string | null;
       quantity: number;
@@ -226,16 +227,39 @@ export class OrdersService {
     let orderTaxAmount = new Decimal(0);
 
     for (const item of items) {
-      const variant = await this.repository.findVariantWithItem(item.variantId);
+      const variant = await this.repository.findVariantWithOffering(item.offeringVariantId);
       if (!variant) {
-        throw new NotFoundException(`Variant ${item.variantId} not found.`);
+        throw new NotFoundException(`Variant ${item.offeringVariantId} not found.`);
       }
 
-      const taxRate = new Decimal(await this.repository.getEffectiveTaxRate(variant.taxGroupId));
+      const taxRate = new Decimal(await this.repository.getEffectiveTaxRate(variant.salesTaxGroupId));
       const unitPrice = new Decimal(variant.price.toString());
 
-      // Sum modifier additional prices
-      const modifierTotal = (item.modifiers ?? []).reduce(
+      // Resolve each submitted modifier against the offering's valid options, using authoritative DB values
+      const submittedModifiers = item.modifiers ?? [];
+      const resolvedModifiers: {
+        modifierGroupId: string;
+        modifierOptionId: string;
+        name: string;
+        additionalPrice: bigint;
+      }[] = [];
+      if (submittedModifiers.length > 0) {
+        const validOptions = await this.repository.findOfferingModifierOptions(variant.offeringId);
+        const optionById = new Map(validOptions.map((o) => [o.optionId, o]));
+        for (const m of submittedModifiers) {
+          const option = optionById.get(m.modifierOptionId);
+          if (!option) throw new BadRequestException('Invalid modifier for this item.');
+          resolvedModifiers.push({
+            modifierGroupId: option.groupId,
+            modifierOptionId: option.optionId,
+            name: option.name,
+            additionalPrice: option.additionalPrice,
+          });
+        }
+      }
+
+      // Sum authoritative modifier additional prices
+      const modifierTotal = resolvedModifiers.reduce(
         (sum, m) => sum.plus(new Decimal(m.additionalPrice.toString())),
         new Decimal(0),
       );
@@ -245,9 +269,9 @@ export class OrdersService {
       const lineTotal = lineSubtotal.plus(lineTax);
 
       itemRows.push({
-        itemId: variant.itemId,
-        variantId: item.variantId,
-        itemName: variant.itemName,
+        offeringId: variant.offeringId,
+        offeringVariantId: item.offeringVariantId,
+        itemName: variant.offeringName,
         variantName: variant.variantName,
         quantity: item.quantity,
         unitPrice: variant.price,
@@ -258,14 +282,7 @@ export class OrdersService {
         notes: item.notes ?? null,
       });
 
-      modifierRows.push(
-        (item.modifiers ?? []).map((m) => ({
-          modifierGroupId: m.modifierGroupId,
-          modifierOptionId: m.modifierOptionId,
-          name: m.name,
-          additionalPrice: toMinorBigInt(new Decimal(m.additionalPrice)),
-        })),
-      );
+      modifierRows.push(resolvedModifiers);
 
       orderSubtotal = orderSubtotal.plus(lineSubtotal);
       orderTaxAmount = orderTaxAmount.plus(lineTax);

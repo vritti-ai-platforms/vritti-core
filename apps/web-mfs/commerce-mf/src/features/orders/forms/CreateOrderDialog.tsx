@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { Select } from '@vritti/quantum-ui/Select';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -31,6 +32,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ onSuccess,
     defaultValues: {
       type: 'DINE_IN',
       channel: 'WALK_IN',
+      channelId: undefined,
       customerName: '',
       customerPhone: '',
       deliveryAddress: '',
@@ -53,6 +55,7 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ onSuccess,
       transformSubmit={(data) => ({
         type: data.type,
         channel: data.channel,
+        channelId: data.channelId || undefined,
         customerName: data.customerName || undefined,
         customerPhone: data.customerPhone || undefined,
         deliveryAddress: data.deliveryAddress || undefined,
@@ -64,6 +67,14 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ onSuccess,
     >
       <RadioGroup name="type" label="Order Type" options={orderTypeOptions} orientation="horizontal" />
       <RadioGroup name="channel" label="Channel" options={channelOptions} orientation="horizontal" />
+      <Select
+        name="channelId"
+        label="Sales Channel"
+        placeholder="Select channel (optional)"
+        searchable
+        optionsEndpoint="commerce-api/sales-channels/select"
+        fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
+      />
       <TextField name="customerName" label="Customer Name" placeholder="Optional" />
       <TextField name="customerPhone" label="Customer Phone" placeholder="Optional" />
       {orderType === 'DELIVERY' && (

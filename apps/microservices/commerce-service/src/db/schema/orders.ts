@@ -14,8 +14,9 @@ import {
 import { coreSchema } from './core-schema';
 import { customers } from './customers';
 import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
-import { itemVariants } from './item-variants';
-import { items } from './items';
+import { offeringVariants } from './offering-variants';
+import { offerings } from './offerings';
+import { salesChannels } from './sales-channels';
 
 export const orders = coreSchema.table(
   'orders',
@@ -26,6 +27,7 @@ export const orders = coreSchema.table(
     orderNumber: varchar('order_number', { length: 50 }).notNull(),
     type: orderTypeEnum('type').notNull(),
     channel: orderSourceEnum('channel').notNull(),
+    channelId: uuid('channel_id').references(() => salesChannels.id, { onDelete: 'set null' }),
     status: orderStatusEnum('status').notNull().default('PENDING'),
     customerId: uuid('customer_id').references(() => customers.id, { onDelete: 'set null' }),
     customerName: varchar('customer_name', { length: 255 }),
@@ -89,12 +91,12 @@ export const orderItems = coreSchema.table(
     orderId: uuid('order_id')
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),
-    itemId: uuid('item_id')
+    offeringId: uuid('offering_id')
       .notNull()
-      .references(() => items.id),
-    variantId: uuid('variant_id')
+      .references(() => offerings.id),
+    offeringVariantId: uuid('offering_variant_id')
       .notNull()
-      .references(() => itemVariants.id),
+      .references(() => offeringVariants.id),
     itemName: varchar('item_name', { length: 255 }).notNull(),
     variantName: varchar('variant_name', { length: 255 }),
     quantity: integer('quantity').notNull().default(1),

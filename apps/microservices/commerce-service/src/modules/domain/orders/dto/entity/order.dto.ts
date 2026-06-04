@@ -49,6 +49,7 @@ export class OrderDto {
   orderNumber: string;
   type: string;
   channel: string;
+  channelId: string | null;
   status: string;
   customerName: string | null;
   customerPhone: string | null;
@@ -68,6 +69,7 @@ export class OrderDto {
     dto.orderNumber = entity.orderNumber;
     dto.type = entity.type;
     dto.channel = entity.channel;
+    dto.channelId = entity.channelId ?? null;
     dto.status = entity.status;
     dto.customerName = entity.customerName ?? null;
     dto.customerPhone = entity.customerPhone ?? null;

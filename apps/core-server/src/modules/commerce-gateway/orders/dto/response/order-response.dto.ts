@@ -59,6 +59,9 @@ export class OrderResponseDto {
   @ApiProperty({ description: 'Order channel', example: 'WALK_IN' })
   channel: string;
 
+  @ApiPropertyOptional({ description: 'Sales channel ID used for catalog price resolution', nullable: true })
+  channelId: string | null;
+
   @ApiProperty({ description: 'Current order status', example: 'PENDING' })
   status: string;
 

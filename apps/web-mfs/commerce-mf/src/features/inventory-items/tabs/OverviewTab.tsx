@@ -25,6 +25,8 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
           <DetailField label="Category" type="string" value={item.categoryName} />
           <DetailField label="Unit of Measure" type="string" value={item.uomSymbol} />
           <DetailField label="Tracking" type="string" value={inventoryTrackingConfig[item.tracking].label} />
+          <DetailField label="Purchase Tax Group" type="string" value={item.purchaseTaxGroupName} />
+          <DetailField label="HSN Code" type="string" value={item.hsnCode} mono />
           <DetailField label="Description" type="string" value={item.description} className="col-span-2" />
         </CardContent>
       </Card>

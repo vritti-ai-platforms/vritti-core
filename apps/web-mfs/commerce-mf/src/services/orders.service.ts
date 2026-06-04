@@ -5,6 +5,7 @@ import type { OrderData, OrderDetail, OrderStatus, OrdersTableResponse } from '@
 export interface CreateOrderPayload {
   type: string;
   channel: string;
+  channelId?: string;
   customerId?: string;
   customerName?: string;
   customerPhone?: string;
@@ -14,7 +15,7 @@ export interface CreateOrderPayload {
   deliveryCharge?: number;
   discountAmount?: number;
   items?: {
-    variantId: string;
+    offeringVariantId: string;
     quantity: number;
     notes?: string;
     modifiers?: { modifierGroupId: string; modifierOptionId: string; name: string; additionalPrice: number }[];

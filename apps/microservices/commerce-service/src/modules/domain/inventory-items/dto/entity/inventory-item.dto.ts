@@ -12,6 +12,8 @@ export class InventoryItemDto {
   description: string | null;
   uomId: string;
   uomSymbol: string | null;
+  purchaseTaxGroupId: string | null;
+  hsnCode: string | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
@@ -34,6 +36,8 @@ export class InventoryItemDto {
     dto.description = entity.description ?? null;
     dto.uomId = entity.uomId;
     dto.uomSymbol = uomSymbol ?? null;
+    dto.purchaseTaxGroupId = entity.purchaseTaxGroupId ?? null;
+    dto.hsnCode = entity.hsnCode ?? null;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

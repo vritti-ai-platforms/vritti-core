@@ -8,7 +8,6 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreatePosTerminal, useUpdatePosTerminal } from '@/hooks/pos-terminals';
-import { useSaveTerminalPriceLists } from '@/hooks/price-lists';
 import { type PosTerminalData, type PosTerminalFormData, posTerminalFormSchema } from '@/schemas/pos-terminals';
 
 interface PosTerminalFormProps {
@@ -27,6 +26,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
           name: terminal.name,
           code: terminal.code,
           locationId: terminal.locationId,
+          catalogId: terminal.catalogId ?? '',
           description: terminal.description ?? '',
           isActive: terminal.isActive,
         }
@@ -34,45 +34,36 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
           name: '',
           code: '',
           locationId: '',
-          priceListId: '',
+          catalogId: '',
           description: '',
           isActive: true,
         },
   });
 
-  const createMutation = useCreatePosTerminal();
+  const createMutation = useCreatePosTerminal({ onSuccess });
   const updateMutation = useUpdatePosTerminal({ onSuccess });
-  const savePriceListsMutation = useSaveTerminalPriceLists();
 
-  const handleSubmit = async (data: PosTerminalFormData) => {
+  const handleSubmit = (data: PosTerminalFormData) => {
     if (isEdit) {
-      await updateMutation.mutateAsync({
+      updateMutation.mutate({
         id: terminal!.id,
         data: {
           name: data.name,
           locationId: data.locationId,
+          catalogId: data.catalogId,
           description: data.description?.trim() ? data.description.trim() : null,
           isActive: data.isActive,
         },
       });
       return;
     }
-
-    const result = await createMutation.mutateAsync({
+    createMutation.mutate({
       name: data.name,
       code: data.code,
       locationId: data.locationId,
+      catalogId: data.catalogId,
       description: data.description?.trim() ? data.description.trim() : undefined,
     });
-
-    if (data.priceListId) {
-      await savePriceListsMutation.mutateAsync({
-        terminalId: result.data.id,
-        data: { priceLists: [{ priceListId: data.priceListId, priority: 0, isDefault: true }] },
-      });
-    }
-
-    onSuccess();
   };
 
   return (
@@ -93,17 +84,15 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
           description="Only storage locations with role POS are listed."
         />
 
-        {!isEdit && (
-          <Select
-            name="priceListId"
-            label="Price List"
-            placeholder="Select price list (optional)"
-            searchable
-            optionsEndpoint="commerce-api/price-lists/select"
-            fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
-            description="Assign a default price list to this terminal. You can add more from the terminal detail page."
-          />
-        )}
+        <Select
+          name="catalogId"
+          label="Catalog"
+          placeholder="Select catalog"
+          searchable
+          optionsEndpoint="commerce-api/catalogs/select"
+          fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
+          description="The catalog this terminal sells from — drives the offerings and pricing shown at the register."
+        />
 
         <TextArea name="description" label="Description" placeholder="Optional notes about this terminal" rows={3} />
         {isEdit && <Switch name="isActive" label="Active" description="Inactive terminals can't take orders" />}

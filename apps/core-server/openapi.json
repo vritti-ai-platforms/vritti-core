@@ -6719,26 +6719,18 @@
         ]
       }
     },
-    "/commerce-api/items/table": {
+    "/commerce-api/catalogs/table": {
       "get": {
-        "description": "Returns paginated, filtered, and sorted items using server-stored table state.",
-        "operationId": "ItemsGatewayController_getItemsTable",
-        "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "description": "Business unit ID",
-            "schema": {}
-          }
-        ],
+        "description": "Returns paginated, filtered, and sorted catalogs using server-stored table state.",
+        "operationId": "CatalogsGatewayController_getTable",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "Items table retrieved successfully.",
+            "description": "Catalogs table retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemsTableResponseDto"
+                  "$ref": "#/components/schemas/CatalogTableResponseDto"
                 }
               }
             }
@@ -6752,34 +6744,183 @@
             "bearer": []
           }
         ],
-        "summary": "Get items table for a business unit",
+        "summary": "Get catalogs table",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/items": {
+    "/commerce-api/catalogs/select": {
+      "get": {
+        "operationId": "CatalogsGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs": {
       "post": {
-        "description": "Creates a new catalog item. organizationId is resolved from the authenticated user.",
-        "operationId": "ItemsGatewayController_create",
+        "operationId": "CatalogsGatewayController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateItemDto"
+                "$ref": "#/components/schemas/CreateCatalogDto"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Item created successfully.",
+            "description": "Catalog created successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemResponseDto"
+                  "$ref": "#/components/schemas/CreateResponseDto"
                 }
               }
             }
@@ -6796,22 +6937,21 @@
             "bearer": []
           }
         ],
-        "summary": "Create an item",
+        "summary": "Create a catalog",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/items/{id}": {
+    "/commerce-api/catalogs/{id}": {
       "get": {
-        "description": "Returns item with full details including options and variants.",
-        "operationId": "ItemsGatewayController_findById",
+        "operationId": "CatalogsGatewayController_findById",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
+            "description": "Catalog ID",
             "schema": {
               "type": "string"
             }
@@ -6819,11 +6959,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Item retrieved successfully.",
+            "description": "Catalog retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemDetailResponseDto"
+                  "$ref": "#/components/schemas/CatalogResponseDto"
                 }
               }
             }
@@ -6832,7 +6972,7 @@
             "description": "Unauthorized."
           },
           "404": {
-            "description": "Item not found."
+            "description": "Catalog not found."
           }
         },
         "security": [
@@ -6840,19 +6980,19 @@
             "bearer": []
           }
         ],
-        "summary": "Get an item by ID",
+        "summary": "Get a catalog by ID",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       },
       "patch": {
-        "operationId": "ItemsGatewayController_update",
+        "operationId": "CatalogsGatewayController_update",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
+            "description": "Catalog ID",
             "schema": {
               "type": "string"
             }
@@ -6863,55 +7003,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateItemDto"
+                "$ref": "#/components/schemas/UpdateCatalogDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Item updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItemResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Item not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update an item",
-        "tags": [
-          "Commerce - Items"
-        ]
-      },
-      "delete": {
-        "operationId": "ItemsGatewayController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Item ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item deleted successfully.",
+            "description": "Catalog updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6924,7 +7023,7 @@
             "description": "Unauthorized."
           },
           "404": {
-            "description": "Item not found."
+            "description": "Catalog not found."
           }
         },
         "security": [
@@ -6932,22 +7031,148 @@
             "bearer": []
           }
         ],
-        "summary": "Delete an item",
+        "summary": "Update a catalog",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
-      }
-    },
-    "/commerce-api/items/{id}/options": {
-      "put": {
-        "description": "Replaces all options for an item with the provided set.",
-        "operationId": "ItemsGatewayController_saveOptions",
+      },
+      "delete": {
+        "operationId": "CatalogsGatewayController_delete",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/clone": {
+      "post": {
+        "description": "Clones a catalog and its offerings, variants, options, and modifier groups into a new catalog with no channel assignments.",
+        "operationId": "CatalogsGatewayController_clone",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Source catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Catalog cloned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clone a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/channels": {
+      "get": {
+        "operationId": "CatalogsGatewayController_listChannels",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel assignments retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogChannelResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List channel assignments for a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "post": {
+        "description": "Maps a (business unit, channel) pair to the catalog. Each pair maps to exactly one catalog.",
+        "operationId": "CatalogsGatewayController_assignChannel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
             "schema": {
               "type": "string"
             }
@@ -6958,18 +7183,275 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SaveOptionsDto"
+                "$ref": "#/components/schemas/AssignCatalogChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Channel assigned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Catalog not found."
+          },
+          "409": {
+            "description": "This business unit + channel is already mapped to a catalog."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign a channel to a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/channels/{assignmentId}": {
+      "delete": {
+        "operationId": "CatalogsGatewayController_unassignChannel",
+        "parameters": [
+          {
+            "name": "assignmentId",
+            "required": true,
+            "in": "path",
+            "description": "Catalog-channel assignment ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel assignment removed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Assignment not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a channel assignment from a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/offerings": {
+      "get": {
+        "description": "Returns paginated, filtered, and sorted offerings for the catalog using server-stored table state.",
+        "operationId": "CatalogsGatewayController_getOfferingsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Offerings table retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingsTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get offerings table for a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "post": {
+        "operationId": "CatalogsGatewayController_createOffering",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOfferingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Offering created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an offering under a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/offerings/{offeringId}": {
+      "get": {
+        "description": "Returns offering with full details including options and variants.",
+        "operationId": "CatalogsGatewayController_findOfferingById",
+        "parameters": [
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Offering retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingDetailResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Offering not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an offering by ID",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogsGatewayController_updateOffering",
+        "parameters": [
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOfferingDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Options saved successfully.",
+            "description": "Offering updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemDetailResponseDto"
+                  "$ref": "#/components/schemas/SuccessResponseDto"
                 }
               }
             }
@@ -6978,7 +7460,7 @@
             "description": "Unauthorized."
           },
           "404": {
-            "description": "Item not found."
+            "description": "Offering not found."
           }
         },
         "security": [
@@ -6986,37 +7468,38 @@
             "bearer": []
           }
         ],
-        "summary": "Bulk save item options",
+        "summary": "Update an offering",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
-      }
-    },
-    "/commerce-api/items/{id}/variants/generate": {
-      "post": {
-        "description": "Generates variants based on the item options.",
-        "operationId": "ItemsGatewayController_generateVariants",
+      },
+      "delete": {
+        "operationId": "CatalogsGatewayController_deleteOffering",
         "parameters": [
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
-            "schema": {
-              "type": "string"
-            }
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "responses": {
-          "201": {
-            "description": "Variants generated successfully.",
+          "200": {
+            "description": "Offering deleted successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ItemVariantResponseDto"
-                  }
+                  "$ref": "#/components/schemas/SuccessResponseDto"
                 }
               }
             }
@@ -7025,7 +7508,7 @@
             "description": "Unauthorized."
           },
           "404": {
-            "description": "Item not found."
+            "description": "Offering not found."
           }
         },
         "security": [
@@ -7033,24 +7516,96 @@
             "bearer": []
           }
         ],
-        "summary": "Generate item variants",
+        "summary": "Delete an offering",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/items/{id}/variants": {
-      "get": {
-        "operationId": "ItemsGatewayController_listVariants",
+    "/commerce-api/catalogs/{id}/offerings/{offeringId}/variants": {
+      "post": {
+        "description": "Creates a single variant from an explicit option-value combination.",
+        "operationId": "CatalogsGatewayController_createOfferingVariant",
         "parameters": [
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
+            "description": "Catalog ID",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVariantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Variant created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingVariantResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Offering not found."
+          },
+          "409": {
+            "description": "A variant with this combination already exists."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an offering variant",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "get": {
+        "operationId": "CatalogsGatewayController_listOfferingVariants",
+        "parameters": [
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "responses": {
@@ -7061,7 +7616,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ItemVariantResponseDto"
+                    "$ref": "#/components/schemas/OfferingVariantResponseDto"
                   }
                 }
               }
@@ -7071,7 +7626,7 @@
             "description": "Unauthorized."
           },
           "404": {
-            "description": "Item not found."
+            "description": "Offering not found."
           }
         },
         "security": [
@@ -7079,15 +7634,15 @@
             "bearer": []
           }
         ],
-        "summary": "List item variants",
+        "summary": "List offering variants",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/items/{id}/variants/{variantId}": {
-      "delete": {
-        "operationId": "ItemsGatewayController_deleteVariant",
+    "/commerce-api/catalogs/{id}/offerings/{offeringId}/variants/{variantId}": {
+      "patch": {
+        "operationId": "CatalogsGatewayController_updateOfferingVariant",
         "parameters": [
           {
             "name": "variantId",
@@ -7102,7 +7657,79 @@
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
+            "description": "Catalog ID",
+            "schema": {}
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
+            "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVariantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Variant updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingVariantResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Variant not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an offering variant",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "delete": {
+        "operationId": "CatalogsGatewayController_deleteOfferingVariant",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
+          },
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
             "schema": {}
           }
         ],
@@ -7129,84 +7756,31 @@
             "bearer": []
           }
         ],
-        "summary": "Delete an item variant",
+        "summary": "Delete an offering variant",
         "tags": [
-          "Commerce - Items"
-        ]
-      },
-      "patch": {
-        "operationId": "ItemsGatewayController_updateVariant",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Item ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "variantId",
-            "required": true,
-            "in": "path",
-            "description": "Variant ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateVariantDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Variant updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItemVariantResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Variant not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update an item variant",
-        "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/items/{id}/modifiers": {
+    "/commerce-api/catalogs/{id}/offerings/{offeringId}/modifiers": {
       "get": {
-        "operationId": "ItemsGatewayController_listModifiers",
+        "operationId": "CatalogsGatewayController_listOfferingModifiers",
         "parameters": [
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
-            "schema": {
-              "type": "string"
-            }
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "responses": {
@@ -7217,7 +7791,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ItemModifierGroupResponseDto"
+                    "$ref": "#/components/schemas/OfferingModifierGroupResponseDto"
                   }
                 }
               }
@@ -7227,7 +7801,7 @@
             "description": "Unauthorized."
           },
           "404": {
-            "description": "Item not found."
+            "description": "Offering not found."
           }
         },
         "security": [
@@ -7235,23 +7809,30 @@
             "bearer": []
           }
         ],
-        "summary": "List modifier groups assigned to an item",
+        "summary": "List modifier groups assigned to an offering",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       },
       "put": {
-        "description": "Replaces all modifier group assignments for the item.",
-        "operationId": "ItemsGatewayController_saveModifiers",
+        "description": "Replaces all modifier group assignments for the offering.",
+        "operationId": "CatalogsGatewayController_saveOfferingModifiers",
         "parameters": [
+          {
+            "name": "offeringId",
+            "required": true,
+            "in": "path",
+            "description": "Offering ID",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Item ID",
-            "schema": {
-              "type": "string"
-            }
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -7259,7 +7840,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SaveItemModifiersDto"
+                "$ref": "#/components/schemas/SaveOfferingModifiersDto"
               }
             }
           }
@@ -7272,7 +7853,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ItemModifierGroupResponseDto"
+                    "$ref": "#/components/schemas/OfferingModifierGroupResponseDto"
                   }
                 }
               }
@@ -7282,7 +7863,7 @@
             "description": "Unauthorized."
           },
           "404": {
-            "description": "Item not found."
+            "description": "Offering not found."
           }
         },
         "security": [
@@ -7290,23 +7871,392 @@
             "bearer": []
           }
         ],
-        "summary": "Save modifier group assignments for an item",
+        "summary": "Save modifier group assignments for an offering",
         "tags": [
-          "Commerce - Items"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/modifier-groups": {
+    "/commerce-api/catalogs/{id}/variant-options": {
       "get": {
-        "description": "Returns all modifier groups for the specified business unit.",
-        "operationId": "ModifierGroupsGatewayController_list",
+        "operationId": "CatalogsGatewayController_listVariantOptions",
         "parameters": [
           {
-            "name": "buId",
+            "name": "id",
             "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Variant options retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VariantOptionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List variant options for a catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "post": {
+        "description": "Adds a reusable variant option and its values to a catalog.",
+        "operationId": "CatalogsGatewayController_createVariantOption",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVariantOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Variant option created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantOptionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a variant option",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/variant-options/select": {
+      "get": {
+        "operationId": "CatalogsGatewayController_selectVariantOptions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
             "in": "query",
-            "description": "Business unit ID",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/variant-options/{optionId}": {
+      "patch": {
+        "description": "Renames a variant option and/or reconciles its values. Values still used by variants cannot be removed.",
+        "operationId": "CatalogsGatewayController_updateVariantOption",
+        "parameters": [
+          {
+            "name": "optionId",
+            "required": true,
+            "in": "path",
+            "description": "Variant option ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
             "schema": {}
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVariantOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Variant option updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VariantOptionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Variant option not found."
+          },
+          "409": {
+            "description": "A removed value is still in use."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a variant option",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      },
+      "delete": {
+        "operationId": "CatalogsGatewayController_deleteVariantOption",
+        "parameters": [
+          {
+            "name": "optionId",
+            "required": true,
+            "in": "path",
+            "description": "Variant option ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Variant option deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Variant option not found."
+          },
+          "409": {
+            "description": "The variant option is still in use."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a variant option",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/modifiers": {
+      "get": {
+        "operationId": "CatalogsGatewayController_listModifierGroups",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7332,15 +8282,24 @@
             "bearer": []
           }
         ],
-        "summary": "List modifier groups for a business unit",
+        "summary": "List modifier groups for a catalog",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
         ]
       },
       "post": {
-        "description": "Creates a new modifier group. organizationId is resolved from the authenticated user.",
-        "operationId": "ModifierGroupsGatewayController_create",
-        "parameters": [],
+        "operationId": "CatalogsGatewayController_createModifierGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -7374,25 +8333,189 @@
             "bearer": []
           }
         ],
-        "summary": "Create a modifier group",
+        "summary": "Create a modifier group under a catalog",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/modifier-groups/{id}": {
+    "/commerce-api/catalogs/{id}/modifiers/select": {
       "get": {
-        "description": "Returns a single modifier group with its options.",
-        "operationId": "ModifierGroupsGatewayController_get",
+        "operationId": "CatalogsGatewayController_selectModifierGroups",
         "parameters": [
           {
             "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/catalogs/{id}/modifiers/{groupId}": {
+      "get": {
+        "operationId": "CatalogsGatewayController_getModifierGroup",
+        "parameters": [
+          {
+            "name": "groupId",
             "required": true,
             "in": "path",
             "description": "Modifier group ID",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "responses": {
@@ -7420,20 +8543,27 @@
         ],
         "summary": "Get a modifier group with options",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
         ]
       },
       "patch": {
-        "operationId": "ModifierGroupsGatewayController_update",
+        "operationId": "CatalogsGatewayController_updateModifierGroup",
         "parameters": [
           {
-            "name": "id",
+            "name": "groupId",
             "required": true,
             "in": "path",
             "description": "Modifier group ID",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -7471,20 +8601,27 @@
         ],
         "summary": "Update a modifier group",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
         ]
       },
       "delete": {
-        "operationId": "ModifierGroupsGatewayController_delete",
+        "operationId": "CatalogsGatewayController_deleteModifierGroup",
         "parameters": [
           {
-            "name": "id",
+            "name": "groupId",
             "required": true,
             "in": "path",
             "description": "Modifier group ID",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "responses": {
@@ -7512,23 +8649,30 @@
         ],
         "summary": "Delete a modifier group",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/modifier-groups/{id}/options": {
+    "/commerce-api/catalogs/{id}/modifiers/{groupId}/options": {
       "post": {
         "description": "Adds a new option to a modifier group.",
-        "operationId": "ModifierGroupsGatewayController_createOption",
+        "operationId": "CatalogsGatewayController_createModifierOption",
         "parameters": [
           {
-            "name": "id",
+            "name": "groupId",
             "required": true,
             "in": "path",
             "description": "Modifier group ID",
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -7566,23 +8710,14 @@
         ],
         "summary": "Create a modifier option",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
         ]
       }
     },
-    "/commerce-api/modifier-groups/{id}/options/{optionId}": {
+    "/commerce-api/catalogs/{id}/modifiers/{groupId}/options/{optionId}": {
       "patch": {
-        "operationId": "ModifierGroupsGatewayController_updateOption",
+        "operationId": "CatalogsGatewayController_updateModifierOption",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Modifier group ID",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "optionId",
             "required": true,
@@ -7591,6 +8726,20 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
+          },
+          {
+            "name": "groupId",
+            "required": true,
+            "in": "path",
+            "description": "Modifier group ID",
+            "schema": {}
           }
         ],
         "requestBody": {
@@ -7628,21 +8777,12 @@
         ],
         "summary": "Update a modifier option",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
         ]
       },
       "delete": {
-        "operationId": "ModifierGroupsGatewayController_deleteOption",
+        "operationId": "CatalogsGatewayController_deleteModifierOption",
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Modifier group ID",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "optionId",
             "required": true,
@@ -7651,6 +8791,20 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog ID",
+            "schema": {}
+          },
+          {
+            "name": "groupId",
+            "required": true,
+            "in": "path",
+            "description": "Modifier group ID",
+            "schema": {}
           }
         ],
         "responses": {
@@ -7678,7 +8832,295 @@
         ],
         "summary": "Delete a modifier option",
         "tags": [
-          "Commerce - Modifier Groups"
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/sales-channels/table": {
+      "get": {
+        "operationId": "SalesChannelsGatewayController_getTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Sales Channels"
+        ]
+      }
+    },
+    "/commerce-api/sales-channels/select": {
+      "get": {
+        "operationId": "SalesChannelsGatewayController_select",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search term to filter by label",
+            "schema": {
+              "example": "united",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "description": "Number of results to skip",
+            "schema": {
+              "default": 0,
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "values",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated values to fetch specific options",
+            "schema": {
+              "example": "1,2,3",
+              "type": "string"
+            }
+          },
+          {
+            "name": "excludeIds",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated IDs to exclude from results (already selected)",
+            "schema": {
+              "example": "5,10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "valueKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option value",
+            "schema": {
+              "default": "id",
+              "example": "id",
+              "type": "string"
+            }
+          },
+          {
+            "name": "labelKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option label",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "descriptionKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for option description",
+            "schema": {
+              "example": "description",
+              "type": "string"
+            }
+          },
+          {
+            "name": "additionalKeys",
+            "required": false,
+            "in": "query",
+            "description": "Comma-separated column names to include in option.additionals",
+            "schema": {
+              "example": "locationName,availableQuantity",
+              "type": "string"
+            }
+          },
+          {
+            "name": "groupIdKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name for group ID",
+            "schema": {
+              "example": "regionId",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderByKey",
+            "required": false,
+            "in": "query",
+            "description": "Column name to sort options by",
+            "schema": {
+              "default": "name",
+              "example": "name",
+              "type": "string"
+            }
+          },
+          {
+            "name": "orderDirection",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction for options",
+            "schema": {
+              "default": "asc",
+              "example": "asc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Sales Channels"
+        ]
+      }
+    },
+    "/commerce-api/sales-channels": {
+      "post": {
+        "operationId": "SalesChannelsGatewayController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSalesChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Sales Channels"
+        ]
+      }
+    },
+    "/commerce-api/sales-channels/{id}": {
+      "get": {
+        "operationId": "SalesChannelsGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Sales Channels"
+        ]
+      },
+      "patch": {
+        "operationId": "SalesChannelsGatewayController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSalesChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Sales Channels"
+        ]
+      },
+      "delete": {
+        "operationId": "SalesChannelsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Sales Channels"
         ]
       }
     },
@@ -7793,588 +9235,6 @@
         ],
         "tags": [
           "Commerce - Orders"
-        ]
-      }
-    },
-    "/commerce-api/price-lists/table": {
-      "get": {
-        "description": "Returns paginated, filtered, and sorted price lists using server-stored table state.",
-        "operationId": "PriceListsGatewayController_table",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Price lists table retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PriceListTableResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get price lists table",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      }
-    },
-    "/commerce-api/price-lists/select": {
-      "get": {
-        "description": "Returns paginated price list options for select dropdowns.",
-        "operationId": "PriceListsGatewayController_select",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "description": "Search term to filter by name",
-            "schema": {}
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of results",
-            "schema": {}
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "Number of results to skip",
-            "schema": {}
-          },
-          {
-            "name": "values",
-            "required": false,
-            "in": "query",
-            "description": "Comma-separated IDs to fetch specific options",
-            "schema": {}
-          },
-          {
-            "name": "excludeIds",
-            "required": false,
-            "in": "query",
-            "description": "Comma-separated IDs to exclude",
-            "schema": {}
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Price list select options retrieved successfully."
-          },
-          "401": {
-            "description": "Unauthorized."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get price list select options",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      }
-    },
-    "/commerce-api/price-lists/item-variants/select": {
-      "get": {
-        "description": "Returns paginated item variant options eligible for price list assignment.",
-        "operationId": "PriceListsGatewayController_selectItemVariants",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "description": "Search term to filter by name or SKU",
-            "schema": {}
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "description": "Maximum number of results",
-            "schema": {}
-          },
-          {
-            "name": "offset",
-            "required": false,
-            "in": "query",
-            "description": "Number of results to skip",
-            "schema": {}
-          },
-          {
-            "name": "values",
-            "required": false,
-            "in": "query",
-            "description": "Comma-separated IDs to fetch specific options",
-            "schema": {}
-          },
-          {
-            "name": "excludeIds",
-            "required": false,
-            "in": "query",
-            "description": "Comma-separated IDs to exclude",
-            "schema": {}
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Item variant select options retrieved successfully."
-          },
-          "401": {
-            "description": "Unauthorized."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get item variant select options eligible for price lists",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      }
-    },
-    "/commerce-api/price-lists/terminals/{terminalId}": {
-      "get": {
-        "operationId": "PriceListsGatewayController_listTerminalPriceLists",
-        "parameters": [
-          {
-            "name": "terminalId",
-            "required": true,
-            "in": "path",
-            "description": "POS terminal ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Terminal price list assignments retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TerminalPriceListResponseDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "POS terminal not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List price list assignments for a POS terminal",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      },
-      "put": {
-        "description": "Replaces all price list assignments for the terminal with the provided set.",
-        "operationId": "PriceListsGatewayController_saveTerminalPriceLists",
-        "parameters": [
-          {
-            "name": "terminalId",
-            "required": true,
-            "in": "path",
-            "description": "POS terminal ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SaveTerminalPriceListsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Terminal price list assignments saved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "POS terminal or price list not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Replace price list assignments for a POS terminal",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      }
-    },
-    "/commerce-api/price-lists/terminals/{terminalId}/sellable-items": {
-      "get": {
-        "description": "Returns resolved sellable inventory items for a terminal from its assigned price lists.",
-        "operationId": "PriceListsGatewayController_listTerminalSellableItems",
-        "parameters": [
-          {
-            "name": "terminalId",
-            "required": true,
-            "in": "path",
-            "description": "POS terminal ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Sellable items retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TerminalSellableItemResponseDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "POS terminal not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List sellable items for a POS terminal",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      }
-    },
-    "/commerce-api/price-lists/{id}/items": {
-      "get": {
-        "operationId": "PriceListsGatewayController_listPriceListItems",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Price list ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Price list items retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PriceListItemResponseDto"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Price list not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "List inventory item assignments for a price list",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      },
-      "put": {
-        "description": "Replaces all inventory item assignments for the price list with the provided set.",
-        "operationId": "PriceListsGatewayController_savePriceListItems",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Price list ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SavePriceListItemsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Price list items saved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Price list or item not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Replace inventory item assignments for a price list",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      }
-    },
-    "/commerce-api/price-lists/{id}": {
-      "get": {
-        "operationId": "PriceListsGatewayController_findById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Price list ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Price list retrieved successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PriceListResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Price list not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a price list by ID",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      },
-      "patch": {
-        "operationId": "PriceListsGatewayController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Price list ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdatePriceListDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Price list updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Price list not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Update a price list",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      },
-      "delete": {
-        "operationId": "PriceListsGatewayController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Price list ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Price list deleted successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Price list not found."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Delete a price list",
-        "tags": [
-          "Commerce - Price Lists"
-        ]
-      }
-    },
-    "/commerce-api/price-lists": {
-      "post": {
-        "description": "Creates a new price list for the business unit. organizationId is resolved from the authenticated user.",
-        "operationId": "PriceListsGatewayController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreatePriceListDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Price list created successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PriceListResponseDto"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input data."
-          },
-          "401": {
-            "description": "Unauthorized."
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Create a price list",
-        "tags": [
-          "Commerce - Price Lists"
         ]
       }
     },
@@ -15026,6 +15886,14 @@
           "uomId": {
             "type": "string",
             "description": "Unit of measure ID"
+          },
+          "purchaseTaxGroupId": {
+            "type": "string",
+            "description": "Purchase tax group ID"
+          },
+          "hsnCode": {
+            "type": "string",
+            "description": "HSN code for tax reporting"
           }
         },
         "required": [
@@ -15152,6 +16020,16 @@
               "fefo"
             ],
             "default": "none"
+          },
+          "purchaseTaxGroupId": {
+            "type": "object",
+            "description": "Purchase tax group ID",
+            "nullable": true
+          },
+          "hsnCode": {
+            "type": "object",
+            "description": "HSN code for tax reporting",
+            "nullable": true
           }
         }
       },
@@ -15472,60 +16350,36 @@
           }
         }
       },
-      "ItemResponseDto": {
+      "CatalogResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Item ID"
+            "description": "Catalog ID"
           },
           "businessUnitId": {
             "type": "string",
             "description": "Business unit ID"
           },
-          "categoryId": {
-            "type": "object",
-            "description": "Category ID",
-            "nullable": true
-          },
-          "categoryName": {
-            "type": "object",
-            "description": "Category name",
-            "nullable": true
-          },
-          "type": {
-            "type": "string",
-            "description": "Item type",
-            "enum": [
-              "PRODUCT",
-              "SERVICE"
-            ]
-          },
-          "code": {
-            "type": "string",
-            "description": "Item code"
-          },
           "name": {
             "type": "string",
-            "description": "Item name"
+            "description": "Catalog name"
           },
-          "description": {
-            "type": "object",
-            "description": "Item description",
-            "nullable": true
+          "currencyCode": {
+            "type": "string",
+            "description": "ISO 4217 currency code (snapshot of the BU currency at creation)"
           },
-          "taxGroupId": {
-            "type": "object",
-            "description": "Tax group ID",
-            "nullable": true
-          },
-          "isAvailable": {
+          "taxInclusive": {
             "type": "boolean",
-            "description": "Whether the item is available"
+            "description": "Whether catalog prices are tax-inclusive"
           },
-          "sortOrder": {
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the catalog is active"
+          },
+          "channelCount": {
             "type": "number",
-            "description": "Display sort order"
+            "description": "Number of (business unit, channel) pairs this catalog is assigned to"
           },
           "createdAt": {
             "type": "string",
@@ -15539,22 +16393,22 @@
         "required": [
           "id",
           "businessUnitId",
-          "type",
-          "code",
           "name",
-          "isAvailable",
-          "sortOrder",
+          "currencyCode",
+          "taxInclusive",
+          "isActive",
+          "channelCount",
           "createdAt",
           "updatedAt"
         ]
       },
-      "ItemsTableResponseDto": {
+      "CatalogTableResponseDto": {
         "type": "object",
         "properties": {
           "result": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ItemResponseDto"
+              "$ref": "#/components/schemas/CatalogResponseDto"
             }
           },
           "count": {
@@ -15575,54 +16429,358 @@
           "state"
         ]
       },
-      "CreateItemDto": {
+      "CreateCatalogDto": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "Catalog name"
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether catalog prices are tax-inclusive",
+            "default": false
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the catalog is active",
+            "default": true
+          },
+          "channelIds": {
+            "description": "Sales channel IDs to map to this catalog",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Resource created successfully"
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "data"
+        ]
+      },
+      "UpdateCatalogDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Catalog name"
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether catalog prices are tax-inclusive"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the catalog is active"
+          },
+          "channelIds": {
+            "description": "Sales channel IDs to map to this catalog",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CatalogChannelResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Catalog-channel assignment ID"
+          },
+          "catalogId": {
+            "type": "string",
+            "description": "Catalog ID"
+          },
+          "businessUnitId": {
+            "type": "string",
+            "description": "Business unit ID this assignment applies to"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Sales channel ID"
+          },
+          "channelName": {
+            "type": "string",
+            "description": "Sales channel name"
+          },
+          "channelKind": {
+            "type": "string",
+            "description": "Sales channel kind"
+          }
+        },
+        "required": [
+          "id",
+          "catalogId",
+          "businessUnitId",
+          "channelId",
+          "channelName",
+          "channelKind"
+        ]
+      },
+      "AssignCatalogChannelDto": {
+        "type": "object",
+        "properties": {
+          "businessUnitId": {
+            "type": "string",
+            "description": "Business unit ID to map (must be the active business unit)"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Sales channel ID to assign"
+          }
+        },
+        "required": [
+          "businessUnitId",
+          "channelId"
+        ]
+      },
+      "OfferingResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Offering ID"
+          },
+          "businessUnitId": {
+            "type": "string",
+            "description": "Business unit ID"
+          },
+          "categoryId": {
+            "type": "object",
+            "description": "Category ID",
+            "nullable": true
+          },
+          "categoryName": {
+            "type": "object",
+            "description": "Category name",
+            "nullable": true
+          },
+          "fulfilmentType": {
+            "type": "string",
+            "description": "Fulfilment type",
+            "enum": [
+              "STOCK",
+              "SERVICE",
+              "COMPOSITE"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Offering name"
+          },
+          "description": {
+            "type": "object",
+            "description": "Offering description",
+            "nullable": true
+          },
+          "salesTaxGroupId": {
+            "type": "object",
+            "description": "Sales tax group ID",
+            "nullable": true
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "Catalog currency code (ISO 4217)"
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "Whether the offering is available"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Display sort order"
+          },
+          "modifierGroupCount": {
+            "type": "number",
+            "description": "Number of modifier groups attached to the offering"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "id",
+          "businessUnitId",
+          "fulfilmentType",
+          "name",
+          "currencyCode",
+          "isAvailable",
+          "sortOrder",
+          "modifierGroupCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "OfferingsTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OfferingResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "VariantComponentInput": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID drawn down by this variant"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity of the inventory item (in its stocking UOM)",
+            "example": 1
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "quantity"
+        ]
+      },
+      "DefaultVariantInput": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "description": "SKU code (auto-derived when omitted)"
+          },
+          "price": {
+            "description": "Variant price in the catalog currency (major units)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "Whether the variant is available",
+            "default": true
+          },
+          "components": {
+            "description": "Inventory components (required for STOCK/COMPOSITE, none for SERVICE)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantComponentInput"
+            }
+          }
+        },
+        "required": [
+          "price"
+        ]
+      },
+      "CreateOfferingDto": {
+        "type": "object",
+        "properties": {
+          "catalogId": {
+            "type": "string",
+            "description": "Catalog ID this offering belongs to"
+          },
           "categoryId": {
             "type": "string",
             "description": "Category ID"
           },
-          "type": {
+          "fulfilmentType": {
             "type": "string",
-            "description": "Item type",
+            "description": "Fulfilment type",
             "enum": [
-              "PRODUCT",
-              "SERVICE"
+              "STOCK",
+              "SERVICE",
+              "COMPOSITE"
             ]
-          },
-          "code": {
-            "type": "string",
-            "description": "Item code (auto-generated if not provided)"
           },
           "name": {
             "type": "string",
-            "description": "Item name"
+            "description": "Offering name"
           },
           "description": {
             "type": "string",
-            "description": "Item description"
+            "description": "Offering description"
           },
-          "taxGroupId": {
+          "salesTaxGroupId": {
             "type": "string",
-            "description": "Tax group ID"
+            "description": "Sales tax group ID"
           },
           "isAvailable": {
             "type": "boolean",
-            "description": "Whether the item is available",
+            "description": "Whether the offering is available",
             "default": true
           },
           "sortOrder": {
             "type": "number",
             "description": "Display sort order",
             "default": 0
+          },
+          "variantOptionIds": {
+            "description": "Variant option IDs that form the offering axes",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultVariant": {
+            "description": "Default variant created at offering creation (single-variant types only)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DefaultVariantInput"
+              }
+            ]
           }
         },
         "required": [
-          "type",
+          "catalogId",
+          "fulfilmentType",
           "name"
         ]
       },
-      "ItemOptionValueResponseDto": {
+      "OfferingOptionValueResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -15644,7 +16802,7 @@
           "sortOrder"
         ]
       },
-      "ItemOptionResponseDto": {
+      "OfferingOptionResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -15663,7 +16821,7 @@
             "description": "Option values",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ItemOptionValueResponseDto"
+              "$ref": "#/components/schemas/OfferingOptionValueResponseDto"
             }
           }
         },
@@ -15674,7 +16832,29 @@
           "values"
         ]
       },
-      "ItemVariantResponseDto": {
+      "VariantComponentResponseDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID drawn down by this variant"
+          },
+          "inventoryItemName": {
+            "type": "object",
+            "description": "Inventory item name",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity of the inventory item (in its stocking UOM)"
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "quantity"
+        ]
+      },
+      "OfferingVariantResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -15690,16 +16870,23 @@
             "description": "Variant name"
           },
           "price": {
-            "type": "string",
-            "description": "Variant price"
+            "description": "Variant price in the catalog currency (major units)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           },
           "isAvailable": {
             "type": "boolean",
             "description": "Whether the variant is available"
           },
-          "manageInventory": {
-            "type": "boolean",
-            "description": "Whether inventory is managed"
+          "components": {
+            "description": "Inventory components drawn down on sale",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantComponentResponseDto"
+            }
           },
           "sortOrder": {
             "type": "number",
@@ -15727,19 +16914,19 @@
           "name",
           "price",
           "isAvailable",
-          "manageInventory",
+          "components",
           "sortOrder",
           "optionValueIds",
           "createdAt",
           "updatedAt"
         ]
       },
-      "ItemDetailResponseDto": {
+      "OfferingDetailResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Item ID"
+            "description": "Offering ID"
           },
           "businessUnitId": {
             "type": "string",
@@ -15755,52 +16942,58 @@
             "description": "Category name",
             "nullable": true
           },
-          "type": {
-            "type": "string",
-            "description": "Item type",
-            "enum": [
-              "PRODUCT",
-              "SERVICE"
-            ]
+          "categoryPath": {
+            "type": "object",
+            "description": "Human-readable category breadcrumb path",
+            "nullable": true
           },
-          "code": {
+          "fulfilmentType": {
             "type": "string",
-            "description": "Item code"
+            "description": "Fulfilment type",
+            "enum": [
+              "STOCK",
+              "SERVICE",
+              "COMPOSITE"
+            ]
           },
           "name": {
             "type": "string",
-            "description": "Item name"
+            "description": "Offering name"
           },
           "description": {
             "type": "object",
-            "description": "Item description",
+            "description": "Offering description",
             "nullable": true
           },
-          "taxGroupId": {
+          "salesTaxGroupId": {
             "type": "object",
-            "description": "Tax group ID",
+            "description": "Sales tax group ID",
             "nullable": true
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "Catalog currency code (ISO 4217)"
           },
           "isAvailable": {
             "type": "boolean",
-            "description": "Whether the item is available"
+            "description": "Whether the offering is available"
           },
           "sortOrder": {
             "type": "number",
             "description": "Display sort order"
           },
           "options": {
-            "description": "Item options",
+            "description": "Offering options",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ItemOptionResponseDto"
+              "$ref": "#/components/schemas/OfferingOptionResponseDto"
             }
           },
           "variants": {
-            "description": "Item variants",
+            "description": "Offering variants",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ItemVariantResponseDto"
+              "$ref": "#/components/schemas/OfferingVariantResponseDto"
             }
           },
           "createdAt": {
@@ -15815,9 +17008,9 @@
         "required": [
           "id",
           "businessUnitId",
-          "type",
-          "code",
+          "fulfilmentType",
           "name",
+          "currencyCode",
           "isAvailable",
           "sortOrder",
           "options",
@@ -15826,36 +17019,44 @@
           "updatedAt"
         ]
       },
-      "UpdateItemDto": {
+      "UpdateOfferingDto": {
         "type": "object",
         "properties": {
           "categoryId": {
             "type": "object",
             "description": "Category ID"
           },
-          "type": {
+          "variantOptionIds": {
+            "description": "Variant option (axis) IDs this offering varies along",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fulfilmentType": {
             "type": "string",
-            "description": "Updated item type",
+            "description": "Fulfilment type",
             "enum": [
-              "PRODUCT",
-              "SERVICE"
+              "STOCK",
+              "SERVICE",
+              "COMPOSITE"
             ]
           },
           "name": {
             "type": "string",
-            "description": "Updated item name"
+            "description": "Updated offering name"
           },
           "description": {
             "type": "object",
             "description": "Updated description"
           },
-          "taxGroupId": {
+          "salesTaxGroupId": {
             "type": "object",
-            "description": "Tax group ID"
+            "description": "Sales tax group ID"
           },
           "isAvailable": {
             "type": "boolean",
-            "description": "Whether the item is available"
+            "description": "Whether the offering is available"
           },
           "sortOrder": {
             "type": "number",
@@ -15863,53 +17064,44 @@
           }
         }
       },
-      "OptionValueDto": {
+      "CreateVariantDto": {
         "type": "object",
         "properties": {
-          "value": {
-            "type": "string",
-            "description": "Value text",
-            "example": "Small"
-          }
-        },
-        "required": [
-          "value"
-        ]
-      },
-      "SaveOptionDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Option name",
-            "example": "Size"
+          "optionValueIds": {
+            "description": "Selected option value IDs (empty when the offering has no options)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
-          "values": {
-            "description": "Option values",
+          "components": {
+            "description": "Inventory components (required for STOCK/COMPOSITE, none for SERVICE)",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OptionValueDto"
+              "$ref": "#/components/schemas/VariantComponentInput"
             }
+          },
+          "price": {
+            "description": "Variant price in the catalog currency (major units)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "isAvailable": {
+            "type": "boolean",
+            "description": "Whether the variant is available",
+            "default": true
+          },
+          "sku": {
+            "type": "string",
+            "description": "SKU code (auto-derived when omitted)"
           }
         },
         "required": [
-          "name",
-          "values"
-        ]
-      },
-      "SaveOptionsDto": {
-        "type": "object",
-        "properties": {
-          "options": {
-            "description": "Array of options to save",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SaveOptionDto"
-            }
-          }
-        },
-        "required": [
-          "options"
+          "optionValueIds",
+          "price"
         ]
       },
       "UpdateVariantDto": {
@@ -15924,17 +17116,23 @@
             "description": "Updated variant name"
           },
           "price": {
-            "type": "object",
-            "description": "Updated variant price",
-            "example": 12
+            "description": "Updated variant price (catalog currency, major units)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           },
           "isAvailable": {
             "type": "boolean",
             "description": "Whether the variant is available"
           },
-          "manageInventory": {
-            "type": "boolean",
-            "description": "Whether to manage inventory"
+          "components": {
+            "description": "Inventory components (required for STOCK/COMPOSITE, none for SERVICE)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantComponentInput"
+            }
           },
           "sortOrder": {
             "type": "number",
@@ -15942,7 +17140,7 @@
           }
         }
       },
-      "ItemModifierOptionResponseDto": {
+      "OfferingModifierOptionResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -15979,7 +17177,7 @@
           "sortOrder"
         ]
       },
-      "ItemModifierGroupResponseDto": {
+      "OfferingModifierGroupResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -16010,7 +17208,7 @@
             "description": "Modifier options",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ItemModifierOptionResponseDto"
+              "$ref": "#/components/schemas/OfferingModifierOptionResponseDto"
             }
           }
         },
@@ -16022,11 +17220,11 @@
           "options"
         ]
       },
-      "SaveItemModifiersDto": {
+      "SaveOfferingModifiersDto": {
         "type": "object",
         "properties": {
           "groupIds": {
-            "description": "Array of modifier group IDs to assign to the item",
+            "description": "Array of modifier group IDs to assign to the offering",
             "type": "array",
             "items": {
               "type": "string"
@@ -16036,6 +17234,126 @@
         "required": [
           "groupIds"
         ]
+      },
+      "VariantOptionValueResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Variant option value ID"
+          },
+          "value": {
+            "type": "string",
+            "description": "Value text"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Sort order"
+          },
+          "referenced": {
+            "type": "boolean",
+            "description": "Whether this value is referenced by a variant and cannot be deleted"
+          }
+        },
+        "required": [
+          "id",
+          "value",
+          "sortOrder",
+          "referenced"
+        ]
+      },
+      "VariantOptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Variant option ID"
+          },
+          "catalogId": {
+            "type": "string",
+            "description": "Catalog ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Variant option name"
+          },
+          "sortOrder": {
+            "type": "number",
+            "description": "Sort order"
+          },
+          "values": {
+            "description": "Variant option values",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantOptionValueResponseDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          }
+        },
+        "required": [
+          "id",
+          "catalogId",
+          "name",
+          "sortOrder",
+          "values",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateVariantOptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Variant option name",
+            "example": "Size"
+          },
+          "values": {
+            "description": "Variant option values",
+            "example": [
+              "S",
+              "M",
+              "L"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "values"
+        ]
+      },
+      "UpdateVariantOptionDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Variant option name",
+            "example": "Size"
+          },
+          "values": {
+            "description": "Variant option values",
+            "example": [
+              "S",
+              "M",
+              "L"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       },
       "ModifierOptionResponseDto": {
         "type": "object",
@@ -16268,6 +17586,55 @@
           }
         }
       },
+      "CreateSalesChannelDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code within the org",
+            "example": "IN_STORE"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name",
+            "example": "In Store"
+          },
+          "kind": {
+            "type": "string",
+            "description": "Canonical channel kind — fixed enum used as the integration identity",
+            "enum": [
+              "IN_STORE",
+              "ONLINE",
+              "ZOMATO",
+              "SWIGGY",
+              "OTHER"
+            ]
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the channel is selectable",
+            "default": true
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "kind"
+        ]
+      },
+      "UpdateSalesChannelDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable name"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the channel is selectable"
+          }
+        }
+      },
       "CreateOrderItemModifierDto": {
         "type": "object",
         "properties": {
@@ -16300,9 +17667,9 @@
       "CreateOrderItemDto": {
         "type": "object",
         "properties": {
-          "variantId": {
+          "offeringVariantId": {
             "type": "string",
-            "description": "Item variant ID"
+            "description": "Offering variant ID"
           },
           "quantity": {
             "type": "number",
@@ -16322,7 +17689,7 @@
           }
         },
         "required": [
-          "variantId",
+          "offeringVariantId",
           "quantity"
         ]
       },
@@ -16347,6 +17714,10 @@
               "ONLINE",
               "WALK_IN"
             ]
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Sales channel ID used for catalog price resolution"
           },
           "customerId": {
             "type": "string",
@@ -16422,418 +17793,6 @@
           "status"
         ]
       },
-      "PriceListResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Price list ID"
-          },
-          "organizationId": {
-            "type": "string",
-            "description": "Organization ID"
-          },
-          "businessUnitId": {
-            "type": "string",
-            "description": "Business unit ID"
-          },
-          "name": {
-            "type": "string",
-            "description": "Price list name",
-            "example": "Lunch Menu"
-          },
-          "code": {
-            "type": "string",
-            "description": "Price list code",
-            "example": "PL-LUNCH"
-          },
-          "description": {
-            "type": "object",
-            "description": "Price list description",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether price list is active"
-          },
-          "assignedItemsCount": {
-            "type": "number",
-            "description": "Number of assigned inventory items"
-          },
-          "assignedTerminalsCount": {
-            "type": "number",
-            "description": "Number of assigned terminals"
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "ISO timestamp of creation"
-          },
-          "updatedAt": {
-            "type": "string",
-            "description": "ISO timestamp of last update"
-          }
-        },
-        "required": [
-          "id",
-          "organizationId",
-          "businessUnitId",
-          "name",
-          "code",
-          "isActive",
-          "assignedItemsCount",
-          "assignedTerminalsCount",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "PriceListTableResponseDto": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PriceListResponseDto"
-            }
-          },
-          "count": {
-            "type": "number"
-          },
-          "state": {
-            "type": "object",
-            "description": "Current active filter/sort/visibility state"
-          },
-          "activeViewId": {
-            "type": "object",
-            "nullable": true
-          }
-        },
-        "required": [
-          "result",
-          "count",
-          "state"
-        ]
-      },
-      "TerminalPriceListResponseDto": {
-        "type": "object",
-        "properties": {
-          "terminalId": {
-            "type": "string",
-            "description": "Terminal ID"
-          },
-          "priceListId": {
-            "type": "string",
-            "description": "Price list ID"
-          },
-          "priceListName": {
-            "type": "string",
-            "description": "Price list name"
-          },
-          "priceListCode": {
-            "type": "string",
-            "description": "Price list code"
-          },
-          "priority": {
-            "type": "number",
-            "description": "Price list merge priority"
-          },
-          "isDefault": {
-            "type": "boolean",
-            "description": "Whether this is the terminal default price list"
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "ISO timestamp of creation"
-          },
-          "updatedAt": {
-            "type": "string",
-            "description": "ISO timestamp of last update"
-          }
-        },
-        "required": [
-          "terminalId",
-          "priceListId",
-          "priceListName",
-          "priceListCode",
-          "priority",
-          "isDefault",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "TerminalPriceListAssignmentDto": {
-        "type": "object",
-        "properties": {
-          "priceListId": {
-            "type": "string",
-            "description": "Price list ID"
-          },
-          "priority": {
-            "type": "number",
-            "description": "Priority order for price list merge",
-            "default": 0
-          },
-          "isDefault": {
-            "type": "boolean",
-            "description": "Whether this assignment is default",
-            "default": false
-          }
-        },
-        "required": [
-          "priceListId"
-        ]
-      },
-      "SaveTerminalPriceListsDto": {
-        "type": "object",
-        "properties": {
-          "priceLists": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TerminalPriceListAssignmentDto"
-            }
-          }
-        },
-        "required": [
-          "priceLists"
-        ]
-      },
-      "TerminalSellableItemResponseDto": {
-        "type": "object",
-        "properties": {
-          "terminalId": {
-            "type": "string",
-            "description": "Terminal ID"
-          },
-          "priceListId": {
-            "type": "string",
-            "description": "Price list ID from which item is resolved"
-          },
-          "priceListName": {
-            "type": "string",
-            "description": "Price list name from which item is resolved"
-          },
-          "itemVariantId": {
-            "type": "string",
-            "description": "Item variant ID"
-          },
-          "itemVariantSku": {
-            "type": "string",
-            "description": "Item variant SKU"
-          },
-          "itemVariantName": {
-            "type": "string",
-            "description": "Item variant name"
-          },
-          "itemId": {
-            "type": "string",
-            "description": "Parent item ID"
-          },
-          "itemName": {
-            "type": "string",
-            "description": "Parent item name"
-          },
-          "basePrice": {
-            "type": "string",
-            "description": "Base price in minor units (bigint serialized as string)"
-          },
-          "categoryName": {
-            "type": "object",
-            "description": "Category name",
-            "nullable": true
-          },
-          "priceOverride": {
-            "type": "object",
-            "description": "Price override in minor units (bigint serialized as string)",
-            "nullable": true
-          },
-          "priority": {
-            "type": "number",
-            "description": "Resolved price list priority"
-          },
-          "sortOrder": {
-            "type": "number",
-            "description": "Resolved price list item sort order"
-          }
-        },
-        "required": [
-          "terminalId",
-          "priceListId",
-          "priceListName",
-          "itemVariantId",
-          "itemVariantSku",
-          "itemVariantName",
-          "itemId",
-          "itemName",
-          "basePrice",
-          "priority",
-          "sortOrder"
-        ]
-      },
-      "PriceListItemResponseDto": {
-        "type": "object",
-        "properties": {
-          "priceListId": {
-            "type": "string",
-            "description": "Price list ID"
-          },
-          "itemVariantId": {
-            "type": "string",
-            "description": "Item variant ID"
-          },
-          "itemVariantSku": {
-            "type": "string",
-            "description": "Item variant SKU"
-          },
-          "itemVariantName": {
-            "type": "string",
-            "description": "Item variant name"
-          },
-          "itemId": {
-            "type": "string",
-            "description": "Parent item ID"
-          },
-          "itemName": {
-            "type": "string",
-            "description": "Parent item name"
-          },
-          "basePrice": {
-            "type": "string",
-            "description": "Base price in minor units (bigint serialized as string)"
-          },
-          "categoryName": {
-            "type": "object",
-            "description": "Category name",
-            "nullable": true
-          },
-          "sortOrder": {
-            "type": "number",
-            "description": "Sort order"
-          },
-          "isVisible": {
-            "type": "boolean",
-            "description": "Whether item is visible"
-          },
-          "priceOverride": {
-            "type": "object",
-            "description": "Price override in minor units (bigint serialized as string)",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "ISO timestamp of creation"
-          },
-          "updatedAt": {
-            "type": "string",
-            "description": "ISO timestamp of last update"
-          }
-        },
-        "required": [
-          "priceListId",
-          "itemVariantId",
-          "itemVariantSku",
-          "itemVariantName",
-          "itemId",
-          "itemName",
-          "basePrice",
-          "sortOrder",
-          "isVisible",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "PriceListItemAssignmentDto": {
-        "type": "object",
-        "properties": {
-          "itemVariantId": {
-            "type": "string",
-            "description": "Item variant ID"
-          },
-          "sortOrder": {
-            "type": "number",
-            "description": "Sort order",
-            "default": 0
-          },
-          "isVisible": {
-            "type": "boolean",
-            "description": "Whether the item is visible on POS terminal",
-            "default": true
-          },
-          "priceOverride": {
-            "type": "object",
-            "description": "Price override for this price list item (minor units)",
-            "nullable": true
-          }
-        },
-        "required": [
-          "itemVariantId"
-        ]
-      },
-      "SavePriceListItemsDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PriceListItemAssignmentDto"
-            }
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "CreatePriceListDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Price list name",
-            "example": "Lunch Menu"
-          },
-          "code": {
-            "type": "string",
-            "description": "Price list code",
-            "example": "PL-LUNCH"
-          },
-          "description": {
-            "type": "string",
-            "description": "Price list description",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the price list is active",
-            "default": true
-          }
-        },
-        "required": [
-          "name",
-          "code"
-        ]
-      },
-      "UpdatePriceListDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Price list name",
-            "example": "Lunch Menu"
-          },
-          "code": {
-            "type": "string",
-            "description": "Price list code",
-            "example": "PL-LUNCH"
-          },
-          "description": {
-            "type": "string",
-            "description": "Price list description",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the price list is active"
-          }
-        }
-      },
       "PosTerminalResponseDto": {
         "type": "object",
         "properties": {
@@ -16871,6 +17830,11 @@
           "locationPath": {
             "type": "object",
             "description": "Human-readable breadcrumb of the location path",
+            "nullable": true
+          },
+          "catalogId": {
+            "type": "object",
+            "description": "Catalog this terminal sells from",
             "nullable": true
           },
           "description": {
@@ -16947,6 +17911,10 @@
             "type": "string",
             "description": "Linked POS storage location ID"
           },
+          "catalogId": {
+            "type": "string",
+            "description": "Catalog this terminal sells from"
+          },
           "description": {
             "type": "string",
             "description": "Terminal description",
@@ -16980,6 +17948,10 @@
           "locationId": {
             "type": "string",
             "description": "Linked POS storage location ID"
+          },
+          "catalogId": {
+            "type": "string",
+            "description": "Catalog this terminal sells from"
           },
           "description": {
             "type": "string",

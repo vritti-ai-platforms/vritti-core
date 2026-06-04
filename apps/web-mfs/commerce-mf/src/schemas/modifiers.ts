@@ -1,5 +1,5 @@
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
-import type { ModifierGroupData, ModifierOptionData } from './items';
+import type { ModifierGroupData, ModifierOptionData } from './offerings';
 
 export const createModifierGroupSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),

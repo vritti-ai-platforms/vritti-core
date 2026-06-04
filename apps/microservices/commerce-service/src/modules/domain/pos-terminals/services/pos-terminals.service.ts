@@ -91,6 +91,7 @@ export class PosTerminalsService {
       name: data.name,
       code: data.code,
       locationId: data.locationId,
+      catalogId: data.catalogId ?? null,
       description: data.description || null,
       isActive: data.isActive ?? true,
     });

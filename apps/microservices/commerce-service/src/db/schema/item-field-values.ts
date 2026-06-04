@@ -2,7 +2,7 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { text, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { itemFieldDefinitions } from './item-field-definitions';
-import { items } from './items';
+import { offerings } from './offerings';
 
 export const itemFieldValues = coreSchema.table(
   'item_field_values',
@@ -11,7 +11,7 @@ export const itemFieldValues = coreSchema.table(
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     itemId: uuid('item_id')
       .notNull()
-      .references(() => items.id, { onDelete: 'cascade' }),
+      .references(() => offerings.id, { onDelete: 'cascade' }),
     fieldDefinitionId: uuid('field_definition_id')
       .notNull()
       .references(() => itemFieldDefinitions.id, { onDelete: 'cascade' }),

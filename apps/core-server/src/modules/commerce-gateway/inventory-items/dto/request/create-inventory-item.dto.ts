@@ -19,7 +19,10 @@ export class CreateInventoryItemDto {
   })
   code: string;
 
-  @ApiProperty({ description: 'Item type', enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] })
+  @ApiProperty({
+    description: 'Item type',
+    enum: ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'],
+  })
   @IsEnum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'])
   type: string;
 
@@ -31,7 +34,11 @@ export class CreateInventoryItemDto {
   @IsEnum(['quantity', 'lot', 'lot_serial', 'serial'])
   tracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
 
-  @ApiPropertyOptional({ description: 'Pick strategy for lot/serial tracked items', enum: ['none', 'fifo', 'fefo'], default: 'none' })
+  @ApiPropertyOptional({
+    description: 'Pick strategy for lot/serial tracked items',
+    enum: ['none', 'fifo', 'fefo'],
+    default: 'none',
+  })
   @IsOptional()
   @IsEnum(['none', 'fifo', 'fefo'])
   pickStrategy?: 'none' | 'fifo' | 'fefo';
@@ -49,4 +56,15 @@ export class CreateInventoryItemDto {
   @ApiProperty({ description: 'Unit of measure ID' })
   @IsUUID()
   uomId: string;
+
+  @ApiPropertyOptional({ description: 'Purchase tax group ID' })
+  @IsOptional()
+  @IsUUID()
+  purchaseTaxGroupId?: string;
+
+  @ApiPropertyOptional({ description: 'HSN code for tax reporting' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  hsnCode?: string;
 }

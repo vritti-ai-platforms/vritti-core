@@ -22,6 +22,11 @@ export class UpdatePosTerminalDto {
   @IsUUID()
   locationId?: string;
 
+  @ApiPropertyOptional({ description: 'Catalog this terminal sells from' })
+  @IsOptional()
+  @IsUUID()
+  catalogId?: string;
+
   @ApiPropertyOptional({ description: 'Terminal description', nullable: true })
   @IsOptional()
   @IsString()

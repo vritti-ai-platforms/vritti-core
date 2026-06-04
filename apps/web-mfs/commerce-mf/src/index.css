@@ -14,3 +14,138 @@
 
 @source "../src/**/*.{js,ts,jsx,tsx}";
 @source "../node_modules/@vritti/quantum-ui/dist/**/*.js";
+
+@keyframes pos-tile-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pos-tile-reveal {
+  animation: pos-tile-reveal 220ms ease-out both;
+}
+
+/* Atmospheric stage for the item grid: a soft primary glow up top + a faint dotted
+   grid so the dark area reads as a lit surface rather than an empty void. */
+.pos-stage {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(120% 70% at 50% -8%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 55%),
+    radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 0);
+  background-size:
+    100% 100%,
+    24px 24px;
+}
+
+/* Subtle top-left sheen that gives each tile a sense of being lit from above. */
+.pos-tile {
+  background-image: linear-gradient(155deg, color-mix(in oklab, var(--foreground) 5%, transparent), transparent 42%);
+}
+
+@keyframes pos-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pos-line-in {
+  animation: pos-line-in 200ms ease-out both;
+}
+
+/* One orchestrated entrance for the whole register on load. */
+@keyframes pos-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pos-enter {
+  animation: pos-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Brief pop replayed (via React key) whenever the running total changes. */
+@keyframes pos-pop {
+  0% {
+    transform: scale(1.08);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pos-pop {
+  animation: pos-pop 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Slow ambient breathing for the empty-cart glyph. */
+@keyframes pos-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(-3px) scale(1.04);
+    opacity: 1;
+  }
+}
+
+.pos-breathe {
+  animation: pos-breathe 3.6s ease-in-out infinite;
+}
+
+/* A light sheen that sweeps across the Charge button on hover. */
+.pos-charge {
+  position: relative;
+  overflow: hidden;
+}
+
+.pos-charge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, white 28%, transparent) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.pos-charge:hover:not(:disabled)::after {
+  transform: translateX(120%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-tile-reveal,
+  .pos-line-in,
+  .pos-enter,
+  .pos-pop,
+  .pos-breathe {
+    animation: none;
+  }
+
+  .pos-charge::after {
+    display: none;
+  }
+}

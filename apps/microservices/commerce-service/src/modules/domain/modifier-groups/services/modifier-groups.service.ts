@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NotFoundException } from '@vritti/api-sdk';
+import { NotFoundException, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import type { ModifierGroup } from '@/db/schema';
-import type { CreateModifierGroupDto } from '@/modules/modifier-groups/dto/request/create-modifier-group.dto';
-import type { CreateModifierOptionDto } from '@/modules/modifier-groups/dto/request/create-modifier-option.dto';
-import type { SaveItemModifiersDto } from '@/modules/modifier-groups/dto/request/save-item-modifiers.dto';
-import type { UpdateModifierGroupDto } from '@/modules/modifier-groups/dto/request/update-modifier-group.dto';
-import type { UpdateModifierOptionDto } from '@/modules/modifier-groups/dto/request/update-modifier-option.dto';
+import type { CreateModifierGroupDto } from '@/modules/catalogs/dto/request/create-modifier-group.dto';
+import type { CreateModifierOptionDto } from '@/modules/catalogs/dto/request/create-modifier-option.dto';
+import type { SaveItemModifiersDto } from '@/modules/catalogs/dto/request/save-item-modifiers.dto';
+import type { UpdateModifierGroupDto } from '@/modules/catalogs/dto/request/update-modifier-group.dto';
+import type { UpdateModifierOptionDto } from '@/modules/catalogs/dto/request/update-modifier-option.dto';
 import { ModifierGroupDto, ModifierGroupWithOptionsDto } from '../dto/entity/modifier-group.dto';
 import { ModifierOptionDto } from '../dto/entity/modifier-option.dto';
 import { ModifierGroupsRepository } from '../repositories/modifier-groups.repository';
@@ -16,10 +16,28 @@ export class ModifierGroupsService {
 
   constructor(private readonly modifierGroupsRepository: ModifierGroupsRepository) {}
 
-  // Returns all modifier groups (RLS scopes to org + BU ancestors)
-  async list(): Promise<ModifierGroupDto[]> {
-    const entities = await this.modifierGroupsRepository.findAll();
+  // Returns all modifier groups for a catalog (RLS scopes to org + BU ancestors)
+  async list(catalogId: string): Promise<ModifierGroupDto[]> {
+    const entities = await this.modifierGroupsRepository.findByCatalogId(catalogId);
     return entities.map(ModifierGroupDto.from);
+  }
+
+  // Returns modifier group select results scoped to a catalog
+  select(catalogId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.modifierGroupsRepository.findForSelectByCatalog(catalogId, {
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      search: query.search,
+      limit: query.limit,
+      offset: query.offset,
+      values: query.values,
+      excludeIds: query.excludeIds,
+      orderByKey: query.orderByKey || 'sortOrder',
+      orderDirection: query.orderDirection || 'asc',
+    });
   }
 
   // Returns a single modifier group with its options
@@ -33,6 +51,7 @@ export class ModifierGroupsService {
   // Creates a new modifier group
   async create(data: CreateModifierGroupDto): Promise<ModifierGroupDto> {
     const entity = await this.modifierGroupsRepository.create({
+      catalogId: data.catalogId,
       name: data.name,
       selectionType: data.selectionType,
       minSelections: data.minSelections ?? 0,

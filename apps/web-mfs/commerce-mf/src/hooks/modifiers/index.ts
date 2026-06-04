@@ -1,4 +1,4 @@
-export { MODIFIER_GROUP_KEY, MODIFIER_GROUPS_BY_BU_KEY, MODIFIER_GROUPS_KEY } from './keys';
+export { MODIFIER_GROUP_KEY, MODIFIER_GROUPS_BY_CATALOG_KEY, MODIFIER_GROUPS_KEY } from './keys';
 export { useCreateModifierGroup } from './useCreateModifierGroup';
 export { useCreateModifierOption } from './useCreateModifierOption';
 export { useDeleteModifierGroup } from './useDeleteModifierGroup';

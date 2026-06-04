@@ -15,6 +15,10 @@ export class CreatePosTerminalDto {
   locationId: string;
 
   @IsOptional()
+  @IsUUID()
+  catalogId?: string;
+
+  @IsOptional()
   @IsString()
   @MaxLength(500)
   description?: string;

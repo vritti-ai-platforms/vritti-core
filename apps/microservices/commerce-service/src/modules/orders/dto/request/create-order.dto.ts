@@ -34,7 +34,7 @@ export class CreateOrderItemModifierDto {
 export class CreateOrderItemDto {
   @IsString()
   @IsNotEmpty()
-  variantId: string;
+  offeringVariantId: string;
 
   @IsInt()
   @Min(1)
@@ -59,6 +59,10 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
   channel: string;
+
+  @IsOptional()
+  @IsUUID()
+  channelId?: string;
 
   @IsOptional()
   @IsUUID()

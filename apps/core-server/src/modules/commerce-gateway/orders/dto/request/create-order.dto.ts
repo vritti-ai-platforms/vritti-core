@@ -1,6 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreateOrderItemModifierDto {
   @ApiProperty({ description: 'Modifier group ID' })
@@ -26,10 +37,10 @@ export class CreateOrderItemModifierDto {
 }
 
 export class CreateOrderItemDto {
-  @ApiProperty({ description: 'Item variant ID' })
+  @ApiProperty({ description: 'Offering variant ID' })
   @IsString()
   @IsNotEmpty()
-  variantId: string;
+  offeringVariantId: string;
 
   @ApiProperty({ description: 'Quantity ordered', example: 2 })
   @IsInt()
@@ -59,6 +70,11 @@ export class CreateOrderDto {
   @IsString()
   @IsNotEmpty()
   channel: string;
+
+  @ApiPropertyOptional({ description: 'Sales channel ID used for catalog price resolution' })
+  @IsOptional()
+  @IsUUID()
+  channelId?: string;
 
   @ApiPropertyOptional({ description: 'Customer ID (links the order to an existing customer record)' })
   @IsOptional()

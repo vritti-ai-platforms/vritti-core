@@ -37,4 +37,13 @@ export class UpdateInventoryItemDto {
   @IsEnum(['none', 'fifo', 'fefo'])
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
+
+  @IsOptional()
+  @IsUUID()
+  purchaseTaxGroupId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  hsnCode?: string | null;
 }

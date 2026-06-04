@@ -6,7 +6,7 @@ import {
   type SelectQueryResult,
 } from '@vritti/api-sdk';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
-import { categories, inventoryItems, items } from '@/db/schema';
+import { categories, inventoryItems, offerings } from '@/db/schema';
 
 @Injectable()
 export class CategoriesRepository extends PrimaryBaseRepository<typeof categories> {
@@ -175,7 +175,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   async findReferencedIds(ids: string[]): Promise<Set<string>> {
     if (ids.length === 0) return new Set();
     const [itemRows, inventoryItemRows] = await Promise.all([
-      this.db.select({ id: items.categoryId }).from(items).where(inArray(items.categoryId, ids)),
+      this.db.select({ id: offerings.categoryId }).from(offerings).where(inArray(offerings.categoryId, ids)),
       this.db
         .select({ id: inventoryItems.categoryId })
         .from(inventoryItems)
@@ -206,8 +206,8 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   async countReferences(id: string): Promise<{ items: number; inventoryItems: number; childCategories: number }> {
     const [itemRefs] = await this.db
       .select({ count: sql<number>`count(*)` })
-      .from(items)
-      .where(eq(items.categoryId, id));
+      .from(offerings)
+      .where(eq(offerings.categoryId, id));
 
     const [inventoryItemRefs] = await this.db
       .select({ count: sql<number>`count(*)` })
@@ -265,8 +265,8 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   async countItemsForCategory(categoryId: string): Promise<number> {
     const [itemRefs] = await this.db
       .select({ count: sql<number>`count(*)` })
-      .from(items)
-      .where(eq(items.categoryId, categoryId));
+      .from(offerings)
+      .where(eq(offerings.categoryId, categoryId));
     const [inventoryItemRefs] = await this.db
       .select({ count: sql<number>`count(*)` })
       .from(inventoryItems)

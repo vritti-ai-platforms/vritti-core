@@ -135,6 +135,8 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         categoryId: inventoryItems.categoryId,
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,
+        purchaseTaxGroupId: inventoryItems.purchaseTaxGroupId,
+        hsnCode: inventoryItems.hsnCode,
         metadata: inventoryItems.metadata,
         createdAt: inventoryItems.createdAt,
         updatedAt: inventoryItems.updatedAt,

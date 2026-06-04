@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
+import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
@@ -10,6 +11,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateInventoryItem } from '@/hooks/inventory-items';
+import { useTaxGroups } from '@/hooks/tax-groups';
 import {
   type InventoryItemData,
   inventoryItemTypeOptions,
@@ -30,6 +32,8 @@ const pickStrategyOptions = [
 ];
 
 export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ item, onSuccess, onCancel }) => {
+  const { id: buId } = useSlugParams('buSlug');
+
   const form = useForm<UpdateInventoryItemFormData>({
     resolver: zodResolver(updateInventoryItemSchema),
     defaultValues: {
@@ -40,10 +44,14 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       categoryId: item.categoryId,
       description: item.description ?? '',
       uomId: item.uomId,
+      purchaseTaxGroupId: item.purchaseTaxGroupId ?? undefined,
+      hsnCode: item.hsnCode ?? '',
     },
   });
 
   const updateMutation = useUpdateInventoryItem({ onSuccess });
+  const { data: taxGroups = [] } = useTaxGroups(buId || null);
+  const taxGroupOptions = taxGroups.map((t) => ({ value: t.id, label: t.name }));
 
   return (
     <Form form={form} mutation={updateMutation} onCancel={onCancel} transformSubmit={(data) => ({ id: item.id, data })}>
@@ -65,6 +73,18 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
             <RadioGroup name="pickStrategy" label="Pick Strategy" options={pickStrategyOptions} />
           </FormSection>
         )}
+
+        <FormSection title="Tax & Compliance" description="Purchase tax and HSN classification for this item.">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              name="purchaseTaxGroupId"
+              label="Purchase Tax Group"
+              placeholder="Select tax group (optional)"
+              options={taxGroupOptions}
+            />
+            <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
+          </div>
+        </FormSection>
 
         <FormSection title="Notes">
           <TextArea name="description" label="Description" placeholder="Optional description" />

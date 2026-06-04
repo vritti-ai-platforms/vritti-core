@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import {
+  type FindForSelectConfig,
+  PrimaryBaseRepository,
+  PrimaryDatabaseService,
+  type SelectQueryResult,
+} from '@vritti/api-sdk';
 import { eq, inArray } from '@vritti/api-sdk/drizzle-orm';
 import {
-  type ItemModifierGroup,
-  itemModifierGroups,
   type ModifierGroup,
   type ModifierOption,
   modifierGroups,
   modifierOptions,
+  type OfferingModifierGroup,
+  offeringModifierGroups,
 } from '@/db/schema';
 
 @Injectable()
@@ -16,11 +21,17 @@ export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modif
     super(database, modifierGroups);
   }
 
-  // Returns all modifier groups ordered by sortOrder (RLS scopes to org + BU)
-  async findAll(): Promise<ModifierGroup[]> {
+  // Returns modifier groups for a catalog ordered by sortOrder (RLS scopes to org + BU)
+  async findByCatalogId(catalogId: string): Promise<ModifierGroup[]> {
     return this.model.findMany({
+      where: { catalogId },
       orderBy: { sortOrder: 'asc' },
     });
+  }
+
+  // Returns paginated modifier group select results scoped to a catalog
+  findForSelectByCatalog(catalogId: string, config: FindForSelectConfig): Promise<SelectQueryResult> {
+    return super.findForSelect({ ...config, where: { ...config.where, catalogId } });
   }
 
   // Returns options for a modifier group ordered by sortOrder
@@ -67,16 +78,16 @@ export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modif
     await this.db.delete(modifierOptions).where(eq(modifierOptions.groupId, groupId));
   }
 
-  // Returns item-modifier-group links for an item
-  async findItemModifierGroups(itemId: string): Promise<ItemModifierGroup[]> {
-    return this.db.select().from(itemModifierGroups).where(eq(itemModifierGroups.itemId, itemId));
+  // Returns offering-modifier-group links for an offering
+  async findItemModifierGroups(itemId: string): Promise<OfferingModifierGroup[]> {
+    return this.db.select().from(offeringModifierGroups).where(eq(offeringModifierGroups.offeringId, itemId));
   }
 
-  // Replaces all modifier group assignments for an item
+  // Replaces all modifier group assignments for an offering
   async saveItemModifierGroups(itemId: string, groupIds: string[]): Promise<void> {
-    await this.db.delete(itemModifierGroups).where(eq(itemModifierGroups.itemId, itemId));
+    await this.db.delete(offeringModifierGroups).where(eq(offeringModifierGroups.offeringId, itemId));
     if (groupIds.length === 0) return;
-    await this.db.insert(itemModifierGroups).values(groupIds.map((groupId) => ({ itemId, groupId })));
+    await this.db.insert(offeringModifierGroups).values(groupIds.map((groupId) => ({ offeringId: itemId, groupId })));
   }
 
   // Returns modifier groups by their IDs
@@ -89,8 +100,8 @@ export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modif
       .orderBy(modifierGroups.sortOrder);
   }
 
-  // Deletes item-modifier-group links for a specific group
+  // Deletes offering-modifier-group links for a specific group
   async deleteItemModifierGroupsByGroupId(groupId: string): Promise<void> {
-    await this.db.delete(itemModifierGroups).where(eq(itemModifierGroups.groupId, groupId));
+    await this.db.delete(offeringModifierGroups).where(eq(offeringModifierGroups.groupId, groupId));
   }
 }

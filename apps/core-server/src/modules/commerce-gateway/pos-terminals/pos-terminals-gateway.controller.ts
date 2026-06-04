@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   type CreateResponseDto,
@@ -77,10 +90,7 @@ export class PosTerminalsGatewayController {
   // Updates an existing POS terminal
   @Patch(':id')
   @ApiUpdate()
-  update(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: UpdatePosTerminalDto,
-  ): Promise<SuccessResponseDto> {
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdatePosTerminalDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/pos-terminals/${id}`);
     return this.posTerminalsGatewayService.update(id, dto);
   }

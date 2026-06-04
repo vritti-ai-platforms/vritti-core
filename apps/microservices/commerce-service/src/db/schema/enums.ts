@@ -1,7 +1,30 @@
 import { coreSchema } from './core-schema';
 
-export const catalogItemTypeEnum = coreSchema.enum('catalog_item_type', ['PRODUCT', 'SERVICE']);
 export const modifierSelectionTypeEnum = coreSchema.enum('modifier_selection_type', ['SINGLE', 'MULTI']);
+
+export const salesChannelKindEnum = coreSchema.enum('sales_channel_kind', [
+  'IN_STORE',
+  'ONLINE',
+  'ZOMATO',
+  'SWIGGY',
+  'OTHER',
+]);
+export const fulfilmentTypeEnum = coreSchema.enum('fulfilment_type', ['STOCK', 'SERVICE', 'COMPOSITE']);
+
+export type SalesChannelKind = (typeof salesChannelKindEnum.enumValues)[number];
+export type FulfilmentType = (typeof fulfilmentTypeEnum.enumValues)[number];
+export const SalesChannelKindValues = {
+  IN_STORE: 'IN_STORE' as const,
+  ONLINE: 'ONLINE' as const,
+  ZOMATO: 'ZOMATO' as const,
+  SWIGGY: 'SWIGGY' as const,
+  OTHER: 'OTHER' as const,
+};
+export const FulfilmentTypeValues = {
+  STOCK: 'STOCK' as const,
+  SERVICE: 'SERVICE' as const,
+  COMPOSITE: 'COMPOSITE' as const,
+};
 
 export const orderSourceEnum = coreSchema.enum('order_source', ['ONLINE', 'WALK_IN']);
 export const orderStatusEnum = coreSchema.enum('order_status', [
@@ -47,13 +70,7 @@ export const creditNoteStatusEnum = coreSchema.enum('credit_note_status', [
   'FULLY_APPLIED',
 ]);
 
-export type CatalogItemType = (typeof catalogItemTypeEnum.enumValues)[number];
 export type ModifierSelectionType = (typeof modifierSelectionTypeEnum.enumValues)[number];
-
-export const CatalogItemTypeValues = {
-  PRODUCT: 'PRODUCT' as const,
-  SERVICE: 'SERVICE' as const,
-};
 
 export const ModifierSelectionTypeValues = {
   SINGLE: 'SINGLE' as const,

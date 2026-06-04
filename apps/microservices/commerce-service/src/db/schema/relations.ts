@@ -5,24 +5,83 @@ export const relations = defineRelations(schema, (r) => ({
   categories: {
     inventoryItems: r.many.inventoryItems(),
   },
-  items: {
+  offerings: {
+    catalog: r.one.catalogs({
+      from: r.offerings.catalogId,
+      to: r.catalogs.id,
+    }),
+    offeringOptions: r.many.offeringOptions(),
     itemFieldValues: r.many.itemFieldValues(),
     orderItems: r.many.orderItems(),
   },
-  itemOptions: {},
-  itemOptionValues: {},
-  itemVariants: {
-    bom: r.one.bom({
-      from: r.itemVariants.bomId,
-      to: r.bom.id,
+  offeringOptions: {
+    offering: r.one.offerings({
+      from: r.offeringOptions.offeringId,
+      to: r.offerings.id,
     }),
-    orderItems: r.many.orderItems(),
-    priceListItems: r.many.priceListItems(),
+    variantOption: r.one.variantOptions({
+      from: r.offeringOptions.variantOptionId,
+      to: r.variantOptions.id,
+    }),
   },
-  itemVariantOptionValues: {},
-  modifierGroups: {},
+  variantOptions: {
+    catalog: r.one.catalogs({
+      from: r.variantOptions.catalogId,
+      to: r.catalogs.id,
+    }),
+    values: r.many.variantOptionValues(),
+  },
+  variantOptionValues: {
+    variantOption: r.one.variantOptions({
+      from: r.variantOptionValues.variantOptionId,
+      to: r.variantOptions.id,
+    }),
+  },
+  offeringVariants: {
+    components: r.many.offeringVariantComponents(),
+    orderItems: r.many.orderItems(),
+  },
+  offeringVariantOptionValues: {
+    variantOptionValue: r.one.variantOptionValues({
+      from: r.offeringVariantOptionValues.variantOptionValueId,
+      to: r.variantOptionValues.id,
+    }),
+  },
+  offeringVariantComponents: {
+    variant: r.one.offeringVariants({
+      from: r.offeringVariantComponents.offeringVariantId,
+      to: r.offeringVariants.id,
+    }),
+    inventoryItem: r.one.inventoryItems({
+      from: r.offeringVariantComponents.inventoryItemId,
+      to: r.inventoryItems.id,
+    }),
+  },
+  modifierGroups: {
+    catalog: r.one.catalogs({
+      from: r.modifierGroups.catalogId,
+      to: r.catalogs.id,
+    }),
+  },
   modifierOptions: {},
-  itemModifierGroups: {},
+  offeringModifierGroups: {},
+  salesChannels: {},
+  catalogs: {
+    channelAssignments: r.many.catalogChannels(),
+    offerings: r.many.offerings(),
+    modifierGroups: r.many.modifierGroups(),
+    variantOptions: r.many.variantOptions(),
+  },
+  catalogChannels: {
+    catalog: r.one.catalogs({
+      from: r.catalogChannels.catalogId,
+      to: r.catalogs.id,
+    }),
+    channel: r.one.salesChannels({
+      from: r.catalogChannels.channelId,
+      to: r.salesChannels.id,
+    }),
+  },
   taxGroups: {
     taxRates: r.many.taxRates(),
   },
@@ -36,9 +95,9 @@ export const relations = defineRelations(schema, (r) => ({
     itemFieldValues: r.many.itemFieldValues(),
   },
   itemFieldValues: {
-    item: r.one.items({
+    offering: r.one.offerings({
       from: r.itemFieldValues.itemId,
-      to: r.items.id,
+      to: r.offerings.id,
     }),
     fieldDefinition: r.one.itemFieldDefinitions({
       from: r.itemFieldValues.fieldDefinitionId,
@@ -84,30 +143,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.posTerminals.locationId,
       to: r.locations.id,
     }),
-    terminalPriceLists: r.many.terminalPriceLists(),
-  },
-  priceLists: {
-    priceListItems: r.many.priceListItems(),
-    terminalPriceLists: r.many.terminalPriceLists(),
-  },
-  priceListItems: {
-    priceList: r.one.priceLists({
-      from: r.priceListItems.priceListId,
-      to: r.priceLists.id,
-    }),
-    itemVariant: r.one.itemVariants({
-      from: r.priceListItems.itemVariantId,
-      to: r.itemVariants.id,
-    }),
-  },
-  terminalPriceLists: {
-    terminal: r.one.posTerminals({
-      from: r.terminalPriceLists.terminalId,
-      to: r.posTerminals.id,
-    }),
-    priceList: r.one.priceLists({
-      from: r.terminalPriceLists.priceListId,
-      to: r.priceLists.id,
+    catalog: r.one.catalogs({
+      from: r.posTerminals.catalogId,
+      to: r.catalogs.id,
     }),
   },
   inventoryItemQuants: {
@@ -142,7 +180,6 @@ export const relations = defineRelations(schema, (r) => ({
   bom: {
     bomLines: r.many.bomLines(),
     conversions: r.many.conversions(),
-    itemVariants: r.many.itemVariants(),
   },
   bomLines: {
     bom: r.one.bom({
@@ -387,13 +424,13 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.orderItems.orderId,
       to: r.orders.id,
     }),
-    item: r.one.items({
-      from: r.orderItems.itemId,
-      to: r.items.id,
+    offering: r.one.offerings({
+      from: r.orderItems.offeringId,
+      to: r.offerings.id,
     }),
-    variant: r.one.itemVariants({
-      from: r.orderItems.variantId,
-      to: r.itemVariants.id,
+    offeringVariant: r.one.offeringVariants({
+      from: r.orderItems.offeringVariantId,
+      to: r.offeringVariants.id,
     }),
     orderItemModifiers: r.many.orderItemModifiers(),
   },

@@ -20,7 +20,7 @@ export class OrdersController {
 
   @MessagePattern({ cmd: 'orders.create' })
   async create(@Payload() dto: CreateOrderDto): Promise<OrderDto> {
-    this.logger.log(`orders.create — type: ${dto.type}, channel: ${dto.channel}`);
+    this.logger.log(`orders.create — type: ${dto.type}, channel: ${dto.channel}, channelId: ${dto.channelId ?? '-'}`);
     return this.service.create(dto);
   }
 

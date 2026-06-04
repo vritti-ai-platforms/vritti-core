@@ -5,13 +5,18 @@ import type { AxiosError } from 'axios';
 import { deleteModifierGroup } from '@/services/modifier-groups.service';
 import { MODIFIER_GROUPS_KEY } from './keys';
 
+interface DeleteModifierGroupParams {
+  catalogId: string;
+  groupId: string;
+}
+
 // Deletes a modifier group and invalidates the list
 export function useDeleteModifierGroup(
-  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, DeleteModifierGroupParams>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<SuccessResponse, AxiosError, string>({
+  return useMutation<SuccessResponse, AxiosError, DeleteModifierGroupParams>({
     ...options,
     mutationFn: deleteModifierGroup,
     onSuccess: (...args) => {

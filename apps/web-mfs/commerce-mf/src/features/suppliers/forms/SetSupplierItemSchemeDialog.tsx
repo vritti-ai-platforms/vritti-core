@@ -1,3 +1,4 @@
+import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -45,9 +46,10 @@ export const SetSupplierItemSchemeDialog: React.FC<SetSupplierItemSchemeDialogPr
         hasScheme: data.hasScheme,
       })}
     >
-      <p className="text-sm text-muted-foreground">
-        Applying to {supplierItemIds.length} selected item{supplierItemIds.length === 1 ? '' : 's'}.
-      </p>
+      <Alert
+        variant="info"
+        description={`Applying to ${supplierItemIds.length} selected item${supplierItemIds.length === 1 ? '' : 's'}.`}
+      />
       <div className="flex flex-col gap-4">
         <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
         {hasScheme && (

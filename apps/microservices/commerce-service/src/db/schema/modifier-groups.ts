@@ -12,6 +12,7 @@ import {
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
+import { catalogs } from './catalogs';
 import { coreSchema } from './core-schema';
 import { modifierSelectionTypeEnum } from './enums';
 
@@ -21,6 +22,9 @@ export const modifierGroups = coreSchema.table(
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
     businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    catalogId: uuid('catalog_id')
+      .notNull()
+      .references(() => catalogs.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     selectionType: modifierSelectionTypeEnum('selection_type').notNull(),
     minSelections: integer('min_selections').notNull().default(0),
@@ -30,8 +34,9 @@ export const modifierGroups = coreSchema.table(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    unique('uq_modifier_groups_bu_name').on(table.businessUnitId, table.name),
+    unique('uq_modifier_groups_catalog_name').on(table.catalogId, table.name),
     index('idx_modifier_groups_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_modifier_groups_catalog').on(table.catalogId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
@@ -80,15 +85,15 @@ export const modifierOptions = coreSchema.table(
 export type ModifierOption = typeof modifierOptions.$inferSelect;
 export type NewModifierOption = typeof modifierOptions.$inferInsert;
 
-export const itemModifierGroups = coreSchema.table(
-  'item_modifier_groups',
+export const offeringModifierGroups = coreSchema.table(
+  'offering_modifier_groups',
   {
     organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    itemId: uuid('item_id').notNull(),
+    offeringId: uuid('offering_id').notNull(),
     groupId: uuid('group_id').notNull(),
   },
-  (table) => [primaryKey({ columns: [table.itemId, table.groupId] })],
+  (table) => [primaryKey({ columns: [table.offeringId, table.groupId] })],
 );
 
-export type ItemModifierGroup = typeof itemModifierGroups.$inferSelect;
-export type NewItemModifierGroup = typeof itemModifierGroups.$inferInsert;
+export type OfferingModifierGroup = typeof offeringModifierGroups.$inferSelect;
+export type NewOfferingModifierGroup = typeof offeringModifierGroups.$inferInsert;

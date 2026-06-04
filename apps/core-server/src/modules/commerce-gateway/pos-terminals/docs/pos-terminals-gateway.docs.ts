@@ -12,7 +12,11 @@ export function ApiTable() {
       summary: 'Get POS terminals table',
       description: 'Returns paginated, filtered, and sorted POS terminals using server-stored table state.',
     }),
-    ApiResponse({ status: 200, description: 'POS terminals table retrieved successfully.', type: PosTerminalTableResponseDto }),
+    ApiResponse({
+      status: 200,
+      description: 'POS terminals table retrieved successfully.',
+      type: PosTerminalTableResponseDto,
+    }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }
@@ -63,7 +67,8 @@ export function ApiCreate() {
   return applyDecorators(
     ApiOperation({
       summary: 'Create a POS terminal',
-      description: 'Creates a new POS terminal for the business unit. organizationId is resolved from the authenticated user.',
+      description:
+        'Creates a new POS terminal for the business unit. organizationId is resolved from the authenticated user.',
     }),
     ApiBody({ type: CreatePosTerminalDto }),
     ApiResponse({ status: 201, description: 'POS terminal created successfully.', type: PosTerminalResponseDto }),
