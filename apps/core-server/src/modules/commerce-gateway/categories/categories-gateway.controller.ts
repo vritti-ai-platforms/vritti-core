@@ -74,6 +74,7 @@ export class CategoriesGatewayController {
   // Returns paginated category options for the select component
   @Get('select')
   @ApiGetCategoriesSelect()
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   async select(@Query() query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
     return this.categoriesGatewayService.select(query);
   }

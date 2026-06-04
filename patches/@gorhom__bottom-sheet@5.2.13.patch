@@ -1,0 +1,39 @@
+diff --git a/src/hooks/useGestureEventsHandlersDefault.tsx b/src/hooks/useGestureEventsHandlersDefault.tsx
+index 5f0230693b744365d8651fc3df8287bf5bc3e1ce..c3c42a358472b7c24657b82f4e9d9019364be4eb 100644
+--- a/src/hooks/useGestureEventsHandlersDefault.tsx
++++ b/src/hooks/useGestureEventsHandlersDefault.tsx
+@@ -1,5 +1,5 @@
+ import { useCallback } from 'react';
+-import { Dimensions, Keyboard, Platform } from 'react-native';
++import { Dimensions, Keyboard, Platform, useWindowDimensions } from 'react-native';
+ import { runOnJS, useSharedValue } from 'react-native-reanimated';
+ import {
+   ANIMATION_SOURCE,
+@@ -58,6 +58,10 @@ export const useGestureEventsHandlersDefault: GestureEventsHandlersHookType =
+     const context = useSharedValue<GestureEventContextType>({
+       ...INITIAL_CONTEXT,
+     });
++
++    // Reanimated v4 / react-native-worklets can't call Dimensions.get inside a worklet (the captured
++    // object loses its methods), so read it on the JS thread and capture the value for handleOnEnd.
++    const { height: windowHeight } = useWindowDimensions();
+     //#endregion
+ 
+     //#region gesture methods
+@@ -345,7 +349,7 @@ export const useGestureEventsHandlersDefault: GestureEventsHandlersHookType =
+            *
+            * because the the keyboard dismiss is interactive in iOS.
+            */
+-          const WINDOW_HEIGHT = Dimensions.get('window').height;
++          const WINDOW_HEIGHT = windowHeight;
+           if (
+             !(
+               Platform.OS === 'ios' &&
+@@ -424,6 +428,7 @@ export const useGestureEventsHandlersDefault: GestureEventsHandlersHookType =
+         animatedPosition,
+         animateToPosition,
+         context,
++        windowHeight,
+       ]
+     );
+     const handleOnFinalize: GestureEventHandlerCallbackType = useCallback(

@@ -26,6 +26,7 @@ export class CustomersGatewayController {
 
   // Returns paginated customer options for select dropdowns
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/customers/select');
     return this.customersGatewayService.select(query);

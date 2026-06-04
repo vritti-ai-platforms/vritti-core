@@ -33,6 +33,7 @@ export class UomDimensionsGatewayController {
 
   // Returns paginated dimension options for select dropdowns
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/uom-dimensions/select');
     return this.service.findForSelect(query);

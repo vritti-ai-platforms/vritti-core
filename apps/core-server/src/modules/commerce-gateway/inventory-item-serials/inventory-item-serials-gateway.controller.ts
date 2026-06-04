@@ -15,6 +15,7 @@ export class InventoryItemSerialsGatewayController {
   constructor(private readonly service: InventoryItemSerialsGatewayService) {}
 
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: SerialsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-item-serials/select');
     return this.service.select(query);

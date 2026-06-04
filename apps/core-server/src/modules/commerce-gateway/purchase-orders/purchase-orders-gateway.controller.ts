@@ -55,6 +55,7 @@ export class PurchaseOrdersGatewayController {
 
   // Returns purchase order options for select dropdowns
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/purchase-orders/select');
     return this.service.select(query);

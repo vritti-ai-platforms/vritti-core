@@ -80,6 +80,28 @@ const componentDirs = [
   'Text',
 ];
 
+// @vritti/quantum-ui-native/selects/<entity> subpaths (mirrors quantum-ui/lib/selects)
+const selectDirs = [
+  'bom',
+  'category',
+  'cost-category',
+  'currency',
+  'customer',
+  'inventory-item',
+  'locale',
+  'location',
+  'lot',
+  'purchase-order',
+  'purchase-order-item',
+  'quant',
+  'serial',
+  'supplier',
+  'supplier-item',
+  'timezone',
+  'uom',
+  'user',
+];
+
 const quantumAliases = {
   '@vritti/quantum-ui-native/utils': path.join(quantumUiNative, 'lib/utils/index.ts'),
   '@vritti/quantum-ui-native/hooks': path.join(quantumUiNative, 'lib/hooks/index.ts'),
@@ -93,6 +115,14 @@ const quantumAliases = {
       path.join(quantumUiNative, `lib/components/${dir}/index.ts`),
     ]),
   ),
+  // Per-entity select subpaths (must precede the aggregate + main entry — first matching alias wins)
+  ...Object.fromEntries(
+    selectDirs.map((dir) => [
+      `@vritti/quantum-ui-native/selects/${dir}`,
+      path.join(quantumUiNative, `lib/selects/${dir}/index.ts`),
+    ]),
+  ),
+  '@vritti/quantum-ui-native/selects': path.join(quantumUiNative, 'lib/selects/index.ts'),
   '@vritti/quantum-ui-native': path.join(quantumUiNative, 'lib/index.tsx'),
 };
 

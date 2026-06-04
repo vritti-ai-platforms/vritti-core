@@ -37,7 +37,6 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { phase, authState, beginStatusConfirmation, logout } = useAuthSessionController();
 
-  console.log(authState, 'kk');
   const isLoading = phase === 'bootstrapping' || phase === 'awaitingStatus';
   const isAuthenticated = phase === 'authenticated';
 

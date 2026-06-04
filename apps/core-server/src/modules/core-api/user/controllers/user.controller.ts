@@ -48,7 +48,7 @@ export class UserController {
 
   // Returns paginated user options for the select component
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS)
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   findForSelect(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /users/select');
     return this.userService.findForSelect(query);

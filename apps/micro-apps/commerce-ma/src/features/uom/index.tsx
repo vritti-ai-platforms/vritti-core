@@ -55,17 +55,21 @@ const UOM_TYPE_OPTIONS: SelectOption[] = [
   { value: 'temperature', label: 'Temperature', description: '°C, °F (coming soon)', disabled: true },
 ];
 
-// Async options load from this endpoint, which must return { options: [{ value, label }], hasMore }
-const BOM_ENDPOINT = 'commerce-api/bom/select';
+// 20 options to exercise the Select sheet's scrolling + footer with a longer list.
+const LONG_OPTIONS: SelectOption[] = Array.from({ length: 20 }, (_, i) => ({
+  value: `opt-${i + 1}`,
+  label: `Option ${i + 1}`,
+  description: `Description for option ${i + 1}`,
+}));
 
-// Demonstrates Checkbox + single/multi Select (static and async) from quantum-ui-native
+// Demonstrates Checkbox + single/multi Select + RadioGroup from quantum-ui-native
 function SelectCheckboxExamples() {
   const [active, setActive] = useState(true);
   const [allowDecimals, setAllowDecimals] = useState(false);
   const [singleType, setSingleType] = useState<SelectValue | undefined>('weight');
   const [multiTypes, setMultiTypes] = useState<SelectValue[]>(['weight', 'count']);
-  const [singleBom, setSingleBom] = useState<SelectValue | undefined>(undefined);
-  const [multiBom, setMultiBom] = useState<SelectValue[]>([]);
+  const [singleLong, setSingleLong] = useState<SelectValue | undefined>(undefined);
+  const [multiLong, setMultiLong] = useState<SelectValue[]>([]);
   const [unitName, setUnitName] = useState('');
   const [system, setSystem] = useState('metric');
   const [rounding, setRounding] = useState('nearest');
@@ -88,8 +92,6 @@ function SelectCheckboxExamples() {
         <Checkbox label="System unit (locked)" checked disabled onCheckedChange={() => {}} />
       </View>
 
-
-
       <Select
         multiple
         label="Compatible types"
@@ -106,6 +108,26 @@ function SelectCheckboxExamples() {
         options={UOM_TYPE_OPTIONS}
         value={singleType}
         onChange={(value: SelectValue) => setSingleType(value)}
+        searchable
+        clearable
+      />
+
+      <Select
+        multiple
+        label="Tags (20 options)"
+        placeholder="Select tags"
+        options={LONG_OPTIONS}
+        value={multiLong}
+        onChange={(values: SelectValue[]) => setMultiLong(values)}
+        searchable
+      />
+
+      <Select
+        label="Primary tag (20 options)"
+        placeholder="Select a tag"
+        options={LONG_OPTIONS}
+        value={singleLong}
+        onChange={(value: SelectValue) => setSingleLong(value)}
         searchable
         clearable
       />
@@ -131,24 +153,6 @@ function SelectCheckboxExamples() {
           { value: 'down', label: 'Round down', description: 'Always round down' },
         ]}
       />
-
-      {/* <Select
-        label="Bill of materials"
-        placeholder="Search BOM…"
-        optionsEndpoint={BOM_ENDPOINT}
-        value={singleBom}
-        onChange={(value: SelectValue) => setSingleBom(value)}
-        clearable
-      />
-
-      <Select
-        multiple
-        label="Linked BOMs"
-        placeholder="Search BOMs…"
-        optionsEndpoint={BOM_ENDPOINT}
-        value={multiBom}
-        onChange={(values: SelectValue[]) => setMultiBom(values)}
-      /> */}
     </View>
   );
 }
@@ -246,27 +250,12 @@ function CreateButton() {
   );
 }
 
-const FILTER_ICON = { sfSymbol: 'line.3.horizontal.decrease', materialIcon: 'filter-list' } as const;
-
-function FilterButton() {
-  // onPress is a placeholder — filtering/sorting is not wired up yet.
-  return (
-    <Button variant="glass" size="icon" onPress={() => {}} accessibilityLabel="Filter" hitSlop={8}>
-      <DynamicIcon icon={FILTER_ICON} size={24} />
-    </Button>
-  );
-}
-
 const screens: ReadonlyArray<PushScreenConfig<UOMRoute>> = [
   {
     name: 'UOMList',
     component: UOMList,
     header: () => (
-      <ScreenHeader
-        title="Units of Measure"
-        // leftActions={<FilterButton />}
-        rightActions={<CreateButton />}
-      />
+      <ScreenHeader title="Units of Measure" rightActions={<CreateButton />} />
     ),
   },
   { name: 'UOMDetail', component: UOMDetail, headerShown: true, title: 'UOM Detail' },

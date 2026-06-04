@@ -15,6 +15,7 @@ export class InventoryItemLotsGatewayController {
   constructor(private readonly service: InventoryItemLotsGatewayService) {}
 
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: LotsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-item-lots/select');
     return this.service.select(query);

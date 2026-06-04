@@ -24,6 +24,7 @@ export class BomGatewayController {
 
   // Returns paginated BOM options for select dropdowns
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.service.select(query);
   }

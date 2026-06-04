@@ -53,6 +53,7 @@ export class LocationsGatewayController {
 
   // Returns paginated location options for select dropdowns
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/locations/select');
     return this.locationsGatewayService.select(query);

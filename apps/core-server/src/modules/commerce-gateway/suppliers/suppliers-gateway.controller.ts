@@ -45,6 +45,7 @@ export class SuppliersGatewayController {
 
   // Returns paginated supplier options for select dropdowns
   @Get('select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/suppliers/select');
     return this.suppliersGatewayService.select(query);

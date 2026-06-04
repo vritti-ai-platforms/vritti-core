@@ -49,9 +49,18 @@ export class InventoryItemsGatewayController {
     type: String,
     description: 'Exclude items that have all UOMs already linked to this supplier',
   })
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
   select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-items/select');
-    return this.service.select(query, query.excludeOnSupplierId);
+    return this.service.select(query, query.poId, query.excludeForSupplierId);
+  }
+
+  // Returns supplier item options; when supplierId is absent, includes supplier name as description on each option
+  @Get('supplier-items/select')
+  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  selectSupplierItems(@Query() query: InventoryItemsSupplierSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('GET /commerce-api/inventory-items/supplier-items/select');
+    return this.service.selectSupplierItems(query);
   }
 
   // Creates a new inventory item
