@@ -5,11 +5,20 @@ export interface User {
   externalId: string | null;
   email: string;
   fullName: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'SUPPORT';
+  displayName?: string | null;
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
   hasPassword: boolean;
+  locale?: string;
+  timezone?: string;
   createdAt: string;
   lastLoginAt?: string | null;
+}
+
+export interface AuthOrg {
+  id: string;
+  name: string;
+  subdomain: string;
+  logoUrl: string | null;
 }
 
 export interface AuthStatusResponse {
@@ -17,6 +26,7 @@ export interface AuthStatusResponse {
   user?: User;
   accessToken?: string;
   expiresIn?: number;
+  org?: AuthOrg;
 }
 
 // Fetches the current user's authentication status
@@ -28,7 +38,5 @@ export function getAuthStatus(): Promise<AuthStatusResponse> {
 
 // Logs out the current user
 export function logout(): Promise<void> {
-  return axios
-    .post('auth/logout', {}, { successMessage: 'Logged out successfully' })
-    .then(() => undefined);
+  return axios.post('auth/logout', {}, { successMessage: 'Logged out successfully' }).then(() => undefined);
 }

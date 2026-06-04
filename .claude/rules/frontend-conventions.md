@@ -53,6 +53,53 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 <Spinner className="size-8 text-primary" />
 ```
 
+## PageHeader — status badges go in `titleSlot`, not `actions`
+`PageHeader` (`@vritti/quantum-ui/PageHeader`) has a `titleSlot` rendered inline next to the title. Put **status badges** (Active/Inactive, tax mode, state, etc.) there. The `actions` prop is for **action controls only** (buttons) — never mix badges into it.
+
+```tsx
+// WRONG — badges crammed into actions alongside buttons
+<PageHeader
+  title={catalog.name}
+  actions={
+    <div className="flex items-center gap-2">
+      <Badge variant="success">Active</Badge>
+      <Badge variant="outline">Tax inclusive</Badge>
+      <Button>Edit</Button>
+      <Button variant="destructive">Delete</Button>
+    </div>
+  }
+/>
+
+// CORRECT — status in titleSlot, only buttons in actions
+<PageHeader
+  title={catalog.name}
+  description={catalog.channelName}
+  titleSlot={
+    <div className="flex items-center gap-2">
+      {catalog.isActive ? <Badge variant="success">Active</Badge> : <Badge variant="outline">Inactive</Badge>}
+      <Badge variant="outline">{catalog.taxInclusive ? 'Tax inclusive' : 'Tax exclusive'}</Badge>
+    </div>
+  }
+  actions={
+    <div className="flex items-center gap-2">
+      <Button variant="outline" size="sm">Edit</Button>
+      <Button variant="destructive" size="sm">Delete</Button>
+    </div>
+  }
+/>
+```
+
+## Badge — use `variant`, never className color overrides
+`Badge` (`@vritti/quantum-ui/Badge`) ships `success`, `warning`, `destructive`, `secondary`, `outline` variants. Use the variant — do NOT hand-roll colors with `className`.
+
+```tsx
+// WRONG
+<Badge className="bg-success/15 text-success">Active</Badge>
+
+// CORRECT
+<Badge variant="success">Active</Badge>
+```
+
 ## Icons
 - Use lucide-react icons, NOT custom inline SVG icons
 - Common status icons: `CheckCircle2` (success), `AlertCircle` (error), `Info` (info), `TriangleAlert` (warning)
@@ -159,13 +206,13 @@ async function handleDelete(id: string, name: string) {
 Pass the resource name (and relevant context) into `handleDelete` so the description is specific, not generic.
 
 ## Slug-based Routes — use `buildSlug` + `useSlugParams`
-- For detail page URLs that should show a readable name, use `buildSlug(name, id)` from `@vritti/quantum-ui/utils/slug`
+- For detail page URLs that should show a readable name, use `buildSlug(name, id)` from `@vritti/quantum-ui/slug`
 - The slug format is `name-slug~uuid` — the Breadcrumb auto-humanizes the name part
 - In the detail page, use `useSlugParams()` from `@vritti/quantum-ui/hooks` to extract `{ name, id }`
 
 ```tsx
 // Navigating to detail page
-import { buildSlug } from '@vritti/quantum-ui/utils/slug';
+import { buildSlug } from '@vritti/quantum-ui/slug';
 navigate(`/regions/${buildSlug(region.name, region.id)}`);
 // → URL: /regions/us-east~bdfc838c-...
 

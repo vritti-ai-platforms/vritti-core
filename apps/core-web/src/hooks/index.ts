@@ -1,4 +1,13 @@
-export { useAuthStatus, useLogout } from './useUser';
-export { useLogin } from './useLogin';
+export {
+  type PasswordResetFlow,
+  type Step,
+  useForgotPassword,
+  usePasswordResetFlow,
+  useResendResetOtp,
+  useResetPassword,
+  useVerifyResetOtp,
+} from './password-reset';
 export { useAcceptInvite } from './useAcceptInvite';
-export { useForgotPassword, useResendResetOtp, useVerifyResetOtp, useResetPassword, usePasswordResetFlow, type PasswordResetFlow, type Step } from './password-reset';
+export { useLogin } from './useLogin';
+export { useLogo } from './useLogo';
+export { useAuthStatus, useLogout } from './useUser';

@@ -10,6 +10,15 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.users.organizationId,
       to: r.organizations.id,
     }),
+    roleAssignments: r.many.userRoleAssignments(),
+  },
+
+  // Media relations
+  media: {
+    uploadedByUser: r.one.users({
+      from: r.media.uploadedBy,
+      to: r.users.id,
+    }),
   },
 
   // Session relations
@@ -31,5 +40,48 @@ export const relations = defineRelations(schema, (r) => ({
   // Organization relations
   organizations: {
     users: r.many.users(),
+    businessUnits: r.many.businessUnits(),
+    orgRoles: r.many.orgRoles(),
+  },
+
+  // Business unit relations
+  businessUnits: {
+    organization: r.one.organizations({
+      from: r.businessUnits.organizationId,
+      to: r.organizations.id,
+    }),
+    parent: r.one.businessUnits({
+      from: r.businessUnits.parentId,
+      to: r.businessUnits.id,
+      alias: 'parent',
+    }),
+    children: r.many.businessUnits({
+      alias: 'parent',
+    }),
+  },
+
+  // Org role relations
+  orgRoles: {
+    organization: r.one.organizations({
+      from: r.orgRoles.organizationId,
+      to: r.organizations.id,
+    }),
+    assignments: r.many.userRoleAssignments(),
+  },
+
+  // User role assignment relations
+  userRoleAssignments: {
+    user: r.one.users({
+      from: r.userRoleAssignments.userId,
+      to: r.users.id,
+    }),
+    orgRole: r.one.orgRoles({
+      from: r.userRoleAssignments.orgRoleId,
+      to: r.orgRoles.id,
+    }),
+    businessUnit: r.one.businessUnits({
+      from: r.userRoleAssignments.businessUnitId,
+      to: r.businessUnits.id,
+    }),
   },
 }));

@@ -1,14 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { FieldGroup, Form } from '@vritti/quantum-ui/Form';
 import { PasswordField } from '@vritti/quantum-ui/PasswordField';
+import { z, zodResolver } from '@vritti/quantum-ui/zod';
 import { CheckCircle2 } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { z } from 'zod';
 import { useAcceptInvite } from '../../hooks/useAcceptInvite';
 
 const schema = z
@@ -94,14 +93,11 @@ export const AcceptInvitePage: React.FC = () => {
     <div className="space-y-6">
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-bold text-foreground">Set Your Password</h1>
-        <p className="text-muted-foreground text-sm">
-          Complete your account setup by creating a password
-        </p>
+        <p className="text-muted-foreground text-sm">Complete your account setup by creating a password</p>
       </div>
       <Form
         form={form}
         mutation={acceptInviteMutation}
-        showRootError
         transformSubmit={(data) => ({
           token,
           password: data.password,

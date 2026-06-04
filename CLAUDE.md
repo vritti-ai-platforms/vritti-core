@@ -52,11 +52,20 @@ vritti-core/
 └── nx.json                # Nx config with versioning
 ```
 
+## Auth & Session Architecture
+
+- Auth routes are top-level: `/auth/*` (NOT nested under another prefix)
+- Session types: ONBOARDING, CLOUD, COMPANY, RESET, ADMIN
+- `@RequireSession(SessionTypeValues.NEXUS)` restricts endpoints to a session type
+- Default session type: `['NEXUS']` (configured via `configureApiSdk({ guard: { defaultSessionTypes: ['NEXUS'] } })`)
+- `@RequireSession()` replaces the old `@Admin()`, `@Onboarding()`, `@Reset()` decorators
+
 ## Conventions
 
 See `.claude/rules/` for detailed pattern documentation:
 - `swagger-docs.md` — API controller Swagger docs pattern
 - `error-handling.md` — RFC 9457 exception patterns
+- `auth-architecture.md` — Auth system facts, session types, `@RequireSession`
 - `backend-controller.md` — Controller thin layer rules
 - `backend-service.md` — Service business logic rules
 - `backend-repository.md` — Repository data access rules
@@ -64,5 +73,6 @@ See `.claude/rules/` for detailed pattern documentation:
 - `frontend-conventions.md` — Frontend patterns and component usage
 - `frontend-hook.md` — TanStack Query hook conventions
 - `frontend-service.md` — Axios service conventions
+- `value-formatting.md` — DetailField / DataTable cells / useFormatters for dates, currency, numbers
 - `comment-style.md` — Comment style rules
 - `export-conventions.md` — Export patterns

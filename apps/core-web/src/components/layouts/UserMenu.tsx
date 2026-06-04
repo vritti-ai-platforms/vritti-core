@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@vritti/quantum-ui/Avatar';
+import { Avatar, AvatarFallback } from '@vritti/quantum-ui/Avatar';
 import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
 import { ThemeToggle, useTheme } from '@vritti/quantum-ui/theme';
 import { Lock, LogOut, User } from 'lucide-react';
@@ -48,7 +48,6 @@ export const UserMenu = () => {
       render: (
         <div className="flex items-center gap-3 px-2 py-2">
           <Avatar className="h-10 w-10">
-            {user?.profilePictureUrl && <AvatarImage src={user.profilePictureUrl} alt={displayName} />}
             <AvatarFallback className="text-sm">{userInitials}</AvatarFallback>
           </Avatar>
           <div className="flex flex-1 min-w-0">
@@ -120,7 +119,6 @@ export const UserMenu = () => {
       trigger={{
         children: (
           <Avatar className="h-8 w-8 cursor-pointer transition-opacity hover:opacity-80" aria-label="User menu">
-            {user?.profilePictureUrl && <AvatarImage src={user.profilePictureUrl} alt={displayName} />}
             <AvatarFallback className="bg-primary text-primary-foreground font-semibold">{userInitials}</AvatarFallback>
           </Avatar>
         ),

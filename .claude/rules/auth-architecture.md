@@ -11,8 +11,15 @@ These are established facts. Do NOT change these patterns without explicit appro
 ## Password & Encryption
 - Password hashing: **Argon2id** via EncryptionService (NOT bcrypt)
 
+## Routes
+- Auth routes: `/auth/*` (top-level, NOT nested under another prefix)
+
 ## Sessions & Tokens
-- Token recovery: `GET /cloud-api/auth/token` (NOT POST)
+- Session types: ONBOARDING, CLOUD, COMPANY, RESET, ADMIN
+- Use `@RequireSession(SessionTypeValues.NEXUS)` to restrict endpoints to a session type
+- `@RequireSession()` replaces the old `@Admin()`, `@Onboarding()`, `@Reset()` decorators
+- Default session types configured via `configureApiSdk({ guard: { defaultSessionTypes: ['NEXUS'] } })`
+- core-server defaults to `['NEXUS']`
 - ONBOARDING session: 24h expiry (NOT 10 min)
 - Refresh token: httpOnly cookie only (NOT in response body)
 - JWT payload: `{ userId, type, refreshTokenHash }` (NOT sub/email/sessionType)

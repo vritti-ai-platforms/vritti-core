@@ -1,0 +1,114 @@
+import { Button } from '@vritti/quantum-ui/Button';
+import { Form } from '@vritti/quantum-ui/Form';
+import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
+import { Select, type SelectOption } from '@vritti/quantum-ui/Select';
+import { Switch } from '@vritti/quantum-ui/Switch';
+import { TextField } from '@vritti/quantum-ui/TextField';
+import type React from 'react';
+import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { useCreateUom, useUomTable } from '@/hooks/uom';
+import { type UomFormData, uomFormResolver } from '@/schemas/uom';
+
+interface AddUomDialogProps {
+  dimensionId: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+const kindOptions = [
+  { value: 'base', label: 'Base unit' },
+  { value: 'derived', label: 'Derived unit' },
+];
+
+export const AddUomDialog: React.FC<AddUomDialogProps> = ({ dimensionId, onSuccess, onCancel }) => {
+  const form = useForm<UomFormData>({
+    resolver: uomFormResolver,
+    defaultValues: {
+      name: '',
+      symbol: '',
+      kind: 'base',
+      baseUnitId: undefined,
+      baseUomQty: 1,
+      uomQty: 1,
+      allowDecimal: false,
+    },
+  });
+
+  const kind = useWatch({ control: form.control, name: 'kind' });
+  const createMutation = useCreateUom({ onSuccess });
+  const [baseUnitSymbol, setBaseUnitSymbol] = useState<string | null>(null);
+
+  const { data: uomsResponse } = useUomTable(dimensionId);
+  const baseUnits = uomsResponse?.result?.filter((u) => u.baseUnitId === null) ?? [];
+  const baseOptions = baseUnits.map((u) => ({
+    value: u.id,
+    label: `${u.name} (${u.symbol})`,
+    additionals: { symbol: u.symbol },
+  }));
+
+  const handleBaseUnitSelect = (option: SelectOption | null) => {
+    const symbol = typeof option?.additionals?.symbol === 'string' ? option.additionals.symbol : null;
+    setBaseUnitSymbol(symbol);
+  };
+
+  return (
+    <Form
+      form={form}
+      mutation={createMutation}
+      resetOnSuccess
+      onCancel={onCancel}
+      transformSubmit={(data) => ({
+        name: data.name,
+        symbol: data.symbol,
+        dimensionId,
+        baseUnitId: data.kind === 'base' ? null : data.baseUnitId,
+        baseUomQty: data.kind === 'base' ? 1 : (data.baseUomQty ?? 1),
+        uomQty: data.kind === 'base' ? 1 : (data.uomQty ?? 1),
+        allowDecimal: data.allowDecimal,
+      })}
+    >
+      <RadioGroup name="kind" label="Kind" options={kindOptions} orientation="horizontal" />
+      <TextField name="name" label="Name" placeholder="e.g. Kilogram" />
+      <TextField name="symbol" label="Symbol" placeholder="e.g. kg" />
+
+      {kind === 'derived' ? (
+        <>
+          <Select
+            name="baseUnitId"
+            label="Base unit"
+            placeholder="Select base unit"
+            options={baseOptions}
+            onOptionSelect={handleBaseUnitSelect}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <TextField name="uomQty" label="Count of this unit" type="number" placeholder="e.g. 1" integer positive />
+            <TextField
+              name="baseUomQty"
+              label={`Count of ${baseUnitSymbol ?? 'base units'}`}
+              type="number"
+              placeholder="e.g. 1000"
+              integer
+              positive
+            />
+          </div>
+        </>
+      ) : null}
+
+      <Switch
+        name="allowDecimal"
+        label="Allow Decimal"
+        description="Turning on will allow the input of fractional quantities"
+      />
+
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" data-cancel>
+          Cancel
+        </Button>
+        <Button type="submit" loadingText="Creating...">
+          Add UOM
+        </Button>
+      </div>
+    </Form>
+  );
+};

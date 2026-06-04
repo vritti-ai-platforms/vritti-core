@@ -1,0 +1,261 @@
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as Repack from '@callstack/repack';
+import { ReanimatedPlugin } from '@callstack/repack-plugin-reanimated';
+import dotenv from 'dotenv';
+import { expand as dotenvExpand } from 'dotenv-expand';
+
+const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const workspaceRoot = path.resolve(__dirname, '../../..');
+const quantumUiNative = path.resolve(__dirname, '../../../..', 'quantum-ui-native');
+
+// ---------------------------------------------------------------------------
+// Env loading — shares core-app's .env as single source of truth
+// ---------------------------------------------------------------------------
+
+const coreAppDir = path.resolve(workspaceRoot, 'apps/core-app');
+const appEnv = process.env.APP_ENV ?? 'development';
+
+for (const file of [`.env`, `.env.${appEnv}`, `.env.local`, `.env.${appEnv}.local`]) {
+  dotenvExpand(dotenv.config({ path: path.join(coreAppDir, file), override: false }));
+}
+
+const isDev = appEnv === 'development';
+const devHost = process.env.DEV_HOST?.trim();
+
+if (isDev && !devHost) {
+  throw new Error(
+    `DEV_HOST is required in development. Set it in ${path.join(coreAppDir, '.env')} to your LAN IP, for example 192.168.1.57`,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// react-native-css subpath aliases (hoisted monorepo packages)
+// ---------------------------------------------------------------------------
+
+const rnCssRoot = path.dirname(require.resolve('react-native-css/package.json'));
+const rnCssAliases = {
+  'react-native-css/native-internal': path.join(rnCssRoot, 'dist/commonjs/native-internal/index.js'),
+  'react-native-css/utilities': path.join(rnCssRoot, 'dist/commonjs/utilities/index.js'),
+  'react-native-css/compiler': path.join(rnCssRoot, 'dist/commonjs/compiler/index.js'),
+  'react-native-css/native': path.join(rnCssRoot, 'dist/commonjs/native/index.js'),
+};
+const rnCssComponentsPath = path.join(rnCssRoot, 'dist/commonjs/components/index.cjs');
+
+// ---------------------------------------------------------------------------
+// @vritti/quantum-ui-native subpath aliases → source files
+// ---------------------------------------------------------------------------
+
+const componentDirs = [
+  'Avatar',
+  'Badge',
+  'BottomNavigation',
+  'Button',
+  'Card',
+  'CardPressable',
+  'Checkbox',
+  'DynamicIcon',
+  'FlashList',
+  'Form',
+  'Input',
+  'Label',
+  'ListItem',
+  'NativeStack',
+  'Progress',
+  'RadioGroup',
+  'ScreenContainer',
+  'Separator',
+  'Skeleton',
+  'Spinner',
+  'SplashScreen',
+  'StaticAlert',
+  'Switch',
+  'TextField',
+  'Typography',
+];
+
+const quantumAliases = {
+  '@vritti/quantum-ui-native/utils': path.join(quantumUiNative, 'lib/utils/index.ts'),
+  '@vritti/quantum-ui-native/hooks': path.join(quantumUiNative, 'lib/hooks/index.ts'),
+  '@vritti/quantum-ui-native/config': path.join(quantumUiNative, 'lib/config/index.ts'),
+  '@vritti/quantum-ui-native/context': path.join(quantumUiNative, 'lib/context/index.ts'),
+  '@vritti/quantum-ui-native/theme': path.join(quantumUiNative, 'lib/theme/index.ts'),
+  '@vritti/quantum-ui-native/types': path.join(quantumUiNative, 'lib/types/index.ts'),
+  ...Object.fromEntries(
+    componentDirs.map((dir) => [
+      `@vritti/quantum-ui-native/${dir}`,
+      path.join(quantumUiNative, `lib/components/${dir}/index.ts`),
+    ]),
+  ),
+  '@vritti/quantum-ui-native': path.join(quantumUiNative, 'lib/index.tsx'),
+};
+
+/** @type {(env: import('@callstack/repack').EnvOptions) => import('@rspack/core').Configuration} */
+export default (rspackEnv) => {
+  const { platform, mode } = rspackEnv;
+  const isNative = platform !== 'web';
+  const rspack = require('@rspack/core');
+
+  return {
+    mode,
+    context: __dirname,
+    entry: './src/index.ts',
+
+    resolve: {
+      ...Repack.getResolveOptions(platform),
+      conditionNames: ['react-native', 'require', 'import', 'node', 'default'],
+      modules: [
+        path.resolve(__dirname, 'node_modules'),
+        path.resolve(workspaceRoot, 'node_modules'),
+        path.resolve(quantumUiNative, 'node_modules'),
+        'node_modules',
+      ],
+      alias: {
+        ...quantumAliases,
+        ...rnCssAliases,
+        'react-native-css/components': path.join(rnCssRoot, 'dist/commonjs/components'),
+        'colorjs.io/fn': require.resolve('colorjs.io/fn'),
+        '@react-navigation/elements/internal': path.join(
+          path.dirname(require.resolve('@react-navigation/elements/package.json')),
+          'lib/module/internal.js',
+        ),
+      },
+    },
+
+    resolveLoader: {
+      modules: [
+        path.resolve(workspaceRoot, 'node_modules'),
+        path.resolve(quantumUiNative, 'node_modules'),
+        'node_modules',
+      ],
+    },
+
+    output: {
+      path: '[context]/build/[platform]',
+      uniqueName: 'commerce_ma',
+      ...(isDev ? { publicPath: `http://${devHost}:9002/[platform]/` } : {}),
+    },
+
+    module: {
+      rules: [
+        {
+          test: /\.[cm]?[jt]sx?$/,
+          type: 'javascript/auto',
+          use: {
+            loader: '@callstack/repack/babel-swc-loader',
+            parallel: true,
+            options: {},
+          },
+        },
+        ...Repack.getAssetTransformRules(),
+        ...(isNative
+          ? [
+              {
+                test: /\.css$/,
+                use: [
+                  {
+                    loader: path.resolve(__dirname, 'rn-css-loader.js'),
+                    options: { projectRoot: __dirname },
+                  },
+                  {
+                    loader: 'postcss-loader',
+                    options: {
+                      postcssOptions: {
+                        plugins: { '@tailwindcss/postcss': {} },
+                      },
+                    },
+                  },
+                ],
+              },
+            ]
+          : []),
+      ],
+    },
+
+    plugins: [
+      new Repack.RepackPlugin({
+        extraChunks: [
+          {
+            include: /.*/,
+            type: 'remote',
+            outputPath: `build/${platform}/output-remote`,
+          },
+        ],
+      }),
+      new ReanimatedPlugin({ unstable_disableTransform: true }),
+
+      new Repack.plugins.ModuleFederationPluginV2({
+        name: 'commerce_ma',
+        filename: 'commerce-ma.container.js.bundle',
+        dts: false,
+        exposes: {
+          './BOM': './src/features/bom/index.tsx',
+          './Categories': './src/features/categories/index.tsx',
+          './Conversions': './src/features/conversions/index.tsx',
+          './CreditNotes': './src/features/credit-notes/index.tsx',
+          './Customers': './src/features/customers/index.tsx',
+          './GoodsReceipts': './src/features/goods-receipts/index.tsx',
+          './InventoryItems': './src/features/inventory-items/index.tsx',
+          './StorageLocations': './src/features/storage-locations/index.tsx',
+          './Invoices': './src/features/invoices/index.tsx',
+          './Items': './src/features/items/index.tsx',
+          './Modifiers': './src/features/modifiers/index.tsx',
+          './Orders': './src/features/orders/index.tsx',
+          './POSTerminals': './src/features/pos/index.tsx',
+          './POSBilling': './src/features/pos-billing/index.tsx',
+          './PriceLists': './src/features/price-lists/index.tsx',
+          './PurchaseOrders': './src/features/purchase-orders/index.tsx',
+          './StockAdjustments': './src/features/stock-adjustments/index.tsx',
+          './StockTransfers': './src/features/stock-transfers/index.tsx',
+          './Suppliers': './src/features/suppliers/index.tsx',
+          './TaxGroups': './src/features/tax-groups/index.tsx',
+          './UOM': './src/features/uom/index.tsx',
+        },
+        shared: {
+          react: { singleton: true, eager: false, import: false, requiredVersion: '19.2.3' },
+          'react-native': { singleton: true, eager: false, import: false, requiredVersion: '0.83.2' },
+          '@react-navigation/native': {
+            singleton: true,
+            eager: false,
+            import: false,
+            requiredVersion: '8.0.0-alpha.17',
+          },
+          '@react-navigation/elements': {
+            singleton: true,
+            eager: false,
+            import: false,
+            requiredVersion: '3.0.0-alpha.20',
+          },
+          '@react-navigation/bottom-tabs': {
+            singleton: true,
+            eager: false,
+            import: false,
+            requiredVersion: '8.0.0-alpha.22',
+          },
+          'react-native-safe-area-context': { singleton: true, eager: false, import: false, requiredVersion: '^5.7.0' },
+          'react-native-screens': { singleton: true, eager: false, import: false, requiredVersion: '^4.24.0' },
+          '@tanstack/react-query': { singleton: true, eager: false, import: false },
+          axios: { singleton: true, eager: false, import: false },
+          'react-native-reanimated': { singleton: true, eager: false, import: false },
+          'react-native-worklets': { singleton: true, eager: false, import: false, requiredVersion: '0.8.1' },
+          nativewind: { singleton: true, eager: false, import: false },
+        },
+      }),
+
+      ...(isNative
+        ? [
+            new rspack.NormalModuleReplacementPlugin(/^react-native-css\/components\/.+$/, (resource) => {
+              resource.request = rnCssComponentsPath;
+            }),
+            new rspack.NormalModuleReplacementPlugin(/^react-native-css\/react-native$/, (resource) => {
+              resource.request = rnCssComponentsPath;
+            }),
+            new rspack.NormalModuleReplacementPlugin(/react-native-css-metro-override/, require.resolve('./noop.js')),
+          ]
+        : []),
+    ],
+  };
+};

@@ -3,6 +3,7 @@ import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import { defineConfig, loadEnv } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 
+
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Load environment variables from .env files
@@ -17,6 +18,9 @@ const defaultApiHost = `${protocol}://${host}:3001`;
 const devRemotes: Record<string, string> = {};
 if (isDev && parsed.PUBLIC_CLOUD_MF_PORT) {
   devRemotes.VrittiCloud = `vritti_cloud@${protocol}://${host}:${parsed.PUBLIC_CLOUD_MF_PORT}/mf-manifest.json`;
+}
+if (isDev && parsed.PUBLIC_COMMERCE_MF_PORT) {
+  devRemotes.commerce = `commerce@${protocol}://${host}:${parsed.PUBLIC_COMMERCE_MF_PORT}/mf-manifest.json`;
 }
 
 export default defineConfig({
@@ -36,6 +40,7 @@ export default defineConfig({
   },
   server: {
     port: 3013,
+    historyApiFallback: true,
     ...(useHttps && {
       https: {
         key: fs.readFileSync('../../certs/_wildcard.local.vrittiai.com+4-key.pem'),
@@ -45,8 +50,16 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: process.env.REACT_API_HOST || defaultApiHost,
-        changeOrigin: true,
+        changeOrigin: false,
         secure: false, // Allow self-signed certificates in local development
+        on: {
+          proxyReq: (proxyReq, req) => {
+            // HTTP/2 uses :authority instead of Host
+            const rawHost = (req.headers.host ?? req.headers[':authority'] ?? '') as string;
+            const host = rawHost.split(':')[0];
+            if (host) proxyReq.setHeader('x-forwarded-host', host);
+          },
+        },
         pathRewrite: (reqPath) => reqPath.replace(/^\/api/, ''),
       },
     },
@@ -79,6 +92,14 @@ export default defineConfig({
           singleton: true,
           eager: true,
         },
+        '@vritti/quantum-ui/context': {
+          singleton: true,
+          eager: true,
+        },
+        '@vritti/quantum-ui/hooks': {
+          singleton: true,
+          eager: true,
+        },
         axios: {
           singleton: true,
           eager: true,
@@ -91,5 +112,16 @@ export default defineConfig({
       dts: false,
     }),
   ],
+  tools: {
+    rspack: {
+      ignoreWarnings: [
+        /Critical dependency: the request of a dependency is an expression/,
+        /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+      ],
+      watchOptions: {
+        ignored: ['**/node_modules/**', '**/dist/**', '**/cloud-server/**'],
+      },
+    },
+  },
   // PostCSS configuration is in postcss.config.mjs
 });

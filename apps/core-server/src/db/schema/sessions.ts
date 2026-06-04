@@ -1,4 +1,4 @@
-import { text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { jsonb, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { sessionTypeEnum } from './enums';
 import { users } from './users';
@@ -13,6 +13,7 @@ export const sessions = coreSchema.table('sessions', {
   refreshTokenHash: text('refresh_token_hash').notNull(),
   ipAddress: varchar('ip_address', { length: 45 }),
   userAgent: text('user_agent'),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({}),
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

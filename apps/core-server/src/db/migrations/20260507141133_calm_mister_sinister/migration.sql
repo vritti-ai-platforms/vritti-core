@@ -1,0 +1,2 @@
+ALTER TABLE "vritti_core"."business_units" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "org_isolation" ON "vritti_core"."business_units" AS PERMISSIVE FOR ALL TO public USING (organization_id = (select current_setting('app.org_id', true)::uuid));

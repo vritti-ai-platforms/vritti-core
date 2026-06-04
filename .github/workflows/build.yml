@@ -1,0 +1,85 @@
+name: Build & Push
+
+# Auto-builds on merge to main via `nx affected`.
+#   core-server      -> Docker image in GHCR
+#   commerce-service -> Docker image in GHCR (NATS worker)
+#   core-web         -> static bundle synced to the VM
+# Server containers are restarted by the manual Deploy workflow (infrastructure repo).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  affected:
+    name: Detect affected apps
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.aff.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: nrwl/nx-set-shas@v4
+      - id: aff
+        run: |
+          PROJECTS=$(pnpm exec nx show projects --affected --type app --json)
+          echo "projects=$PROJECTS" >> "$GITHUB_OUTPUT"
+          echo "Affected apps: $PROJECTS"
+
+  core-server:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'vritti-core-server')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-backend-image.yml@main
+    with:
+      service_name: core-server
+      dockerfile_path: apps/core-server/Dockerfile
+      build_context: .
+      package_json_path: apps/core-server/package.json
+    secrets: inherit
+
+  commerce-service:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'commerce-service')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-backend-image.yml@main
+    with:
+      service_name: commerce-service
+      dockerfile_path: apps/microservices/commerce-service/Dockerfile
+      build_context: .
+      package_json_path: apps/microservices/commerce-service/package.json
+    secrets: inherit
+
+  core-web-build:
+    needs: affected
+    if: contains(fromJSON(needs.affected.outputs.projects), 'vritti-core-web')
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-build-web.yml@main
+    with:
+      app_type: container
+      app_name: core-web
+      deploy_path: /
+      build_command: pnpm exec nx build vritti-core-web
+      output_dir: apps/core-web/dist
+      production_domain: https://dev.vrittiai.com
+    secrets: inherit
+
+  core-web-deploy:
+    needs: core-web-build
+    uses: vritti-ai-platforms/infrastructure/.github/workflows/reusable-deploy-web-build.yml@main
+    with:
+      artifact_name: ${{ needs.core-web-build.outputs.artifact_name }}
+      deploy_path: /opt/vritti/www/core
+    secrets:
+      SERVER_VM_HOST: ${{ secrets.SERVER_VM_HOST }}
+      SERVER_VM_USER: ${{ secrets.SERVER_VM_USER }}
+      SERVER_VM_SSH_KEY: ${{ secrets.SERVER_VM_SSH_KEY }}

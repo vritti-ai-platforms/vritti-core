@@ -1,0 +1,476 @@
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  type FieldMap,
+  FilterProcessor,
+  NotFoundException,
+  PrimaryDatabaseService,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  type TableViewState,
+} from '@vritti/api-sdk';
+import Decimal from '@vritti/api-sdk/decimal';
+import { and, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import {
+  CostDistributionMethodValues,
+  type CostSourceType,
+  CostSourceTypeValues,
+  type InventoryItemLedgerReferenceType,
+  type InventoryItemLedgerType,
+  type InventoryItemLot,
+  type InventoryItemQuant,
+  type InventoryItemSerial,
+  type InventoryTracking,
+  InventoryTrackingValues,
+  inventoryItemLots,
+  inventoryItemQuants,
+  inventoryItems,
+  locations,
+  uom,
+} from '@/db/schema';
+import { GoodsReceiptItemQuantsDto } from '../dto/entity/goods-receipt-item-quants.dto';
+import { InventoryItemQuantDto, LocationStockDto } from '../dto/entity/inventory-item-quant.dto';
+import { InventoryItemCostsRepository } from '../repositories/inventory-item-costs.repository';
+import { InventoryItemQuantsRepository } from '../repositories/inventory-item-quants.repository';
+
+export type CreateQuantParams = {
+  inventoryItemId: string;
+  locationId: string;
+  tracking: InventoryTracking;
+  // `quantity` is in the inventory item's PRIMARY UOM.
+  quantity: number;
+  // Unit cost (BU minor units), set at creation and always > 0. Part of the cost-batch identity:
+  // stock at the same (item, location, lot) but a different unit cost stays a separate quant.
+  unitCost: bigint;
+  // for tracking='lot' or 'lot_serial': lotId must be pre-resolved by the app-layer
+  lotId?: string | null;
+  // retained for backward compat with createQuant callers that pass lot/serialNumbers
+  lot?: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string };
+  // for tracking='serial' or 'lot_serial': required, length must equal quantity
+  serialNumbers?: string[];
+  // Provenance of the cost batch's first creation (informational).
+  costCurrency?: string;
+  sourceType?: CostSourceType;
+  sourceId?: string;
+  // GR publish owns the cost/value via its allocation pass; skip the unit_cost × qty baseline here.
+  skipCostBaseline?: boolean;
+};
+
+export type AdjustQuantParams =
+  | { tracking: 'quantity' | 'lot'; delta: number }
+  | { tracking: 'serial' | 'lot_serial'; serials: string[] };
+
+@Injectable()
+export class InventoryItemQuantsService {
+  private readonly logger = new Logger(InventoryItemQuantsService.name);
+
+  private static readonly QUANTS_FIELD_MAP: FieldMap = {
+    locationName: { column: locations.name, type: 'string' },
+    locationId: { column: inventoryItemQuants.locationId, type: 'string' },
+    lotId: { column: inventoryItemQuants.lotId, type: 'string' },
+  };
+
+  constructor(
+    private readonly database: PrimaryDatabaseService,
+    private readonly repository: InventoryItemQuantsRepository,
+    private readonly costsRepository: InventoryItemCostsRepository,
+  ) {}
+
+  // Rounds unit_cost × qty to whole minor units (ROUND_HALF_UP).
+  private roundMinor(unitCost: bigint, qty: number): bigint {
+    return BigInt(new Decimal(unitCost.toString()).times(qty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
+  }
+
+  // Adds a freshly-allocated cost slice to a quant's cost + value (GR publish allocation pass).
+  async addQuantCostValue(quantId: string, addCost: bigint, addValue: bigint): Promise<InventoryItemQuant> {
+    return this.repository.addQuantCostValue(quantId, addCost, addValue);
+  }
+
+  // Quants produced by a GR-item (post-publish) with their landed cost, for the Items Cost dialog.
+  async findCostsByGrItemId(grItemId: string): Promise<GoodsReceiptItemQuantsDto> {
+    const rows = await this.repository.findCostsByGrItemId(grItemId);
+    return GoodsReceiptItemQuantsDto.from(rows);
+  }
+
+  // Creates a new quant in its own transaction and writes the ledger entry. Tracking-aware.
+  // For lot/lot_serial tracking: caller must pass a pre-resolved `lotId` (app-layer resolves/creates the lot).
+  // For serial tracking: caller may pass `serialNumbers`.
+  // For quantity tracking: neither lotId nor serialNumbers are needed.
+  async createQuant(params: {
+    inventoryItemId: string;
+    locationId: string;
+    quantity: number;
+    unitCost: bigint;
+    lotId?: string | null;
+    serialNumbers?: string[];
+    costCurrency?: string;
+    sourceType?: CostSourceType;
+    sourceId?: string;
+    type: InventoryItemLedgerType;
+    referenceType?: InventoryItemLedgerReferenceType;
+    referenceId?: string;
+    notes?: string;
+  }): Promise<{ quant: InventoryItemQuant }> {
+    const tracking = await this.repository.findItemTracking(params.inventoryItemId);
+    const provenance = {
+      unitCost: params.unitCost,
+      costCurrency: params.costCurrency,
+      sourceType: params.sourceType,
+      sourceId: params.sourceId,
+    };
+    let createParams: CreateQuantParams;
+    if (tracking === InventoryTrackingValues.QUANTITY) {
+      createParams = {
+        inventoryItemId: params.inventoryItemId,
+        locationId: params.locationId,
+        tracking,
+        quantity: params.quantity,
+        ...provenance,
+      };
+    } else if (tracking === InventoryTrackingValues.SERIAL) {
+      createParams = {
+        inventoryItemId: params.inventoryItemId,
+        locationId: params.locationId,
+        tracking,
+        quantity: params.quantity,
+        serialNumbers: params.serialNumbers,
+        ...provenance,
+      };
+    } else {
+      createParams = {
+        inventoryItemId: params.inventoryItemId,
+        locationId: params.locationId,
+        tracking,
+        quantity: params.quantity,
+        lotId: params.lotId,
+        serialNumbers: params.serialNumbers,
+        ...provenance,
+      };
+    }
+
+    const quant = await this.database.runInTransaction(async () => {
+      const { quant: q } = await this.createQuantScoped(createParams);
+      return q;
+    });
+
+    this.logger.log(
+      `Created quant ${quant.id} for item ${params.inventoryItemId} (${params.type}, qty: ${params.quantity})`,
+    );
+    return { quant };
+  }
+
+  // Creates or upserts a quant within a transaction. Tracking-aware:
+  //   'quantity':   lotId=null, upsert by (item, location)
+  //   'lot':        uses pre-resolved lotId passed by the app-layer, upsert by (item, location, lotId)
+  //   'lot_serial': uses pre-resolved lotId passed by the app-layer, upsert quant, then inserts N quant_items with serials
+  //   'serial':     lotId=null, upsert quant by (item, location), then inserts N quant_items with serials
+  // No ledger — caller handles it. App-layer is responsible for resolving/creating the lot and passing lotId.
+  async createQuantScoped(
+    params: CreateQuantParams,
+  ): Promise<{ quant: InventoryItemQuant; lot: InventoryItemLot | null; quantItems: InventoryItemSerial[] }> {
+    this.validateCreateParams(params);
+
+    return this.database.runInTransaction(async () => {
+      if (
+        (params.tracking === InventoryTrackingValues.LOT || params.tracking === InventoryTrackingValues.LOT_SERIAL) &&
+        params.lotId == null
+      ) {
+        throw new BadRequestException(
+          'lotId is required for tracking=lot or lot_serial. App-layer must resolve the lot.',
+        );
+      }
+
+      const lotId = params.lotId ?? null;
+
+      // Merge only into a quant with the SAME unit cost — different cost ⇒ separate cost batch.
+      const existing = await this.repository.findByItemLocationLotCost(
+        params.inventoryItemId,
+        params.locationId,
+        lotId,
+        params.unitCost,
+      );
+
+      // GR publish passes skipCostBaseline: the allocation pass sets quant_cost/value exactly.
+      const baseline = params.skipCostBaseline ? 0n : this.roundMinor(params.unitCost, params.quantity);
+
+      let quant: InventoryItemQuant;
+      if (existing) {
+        quant = await this.repository.updateQuantity(existing.id, params.quantity);
+        if (baseline > 0n) {
+          quant = await this.repository.addQuantCostValue(existing.id, baseline, baseline);
+        }
+      } else {
+        quant = await this.repository.createQuant({
+          inventoryItemId: params.inventoryItemId,
+          locationId: params.locationId,
+          lotId,
+          quantity: params.quantity,
+          unitCost: params.unitCost,
+          costCurrency: params.costCurrency,
+          sourceType: params.sourceType,
+          sourceId: params.sourceId,
+          quantCost: baseline,
+          quantValue: baseline,
+        });
+      }
+
+      // Non-GR creation books its baseline as its own cost header (transfers/conversions create a
+      // fresh header for the destination quant's value; the source outflow already reduced its
+      // value, so system cost nets out). Junction is additive — a quant can hold many cost rows.
+      if (baseline > 0n) {
+        await this.bookBaselineCost(quant, baseline, params);
+      }
+
+      let quantItems: InventoryItemSerial[] = [];
+      if (
+        params.tracking === InventoryTrackingValues.SERIAL ||
+        params.tracking === InventoryTrackingValues.LOT_SERIAL
+      ) {
+        const serials = params.serialNumbers ?? [];
+        quantItems = await this.repository.insertQuantItems(
+          serials.map((serialNumber) => ({
+            inventoryItemQuantId: quant.id,
+            inventoryItemId: params.inventoryItemId,
+            serialNumber,
+          })),
+        );
+      }
+
+      return { quant, lot: null, quantItems };
+    });
+  }
+
+  // Creates a cost header + one junction row for a non-GR baseline; skips gracefully when no ITEM
+  // category is seeded or no currency is known (header.currency_code is NOT NULL).
+  private async bookBaselineCost(
+    quant: InventoryItemQuant,
+    baseline: bigint,
+    params: CreateQuantParams,
+  ): Promise<void> {
+    const currencyCode = params.costCurrency ?? quant.costCurrency;
+    if (!currencyCode) return;
+    const categoryId = await this.costsRepository.findItemCategoryId();
+    if (!categoryId) return;
+    const costId = await this.costsRepository.insertCost({
+      categoryId,
+      totalAmount: baseline,
+      currencyCode,
+      sourceType: params.sourceType ?? CostSourceTypeValues.MANUAL_ADJUSTMENT,
+      sourceId: params.sourceId ?? quant.id,
+      distributionMethod: CostDistributionMethodValues.EQUAL,
+      unallocatedAmount: 0n,
+    });
+    await this.costsRepository.insertQuantCosts([{ quantId: quant.id, costId, allocatedAmount: baseline }]);
+  }
+
+  private validateCreateParams(params: CreateQuantParams): void {
+    if (params.quantity <= 0) {
+      throw new BadRequestException('Quantity must be positive.');
+    }
+    if (params.unitCost <= 0n) {
+      throw new BadRequestException('Unit cost must be a positive amount.');
+    }
+    if (params.tracking === InventoryTrackingValues.QUANTITY) {
+      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=quantity.');
+      if (params.serialNumbers?.length) {
+        throw new BadRequestException('serialNumbers must not be provided for tracking=quantity.');
+      }
+      return;
+    }
+    if (params.tracking === InventoryTrackingValues.LOT) {
+      if (!params.lot?.lotNumber && params.lotId == null) {
+        throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=lot.');
+      }
+      if (params.serialNumbers?.length) {
+        throw new BadRequestException('serialNumbers must not be provided for tracking=lot.');
+      }
+      return;
+    }
+    if (params.tracking === InventoryTrackingValues.SERIAL) {
+      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=serial.');
+      const serials = params.serialNumbers ?? [];
+      if (serials.length !== params.quantity) {
+        throw new BadRequestException(
+          `serialNumbers.length (${serials.length}) must equal quantity (${params.quantity}).`,
+        );
+      }
+      const unique = new Set(serials);
+      if (unique.size !== serials.length) {
+        throw new BadRequestException('serialNumbers must be unique within the same quant creation.');
+      }
+      return;
+    }
+    // LOT_SERIAL: lot (or pre-resolved lotId) required + serials required
+    if (!params.lot?.lotNumber && params.lotId == null) {
+      throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=lot_serial.');
+    }
+    const serials = params.serialNumbers ?? [];
+    if (serials.length !== params.quantity) {
+      throw new BadRequestException(
+        `serialNumbers.length (${serials.length}) must equal quantity (${params.quantity}).`,
+      );
+    }
+    const unique = new Set(serials);
+    if (unique.size !== serials.length) {
+      throw new BadRequestException('serialNumbers must be unique within the same quant creation.');
+    }
+  }
+
+  // Adjusts a quant in its own transaction and writes the ledger entry. Tracking-aware.
+  async adjustQuant(params: {
+    quantId: string;
+    quantity: number; // signed; for tracking='serial' should equal -serials.length
+    serials?: string[]; // tracking='serial' only
+    type: InventoryItemLedgerType;
+    referenceType?: InventoryItemLedgerReferenceType;
+    referenceId?: string;
+    notes?: string;
+  }): Promise<{ quant: InventoryItemQuant }> {
+    const quant = await this.repository.findById(params.quantId);
+    if (!quant) throw new NotFoundException('Quant not found.');
+
+    const tracking = await this.repository.findItemTracking(quant.inventoryItemId);
+
+    const adjustParams: AdjustQuantParams =
+      tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL
+        ? { tracking, serials: params.serials ?? [] }
+        : { tracking, delta: params.quantity };
+
+    const updated = await this.database.runInTransaction(async () => {
+      const { quant: u } = await this.adjustQuantScoped(params.quantId, adjustParams);
+      return u;
+    });
+
+    this.logger.log(`Adjusted quant ${updated.id} by ${params.quantity} (${params.type})`);
+    return { quant: updated };
+  }
+
+  // Adjusts a quant within a transaction (no ledger — caller handles it).
+  //   'quantity' | 'lot':         delta-based adjustment; auto-deletes quant when quantity <= 0
+  //   'serial' | 'lot_serial':    resolves serials → consumes those quant_items; auto-deletes at zero
+  async adjustQuantScoped(
+    quantId: string,
+    params: AdjustQuantParams,
+  ): Promise<{ quant: InventoryItemQuant; consumedItems: InventoryItemSerial[] }> {
+    return this.database.runInTransaction(async () => {
+      // PR4 (cost-tracking foundation, plan §6): zero-qty quants STAY — cost history, returns,
+      // and period-end snapshots all read this row. The old auto-delete-on-zero behavior was
+      // removed; the row's cost_currency / source_type / source_id keep the audit trail intact
+      // even when quantity reaches 0.
+      switch (params.tracking) {
+        case 'quantity':
+        case 'lot': {
+          let quant = await this.repository.updateQuantity(quantId, params.delta);
+          // Outflow: decrement value (clears to 0 on final depletion). Inflow (rare): add baseline.
+          if (params.delta < 0) {
+            quant = await this.repository.applyOutflowValue(quantId, Math.abs(params.delta));
+          } else if (params.delta > 0) {
+            const add = this.roundMinor(quant.unitCost, params.delta);
+            quant = await this.repository.addQuantCostValue(quantId, add, add);
+          }
+          return { quant, consumedItems: [] };
+        }
+        case 'serial':
+        case 'lot_serial': {
+          const items = await this.repository.loadAvailableQuantItemsBySerials(quantId, params.serials);
+          if (items.length !== params.serials.length) {
+            throw new BadRequestException('Some serials are not AVAILABLE or do not belong to the given quant.');
+          }
+          await this.repository.consumeQuantItems(items.map((i) => i.id));
+          await this.repository.updateQuantity(quantId, -items.length);
+          const quant = await this.repository.applyOutflowValue(quantId, items.length);
+          return { quant, consumedItems: items };
+        }
+      }
+    });
+  }
+
+  // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.
+  async loadLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
+    const quant = await this.repository.findById(quantId);
+    if (!quant?.lotNumber) return null;
+    return {
+      id: quant.lotId as string,
+      organizationId: '',
+      businessUnitId: '',
+      inventoryItemId: quant.inventoryItemId,
+      lotNumber: quant.lotNumber,
+      manufacturingDate: quant.manufacturingDate ?? null,
+      expiryDate: quant.expiryDate ?? null,
+      createdAt: quant.createdAt,
+      updatedAt: quant.updatedAt,
+    } as InventoryItemLot;
+  }
+
+  async findQuantsForTable(
+    inventoryItemId: string,
+    state: TableViewState,
+  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsService.QUANTS_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsService.QUANTS_FIELD_MAP);
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsService.QUANTS_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findQuantsForTable(inventoryItemId, {
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : undefined,
+      limit,
+      offset,
+    });
+
+    return { result: result.map((row) => InventoryItemQuantDto.from(row, true)), count };
+  }
+
+  async findQuantById(id: string): Promise<InventoryItemQuantDto> {
+    const row = await this.repository.findById(id);
+    if (!row) throw new NotFoundException('Quant not found.');
+    return InventoryItemQuantDto.from(row, true);
+  }
+
+  async findLocationStockByInventoryItemId(inventoryItemId: string): Promise<LocationStockDto[]> {
+    const rows = await this.repository.findLocationStockByInventoryItemId(inventoryItemId);
+    return rows.map((row) => {
+      const dto = new LocationStockDto();
+      dto.locationId = row.locationId;
+      dto.locationName = row.locationName ?? null;
+      dto.locationPath = row.locationPath ?? null;
+      dto.stockedQuantity = Number(row.stockedQuantity);
+      dto.reservedQuantity = Number(row.reservedQuantity);
+      dto.availableQuantity = Number(row.availableQuantity);
+      dto.reorderLevel = row.reorderLevel;
+      return dto;
+    });
+  }
+
+  async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {
+    const search = query.search?.trim();
+    const hasItemFilter = !!query.inventoryItemId;
+    // inventoryItems is listed first so resolveColumn('name') resolves to inventoryItems.name, not locations.name
+    const joins = [
+      { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id), type: 'left' as const },
+      { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id), type: 'left' as const },
+      { table: locations, on: eq(inventoryItemQuants.locationId, locations.id), type: 'left' as const },
+      { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' as const },
+    ];
+    return this.repository.findForSelect({
+      value: query.valueKey || 'id',
+      label: query.labelKey || (hasItemFilter ? 'lotNumber' : 'name'),
+      description: query.descriptionKey || (hasItemFilter ? 'pathBreadcrumb' : 'lotNumber'),
+      additionalKeys: query.additionalKeys || (hasItemFilter ? 'quantity,symbol' : 'quantity,pathBreadcrumb'),
+      values: query.values,
+      excludeIds: query.excludeIds,
+      limit: query.limit,
+      offset: query.offset,
+      orderByKey: query.orderByKey || 'createdAt',
+      orderDirection: query.orderDirection || 'desc',
+      where: hasItemFilter ? { inventoryItemId: query.inventoryItemId } : undefined,
+      joins,
+      conditions: search
+        ? hasItemFilter
+          ? [or(ilike(locations.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL]
+          : [or(ilike(inventoryItems.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL]
+        : undefined,
+    });
+  }
+}

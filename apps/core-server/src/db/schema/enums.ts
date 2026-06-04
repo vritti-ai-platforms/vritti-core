@@ -1,21 +1,13 @@
 import { coreSchema } from './core-schema';
 
-export const userRoleEnum = coreSchema.enum('user_role', ['SUPER_ADMIN', 'ADMIN', 'SUPPORT']);
 export const userStatusEnum = coreSchema.enum('user_status', ['PENDING', 'ACTIVE', 'SUSPENDED']);
-export const sessionTypeEnum = coreSchema.enum('session_type', ['NEXUS', 'SET_PASSWORD', 'RESET']);
+export const sessionTypeEnum = coreSchema.enum('session_type', ['NEXUS', 'SET_PASSWORD', 'RESET', 'MOBILE']);
 
 // TypeScript type exports for use in DTOs and services
-export type UserRole = (typeof userRoleEnum.enumValues)[number];
 export type UserStatus = (typeof userStatusEnum.enumValues)[number];
 export type SessionType = (typeof sessionTypeEnum.enumValues)[number];
 
 // Runtime enum value objects for use in code
-export const UserRoleValues = {
-  SUPER_ADMIN: 'SUPER_ADMIN' as const,
-  ADMIN: 'ADMIN' as const,
-  SUPPORT: 'SUPPORT' as const,
-};
-
 export const UserStatusValues = {
   PENDING: 'PENDING' as const,
   ACTIVE: 'ACTIVE' as const,
@@ -26,6 +18,7 @@ export const SessionTypeValues = {
   NEXUS: 'NEXUS' as const,
   SET_PASSWORD: 'SET_PASSWORD' as const,
   RESET: 'RESET' as const,
+  MOBILE: 'MOBILE' as const,
 };
 
 // Organization enums
@@ -43,4 +36,63 @@ export const OrgSizeValues = {
   s50_100: '50-100' as const,
   s100_500: '100-500' as const,
   s500plus: '500+' as const,
+};
+
+// RBAC enums
+export const buTypeEnum = coreSchema.enum('bu_type', [
+  'ORGANIZATION',
+  'REGION',
+  'FRANCHISEE',
+  'BRANCH',
+  'TEAM',
+  'DEPARTMENT',
+  'CUSTOM',
+]);
+export const roleScopeEnum = coreSchema.enum('role_scope', ['GLOBAL', 'SUBTREE', 'SINGLE_BU']);
+export const assignmentTypeEnum = coreSchema.enum('assignment_type', ['DIRECT', 'INHERITED']);
+
+export type BuType = (typeof buTypeEnum.enumValues)[number];
+export type RoleScope = (typeof roleScopeEnum.enumValues)[number];
+export type AssignmentType = (typeof assignmentTypeEnum.enumValues)[number];
+
+export const BuTypeValues = {
+  ORGANIZATION: 'ORGANIZATION' as const,
+  REGION: 'REGION' as const,
+  FRANCHISEE: 'FRANCHISEE' as const,
+  BRANCH: 'BRANCH' as const,
+  TEAM: 'TEAM' as const,
+  DEPARTMENT: 'DEPARTMENT' as const,
+  CUSTOM: 'CUSTOM' as const,
+};
+
+export const RoleScopeValues = {
+  GLOBAL: 'GLOBAL' as const,
+  SUBTREE: 'SUBTREE' as const,
+  SINGLE_BU: 'SINGLE_BU' as const,
+};
+
+export const AssignmentTypeValues = {
+  DIRECT: 'DIRECT' as const,
+  INHERITED: 'INHERITED' as const,
+};
+
+// Media enums
+export const mediaStatusEnum = coreSchema.enum('media_status', ['pending', 'ready', 'failed', 'deleted']);
+export type MediaStatus = (typeof mediaStatusEnum.enumValues)[number];
+export const MediaStatusValues = {
+  PENDING: 'pending' as const,
+  READY: 'ready' as const,
+  FAILED: 'failed' as const,
+  DELETED: 'deleted' as const,
+};
+
+// BU-level default pick strategy used by commerce-service when removing stock (negative SAs,
+// future sales). Item-level `inventory_items.pick_strategy` (lowercase, has 'none' = "inherit")
+// can override per item; this enum carries no 'none' because the BU must always have a default.
+export const pickStrategyEnum = coreSchema.enum('pick_strategy', ['FEFO', 'FIFO', 'LIFO']);
+export type PickStrategy = (typeof pickStrategyEnum.enumValues)[number];
+export const PickStrategyValues = {
+  FEFO: 'FEFO' as const,
+  FIFO: 'FIFO' as const,
+  LIFO: 'LIFO' as const,
 };

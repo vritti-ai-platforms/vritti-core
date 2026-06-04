@@ -1,5 +1,6 @@
 import fastifyCookie from '@fastify/cookie';
 import fastifyCsrfProtection from '@fastify/csrf-protection';
+import fastifyMultipart from '@fastify/multipart';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -8,7 +9,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import {
   BadRequestException,
   CorrelationIdMiddleware,
-  configureApiSdk,
   HttpExceptionFilter,
   HttpLoggerInterceptor,
   LoggerService,
@@ -47,6 +47,8 @@ const CORS_ORIGINS = [
   'http://localhost:5174', // Other possible ports
   `http://${ENV.host}:3012`,
   `https://${ENV.host}:3012`,
+  'http://api.local.vrittiai.com:3001',
+  'https://api.local.vrittiai.com:3001',
 ];
 
 const CORS_CONFIG = {
@@ -59,22 +61,6 @@ const CORS_CONFIG = {
 // ============================================================================
 // Configuration Functions
 // ============================================================================
-
-// Configure api-sdk BEFORE creating the NestJS app
-function configureApiSdkSettings() {
-  configureApiSdk({
-    cookie: {
-      refreshCookieName: ENV.refreshCookieName,
-      refreshCookieSecure: ENV.nodeEnv === 'production',
-      refreshCookieMaxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      refreshCookieSameSite: 'strict',
-      refreshCookieDomain: ENV.refreshCookieDomain,
-    },
-    guard: {
-      tenantHeaderName: 'x-tenant-id',
-    },
-  });
-}
 
 // Create Swagger/OpenAPI configuration
 function createSwaggerConfig() {
@@ -102,7 +88,6 @@ function createSwaggerConfig() {
 
 async function bootstrap() {
   // Configure API SDK settings
-  configureApiSdkSettings();
 
   // Determine logger configuration
   // When using default provider, let NestJS use its built-in logger to avoid circular reference
@@ -144,6 +129,13 @@ async function bootstrap() {
   // Register cookie support
   await app.register(fastifyCookie, {
     secret: configService.getOrThrow<string>('COOKIE_SECRET'),
+  });
+
+  // Register multipart support for file uploads
+  await app.register(fastifyMultipart, {
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10 MB hard limit (media service enforces configured limit)
+    },
   });
 
   // Register raw body plugin for webhook signature validation
@@ -194,6 +186,7 @@ async function bootstrap() {
       },
       // Transform class-validator errors into RFC 9457 field errors
       exceptionFactory: (errors: ValidationError[]) => {
+        console.error('[ValidationPipe] Validation errors:', JSON.stringify(errors, null, 2));
         return new BadRequestException({
           detail: 'Please check your input and try again.',
           errors: errors.map((err) => ({

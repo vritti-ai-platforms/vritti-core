@@ -1,9 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-  <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+  <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
     <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     <item name="colorPrimary">@color/colorPrimary</item>
     <item name="android:statusBarColor">@android:color/transparent</item>
     <item name="android:navigationBarColor">@android:color/transparent</item>
+    <item name="alertDialogTheme">@style/AppAlertDialog</item>
+    <item name="android:alertDialogTheme">@style/AppAlertDialog</item>
+  </style>
+  <style name="AppAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog.Centered">
+    <item name="android:windowBackground">@drawable/m3_dialog_background</item>
+    <item name="android:windowMinWidthMinor">85%</item>
+    <item name="android:windowMinWidthMajor">60%</item>
   </style>
   <style name="Theme.App.SplashScreen" parent="AppTheme">
     <item name="android:windowBackground">@drawable/ic_launcher_background</item>

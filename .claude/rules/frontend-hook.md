@@ -83,3 +83,40 @@ type UseLoginOptions = Omit<UseMutationOptions<LoginResponse, AxiosError, LoginD
 export const PROFILE_QUERY_KEY = ['profile'] as const;
 export const SESSIONS_QUERY_KEY = ['sessions'] as const;
 ```
+
+## File structure — domain folders with barrel exports
+
+Organize hooks by domain in folders, not flat files:
+
+```
+// WRONG — flat
+hooks/
+├── useUom.ts
+├── useCreateUom.ts
+├── useUpdateUom.ts
+└── useDeleteUom.ts
+
+// CORRECT — domain folder with barrel export
+hooks/
+└── uom/
+    ├── index.ts           ← barrel re-exports all hooks + query keys
+    ├── useUom.ts
+    ├── useCreateUom.ts
+    ├── useUpdateUom.ts
+    └── useDeleteUom.ts
+```
+
+Consumers import from the barrel: `import { useBaseUnits, useCreateUom } from '@/hooks/uom'`
+
+## Types — import from schemas, not services
+
+Hook mutation types come from `@/schemas/*`, not from service files:
+
+```typescript
+// WRONG — importing payload type from service
+import { type CreateUomPayload, createUom } from '@/services/uom.service';
+
+// CORRECT — types from schema, function from service
+import type { CreateUomData } from '@/schemas/uom';
+import { createUom } from '@/services/uom.service';
+```

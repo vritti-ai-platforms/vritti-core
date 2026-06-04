@@ -1,24 +1,42 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR, RouterModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { isIP } from 'node:net';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
-
-import './db/schema.registry';
-
+import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
+import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
+import { RlsInterceptor } from '@/common/interceptors/rls.interceptor';
 import {
   AuthConfigModule,
   DatabaseModule,
   type DatabaseModuleOptions,
+  DataTableModule,
   EmailModule,
   LoggerModule,
+  NatsClientModule,
   RootModule,
+  type TokenExpiryString,
+  UnauthorizedException,
 } from '@vritti/api-sdk';
 import { validate } from './config/env.validation';
-import { AuthModule } from './modules/auth/auth.module';
-import { OrganizationModule } from './modules/organization/organization.module';
-import { UserModule } from './modules/user/user.module';
-import { VerificationModule } from './modules/verification/verification.module';
+import { AccountModule } from './modules/account/account.module';
+import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
+import { AuthApiModule } from './modules/core-api/auth/auth.module';
+import { BusinessUnitApiModule } from './modules/core-api/business-unit/business-unit.module';
+import { ConfigApiModule } from './modules/core-api/config/config-api.module';
+import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
+import { UserApiModule } from './modules/core-api/user/user.module';
+import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
+import { BusinessUnitDomainModule } from './modules/domain/business-unit/business-unit.module';
+import { ConfigCacheDomainModule } from './modules/domain/config-cache/config-cache.module';
+import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
+import { SessionDomainModule } from './modules/domain/session/session.module';
+import { UserDomainModule } from './modules/domain/user/user.module';
+import { UserPermissionsDomainModule } from './modules/domain/user-permissions/user-permissions.module';
+import { UserRoleDomainModule } from './modules/domain/user-role/user-role.module';
+import { VerificationDomainModule } from './modules/domain/verification/verification.module';
 
 @Module({
   imports: [
@@ -68,29 +86,149 @@ import { VerificationModule } from './modules/verification/verification.module';
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
 
-          drizzleSchema: schema,
-          // Relations must be passed separately for db.query to work (drizzle-orm v2)
+          // Relations drive db.query.X in Drizzle 1.0; schema generic was removed.
           drizzleRelations: relations,
 
           // Connection pool configuration
-          connectionCacheTTL: 300000, // 5 minutes
           maxConnections: 10,
+
+          // Used by the webhook path (WebhookSessionInterceptor) — sets app.org_id for RLS.
+          // Other HTTP routes don't stash an RLS context, so this is a no-op for them.
+          applyRlsContext: async (client, ctx) => {
+            const r = ctx as { orgId: string };
+            await client.query("SELECT set_config('app.org_id', $1, true)", [r.orgId]);
+          },
         };
         return options;
       },
     }),
     // Authentication module (Global guard + JWT)
     // Must be imported after DatabaseModule since VrittiAuthGuard depends on its services
-    AuthConfigModule.forRootAsync(),
+    AuthConfigModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        tokenExpiry: {
+          access: config.getOrThrow('ACCESS_TOKEN_EXPIRY') as TokenExpiryString,
+          refresh: config.getOrThrow('REFRESH_TOKEN_EXPIRY') as TokenExpiryString,
+        },
+        cookie: {
+          refreshCookieName: config.get('REFRESH_COOKIE_NAME', 'vritti_core_refresh'),
+          refreshCookieSecure: config.get('NODE_ENV') === 'production',
+          refreshCookieSameSite: 'strict' as const,
+          refreshCookieDomain: config.get('REFRESH_COOKIE_DOMAIN'),
+        },
+
+        guard: {
+          csrfExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
+          refreshTokenBindingExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
+          onAuthenticated: (requestService, sessionInfo) => {
+            const hostname = requestService.getHostname();
+            const allowRawIpHostRouting = config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false);
+
+            if (allowRawIpHostRouting && isIP(hostname)) {
+              const buHeader = requestService.getHeader('x-bu-id');
+              const buId = Array.isArray(buHeader) ? buHeader[0] : buHeader;
+              if (buId) {
+                sessionInfo.buId = buId;
+              }
+              return;
+            }
+
+            // Extract subdomain from request host
+            const requestSubdomain = hostname.split('.')[0];
+            if (!requestSubdomain) {
+              throw new UnauthorizedException('Invalid request host');
+            }
+
+            // Validate request subdomain matches the token's subdomain (skip for old tokens without subdomain)
+            if (sessionInfo.subdomain !== requestSubdomain) {
+              throw new UnauthorizedException('Subdomain mismatch — token does not belong to this organization');
+            }
+
+            // Set subdomain on sessionInfo
+            sessionInfo.subdomain = requestSubdomain;
+
+            // Extract BU ID from header
+            const buHeader = requestService.getHeader('x-bu-id');
+            const buId = Array.isArray(buHeader) ? buHeader[0] : buHeader;
+            if (buId) {
+              sessionInfo.buId = buId;
+            }
+          },
+        },
+      }),
+    }),
     // Root module — health check and CSRF endpoints
     RootModule,
     // Email module — globally provided EmailService
     EmailModule,
-    // Nexus API modules — routes registered at root (proxy strips /api prefix)
-    AuthModule,
-    UserModule,
-    OrganizationModule,
-    VerificationModule,
+    // Data table views — server-stored table state
+    DataTableModule.forRoot({ tableViews: schema.tableViews }),
+    // Domain modules — services + repositories only
+    ConfigCacheDomainModule,
+    SessionDomainModule,
+    VerificationDomainModule,
+    BusinessUnitDomainModule,
+    OrganizationDomainModule,
+    UserDomainModule,
+    UserRoleDomainModule,
+    UserPermissionsDomainModule,
+    // NATS client — gateway mode, resolves BU context from sessionInfo
+    NatsClientModule.forRoot({
+      imports: [BusinessUnitDomainModule],
+      inject: [ConfigService, BusinessUnitRepository, BuContextCacheService],
+      useFactory: (config: ConfigService, buRepo: BusinessUnitRepository, buContextCache: BuContextCacheService) => ({
+        natsUrl: config.get<string>('NATS_URL'),
+        services: [{ name: 'commerce' }],
+        contextResolver: async (sessionInfo) => {
+          const buId = sessionInfo.buId ?? '';
+          const orgId = sessionInfo.organizationId ?? '';
+
+          const cached = buContextCache.get(buId);
+          if (cached) {
+            return { orgId, userId: sessionInfo.userId, buId, ...cached };
+          }
+
+          const bu = buId ? await buRepo.findById(buId) : null;
+          const path = bu?.path ?? '';
+          const [buAncestorIds, buDescendantIds] = path
+            ? await Promise.all([buRepo.findAncestors(path), buRepo.findDescendants(path)])
+            : [[buId], [buId]];
+          const buTimezone = bu?.timezone ?? 'UTC';
+          const buCurrencyCode = bu?.currencyCode ?? '';
+
+          buContextCache.set(buId, { buTimezone, buCurrencyCode, buAncestorIds, buDescendantIds });
+          return {
+            orgId,
+            userId: sessionInfo.userId,
+            buId,
+            buTimezone,
+            buCurrencyCode,
+            buAncestorIds,
+            buDescendantIds,
+          };
+        },
+      }),
+    }),
+    // API modules — controllers + DTOs + docs
+    AuthApiModule,
+    ConfigApiModule,
+    UserApiModule,
+    OrganizationApiModule,
+    BusinessUnitApiModule,
+    UserPermissionsApiModule,
+    // Account module — profile and security management
+    AccountModule,
+    // Commerce gateway — forwards requests to commerce-service via NATS
+    CommerceGatewayModule,
+    RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
+    RouterModule.register([{ path: 'account', module: AccountModule }]),
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RlsInterceptor,
+    },
   ],
 })
 export class AppModule {}

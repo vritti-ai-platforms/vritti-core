@@ -119,6 +119,10 @@ class EnvironmentVariables {
   @IsString()
   NEXUS_WEBHOOK_SECRET: string;
 
+  // Cloud API
+  @IsString()
+  CLOUD_API_URL: string;
+
   // Redis
   @IsString()
   REDIS_URL: string;
@@ -126,6 +130,42 @@ class EnvironmentVariables {
   // Domains
   @IsString()
   BASE_DOMAIN: string;
+
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  @IsOptional()
+  ALLOW_RAW_IP_HOST_ROUTING?: boolean;
+
+  // R2 Storage
+  @IsString()
+  R2_ACCOUNT_ID: string;
+
+  @IsString()
+  R2_ACCESS_KEY_ID: string;
+
+  @IsString()
+  R2_SECRET_ACCESS_KEY: string;
+
+  @IsString()
+  R2_BUCKET_NAME: string;
+
+  @IsString()
+  R2_PUBLIC_BUCKET: string;
+
+  @IsString()
+  R2_PUBLIC_URL: string;
+
+  // Media service
+  @IsNumber()
+  @Min(1)
+  MEDIA_MAX_FILE_SIZE_MB: number;
+
+  @IsString()
+  MEDIA_STORAGE_PROVIDER: string;
+
+  @IsNumber()
+  @Min(60)
+  MEDIA_SIGNED_URL_EXPIRY: number;
 
   // Email / Brevo
   @IsString()
@@ -149,7 +189,14 @@ export function validate(config: Record<string, unknown>): Record<string, unknow
     PRIMARY_DB_PORT: config.PRIMARY_DB_PORT ? parseInt(config.PRIMARY_DB_PORT as string, 10) : undefined,
     OTP_MAX_ATTEMPTS: config.OTP_MAX_ATTEMPTS ? parseInt(config.OTP_MAX_ATTEMPTS as string, 10) : undefined,
     BCRYPT_SALT_ROUNDS: config.BCRYPT_SALT_ROUNDS ? parseInt(config.BCRYPT_SALT_ROUNDS as string, 10) : undefined,
+    MEDIA_MAX_FILE_SIZE_MB: config.MEDIA_MAX_FILE_SIZE_MB
+      ? parseInt(config.MEDIA_MAX_FILE_SIZE_MB as string, 10)
+      : undefined,
+    MEDIA_SIGNED_URL_EXPIRY: config.MEDIA_SIGNED_URL_EXPIRY
+      ? parseInt(config.MEDIA_SIGNED_URL_EXPIRY as string, 10)
+      : undefined,
     MASK_PII: config.MASK_PII ?? 'false',
+    ALLOW_RAW_IP_HOST_ROUTING: config.ALLOW_RAW_IP_HOST_ROUTING ?? 'false',
   };
 
   const validatedConfig = plainToInstance(EnvironmentVariables, processedConfig, {

@@ -1,0 +1,11 @@
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export class UpdateOrderStatusDto {
+  @IsString()
+  @IsNotEmpty()
+  status: string;
+
+  @IsOptional()
+  @IsString()
+  cancellationReason?: string;
+}

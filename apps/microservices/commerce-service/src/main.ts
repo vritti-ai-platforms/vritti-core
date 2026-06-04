@@ -1,0 +1,24 @@
+import { NestFactory } from '@nestjs/core';
+import { type MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { RpcProblemExceptionFilter } from '@vritti/api-sdk';
+import { AppModule } from './app.module';
+
+// NATS connection configuration
+const NATS_URL = process.env.NATS_URL ?? 'nats://localhost:4222';
+
+async function bootstrap() {
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+    transport: Transport.NATS,
+    options: {
+      servers: [NATS_URL],
+      queue: 'commerce-service',
+    },
+  });
+
+  app.useGlobalFilters(new RpcProblemExceptionFilter());
+
+  await app.listen();
+  console.log(`Commerce Service listening on NATS at ${NATS_URL}`);
+}
+
+bootstrap();

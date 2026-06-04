@@ -1,12 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@vritti/quantum-ui/Button';
 import { FieldGroup, Form } from '@vritti/quantum-ui/Form';
 import { PasswordField } from '@vritti/quantum-ui/PasswordField';
 import { TextField } from '@vritti/quantum-ui/TextField';
+import { z, zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
 import { useLogin } from '../hooks/useLogin';
 
 const schema = z.object({
@@ -38,7 +37,7 @@ export const LoginPage: React.FC = () => {
         <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
         <p className="text-muted-foreground text-sm">Enter your credentials to access the dashboard</p>
       </div>
-      <Form form={form} mutation={loginMutation} showRootError className="space-y-4">
+      <Form form={form} mutation={loginMutation} className="space-y-4">
         <FieldGroup>
           <TextField name="email" label="Email" type="email" placeholder="you@example.com" />
           <PasswordField name="password" label="Password" placeholder="Enter your password" />

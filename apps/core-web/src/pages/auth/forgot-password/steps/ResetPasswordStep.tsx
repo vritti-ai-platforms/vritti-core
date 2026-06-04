@@ -1,10 +1,10 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import type { PasswordResetFlow } from '@hooks/password-reset';
 import { type SetPasswordFormData, setPasswordSchema } from '@schemas/auth';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Field, FieldGroup, Form } from '@vritti/quantum-ui/Form';
 import { PasswordField } from '@vritti/quantum-ui/PasswordField';
 import { Typography } from '@vritti/quantum-ui/Typography';
+import { zodResolver } from '@vritti/quantum-ui/zod';
 import { KeyRound } from 'lucide-react';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -39,7 +39,7 @@ export const ResetPasswordStep: React.FC<ResetPasswordStepProps> = ({ mutation }
         </Typography>
       </div>
 
-      <Form form={form} mutation={mutation} transformSubmit={(data) => data.password} showRootError>
+      <Form form={form} mutation={mutation} transformSubmit={(data) => data.password}>
         <FieldGroup>
           <PasswordField
             name="password"

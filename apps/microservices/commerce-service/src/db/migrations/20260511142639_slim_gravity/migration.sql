@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."stock_adjustment_lots" DROP COLUMN "metadata";
