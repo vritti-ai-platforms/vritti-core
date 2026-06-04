@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, type SuccessResponseDto } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
@@ -19,7 +19,6 @@ import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 @RequireSession(SessionTypeValues.NEXUS)
 @Controller('tax-groups')
 export class TaxGroupsGatewayController {
-  private readonly logger = new Logger(TaxGroupsGatewayController.name);
 
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
 

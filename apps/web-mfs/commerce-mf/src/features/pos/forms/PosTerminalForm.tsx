@@ -46,7 +46,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
   const handleSubmit = (data: PosTerminalFormData) => {
     if (isEdit) {
       updateMutation.mutate({
-        id: terminal!.id,
+        id: terminal?.id,
         data: {
           name: data.name,
           locationId: data.locationId,

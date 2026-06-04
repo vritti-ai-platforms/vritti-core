@@ -55,21 +55,21 @@ export class TaxGroupsService {
     const entity = await this.taxGroupsRepository.update(id, updatePayload);
 
     // Replace tax rates if provided
-    let rates;
     if (data.taxRates !== undefined) {
       await this.taxGroupsRepository.deleteTaxRatesByGroupId(id);
-      rates = await this.taxGroupsRepository.createTaxRates(
-        id,
-        data.taxRates.map((r, i) => ({
-          name: r.name,
-          rate: r.rate,
-          type: r.type,
-          sortOrder: i,
-        })),
-      );
-    } else {
-      rates = await this.taxGroupsRepository.findTaxRatesByGroupId(id);
     }
+    const rates =
+      data.taxRates !== undefined
+        ? await this.taxGroupsRepository.createTaxRates(
+            id,
+            data.taxRates.map((r, i) => ({
+              name: r.name,
+              rate: r.rate,
+              type: r.type,
+              sortOrder: i,
+            })),
+          )
+        : await this.taxGroupsRepository.findTaxRatesByGroupId(id);
 
     this.logger.log(`Updated tax group: ${entity.name} (${entity.id})`);
     return TaxGroupDto.from(entity, rates);

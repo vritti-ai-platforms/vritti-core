@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
@@ -13,7 +13,6 @@ import { ConversionsGatewayService } from './services/conversions-gateway.servic
 @RequireSession(SessionTypeValues.NEXUS)
 @Controller('conversions')
 export class ConversionsGatewayController {
-  private readonly logger = new Logger(ConversionsGatewayController.name);
 
   constructor(private readonly service: ConversionsGatewayService) {}
 

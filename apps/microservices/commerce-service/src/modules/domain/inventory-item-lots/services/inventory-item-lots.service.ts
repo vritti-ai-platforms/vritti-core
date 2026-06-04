@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, } from '@nestjs/common';
 import {
   type FieldMap,
   FilterProcessor,
@@ -13,7 +13,6 @@ import { InventoryItemLotsRepository } from '../repositories/inventory-item-lots
 
 @Injectable()
 export class InventoryItemLotsService {
-  private readonly logger = new Logger(InventoryItemLotsService.name);
 
   private static readonly LOTS_FIELD_MAP: FieldMap = {
     lotNumber: { column: inventoryItemLots.lotNumber, type: 'string' },

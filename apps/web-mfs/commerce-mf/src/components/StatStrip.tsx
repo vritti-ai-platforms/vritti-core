@@ -15,6 +15,7 @@ interface StatStripProps {
 export const StatStrip: React.FC<StatStripProps> = ({ stats, className }) => (
   <div className={['flex flex-wrap items-center gap-x-6 gap-y-2', className].filter(Boolean).join(' ')}>
     {stats.map((stat, index) => (
+      // biome-ignore lint/suspicious/noArrayIndexKey: static, non-reordering summary strip
       <Typography key={index} variant="body2" intent="muted">
         <span className="font-medium text-foreground">{stat.value}</span> {stat.label}
       </Typography>

@@ -7,7 +7,6 @@ import {
   pgPolicy,
   text,
   timestamp,
-  unique,
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';

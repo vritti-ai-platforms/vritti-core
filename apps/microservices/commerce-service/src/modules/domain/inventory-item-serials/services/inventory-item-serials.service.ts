@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, } from '@nestjs/common';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
 import { eq, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemSerials, SerialStatusValues } from '@/db/schema';
@@ -6,7 +6,6 @@ import { InventoryItemSerialsRepository } from '../repositories/inventory-item-s
 
 @Injectable()
 export class InventoryItemSerialsService {
-  private readonly logger = new Logger(InventoryItemSerialsService.name);
 
   constructor(private readonly repository: InventoryItemSerialsRepository) {}
 

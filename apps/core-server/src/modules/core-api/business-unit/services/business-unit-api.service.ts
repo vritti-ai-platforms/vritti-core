@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk';
 import type { UserRoleAssignment } from '@/db/schema';
 import { BusinessUnitService } from '@domain/business-unit/services/business-unit.service';
@@ -10,7 +10,6 @@ import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-busines
 
 @Injectable()
 export class BusinessUnitApiService {
-  private readonly logger = new Logger(BusinessUnitApiService.name);
 
   constructor(
     private readonly businessUnitService: BusinessUnitService,

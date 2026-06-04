@@ -9,7 +9,7 @@
 // CSS files can be imported as side-effects
 // RSBuild handles the processing and injection of styles
 declare module '*.css' {
-  const content: void;
+  const content: undefined;
   export default content;
 }
 

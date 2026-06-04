@@ -24,7 +24,10 @@ type UsePermissionsOptions = Omit<UseQueryOptions<PermissionsResponse, AxiosErro
 export function useUserPermissions(buId: string | null, options?: UsePermissionsOptions) {
   return useQuery<PermissionsResponse, AxiosError>({
     queryKey: ['user-permissions', buId],
-    queryFn: () => getPermissions(buId!),
+    queryFn: () => {
+      if (!buId) throw new Error('buId is required');
+      return getPermissions(buId);
+    },
     enabled: !!buId,
     ...options,
   });

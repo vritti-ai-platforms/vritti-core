@@ -15,8 +15,8 @@ import {
 } from '@vritti/api-sdk';
 import type { ValidationError } from 'class-validator';
 import fastifyRawBody from 'fastify-raw-body';
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { AppModule } from './app.module';
 
 // ============================================================================

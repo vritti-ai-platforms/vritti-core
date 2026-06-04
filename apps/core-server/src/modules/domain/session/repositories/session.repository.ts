@@ -61,7 +61,9 @@ export class SessionRepository extends PrimaryBaseRepository<typeof sessions> {
 
   // Deletes all sessions for a user except the specified session
   async deleteAllExcept(userId: string, currentSessionId: string): Promise<number> {
-    const result = await this.deleteMany(and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId))!);
+    const condition = and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId));
+    if (!condition) return 0;
+    const result = await this.deleteMany(condition);
     return result.count;
   }
 }

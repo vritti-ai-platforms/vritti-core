@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
 import { type OrgRole, orgRoles } from '@/db/schema';
 
 @Injectable()

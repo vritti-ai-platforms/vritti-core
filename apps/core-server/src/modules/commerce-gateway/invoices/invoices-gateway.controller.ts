@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
@@ -13,7 +13,6 @@ import { InvoicesGatewayService } from './services/invoices-gateway.service';
 @RequireSession(SessionTypeValues.NEXUS)
 @Controller('invoices')
 export class InvoicesGatewayController {
-  private readonly logger = new Logger(InvoicesGatewayController.name);
 
   constructor(private readonly invoicesGatewayService: InvoicesGatewayService) {}
 

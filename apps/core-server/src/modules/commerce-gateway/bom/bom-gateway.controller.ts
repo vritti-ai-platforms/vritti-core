@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
@@ -13,7 +13,6 @@ import { BomGatewayService } from './services/bom-gateway.service';
 @RequireSession(SessionTypeValues.NEXUS)
 @Controller('bom')
 export class BomGatewayController {
-  private readonly logger = new Logger(BomGatewayController.name);
 
   constructor(private readonly service: BomGatewayService) {}
 

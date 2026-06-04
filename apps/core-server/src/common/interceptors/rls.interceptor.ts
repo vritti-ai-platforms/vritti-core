@@ -1,4 +1,4 @@
-import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
+import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk';
 import type { FastifyRequest } from 'fastify';
 import { from, type Observable } from 'rxjs';
@@ -8,7 +8,6 @@ import { from, type Observable } from 'rxjs';
 // requests (no sessionInfo) so auth/health endpoints are unaffected.
 @Injectable()
 export class RlsInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(RlsInterceptor.name);
 
   constructor(private readonly db: PrimaryDatabaseService) {}
 

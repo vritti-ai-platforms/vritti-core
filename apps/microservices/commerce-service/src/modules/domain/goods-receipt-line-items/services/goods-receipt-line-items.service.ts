@@ -187,7 +187,7 @@ export class GoodsReceiptLineItemsService {
 
   // Goods receipt always REGISTERS new serials. Reject collision with existing inventory_item_serials.
   private async validateSerialForRegister(inventoryItemId: string, serialNumber: string): Promise<void> {
-    const rows = await this.repository['db']
+    const rows = await this.repository.db
       .select({ id: inventoryItemSerials.id })
       .from(inventoryItemSerials)
       .where(

@@ -69,7 +69,7 @@ export class BusinessUnitController {
 
   // Lists role assignments for a business unit
   @Get(':id/role-assignments')
-  async listRoleAssignments(@Param('id') id: string): Promise<any[]> {
+  async listRoleAssignments(@Param('id') id: string) {
     this.logger.log(`GET /api/business-units/webhook/${id}/role-assignments`);
     return this.businessUnitApiService.findRoleAssignments(id);
   }

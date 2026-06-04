@@ -1,4 +1,4 @@
-import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
+import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
 import { BadRequestException, PrimaryDatabaseService } from '@vritti/api-sdk';
 import type { FastifyRequest } from 'fastify';
 import { from, type Observable } from 'rxjs';
@@ -8,7 +8,6 @@ import { from, type Observable } from 'rxjs';
 // in BEGIN; SET LOCAL app.org_id; <query>; COMMIT; by RlsAwarePool. Pair with WebhookSecretGuard.
 @Injectable()
 export class WebhookSessionInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(WebhookSessionInterceptor.name);
 
   constructor(private readonly db: PrimaryDatabaseService) {}
 
