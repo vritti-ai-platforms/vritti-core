@@ -6,7 +6,7 @@
 # ============================================================================
 FROM node:20-alpine AS builder
 WORKDIR /repo
-RUN corepack enable
+RUN npm install -g pnpm@10.28.0
 
 COPY . .
 RUN pnpm install --frozen-lockfile

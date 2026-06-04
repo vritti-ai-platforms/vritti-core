@@ -2,6 +2,7 @@
   "name": "vritti-core",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "dev": "nx run-many --target=dev:ssl --projects=vritti-core-server,vritti-core-web,commerce-service,commerce-mf --parallel=5 --output-style=stream",
     "dev:server": "nx run vritti-core-server:dev",
