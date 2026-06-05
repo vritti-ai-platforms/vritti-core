@@ -4,9 +4,9 @@ import {
   type CurrencyCode,
   DataTableStateService,
   majorToMinor,
-  NatsClientService,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddChangeStockAdjustmentLineDto } from '../dto/request/add-change-stock-adjustment-line.dto';
 import type { AddOpeningStockAdjustmentLineDto } from '../dto/request/add-opening-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '../dto/request/add-stock-adjustment-line-item.dto';

@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { type MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { RpcProblemExceptionFilter } from '@vritti/api-sdk';
+import { RpcProblemExceptionFilter } from '@vritti/api-sdk/nats';
 import { AppModule } from './app.module';
 
 // NATS connection configuration

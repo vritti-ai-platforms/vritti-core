@@ -5,10 +5,10 @@ import {
   BadRequestException,
   type CreateResponseDto,
   DataTableStateService,
-  NatsClientService,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';

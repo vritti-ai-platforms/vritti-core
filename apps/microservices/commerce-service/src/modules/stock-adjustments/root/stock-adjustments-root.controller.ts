@@ -1,12 +1,8 @@
 import type { StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import {
-  type CreateResponseDto,
-  RpcBuCurrencyCode,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type { StockAdjustmentType } from '@/db/schema';
 import { StockAdjustmentsRootService } from './services/stock-adjustments-root.service';
 

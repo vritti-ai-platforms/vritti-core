@@ -6,12 +6,12 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
   type CreateResponseDto,
-  RpcBuId,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
+import { RpcBuId } from '@vritti/api-sdk/nats';
 import type { CreateUomDto } from './dto/request/create-uom.dto';
 import type { UpdateUomDto } from './dto/request/update-uom.dto';
 

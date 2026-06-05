@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, type CurrencyCode, DataTableStateService, majorToMinor, NatsClientService, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CreateResponseDto, type CurrencyCode, DataTableStateService, majorToMinor, type SuccessResponseDto } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type {
   AddGoodsReceiptItemFromPurchaseOrderItemDto,
   AddGoodsReceiptItemFromSupplierItemDto,

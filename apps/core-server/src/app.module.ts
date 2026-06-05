@@ -15,11 +15,11 @@ import {
   DataTableModule,
   EmailModule,
   LoggerModule,
-  NatsClientModule,
   RootModule,
   type TokenExpiryString,
   UnauthorizedException,
 } from '@vritti/api-sdk';
+import { NatsClientModule } from '@vritti/api-sdk/nats';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';

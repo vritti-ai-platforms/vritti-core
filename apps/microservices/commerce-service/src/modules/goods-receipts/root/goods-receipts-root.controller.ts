@@ -2,12 +2,8 @@ import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-re
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import {
-  type CreateResponseDto,
-  RpcBuCurrencyCode,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
 import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.service';
 

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService, SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import { DataTableStateService, SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateBomDto } from '../dto/request/create-bom.dto';
 import type { UpdateBomDto } from '../dto/request/update-bom.dto';
 import type { BomDetailResponseDto, BomResponseDto } from '../dto/response/bom-response.dto';

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService } from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateOrderDto } from '../dto/request/create-order.dto';
 import type { UpdateOrderStatusDto } from '../dto/request/update-order-status.dto';
 import type { OrderDetailResponseDto, OrderResponseDto } from '../dto/response/order-response.dto';

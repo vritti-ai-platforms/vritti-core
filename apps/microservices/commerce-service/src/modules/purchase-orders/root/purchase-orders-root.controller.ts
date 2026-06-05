@@ -9,7 +9,7 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import { PurchaseOrderStatus } from '@/db/schema';
 import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';

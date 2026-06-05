@@ -4,11 +4,11 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
   CreateResponseDto,
-  RpcBuId,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { RpcBuId } from '@vritti/api-sdk/nats';
 import type { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
 

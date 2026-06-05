@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
   DataTableStateService,
-  NatsClientService,
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';

@@ -3,13 +3,8 @@ import { InventoryItemUomConversionsService } from '@domain/inventory-item-uom-c
 import { UomRepository } from '@domain/uom/repositories/uom.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import {
-  type CreateResponseDto,
-  NotFoundException,
-  RpcBuId,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, NotFoundException, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import { RpcBuId } from '@vritti/api-sdk/nats';
 import type { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 

@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
   DataTableStateService,
-  NatsClientService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreatePosTerminalDto } from '../dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from '../dto/request/update-pos-terminal.dto';
 import type { PosTerminalResponseDto } from '../dto/response/pos-terminal-response.dto';

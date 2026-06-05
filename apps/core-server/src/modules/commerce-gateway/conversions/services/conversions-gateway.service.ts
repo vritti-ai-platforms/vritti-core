@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService } from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateConversionDto } from '../dto/request/create-conversion.dto';
 import type { ConversionDetailResponseDto } from '../dto/response/conversion-response.dto';
 import type { ConversionTableResponseDto } from '../dto/response/conversion-table-response.dto';

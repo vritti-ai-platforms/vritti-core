@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { DatabaseModule, type DatabaseModuleOptions, type NatsHeaders } from '@vritti/api-sdk';
+import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk';
+import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';

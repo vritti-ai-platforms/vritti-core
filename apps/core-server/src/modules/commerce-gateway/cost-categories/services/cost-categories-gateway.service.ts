@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
   DataTableStateService,
-  NatsClientService,
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateCostCategoryDto } from '../dto/request/create-cost-category.dto';
 import type { UpdateCostCategoryDto } from '../dto/request/update-cost-category.dto';
 import type { CostCategoryResponseDto } from '../dto/response/cost-category-response.dto';

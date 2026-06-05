@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService, NatsClientService } from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateStockTransferDto } from '../dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from '../dto/request/update-stock-transfer-status.dto';
 import type { StockTransferResponseDto } from '../dto/response/stock-transfer-response.dto';

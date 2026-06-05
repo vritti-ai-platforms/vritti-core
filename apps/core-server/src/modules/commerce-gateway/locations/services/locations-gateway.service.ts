@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, DataTableStateService, NatsClientService, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateLocationDto } from '../dto/request/create-location.dto';
 import type { LocationsSelectQueryDto } from '../dto/request/locations-select-query.dto';
 import type { ReorderLocationsDto } from '../dto/request/reorder-locations.dto';

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NatsClientService, type SelectQueryResult } from '@vritti/api-sdk';
+import type { SelectQueryResult } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import { LotsSelectQueryDto } from '../dto/request/lots-select-query.dto';
 
 @Injectable()

@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
   DataTableStateService,
-  NatsClientService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import { BusinessUnitService } from '@/modules/domain/business-unit/services/business-unit.service';
 import type { AssignCatalogChannelDto } from '../dto/request/assign-catalog-channel.dto';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';

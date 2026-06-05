@@ -3,11 +3,11 @@ import {
   type CreateResponseDto,
   type CurrencyAmountDto,
   DataTableStateService,
-  NatsClientService,
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
 import type { BulkSetSupplierItemPreferredDto } from '../dto/request/bulk-set-supplier-item-preferred.dto';
 import type { BulkSetSupplierItemSchemeDto } from '../dto/request/bulk-set-supplier-item-scheme.dto';
