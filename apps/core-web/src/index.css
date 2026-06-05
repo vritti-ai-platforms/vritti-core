@@ -6,8 +6,8 @@
 @import "tw-animate-css";
 
 /**
- * @import - Import quantum-ui shared styles (color variables and PhoneInput overrides)
- * This provides consistent theming across the application
+ * @import - quantum-ui shared styles: theme tokens + component utilities + PhoneInput
+ * (0.3.3+ ships its own compiled utilities, so consumers don't scan its dist)
  */
 @import "@vritti/quantum-ui/index.css";
 
@@ -23,8 +23,8 @@
 }
 /**
  * @source - Tell Tailwind which files to scan for utility classes
- * Scans app source files and quantum-ui components to generate utilities
- * Note: Color variables come from @import, utilities come from @source scanning
+ * Only app source is scanned. quantum-ui ships its own component utilities in
+ * @vritti/quantum-ui/index.css (imported above), so scanning its dist is
+ * unnecessary — and that scan silently fails under pnpm/CI node_modules layouts.
  */
 @source "../src/**/*.{js,ts,jsx,tsx}";
-@source "../node_modules/@vritti/quantum-ui/dist/**/*.js";
