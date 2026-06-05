@@ -10,13 +10,8 @@ import {
   type TableViewState,
   ValidationException,
 } from '@vritti/api-sdk';
-import { and, eq } from '@vritti/api-sdk/drizzle-orm';
-import {
-  GoodsReceiptStatusValues,
-  goodsReceiptLineItems,
-  InventoryTrackingValues,
-  inventoryItemSerials,
-} from '@/db/schema';
+import { and } from '@vritti/api-sdk/drizzle-orm';
+import { GoodsReceiptStatusValues, goodsReceiptLineItems, InventoryTrackingValues } from '@/db/schema';
 import { GoodsReceiptLineItemDto } from '../dto/entity/goods-receipt-line-item.dto';
 import { GoodsReceiptLineItemsRepository } from '../repositories/goods-receipt-line-items.repository';
 
@@ -187,17 +182,8 @@ export class GoodsReceiptLineItemsService {
 
   // Goods receipt always REGISTERS new serials. Reject collision with existing inventory_item_serials.
   private async validateSerialForRegister(inventoryItemId: string, serialNumber: string): Promise<void> {
-    const rows = await this.repository.db
-      .select({ id: inventoryItemSerials.id })
-      .from(inventoryItemSerials)
-      .where(
-        and(
-          eq(inventoryItemSerials.inventoryItemId, inventoryItemId),
-          eq(inventoryItemSerials.serialNumber, serialNumber),
-        ),
-      )
-      .limit(1);
-    if (rows.length > 0) {
+    const exists = await this.repository.existsSerialInInventory(inventoryItemId, serialNumber);
+    if (exists) {
       throw new ConflictException({
         label: 'Duplicate Serial',
         detail: `Serial "${serialNumber}" already exists in inventory.`,

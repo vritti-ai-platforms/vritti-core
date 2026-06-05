@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type GoodsReceiptLineItem, goodsReceiptItems, goodsReceiptLineItems, goodsReceiptLines } from '@/db/schema';
+import {
+  type GoodsReceiptLineItem,
+  goodsReceiptItems,
+  goodsReceiptLineItems,
+  goodsReceiptLines,
+  inventoryItemSerials,
+} from '@/db/schema';
 
 @Injectable()
 export class GoodsReceiptLineItemsRepository extends PrimaryBaseRepository<typeof goodsReceiptLineItems> {
@@ -108,5 +114,21 @@ export class GoodsReceiptLineItemsRepository extends PrimaryBaseRepository<typeo
       )
       .limit(1);
     return rows[0];
+  }
+
+  // True if the serial is already registered in inventory for the given item. Goods receipt
+  // REGISTERS new serials, so a hit here is a collision with existing inventory_item_serials.
+  async existsSerialInInventory(inventoryItemId: string, serialNumber: string): Promise<boolean> {
+    const rows = await this.db
+      .select({ id: inventoryItemSerials.id })
+      .from(inventoryItemSerials)
+      .where(
+        and(
+          eq(inventoryItemSerials.inventoryItemId, inventoryItemId),
+          eq(inventoryItemSerials.serialNumber, serialNumber),
+        ),
+      )
+      .limit(1);
+    return rows.length > 0;
   }
 }
