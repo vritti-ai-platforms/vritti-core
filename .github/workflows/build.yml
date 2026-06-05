@@ -72,6 +72,8 @@ jobs:
       build_command: pnpm exec nx build vritti-core-web
       output_dir: apps/core-web/dist
       production_domain: https://dev.vrittiai.com
+      # core-web is the HOST — bake where it loads remotes from (served by the mf.dev nginx block)
+      mf_base_url: https://mf.dev.vrittiai.com
     secrets: inherit
 
   # Module-federation remote — core-web loads it at runtime via the feature catalog
