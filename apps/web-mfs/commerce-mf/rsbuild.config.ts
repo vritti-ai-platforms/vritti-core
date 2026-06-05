@@ -8,6 +8,28 @@ import { pluginReact } from '@rsbuild/plugin-react';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const quantumUI = resolve(__dirname, '../../../..', 'quantum-ui');
 
+// quantum-ui MF sharing is conditional on how it's installed:
+// - LOCAL link (pnpm-workspace override → the sibling repo): the symlink breaks
+//   MF's exports-based subpath resolution, so each share needs an explicit
+//   `resolve` to the local lib/ source.
+// - NPM package: resolves via its exports map and ships dist only (no lib/), so
+//   the resolve path wouldn't exist — omit it.
+// Detect by lib/ presence: it exists only in the linked source, never in npm dist.
+const isLocalQuantumUI = fs.existsSync(resolve(quantumUI, 'lib', 'theme'));
+const quantumUIShared = isLocalQuantumUI
+  ? {
+      '@vritti/quantum-ui': { singleton: true, resolve: quantumUI },
+      '@vritti/quantum-ui/theme': { singleton: true, resolve: `${quantumUI}/lib/theme` },
+      '@vritti/quantum-ui/context': { singleton: true, resolve: `${quantumUI}/lib/context` },
+      '@vritti/quantum-ui/hooks': { singleton: true, resolve: `${quantumUI}/lib/hooks` },
+    }
+  : {
+      '@vritti/quantum-ui': { singleton: true },
+      '@vritti/quantum-ui/theme': { singleton: true },
+      '@vritti/quantum-ui/context': { singleton: true },
+      '@vritti/quantum-ui/hooks': { singleton: true },
+    };
+
 const useHttps = process.env.USE_HTTPS === 'true';
 
 export default defineConfig({
@@ -53,10 +75,7 @@ export default defineConfig({
         react: { singleton: true, requiredVersion: '^19.2.0' },
         'react-dom': { singleton: true, requiredVersion: '^19.2.0' },
         'react-router-dom': { singleton: true },
-        '@vritti/quantum-ui': { singleton: true, resolve: quantumUI },
-        '@vritti/quantum-ui/theme': { singleton: true, resolve: `${quantumUI}/lib/theme` },
-        '@vritti/quantum-ui/context': { singleton: true, resolve: `${quantumUI}/lib/context` },
-        '@vritti/quantum-ui/hooks': { singleton: true, resolve: `${quantumUI}/lib/hooks` },
+        ...quantumUIShared,
         axios: { singleton: true },
         '@tanstack/react-query': { singleton: true },
       },
