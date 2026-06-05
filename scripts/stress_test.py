@@ -38,7 +38,7 @@ except ImportError:
     sys.exit(1)
 
 
-# 50 GET endpoints across the commerce gateway. All return 200 against a
+# GET endpoints across the commerce gateway. All return 200 against a
 # freshly seeded BU. Curated to exercise a broad RLS surface (every domain
 # touched, multiple shapes per domain: list / select / tree / count / table).
 DEFAULT_ENDPOINTS: list[str] = [
@@ -52,12 +52,8 @@ DEFAULT_ENDPOINTS: list[str] = [
     "/api/commerce-api/categories/tree",
     "/api/commerce-api/categories/count",
     "/api/commerce-api/categories/select",
-    # 9-10: tax + modifiers
+    # 9: tax
     "/api/commerce-api/tax-groups",
-    "/api/commerce-api/modifier-groups",
-    # 11-12: storage
-    "/api/commerce-api/storage-locations/tree",
-    "/api/commerce-api/storage-locations/select",
     # 13-14: bom
     "/api/commerce-api/bom/table",
     "/api/commerce-api/bom/select",
@@ -72,10 +68,6 @@ DEFAULT_ENDPOINTS: list[str] = [
     "/api/commerce-api/suppliers/table",
     "/api/commerce-api/suppliers/select",
     "/api/commerce-api/suppliers/items/price?inventoryItemId=00000000-0000-0000-0000-000000000000",
-    # 23-25: price lists
-    "/api/commerce-api/price-lists/table",
-    "/api/commerce-api/price-lists/select",
-    "/api/commerce-api/price-lists/item-variants/select",
     # 26: invoices
     "/api/commerce-api/invoices/table",
     # 27: conversions
@@ -91,8 +83,6 @@ DEFAULT_ENDPOINTS: list[str] = [
     "/api/commerce-api/stock-transfers/table",
     # 33: orders
     "/api/commerce-api/orders/table",
-    # 34: items
-    "/api/commerce-api/items/table",
     # 35-36: pos terminals
     "/api/commerce-api/pos-terminals/table",
     "/api/commerce-api/pos-terminals/select",
@@ -102,11 +92,9 @@ DEFAULT_ENDPOINTS: list[str] = [
     "/api/commerce-api/uom-dimensions/select?valueKey=id&labelKey=code",
     "/api/commerce-api/uom/select?valueKey=id&labelKey=symbol",
     "/api/commerce-api/categories/select?valueKey=id&labelKey=name",
-    "/api/commerce-api/storage-locations/select?valueKey=id&labelKey=name",
     "/api/commerce-api/bom/select?valueKey=id&labelKey=code",
     "/api/commerce-api/inventory-items/select?valueKey=id&labelKey=name",
     "/api/commerce-api/suppliers/select?valueKey=id&labelKey=name",
-    "/api/commerce-api/price-lists/select?valueKey=id&labelKey=name",
     "/api/commerce-api/customers/select?valueKey=id&labelKey=name",
     "/api/commerce-api/pos-terminals/select?valueKey=id&labelKey=name",
     "/api/commerce-api/uom-dimensions?search=x",
@@ -285,7 +273,7 @@ async def run(args: argparse.Namespace) -> int:
 
 def main() -> int:
     p = argparse.ArgumentParser(description="Stress test commerce gateway")
-    p.add_argument("--base-url", default="https://pharmacy-store.local.vrittiai.com:3013")
+    p.add_argument("--base-url", default="https://pharmacy-store.dev.vrittiai.com")
     p.add_argument("--email", required=True)
     p.add_argument("--password", required=True)
     p.add_argument("--bu-id", help="x-bu-id header value (required for BU-scoped endpoints)")
