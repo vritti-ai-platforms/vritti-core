@@ -18,11 +18,9 @@
     "start:prod": "node dist/main",
     "lint": "biome lint .",
     "db:generate": "drizzle-kit generate",
-    "db:push": "NODE_TLS_REJECT_UNAUTHORIZED=0 drizzle-kit push",
     "db:migrate": "NODE_TLS_REJECT_UNAUTHORIZED=0 drizzle-kit migrate",
     "db:studio": "NODE_TLS_REJECT_UNAUTHORIZED=0 drizzle-kit studio",
     "db:generate:w": "npx dotenv-cli -- drizzle-kit generate",
-    "db:push:w": "npx dotenv-cli cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 -- drizzle-kit push",
     "db:migrate:w": "npx dotenv-cli cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 -- drizzle-kit migrate",
     "db:studio:w": "npx dotenv-cli cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 -- drizzle-kit studio"
   },

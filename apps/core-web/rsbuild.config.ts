@@ -12,7 +12,7 @@ const { publicVars, parsed } = loadEnv();
 const useHttps = process.env.USE_HTTPS === 'true';
 const protocol = useHttps ? 'https' : 'http';
 const host = 'local.vrittiai.com';
-const defaultApiHost = `${protocol}://${host}:3001`;
+const defaultApiHost = `${protocol}://${host}:3002`;
 
 // Static dev remotes enable MF live reload (plugin needs URLs to watch)
 const devRemotes: Record<string, string> = {};
