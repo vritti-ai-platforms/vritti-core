@@ -33,6 +33,13 @@ const quantumUIShared = isLocalQuantumUI
 const useHttps = process.env.USE_HTTPS === 'true';
 
 export default defineConfig({
+  // Federated remote: its chunks must load from where remoteEntry.js is served
+  // (mf.<domain>/commerce-mf/), NOT the host origin. 'auto' derives the public
+  // path from the runtime script location — correct in dev (:3014) and prod
+  // (mf.dev.vrittiai.com/commerce-mf) without hardcoding a URL.
+  output: {
+    assetPrefix: 'auto',
+  },
   server: {
     port: 3014,
     host: '0.0.0.0',
