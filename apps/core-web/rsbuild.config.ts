@@ -28,6 +28,8 @@ export default defineConfig({
     define: publicVars, // Inject PUBLIC_ prefixed env vars
   },
   html: {
+    favicon: './src/assets/vritti.svg',
+    title: 'VAP',
     tags: [
       {
         tag: 'script',
