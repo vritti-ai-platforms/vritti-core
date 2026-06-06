@@ -1,7 +1,7 @@
 import { BottomNavigation, type RouteConfig, type TabIcon } from '@vritti/quantum-ui-native/BottomNavigation';
 import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { getRemoteConfig, resolveRemoteName } from '../config/remotes.config';
+import { resolveRemoteName } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { AccountScreen } from '../screens/account/AccountScreen';
 import { RemoteHeader } from './RemoteHeader';
@@ -13,9 +13,9 @@ export const DynamicFeatureNavigator = () => {
   const routes = useMemo<RouteConfig[]>(
     () => [
       ...features.map((feature) => {
-        const remoteName = resolveRemoteName(feature.route.remoteEntry);
-        // Native host resolves remote URLs from its own config — the API's remoteEntry targets web MF ports
-        const remoteEntry = getRemoteConfig(remoteName)?.entry ?? feature.route.remoteEntry;
+        // Server sends the per-OS mobile manifest URL via SSE (X-Platform header drives the pick).
+        const remoteEntry = feature.route.remoteEntry;
+        const remoteName = resolveRemoteName(remoteEntry);
         const moduleName = feature.route.exposedModule;
         return {
           name: feature.route.routePrefix,

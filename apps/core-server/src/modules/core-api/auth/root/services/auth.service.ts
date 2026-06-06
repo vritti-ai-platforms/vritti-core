@@ -196,12 +196,14 @@ export class AuthService {
     return { message: 'Password set successfully. You can now log in.' };
   }
 
-  // Returns auth status without throwing 401 — resolves org from subdomain via Host header
+  // Returns auth status without throwing 401 — resolves org from subdomain via Host header.
+  // platform selects which microfrontend route (WEB/MOBILE) flows into featuresByBuId entries.
   async getStatus(
     refreshToken: string | undefined,
     subdomain?: string,
     bearerAccessToken?: string,
     allowRawIpOrgResolution = false,
+    platform: 'web' | 'ios' | 'android' = 'web',
   ): Promise<AuthResponseDto> {
     // Resolve org regardless of auth state
     const org = subdomain ? await this.organizationService.getBySubdomain(subdomain) : null;
@@ -249,6 +251,7 @@ export class AuthService {
                     decoded.userId,
                     bu.id,
                     resolvedOrg.id,
+                    platform,
                   );
                   return [bu.id, features];
                 }),

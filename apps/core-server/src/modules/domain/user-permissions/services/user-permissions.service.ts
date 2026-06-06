@@ -4,6 +4,8 @@ import { UserRoleAssignmentRepository } from '@domain/user-role/repositories/use
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
 
+export type ClientPlatform = 'web' | 'ios' | 'android';
+
 export interface PermissionFeature {
   code: string;
   name: string;
@@ -67,8 +69,18 @@ export class UserPermissionsService {
     return result;
   }
 
-  // Resolves combined features + MF config for a user at a specific BU
-  async getPermissions(userId: string, buId: string, _orgId: string): Promise<{ features: PermissionFeature[] }> {
+  // Resolves combined features + MF config for a user at a specific BU.
+  // platform picks which microfrontend block flows into PermissionFeature.route:
+  //   'web'     → WEB block (remoteEntry + exposedModule + routePrefix)
+  //   'ios'     → MOBILE block, remoteEntry = remoteEntryIos
+  //   'android' → MOBILE block, remoteEntry = remoteEntryAndroid
+  // Features missing the requested platform's block are filtered out.
+  async getPermissions(
+    userId: string,
+    buId: string,
+    _orgId: string,
+    platform: ClientPlatform = 'web',
+  ): Promise<{ features: PermissionFeature[] }> {
     const bu = await this.businessUnitRepository.findById(buId);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
@@ -100,6 +112,10 @@ export class UserPermissionsService {
       const catalogEntry = catalogMap.get(code);
       if (!catalogEntry) continue;
 
+      const route = pickRouteForPlatform(catalogEntry, platform);
+      // Feature isn't published to this platform — omit so client doesn't see an unloadable tile.
+      if (!route) continue;
+
       features.push({
         code,
         name: catalogEntry.name,
@@ -107,11 +123,7 @@ export class UserPermissionsService {
         sfSymbol: catalogEntry.sfSymbol,
         materialSymbol: catalogEntry.materialSymbol,
         permissions: [...permsSet],
-        route: {
-          remoteEntry: catalogEntry.remoteEntry,
-          exposedModule: catalogEntry.exposedModule,
-          routePrefix: catalogEntry.routePrefix,
-        },
+        route,
         appCode: catalogEntry.appCode,
         appName: catalogEntry.appName,
         appIcon: catalogEntry.appIcon,
@@ -119,7 +131,40 @@ export class UserPermissionsService {
       });
     }
 
-    this.logger.log(`Resolved ${features.length} features for user ${userId} at BU ${buId}`);
+    this.logger.log(`Resolved ${features.length} features for user ${userId} at BU ${buId} (platform=${platform})`);
     return { features };
   }
+}
+
+// Selects the route block from a catalog entry for the requested platform.
+// Returns null when the catalog entry doesn't publish to that platform.
+function pickRouteForPlatform(
+  entry: {
+    remoteEntry: string | null;
+    exposedModule: string | null;
+    routePrefix: string | null;
+    mobile: {
+      remoteEntryAndroid: string;
+      remoteEntryIos: string;
+      exposedModule: string;
+      routePrefix: string;
+    } | null;
+  },
+  platform: ClientPlatform,
+): { remoteEntry: string; exposedModule: string; routePrefix: string } | null {
+  if (platform === 'ios' || platform === 'android') {
+    if (!entry.mobile) return null;
+    return {
+      remoteEntry: platform === 'ios' ? entry.mobile.remoteEntryIos : entry.mobile.remoteEntryAndroid,
+      exposedModule: entry.mobile.exposedModule,
+      routePrefix: entry.mobile.routePrefix,
+    };
+  }
+  // Web
+  if (!entry.remoteEntry || !entry.exposedModule || !entry.routePrefix) return null;
+  return {
+    remoteEntry: entry.remoteEntry,
+    exposedModule: entry.exposedModule,
+    routePrefix: entry.routePrefix,
+  };
 }

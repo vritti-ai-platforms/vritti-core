@@ -8,9 +8,17 @@ export interface FeatureCatalogEntry {
   icon: string | null;
   sfSymbol: string;
   materialSymbol: string;
-  remoteEntry: string;
-  exposedModule: string;
-  routePrefix: string;
+  // WEB route — present when feature has a web microfrontend
+  remoteEntry: string | null;
+  exposedModule: string | null;
+  routePrefix: string | null;
+  // MOBILE route — present when feature has a mobile microfrontend
+  mobile: {
+    remoteEntryAndroid: string;
+    remoteEntryIos: string;
+    exposedModule: string;
+    routePrefix: string;
+  } | null;
   appCode: string;
   appName: string;
   appIcon: string | null;

@@ -192,18 +192,21 @@ export class AuthController {
     @RefreshTokenCookie() refreshToken: string | undefined,
     @AccessToken() accessToken: string,
     @Hostname() host: string,
+    @Headers('x-platform') platformHeader?: string,
   ): Promise<Observable<MessageEvent>> {
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
     const allowRawIpOrgResolution = this.config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false) && isIP(host) > 0;
+    const platform = normalizeClientPlatform(platformHeader);
 
-    this.logger.log(`SSE /auth/status — subdomain: ${subdomain ?? 'none'}`);
+    this.logger.log(`SSE /auth/status — subdomain: ${subdomain ?? 'none'}, platform: ${platform}`);
 
     const authResponse = await this.authService.getStatus(
       refreshToken,
       subdomain,
       accessToken,
       allowRawIpOrgResolution,
+      platform,
     );
     const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
 
@@ -244,4 +247,11 @@ export class AuthController {
     this.logger.log('GET /auth/access-token');
     return this.authService.getAccessToken(refreshToken);
   }
+}
+
+// Normalises X-Platform header into the ClientPlatform union; unknown/missing → 'web'.
+function normalizeClientPlatform(raw: string | undefined): 'web' | 'ios' | 'android' {
+  const v = raw?.toLowerCase();
+  if (v === 'ios' || v === 'android') return v;
+  return 'web';
 }

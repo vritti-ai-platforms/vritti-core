@@ -1,5 +1,6 @@
 import { getAxios, getToken } from '@vritti/quantum-ui-native/utils';
 import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import EventSource from 'react-native-sse';
 import type { AuthStatusResponse } from '../../types/auth-status';
 
@@ -22,6 +23,8 @@ export const useAuthStatusStream = (enabled: boolean) => {
     const eventSource = new EventSource<'auth-state'>(buildAuthStatusUrl(baseURL), {
       headers: {
         Authorization: `Bearer ${token}`,
+        // Tells SSE handler to deliver MOBILE route blocks (per-OS remoteEntry) instead of WEB.
+        'X-Platform': Platform.OS,
       },
       pollingInterval: 0,
     });
