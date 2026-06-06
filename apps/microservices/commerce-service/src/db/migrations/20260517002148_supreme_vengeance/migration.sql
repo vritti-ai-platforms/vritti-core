@@ -1,1 +1,0 @@
-ALTER TABLE "vritti_core"."uom" ADD COLUMN "allow_decimal" boolean DEFAULT true NOT NULL;

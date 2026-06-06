@@ -3,7 +3,7 @@ import 'dotenv/config';
 
 const dbUrl = process.env.PRIMARY_DB_DATABASE_DIRECT_URL;
 const dbSchema = process.env.PRIMARY_DB_SCHEMA;
-const migrationsSchema = process.env.PRIMARY_DB_MIGRATIONS_SCHEMA ?? dbSchema;
+const migrationSchema = process.env.PRIMARY_DB_MIGRATION_SCHEMA;
 
 if (!dbUrl) {
   throw new Error('PRIMARY_DB_DATABASE_DIRECT_URL environment variable is required');
@@ -11,6 +11,10 @@ if (!dbUrl) {
 
 if (!dbSchema) {
   throw new Error('PRIMARY_DB_SCHEMA environment variable is required');
+}
+
+if (!migrationSchema) {
+  throw new Error('PRIMARY_DB_MIGRATION_SCHEMA environment variable is required');
 }
 
 export default defineConfig({
@@ -23,7 +27,7 @@ export default defineConfig({
   },
   migrations: {
     table: '__drizzle_migrations_commerce',
-    schema: migrationsSchema,
+    schema: migrationSchema,
   },
   verbose: true,
   strict: true,
