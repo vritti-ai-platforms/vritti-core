@@ -21,6 +21,12 @@ export class PermissionFeatureDto {
   @ApiProperty({ example: 'box', nullable: true })
   icon: string | null;
 
+  @ApiProperty({ example: 'cart.fill', description: 'iOS SF Symbol' })
+  sfSymbol: string;
+
+  @ApiProperty({ example: 'shopping_cart', description: 'Android Material Symbol' })
+  materialSymbol: string;
+
   @ApiProperty({ example: ['VIEW', 'CREATE', 'EDIT'] })
   permissions: string[];
 

@@ -6,6 +6,8 @@ export interface FeatureCatalogEntry {
   code: string;
   name: string;
   icon: string | null;
+  sfSymbol: string;
+  materialSymbol: string;
   remoteEntry: string;
   exposedModule: string;
   routePrefix: string;

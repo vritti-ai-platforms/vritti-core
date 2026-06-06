@@ -9,6 +9,8 @@ export interface PermissionFeature {
   code: string;
   name: string;
   icon: string | null;
+  sfSymbol: string;
+  materialSymbol: string;
   permissions: string[];
   route: {
     remoteEntry: string;

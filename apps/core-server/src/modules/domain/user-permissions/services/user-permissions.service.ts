@@ -8,6 +8,8 @@ export interface PermissionFeature {
   code: string;
   name: string;
   icon: string | null;
+  sfSymbol: string;
+  materialSymbol: string;
   permissions: string[];
   route: {
     remoteEntry: string;
@@ -102,6 +104,8 @@ export class UserPermissionsService {
         code,
         name: catalogEntry.name,
         icon: catalogEntry.icon,
+        sfSymbol: catalogEntry.sfSymbol,
+        materialSymbol: catalogEntry.materialSymbol,
         permissions: [...permsSet],
         route: {
           remoteEntry: catalogEntry.remoteEntry,
