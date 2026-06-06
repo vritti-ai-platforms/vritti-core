@@ -58,6 +58,8 @@ const componentDirs = [
   'Card',
   'CardPressable',
   'Checkbox',
+  'DatePicker',
+  'DateRangePicker',
   'DynamicIcon',
   'FlashList',
   'Form',
@@ -305,9 +307,11 @@ export default (rspackEnv) => {
           // Single portal store app-wide so the host <PortalHost> renders popovers from any container
           '@rn-primitives/portal': { singleton: true, eager: true },
           'react-native-reanimated': { singleton: true, eager: true, version: '4.3.0', requiredVersion: '>=0.0.0-0' },
-          'react-native-worklets': { singleton: true, eager: true, requiredVersion: '0.8.1' },
+          'react-native-worklets': { singleton: true, eager: true, version: '0.8.1', requiredVersion: '>=0.0.0-0' },
           nativewind: { singleton: true, eager: true, version: '5.0.0-preview.3', requiredVersion: '>=0.0.0-0' },
           // native modules — must be singletons so each registers its native views exactly once
+          // (@react-native-community/datetimepicker is intentionally NOT shared — the host doesn't render
+          // date pickers, so it can't provide it; the commerce-ma remote bundles its own copy.)
           'react-native-svg': { singleton: true, eager: true, version: '15.15.4', requiredVersion: '>=0.0.0-0' },
           'react-native-sfsymbols': { singleton: true, eager: true, version: '1.2.2', requiredVersion: '>=0.0.0-0' },
           '@react-native-vector-icons/material-icons': {

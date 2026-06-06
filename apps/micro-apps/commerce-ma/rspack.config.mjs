@@ -58,6 +58,8 @@ const componentDirs = [
   'Card',
   'CardPressable',
   'Checkbox',
+  'DatePicker',
+  'DateRangePicker',
   'DynamicIcon',
   'FlashList',
   'Form',
@@ -225,6 +227,8 @@ export default (rspackEnv) => {
         name: 'commerce_ma',
         filename: 'commerce-ma.container.js.bundle',
         dts: false,
+        // TEMPORARY — logs share resolution to name the module behind "getter is not a function". Remove after diagnosis.
+        runtimePlugins: [path.resolve(__dirname, 'src/mf-share-logger.ts')],
         exposes: {
           './BOM': './src/features/bom/index.tsx',
           './Categories': './src/features/categories/index.tsx',
@@ -251,6 +255,14 @@ export default (rspackEnv) => {
         shared: {
           react: { singleton: true, eager: false, import: false, requiredVersion: '19.2.3' },
           'react-native': { singleton: true, eager: false, import: false, requiredVersion: '0.83.2' },
+          // react-native deep imports (react-native/Libraries/...): Re.Pack auto-adds a 'react-native/'
+          // prefix share inheriting react-native's import:false above, making EVERY deep import a
+          // host-only consume with no fallback. datetimepicker (bundled by this micro-app) imports RN
+          // internals the host never pulls into its own graph (e.g. codegenNativeComponent) → loadShare
+          // returns false → undefined getter → "getter is not a function". Declaring it here WITHOUT
+          // import:false overrides the auto-share: deep imports still prefer the host's single instance
+          // but fall back to a locally bundled copy instead of crashing.
+          'react-native/': { singleton: true, eager: false, requiredVersion: '*' },
           // version pinned — MF can't auto-detect it from these packages' subpath package.json; >=0.0.0-0 matches prereleases
           '@react-navigation/native': {
             singleton: true,
@@ -310,7 +322,7 @@ export default (rspackEnv) => {
           },
           '@rn-primitives/portal': { singleton: true, eager: false, import: false },
           'react-native-reanimated': { singleton: true, eager: false, import: false, requiredVersion: '>=0.0.0-0' },
-          'react-native-worklets': { singleton: true, eager: false, import: false, requiredVersion: '0.8.1' },
+          'react-native-worklets': { singleton: true, eager: false, import: false, requiredVersion: '>=0.0.0-0' },
           nativewind: {
             singleton: true,
             eager: false,
@@ -319,6 +331,11 @@ export default (rspackEnv) => {
             requiredVersion: '>=0.0.0-0',
           },
           // native modules — must be singletons so each registers its native views exactly once
+          // NOTE: @react-native-community/datetimepicker is intentionally NOT shared. The host never
+          // imports a date picker, so it can't provide the singleton; a remote-provided shared entry
+          // fails to register and the consume throws "getter is not a function". commerce-ma bundles its
+          // own copy — the native view still registers once (the host has no copy). Revisit (share via a
+          // host-provided entry) if the host itself starts rendering date pickers.
           'react-native-svg': {
             singleton: true,
             eager: false,

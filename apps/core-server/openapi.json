@@ -5643,6 +5643,25 @@
         ]
       }
     },
+    "/commerce-api/inventory-items/supplier-items/select": {
+      "get": {
+        "operationId": "InventoryItemsGatewayController_selectSupplierItems",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/inventory-items": {
       "post": {
         "operationId": "InventoryItemsGatewayController_create",
@@ -13592,7 +13611,7 @@
   ],
   "servers": [
     {
-      "url": "https://local.vrittiai.com:3001",
+      "url": "http://local.vrittiai.com:3001",
       "description": "Local Development"
     }
   ],
