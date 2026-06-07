@@ -6,7 +6,12 @@ name: Build & Push
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      all:
+        description: 'Build ALL apps (ignore nx affected)'
+        type: boolean
+        default: false
 
 concurrency:
   group: build-${{ github.ref }}
@@ -37,9 +42,15 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
       - id: aff
         run: |
-          PROJECTS=$(pnpm exec nx show projects --affected --type app --json)
+          # Manual "Build ALL" toggle bypasses nx affected (forces every app to build).
+          if [ "${{ inputs.all }}" = "true" ]; then
+            PROJECTS=$(pnpm exec nx show projects --type app --json)
+            echo "Forcing ALL apps: $PROJECTS"
+          else
+            PROJECTS=$(pnpm exec nx show projects --affected --type app --json)
+            echo "Affected apps: $PROJECTS"
+          fi
           echo "projects=$PROJECTS" >> "$GITHUB_OUTPUT"
-          echo "Affected apps: $PROJECTS"
 
   core-server:
     needs: affected
