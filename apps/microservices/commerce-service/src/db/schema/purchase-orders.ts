@@ -22,8 +22,8 @@ export const purchaseOrders = coreSchema.table(
   'purchase_orders',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id),
@@ -36,7 +36,7 @@ export const purchaseOrders = coreSchema.table(
     expectedBy: timestamp('expected_by', { withTimezone: true, mode: 'string' }),
     timezone: varchar('timezone', { length: 50 })
       .notNull()
-      .default(sql.raw("current_setting('app.bu_timezone')::text")),
+      .default(sql.raw("cast(current_setting('app.bu_timezone') as text)")),
     notes: text('notes'),
     totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(0n),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -79,7 +79,7 @@ export const purchaseOrderItems = coreSchema.table(
   'purchase_order_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     purchaseOrderId: uuid('purchase_order_id')
       .notNull()
       .references(() => purchaseOrders.id, { onDelete: 'cascade' }),

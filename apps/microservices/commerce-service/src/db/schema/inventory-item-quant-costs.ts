@@ -18,7 +18,7 @@ export const inventoryItemQuantCosts = coreSchema.table(
       .notNull()
       .references(() => inventoryItemCosts.id, { onDelete: 'restrict' }),
     allocatedAmount: bigint('allocated_amount', { mode: 'bigint' }).notNull(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

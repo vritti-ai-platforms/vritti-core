@@ -1,1 +1,0 @@
-CREATE INDEX "idx_locations_path" ON "vritti_core"."locations" USING gist ("path");

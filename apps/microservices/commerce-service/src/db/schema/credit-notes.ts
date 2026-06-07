@@ -8,8 +8,8 @@ export const creditNotes = coreSchema.table(
   'credit_notes',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     type: creditNoteTypeEnum('type').notNull(),
     partyType: invoicePartyTypeEnum('party_type').notNull(),
     partyId: uuid('party_id'),
@@ -56,7 +56,7 @@ export const creditNoteApplications = coreSchema.table(
   'credit_note_applications',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     creditNoteId: uuid('credit_note_id')
       .notNull()
       .references(() => creditNotes.id, { onDelete: 'cascade' }),

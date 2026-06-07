@@ -40,8 +40,8 @@ CREATE SEQUENCE "vritti_core"."purchase_order_number_seq" INCREMENT BY 1 MINVALU
 CREATE SEQUENCE "vritti_core"."stock_adjustment_code_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1;--> statement-breakpoint
 CREATE TABLE "vritti_core"."bom" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"code" varchar(100) NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE "vritti_core"."bom" (
 ALTER TABLE "vritti_core"."bom" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."bom_lines" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"bom_id" uuid NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"required_quantity" numeric(12,3) NOT NULL,
@@ -61,8 +61,8 @@ CREATE TABLE "vritti_core"."bom_lines" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."catalog_channels" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"catalog_id" uuid NOT NULL,
 	"channel_id" uuid NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -72,8 +72,8 @@ CREATE TABLE "vritti_core"."catalog_channels" (
 ALTER TABLE "vritti_core"."catalog_channels" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."catalogs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"currency_code" varchar(3) NOT NULL,
 	"tax_inclusive" boolean DEFAULT false NOT NULL,
@@ -85,8 +85,8 @@ CREATE TABLE "vritti_core"."catalogs" (
 ALTER TABLE "vritti_core"."catalogs" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."categories" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"image" varchar(255),
 	"parent_id" uuid,
@@ -103,7 +103,7 @@ CREATE TABLE "vritti_core"."categories" (
 ALTER TABLE "vritti_core"."categories" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."conversion_inputs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"conversion_id" uuid NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"quantity" numeric(12,3) NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE "vritti_core"."conversion_inputs" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."conversion_outputs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"conversion_id" uuid NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"quantity" numeric(12,3) NOT NULL,
@@ -121,8 +121,8 @@ CREATE TABLE "vritti_core"."conversion_outputs" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."conversions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"bom_id" uuid,
 	"status" "vritti_core"."conversion_status" DEFAULT 'DRAFT'::"vritti_core"."conversion_status" NOT NULL,
 	"produced_by" uuid,
@@ -136,7 +136,7 @@ CREATE TABLE "vritti_core"."conversions" (
 ALTER TABLE "vritti_core"."conversions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."cost_categories" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"code" varchar(50) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"kind" "vritti_core"."cost_category_kind" NOT NULL,
@@ -150,7 +150,7 @@ CREATE TABLE "vritti_core"."cost_categories" (
 ALTER TABLE "vritti_core"."cost_categories" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."credit_note_applications" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"credit_note_id" uuid NOT NULL,
 	"invoice_id" uuid NOT NULL,
 	"amount" bigint NOT NULL,
@@ -159,8 +159,8 @@ CREATE TABLE "vritti_core"."credit_note_applications" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."credit_notes" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"type" "vritti_core"."credit_note_type" NOT NULL,
 	"party_type" "vritti_core"."invoice_party_type" NOT NULL,
 	"party_id" uuid,
@@ -179,8 +179,8 @@ CREATE TABLE "vritti_core"."credit_notes" (
 ALTER TABLE "vritti_core"."credit_notes" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."customers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"phone" varchar(32),
 	"email" varchar(255),
@@ -192,7 +192,7 @@ CREATE TABLE "vritti_core"."customers" (
 --> statement-breakpoint
 ALTER TABLE "vritti_core"."customers" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."document_counters" (
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"counter_key" varchar(120) NOT NULL,
 	"last_number" bigint DEFAULT 0 NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -201,8 +201,8 @@ CREATE TABLE "vritti_core"."document_counters" (
 ALTER TABLE "vritti_core"."document_counters" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."goods_receipt_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"goods_receipt_id" uuid NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"uom_id" uuid NOT NULL,
@@ -226,8 +226,8 @@ CREATE TABLE "vritti_core"."goods_receipt_items" (
 ALTER TABLE "vritti_core"."goods_receipt_items" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."goods_receipt_line_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"goods_receipt_line_id" uuid NOT NULL,
 	"serial_number" varchar(100) NOT NULL,
 	"metadata" jsonb DEFAULT '{}' NOT NULL,
@@ -239,8 +239,8 @@ CREATE TABLE "vritti_core"."goods_receipt_line_items" (
 ALTER TABLE "vritti_core"."goods_receipt_line_items" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."goods_receipt_lines" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"goods_receipt_item_id" uuid NOT NULL,
 	"goods_receipt_lot_id" uuid,
 	"location_id" uuid NOT NULL,
@@ -257,8 +257,8 @@ CREATE TABLE "vritti_core"."goods_receipt_lines" (
 ALTER TABLE "vritti_core"."goods_receipt_lines" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."goods_receipt_lots" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"goods_receipt_item_id" uuid NOT NULL,
 	"lot_number" varchar(100) NOT NULL,
 	"manufacturing_date" timestamp with time zone,
@@ -274,8 +274,8 @@ CREATE TABLE "vritti_core"."goods_receipt_lots" (
 ALTER TABLE "vritti_core"."goods_receipt_lots" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."goods_receipts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"supplier_id" uuid NOT NULL,
 	"gr_number" varchar(50) NOT NULL,
 	"status" "vritti_core"."goods_receipt_status" DEFAULT 'DRAFT'::"vritti_core"."goods_receipt_status" NOT NULL,
@@ -292,7 +292,7 @@ CREATE TABLE "vritti_core"."goods_receipts" (
 ALTER TABLE "vritti_core"."goods_receipts" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_item_costs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"category_id" uuid NOT NULL,
 	"total_amount" bigint NOT NULL,
 	"currency_code" varchar(3) NOT NULL,
@@ -310,8 +310,8 @@ CREATE TABLE "vritti_core"."inventory_item_costs" (
 ALTER TABLE "vritti_core"."inventory_item_costs" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_item_ledger" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"type" "vritti_core"."inventory_item_ledger_type" NOT NULL,
 	"quantity" numeric(12,3) NOT NULL,
@@ -323,8 +323,8 @@ CREATE TABLE "vritti_core"."inventory_item_ledger" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_item_locations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"location_id" uuid NOT NULL,
 	"reorder_level" numeric(12,3) DEFAULT '0' NOT NULL,
@@ -336,8 +336,8 @@ CREATE TABLE "vritti_core"."inventory_item_locations" (
 ALTER TABLE "vritti_core"."inventory_item_locations" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_item_lots" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"lot_number" varchar(100) NOT NULL,
 	"manufacturing_date" timestamp with time zone,
@@ -353,7 +353,7 @@ CREATE TABLE "vritti_core"."inventory_item_quant_costs" (
 	"quant_id" uuid,
 	"cost_id" uuid,
 	"allocated_amount" bigint NOT NULL,
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "pk_inventory_item_quant_costs" PRIMARY KEY("quant_id","cost_id")
 );
@@ -361,8 +361,8 @@ CREATE TABLE "vritti_core"."inventory_item_quant_costs" (
 ALTER TABLE "vritti_core"."inventory_item_quant_costs" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_item_quants" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"location_id" uuid NOT NULL,
 	"lot_id" uuid,
@@ -383,8 +383,8 @@ CREATE TABLE "vritti_core"."inventory_item_quants" (
 ALTER TABLE "vritti_core"."inventory_item_quants" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_item_serials" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"inventory_item_quant_id" uuid,
 	"inventory_item_id" uuid NOT NULL,
 	"serial_number" varchar(100) NOT NULL,
@@ -397,8 +397,8 @@ CREATE TABLE "vritti_core"."inventory_item_serials" (
 ALTER TABLE "vritti_core"."inventory_item_serials" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_item_uom_conversions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"uom_id" uuid NOT NULL,
 	"primary_uom_qty" integer NOT NULL,
@@ -412,8 +412,8 @@ CREATE TABLE "vritti_core"."inventory_item_uom_conversions" (
 ALTER TABLE "vritti_core"."inventory_item_uom_conversions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."inventory_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"code" varchar(100) NOT NULL,
 	"type" "vritti_core"."inventory_item_type" NOT NULL,
@@ -433,7 +433,7 @@ CREATE TABLE "vritti_core"."inventory_items" (
 ALTER TABLE "vritti_core"."inventory_items" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."invoice_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"invoice_id" uuid NOT NULL,
 	"description" varchar(255) NOT NULL,
 	"quantity" numeric(12,3) NOT NULL,
@@ -445,8 +445,8 @@ CREATE TABLE "vritti_core"."invoice_items" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."invoices" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"type" "vritti_core"."invoice_type" NOT NULL,
 	"invoice_number" varchar(50) NOT NULL,
 	"party_type" "vritti_core"."invoice_party_type" NOT NULL,
@@ -473,8 +473,8 @@ CREATE TABLE "vritti_core"."invoices" (
 ALTER TABLE "vritti_core"."invoices" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."item_field_definitions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"field_type" "vritti_core"."field_type" NOT NULL,
 	"options" jsonb DEFAULT '[]' NOT NULL,
@@ -486,7 +486,7 @@ CREATE TABLE "vritti_core"."item_field_definitions" (
 ALTER TABLE "vritti_core"."item_field_definitions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."item_field_values" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"item_id" uuid NOT NULL,
 	"field_definition_id" uuid NOT NULL,
 	"value" text,
@@ -496,8 +496,8 @@ CREATE TABLE "vritti_core"."item_field_values" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."locations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"code" varchar(50) NOT NULL,
 	"parent_id" uuid,
@@ -517,8 +517,8 @@ CREATE TABLE "vritti_core"."locations" (
 ALTER TABLE "vritti_core"."locations" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."modifier_groups" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"catalog_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"selection_type" "vritti_core"."modifier_selection_type" NOT NULL,
@@ -533,7 +533,7 @@ CREATE TABLE "vritti_core"."modifier_groups" (
 ALTER TABLE "vritti_core"."modifier_groups" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."modifier_options" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"group_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"additional_price" bigint DEFAULT 0 NOT NULL,
@@ -545,14 +545,14 @@ CREATE TABLE "vritti_core"."modifier_options" (
 );
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."offering_modifier_groups" (
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"offering_id" uuid,
 	"group_id" uuid,
 	CONSTRAINT "offering_modifier_groups_pkey" PRIMARY KEY("offering_id","group_id")
 );
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."offering_options" (
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"offering_id" uuid,
 	"variant_option_id" uuid,
 	"sort_order" integer DEFAULT 0 NOT NULL,
@@ -560,7 +560,7 @@ CREATE TABLE "vritti_core"."offering_options" (
 );
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."offering_variant_components" (
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"offering_variant_id" uuid,
 	"inventory_item_id" uuid,
 	"quantity" numeric(12,3) DEFAULT '1' NOT NULL,
@@ -569,7 +569,7 @@ CREATE TABLE "vritti_core"."offering_variant_components" (
 --> statement-breakpoint
 ALTER TABLE "vritti_core"."offering_variant_components" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."offering_variant_option_values" (
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"offering_variant_id" uuid,
 	"variant_option_value_id" uuid,
 	CONSTRAINT "offering_variant_option_values_pkey" PRIMARY KEY("offering_variant_id","variant_option_value_id")
@@ -577,7 +577,7 @@ CREATE TABLE "vritti_core"."offering_variant_option_values" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."offering_variants" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"offering_id" uuid NOT NULL,
 	"sku" varchar(100) NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -592,8 +592,8 @@ CREATE TABLE "vritti_core"."offering_variants" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."offerings" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"catalog_id" uuid NOT NULL,
 	"category_id" uuid,
 	"fulfilment_type" "vritti_core"."fulfilment_type" NOT NULL,
@@ -611,7 +611,7 @@ CREATE TABLE "vritti_core"."offerings" (
 ALTER TABLE "vritti_core"."offerings" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."order_item_modifiers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"order_item_id" uuid NOT NULL,
 	"modifier_group_id" uuid NOT NULL,
 	"modifier_option_id" uuid NOT NULL,
@@ -621,7 +621,7 @@ CREATE TABLE "vritti_core"."order_item_modifiers" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."order_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"order_id" uuid NOT NULL,
 	"offering_id" uuid NOT NULL,
 	"offering_variant_id" uuid NOT NULL,
@@ -639,8 +639,8 @@ CREATE TABLE "vritti_core"."order_items" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."orders" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"order_number" varchar(50) NOT NULL,
 	"type" "vritti_core"."order_type" NOT NULL,
 	"channel" "vritti_core"."order_source" NOT NULL,
@@ -672,7 +672,7 @@ CREATE TABLE "vritti_core"."orders" (
 ALTER TABLE "vritti_core"."orders" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."payments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"invoice_id" uuid NOT NULL,
 	"amount" bigint NOT NULL,
 	"method" "vritti_core"."payment_method" NOT NULL,
@@ -685,8 +685,8 @@ CREATE TABLE "vritti_core"."payments" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."pos_terminals" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"code" varchar(50) NOT NULL,
 	"location_id" uuid NOT NULL,
@@ -701,7 +701,7 @@ CREATE TABLE "vritti_core"."pos_terminals" (
 ALTER TABLE "vritti_core"."pos_terminals" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."purchase_order_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"purchase_order_id" uuid NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"uom_id" uuid NOT NULL,
@@ -721,8 +721,8 @@ CREATE TABLE "vritti_core"."purchase_order_items" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."purchase_orders" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"supplier_id" uuid NOT NULL,
 	"po_number" varchar(50) NOT NULL,
 	"status" "vritti_core"."purchase_order_status" DEFAULT 'DRAFT'::"vritti_core"."purchase_order_status" NOT NULL,
@@ -731,7 +731,7 @@ CREATE TABLE "vritti_core"."purchase_orders" (
 	"exchange_rate_type" "vritti_core"."exchange_rate_type" DEFAULT 'FIXED'::"vritti_core"."exchange_rate_type" NOT NULL,
 	"order_date" date NOT NULL,
 	"expected_by" timestamp with time zone,
-	"timezone" varchar(50) DEFAULT current_setting('app.bu_timezone') NOT NULL,
+	"timezone" varchar(50) DEFAULT cast(current_setting('app.bu_timezone') as text) NOT NULL,
 	"notes" text,
 	"total_amount" bigint DEFAULT 0 NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -742,7 +742,7 @@ CREATE TABLE "vritti_core"."purchase_orders" (
 ALTER TABLE "vritti_core"."purchase_orders" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."sales_channels" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"code" varchar(50) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"kind" "vritti_core"."sales_channel_kind" NOT NULL,
@@ -756,8 +756,8 @@ CREATE TABLE "vritti_core"."sales_channels" (
 ALTER TABLE "vritti_core"."sales_channels" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."stock_adjustment_line_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"stock_adjustment_line_id" uuid NOT NULL,
 	"serial_number" varchar(100) NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -768,8 +768,8 @@ CREATE TABLE "vritti_core"."stock_adjustment_line_items" (
 ALTER TABLE "vritti_core"."stock_adjustment_line_items" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."stock_adjustment_lines" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"stock_adjustment_id" uuid NOT NULL,
 	"stock_adjustment_lot_id" uuid,
 	"location_id" uuid,
@@ -790,8 +790,8 @@ CREATE TABLE "vritti_core"."stock_adjustment_lines" (
 ALTER TABLE "vritti_core"."stock_adjustment_lines" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."stock_adjustment_lots" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"stock_adjustment_id" uuid NOT NULL,
 	"lot_number" varchar(100) NOT NULL,
 	"manufacturing_date" timestamp with time zone,
@@ -806,8 +806,8 @@ CREATE TABLE "vritti_core"."stock_adjustment_lots" (
 ALTER TABLE "vritti_core"."stock_adjustment_lots" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."stock_adjustments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"code" varchar(50) NOT NULL,
 	"type" "vritti_core"."stock_adjustment_type" NOT NULL,
@@ -822,7 +822,7 @@ CREATE TABLE "vritti_core"."stock_adjustments" (
 ALTER TABLE "vritti_core"."stock_adjustments" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."stock_transfers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"from_bu_id" uuid NOT NULL,
 	"to_bu_id" uuid NOT NULL,
@@ -838,8 +838,8 @@ CREATE TABLE "vritti_core"."stock_transfers" (
 ALTER TABLE "vritti_core"."stock_transfers" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."supplier_contacts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"supplier_id" uuid NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"phone" varchar(20) NOT NULL,
@@ -857,7 +857,7 @@ CREATE TABLE "vritti_core"."supplier_contacts" (
 ALTER TABLE "vritti_core"."supplier_contacts" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."supplier_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"supplier_id" uuid NOT NULL,
 	"inventory_item_id" uuid NOT NULL,
 	"supplier_item_code" varchar(100),
@@ -877,8 +877,8 @@ CREATE TABLE "vritti_core"."supplier_items" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."suppliers" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"code" varchar(100) NOT NULL,
 	"currency_code" varchar(3) NOT NULL,
@@ -901,8 +901,8 @@ CREATE TABLE "vritti_core"."suppliers" (
 ALTER TABLE "vritti_core"."suppliers" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."tax_groups" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"is_default" boolean DEFAULT false NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
@@ -922,8 +922,8 @@ CREATE TABLE "vritti_core"."tax_rates" (
 --> statement-breakpoint
 CREATE TABLE "vritti_core"."uom" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"dimension_id" uuid NOT NULL,
 	"name" varchar(50) NOT NULL,
 	"symbol" varchar(10) NOT NULL,
@@ -939,8 +939,8 @@ CREATE TABLE "vritti_core"."uom" (
 ALTER TABLE "vritti_core"."uom" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."uom_dimensions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
-	"business_unit_id" uuid DEFAULT current_setting('app.bu_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
+	"business_unit_id" uuid DEFAULT cast(current_setting('app.bu_id') as uuid) NOT NULL,
 	"code" varchar(50) NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"description" text,
@@ -952,7 +952,7 @@ CREATE TABLE "vritti_core"."uom_dimensions" (
 ALTER TABLE "vritti_core"."uom_dimensions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."variant_option_values" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"variant_option_id" uuid NOT NULL,
 	"value" varchar(100) NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
@@ -962,7 +962,7 @@ CREATE TABLE "vritti_core"."variant_option_values" (
 ALTER TABLE "vritti_core"."variant_option_values" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "vritti_core"."variant_options" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"organization_id" uuid DEFAULT current_setting('app.org_id') NOT NULL,
+	"organization_id" uuid DEFAULT cast(current_setting('app.org_id') as uuid) NOT NULL,
 	"catalog_id" uuid NOT NULL,
 	"name" varchar(100) NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
@@ -1043,6 +1043,7 @@ CREATE INDEX "idx_invoices_party" ON "vritti_core"."invoices" ("party_type","par
 CREATE UNIQUE INDEX "uq_item_field_value" ON "vritti_core"."item_field_values" ("item_id","field_definition_id");--> statement-breakpoint
 CREATE INDEX "idx_locations_bu" ON "vritti_core"."locations" ("organization_id","business_unit_id");--> statement-breakpoint
 CREATE INDEX "idx_locations_parent" ON "vritti_core"."locations" ("parent_id");--> statement-breakpoint
+CREATE INDEX "idx_locations_path" ON "vritti_core"."locations" USING gist ("path");--> statement-breakpoint
 CREATE INDEX "idx_modifier_groups_bu" ON "vritti_core"."modifier_groups" ("organization_id","business_unit_id");--> statement-breakpoint
 CREATE INDEX "idx_modifier_groups_catalog" ON "vritti_core"."modifier_groups" ("catalog_id");--> statement-breakpoint
 CREATE INDEX "idx_modifier_options_group" ON "vritti_core"."modifier_options" ("group_id");--> statement-breakpoint

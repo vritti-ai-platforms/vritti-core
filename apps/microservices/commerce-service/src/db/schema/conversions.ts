@@ -9,8 +9,8 @@ export const conversions = coreSchema.table(
   'conversions',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     bomId: uuid('bom_id').references(() => bom.id),
     status: conversionStatusEnum('status').notNull().default('DRAFT'),
     producedBy: uuid('produced_by'),
@@ -56,7 +56,7 @@ export const conversionInputs = coreSchema.table(
   'conversion_inputs',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     conversionId: uuid('conversion_id')
       .notNull()
       .references(() => conversions.id, { onDelete: 'cascade' }),
@@ -79,7 +79,7 @@ export const conversionOutputs = coreSchema.table(
   'conversion_outputs',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     conversionId: uuid('conversion_id')
       .notNull()
       .references(() => conversions.id, { onDelete: 'cascade' }),
