@@ -5,6 +5,7 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "builder": "swc",
-    "typeCheck": true
+    "typeCheck": true,
+    "assets": [{ "include": "db/migrations/**/*", "outDir": "dist", "watchAssets": false }]
   }
 }
