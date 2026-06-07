@@ -82,6 +82,7 @@ jobs:
       app_name: core-web
       build_command: pnpm exec nx build vritti-core-web
       output_dir: apps/core-web/dist
+      package_json_path: apps/core-web/package.json
       production_domain: https://dev.vrittiai.com
       # core-web is the HOST — bake where it loads remotes from (served by the mf.dev nginx block)
       mf_base_url: https://mf.dev.vrittiai.com
@@ -96,5 +97,6 @@ jobs:
       app_name: commerce-mf
       build_command: pnpm exec nx build commerce-mf
       output_dir: apps/web-mfs/commerce-mf/dist
+      package_json_path: apps/web-mfs/commerce-mf/package.json
       production_domain: https://dev.vrittiai.com
     secrets: inherit
