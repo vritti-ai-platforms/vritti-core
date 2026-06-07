@@ -25,6 +25,7 @@
     "db:generate": "drizzle-kit generate --name v$npm_package_version",
     "db:generate:custom": "drizzle-kit generate --custom --name",
     "db:migrate": "NODE_TLS_REJECT_UNAUTHORIZED=0 drizzle-kit migrate",
+    "db:deploy": "node dist/db/migrate.js",
     "db:studio": "NODE_TLS_REJECT_UNAUTHORIZED=0 drizzle-kit studio",
     "db:start": "docker compose -f local-db-compose.yml up -d",
     "db:stop": "docker compose -f local-db-compose.yml down",

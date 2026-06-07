@@ -48,6 +48,7 @@ export const businessUnits = coreSchema.table(
   (table) => [
     index('business_units_organization_id_idx').on(table.organizationId),
     index('business_units_parent_id_idx').on(table.parentId),
+    index('business_units_path_idx').using('gist', table.path.asc()),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select nullif(current_setting('app.org_id', true), '')::uuid)`,

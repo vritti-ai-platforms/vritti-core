@@ -20,6 +20,7 @@
     "db:generate": "drizzle-kit generate --name v$npm_package_version",
     "db:generate:custom": "drizzle-kit generate --custom --name",
     "db:migrate": "NODE_TLS_REJECT_UNAUTHORIZED=0 drizzle-kit migrate",
+    "db:deploy": "node dist/db/migrate.js",
     "db:studio": "NODE_TLS_REJECT_UNAUTHORIZED=0 drizzle-kit studio",
     "db:generate:w": "npx dotenv-cli -- drizzle-kit generate --name v%npm_package_version%",
     "db:generate:custom:w": "npx dotenv-cli -- drizzle-kit generate --custom --name",

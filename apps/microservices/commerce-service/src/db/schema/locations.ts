@@ -48,6 +48,7 @@ export const locations = coreSchema.table(
     unique('uq_locations_bu_parent_code').on(table.businessUnitId, table.parentId, table.code),
     index('idx_locations_bu').on(table.organizationId, table.businessUnitId),
     index('idx_locations_parent').on(table.parentId),
+    index('idx_locations_path').using('gist', table.path.asc()),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
