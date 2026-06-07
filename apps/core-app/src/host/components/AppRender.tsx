@@ -1,5 +1,7 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
-import { PushNavigator, THEME_TOKENS, useTheme } from '@vritti/quantum-ui-native';
+import { useTheme } from '@vritti/quantum-ui-native/hooks';
+import { PushNavigator } from '@vritti/quantum-ui-native/PushNavigator';
+import { THEME_TOKENS } from '@vritti/quantum-ui-native/theme';
 import { useMemo } from 'react';
 import { AuthFlowProvider } from '../providers/AuthFlowProvider';
 import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';

@@ -1,8 +1,8 @@
-import { usePushNavigator } from '@vritti/quantum-ui-native';
 import { Avatar, AvatarFallback, AvatarImage } from '@vritti/quantum-ui-native/Avatar';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import * as React from 'react';

@@ -1,9 +1,9 @@
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
+import { useConfirm } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Skeleton } from '@vritti/quantum-ui-native/Skeleton';
 import { Text } from '@vritti/quantum-ui-native/Text';
-import { useConfirm } from '@vritti/quantum-ui-native';
 import { View } from 'react-native';
 import { useRevokeAllSessions, useRevokeSession, useSessions } from '../../hooks/account';
 import type { SessionData } from '../../services/account/security.service';
@@ -26,7 +26,9 @@ interface SessionCardProps {
 }
 
 const SessionCard = ({ session, onRevoke, isRevoking }: SessionCardProps) => (
-  <View className={`rounded-xl border border-border p-4 gap-2 ${session.isCurrent ? 'bg-success/10 border-success/30' : ''}`}>
+  <View
+    className={`rounded-xl border border-border p-4 gap-2 ${session.isCurrent ? 'bg-success/10 border-success/30' : ''}`}
+  >
     <View className="flex-row items-start justify-between gap-3">
       <View className="flex-1 gap-1">
         <View className="flex-row items-center gap-2 flex-wrap">
@@ -37,12 +39,8 @@ const SessionCard = ({ session, onRevoke, isRevoking }: SessionCardProps) => (
             </View>
           )}
         </View>
-        {session.ipAddress ? (
-          <Text className="text-xs text-muted-foreground">{session.ipAddress}</Text>
-        ) : null}
-        <Text className="text-xs text-muted-foreground">
-          Last active: {formatRelativeTime(session.lastActive)}
-        </Text>
+        {session.ipAddress ? <Text className="text-xs text-muted-foreground">{session.ipAddress}</Text> : null}
+        <Text className="text-xs text-muted-foreground">Last active: {formatRelativeTime(session.lastActive)}</Text>
       </View>
       {!session.isCurrent && onRevoke ? (
         <Button variant="ghost" onPress={onRevoke} disabled={isRevoking}>
@@ -108,22 +106,19 @@ export const SessionsScreen = () => {
 
                 {otherSessions.length > 0 ? (
                   <View className="gap-3">
-                      {otherSessions.map((session) => (
-                        <SessionCard
-                          key={session.sessionId}
-                          session={session}
-                          onRevoke={() => handleRevokeSession(session.sessionId)}
-                          isRevoking={
-                            revokeSessionMutation.isPending &&
-                            revokeSessionMutation.variables === session.sessionId
-                          }
-                        />
-                      ))}
-                    </View>
+                    {otherSessions.map((session) => (
+                      <SessionCard
+                        key={session.sessionId}
+                        session={session}
+                        onRevoke={() => handleRevokeSession(session.sessionId)}
+                        isRevoking={
+                          revokeSessionMutation.isPending && revokeSessionMutation.variables === session.sessionId
+                        }
+                      />
+                    ))}
+                  </View>
                 ) : (
-                  <Text className="text-sm text-muted-foreground text-center py-2">
-                      No other active sessions
-                    </Text>
+                  <Text className="text-sm text-muted-foreground text-center py-2">No other active sessions</Text>
                 )}
               </>
             )}

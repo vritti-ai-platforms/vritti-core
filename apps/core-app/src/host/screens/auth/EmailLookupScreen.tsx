@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Text, usePushNavigator } from '@vritti/quantum-ui-native';
+import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { Text } from '@vritti/quantum-ui-native/Text';
 import { mapApiErrorsToForm } from '@vritti/quantum-ui-native/utils';
 import { useForm } from 'react-hook-form';
 import { useLookupOrganizations } from '../../hooks/auth';

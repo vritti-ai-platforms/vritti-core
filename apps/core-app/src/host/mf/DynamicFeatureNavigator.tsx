@@ -1,6 +1,7 @@
 import { BottomNavigation, type RouteConfig, type TabIcon } from '@vritti/quantum-ui-native/BottomNavigation';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { resolveRemoteName } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { AccountScreen } from '../screens/account/AccountScreen';
@@ -51,7 +52,7 @@ export const DynamicFeatureNavigator = () => {
   if (isLoadingBUs || isLoadingPermissions) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" />
+        <Spinner size="large" />
       </View>
     );
   }

@@ -1,7 +1,8 @@
 import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
 import type { RouteProp } from '@react-navigation/native';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import React, { Suspense, useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { getRemoteConfig } from '../config/remotes.config';
 import { RemoteErrorBoundary } from './RemoteErrorBoundary';
 
@@ -95,7 +96,7 @@ export const RemoteScreen = ({ route }: RemoteScreenProps) => {
 function LoadingFallback() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <ActivityIndicator size="large" />
+      <Spinner size="large" />
     </View>
   );
 }

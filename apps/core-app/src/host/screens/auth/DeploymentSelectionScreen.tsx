@@ -1,7 +1,7 @@
-import { usePushNavigator } from '@vritti/quantum-ui-native';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { COMMON_ICONS, DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Text';

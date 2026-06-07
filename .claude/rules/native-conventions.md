@@ -8,6 +8,8 @@ paths:
 
 ## Component imports — subpath only, never barrel
 
+> WHY: Barrel imports pull the entire quantum-ui-native bundle including heavy native components. Subpath imports enable tree-shaking and cut bundle size significantly.
+
 ```typescript
 // WRONG
 import { Button, ScreenContainer } from '@vritti/quantum-ui-native';
@@ -18,6 +20,8 @@ import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 ```
 
 ## Button — never use Pressable/TouchableOpacity directly for actions
+
+> WHY: Pressable loses themed colors, haptic feedback, loading spinner state, disabled opacity, and accessibility labels. Every raw Pressable becomes a bug report.
 
 ```tsx
 // WRONG
@@ -89,6 +93,8 @@ async function handleDelete(id: string, name: string) {
 
 ## Colors — NEVER hardcode
 
+> WHY: Hardcoded colors break dark mode completely. Semantic tokens auto-switch between light/dark. One hardcoded #ffffff in a card makes the entire screen unusable in dark mode.
+
 Use Tailwind semantic tokens via `className` or `getTheme()` for inline styles.
 
 ```tsx
@@ -144,6 +150,8 @@ push('AccountScreen');
 ```
 
 ## Text — always use the Text component, never raw RN Text for content
+
+> WHY: RN Text doesn't apply the app's font family, line-height normalization, or dark mode foreground color. Raw Text renders in system font with black color in dark mode — invisible.
 
 ```tsx
 // WRONG — raw React Native Text

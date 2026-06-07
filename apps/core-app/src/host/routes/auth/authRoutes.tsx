@@ -1,4 +1,4 @@
-import type { PushScreenConfig } from '@vritti/quantum-ui-native';
+import type { PushScreenConfig } from '@vritti/quantum-ui-native/PushNavigator';
 import { DeploymentSelectionScreen } from '../../screens/auth/DeploymentSelectionScreen';
 import { EmailLookupScreen } from '../../screens/auth/EmailLookupScreen';
 import { LoginScreen } from '../../screens/auth/LoginScreen';

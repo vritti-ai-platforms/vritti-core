@@ -33,7 +33,7 @@ export class RemoteErrorBoundary extends React.Component<Props, State> {
     if (this.state.error) {
       return (
         <View style={{ padding: 16, gap: 8 }}>
-          <Text style={{ fontWeight: '600', color: '#c00' }}>
+          <Text className="font-semibold text-destructive">
             {this.props.remoteName}/{this.props.moduleName} failed
           </Text>
           <Text style={{ fontFamily: 'Menlo', fontSize: 12 }}>{this.state.error.message}</Text>

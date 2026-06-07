@@ -76,3 +76,80 @@ See `.claude/rules/` for detailed pattern documentation:
 - `value-formatting.md` — DetailField / DataTable cells / useFormatters for dates, currency, numbers
 - `comment-style.md` — Comment style rules
 - `export-conventions.md` — Export patterns
+
+---
+
+## core-app (React Native)
+
+`apps/core-app/` is a bare React Native app (NOT Expo). It is the mobile host shell that
+loads micro-apps over Module Federation.
+
+- Bundler: `@callstack/repack` (rspack). Native modules: `react-native-nitro-modules`.
+- UI: `@vritti/quantum-ui-native` — **subpath exports only** (linked from `../quantum-ui-native`).
+- Styling: NativeWind v4 (`className` Tailwind). Navigation: React Navigation + `PushNavigator`.
+- State: TanStack Query. Forms: react-hook-form + zod.
+
+### Commands
+
+```bash
+pnpm dev:app                                       # Metro for core-app (:8081)
+pnpm dev:app:ios                                   # run iOS
+pnpm dev:app:android                               # run Android
+npx tsc --noEmit -p apps/core-app/tsconfig.json    # typecheck core-app only
+```
+
+> Note: the root `pnpm typecheck` runs every project (`nx run-many --all`). core-app has
+> no nx `typecheck` target, so scope to the tsconfig above. PostToolUse hooks run this
+> automatically after editing files under `apps/core-app/`.
+
+### Convention files (auto-loaded for `apps/core-app/src/**`)
+
+These live in `.claude/rules/` with `paths:` frontmatter, so the harness loads them
+automatically when you work in core-app:
+- `native-conventions.md` — imports, colors, navigation, text, forms
+- `native-hook.md` — TanStack Query hook patterns
+- `native-screen.md` — screen structure, route registration, file layout
+- `native-service.md` — axios service patterns
+
+### Top rules (full detail in `.claude/rules/native-conventions.md`)
+
+1. SUBPATH imports ONLY: `@vritti/quantum-ui-native/Button` — NEVER barrel `@vritti/quantum-ui-native`
+2. NEVER hardcode colors — use `className` semantic tokens (`bg-card`, `text-muted-foreground`) or `getTheme()` (`'transparent'` is the only allowed literal)
+3. FlatList → `FlashList`; ActivityIndicator → `Spinner`; Pressable/TouchableOpacity → `Button`; raw RN `Text` → `@vritti/quantum-ui-native/Text`
+4. Services: NO async/await — return `.then()` chains. Import axios from `@vritti/quantum-ui-native/utils`
+5. Hooks: use `AxiosError` not `Error`; `export function` not `export const`; direct `mutationFn`/`queryFn` reference
+6. Screens: wrap in `ScreenContainer`; forms in a `form/` subdirectory; screens call hooks, never services directly
+
+### getTheme()
+
+- Takes NO parameters — reads Appearance internally.
+- NEVER memoize with an `isDark` dependency. To memoize, use `useColorScheme()` as the dependency.
+
+### Known Bugs — DO NOT REPEAT
+
+<!-- Add every recurring core-app mistake here. -->
+- Barrel imports from `@vritti/quantum-ui-native` defeat tree-shaking and bloat the bundle
+- `getTheme(isDark ? 'dark' : 'light')` — the param was removed; it takes no args
+- `useMemo(() => getTheme(), [isDark])` — isDark is not what getTheme reads
+- Hardcoded hex/rgb/hsl colors break dark mode entirely; `bg-gray-100`/`text-gray-500` instead of semantic tokens
+- Untyped `usePushNavigator()` — always pass the route type generic
+- Defining interfaces inside service files — types go in `types/`
+- async/await in services — use `.then()` chains
+- `export const` for hooks/services — use `export function`
+- Screen component directly containing form JSX — forms belong in a `form/` subdirectory
+- Screen calling services directly — screens call hooks, hooks call services
+
+### Architecture
+
+```
+apps/core-app/src/host/
+├── screens/<feature>/
+│   ├── <Feature>Screen.tsx          ← main screen (ScreenContainer wrapper)
+│   ├── form/<Feature>Form.tsx       ← form component (receives form + onSubmit props)
+│   └── components/<Reusable>.tsx    ← screen-local components
+├── hooks/<domain>/                  ← TanStack Query wrappers around services
+├── services/<domain>/               ← pure axios functions, no React
+├── schemas/<domain>/<screen>.ts     ← zod schemas + inferred types
+├── types/<domain>.ts                ← shared TypeScript interfaces
+└── routes/<feature>/                ← PushScreenConfig array + route type union
+```
