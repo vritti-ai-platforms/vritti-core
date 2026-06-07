@@ -10,6 +10,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "types": ["react-native", "@rspack/core/module"],
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@vritti/quantum-ui-native": ["../../../quantum-ui-native/dist/typescript/lib/index.d.ts"],
