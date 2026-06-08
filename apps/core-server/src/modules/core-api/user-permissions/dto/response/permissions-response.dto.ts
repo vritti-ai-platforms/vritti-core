@@ -45,8 +45,3 @@ export class PermissionFeatureDto {
   @ApiProperty({ example: 10 })
   appSortOrder: number;
 }
-
-export class PermissionsResponseDto {
-  @ApiProperty({ type: [PermissionFeatureDto] })
-  features: PermissionFeatureDto[];
-}

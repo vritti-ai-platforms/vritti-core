@@ -1,5 +1,6 @@
 import { useAuthStatusStream } from '@hooks/auth/useAuthStatusStream';
 import type { AuthOrg, User } from '@services/user.service';
+import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearToken } from '@vritti/quantum-ui/axios';
 import { getLocale, setLocale } from '@vritti/quantum-ui/locale';
@@ -9,6 +10,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo } from 'reac
 interface AuthContextValue {
   user: User | undefined;
   org: AuthOrg | undefined;
+  businessUnits: AssignedBU[];
+  featuresByBuId: Record<string, PermissionFeature[]>;
   isLoading: boolean;
   isAuthenticated: boolean;
   isOrgNotFound: boolean;
@@ -18,6 +21,8 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: undefined,
   org: undefined,
+  businessUnits: [],
+  featuresByBuId: {},
   isLoading: true,
   isAuthenticated: false,
   isOrgNotFound: false,
@@ -38,6 +43,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = authResponse?.isAuthenticated ?? false;
   const user = authResponse?.user;
   const org = authResponse?.org;
+  const businessUnits = authResponse?.businessUnits ?? [];
+  const featuresByBuId = authResponse?.featuresByBuId ?? {};
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -56,8 +63,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isOrgNotFound = !isLoading && !org && hasSubdomain;
 
   const contextValue = useMemo<AuthContextValue>(
-    () => ({ user, org, isLoading, isAuthenticated, isOrgNotFound, logout }),
-    [user, org, isLoading, isAuthenticated, isOrgNotFound, logout],
+    () => ({ user, org, businessUnits, featuresByBuId, isLoading, isAuthenticated, isOrgNotFound, logout }),
+    [user, org, businessUnits, featuresByBuId, isLoading, isAuthenticated, isOrgNotFound, logout],
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

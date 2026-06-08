@@ -1,4 +1,3 @@
-import { useAssignedBusinessUnits, useUserPermissions } from '@hooks/usePermissions';
 import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
@@ -36,7 +35,7 @@ function extractBuIdFromPath(pathname: string): string | null {
 
 // Provides BU selection and resolved permissions to the app
 export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, org } = useAuth();
+  const { org, businessUnits, featuresByBuId, isLoading } = useAuth();
   const location = useLocation();
 
   // Derive buId from URL
@@ -53,13 +52,8 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (org?.id) localStorage.setItem('vritti_org_id', org.id);
   }, [org?.id]);
 
-  // Only fetch BUs when authenticated
-  const { data: businessUnits = [], isLoading: isLoadingBUs } = useAssignedBusinessUnits({
-    enabled: isAuthenticated,
-  });
-  const { data: permissionsResponse, isLoading: isLoadingPermissions } = useUserPermissions(selectedBuId);
-
-  const features = permissionsResponse?.features ?? [];
+  // BUs + features now arrive in the SSE auth-state payload (AuthProvider) — no separate fetch.
+  const features = selectedBuId ? (featuresByBuId[selectedBuId] ?? []) : [];
 
   useEffect(() => {
     for (const businessUnit of businessUnits) {
@@ -73,8 +67,8 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   const contextValue = useMemo<PermissionContextValue>(
-    () => ({ businessUnits, selectedBuId, selectBu, features, isLoadingBUs, isLoadingPermissions }),
-    [businessUnits, selectedBuId, selectBu, features, isLoadingBUs, isLoadingPermissions],
+    () => ({ businessUnits, selectedBuId, selectBu, features, isLoadingBUs: isLoading, isLoadingPermissions: isLoading }),
+    [businessUnits, selectedBuId, selectBu, features, isLoading],
   );
 
   return <PermissionContext.Provider value={contextValue}>{children}</PermissionContext.Provider>;

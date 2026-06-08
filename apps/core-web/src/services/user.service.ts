@@ -1,4 +1,5 @@
 import axios from '@vritti/quantum-ui/axios';
+import type { AssignedBU, PermissionFeature } from './permissions.service';
 
 export interface User {
   id: string;
@@ -27,6 +28,8 @@ export interface AuthStatusResponse {
   accessToken?: string;
   expiresIn?: number;
   org?: AuthOrg;
+  businessUnits?: AssignedBU[];
+  featuresByBuId?: Record<string, PermissionFeature[]>;
 }
 
 // Fetches the current user's authentication status

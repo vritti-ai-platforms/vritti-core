@@ -4,7 +4,7 @@ import { UserService } from '@domain/user/services/user.service';
 import { UserPermissionsService } from '@domain/user-permissions/services/user-permissions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { BadRequestException, TokenService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
+import { BadRequestException, PrimaryDatabaseService, TokenService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
@@ -26,8 +26,33 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly organizationService: OrganizationService,
     private readonly userPermissionsService: UserPermissionsService,
+    private readonly primaryDb: PrimaryDatabaseService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  // Resolves the user's BUs + per-BU features within an RLS context so the org_isolation
+  // policy on business_units sees app.org_id. Used by both getStatus branches.
+  private async resolvePermissionContext(
+    userId: string,
+    orgId: string,
+    platform: 'web' | 'ios' | 'android',
+  ): Promise<{
+    businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>>;
+    featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
+  }> {
+    return this.primaryDb.runWithRlsContext({ orgId }, async () => {
+      const businessUnits = await this.userPermissionsService.getAssignedBusinessUnits(userId, orgId);
+      const featuresByBuId = Object.fromEntries(
+        await Promise.all(
+          businessUnits.map(async (bu) => {
+            const { features } = await this.userPermissionsService.getPermissions(userId, bu.id, orgId, platform);
+            return [bu.id, features];
+          }),
+        ),
+      );
+      return { businessUnits, featuresByBuId };
+    });
+  }
 
   // Looks up all organizations a user belongs to by email
   async lookupOrganizationsByEmail(email: string): Promise<MobileLookupResponseDto> {
@@ -243,20 +268,11 @@ export class AuthService {
 
         if (resolvedOrg) {
           try {
-            businessUnits = await this.userPermissionsService.getAssignedBusinessUnits(decoded.userId, resolvedOrg.id);
-            featuresByBuId = Object.fromEntries(
-              await Promise.all(
-                businessUnits.map(async (bu) => {
-                  const { features } = await this.userPermissionsService.getPermissions(
-                    decoded.userId,
-                    bu.id,
-                    resolvedOrg.id,
-                    platform,
-                  );
-                  return [bu.id, features];
-                }),
-              ),
-            );
+            ({ businessUnits, featuresByBuId } = await this.resolvePermissionContext(
+              decoded.userId,
+              resolvedOrg.id,
+              platform,
+            ));
           } catch (error) {
             this.logger.error(
               `Failed to enrich auth status permissions for user ${decoded.userId} in org ${resolvedOrg.id}: ${error}`,
@@ -288,6 +304,19 @@ export class AuthService {
 
       const { accessToken, expiresIn, userId, sessionId } = await this.sessionService.generateAccessToken(refreshToken);
       const user = await this.userService.findById(userId);
+
+      // Web connects via refresh cookie (native EventSource can't send a bearer header), so enrich
+      // BUs + features here too. Org comes from the subdomain-resolved entity.
+      let businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>> = [];
+      let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> = {};
+      if (org) {
+        try {
+          ({ businessUnits, featuresByBuId } = await this.resolvePermissionContext(userId, org.id, platform));
+        } catch (error) {
+          this.logger.error(`Failed to enrich auth status permissions for user ${userId} in org ${org.id}: ${error}`);
+        }
+      }
+
       return new AuthResponseDto({
         isAuthenticated: true,
         accessToken,
@@ -307,6 +336,8 @@ export class AuthService {
             }
           : undefined,
         org: orgData,
+        businessUnits,
+        featuresByBuId,
       });
     } catch {
       return new AuthResponseDto({ isAuthenticated: false, org: orgData });

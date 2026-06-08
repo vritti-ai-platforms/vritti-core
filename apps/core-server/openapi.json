@@ -698,7 +698,16 @@
       "get": {
         "description": "Checks whether the user has an active session using the httpOnly refresh cookie. Never returns 401 — returns isAuthenticated: false instead.",
         "operationId": "AuthController_getStatus",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "x-platform",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Authentication status returned.",
@@ -2227,57 +2236,10 @@
         ]
       }
     },
-    "/user-permissions/business-units": {
-      "get": {
-        "operationId": "UserPermissionsController_getBusinessUnits",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "User Permissions"
-        ]
-      }
-    },
     "/user-permissions/business-units/select": {
       "get": {
         "operationId": "UserPermissionsController_getBusinessUnitsSelect",
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "User Permissions"
-        ]
-      }
-    },
-    "/user-permissions": {
-      "get": {
-        "operationId": "UserPermissionsController_getPermissions",
-        "parameters": [
-          {
-            "name": "buId",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": ""
