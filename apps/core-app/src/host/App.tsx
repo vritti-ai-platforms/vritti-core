@@ -5,8 +5,8 @@ import { BottomSheetBackgroundScalerProvider, BottomSheetScaledScreen } from '@v
 import { ThemeProvider } from '@vritti/quantum-ui-native/theme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-context';
-import { storage } from '../../quantum-ui-native.config';
 import { AppRender } from './components/AppRender';
+import { preferencesStorage } from './config/storage';
 import { AuthProvider } from './providers/AuthProvider';
 
 const queryClient = new QueryClient();
@@ -15,7 +15,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-        <ThemeProvider storage={storage}>
+        <ThemeProvider storage={preferencesStorage}>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <BottomSheetBackgroundScalerProvider>

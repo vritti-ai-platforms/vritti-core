@@ -3,6 +3,9 @@ export interface AssignedBU {
   name: string;
   code: string | null;
   type: string;
+  // Sent by the server (auth-status SSE) — drive BU-scoped date/currency formatting.
+  timezone: string;
+  currencyCode: string;
 }
 
 export interface PermissionFeature {

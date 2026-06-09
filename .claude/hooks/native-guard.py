@@ -71,6 +71,15 @@ def main() -> int:
             "/FlashList, ActivityIndicator -> /Spinner."
         )
 
+    # 4. react-native-mmkv must never be imported directly in the app — the MMKV adapter
+    #    factory lives in the shared package, so storage stays reusable across RN apps.
+    if re.search(r"""from\s+['"]react-native-mmkv['"]""", text):
+        violations.append(
+            "Direct react-native-mmkv import. Use createPreferences / createMmkvStorageAdapter "
+            "from '@vritti/quantum-ui-native/utils' (the shared MMKV adapter factory) instead. "
+            "MMKV is for NON-SECRET state only — secrets stay in the Keychain adapter."
+        )
+
     if violations:
         sys.stderr.write(
             "BLOCKED ("

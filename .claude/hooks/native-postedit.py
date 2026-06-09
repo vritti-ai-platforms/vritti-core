@@ -44,9 +44,12 @@ def main() -> int:
         run(["pnpm", "exec", "biome", "check", "--write", file_path])
 
     # 2. Typecheck core-app for .ts/.tsx edits.
+    #    The tsconfig pins ignoreDeprecations "6.0" (future TS 6), but the installed
+    #    compiler is TS 5.x which only accepts "5.0" — override at the CLI so tsc can
+    #    actually run instead of aborting with TS5103. CLI value wins over tsconfig.
     if file_path.endswith((".ts", ".tsx")):
         tc = run(
-            ["npx", "tsc", "--noEmit", "-p", "apps/core-app/tsconfig.json"]
+            ["npx", "tsc", "--noEmit", "-p", "apps/core-app/tsconfig.json", "--ignoreDeprecations", "5.0"]
         )
         if tc.returncode != 0:
             out = (tc.stdout + tc.stderr).strip().splitlines()

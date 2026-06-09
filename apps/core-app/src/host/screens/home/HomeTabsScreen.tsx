@@ -1,8 +1,5 @@
 import { DynamicFeatureNavigator } from '../../mf/DynamicFeatureNavigator';
-import { PermissionProvider } from '../../providers/PermissionProvider';
 
-export const HomeTabsScreen = () => (
-  <PermissionProvider>
-    <DynamicFeatureNavigator />
-  </PermissionProvider>
-);
+// PermissionProvider now wraps the whole authenticated stack in AppRender (so a BU switch
+// can remount the entire navigator), so this screen just renders the feature navigator.
+export const HomeTabsScreen = () => <DynamicFeatureNavigator />;

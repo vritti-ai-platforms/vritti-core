@@ -110,6 +110,7 @@ automatically when you work in core-app:
 - `native-hook.md` — TanStack Query hook patterns
 - `native-screen.md` — screen structure, route registration, file layout
 - `native-service.md` — axios service patterns
+- `native-storage.md` — Keychain (secrets) vs MMKV (non-secret prefs) split
 
 ### Top rules (full detail in `.claude/rules/native-conventions.md`)
 
@@ -119,6 +120,7 @@ automatically when you work in core-app:
 4. Services: NO async/await — return `.then()` chains. Import axios from `@vritti/quantum-ui-native/utils`
 5. Hooks: use `AxiosError` not `Error`; `export function` not `export const`; direct `mutationFn`/`queryFn` reference
 6. Screens: wrap in `ScreenContainer`; forms in a `form/` subdirectory; screens call hooks, never services directly
+7. Storage: secrets (tokens, base URL) → Keychain adapter; non-secret prefs → MMKV, but only via `src/host/config/storage.ts` (never import `react-native-mmkv` elsewhere)
 
 ### getTheme()
 

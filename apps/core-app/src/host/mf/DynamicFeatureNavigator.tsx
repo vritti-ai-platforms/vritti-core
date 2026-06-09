@@ -57,5 +57,8 @@ export const DynamicFeatureNavigator = () => {
     );
   }
 
+  // No BU key here. BottomNavigation rebuilds its own Tab.Navigator when the route set changes
+  // (its internal route-keyed navigatorKey), and routes flow reactively from the lifted
+  // PermissionProvider. A redundant outer remount churned react-native-screens and blanked tabs.
   return <BottomNavigation routes={routes} />;
 };
