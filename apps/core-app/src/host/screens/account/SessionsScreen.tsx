@@ -1,9 +1,10 @@
 import { Button } from '@vritti/quantum-ui-native/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vritti/quantum-ui-native/Card';
+import { Card } from '@vritti/quantum-ui-native/Card';
 import { useConfirm } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Skeleton } from '@vritti/quantum-ui-native/Skeleton';
 import { Text } from '@vritti/quantum-ui-native/Text';
+import { cn } from '@vritti/quantum-ui-native/utils';
 import { View } from 'react-native';
 import { useRevokeAllSessions, useRevokeSession, useSessions } from '../../hooks/account';
 import type { SessionData } from '../../services/account/security.service';
@@ -26,16 +27,14 @@ interface SessionCardProps {
 }
 
 const SessionCard = ({ session, onRevoke, isRevoking }: SessionCardProps) => (
-  <View
-    className={`rounded-xl border border-border p-4 gap-2 ${session.isCurrent ? 'bg-success/10 border-success/30' : ''}`}
-  >
+  <Card className={cn('gap-2 p-4', session.isCurrent && 'border-primary bg-primary/10')}>
     <View className="flex-row items-start justify-between gap-3">
       <View className="flex-1 gap-1">
-        <View className="flex-row items-center gap-2 flex-wrap">
+        <View className="flex-row flex-wrap items-center gap-2">
           <Text className="text-sm font-medium text-foreground">{session.device}</Text>
           {session.isCurrent && (
-            <View className="rounded-full bg-success/20 px-2 py-0.5">
-              <Text className="text-xs text-success font-medium">Current</Text>
+            <View className="rounded-full bg-primary/20 px-2 py-0.5">
+              <Text className="text-xs font-medium text-primary">Current</Text>
             </View>
           )}
         </View>
@@ -50,7 +49,7 @@ const SessionCard = ({ session, onRevoke, isRevoking }: SessionCardProps) => (
         </Button>
       ) : null}
     </View>
-  </View>
+  </Card>
 );
 
 export const SessionsScreen = () => {
@@ -88,54 +87,45 @@ export const SessionsScreen = () => {
 
   return (
     <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">
-      <View className="gap-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Active sessions</CardTitle>
-            <CardDescription>Devices currently signed in to your account.</CardDescription>
-          </CardHeader>
-          <CardContent className="gap-4">
-            {isLoading ? (
-              <View className="gap-3">
-                <Skeleton className="h-16 w-full rounded-xl" />
-                <Skeleton className="h-16 w-full rounded-xl" />
-              </View>
-            ) : (
-              <>
-                {currentSession && <SessionCard session={currentSession} />}
-
-                {otherSessions.length > 0 ? (
-                  <View className="gap-3">
-                    {otherSessions.map((session) => (
-                      <SessionCard
-                        key={session.sessionId}
-                        session={session}
-                        onRevoke={() => handleRevokeSession(session.sessionId)}
-                        isRevoking={
-                          revokeSessionMutation.isPending && revokeSessionMutation.variables === session.sessionId
-                        }
-                      />
-                    ))}
-                  </View>
-                ) : (
-                  <Text className="text-sm text-muted-foreground text-center py-2">No other active sessions</Text>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {!isLoading && otherSessions.length > 0 && (
-          <Button
-            variant="destructive"
-            onPress={handleRevokeAll}
-            isLoading={revokeAllMutation.isPending}
-            loadingText="Signing out..."
-          >
-            <Text>Sign Out All Other Devices</Text>
-          </Button>
-        )}
+      <View className="gap-1.5">
+        <Text className="text-2xl font-bold text-foreground">Active sessions</Text>
+        <Text className="text-base text-muted-foreground">Devices currently signed in to your account.</Text>
       </View>
+
+      {isLoading ? (
+        <View className="gap-3">
+          <Skeleton className="h-16 w-full rounded-xl" />
+          <Skeleton className="h-16 w-full rounded-xl" />
+        </View>
+      ) : (
+        <View className="gap-3">
+          {currentSession && <SessionCard session={currentSession} />}
+
+          {otherSessions.length > 0 ? (
+            otherSessions.map((session) => (
+              <SessionCard
+                key={session.sessionId}
+                session={session}
+                onRevoke={() => handleRevokeSession(session.sessionId)}
+                isRevoking={revokeSessionMutation.isPending && revokeSessionMutation.variables === session.sessionId}
+              />
+            ))
+          ) : (
+            <Text className="py-2 text-center text-sm text-muted-foreground">No other active sessions</Text>
+          )}
+        </View>
+      )}
+
+      {!isLoading && otherSessions.length > 0 && (
+        <Button
+          variant="destructive"
+          onPress={handleRevokeAll}
+          isLoading={revokeAllMutation.isPending}
+          loadingText="Signing out..."
+        >
+          <Text>Sign Out All Other Devices</Text>
+        </Button>
+      )}
     </ScreenContainer>
   );
 };

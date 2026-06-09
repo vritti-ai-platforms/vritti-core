@@ -54,6 +54,20 @@ import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 <FlashList data={items} renderItem={...} estimatedItemSize={60} />
 ```
 
+## Card — never hand-roll a card View
+
+> WHY: A custom `<View className="rounded-xl border p-4">` drifts from the design system (radius, border token, shadow, iOS squircle corner, dark-mode surface). Always use the Card component and adjust it via `className` (it uses tailwind-merge, so `border-primary`/`bg-primary/10` cleanly override the defaults).
+
+```tsx
+// WRONG — hand-rolled card
+<View className="rounded-xl border border-border p-4">{children}</View>
+
+// CORRECT
+import { Card } from '@vritti/quantum-ui-native/Card';
+<Card className="gap-2 p-4">{children}</Card>
+// highlight: <Card className="border-primary bg-primary/10">…</Card>
+```
+
 ## Alerts — never use Alert.alert()
 
 ```tsx
