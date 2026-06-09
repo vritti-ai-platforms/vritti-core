@@ -7,12 +7,8 @@ const defaultIcon: TabIcon = {
 };
 
 const commerceTabIcons: Record<string, TabIcon> = {
-  BOM: { sfSymbol: 'chart.bar.doc.horizontal', materialSymbol: 'account_tree', materialIcon: 'account-tree' },
-  './BOM': { sfSymbol: 'chart.bar.doc.horizontal', materialSymbol: 'account_tree', materialIcon: 'account-tree' },
   Categories: { sfSymbol: 'rectangle.grid.2x2', materialSymbol: 'category', materialIcon: 'category' },
   './Categories': { sfSymbol: 'rectangle.grid.2x2', materialSymbol: 'category', materialIcon: 'category' },
-  Conversions: { sfSymbol: 'arrow.2.squarepath', materialSymbol: 'sync_alt', materialIcon: 'sync-alt' },
-  './Conversions': { sfSymbol: 'arrow.2.squarepath', materialSymbol: 'sync_alt', materialIcon: 'sync-alt' },
   CreditNotes: { sfSymbol: 'at.badge.minus', materialSymbol: 'note_alt', materialIcon: 'note-alt' },
   './CreditNotes': { sfSymbol: 'at.badge.minus', materialSymbol: 'note_alt', materialIcon: 'note-alt' },
   Customers: { sfSymbol: 'person.2', materialSymbol: 'people', materialIcon: 'people' },

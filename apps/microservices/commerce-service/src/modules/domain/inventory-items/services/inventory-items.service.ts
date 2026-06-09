@@ -148,8 +148,6 @@ export class InventoryItemsService {
 
     const refs = await this.repository.countReferences(id);
     const refLabels: [number, string][] = [
-      [refs.bomLines, 'BOM line'],
-      [refs.conversions, 'conversion'],
       [refs.stockAdjustments, 'stock adjustment'],
       [refs.stockTransfers, 'stock transfer'],
       [refs.purchaseOrderItems, 'purchase order item'],

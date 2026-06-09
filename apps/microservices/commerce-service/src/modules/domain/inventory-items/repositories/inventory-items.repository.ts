@@ -7,10 +7,7 @@ import {
 } from '@vritti/api-sdk';
 import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  bomLines,
   categories,
-  conversionInputs,
-  conversionOutputs,
   inventoryItems,
   inventoryItemUomConversions,
   purchaseOrderItems,
@@ -170,16 +167,7 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   // Returns a set of inventory item IDs that have at least one non-cascading reference
   async findReferencedIds(ids: string[]): Promise<Set<string>> {
     if (ids.length === 0) return new Set();
-    const [bom, convIn, convOut, adj, transfers, poItems] = await Promise.all([
-      this.db.select({ id: bomLines.inventoryItemId }).from(bomLines).where(inArray(bomLines.inventoryItemId, ids)),
-      this.db
-        .select({ id: conversionInputs.inventoryItemId })
-        .from(conversionInputs)
-        .where(inArray(conversionInputs.inventoryItemId, ids)),
-      this.db
-        .select({ id: conversionOutputs.inventoryItemId })
-        .from(conversionOutputs)
-        .where(inArray(conversionOutputs.inventoryItemId, ids)),
+    const [adj, transfers, poItems] = await Promise.all([
       this.db
         .select({ id: stockAdjustments.inventoryItemId })
         .from(stockAdjustments)
@@ -194,7 +182,7 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         .where(inArray(purchaseOrderItems.inventoryItemId, ids)),
     ]);
     const referenced = new Set<string>();
-    for (const row of [...bom, ...convIn, ...convOut, ...adj, ...transfers, ...poItems]) {
+    for (const row of [...adj, ...transfers, ...poItems]) {
       if (row.id) referenced.add(row.id);
     }
     return referenced;
@@ -202,22 +190,11 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
 
   // Counts non-cascading references for a specific inventory item
   async countReferences(id: string): Promise<{
-    bomLines: number;
-    conversions: number;
     stockAdjustments: number;
     stockTransfers: number;
     purchaseOrderItems: number;
   }> {
-    const [bomResult, convInResult, convOutResult, adjResult, transferResult, poResult] = await Promise.all([
-      this.db.select({ count: sql<number>`count(*)` }).from(bomLines).where(eq(bomLines.inventoryItemId, id)),
-      this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(conversionInputs)
-        .where(eq(conversionInputs.inventoryItemId, id)),
-      this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(conversionOutputs)
-        .where(eq(conversionOutputs.inventoryItemId, id)),
+    const [adjResult, transferResult, poResult] = await Promise.all([
       this.db
         .select({ count: sql<number>`count(*)` })
         .from(stockAdjustments)
@@ -232,8 +209,6 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         .where(eq(purchaseOrderItems.inventoryItemId, id)),
     ]);
     return {
-      bomLines: Number(bomResult[0]?.count ?? 0),
-      conversions: Number(convInResult[0]?.count ?? 0) + Number(convOutResult[0]?.count ?? 0),
       stockAdjustments: Number(adjResult[0]?.count ?? 0),
       stockTransfers: Number(transferResult[0]?.count ?? 0),
       purchaseOrderItems: Number(poResult[0]?.count ?? 0),

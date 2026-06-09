@@ -108,7 +108,7 @@ export const InventoryItemDetailPage = () => {
         disabled={!item.canDelete}
         warning={
           !item.canDelete
-            ? 'This item is referenced by BOMs, conversions, stock adjustments, transfers, or purchase orders and cannot be deleted.'
+            ? 'This item is referenced by stock adjustments, transfers, or purchase orders and cannot be deleted.'
             : undefined
         }
       />

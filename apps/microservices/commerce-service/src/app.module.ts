@@ -6,10 +6,8 @@ import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
-import { BomModule } from './modules/bom/bom.module';
 import { CatalogsModule } from './modules/catalogs/catalogs.module';
 import { CategoriesModule } from './modules/categories/categories.module';
-import { ConversionsModule } from './modules/conversions/conversions.module';
 import { CostCategoriesModule } from './modules/cost-categories/cost-categories.module';
 import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
 import { CustomersModule } from './modules/customers/customers.module';
@@ -72,14 +70,12 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
     UomDimensionsModule,
     UomModule,
     InventoryItemsModule,
-    BomModule,
     SuppliersModule,
     SupplierItemsModule,
     PurchaseOrdersModule,
     PurchaseOrderItemsModule,
     GoodsReceiptsModule,
     LocationsModule,
-    ConversionsModule,
     StockAdjustmentsModule,
     StockTransfersModule,
     InvoicesModule,

@@ -117,9 +117,6 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItems.uomId,
       to: r.uom.id,
     }),
-    bomLines: r.many.bomLines(),
-    conversionInputs: r.many.conversionInputs(),
-    conversionOutputs: r.many.conversionOutputs(),
     supplierItems: r.many.supplierItems(),
     purchaseOrderItems: r.many.purchaseOrderItems(),
     goodsReceiptItems: r.many.goodsReceiptItems(),
@@ -174,20 +171,6 @@ export const relations = defineRelations(schema, (r) => ({
   inventoryItemLedger: {
     inventoryItem: r.one.inventoryItems({
       from: r.inventoryItemLedger.inventoryItemId,
-      to: r.inventoryItems.id,
-    }),
-  },
-  bom: {
-    bomLines: r.many.bomLines(),
-    conversions: r.many.conversions(),
-  },
-  bomLines: {
-    bom: r.one.bom({
-      from: r.bomLines.bomId,
-      to: r.bom.id,
-    }),
-    inventoryItem: r.one.inventoryItems({
-      from: r.bomLines.inventoryItemId,
       to: r.inventoryItems.id,
     }),
   },
@@ -292,34 +275,6 @@ export const relations = defineRelations(schema, (r) => ({
     goodsReceiptLine: r.one.goodsReceiptLines({
       from: r.goodsReceiptLineItems.goodsReceiptLineId,
       to: r.goodsReceiptLines.id,
-    }),
-  },
-  conversions: {
-    bom: r.one.bom({
-      from: r.conversions.bomId,
-      to: r.bom.id,
-    }),
-    conversionInputs: r.many.conversionInputs(),
-    conversionOutputs: r.many.conversionOutputs(),
-  },
-  conversionInputs: {
-    conversion: r.one.conversions({
-      from: r.conversionInputs.conversionId,
-      to: r.conversions.id,
-    }),
-    inventoryItem: r.one.inventoryItems({
-      from: r.conversionInputs.inventoryItemId,
-      to: r.inventoryItems.id,
-    }),
-  },
-  conversionOutputs: {
-    conversion: r.one.conversions({
-      from: r.conversionOutputs.conversionId,
-      to: r.conversions.id,
-    }),
-    inventoryItem: r.one.inventoryItems({
-      from: r.conversionOutputs.inventoryItemId,
-      to: r.inventoryItems.id,
     }),
   },
   stockAdjustments: {

@@ -192,9 +192,7 @@ export default (rspackEnv) => {
         filename: 'commerce-ma.container.js.bundle',
         dts: false,
         exposes: {
-          './BOM': './src/features/bom/index.tsx',
           './Categories': './src/features/categories/index.tsx',
-          './Conversions': './src/features/conversions/index.tsx',
           './CreditNotes': './src/features/credit-notes/index.tsx',
           './Customers': './src/features/customers/index.tsx',
           './GoodsReceipts': './src/features/goods-receipts/index.tsx',
