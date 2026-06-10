@@ -79,8 +79,6 @@ export default defineConfig({
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },
         'react-dom': { singleton: true, requiredVersion: '^19.2.0' },
-        'react/jsx-runtime': { singleton: true, requiredVersion: '^19.2.0' },
-        'react/jsx-dev-runtime': { singleton: true, requiredVersion: '^19.2.0' },
         'react-router-dom': { singleton: true },
         ...quantumUIShared,
         axios: { singleton: true },
