@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { FormatProvider } from '@vritti/quantum-ui-native/context';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getSelectedBusinessUnitId, setSelectedBusinessUnitId } from '../config/storage';
 import type { AssignedBU, PermissionFeature } from '../types/permissions';
@@ -127,5 +128,21 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
     [businessUnits, selectedBuId, selectBu, features, isLoadingBUs, isLoadingPermissions],
   );
 
-  return <PermissionContext.Provider value={value}>{children}</PermissionContext.Provider>;
+  // Feed the active BU's timezone + currency to quantum-ui-native's FormatProvider so the BU-aware
+  // date/time components (DateTimePicker, DateTimeRangePicker, FormattedDate) and useFormatters
+  // render in the active BU zone. Switching BU updates this and re-renders consumers — including the
+  // micro-app remotes, since the package + react are MF-shared singletons. Locale is left to the
+  // device default for now.
+  const activeBu = useMemo(
+    () => businessUnits.find((bu) => bu.id === selectedBuId) ?? null,
+    [businessUnits, selectedBuId],
+  );
+
+  return (
+    <PermissionContext.Provider value={value}>
+      <FormatProvider timeZone={activeBu?.timezone ?? null} currency={activeBu?.currencyCode ?? null}>
+        {children}
+      </FormatProvider>
+    </PermissionContext.Provider>
+  );
 };
