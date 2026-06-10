@@ -82,6 +82,16 @@ export default defineConfig({
           requiredVersion: '^19.2.0',
           eager: true,
         },
+        'react/jsx-runtime': {
+          singleton: true,
+          requiredVersion: '^19.2.0',
+          eager: true,
+        },
+        'react/jsx-dev-runtime': {
+          singleton: true,
+          requiredVersion: '^19.2.0',
+          eager: true,
+        },
         'react-router-dom': {
           singleton: true,
           eager: true,
