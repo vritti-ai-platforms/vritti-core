@@ -16,7 +16,7 @@ interface LocationTreePanelProps {
 
 export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId, onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: treeData = [], isFetching } = useLocationTree(searchQuery);
+  const { data: treeData = [], isLoading } = useLocationTree(searchQuery);
   const reorderMutation = useReorderLocations();
   const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
 
@@ -33,7 +33,7 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
     <PageContentPanel
       header={<SearchBar placeholder="Search locations..." onDebouncedChange={setSearchQuery} debounceMs={250} />}
       headerClassName="shrink-0"
-      isLoading={isFetching}
+      isLoading={isLoading}
       isEmpty={treeData.length === 0}
       emptyState={
         <Empty
@@ -45,7 +45,7 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
     >
       <TreeView
         data={treeData}
-        isLoading={isFetching}
+        isLoading={isLoading}
         initialSelectedItemId={selectedId ?? undefined}
         onSelectChange={(item) => onSelect(item?.id ?? null)}
         onReorder={handleReorder}

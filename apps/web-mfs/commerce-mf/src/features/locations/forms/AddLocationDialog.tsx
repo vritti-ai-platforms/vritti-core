@@ -11,9 +11,9 @@ import { Select } from '@vritti/quantum-ui/Select';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
 import { Switch } from '@vritti/quantum-ui/Switch';
-import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface AddLocationDialogProps {
@@ -41,9 +41,16 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
       isActive: true,
       area: '',
       managerId: undefined,
-      address: '',
     },
   });
+
+  // A ZONE location cannot have a parent; clear and lock the selector when the role is ZONE.
+  const isZone = form.watch('locationRole') === 'ZONE';
+  useEffect(() => {
+    if (isZone) {
+      form.setValue('parentId', null);
+    }
+  }, [isZone, form]);
 
   const createMutation = useCreateLocation({ onSuccess });
 
@@ -66,7 +73,6 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
       <Switch name="isActive" label="Active" description="Enable this storage location" />
 
       </div>
-            <TextArea name="address" label="Address" placeholder="Location address" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>
           Cancel

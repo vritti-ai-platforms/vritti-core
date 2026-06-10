@@ -6,6 +6,8 @@ import type {
   LocationCountData,
   LocationData,
   LocationFormData,
+  LocationItemQuantRow,
+  LocationItemsTableResponse,
   LocationTreeNode,
   ReorderLocationsData,
   UpdateLocationData,
@@ -26,6 +28,18 @@ export function getLocationCount(): Promise<LocationCountData> {
 export function getLocationChildrenTable(parentId: string): Promise<LocationChildrenTableResponse> {
   return axios
     .get<LocationChildrenTableResponse>(`commerce-api/locations/${parentId}/children/table`)
+    .then((r) => r.data);
+}
+
+export function getLocationItemsTable(locationId: string): Promise<LocationItemsTableResponse> {
+  return axios
+    .get<LocationItemsTableResponse>(`commerce-api/locations/${locationId}/items/table`)
+    .then((r) => r.data);
+}
+
+export function getLocationItemQuants(locationId: string, itemId: string): Promise<LocationItemQuantRow[]> {
+  return axios
+    .get<LocationItemQuantRow[]>(`commerce-api/locations/${locationId}/items/${itemId}/quants`)
     .then((r) => r.data);
 }
 

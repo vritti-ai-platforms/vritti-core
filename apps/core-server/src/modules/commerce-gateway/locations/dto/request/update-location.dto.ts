@@ -41,11 +41,6 @@ export class UpdateLocationDto {
   @IsUUID()
   managerId?: string;
 
-  @ApiPropertyOptional({ description: 'Updated location address' })
-  @IsOptional()
-  @IsString()
-  address?: string;
-
   @ApiPropertyOptional({ description: 'Updated location role', enum: Object.values(LocationRoleValues) })
   @IsOptional()
   @IsIn(Object.values(LocationRoleValues))

@@ -14,13 +14,13 @@ interface UomDimensionsPanelProps {
 
 export const UomDimensionsPanel: React.FC<UomDimensionsPanelProps> = ({ selectedId, onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: dimensions = [], isFetching } = useUomDimensions(searchQuery);
+  const { data: dimensions = [], isLoading } = useUomDimensions(searchQuery);
 
   return (
     <PageContentPanel
       header={<SearchBar placeholder="Search dimensions..." onDebouncedChange={setSearchQuery} debounceMs={250} />}
       headerClassName="shrink-0"
-      isLoading={isFetching}
+      isLoading={isLoading}
       isEmpty={dimensions.length === 0}
       emptyState={
         <Empty

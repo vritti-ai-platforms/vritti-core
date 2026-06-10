@@ -20,6 +20,9 @@ export class LocationResponseDto {
   @ApiPropertyOptional({ description: 'Parent location ID, or null for root-level locations', nullable: true })
   parentId: string | null;
 
+  @ApiPropertyOptional({ description: 'Parent location name, or null for root-level locations', nullable: true })
+  parentName: string | null;
+
   @ApiProperty({ description: 'Materialized ltree path for hierarchy traversal' })
   path: string;
 
@@ -31,9 +34,6 @@ export class LocationResponseDto {
 
   @ApiPropertyOptional({ description: 'Manager user ID', nullable: true })
   managerId: string | null;
-
-  @ApiPropertyOptional({ description: 'Location address', nullable: true })
-  address: string | null;
 
   @ApiProperty({ description: 'Location role', enum: Object.values(LocationRoleValues) })
   locationRole: LocationRole;

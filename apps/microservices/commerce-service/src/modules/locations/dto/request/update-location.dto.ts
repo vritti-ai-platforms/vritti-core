@@ -33,10 +33,6 @@ export class UpdateLocationDto {
   managerId?: string;
 
   @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
   @IsIn(Object.values(LocationRoleValues))
   locationRole?: LocationRole;
 

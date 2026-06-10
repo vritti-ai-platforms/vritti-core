@@ -6086,6 +6086,100 @@
         ]
       }
     },
+    "/commerce-api/locations/{locationId}/items/table": {
+      "get": {
+        "description": "Returns the location's items grouped across non-zero quants, with totals and batch counts.",
+        "operationId": "LocationsGatewayController_getItemsTable",
+        "parameters": [
+          {
+            "name": "locationId",
+            "required": true,
+            "in": "path",
+            "description": "Storage location ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Location items retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationItemTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a location stocked-items table",
+        "tags": [
+          "Commerce - Storage Locations"
+        ]
+      }
+    },
+    "/commerce-api/locations/{locationId}/items/{itemId}/quants": {
+      "get": {
+        "description": "Returns the per-quant (cost batch) breakdown for a single item within a location.",
+        "operationId": "LocationsGatewayController_getItemQuants",
+        "parameters": [
+          {
+            "name": "locationId",
+            "required": true,
+            "in": "path",
+            "description": "Storage location ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "description": "Inventory item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item quants retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocationItemQuantResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the per-item quant breakdown for a location",
+        "tags": [
+          "Commerce - Storage Locations"
+        ]
+      }
+    },
     "/commerce-api/locations/{id}": {
       "get": {
         "operationId": "LocationsGatewayController_findById",
@@ -15486,6 +15580,118 @@
           "orderedIds"
         ]
       },
+      "LocationItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "itemCode": {
+            "type": "string"
+          },
+          "uomSymbol": {
+            "type": "object",
+            "nullable": true
+          },
+          "totalQuantity": {
+            "type": "number"
+          },
+          "availableQuantity": {
+            "type": "number"
+          },
+          "totalValue": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "batchCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "itemName",
+          "itemCode",
+          "totalQuantity",
+          "availableQuantity",
+          "batchCount"
+        ]
+      },
+      "LocationItemTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LocationItemResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "LocationItemQuantResponseDto": {
+        "type": "object",
+        "properties": {
+          "quantId": {
+            "type": "string"
+          },
+          "lotNumber": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "availableQuantity": {
+            "type": "number"
+          },
+          "unitCost": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "quantValue": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "quantId",
+          "quantity",
+          "availableQuantity"
+        ]
+      },
       "CreateLocationDto": {
         "type": "object",
         "properties": {
@@ -15517,10 +15723,6 @@
           "managerId": {
             "type": "string",
             "description": "Manager user ID"
-          },
-          "address": {
-            "type": "string",
-            "description": "Location address"
           },
           "locationRole": {
             "type": "string",
@@ -15571,10 +15773,6 @@
           "managerId": {
             "type": "string",
             "description": "Updated manager user ID"
-          },
-          "address": {
-            "type": "string",
-            "description": "Updated location address"
           },
           "locationRole": {
             "type": "string",

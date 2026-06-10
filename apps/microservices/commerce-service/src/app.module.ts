@@ -15,6 +15,7 @@ import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.mod
 import { InventoryItemsModule } from './modules/inventory-items/inventory-items.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { LocationsModule } from './modules/locations/locations.module';
+import { LocationQuantsModule } from './modules/locations/quants/location-quants.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PosTerminalsModule } from './modules/pos-terminals/pos-terminals.module';
@@ -76,6 +77,7 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
     PurchaseOrderItemsModule,
     GoodsReceiptsModule,
     LocationsModule,
+    LocationQuantsModule,
     StockAdjustmentsModule,
     StockTransfersModule,
     InvoicesModule,

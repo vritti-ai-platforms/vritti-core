@@ -70,7 +70,7 @@ const TreeRow = ({ uomSymbol }: { uomSymbol: string }) =>
   };
 
 export const LotsTreePanel = ({ adjustmentId, isDraft, uomSymbol, selectedId, onSelect }: LotsTreePanelProps) => {
-  const { data: tree = [], isFetching } = useStockAdjustmentTree(adjustmentId);
+  const { data: tree = [], isLoading } = useStockAdjustmentTree(adjustmentId);
   const addLotDialog = useDialog();
 
   const treeData = toTreeData(tree);
@@ -93,7 +93,7 @@ export const LotsTreePanel = ({ adjustmentId, isDraft, uomSymbol, selectedId, on
             </Button>
           ) : null
         }
-        isEmpty={!isFetching && tree.length === 0}
+        isEmpty={!isLoading && tree.length === 0}
         emptyState={
           <Empty
             icon={<Boxes />}
@@ -104,7 +104,7 @@ export const LotsTreePanel = ({ adjustmentId, isDraft, uomSymbol, selectedId, on
       >
         <TreeView
           data={treeData}
-          isLoading={isFetching}
+          isLoading={isLoading}
           initialSelectedItemId={selectedId ?? undefined}
           onSelectChange={(item) => {
             if (!item) return onSelect(null);

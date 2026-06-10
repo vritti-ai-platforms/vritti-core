@@ -4,7 +4,6 @@ import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
-import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -36,7 +35,6 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
       isActive: location.isActive,
       area: location.area ?? '',
       managerId: location.managerId ?? undefined,
-      address: location.address ?? '',
     },
   });
 
@@ -58,7 +56,6 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
           isActive: data.isActive,
           area: data.area,
           managerId: data.managerId,
-          address: data.address,
         },
       })}
     >
@@ -69,7 +66,6 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
       <Select name="locationRole" label="Role" options={roleOptions} />
       <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
       <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
-      <TextArea name="address" label="Address" placeholder="Location address" />
       <Switch name="isActive" label="Active" description="Enable this storage location" />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" data-cancel>

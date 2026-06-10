@@ -30,10 +30,6 @@ export class CreateLocationDto {
   @IsUUID()
   managerId?: string;
 
-  @IsOptional()
-  @IsString()
-  address?: string;
-
   @IsIn(Object.values(LocationRoleValues))
   locationRole: LocationRole;
 

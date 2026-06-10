@@ -1,17 +1,17 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { DetailField } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Pencil, Ruler, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useDeleteUomDimension, useUomDimension } from '@/hooks/uom-dimensions';
 import type { UomDimensionData } from '@/schemas/uom-dimensions';
 import { EditUomDimensionDialog } from '../forms/EditUomDimensionDialog';
+import { UomDimensionDetailPanelSkeleton } from './UomDimensionDetailPanelSkeleton';
 import { UomTable } from './UomTable';
 
 interface UomDimensionDetailPanelProps {
@@ -40,27 +40,6 @@ export const UomDimensionDetailPanel: React.FC<UomDimensionDetailPanelProps> = (
     </PageContentDetails>
   );
 };
-
-function UomDimensionDetailPanelSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-6 w-16" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-20 rounded-md" />
-          <Skeleton className="h-8 w-20 rounded-md" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="h-5 w-64" />
-      </div>
-    </div>
-  );
-}
 
 interface UomDimensionDetailContentProps {
   dimension: UomDimensionData;
@@ -116,7 +95,11 @@ const UomDimensionDetailContent: React.FC<UomDimensionDetailContentProps> = ({ d
         </div>
       </div>
 
-      <DetailField label="Description" type="string" value={dimension.description} />
+      <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
+        <DetailSection wrap>
+          <DetailField className="px-4 py-2" label="Description" type="string" value={dimension.description} />
+        </DetailSection>
+      </div>
 
       <Typography variant="overline" intent="muted" className="mb-3">
         Units

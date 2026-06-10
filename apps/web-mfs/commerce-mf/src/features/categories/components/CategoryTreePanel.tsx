@@ -16,7 +16,7 @@ interface CategoryTreePanelProps {
 
 export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId, onSelect }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: treeData = [], isFetching } = useCategoryTree(searchQuery);
+  const { data: treeData = [], isLoading } = useCategoryTree(searchQuery);
   const reorderMutation = useReorderCategories();
   const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
 
@@ -33,7 +33,7 @@ export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId
     <PageContentPanel
       header={<SearchBar placeholder="Search categories..." onDebouncedChange={setSearchQuery} debounceMs={250} />}
       headerClassName="shrink-0"
-      isLoading={isFetching}
+      isLoading={isLoading}
       isEmpty={treeData.length === 0}
       emptyState={
         <Empty
@@ -45,7 +45,7 @@ export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId
     >
       <TreeView
         data={treeData}
-        isLoading={isFetching}
+        isLoading={isLoading}
         initialSelectedItemId={selectedId ?? undefined}
         onSelectChange={(item) => onSelect(item?.id ?? null)}
         onReorder={handleReorder}

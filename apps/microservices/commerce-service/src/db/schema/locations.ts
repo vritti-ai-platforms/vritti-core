@@ -35,7 +35,6 @@ export const locations = coreSchema.table(
     sortOrder: integer('sort_order').notNull().default(1),
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),
-    address: text('address'),
     locationRole: locationRoleEnum('location_role').notNull().default(LocationRoleValues.STORAGE),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
