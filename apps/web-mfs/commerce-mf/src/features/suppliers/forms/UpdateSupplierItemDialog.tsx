@@ -37,6 +37,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
       leadTimeDays: item.leadTimeDays ?? undefined,
       isPreferred: item.isPreferred,
       isActive: item.isActive,
+      taxInclusive: item.taxInclusive,
       schemeBuyQty: item.schemeBuyQty ?? undefined,
       schemeFreeQty: item.schemeFreeQty ?? undefined,
       hasScheme: item.hasScheme ?? false,
@@ -62,6 +63,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
           leadTimeDays: data.leadTimeDays ?? null,
           isPreferred: data.isPreferred,
           isActive: data.isActive,
+          taxInclusive: data.taxInclusive,
           schemeBuyQty: data.schemeBuyQty ?? null,
           schemeFreeQty: data.schemeFreeQty ?? null,
           hasScheme: data.hasScheme,
@@ -105,6 +107,11 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
               positive
             />
           </div>
+          <Switch
+            name="taxInclusive"
+            label="Price includes tax"
+            description="On = supplier price is tax-inclusive; off = tax added on top"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Switch
               name="isPreferred"

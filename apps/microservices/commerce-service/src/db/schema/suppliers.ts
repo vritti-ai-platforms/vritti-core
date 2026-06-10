@@ -154,6 +154,9 @@ export const supplierItems = coreSchema.table(
     schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
     schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
     hasScheme: boolean('has_scheme').notNull().default(false),
+    // How this supplier quotes the unit price. Mirrors catalogs.taxInclusive on the sale side.
+    // false (default) = B2B/exclusive is the norm.
+    taxInclusive: boolean('tax_inclusive').notNull().default(false),
     isPreferred: boolean('is_preferred').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

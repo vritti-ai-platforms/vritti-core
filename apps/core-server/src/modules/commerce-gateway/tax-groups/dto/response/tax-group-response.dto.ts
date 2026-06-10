@@ -10,9 +10,6 @@ export class TaxRateResponseDto {
   @ApiProperty({ description: 'Tax rate percentage', example: 9 })
   rate: number;
 
-  @ApiProperty({ description: 'Rate type', enum: ['inclusive', 'exclusive'] })
-  type: string;
-
   @ApiProperty({ description: 'Sort order' })
   sortOrder: number;
 }

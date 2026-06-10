@@ -18332,6 +18332,11 @@
           "hasScheme": {
             "type": "boolean",
             "description": "Whether a free-goods scheme applies."
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the unit price is quoted tax-inclusive.",
+            "default": false
           }
         },
         "required": [
@@ -18435,6 +18440,10 @@
           "hasScheme": {
             "type": "boolean",
             "description": "Whether a free-goods scheme applies."
+          },
+          "taxInclusive": {
+            "type": "boolean",
+            "description": "Whether the unit price is quoted tax-inclusive."
           }
         }
       },
@@ -18550,14 +18559,6 @@
             "description": "Tax rate percentage",
             "example": 9
           },
-          "type": {
-            "type": "string",
-            "description": "Rate type",
-            "enum": [
-              "inclusive",
-              "exclusive"
-            ]
-          },
           "sortOrder": {
             "type": "number",
             "description": "Sort order"
@@ -18567,7 +18568,6 @@
           "id",
           "name",
           "rate",
-          "type",
           "sortOrder"
         ]
       },
@@ -18623,20 +18623,11 @@
             "type": "number",
             "description": "Tax rate percentage",
             "example": 9
-          },
-          "type": {
-            "type": "string",
-            "description": "Rate type",
-            "enum": [
-              "inclusive",
-              "exclusive"
-            ]
           }
         },
         "required": [
           "name",
-          "rate",
-          "type"
+          "rate"
         ]
       },
       "CreateTaxGroupDto": {
@@ -18676,14 +18667,6 @@
             "type": "number",
             "description": "Tax rate percentage",
             "example": 9
-          },
-          "type": {
-            "type": "string",
-            "description": "Rate type",
-            "enum": [
-              "inclusive",
-              "exclusive"
-            ]
           }
         }
       },

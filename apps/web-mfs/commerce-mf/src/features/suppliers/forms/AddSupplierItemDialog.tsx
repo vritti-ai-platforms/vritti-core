@@ -35,6 +35,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       minOrderQuantity: undefined,
       leadTimeDays: undefined,
       isPreferred: false,
+      taxInclusive: false,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
       hasScheme: false,
@@ -62,6 +63,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         minOrderQuantity: data.minOrderQuantity ?? undefined,
         leadTimeDays: data.leadTimeDays ?? undefined,
         isPreferred: data.isPreferred,
+        taxInclusive: data.taxInclusive,
         schemeBuyQty: data.schemeBuyQty ?? undefined,
         schemeFreeQty: data.schemeFreeQty ?? undefined,
         hasScheme: data.hasScheme,
@@ -106,6 +108,11 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
               positive
             />
           </div>
+          <Switch
+            name="taxInclusive"
+            label="Price includes tax"
+            description="On = supplier price is tax-inclusive; off = tax added on top"
+          />
           <Switch
             name="isPreferred"
             label="Preferred Supplier"

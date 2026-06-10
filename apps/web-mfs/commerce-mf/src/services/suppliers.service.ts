@@ -51,6 +51,7 @@ export interface AddSupplierItemPayload {
   minOrderQuantity?: number;
   leadTimeDays?: number;
   isPreferred?: boolean;
+  taxInclusive?: boolean;
   schemeBuyQty?: number;
   schemeFreeQty?: number;
   hasScheme?: boolean;
@@ -64,6 +65,7 @@ export interface UpdateSupplierItemPayload {
   leadTimeDays?: number | null;
   isPreferred?: boolean;
   isActive?: boolean;
+  taxInclusive?: boolean;
   schemeBuyQty?: number | null;
   schemeFreeQty?: number | null;
   hasScheme?: boolean | null;

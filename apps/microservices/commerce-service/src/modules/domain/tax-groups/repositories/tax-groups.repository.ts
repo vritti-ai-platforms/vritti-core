@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
-import { type TaxGroup, type TaxRate, type TaxRateType, taxGroups, taxRates } from '@/db/schema';
+import { type TaxGroup, type TaxRate, taxGroups, taxRates } from '@/db/schema';
 
 @Injectable()
 export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups> {
@@ -31,7 +31,7 @@ export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups>
   // Creates multiple tax rates for a tax group
   async createTaxRates(
     groupId: string,
-    rates: { name: string; rate: number; type: TaxRateType; sortOrder: number }[],
+    rates: { name: string; rate: number; sortOrder: number }[],
   ): Promise<TaxRate[]> {
     if (rates.length === 0) return [];
     const values = rates.map((r) => ({ ...r, taxGroupId: groupId }));

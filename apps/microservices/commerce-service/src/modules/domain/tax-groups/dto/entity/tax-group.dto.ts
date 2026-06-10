@@ -1,10 +1,9 @@
-import type { TaxGroup, TaxRate, TaxRateType } from '@/db/schema';
+import type { TaxGroup, TaxRate } from '@/db/schema';
 
 export class TaxRateDto {
   id: string;
   name: string;
   rate: number;
-  type: TaxRateType;
   sortOrder: number;
 
   // Maps a TaxRate entity to a TaxRateDto
@@ -13,7 +12,6 @@ export class TaxRateDto {
     dto.id = entity.id;
     dto.name = entity.name;
     dto.rate = entity.rate;
-    dto.type = entity.type;
     dto.sortOrder = entity.sortOrder;
     return dto;
   }

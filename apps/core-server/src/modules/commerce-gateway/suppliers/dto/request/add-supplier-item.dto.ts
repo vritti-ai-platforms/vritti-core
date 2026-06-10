@@ -56,4 +56,9 @@ export class AddSupplierItemDto {
   @IsOptional()
   @IsBoolean()
   hasScheme?: boolean;
+
+  @ApiPropertyOptional({ description: 'Whether the unit price is quoted tax-inclusive.', default: false })
+  @IsOptional()
+  @IsBoolean()
+  taxInclusive?: boolean;
 }

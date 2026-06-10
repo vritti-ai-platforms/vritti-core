@@ -24,7 +24,6 @@ export const EditTaxGroupDialog: React.FC<EditTaxGroupDialogProps> = ({ group, o
       taxRates: group.taxRates.map((rate) => ({
         name: rate.name,
         rate: rate.rate,
-        type: rate.type,
       })),
     },
   });
@@ -47,7 +46,6 @@ export const EditTaxGroupDialog: React.FC<EditTaxGroupDialogProps> = ({ group, o
           taxRates: data.taxRates.map((rate) => ({
             name: rate.name,
             rate: Number(rate.rate),
-            type: rate.type,
           })),
         },
       })}

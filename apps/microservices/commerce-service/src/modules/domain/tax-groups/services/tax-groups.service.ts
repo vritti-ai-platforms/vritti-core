@@ -29,7 +29,6 @@ export class TaxGroupsService {
       (data.taxRates ?? []).map((r, i) => ({
         name: r.name,
         rate: r.rate,
-        type: r.type,
         sortOrder: i,
       })),
     );
@@ -65,7 +64,6 @@ export class TaxGroupsService {
             data.taxRates.map((r, i) => ({
               name: r.name,
               rate: r.rate,
-              type: r.type,
               sortOrder: i,
             })),
           )

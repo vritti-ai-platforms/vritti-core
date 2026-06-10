@@ -1,13 +1,9 @@
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
 
-export const taxRateTypeValues = ['inclusive', 'exclusive'] as const;
-export type TaxRateType = (typeof taxRateTypeValues)[number];
-
 const _taxRateFormSchema = z.object({
   name: z.string().min(1, 'Rate name is required').max(100, 'Rate name cannot exceed 100 characters'),
   rate: zodNumericField({ required: 'Rate is required', min: 0, max: 100 }),
-  type: z.enum(taxRateTypeValues),
 });
 
 const _taxGroupFormSchema = z.object({
@@ -21,7 +17,6 @@ const _taxGroupFormSchema = z.object({
 export type TaxRateFormData = {
   name: string;
   rate: number;
-  type: TaxRateType;
 };
 
 export type TaxGroupFormData = {
@@ -38,7 +33,6 @@ export interface TaxRateData {
   id: string;
   name: string;
   rate: number;
-  type: TaxRateType;
   sortOrder: number;
 }
 
@@ -56,7 +50,6 @@ export interface CreateTaxGroupData {
   taxRates: Array<{
     name: string;
     rate: number;
-    type: TaxRateType;
   }>;
   isDefault?: boolean;
 }

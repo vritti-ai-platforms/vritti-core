@@ -1,5 +1,4 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { Typography } from '@vritti/quantum-ui/Typography';
@@ -8,12 +7,7 @@ import type { UseFormReturn } from 'react-hook-form';
 import { useFieldArray } from 'react-hook-form';
 import type { TaxGroupFormData, TaxRateFormData } from '@/schemas/tax-groups';
 
-const defaultTaxRate: TaxRateFormData = { name: '', rate: 0, type: 'exclusive' };
-
-const taxRateTypeOptions = [
-  { value: 'exclusive', label: 'Exclusive' },
-  { value: 'inclusive', label: 'Inclusive' },
-];
+const defaultTaxRate: TaxRateFormData = { name: '', rate: 0 };
 
 interface TaxGroupFormProps {
   form: UseFormReturn<TaxGroupFormData>;
@@ -51,11 +45,8 @@ export function TaxGroupForm({ form, showStatusFields = false, compactRates = fa
             <Typography variant="caption" intent="muted" className="sm:col-span-5">
               Rate Name
             </Typography>
-            <Typography variant="caption" intent="muted" className="sm:col-span-3">
+            <Typography variant="caption" intent="muted" className="sm:col-span-6">
               Rate (%)
-            </Typography>
-            <Typography variant="caption" intent="muted" className="sm:col-span-3">
-              Type
             </Typography>
             <div className="sm:col-span-1" />
           </div>
@@ -71,19 +62,12 @@ export function TaxGroupForm({ form, showStatusFields = false, compactRates = fa
                   placeholder="e.g. CGST"
                 />
               </div>
-              <div className="sm:col-span-3">
+              <div className="sm:col-span-6">
                 <TextField
                   name={`taxRates.${index}.rate`}
                   type="number"
                   label={compactRates ? undefined : 'Rate (%)'}
                   placeholder="0"
-                />
-              </div>
-              <div className="sm:col-span-3">
-                <Select
-                  name={`taxRates.${index}.type`}
-                  label={compactRates ? undefined : 'Type'}
-                  options={taxRateTypeOptions}
                 />
               </div>
               <div

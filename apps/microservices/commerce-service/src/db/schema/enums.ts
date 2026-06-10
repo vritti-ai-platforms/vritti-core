@@ -171,10 +171,6 @@ export const LocationRoleValues = {
 };
 export type LocationRole = (typeof locationRoleEnum.enumValues)[number];
 
-export const taxRateTypeEnum = coreSchema.enum('tax_rate_type', ['inclusive', 'exclusive']);
-export const TaxRateTypeValues = { INCLUSIVE: 'inclusive', EXCLUSIVE: 'exclusive' } as const;
-export type TaxRateType = (typeof taxRateTypeEnum.enumValues)[number];
-
 export const taxIdTypeEnum = coreSchema.enum('tax_id_type', ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
 export const TaxIdTypeValues = {
   GST: 'GST' as const,

@@ -47,4 +47,9 @@ export class AddSupplierItemDto {
   @IsOptional()
   @IsBoolean()
   hasScheme?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  taxInclusive?: boolean;
 }

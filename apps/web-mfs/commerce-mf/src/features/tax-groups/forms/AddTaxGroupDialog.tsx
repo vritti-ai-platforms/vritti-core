@@ -19,7 +19,7 @@ export const AddTaxGroupDialog: React.FC<AddTaxGroupDialogProps> = ({ onSuccess,
       isDefault: false,
       isActive: true,
       sortOrder: 0,
-      taxRates: [{ name: '', rate: 0, type: 'exclusive' }],
+      taxRates: [{ name: '', rate: 0 }],
     },
   });
 
@@ -38,7 +38,6 @@ export const AddTaxGroupDialog: React.FC<AddTaxGroupDialogProps> = ({ onSuccess,
         taxRates: data.taxRates.map((rate) => ({
           name: rate.name,
           rate: Number(rate.rate),
-          type: rate.type,
         })),
       })}
     >
