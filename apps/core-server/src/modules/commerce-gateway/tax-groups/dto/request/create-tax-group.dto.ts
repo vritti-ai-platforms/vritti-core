@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class CreateTaxRateDto {
   @ApiProperty({ description: 'Tax rate name', example: 'CGST' })
@@ -25,9 +25,4 @@ export class CreateTaxGroupDto {
   @ValidateNested({ each: true })
   @Type(() => CreateTaxRateDto)
   taxRates?: CreateTaxRateDto[];
-
-  @ApiPropertyOptional({ description: 'Whether this is the default tax group', default: false })
-  @IsOptional()
-  @IsBoolean()
-  isDefault?: boolean;
 }

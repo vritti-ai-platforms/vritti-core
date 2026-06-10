@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class CreateTaxRateDto {
   @IsString()
@@ -20,8 +20,4 @@ export class CreateTaxGroupDto {
   @ValidateNested({ each: true })
   @Type(() => CreateTaxRateDto)
   taxRates?: CreateTaxRateDto[];
-
-  @IsOptional()
-  @IsBoolean()
-  isDefault?: boolean;
 }

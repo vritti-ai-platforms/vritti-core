@@ -3,10 +3,10 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { Form } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
-import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
+import { TaxGroupSelector } from '@vritti/quantum-ui/selects/tax-group';
 import { VariantOptionSelector } from '@vritti/quantum-ui/selects/variant-option';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -17,7 +17,6 @@ import type React from 'react';
 import { useState } from 'react';
 import { type Resolver, useForm } from 'react-hook-form';
 import { useCreateOffering } from '@/hooks/offerings';
-import { useTaxGroups } from '@/hooks/tax-groups';
 import { type CreateOfferingFormData, createOfferingSchema, type FulfilmentType } from '@/schemas/offerings';
 import type { CreateOfferingDefaultVariant, CreateOfferingPayload } from '@/services/offerings.service';
 import { VariantComponentsField } from '../../components/offerings/VariantComponentsField';
@@ -74,8 +73,6 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
   });
 
   const mutation = useCreateOffering({ onSuccess });
-  const { data: taxGroups = [] } = useTaxGroups(businessUnitId);
-  const taxGroupOptions = taxGroups.map((t) => ({ value: t.id, label: t.name }));
 
   const selectKind = (value: OfferingKind) => {
     setKind(value);
@@ -181,11 +178,11 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <CategorySelector name="categoryId" params={{ buId: businessUnitId, status: 'active' }} clearable />
-          <Select
+          <TaxGroupSelector
             name="salesTaxGroupId"
             label="Sales Tax Group"
             placeholder="Select tax group (optional)"
-            options={taxGroupOptions}
+            clearable
           />
         </div>
 

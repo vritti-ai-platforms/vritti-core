@@ -26,18 +26,8 @@ export class UpdateTaxGroupDto {
   @Type(() => UpdateTaxRateDto)
   taxRates?: UpdateTaxRateDto[];
 
-  @ApiPropertyOptional({ description: 'Updated default status' })
-  @IsOptional()
-  @IsBoolean()
-  isDefault?: boolean;
-
   @ApiPropertyOptional({ description: 'Updated active status' })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
-
-  @ApiPropertyOptional({ description: 'Updated display sort order' })
-  @IsOptional()
-  @IsNumber()
-  sortOrder?: number;
 }

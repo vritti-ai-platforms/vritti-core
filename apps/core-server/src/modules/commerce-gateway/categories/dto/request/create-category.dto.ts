@@ -24,4 +24,9 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'Default tax group for items in this category', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  defaultTaxGroupId?: string | null;
 }

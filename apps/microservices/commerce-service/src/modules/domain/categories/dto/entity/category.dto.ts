@@ -11,6 +11,7 @@ export class CategoryDto {
   path: string;
   isActive: boolean;
   sortOrder: number;
+  defaultTaxGroupId: string | null;
   createdAt: string;
   updatedAt: string;
   canDelete: boolean;
@@ -28,6 +29,7 @@ export class CategoryDto {
     dto.path = entity.path;
     dto.isActive = entity.isActive;
     dto.sortOrder = entity.sortOrder;
+    dto.defaultTaxGroupId = entity.defaultTaxGroupId ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();
     dto.canDelete = canDelete;

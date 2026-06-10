@@ -17,4 +17,8 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  defaultTaxGroupId?: string | null;
 }

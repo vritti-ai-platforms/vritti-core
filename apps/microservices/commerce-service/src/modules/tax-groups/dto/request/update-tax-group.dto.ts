@@ -23,13 +23,5 @@ export class UpdateTaxGroupDto {
 
   @IsOptional()
   @IsBoolean()
-  isDefault?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
   isActive?: boolean;
-
-  @IsOptional()
-  @IsNumber()
-  sortOrder?: number;
 }

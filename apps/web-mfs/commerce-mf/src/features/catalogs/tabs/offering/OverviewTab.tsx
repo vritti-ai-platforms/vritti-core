@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Car
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { useFormatters } from '@vritti/quantum-ui/hooks';
 import type React from 'react';
-import { useTaxGroups } from '@/hooks/tax-groups';
+import { useTaxGroup } from '@/hooks/tax-groups';
 import { FULFILMENT_TYPE_OPTIONS, type OfferingDetail } from '@/schemas/offerings';
 import { getPriceRange } from '@/utils/offerings';
 
@@ -13,8 +13,7 @@ interface OverviewTabProps {
 
 export const OverviewTab: React.FC<OverviewTabProps> = ({ offering }) => {
   const fmt = useFormatters();
-  const { data: taxGroups = [] } = useTaxGroups(offering.businessUnitId);
-  const taxGroup = taxGroups.find((t) => t.id === offering.salesTaxGroupId);
+  const { data: taxGroup } = useTaxGroup(offering.salesTaxGroupId ?? null);
   const fulfilmentLabel =
     FULFILMENT_TYPE_OPTIONS.find((o) => o.value === offering.fulfilmentType)?.label ?? offering.fulfilmentType;
 

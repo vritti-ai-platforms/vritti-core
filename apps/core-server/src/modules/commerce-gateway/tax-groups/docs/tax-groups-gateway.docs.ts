@@ -1,18 +1,29 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk';
 import { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
 import { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
 import { TaxGroupResponseDto } from '../dto/response/tax-group-response.dto';
+import { TaxGroupTableResponseDto } from '../dto/response/tax-group-table-response.dto';
 
-export function ApiListTaxGroups() {
+export function ApiFindForTableTaxGroups() {
   return applyDecorators(
     ApiOperation({
-      summary: 'List tax groups for a business unit',
-      description: 'Returns all tax groups for the specified business unit, ordered by sort order.',
+      summary: 'List tax groups for the data table',
+      description: 'Returns a paginated page of tax groups using the user’s saved filter/sort/pagination state.',
     }),
-    ApiQuery({ name: 'buId', description: 'Business unit ID', required: true }),
-    ApiResponse({ status: 200, description: 'Tax groups retrieved successfully.', type: TaxGroupResponseDto, isArray: true }),
+    ApiResponse({ status: 200, description: 'Tax groups retrieved successfully.', type: TaxGroupTableResponseDto }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiSelectTaxGroups() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List tax groups as dropdown options',
+      description: 'Returns tax groups formatted as select options (id → name), searchable and paginated.',
+    }),
+    ApiResponse({ status: 200, description: 'Tax group options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }
@@ -21,7 +32,8 @@ export function ApiCreateTaxGroup() {
   return applyDecorators(
     ApiOperation({
       summary: 'Create a tax group',
-      description: 'Creates a new tax group for the business unit. organizationId is resolved from the authenticated user.',
+      description:
+        'Creates a new tax group for the business unit. organizationId is resolved from the authenticated user.',
     }),
     ApiBody({ type: CreateTaxGroupDto }),
     ApiResponse({ status: 201, description: 'Tax group created successfully.', type: TaxGroupResponseDto }),
@@ -45,7 +57,7 @@ export function ApiUpdateTaxGroup() {
     ApiOperation({ summary: 'Update a tax group' }),
     ApiParam({ name: 'id', description: 'Tax group ID' }),
     ApiBody({ type: UpdateTaxGroupDto }),
-    ApiResponse({ status: 200, description: 'Tax group updated successfully.', type: TaxGroupResponseDto }),
+    ApiResponse({ status: 200, description: 'Tax group updated successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Tax group not found.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );

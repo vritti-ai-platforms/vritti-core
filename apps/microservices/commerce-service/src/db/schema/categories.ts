@@ -12,6 +12,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { taxGroups } from './tax-groups';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
@@ -34,6 +35,8 @@ export const categories = coreSchema.table(
     pathBreadcrumb: text('path_breadcrumb').generatedAlwaysAs(sql`vritti_core.format_ltree_path(path)`),
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
+    // Default tax group applied to items created under this category (sale + purchase suggestion).
+    defaultTaxGroupId: uuid('default_tax_group_id').references(() => taxGroups.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

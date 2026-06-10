@@ -7,6 +7,7 @@ const _categorySchema = z.object({
   parentId: z.string().optional().nullable(),
   sortOrder: zodNumericField({ required: 'Sort order is required', min: 1 }),
   isActive: z.boolean(),
+  defaultTaxGroupId: z.string().optional().nullable(),
 });
 
 // TypeScript form type — sortOrder is number for defaultValues, mutation, and form logic
@@ -15,6 +16,7 @@ export type CategoryFormData = {
   parentId?: string | null;
   sortOrder: number;
   isActive: boolean;
+  defaultTaxGroupId?: string | null;
 };
 
 // Pre-typed resolver — casts once here so no `as any` leaks into components
@@ -30,6 +32,7 @@ export interface CategoryData {
   sortOrder: number;
   isActive: boolean;
   canDelete: boolean;
+  defaultTaxGroupId: string | null;
   createdAt: string;
 }
 

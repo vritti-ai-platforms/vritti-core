@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."tax_groups" DROP COLUMN "sort_order";

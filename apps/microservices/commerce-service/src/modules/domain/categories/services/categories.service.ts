@@ -151,6 +151,7 @@ export class CategoriesService {
         path,
         sortOrder: data.sortOrder ?? 1,
         isActive: data.isActive ?? true,
+        defaultTaxGroupId: data.defaultTaxGroupId ?? null,
       }),
     );
 
@@ -193,6 +194,7 @@ export class CategoriesService {
           ...data,
           parentId: data.parentId === undefined ? undefined : data.parentId || null,
           pathLabel: nameChanged ? nextPathLabel : undefined,
+          defaultTaxGroupId: data.defaultTaxGroupId === undefined ? undefined : data.defaultTaxGroupId || null,
         }),
       );
 

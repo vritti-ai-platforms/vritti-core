@@ -24,4 +24,9 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'Updated default tax group for items in this category', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  defaultTaxGroupId?: string | null;
 }

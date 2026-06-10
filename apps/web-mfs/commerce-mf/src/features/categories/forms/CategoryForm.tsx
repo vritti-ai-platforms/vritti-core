@@ -2,6 +2,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
+import { TaxGroupSelector } from '@vritti/quantum-ui/selects/tax-group';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -34,6 +35,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
       parentId: category?.parentId ?? defaultParentId ?? null,
       sortOrder: category?.sortOrder ?? 1,
       isActive: category?.isActive ?? true,
+      defaultTaxGroupId: category?.defaultTaxGroupId ?? null,
     },
   });
 
@@ -47,6 +49,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
       ...data,
       sortOrder: data.sortOrder,
       parentId: data.parentId || null,
+      defaultTaxGroupId: data.defaultTaxGroupId || null,
     };
     if (isEditing) {
       await updateMutation.mutateAsync({ id: category.id, data: coerced });
@@ -73,8 +76,18 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
         }}
         clearable
       />
+      <TaxGroupSelector
+        name="defaultTaxGroupId"
+        label="Default Tax Group"
+        placeholder="None (no default tax group)"
+        clearable
+      />
       <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
-      <Switch name="isActive" label="Active" description="Inactive categories don't appear in item assignment dropdowns" />
+      <Switch
+        name="isActive"
+        label="Active"
+        description="Inactive categories don't appear in item assignment dropdowns"
+      />
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel

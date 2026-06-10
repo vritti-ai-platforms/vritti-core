@@ -20,19 +20,17 @@ export class TaxRateDto {
 export class TaxGroupDto {
   id: string;
   name: string;
-  isDefault: boolean;
   isActive: boolean;
-  sortOrder: number;
+  canDelete: boolean;
   taxRates: TaxRateDto[];
 
   // Maps a TaxGroup entity with its tax rates to a TaxGroupDto
-  static from(entity: TaxGroup, rates: TaxRate[] = []): TaxGroupDto {
+  static from(entity: TaxGroup, rates: TaxRate[] = [], canDelete = true): TaxGroupDto {
     const dto = new TaxGroupDto();
     dto.id = entity.id;
     dto.name = entity.name;
-    dto.isDefault = entity.isDefault;
     dto.isActive = entity.isActive;
-    dto.sortOrder = entity.sortOrder;
+    dto.canDelete = canDelete;
     dto.taxRates = rates.map(TaxRateDto.from);
     return dto;
   }

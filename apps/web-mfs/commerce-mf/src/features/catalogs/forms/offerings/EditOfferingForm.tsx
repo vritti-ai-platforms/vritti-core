@@ -1,8 +1,8 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Form } from '@vritti/quantum-ui/Form';
-import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
+import { TaxGroupSelector } from '@vritti/quantum-ui/selects/tax-group';
 import { VariantOptionSelector } from '@vritti/quantum-ui/selects/variant-option';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -10,7 +10,6 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateOffering } from '@/hooks/offerings';
-import { useTaxGroups } from '@/hooks/tax-groups';
 import { type OfferingDetail, type UpdateOfferingFormData, updateOfferingSchema } from '@/schemas/offerings';
 
 interface EditOfferingFormProps {
@@ -36,12 +35,6 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
   });
 
   const updateMutation = useUpdateOffering({ onSuccess });
-  const { data: taxGroups = [] } = useTaxGroups(offering.businessUnitId);
-  const taxGroupOptions = taxGroups.map((tg) => ({
-    value: tg.id,
-    label: tg.name,
-    description: tg.taxRates.map((r) => `${r.name} ${r.rate}%`).join(', '),
-  }));
 
   return (
     <Form
@@ -65,11 +58,11 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
 
       <div className="grid grid-cols-2 gap-4">
         <CategorySelector name="categoryId" params={{ buId: offering.businessUnitId, status: 'active' }} clearable />
-        <Select
+        <TaxGroupSelector
           name="salesTaxGroupId"
           label="Sales Tax Group"
           placeholder="Select tax group (optional)"
-          options={taxGroupOptions}
+          clearable
         />
       </div>
 
