@@ -1,5 +1,5 @@
-import type { LocationItemQuantDto } from '@domain/locations/quants/dto/entity/location-item-quant.dto';
 import type { LocationItemDto } from '@domain/locations/quants/dto/entity/location-item.dto';
+import type { LocationItemQuantDto } from '@domain/locations/quants/dto/entity/location-item-quant.dto';
 import { LocationQuantsService } from '@domain/locations/quants/location-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -20,9 +20,7 @@ export class LocationQuantsController {
   }
 
   @MessagePattern({ cmd: 'locations.itemQuants' })
-  async itemQuants(
-    @Payload() data: { locationId: string; itemId: string },
-  ): Promise<LocationItemQuantDto[]> {
+  async itemQuants(@Payload() data: { locationId: string; itemId: string }): Promise<LocationItemQuantDto[]> {
     this.logger.log(`locations.itemQuants — locationId: ${data.locationId}, itemId: ${data.itemId}`);
     return this.service.findBreakdown(data.locationId, data.itemId);
   }

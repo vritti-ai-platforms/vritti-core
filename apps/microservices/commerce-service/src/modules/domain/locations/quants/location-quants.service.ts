@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems } from '@/db/schema';
-import { LocationItemQuantDto } from './dto/entity/location-item-quant.dto';
 import { LocationItemDto } from './dto/entity/location-item.dto';
+import { LocationItemQuantDto } from './dto/entity/location-item-quant.dto';
 import { LocationQuantsRepository } from './location-quants.repository';
 
 @Injectable()

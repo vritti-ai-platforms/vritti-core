@@ -26,7 +26,7 @@ import {
   useLocationChildrenTable,
   useLocationItemsTable,
 } from '@/hooks/locations';
-import { LocationRoleLabels, type LocationData, type LocationItemRow } from '@/schemas/locations';
+import { type LocationData, type LocationItemRow, LocationRoleLabels } from '@/schemas/locations';
 import { AddLocationDialog } from '../forms/AddLocationDialog';
 import { EditLocationDialog } from '../forms/EditLocationDialog';
 import { LocationDetailPanelSkeleton } from './LocationDetailPanelSkeleton';
@@ -184,8 +184,18 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
       <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
         <DetailSection wrap>
           <DetailField className="px-4 py-2" label="Sort Order" type="number" value={location.sortOrder} />
-          <DetailField className="px-4 py-2" label="Role" type="string" value={LocationRoleLabels[location.locationRole]} />
-          <DetailField className="px-4 py-2" label="Child Locations" type="number" value={childrenResponse?.count ?? 0} />
+          <DetailField
+            className="px-4 py-2"
+            label="Role"
+            type="string"
+            value={LocationRoleLabels[location.locationRole]}
+          />
+          <DetailField
+            className="px-4 py-2"
+            label="Child Locations"
+            type="number"
+            value={childrenResponse?.count ?? 0}
+          />
           <DetailField className="px-4 py-2" label="Parent" type="string" value={location.parentName} />
           <DetailField className="px-4 py-2" label="Area" type="string" value={location.area} />
         </DetailSection>
