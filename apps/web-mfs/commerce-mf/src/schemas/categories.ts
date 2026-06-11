@@ -2,9 +2,24 @@ import type { CreateResponse, SuccessResponse, TableResponse } from '@vritti/qua
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
 
+// GROUP holds sub-categories; CATEGORY is a leaf that holds inventory items.
+export const CategoryRoleValues = {
+  GROUP: 'GROUP',
+  CATEGORY: 'CATEGORY',
+} as const;
+export type CategoryRole = (typeof CategoryRoleValues)[keyof typeof CategoryRoleValues];
+
+export const CategoryRoleLabels: Record<CategoryRole, string> = {
+  GROUP: 'Group',
+  CATEGORY: 'Category',
+};
+
+const categoryRoleEnumValues = Object.values(CategoryRoleValues) as [CategoryRole, ...CategoryRole[]];
+
 const _categorySchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   parentId: z.string().optional().nullable(),
+  categoryRole: z.enum(categoryRoleEnumValues),
   sortOrder: zodNumericField({ required: 'Sort order is required', min: 1 }),
   isActive: z.boolean(),
   defaultTaxGroupId: z.string().optional().nullable(),
@@ -14,6 +29,7 @@ const _categorySchema = z.object({
 export type CategoryFormData = {
   name: string;
   parentId?: string | null;
+  categoryRole: CategoryRole;
   sortOrder: number;
   isActive: boolean;
   defaultTaxGroupId?: string | null;
@@ -27,6 +43,7 @@ export interface CategoryData {
   businessUnitId: string;
   name: string;
   parentId: string | null;
+  categoryRole: CategoryRole;
   pathLabel: string;
   path: string;
   sortOrder: number;
@@ -36,9 +53,22 @@ export interface CategoryData {
   createdAt: string;
 }
 
+// One inventory item row shown under a leaf (CATEGORY-role) category.
+export interface CategoryItemRow {
+  id: string;
+  name: string;
+  code: string;
+  type: string;
+  tracking: string;
+  uomSymbol: string | null;
+}
+
+export type CategoryItemsTableResponse = TableResponse<CategoryItemRow>;
+
 export interface CategoryTreeNode {
   id: string;
   name: string;
+  categoryRole: CategoryRole;
   children?: CategoryTreeNode[];
 }
 

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CategoryRoleValues } from '../../constants/category-role.constants';
 
 export class CategoryResponseDto {
   @ApiProperty({ description: 'Category ID' })
@@ -6,6 +7,12 @@ export class CategoryResponseDto {
 
   @ApiProperty({ description: 'Business unit ID' })
   businessUnitId: string;
+
+  @ApiProperty({
+    description: 'GROUP holds sub-categories; CATEGORY is a leaf that holds inventory items',
+    enum: Object.values(CategoryRoleValues),
+  })
+  categoryRole: string;
 
   @ApiProperty({ description: 'Category name' })
   name: string;

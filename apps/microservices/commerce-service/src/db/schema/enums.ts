@@ -171,6 +171,14 @@ export const LocationRoleValues = {
 };
 export type LocationRole = (typeof locationRoleEnum.enumValues)[number];
 
+// A GROUP holds sub-categories (no items); a CATEGORY is a leaf that holds inventory items.
+export const categoryRoleEnum = coreSchema.enum('category_role', ['GROUP', 'CATEGORY']);
+export const CategoryRoleValues = {
+  GROUP: 'GROUP' as const,
+  CATEGORY: 'CATEGORY' as const,
+};
+export type CategoryRole = (typeof categoryRoleEnum.enumValues)[number];
+
 export const taxIdTypeEnum = coreSchema.enum('tax_id_type', ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER']);
 export const TaxIdTypeValues = {
   GST: 'GST' as const,

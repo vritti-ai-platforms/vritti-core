@@ -99,7 +99,7 @@ export class LocationsService {
     const childrenMap = new Map<string | null, LocationTreeDto[]>();
     for (const row of rows) {
       const siblings = childrenMap.get(row.parentId) ?? [];
-      siblings.push({ id: row.id, name: row.name });
+      siblings.push({ id: row.id, name: row.name, locationRole: row.locationRole });
       childrenMap.set(row.parentId, siblings);
     }
 

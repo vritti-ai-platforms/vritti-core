@@ -7,6 +7,9 @@ export class LocationTreeResponseDto {
   @ApiProperty({ description: 'Location name' })
   name: string;
 
+  @ApiProperty({ description: 'Location role (ZONE / STORAGE / RESERVED_STORAGE)' })
+  locationRole: string;
+
   @ApiProperty({
     description: 'Child locations',
     type: () => LocationTreeResponseDto,

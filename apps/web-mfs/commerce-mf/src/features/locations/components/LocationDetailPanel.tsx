@@ -31,6 +31,7 @@ import { AddLocationDialog } from '../forms/AddLocationDialog';
 import { EditLocationDialog } from '../forms/EditLocationDialog';
 import { LocationDetailPanelSkeleton } from './LocationDetailPanelSkeleton';
 import { LocationItemQuantsDialogContent } from './LocationItemQuantsDialogContent';
+import { LOCATION_ROLE_ICON } from './LocationRow';
 
 interface LocationDetailPanelProps {
   selectedId: string | null;
@@ -72,6 +73,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
   const deleteMutation = useDeleteLocation();
   const { data: childrenResponse, isLoading: isChildrenLoading } = useLocationChildrenTable(location.id);
   const canAddChild = location.locationRole === 'ZONE';
+  const RoleIcon = LOCATION_ROLE_ICON[location.locationRole];
 
   const columns = useMemo<ColumnDef<LocationData>[]>(
     () => [
@@ -188,7 +190,12 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
             className="px-4 py-2"
             label="Role"
             type="string"
-            value={LocationRoleLabels[location.locationRole]}
+            value={
+              <span className="flex items-center gap-1.5">
+                <RoleIcon className="size-4 text-muted-foreground" />
+                {LocationRoleLabels[location.locationRole]}
+              </span>
+            }
           />
           <DetailField
             className="px-4 py-2"

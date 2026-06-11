@@ -28,12 +28,22 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   // Returns hierarchy rows ordered in tree order using a recursive CTE
   async findHierarchyRows(
     search?: string,
-  ): Promise<Array<{ id: string; parentId: string | null; name: string; sortOrder: number; depth: number }>> {
+  ): Promise<
+    Array<{
+      id: string;
+      parentId: string | null;
+      name: string;
+      categoryRole: string;
+      sortOrder: number;
+      depth: number;
+    }>
+  > {
     if (!search) {
       const result = await this.db.execute<{
         id: string;
         parent_id: string | null;
         name: string;
+        category_role: string;
         sort_order: number;
         depth: number;
       }>(sql`
@@ -42,6 +52,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
             root.id::text AS id,
             root.parent_id::text AS parent_id,
             root.name::text AS name,
+            root.category_role::text AS category_role,
             root.sort_order::int AS sort_order,
             0::int AS depth,
             ARRAY[root.id::text] AS path,
@@ -55,6 +66,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
             child.id::text AS id,
             child.parent_id::text AS parent_id,
             child.name::text AS name,
+            child.category_role::text AS category_role,
             child.sort_order::int AS sort_order,
             tree.depth + 1 AS depth,
             tree.path || child.id::text AS path,
@@ -63,7 +75,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
           JOIN tree ON child.parent_id::text = tree.id
           WHERE NOT (child.id::text = ANY(tree.path))
         )
-        SELECT id, parent_id, name, sort_order, depth
+        SELECT id, parent_id, name, category_role, sort_order, depth
         FROM tree
         ORDER BY ord
       `);
@@ -71,13 +83,21 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
       const rows =
         (
           result as {
-            rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }>;
+            rows?: Array<{
+              id: string;
+              parent_id: string | null;
+              name: string;
+              category_role: string;
+              sort_order: number;
+              depth: number;
+            }>;
           }
         ).rows ?? [];
       return rows.map((row) => ({
         id: row.id,
         parentId: row.parent_id,
         name: row.name,
+        categoryRole: row.category_role,
         sortOrder: Number(row.sort_order),
         depth: Number(row.depth),
       }));
@@ -88,6 +108,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
       id: string;
       parent_id: string | null;
       name: string;
+      category_role: string;
       sort_order: number;
       depth: number;
     }>(sql`
@@ -119,6 +140,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
           c.id::text AS id,
           c.parent_id::text AS parent_id,
           c.name::text AS name,
+          c.category_role::text AS category_role,
           c.sort_order::int AS sort_order
         FROM ${categories} AS c
         JOIN relevant r ON r.id = c.id::text
@@ -130,6 +152,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
           roots.id,
           roots.parent_id,
           roots.name,
+          roots.category_role,
           roots.sort_order,
           0::int AS depth,
           ARRAY[roots.id] AS path,
@@ -142,6 +165,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
           child.id::text AS id,
           child.parent_id::text AS parent_id,
           child.name::text AS name,
+          child.category_role::text AS category_role,
           child.sort_order::int AS sort_order,
           tree.depth + 1 AS depth,
           tree.path || child.id::text AS path,
@@ -151,7 +175,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
         JOIN relevant ON relevant.id = child.id::text
         WHERE NOT (child.id::text = ANY(tree.path))
       )
-      SELECT id, parent_id, name, sort_order, depth
+      SELECT id, parent_id, name, category_role, sort_order, depth
       FROM tree
       ORDER BY ord
     `);
@@ -159,13 +183,21 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
     const rows =
       (
         result as {
-          rows?: Array<{ id: string; parent_id: string | null; name: string; sort_order: number; depth: number }>;
+          rows?: Array<{
+            id: string;
+            parent_id: string | null;
+            name: string;
+            category_role: string;
+            sort_order: number;
+            depth: number;
+          }>;
         }
       ).rows ?? [];
     return rows.map((row) => ({
       id: row.id,
       parentId: row.parent_id,
       name: row.name,
+      categoryRole: row.category_role,
       sortOrder: Number(row.sort_order),
       depth: Number(row.depth),
     }));

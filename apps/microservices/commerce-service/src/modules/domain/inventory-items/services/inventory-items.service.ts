@@ -11,7 +11,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems } from '@/db/schema';
 import type { CreateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/update-inventory-item.dto';
@@ -56,6 +56,30 @@ export class InventoryItemsService {
     const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName));
 
     return { result: dtos, count };
+  }
+
+  // Returns paginated inventory items scoped to a single category (for the category detail items table)
+  async findForTableByCategory(
+    categoryId: string,
+    state: TableViewState,
+  ): Promise<{ result: InventoryItemDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
+    const where = and(eq(inventoryItems.categoryId, categoryId), filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...InventoryItemsService.SEARCH_FIELD_MAP,
+      ...InventoryItemsService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findAllWithUom({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName)), count };
   }
 
   findForSelect(query: SelectOptionsQueryDto, options?: { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {

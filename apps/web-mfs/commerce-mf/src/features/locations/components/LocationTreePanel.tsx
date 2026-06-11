@@ -46,7 +46,7 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
       <TreeView
         data={treeData}
         isLoading={isLoading}
-        initialSelectedItemId={selectedId ?? undefined}
+        selectedItemId={selectedId}
         onSelectChange={(item) => onSelect(item?.id ?? null)}
         onReorder={handleReorder}
         defaultDraggable={dragEnabled}

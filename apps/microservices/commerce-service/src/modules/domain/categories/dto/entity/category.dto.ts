@@ -1,4 +1,4 @@
-import type { Category } from '@/db/schema';
+import type { Category, CategoryRole } from '@/db/schema';
 
 export class CategoryDto {
   id: string;
@@ -7,6 +7,7 @@ export class CategoryDto {
   name: string;
   image: string | null;
   parentId: string | null;
+  categoryRole: CategoryRole;
   pathLabel: string;
   path: string;
   isActive: boolean;
@@ -25,6 +26,7 @@ export class CategoryDto {
     dto.name = entity.name;
     dto.image = entity.image ?? null;
     dto.parentId = entity.parentId ?? null;
+    dto.categoryRole = entity.categoryRole;
     dto.pathLabel = entity.pathLabel;
     dto.path = entity.path;
     dto.isActive = entity.isActive;

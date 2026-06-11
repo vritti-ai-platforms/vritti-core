@@ -3,6 +3,7 @@ import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/
 import { SuccessResponseDto } from '@vritti/api-sdk';
 import { CreateCategoryDto } from '../dto/request/create-category.dto';
 import { UpdateCategoryDto } from '../dto/request/update-category.dto';
+import { CategoryItemTableResponseDto } from '../dto/response/category-item-table-response.dto';
 import { CategoryResponseDto } from '../dto/response/category-response.dto';
 
 export function ApiGetCategoriesSelect() {
@@ -31,6 +32,18 @@ export function ApiCreateCategory() {
     ApiBody({ type: CreateCategoryDto }),
     ApiResponse({ status: 201, description: 'Category created successfully.', type: CategoryResponseDto }),
     ApiResponse({ status: 400, description: 'Invalid input data.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiGetCategoryItemsTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get inventory items for a leaf category',
+      description: 'Returns paginated inventory items linked to a CATEGORY-role (leaf) category, using Redis table state.',
+    }),
+    ApiParam({ name: 'id', description: 'Category ID' }),
+    ApiResponse({ status: 200, description: 'Category items retrieved successfully.', type: CategoryItemTableResponseDto }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

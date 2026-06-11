@@ -12,6 +12,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
+import { CategoryRoleValues, categoryRoleEnum } from './enums';
 import { taxGroups } from './tax-groups';
 
 const ltreeType = customType<{ data: string }>({
@@ -29,6 +30,8 @@ export const categories = coreSchema.table(
     name: varchar('name', { length: 255 }).notNull(),
     image: varchar('image', { length: 255 }),
     parentId: uuid('parent_id'),
+    // GROUP holds sub-categories; CATEGORY is a leaf that holds inventory items.
+    categoryRole: categoryRoleEnum('category_role').notNull().default(CategoryRoleValues.CATEGORY),
     pathLabel: varchar('path_label', { length: 255 }).notNull(),
     path: ltreeType('path').notNull(),
     // Human-readable breadcrumb of the ltree path; computed at DB level via format_ltree_path.

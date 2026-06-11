@@ -63,6 +63,7 @@ export interface LocationData {
 export interface LocationTreeNode {
   id: string;
   name: string;
+  locationRole: LocationRole;
   children?: LocationTreeNode[];
 }
 

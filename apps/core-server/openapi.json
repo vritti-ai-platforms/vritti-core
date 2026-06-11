@@ -2570,6 +2570,47 @@
         ]
       }
     },
+    "/commerce-api/categories/{id}/items/table": {
+      "get": {
+        "description": "Returns paginated inventory items linked to a CATEGORY-role (leaf) category, using Redis table state.",
+        "operationId": "CategoriesGatewayController_itemsTable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Category ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category items retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryItemTableResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get inventory items for a leaf category",
+        "tags": [
+          "Commerce - Categories"
+        ]
+      }
+    },
     "/commerce-api/categories/select": {
       "get": {
         "description": "Returns paginated category options for the select component, filtered by business unit.",
@@ -14939,6 +14980,69 @@
           "isCurrent"
         ]
       },
+      "CategoryItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Item name"
+          },
+          "code": {
+            "type": "string",
+            "description": "Item code / SKU"
+          },
+          "type": {
+            "type": "string",
+            "description": "Inventory item type"
+          },
+          "tracking": {
+            "type": "string",
+            "description": "Tracking mode (lot / serial / quantity / lot_serial)"
+          },
+          "uomSymbol": {
+            "type": "object",
+            "description": "Unit of measure symbol",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code",
+          "type",
+          "tracking"
+        ]
+      },
+      "CategoryItemTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryItemResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
       "ReorderCategoriesDto": {
         "type": "object",
         "properties": {
@@ -14970,6 +15074,15 @@
             "type": "object",
             "description": "Parent category ID (for sub-categories)"
           },
+          "categoryRole": {
+            "type": "string",
+            "description": "GROUP holds sub-categories; CATEGORY (default) is a leaf that holds inventory items",
+            "enum": [
+              "GROUP",
+              "CATEGORY"
+            ],
+            "default": "CATEGORY"
+          },
           "sortOrder": {
             "type": "number",
             "description": "Display sort order",
@@ -15000,6 +15113,14 @@
           "businessUnitId": {
             "type": "string",
             "description": "Business unit ID"
+          },
+          "categoryRole": {
+            "type": "string",
+            "description": "GROUP holds sub-categories; CATEGORY is a leaf that holds inventory items",
+            "enum": [
+              "GROUP",
+              "CATEGORY"
+            ]
           },
           "name": {
             "type": "string",
@@ -15045,6 +15166,7 @@
         "required": [
           "id",
           "businessUnitId",
+          "categoryRole",
           "name",
           "sortOrder",
           "isActive",
@@ -15066,6 +15188,14 @@
           "parentId": {
             "type": "object",
             "description": "Parent category ID (null to make root-level)"
+          },
+          "categoryRole": {
+            "type": "string",
+            "description": "Switch role: leaf→GROUP requires no items; GROUP→leaf requires no sub-categories",
+            "enum": [
+              "GROUP",
+              "CATEGORY"
+            ]
           },
           "sortOrder": {
             "type": "number",

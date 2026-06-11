@@ -11,13 +11,13 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import type { CreateCategoryDto } from './dto/request/create-category.dto';
-import type { ReorderCategoriesDto } from './dto/request/reorder-categories.dto';
-import type { UpdateCategoryDto } from './dto/request/update-category.dto';
+import type { CreateCategoryDto } from '../dto/request/create-category.dto';
+import type { ReorderCategoriesDto } from '../dto/request/reorder-categories.dto';
+import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
 
 @Controller()
-export class CategoriesController {
-  private readonly logger = new Logger(CategoriesController.name);
+export class CategoriesRootController {
+  private readonly logger = new Logger(CategoriesRootController.name);
 
   constructor(private readonly categoriesService: CategoriesService) {}
 

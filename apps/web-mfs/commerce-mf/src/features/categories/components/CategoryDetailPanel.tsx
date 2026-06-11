@@ -1,27 +1,30 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { DetailField } from '@vritti/quantum-ui/DetailField';
+import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
-import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { formatCategoryPath } from '@vritti/quantum-ui/selects/category';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Folder, FolderTree, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Boxes, Eye, Folder, FolderTree, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import {
   CATEGORY_CHILDREN_TABLE_KEY,
+  CATEGORY_ITEMS_TABLE_KEY,
   useCategoryById,
   useCategoryChildrenTable,
+  useCategoryItemsTable,
   useDeleteCategory,
 } from '@/hooks/categories';
-import type { CategoryData } from '@/schemas/categories';
+import { type CategoryData, type CategoryItemRow, CategoryRoleLabels, CategoryRoleValues } from '@/schemas/categories';
 import { AddCategoryDialog } from '../forms/AddCategoryDialog';
 import { EditCategoryDialog } from '../forms/EditCategoryDialog';
+import { CategoryDetailPanelSkeleton } from './CategoryDetailPanelSkeleton';
+import { CATEGORY_ROLE_ICON } from './CategoryRow';
 
 interface CategoryDetailPanelProps {
   categoryId: string | null;
@@ -50,35 +53,6 @@ export const CategoryDetailPanel: React.FC<CategoryDetailPanelProps> = ({ catego
   );
 };
 
-function CategoryDetailPanelSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-6 w-16" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-20 rounded-md" />
-          <Skeleton className="h-8 w-20 rounded-md" />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: <static skeleton list, not dynamic>
-            key={`category-detail-field-${i}`}
-            className="space-y-2"
-          >
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-5 w-32" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 interface CategoryDetailContentProps {
   category: CategoryData;
   onSelectCategory: (id: string | null) => void;
@@ -90,7 +64,11 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
   const addChildDialog = useDialog();
   const editDialog = useDialog();
   const deleteMutation = useDeleteCategory();
-  const { data: childrenResponse, isLoading: isChildrenLoading } = useCategoryChildrenTable(category.id);
+  const isGroup = category.categoryRole === CategoryRoleValues.GROUP;
+  const RoleIcon = CATEGORY_ROLE_ICON[category.categoryRole];
+  const { data: childrenResponse, isLoading: isChildrenLoading } = useCategoryChildrenTable(
+    isGroup ? category.id : null,
+  );
 
   const columns = useMemo<ColumnDef<CategoryData>[]>(
     () => [
@@ -105,15 +83,19 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
       {
         accessorKey: 'isActive',
         header: 'Status',
-        cell: ({ row }) => (row.original.isActive ? 'Active' : 'Inactive'),
+        cell: ({ row }) => (
+          <Badge variant={row.original.isActive ? 'success' : 'destructive'}>
+            {row.original.isActive ? 'Active' : 'Inactive'}
+          </Badge>
+        ),
       },
       {
-        id: 'open',
+        id: 'actions',
         header: '',
         cell: ({ row }) => (
-          <Button variant="ghost" size="sm" onClick={() => onSelectCategory(row.original.id)}>
-            Open
-          </Button>
+          <RowActions
+            actions={[{ id: 'view', icon: Eye, label: 'View', onClick: () => onSelectCategory(row.original.id) }]}
+          />
         ),
         enableSorting: false,
         enableHiding: false,
@@ -156,6 +138,7 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
           >
             {category.isActive ? 'Active' : 'Inactive'}
           </Badge>
+          <Badge variant="outline">{CategoryRoleLabels[category.categoryRole]}</Badge>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -179,34 +162,55 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-        <DetailField label="Sort Order" type="number" value={category.sortOrder} />
-        <DetailField label="Child Categories" type="number" value={childrenResponse?.count ?? 0} />
-        <DetailField label="Parent" type="string" value={category.path ? formatCategoryPath(category.path) : null} />
+      <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
+        <DetailSection wrap>
+          <DetailField className="px-4 py-2" label="Sort Order" type="number" value={category.sortOrder} />
+          <DetailField
+            className="px-4 py-2"
+            label="Role"
+            type="string"
+            value={
+              <span className="flex items-center gap-1.5">
+                <RoleIcon className="size-4 text-muted-foreground" />
+                {CategoryRoleLabels[category.categoryRole]}
+              </span>
+            }
+          />
+          <DetailField
+            className="px-4 py-2"
+            label="Parent"
+            type="string"
+            value={category.path ? formatCategoryPath(category.path) : null}
+          />
+        </DetailSection>
       </div>
 
-      <div>
-        <Typography variant="overline" intent="muted" className="mb-3">
-          Child Categories ({childrenResponse?.count ?? 0})
-        </Typography>
-        <DataTable
-          table={table}
-          mode="compact"
-          isLoading={isChildrenLoading}
-          toolbarActions={{
-            actions: (
-              <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
-                Add Child Category
-              </Button>
-            ),
-          }}
-          emptyStateConfig={{
-            icon: Folder,
-            title: 'No child categories',
-            description: 'This category has no direct children.',
-          }}
-        />
-      </div>
+      {isGroup ? (
+        <div>
+          <Typography variant="overline" intent="muted" className="mb-3">
+            Child Categories ({childrenResponse?.count ?? 0})
+          </Typography>
+          <DataTable
+            table={table}
+            mode="compact"
+            isLoading={isChildrenLoading}
+            toolbarActions={{
+              actions: (
+                <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
+                  Add Child Category
+                </Button>
+              ),
+            }}
+            emptyStateConfig={{
+              icon: Folder,
+              title: 'No child categories',
+              description: 'This category has no direct children.',
+            }}
+          />
+        </div>
+      ) : (
+        <CategoryItemsSection categoryId={category.id} />
+      )}
 
       <Dialog
         handle={addChildDialog}
@@ -231,6 +235,73 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
         title="Edit Category"
         description="Update the details for this category."
         content={(close) => <EditCategoryDialog category={category} onSuccess={close} onCancel={close} />}
+      />
+    </div>
+  );
+};
+
+interface CategoryItemsSectionProps {
+  categoryId: string;
+}
+
+const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId }) => {
+  const queryClient = useQueryClient();
+  const { data: itemsResponse, isLoading } = useCategoryItemsTable(categoryId);
+
+  const columns = useMemo<ColumnDef<CategoryItemRow>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Item',
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span>{row.original.name}</span>
+            <span className="text-xs text-muted-foreground font-mono">{row.original.code}</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'type',
+        header: 'Type',
+      },
+      {
+        accessorKey: 'tracking',
+        header: 'Tracking',
+      },
+      {
+        accessorKey: 'uomSymbol',
+        header: 'UoM',
+        cell: ({ row }) => <StringCell value={row.original.uomSymbol} />,
+      },
+    ],
+    [],
+  );
+
+  const { table } = useDataTable({
+    columns,
+    serverState: itemsResponse,
+    slug: `category-${categoryId}-items`,
+    label: 'item',
+    enableRowSelection: false,
+    onStatePush: () => {
+      queryClient.invalidateQueries({ queryKey: CATEGORY_ITEMS_TABLE_KEY(categoryId) });
+    },
+  });
+
+  return (
+    <div>
+      <Typography variant="overline" intent="muted" className="mb-3">
+        Items ({itemsResponse?.count ?? 0})
+      </Typography>
+      <DataTable
+        table={table}
+        mode="compact"
+        isLoading={isLoading}
+        emptyStateConfig={{
+          icon: Boxes,
+          title: 'No items in this category',
+          description: 'No inventory items are assigned to this category yet.',
+        }}
       />
     </div>
   );
