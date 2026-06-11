@@ -124,6 +124,7 @@ export const InventoryItemDetailPage = () => {
         icon={Package}
         title="Edit Inventory Item"
         description="Update the details for this inventory item."
+        className="max-w-3xl"
         content={(close) => <EditInventoryItemForm item={item} onSuccess={close} onCancel={close} />}
       />
     </div>

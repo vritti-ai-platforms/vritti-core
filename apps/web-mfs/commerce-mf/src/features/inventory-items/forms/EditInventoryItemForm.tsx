@@ -53,12 +53,12 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
     <Form form={form} mutation={updateMutation} onCancel={onCancel} transformSubmit={(data) => ({ id: item.id, data })}>
       <div className="flex flex-col gap-6">
         <FormSection title="Basic Info">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <TextField name="name" label="Name" placeholder="e.g. Basmati Rice" />
             <TextField name="code" label="Code" placeholder="e.g. RAW-RICE-BAS" />
             <Select name="type" label="Type" placeholder="Select type" options={inventoryItemTypeOptions} />
             <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
-            <div className="sm:col-span-2">
+            <div className="col-span-2">
               <CategorySelector name="categoryId" />
             </div>
           </div>
@@ -71,7 +71,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
         )}
 
         <FormSection title="Tax & Compliance" description="Purchase tax and HSN classification for this item.">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <TaxGroupSelector name="purchaseTaxGroupId" label="Purchase Tax Group" placeholder="Select tax group" />
             <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
           </div>
