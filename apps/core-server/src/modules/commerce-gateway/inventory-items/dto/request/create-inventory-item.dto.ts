@@ -57,10 +57,9 @@ export class CreateInventoryItemDto {
   @IsUUID()
   uomId: string;
 
-  @ApiPropertyOptional({ description: 'Purchase tax group ID' })
-  @IsOptional()
+  @ApiProperty({ description: 'Purchase tax group ID' })
   @IsUUID()
-  purchaseTaxGroupId?: string;
+  purchaseTaxGroupId: string;
 
   @ApiPropertyOptional({ description: 'HSN code for tax reporting' })
   @IsOptional()

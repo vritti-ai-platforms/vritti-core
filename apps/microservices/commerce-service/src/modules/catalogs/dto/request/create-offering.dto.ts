@@ -54,9 +54,8 @@ export class CreateOfferingDto {
   @IsString()
   description?: string;
 
-  @IsOptional()
   @IsUUID()
-  salesTaxGroupId?: string;
+  salesTaxGroupId: string;
 
   @IsOptional()
   @IsBoolean()

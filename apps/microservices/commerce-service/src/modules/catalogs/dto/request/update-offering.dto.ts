@@ -23,9 +23,8 @@ export class UpdateOfferingDto {
   @IsString()
   description?: string | null;
 
-  @IsOptional()
   @IsUUID()
-  salesTaxGroupId?: string | null;
+  salesTaxGroupId: string;
 
   @IsOptional()
   @IsBoolean()

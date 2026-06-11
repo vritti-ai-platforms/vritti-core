@@ -66,10 +66,9 @@ export class CreateOfferingDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Sales tax group ID' })
-  @IsOptional()
+  @ApiProperty({ description: 'Sales tax group ID' })
   @IsUUID()
-  salesTaxGroupId?: string;
+  salesTaxGroupId: string;
 
   @ApiPropertyOptional({ description: 'Whether the offering is available', default: true })
   @IsOptional()

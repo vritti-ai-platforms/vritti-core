@@ -13,6 +13,7 @@ import {
 import { catalogs } from './catalogs';
 import { coreSchema } from './core-schema';
 import { fulfilmentTypeEnum } from './enums';
+import { taxGroups } from './tax-groups';
 
 export const offerings = coreSchema.table(
   'offerings',
@@ -27,7 +28,9 @@ export const offerings = coreSchema.table(
     fulfilmentType: fulfilmentTypeEnum('fulfilment_type').notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
-    salesTaxGroupId: uuid('sales_tax_group_id'),
+    salesTaxGroupId: uuid('sales_tax_group_id')
+      .notNull()
+      .references(() => taxGroups.id),
     isAvailable: boolean('is_available').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     attributes: jsonb('attributes').notNull().default({}),

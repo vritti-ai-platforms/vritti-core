@@ -49,7 +49,7 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
           name: data.name,
           description: data.description,
           categoryId: data.categoryId ?? null,
-          salesTaxGroupId: data.salesTaxGroupId || null,
+          salesTaxGroupId: data.salesTaxGroupId,
           isAvailable: data.isAvailable,
           variantOptionIds: data.variantOptionIds ?? [],
         },
@@ -59,12 +59,7 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
 
       <div className="grid grid-cols-2 gap-4">
         <CategorySelector name="categoryId" params={{ buId: offering.businessUnitId, status: 'active' }} clearable />
-        <TaxGroupSelector
-          name="salesTaxGroupId"
-          label="Sales Tax Group"
-          placeholder="Select tax group (optional)"
-          clearable
-        />
+        <TaxGroupSelector name="salesTaxGroupId" label="Sales Tax Group" placeholder="Select tax group" />
       </div>
 
       <TextArea name="description" label="Description" placeholder="Optional description" rows={3} />

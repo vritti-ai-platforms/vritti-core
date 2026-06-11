@@ -179,12 +179,7 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <CategorySelector name="categoryId" params={{ buId: businessUnitId, status: 'active' }} clearable />
-          <TaxGroupSelector
-            name="salesTaxGroupId"
-            label="Sales Tax Group"
-            placeholder="Select tax group (optional)"
-            clearable
-          />
+          <TaxGroupSelector name="salesTaxGroupId" label="Sales Tax Group" placeholder="Select tax group" />
         </div>
 
         {kind === 'STOCK_VARIANTS' && (

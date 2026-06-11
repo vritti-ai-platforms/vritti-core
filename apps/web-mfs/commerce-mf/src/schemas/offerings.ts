@@ -22,7 +22,7 @@ export const createOfferingSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
   description: z.string().optional(),
   categoryId: z.string().optional(),
-  salesTaxGroupId: z.string().optional(),
+  salesTaxGroupId: z.uuid('Sales tax group is required'),
   isAvailable: z.boolean().optional(),
   variantOptionIds: z.array(z.string()).optional(),
   sku: z.string().optional(),
@@ -40,7 +40,7 @@ export const createOfferingSchema = z.object({
 export const updateOfferingSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255).optional(),
   description: z.string().nullable().optional(),
-  salesTaxGroupId: z.string().nullable().optional(),
+  salesTaxGroupId: z.uuid('Sales tax group is required'),
   categoryId: z.string().nullable().optional(),
   isAvailable: z.boolean().optional(),
   variantOptionIds: z.array(z.string()).optional(),

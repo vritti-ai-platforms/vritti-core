@@ -72,12 +72,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
 
         <FormSection title="Tax & Compliance" description="Purchase tax and HSN classification for this item.">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TaxGroupSelector
-              name="purchaseTaxGroupId"
-              label="Purchase Tax Group"
-              placeholder="Select tax group (optional)"
-              clearable
-            />
+            <TaxGroupSelector name="purchaseTaxGroupId" label="Purchase Tax Group" placeholder="Select tax group" />
             <TextField name="hsnCode" label="HSN Code" placeholder="e.g. 1006" />
           </div>
         </FormSection>

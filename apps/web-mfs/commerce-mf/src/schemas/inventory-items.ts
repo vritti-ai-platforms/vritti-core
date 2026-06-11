@@ -8,11 +8,11 @@ export const createInventoryItemSchema = z.object({
   code: z.string().min(1, 'Code is required').max(100),
   type: z.enum(INVENTORY_ITEM_TYPES),
   tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
-  categoryId: z.string().uuid('Category is required'),
+  categoryId: z.uuid('Category is required'),
   description: z.string().optional(),
   uomId: z.string().uuid('Unit of measure is required'),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
-  purchaseTaxGroupId: z.string().optional(),
+  purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
   hsnCode: z.string().max(20).optional(),
 });
 
@@ -24,7 +24,7 @@ export const updateInventoryItemSchema = z.object({
   categoryId: z.uuid('Category is required').optional(),
   uomId: z.uuid('Unit of measure is required').optional(),
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
-  purchaseTaxGroupId: z.string().nullable().optional(),
+  purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
   hsnCode: z.string().max(20).nullable().optional(),
 });
 

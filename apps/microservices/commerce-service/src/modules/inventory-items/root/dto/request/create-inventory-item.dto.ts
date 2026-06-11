@@ -38,9 +38,8 @@ export class CreateInventoryItemDto {
   @IsUUID()
   uomId: string;
 
-  @IsOptional()
   @IsUUID()
-  purchaseTaxGroupId?: string;
+  purchaseTaxGroupId: string;
 
   @IsOptional()
   @IsString()

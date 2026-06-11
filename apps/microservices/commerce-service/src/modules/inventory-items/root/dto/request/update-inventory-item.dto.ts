@@ -38,9 +38,8 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
 
-  @IsOptional()
   @IsUUID()
-  purchaseTaxGroupId?: string | null;
+  purchaseTaxGroupId: string;
 
   @IsOptional()
   @IsString()

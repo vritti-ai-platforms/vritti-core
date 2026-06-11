@@ -24,7 +24,9 @@ export const inventoryItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
-    purchaseTaxGroupId: uuid('purchase_tax_group_id').references(() => taxGroups.id),
+    purchaseTaxGroupId: uuid('purchase_tax_group_id')
+      .notNull()
+      .references(() => taxGroups.id),
     hsnCode: varchar('hsn_code', { length: 20 }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

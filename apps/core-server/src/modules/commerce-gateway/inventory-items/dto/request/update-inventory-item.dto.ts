@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
@@ -52,10 +52,9 @@ export class UpdateInventoryItemDto {
   @IsEnum(['none', 'fifo', 'fefo'])
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
-  @ApiPropertyOptional({ description: 'Purchase tax group ID', nullable: true })
-  @IsOptional()
+  @ApiProperty({ description: 'Purchase tax group ID' })
   @IsUUID()
-  purchaseTaxGroupId?: string | null;
+  purchaseTaxGroupId: string;
 
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
   @IsOptional()

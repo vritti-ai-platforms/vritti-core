@@ -15591,7 +15591,8 @@
           "type",
           "tracking",
           "categoryId",
-          "uomId"
+          "uomId",
+          "purchaseTaxGroupId"
         ]
       },
       "CreateInventoryItemLocationDto": {
@@ -15711,16 +15712,18 @@
             "default": "none"
           },
           "purchaseTaxGroupId": {
-            "type": "object",
-            "description": "Purchase tax group ID",
-            "nullable": true
+            "type": "string",
+            "description": "Purchase tax group ID"
           },
           "hsnCode": {
             "type": "object",
             "description": "HSN code for tax reporting",
             "nullable": true
           }
-        }
+        },
+        "required": [
+          "purchaseTaxGroupId"
+        ]
       },
       "ReorderLocationsDto": {
         "type": "object",
@@ -16570,7 +16573,8 @@
         "required": [
           "catalogId",
           "fulfilmentType",
-          "name"
+          "name",
+          "salesTaxGroupId"
         ]
       },
       "OfferingOptionValueResponseDto": {
@@ -16844,7 +16848,7 @@
             "description": "Updated description"
           },
           "salesTaxGroupId": {
-            "type": "object",
+            "type": "string",
             "description": "Sales tax group ID"
           },
           "isAvailable": {
@@ -16855,7 +16859,10 @@
             "type": "number",
             "description": "Display sort order"
           }
-        }
+        },
+        "required": [
+          "salesTaxGroupId"
+        ]
       },
       "CreateVariantDto": {
         "type": "object",
