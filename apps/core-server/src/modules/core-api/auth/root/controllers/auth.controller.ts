@@ -211,12 +211,17 @@ export class AuthController {
     const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
 
     // Not authenticated — send initial state and hold open to prevent rapid reconnect loop
-    if (!authResponse.isAuthenticated || !authResponse.sessionId || !authResponse.user) {
+    if (!authResponse.isAuthenticated || !authResponse.sessionId || !authResponse.user || !authResponse.org) {
       return concat(initial$, NEVER);
     }
 
-    // Register SSE connection for real-time updates, keyed by sessionId
-    const connection$ = this.sseService.addConnection(authResponse.user.id, authResponse.sessionId);
+    // Register SSE connection for real-time updates, keyed by sessionId, platform, and orgId
+    const connection$ = this.sseService.addConnection(
+      authResponse.user.id,
+      authResponse.sessionId,
+      platform,
+      authResponse.org.id,
+    );
     return merge(initial$, connection$.asObservable());
   }
 

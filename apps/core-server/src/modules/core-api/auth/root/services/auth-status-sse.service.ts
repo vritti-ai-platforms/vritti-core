@@ -4,6 +4,8 @@ import { Subject } from 'rxjs';
 interface UserConnection {
   subject: Subject<MessageEvent>;
   sessionId: string;
+  platform: 'web' | 'ios' | 'android';
+  orgId: string;
   createdAt: Date;
 }
 
@@ -28,15 +30,31 @@ export class AuthStatusSseService implements OnModuleDestroy {
     this.connections.clear();
   }
 
-  // Adds a new SSE connection for the user, tagged with sessionId
-  addConnection(userId: string, sessionId: string): Subject<MessageEvent> {
+  // Adds a new SSE connection for the user, tagged with sessionId, platform, and orgId
+  addConnection(
+    userId: string,
+    sessionId: string,
+    platform: 'web' | 'ios' | 'android',
+    orgId: string,
+  ): Subject<MessageEvent> {
     const subject = new Subject<MessageEvent>();
     const existing = this.connections.get(userId) || [];
-    existing.push({ subject, sessionId, createdAt: new Date() });
+    existing.push({ subject, sessionId, platform, orgId, createdAt: new Date() });
     this.connections.set(userId, existing);
 
     this.logger.log(`Added SSE connection for user ${userId}, session ${sessionId} (total: ${existing.length})`);
     return subject;
+  }
+
+  // Returns a snapshot of the user's open connections for rebuilding and re-pushing auth-state
+  getConnections(userId: string): { sessionId: string; platform: 'web' | 'ios' | 'android'; orgId: string }[] {
+    const conns = this.connections.get(userId);
+
+    if (!conns || conns.length === 0) return [];
+
+    return conns
+      .filter((c) => !c.subject.closed)
+      .map((c) => ({ sessionId: c.sessionId, platform: c.platform, orgId: c.orgId }));
   }
 
   // Sends an event to all active connections for the given user

@@ -2,6 +2,7 @@ import { OrganizationRepository } from '@domain/organization/repositories/organi
 import { SessionService } from '@domain/session/services/session.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   BadRequestException,
   ConflictException,
@@ -18,6 +19,7 @@ import {
 } from '@vritti/api-sdk';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
+import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { UserDto } from '../dto/entity/user.dto';
 import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
 import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
@@ -52,6 +54,7 @@ export class UserService {
     private readonly sessionService: SessionService,
     private readonly emailService: EmailService,
     private readonly config: ConfigService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Returns paginated user options for the select component
@@ -221,6 +224,9 @@ export class UserService {
       ...(dto.timezone && { timezone: dto.timezone }),
       updatedAt: new Date(),
     });
+
+    // Re-push fresh auth-state to the user's live SSE connections (locale/timezone changed)
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.USER_UPDATED, new UserUpdatedEvent(id));
 
     return { success: true, message: 'User updated successfully.' };
   }

@@ -4,7 +4,13 @@ import { UserService } from '@domain/user/services/user.service';
 import { UserPermissionsService } from '@domain/user-permissions/services/user-permissions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { BadRequestException, PrimaryDatabaseService, TokenService, TokenType, UnauthorizedException } from '@vritti/api-sdk';
+import {
+  BadRequestException,
+  PrimaryDatabaseService,
+  TokenService,
+  TokenType,
+  UnauthorizedException,
+} from '@vritti/api-sdk';
 import * as argon2 from 'argon2';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';
@@ -308,7 +314,8 @@ export class AuthService {
       // Web connects via refresh cookie (native EventSource can't send a bearer header), so enrich
       // BUs + features here too. Org comes from the subdomain-resolved entity.
       let businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>> = [];
-      let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> = {};
+      let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> =
+        {};
       if (org) {
         try {
           ({ businessUnits, featuresByBuId } = await this.resolvePermissionContext(userId, org.id, platform));
@@ -342,6 +349,38 @@ export class AuthService {
     } catch {
       return new AuthResponseDto({ isAuthenticated: false, org: orgData });
     }
+  }
+
+  // Builds a state-only auth payload for an SSE re-push — no accessToken, never rotates tokens
+  async buildAuthStateForUser(
+    userId: string,
+    orgId: string,
+    platform: 'web' | 'ios' | 'android',
+  ): Promise<AuthResponseDto> {
+    const user = await this.userService.findById(userId);
+    const org = await this.organizationService.getById(orgId);
+    const orgData = org ? { id: org.id, name: org.name, subdomain: org.subdomain, logoUrl: org.logoUrl } : undefined;
+    const { businessUnits, featuresByBuId } = await this.resolvePermissionContext(userId, orgId, platform);
+
+    return new AuthResponseDto({
+      isAuthenticated: true,
+      user: user
+        ? {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            status: user.status,
+            hasPassword: user.passwordHash !== null,
+            locale: user.locale,
+            timezone: user.timezone,
+            createdAt: user.createdAt.toISOString(),
+            lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+          }
+        : undefined,
+      org: orgData,
+      businessUnits,
+      featuresByBuId,
+    });
   }
 
   private async resolveOrganizationFromSessionContext(

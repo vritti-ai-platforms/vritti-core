@@ -1,13 +1,24 @@
+import { UserRoleService } from '@domain/user-role/services/user-role.service';
 import { Injectable, Logger, type MessageEvent } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { AUTH_STATUS_EVENTS, SessionRevokedEvent } from '../events/auth-status.events';
+import {
+  AUTH_STATUS_EVENTS,
+  type BuUpdatedEvent,
+  type SessionRevokedEvent,
+  type UserUpdatedEvent,
+} from '../events/auth-status.events';
+import { AuthService } from '../services/auth.service';
 import { AuthStatusSseService } from '../services/auth-status-sse.service';
 
 @Injectable()
 export class AuthStatusEventListener {
   private readonly logger = new Logger(AuthStatusEventListener.name);
 
-  constructor(private readonly sseService: AuthStatusSseService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly sseService: AuthStatusSseService,
+    private readonly userRoleService: UserRoleService,
+  ) {}
 
   // Pushes auth-state { isAuthenticated: false } to the revoked session or all sessions
   @OnEvent(AUTH_STATUS_EVENTS.SESSION_REVOKED)
@@ -25,6 +36,42 @@ export class AuthStatusEventListener {
       this.sseService.sendToSession(event.userId, event.sessionId, message);
     } else {
       this.sseService.sendToUser(event.userId, message);
+    }
+  }
+
+  // Rebuilds and re-pushes fresh auth-state to all live connections of the updated user
+  @OnEvent(AUTH_STATUS_EVENTS.USER_UPDATED)
+  async handleUserUpdated(event: UserUpdatedEvent) {
+    this.logger.log(`Handling USER_UPDATED for user ${event.userId}`);
+    await this.rePushToUser(event.userId);
+  }
+
+  // Rebuilds and re-pushes fresh auth-state to all users assigned to the updated business unit
+  @OnEvent(AUTH_STATUS_EVENTS.BU_UPDATED)
+  async handleBuUpdated(event: BuUpdatedEvent) {
+    this.logger.log(`Handling BU_UPDATED for business unit ${event.buId}`);
+
+    const assignments = await this.userRoleService.findByBusinessUnit(event.buId);
+    const userIds = [...new Set(assignments.map((a) => a.userId))];
+
+    for (const userId of userIds) {
+      await this.rePushToUser(userId);
+    }
+  }
+
+  // Rebuilds the per-connection auth-state and pushes it to each of the user's live sessions
+  private async rePushToUser(userId: string) {
+    for (const conn of this.sseService.getConnections(userId)) {
+      try {
+        const state = await this.authService.buildAuthStateForUser(userId, conn.orgId, conn.platform);
+        state.sessionId = conn.sessionId;
+        this.sseService.sendToSession(userId, conn.sessionId, {
+          type: 'auth-state',
+          data: JSON.stringify(state),
+        });
+      } catch (error) {
+        this.logger.error(`Failed to re-push auth-state for user ${userId}, session ${conn.sessionId}: ${error}`);
+      }
     }
   }
 }

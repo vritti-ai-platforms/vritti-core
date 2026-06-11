@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
+import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import type { BuMetadata, BuType } from '@/db/schema';
+import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
 import type { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
-import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import { BusinessUnitRepository } from '../repositories/business-unit.repository';
 
 // Builds an ltree path by appending a lowercase code to the parent path
@@ -21,6 +23,7 @@ export class BusinessUnitService {
   constructor(
     private readonly businessUnitRepository: BusinessUnitRepository,
     private readonly buContextCache: BuContextCacheService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Creates a business unit, computes depth/path from parent, and updates path with new ID
@@ -96,6 +99,10 @@ export class BusinessUnitService {
     });
 
     this.buContextCache.invalidate(id);
+
+    // Re-push fresh auth-state to live SSE connections of users in this BU (timezone/currency changed)
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
+
     this.logger.log(`Updated business unit ${id}`);
     return { success: true, message: 'Business unit updated successfully.' };
   }
