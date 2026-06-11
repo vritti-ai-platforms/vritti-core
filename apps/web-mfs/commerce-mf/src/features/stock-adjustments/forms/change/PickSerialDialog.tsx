@@ -1,9 +1,10 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { SerialSelector } from '@vritti/quantum-ui/selects/serial';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { ClipboardMinus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLineItem } from '@/hooks/stock-adjustments';
 import { type AddStockAdjustmentLineItemFormData, addStockAdjustmentLineItemSchema } from '@/schemas/stock-adjustments';
@@ -57,12 +58,12 @@ const PickSerialForm = ({
         fieldKeys={{ valueKey: 'serialNumber', labelKey: 'serialNumber' }}
       />
       <p className="text-xs text-muted-foreground">The serial must belong to the picked quant and be AVAILABLE.</p>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onSuccess}>
           Done
         </Button>
         <Button type="submit">{isLastSlot ? 'Pick' : 'Pick & Add Another'}</Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -84,6 +85,7 @@ export const PickSerialDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={ClipboardMinus}
     title="Pick Serial"
     description="Select a serial to consume it from the picked quant."
     content={(close) =>

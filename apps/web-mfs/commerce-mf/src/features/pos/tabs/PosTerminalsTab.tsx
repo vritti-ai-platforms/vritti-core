@@ -175,6 +175,7 @@ export const PosTerminalsTab = () => {
 
       <Dialog
         handle={addDialog}
+        icon={Monitor}
         title="Add POS Terminal"
         description="Create a terminal and map it to a POS storage location."
         className="max-w-lg"
@@ -184,6 +185,7 @@ export const PosTerminalsTab = () => {
       {editingTerminal && (
         <Dialog
           handle={editDialog}
+          icon={Monitor}
           title="Edit POS Terminal"
           description="Update terminal details or switch the linked POS storage location."
           className="max-w-lg"

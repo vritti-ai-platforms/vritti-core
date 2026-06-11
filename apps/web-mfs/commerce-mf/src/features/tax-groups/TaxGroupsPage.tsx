@@ -93,7 +93,6 @@ export const TaxGroupsPage = () => {
                 dialog: {
                   title: 'Edit Tax Group',
                   description: 'Update the rates and default behaviour for this tax group.',
-                  className: 'max-w-3xl',
                   content: (close) => <EditTaxGroupDialog group={row.original} onSuccess={close} onCancel={close} />,
                 },
               },
@@ -169,14 +168,9 @@ export const TaxGroupsPage = () => {
 
       <Dialog
         handle={addDialog}
-        title={
-          <span className="flex items-center gap-2">
-            <Percent className="size-4 text-primary" />
-            Create Tax Group
-          </span>
-        }
+        icon={Percent}
+        title="Create Tax Group"
         description="Define a named group of one or more tax rates."
-        className="max-w-3xl"
         content={(close) => <AddTaxGroupDialog onSuccess={close} onCancel={close} />}
       />
     </div>

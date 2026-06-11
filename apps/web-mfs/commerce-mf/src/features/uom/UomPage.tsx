@@ -4,7 +4,7 @@ import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
-import { Plus } from 'lucide-react';
+import { Layers, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useUomDimensionCount } from '@/hooks/uom-dimensions';
 import { UomDimensionDetailPanel } from './components/UomDimensionDetailPanel';
@@ -35,6 +35,7 @@ export const UomPage = () => {
 
       <Dialog
         handle={addDimensionDialog}
+        icon={Layers}
         title="Add Dimension"
         description="Create a new UOM dimension."
         content={(close) => <AddUomDimensionDialog onSuccess={close} onCancel={close} />}

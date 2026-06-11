@@ -1,9 +1,10 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { ClipboardMinus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useAddStockAdjustmentLineItem } from '@/hooks/stock-adjustments';
 import { type AddStockAdjustmentLineItemFormData, addStockAdjustmentLineItemSchema } from '@/schemas/stock-adjustments';
@@ -46,14 +47,14 @@ const AddSerialForm = ({
       transformSubmit={(data) => ({ serialNumber: data.serialNumber.trim() })}
     >
       <TextField name="serialNumber" label="Serial Number" placeholder="e.g. BOT-001" autoFocus />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" onClick={isLastSlot ? onSuccess : undefined}>
           {isLastSlot ? 'Save' : 'Save & Add Another'}
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -86,6 +87,7 @@ export const AddSerialDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={ClipboardMinus}
     title="Add Serial"
     description="Enter the serial number to register it under this line."
     content={(close) =>

@@ -1,6 +1,7 @@
 import { cn } from '@vritti/quantum-ui';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -212,14 +213,14 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Create Offering
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

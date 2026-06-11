@@ -5,7 +5,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { CheckCircle, Pencil } from 'lucide-react';
+import { CheckCircle, ClipboardMinus, Pencil } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteStockAdjustment, usePublishStockAdjustment, useStockAdjustment } from '@/hooks/stock-adjustments';
@@ -163,6 +163,7 @@ export const StockAdjustmentDetailPage = () => {
 
       <Dialog
         handle={editAdjustmentDialog}
+        icon={ClipboardMinus}
         title="Edit Reason"
         description="Update the reason for this draft adjustment."
         content={(close) => (

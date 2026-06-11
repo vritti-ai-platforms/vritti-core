@@ -236,6 +236,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
 
       <Dialog
         handle={addChildDialog}
+        icon={MapPin}
         title="Add Child Location"
         description={`Add a child location under "${location.name}".`}
         className="max-w-3xl"
@@ -253,8 +254,10 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
 
       <Dialog
         handle={editDialog}
+        icon={MapPin}
         title="Edit Location"
         description="Update the details for this location."
+        className="max-w-3xl"
         content={(close) => <EditLocationDialog location={location} onSuccess={close} onCancel={close} />}
       />
     </div>

@@ -1,7 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, DateTimeCell, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateTimeCell,
+  NumberCell,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
@@ -159,6 +167,7 @@ export const OrdersPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={ShoppingCart}
         title="New Order"
         description="Create a new order."
         content={(close) => <CreateOrderDialog onSuccess={close} onCancel={close} />}

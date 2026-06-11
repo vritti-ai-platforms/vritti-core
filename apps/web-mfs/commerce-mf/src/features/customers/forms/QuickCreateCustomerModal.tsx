@@ -1,10 +1,11 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { Users } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
@@ -43,6 +44,7 @@ export const QuickCreateCustomerModal: React.FC<QuickCreateCustomerModalProps> =
   return (
     <Dialog
       handle={handle}
+      icon={Users}
       title="Add Customer"
       description="Quickly create a customer for this sale."
       className="max-w-md"
@@ -104,14 +106,14 @@ const QuickCreateCustomerForm: React.FC<QuickCreateCustomerFormProps> = ({
         <PhoneField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />
         <TextField name="email" label="Email" type="email" placeholder="Optional" />
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Add Customer
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

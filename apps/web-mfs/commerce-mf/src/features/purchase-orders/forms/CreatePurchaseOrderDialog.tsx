@@ -1,6 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { DateTimePicker } from '@vritti/quantum-ui/DateTimePicker';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { parse } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
@@ -107,14 +108,14 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
         calendarProps={minExpectedDate ? { disabled: { before: minExpectedDate } } : undefined}
       />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Create Purchase Order
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

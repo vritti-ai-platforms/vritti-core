@@ -8,7 +8,7 @@ import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { FileCheck } from 'lucide-react';
+import { FileCheck, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { useCreditNote } from '@/hooks/credit-notes';
 import { ApplyCreditNoteDialog } from './forms/ApplyCreditNoteDialog';
@@ -168,6 +168,7 @@ export const CreditNoteDetailPage = () => {
 
       <Dialog
         handle={applyDialog}
+        icon={FileText}
         title="Apply to Invoice"
         description="Apply this credit note against an outstanding invoice."
         content={(close) => (

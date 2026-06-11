@@ -122,6 +122,7 @@ export const CreditNotesPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={FileText}
         title="New Credit Note"
         description="Create a credit note for a supplier or customer."
         content={(close) => <CreateCreditNoteDialog onSuccess={close} onCancel={close} />}

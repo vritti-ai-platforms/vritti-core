@@ -4,7 +4,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Pencil } from 'lucide-react';
+import { Package, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/inventory-items';
@@ -69,7 +69,13 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'uom-conversions',
             label: 'UOM Conversions',
-            content: <UomConversionsTab inventoryItemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol ?? ''} />,
+            content: (
+              <UomConversionsTab
+                inventoryItemId={item.id}
+                itemUomId={item.uomId}
+                itemUomSymbol={item.uomSymbol ?? ''}
+              />
+            ),
           },
           {
             value: 'suppliers',
@@ -115,6 +121,7 @@ export const InventoryItemDetailPage = () => {
 
       <Dialog
         handle={editDialog}
+        icon={Package}
         title="Edit Inventory Item"
         description="Update the details for this inventory item."
         content={(close) => <EditInventoryItemForm item={item} onSuccess={close} onCancel={close} />}

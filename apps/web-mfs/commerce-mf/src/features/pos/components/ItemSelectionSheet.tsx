@@ -5,7 +5,7 @@ import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { majorToMinor, minorToMajor } from '@vritti/quantum-ui/money';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Monitor, Plus } from 'lucide-react';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useOffering, useOfferingModifiers } from '@/hooks/offerings';
 import type { CurrencyAmount, ModifierOptionData, OfferingModifierGroup, OfferingVariant } from '@/schemas/offerings';
@@ -41,6 +41,7 @@ export const ItemSelectionSheet = ({ catalogId, offering, open, onClose, onAdd }
   return (
     <Dialog
       handle={handle}
+      icon={Monitor}
       title={offering?.name}
       description="Choose options and add-ons"
       className="max-w-lg"

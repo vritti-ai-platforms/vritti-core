@@ -3,7 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
+import { MapPin, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -144,9 +144,12 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uom
 
       <Dialog
         handle={addDialog}
+        icon={Package}
         title="Add Location"
         description="Set a minimum stock level for a storage location."
-        content={(close) => <AddInventoryItemLocationForm inventoryItemId={inventoryItemId} onSuccess={close} onCancel={close} />}
+        content={(close) => (
+          <AddInventoryItemLocationForm inventoryItemId={inventoryItemId} onSuccess={close} onCancel={close} />
+        )}
       />
     </>
   );

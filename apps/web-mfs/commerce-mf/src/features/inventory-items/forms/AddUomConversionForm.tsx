@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
@@ -82,14 +83,14 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
           </p>
         )}
       </div>
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Adding...">
           Add Conversion
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

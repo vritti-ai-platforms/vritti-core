@@ -6,7 +6,7 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Layers, Lock, Pencil, Trash2 } from 'lucide-react';
+import { BookOpen, Layers, Lock, Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useDeleteVariantOption, useVariantOptions } from '@/hooks/variant-options';
 import type { VariantOption } from '@/schemas/variant-options';
@@ -140,6 +140,7 @@ const VariantOptionDetailContent: React.FC<VariantOptionDetailContentProps> = ({
 
       <Dialog
         handle={editDialog}
+        icon={BookOpen}
         title="Edit option"
         description={`Update "${option.name}" and its values.`}
         content={(close) => (

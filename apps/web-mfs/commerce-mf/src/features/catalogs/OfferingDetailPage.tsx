@@ -5,7 +5,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Pencil } from 'lucide-react';
+import { BookOpen, Pencil } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteOffering, useOffering } from '@/hooks/offerings';
@@ -82,6 +82,7 @@ export const OfferingDetailPage = () => {
 
       <Dialog
         handle={editDialog}
+        icon={BookOpen}
         title="Edit Offering"
         description="Update the details for this offering."
         content={(close) => (

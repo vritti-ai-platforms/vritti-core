@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -61,15 +62,19 @@ export const AddSupplierContactDialog: React.FC<AddSupplierContactDialogProps> =
       <TextField name="alternateEmail" label="Alternate Email" type="email" placeholder="e.g. john.alt@supplier.com" />
       <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
-      <Switch name="isPrimary" label="Set as primary contact" description="Used as the default contact when sending POs" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <Switch
+        name="isPrimary"
+        label="Set as primary contact"
+        description="Used as the default contact when sending POs"
+      />
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Adding...">
           Add Contact
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

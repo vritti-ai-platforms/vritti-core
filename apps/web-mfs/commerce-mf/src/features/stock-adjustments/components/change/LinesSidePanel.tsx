@@ -57,15 +57,14 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
       >
         <div className="p-2 space-y-2">
           {lines.map((line) => {
-            const label = [line.quantLotNumber, line.quantLocationName ?? line.quantLocationId].filter(Boolean).join(' @ ') || '—';
+            const label =
+              [line.quantLotNumber, line.quantLocationName ?? line.quantLocationId].filter(Boolean).join(' @ ') || '—';
 
             return (
               <SidePanelListItem key={line.id} active={selectedLineId === line.id} onClick={() => onSelect(line.id)}>
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-sm font-medium truncate">{label}</div>
-                  <Badge
-                    variant={line.isBalanced ? 'success' : 'warning'}
-                  >
+                  <Badge variant={line.isBalanced ? 'success' : 'warning'}>
                     {line.lineItemsCount}/{line.uomQty}
                   </Badge>
                 </div>

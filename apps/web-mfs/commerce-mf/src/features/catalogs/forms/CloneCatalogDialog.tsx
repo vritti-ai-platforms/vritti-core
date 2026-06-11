@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import type React from 'react';
 import { useCloneCatalog } from '@/hooks/catalogs';
@@ -19,7 +20,7 @@ export const CloneCatalogDialog: React.FC<CloneCatalogDialogProps> = ({ catalog,
         Clone this catalog's offerings, variants, options, and modifier groups into a new catalog. You can assign
         channels and edit it afterward.
       </Typography>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
@@ -31,7 +32,7 @@ export const CloneCatalogDialog: React.FC<CloneCatalogDialogProps> = ({ catalog,
         >
           Clone Catalog
         </Button>
-      </div>
+      </DialogActions>
     </div>
   );
 };

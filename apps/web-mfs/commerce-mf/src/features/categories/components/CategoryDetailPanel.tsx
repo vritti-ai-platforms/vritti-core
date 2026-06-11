@@ -210,6 +210,7 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
 
       <Dialog
         handle={addChildDialog}
+        icon={FolderTree}
         title="Add Child Category"
         description={`Add a child category under "${category.name}".`}
         content={(close) => (
@@ -226,6 +227,7 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
 
       <Dialog
         handle={editDialog}
+        icon={FolderTree}
         title="Edit Category"
         description="Update the details for this category."
         content={(close) => <EditCategoryDialog category={category} onSuccess={close} onCancel={close} />}

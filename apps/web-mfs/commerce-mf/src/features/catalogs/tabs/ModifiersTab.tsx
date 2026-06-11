@@ -1,6 +1,7 @@
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { BookOpen } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import { useDeleteModifierGroup, useDeleteModifierOption } from '@/hooks/modifiers';
@@ -101,6 +102,7 @@ export const ModifiersTab: React.FC<ModifiersTabProps> = ({ catalogId }) => {
 
       <Dialog
         handle={createGroupDialog}
+        icon={BookOpen}
         title="Create Modifier Group"
         description="Set up a new modifier group with selection rules."
         content={(close) => (
@@ -118,6 +120,7 @@ export const ModifiersTab: React.FC<ModifiersTabProps> = ({ catalogId }) => {
       {editingGroup && (
         <Dialog
           handle={editGroupDialog}
+          icon={BookOpen}
           title="Edit Modifier Group"
           description="Update modifier group settings."
           content={(close) => (
@@ -129,6 +132,7 @@ export const ModifiersTab: React.FC<ModifiersTabProps> = ({ catalogId }) => {
       {selectedGroupId && (
         <Dialog
           handle={addOptionDialog}
+          icon={BookOpen}
           title="Add Option"
           description="Add a new option to this modifier group."
           content={(close) => (
@@ -140,6 +144,7 @@ export const ModifiersTab: React.FC<ModifiersTabProps> = ({ catalogId }) => {
       {selectedGroupId && editingOption && (
         <Dialog
           handle={editOptionDialog}
+          icon={BookOpen}
           title="Edit Option"
           description="Update this modifier option."
           content={(close) => (

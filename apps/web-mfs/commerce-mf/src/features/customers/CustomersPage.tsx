@@ -119,6 +119,7 @@ export const CustomersPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={Users}
         title="Add Customer"
         description="Create a new customer in your directory."
         className="max-w-3xl"

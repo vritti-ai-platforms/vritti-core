@@ -5,7 +5,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Copy, Pencil } from 'lucide-react';
+import { BookOpen, Copy, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCatalog, useDeleteCatalog } from '@/hooks/catalogs';
@@ -84,6 +84,7 @@ export const CatalogDetailPage = () => {
 
       <Dialog
         handle={editDialog}
+        icon={BookOpen}
         title="Edit Catalog"
         description="Update catalog details."
         className="max-w-lg"
@@ -92,6 +93,7 @@ export const CatalogDetailPage = () => {
 
       <Dialog
         handle={cloneDialog}
+        icon={BookOpen}
         title="Clone Catalog"
         description="Create a new catalog from a copy of this one."
         className="max-w-lg"

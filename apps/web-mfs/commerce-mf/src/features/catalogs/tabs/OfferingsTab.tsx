@@ -7,7 +7,7 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { CategoryFilter } from '@vritti/quantum-ui/selects/category';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { Eye, Package, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, Eye, Package, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -98,6 +98,7 @@ export const OfferingsTab: React.FC<OfferingsTabProps> = ({ catalog }) => {
 
       <Dialog
         handle={addDialog}
+        icon={BookOpen}
         title="Add Offering"
         description="Pick what you're selling, then add its details. Single-variant types set price now; stocked-with-variants adds variants after creation."
         className="max-w-3xl"

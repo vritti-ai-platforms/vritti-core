@@ -1,9 +1,10 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { PackageCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useAddGoodsReceiptLineItem } from '@/hooks/goods-receipts';
 import { type AddGoodsReceiptLineItemFormData, addGoodsReceiptLineItemSchema } from '@/schemas/goods-receipts';
@@ -42,12 +43,12 @@ const AddSerialForm = ({
       transformSubmit={(data) => ({ serialNumber: data.serialNumber.trim() })}
     >
       <TextField name="serialNumber" label="Serial Number" placeholder="e.g. BOT-001" autoFocus />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onSuccess}>
           Done
         </Button>
         <Button type="submit">Save &amp; Add Another</Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -77,6 +78,7 @@ export const AddSerialDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={PackageCheck}
     title="Add Serial"
     description="Type the serial. The form auto-resets so you can add several in a row."
     content={(close) =>

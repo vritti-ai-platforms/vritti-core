@@ -1,6 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { type ColumnDef, DataTable, DateCell, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateCell,
+  NumberCell,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { LocationFilter } from '@vritti/quantum-ui/selects/location';
 import { LotFilter } from '@vritti/quantum-ui/selects/lot';
 import { Boxes, Eye } from 'lucide-react';
@@ -137,7 +145,10 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol
       table={table}
       mode="tab"
       isLoading={isLoading}
-      filters={[<LocationFilter key="locationId" />, <LotFilter key="lotId" params={{ inventoryItemId: inventoryItemId }} />]}
+      filters={[
+        <LocationFilter key="locationId" />,
+        <LotFilter key="lotId" params={{ inventoryItemId: inventoryItemId }} />,
+      ]}
       emptyStateConfig={{
         icon: Boxes,
         title: 'No quants',

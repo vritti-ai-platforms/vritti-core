@@ -1,5 +1,6 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { SortableDragHandle, SortableItem, SortableList } from '@vritti/quantum-ui/Sortable';
@@ -125,14 +126,14 @@ export const AddTaxGroupDialog: React.FC<AddTaxGroupDialogProps> = ({ onSuccess,
         </div>
       </div>
 
-      <div className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Create Tax Group
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

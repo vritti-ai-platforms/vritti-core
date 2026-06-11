@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
@@ -96,14 +97,14 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
         </FormSection>
       </div>
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-6">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Add Item
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

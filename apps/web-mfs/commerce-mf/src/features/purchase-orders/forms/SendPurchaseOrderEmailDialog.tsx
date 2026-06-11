@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -48,14 +49,14 @@ export const SendPurchaseOrderEmailDialog: React.FC<SendPurchaseOrderEmailDialog
         type="email"
         placeholder="Uses supplier email if left empty"
       />
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Sending...">
           Send Email
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

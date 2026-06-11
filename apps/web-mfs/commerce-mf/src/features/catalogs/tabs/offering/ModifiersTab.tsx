@@ -1,12 +1,12 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ModifierGroupSelector } from '@vritti/quantum-ui/selects/modifier-group';
 import { zodResolver } from '@vritti/quantum-ui/zod';
-import { Plus, Sliders, Trash2 } from 'lucide-react';
+import { BookOpen, Plus, Sliders, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -131,6 +131,7 @@ export const ModifiersTab: React.FC<ModifiersTabProps> = ({ catalogId, offering 
 
       <Dialog
         handle={addDialog}
+        icon={BookOpen}
         title="Add Modifier"
         description="Attach a catalog modifier group to this offering."
         content={(close) => (
@@ -182,14 +183,14 @@ const AddModifierForm: React.FC<AddModifierFormProps> = ({
     >
       <ModifierGroupSelector name="groupId" catalogId={catalogId} />
 
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Adding...">
           Add Modifier
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

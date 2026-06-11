@@ -6,7 +6,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Pencil, Ruler, Trash2 } from 'lucide-react';
+import { Layers, Pencil, Ruler, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useDeleteUomDimension, useUomDimension } from '@/hooks/uom-dimensions';
 import type { UomDimensionData } from '@/schemas/uom-dimensions';
@@ -108,6 +108,7 @@ const UomDimensionDetailContent: React.FC<UomDimensionDetailContentProps> = ({ d
 
       <Dialog
         handle={editDialog}
+        icon={Layers}
         title="Edit Dimension"
         description="Update this UOM dimension."
         content={(close) => <EditUomDimensionDialog dimension={dimension} onSuccess={close} onCancel={close} />}

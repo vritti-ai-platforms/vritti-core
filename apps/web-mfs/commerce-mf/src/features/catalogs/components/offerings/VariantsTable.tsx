@@ -10,7 +10,7 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useDeleteVariant } from '@/hooks/offerings';
@@ -164,6 +164,7 @@ export const VariantsTable: React.FC<VariantsTableProps> = ({ catalogId, offerin
 
       <Dialog
         handle={addDialog}
+        icon={BookOpen}
         title="Add variant"
         description="Pick a combination, set its price and availability."
         content={(close) => (

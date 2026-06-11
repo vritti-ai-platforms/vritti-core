@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -58,14 +59,14 @@ export const EditStockAdjustmentDialog = ({
         />
       )}
 
-      <div className="flex justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

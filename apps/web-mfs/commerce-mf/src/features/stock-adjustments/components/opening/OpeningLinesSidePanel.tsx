@@ -5,7 +5,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
-import { ClipboardList, Plus } from 'lucide-react';
+import { ClipboardList, ClipboardMinus, Plus } from 'lucide-react';
 import { useStockAdjustmentLines } from '@/hooks/stock-adjustments';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { AddOpeningLineForm } from '../../forms/opening/AddOpeningLineForm';
@@ -17,7 +17,12 @@ interface OpeningLinesSidePanelProps {
   onSelect: (lineId: string | null) => void;
 }
 
-export const OpeningLinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }: OpeningLinesSidePanelProps) => {
+export const OpeningLinesSidePanel = ({
+  adjustment,
+  isDraft,
+  selectedLineId,
+  onSelect,
+}: OpeningLinesSidePanelProps) => {
   const addLineDialog = useDialog();
 
   const { data: lines = [], isLoading } = useStockAdjustmentLines(adjustment.id);
@@ -61,9 +66,7 @@ export const OpeningLinesSidePanel = ({ adjustment, isDraft, selectedLineId, onS
             <SidePanelListItem key={line.id} active={selectedLineId === line.id} onClick={() => onSelect(line.id)}>
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm font-medium truncate">{line.locationName ?? line.locationId ?? '—'}</div>
-                <Badge
-                  variant={line.isBalanced ? 'success' : 'warning'}
-                >
+                <Badge variant={line.isBalanced ? 'success' : 'warning'}>
                   {line.lineItemsCount}/{line.uomQty}
                 </Badge>
               </div>
@@ -77,6 +80,7 @@ export const OpeningLinesSidePanel = ({ adjustment, isDraft, selectedLineId, onS
 
       <Dialog
         handle={addLineDialog}
+        icon={ClipboardMinus}
         title="Add Line"
         description="Pick a storage location for this line. Quantity is derived from the serials you add."
         content={(close) => (

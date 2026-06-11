@@ -1,10 +1,11 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { PackageCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useAddGoodsReceiptLot } from '@/hooks/goods-receipts';
 import { type AddGoodsReceiptLotFormData, addGoodsReceiptLotSchema } from '@/schemas/goods-receipts';
@@ -42,12 +43,12 @@ const AddLotForm = ({
       <DatePicker name="manufacturingDate" label="Manufacturing Date" />
       <DatePicker name="expiryDate" label="Expiry Date" />
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit">Add Lot</Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -63,6 +64,7 @@ export const AddLotDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={PackageCheck}
     title="Add Lot"
     description="Add a new lot for this item. Lines under this lot will share its lot number, manufacturing date, and expiry."
     content={(close) => (

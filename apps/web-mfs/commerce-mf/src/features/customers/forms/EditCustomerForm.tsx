@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -49,14 +50,14 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, on
         <TextField name="email" label="Email" type="email" placeholder="e.g. jane@example.com" />
         <TextArea name="notes" label="Notes" placeholder="Optional notes" rows={3} className="sm:col-span-2 w-full" />
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save Changes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

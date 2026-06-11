@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { SupplierSelector } from '@vritti/quantum-ui/selects/supplier';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -6,8 +7,8 @@ import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useChangePurchaseOrderSupplier } from '@/hooks/purchase-orders';
 import {
-  changePurchaseOrderSupplierSchema,
   type ChangePurchaseOrderSupplierFormData,
+  changePurchaseOrderSupplierSchema,
   type PurchaseOrderDetail,
 } from '@/schemas/purchase-orders';
 
@@ -58,14 +59,14 @@ export const ChangePurchaseOrderSupplierDialog: React.FC<ChangePurchaseOrderSupp
       })}
     >
       <SupplierSelector name="supplierId" label="Supplier" placeholder="Select supplier" />
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Updating...">
           Change Supplier
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

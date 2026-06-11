@@ -1,5 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, DateCell, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateCell,
+  NumberCell,
+  RowActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Boxes, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';

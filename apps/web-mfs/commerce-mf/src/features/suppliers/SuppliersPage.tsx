@@ -135,6 +135,7 @@ export const SuppliersPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={Truck}
         title="Add Supplier"
         description="Create a new supplier in your directory."
         className="max-w-3xl"

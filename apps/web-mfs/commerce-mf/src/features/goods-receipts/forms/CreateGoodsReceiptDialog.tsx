@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { format } from '@vritti/quantum-ui/date-fns';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useBUCurrency } from '@vritti/quantum-ui/hooks';
@@ -147,14 +148,14 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
       )}
       <DatePicker name="receivedDate" label="Received Date" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Create Draft
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

@@ -17,7 +17,7 @@ import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hoo
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
 import { ScanBarcodeButton } from '@vritti/quantum-ui/ScanBarcodeButton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
-import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
+import { PackageCheck, Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   GOODS_RECEIPT_LINE_ITEMS_TABLE_KEY,
@@ -289,6 +289,7 @@ export const SerialsTable = ({
 
       <Dialog
         handle={editLineDialog}
+        icon={PackageCheck}
         title="Edit Line"
         description="Update the storage location for this line."
         content={(close) => (

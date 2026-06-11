@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
@@ -54,14 +55,14 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
       <LocationSelector name="toLocationId" label="To Location" placeholder="Select destination location" />
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 100" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Create Transfer
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

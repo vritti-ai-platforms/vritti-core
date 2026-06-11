@@ -1,7 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, CurrencyCell, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  CurrencyCell,
+  DataTable,
+  DateCell,
+  RowActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
@@ -56,9 +63,7 @@ export const PurchaseOrdersPage = () => {
       {
         accessorKey: 'totalAmount',
         header: 'Total',
-        cell: ({ row }) => (
-          <CurrencyCell value={row.original.totalAmount} exchangeRate={row.original.exchangeRate} />
-        ),
+        cell: ({ row }) => <CurrencyCell value={row.original.totalAmount} exchangeRate={row.original.exchangeRate} />,
         enableSorting: false,
       },
       {
@@ -141,6 +146,7 @@ export const PurchaseOrdersPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={ClipboardList}
         title="New Purchase Order"
         description="Create a purchase order for a supplier."
         content={(close) => <CreatePurchaseOrderDialog onSuccess={close} onCancel={close} />}

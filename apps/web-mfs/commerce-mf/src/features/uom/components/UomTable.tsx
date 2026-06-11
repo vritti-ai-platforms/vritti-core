@@ -1,7 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  NumberCell,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
@@ -172,6 +179,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
 
       <Dialog
         handle={addDialog}
+        icon={Ruler}
         title="Add UOM"
         description="Add a new unit of measure to this dimension."
         content={(close) => <AddUomDialog dimensionId={dimensionId} onSuccess={close} onCancel={close} />}
