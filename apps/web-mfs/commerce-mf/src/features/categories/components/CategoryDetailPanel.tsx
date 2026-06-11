@@ -21,6 +21,7 @@ import {
   useDeleteCategory,
 } from '@/hooks/categories';
 import { type CategoryData, type CategoryItemRow, CategoryRoleLabels, CategoryRoleValues } from '@/schemas/categories';
+import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
 import { AddCategoryDialog } from '../forms/AddCategoryDialog';
 import { EditCategoryDialog } from '../forms/EditCategoryDialog';
 import { CategoryDetailPanelSkeleton } from './CategoryDetailPanelSkeleton';
@@ -253,20 +254,24 @@ const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId 
       {
         accessorKey: 'name',
         header: 'Item',
-        cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span>{row.original.name}</span>
-            <span className="text-xs text-muted-foreground font-mono">{row.original.code}</span>
-          </div>
-        ),
+      },
+      {
+        accessorKey: 'code',
+        header: 'Code',
+        cell: ({ row }) => <StringCell value={row.original.code} mono />,
       },
       {
         accessorKey: 'type',
         header: 'Type',
+        cell: ({ row }) => {
+          const config = inventoryItemTypeConfig[row.original.type];
+          return <Badge variant={config.variant}>{config.label}</Badge>;
+        },
       },
       {
         accessorKey: 'tracking',
         header: 'Tracking',
+        cell: ({ row }) => inventoryTrackingConfig[row.original.tracking].label,
       },
       {
         accessorKey: 'uomSymbol',

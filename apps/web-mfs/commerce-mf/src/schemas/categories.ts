@@ -1,6 +1,7 @@
 import type { CreateResponse, SuccessResponse, TableResponse } from '@vritti/quantum-ui/api-response';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
+import type { InventoryItemType, InventoryTracking } from '@/schemas/inventory-items';
 
 // GROUP holds sub-categories; CATEGORY is a leaf that holds inventory items.
 export const CategoryRoleValues = {
@@ -58,8 +59,8 @@ export interface CategoryItemRow {
   id: string;
   name: string;
   code: string;
-  type: string;
-  tracking: string;
+  type: InventoryItemType;
+  tracking: InventoryTracking;
   uomSymbol: string | null;
 }
 
