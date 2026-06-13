@@ -83,6 +83,7 @@ const componentDirs = [
   'Switch',
   'TextField',
   'Text',
+  'TreeView',
 ];
 
 // @vritti/quantum-ui-native/selects/<entity> subpaths (mirrors quantum-ui/lib/selects)
