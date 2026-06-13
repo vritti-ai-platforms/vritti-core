@@ -6,6 +6,7 @@ import type { GoodsReceiptItemQuantsDto } from '@domain/inventory-item-quants/dt
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
 
 @Controller()
@@ -24,9 +25,12 @@ export class GoodsReceiptsItemsController {
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.itemById' })
-  itemById(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptItemDto> {
+  itemById(
+    @Payload() data: { goodsReceiptId: string; itemId: string },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<GoodsReceiptItemDto> {
     this.logger.log(`goodsReceipts.itemById — item: ${data.itemId}`);
-    return this.itemsService.findById(data.goodsReceiptId, data.itemId);
+    return this.itemsService.findById(data.goodsReceiptId, data.itemId, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.inventoryItemIds' })
@@ -38,9 +42,10 @@ export class GoodsReceiptsItemsController {
   @MessagePattern({ cmd: 'goodsReceipts.itemsTable' })
   itemsTable(
     @Payload() data: { goodsReceiptId: string } & TableViewState,
+    @RpcBuCurrencyCode() buCurrencyCode: string,
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     this.logger.log('goodsReceipts.itemsTable');
-    return this.itemsService.findForTable(data.goodsReceiptId, data);
+    return this.itemsService.findForTable(data.goodsReceiptId, data, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.itemsCost' })
@@ -70,18 +75,23 @@ export class GoodsReceiptsItemsController {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromSupplierItem — supplierItem: ${data.supplierItemId}`);
-    return this.itemsService.addItemFromSupplierItem(data.goodsReceiptId, {
-      supplierItemId: data.supplierItemId,
-      orderedQty: data.orderedQty,
-      rejectedQuantity: data.rejectedQuantity,
-      unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
-      currencyCode: data.currencyCode,
-      schemeBuyQty: data.schemeBuyQty,
-      schemeFreeQty: data.schemeFreeQty,
-      hasScheme: data.hasScheme,
-    });
+    return this.itemsService.addItemFromSupplierItem(
+      data.goodsReceiptId,
+      {
+        supplierItemId: data.supplierItemId,
+        orderedQty: data.orderedQty,
+        rejectedQuantity: data.rejectedQuantity,
+        unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
+        currencyCode: data.currencyCode,
+        schemeBuyQty: data.schemeBuyQty,
+        schemeFreeQty: data.schemeFreeQty,
+        hasScheme: data.hasScheme,
+      },
+      buCurrencyCode,
+    );
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.addItemFromPurchaseOrderItem' })
@@ -98,18 +108,23 @@ export class GoodsReceiptsItemsController {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromPurchaseOrderItem — poItem: ${data.purchaseOrderItemId}`);
-    return this.itemsService.addItemFromPurchaseOrderItem(data.goodsReceiptId, {
-      purchaseOrderItemId: data.purchaseOrderItemId,
-      orderedQty: data.orderedQty,
-      rejectedQuantity: data.rejectedQuantity,
-      unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
-      currencyCode: data.currencyCode,
-      schemeBuyQty: data.schemeBuyQty,
-      schemeFreeQty: data.schemeFreeQty,
-      hasScheme: data.hasScheme,
-    });
+    return this.itemsService.addItemFromPurchaseOrderItem(
+      data.goodsReceiptId,
+      {
+        purchaseOrderItemId: data.purchaseOrderItemId,
+        orderedQty: data.orderedQty,
+        rejectedQuantity: data.rejectedQuantity,
+        unitPrice: data.unitPrice !== undefined ? BigInt(data.unitPrice) : undefined,
+        currencyCode: data.currencyCode,
+        schemeBuyQty: data.schemeBuyQty,
+        schemeFreeQty: data.schemeFreeQty,
+        hasScheme: data.hasScheme,
+      },
+      buCurrencyCode,
+    );
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.updateItem' })

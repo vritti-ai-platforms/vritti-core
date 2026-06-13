@@ -57,16 +57,6 @@ export const InventoryItemDetailPage = () => {
             content: <OverviewTab item={item} />,
           },
           {
-            value: 'locations',
-            label: 'Locations',
-            content: <LocationsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
-          },
-          {
-            value: 'stock-levels',
-            label: 'Stock Levels',
-            content: <StockLevelsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
-          },
-          {
             value: 'uom-conversions',
             label: 'UOM Conversions',
             content: (
@@ -76,6 +66,16 @@ export const InventoryItemDetailPage = () => {
                 itemUomSymbol={item.uomSymbol ?? ''}
               />
             ),
+          },
+          {
+            value: 'stock-levels',
+            label: 'Stock Levels',
+            content: <StockLevelsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
+          },
+          {
+            value: 'locations',
+            label: 'Locations',
+            content: <LocationsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'suppliers',
@@ -124,7 +124,7 @@ export const InventoryItemDetailPage = () => {
         icon={Package}
         title="Edit Inventory Item"
         description="Update the details for this inventory item."
-        className="max-w-3xl"
+        className="max-w-4xl"
         content={(close) => <EditInventoryItemForm item={item} onSuccess={close} onCancel={close} />}
       />
     </div>

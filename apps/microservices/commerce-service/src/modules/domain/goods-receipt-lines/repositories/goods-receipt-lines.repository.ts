@@ -21,6 +21,7 @@ export type GoodsReceiptLineWithRefs = GoodsReceiptLine & {
   lotNumber: string | null;
   lotManufacturingDate: string | null;
   lotExpiryDate: string | null;
+  lotMrp: bigint | null;
   // Symbol of the inventory item's primary UOM (for cross-UOM display alongside primaryUomQty):
   primaryUomSymbol: string | null;
   // Computed:
@@ -87,6 +88,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         lotNumber: goodsReceiptLots.lotNumber,
         lotManufacturingDate: goodsReceiptLots.manufacturingDate,
         lotExpiryDate: goodsReceiptLots.expiryDate,
+        lotMrp: goodsReceiptLots.mrp,
         primaryUomSymbol: uom.symbol,
         lineItemsCount: lineItemsCountSql,
       },
@@ -242,6 +244,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
         lotNumber: goodsReceiptLots.lotNumber,
         lotManufacturingDate: goodsReceiptLots.manufacturingDate,
         lotExpiryDate: goodsReceiptLots.expiryDate,
+        lotMrp: goodsReceiptLots.mrp,
         primaryUomSymbol: uom.symbol,
         lineItemsCount: lineItemsCountSql,
       })

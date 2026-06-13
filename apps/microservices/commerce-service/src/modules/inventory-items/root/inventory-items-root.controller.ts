@@ -2,6 +2,7 @@ import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/invent
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type {
   CreateResponseDto,
   SelectOptionsQueryDto,
@@ -23,9 +24,12 @@ export class InventoryItemsRootController {
   ) {}
 
   @MessagePattern({ cmd: 'inventoryItems.table' })
-  async table(@Payload() state: TableViewState): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async table(
+    @Payload() state: TableViewState,
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<{ result: InventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');
-    return this.service.findForTable(state);
+    return this.service.findForTable(state, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.select' })
@@ -36,15 +40,18 @@ export class InventoryItemsRootController {
   }
 
   @MessagePattern({ cmd: 'inventoryItems.create' })
-  async create(@Payload() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(
+    @Payload() dto: CreateInventoryItemDto,
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<CreateResponseDto<InventoryItemDto>> {
     this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
-    return this.rootService.create(dto);
+    return this.rootService.create(dto, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.findById' })
-  async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
+  async findById(@Payload() data: { id: string }, @RpcBuCurrencyCode() buCurrencyCode: string): Promise<InventoryItemDto> {
     this.logger.log(`inventoryItems.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
+    return this.service.findById(data.id, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.update' })

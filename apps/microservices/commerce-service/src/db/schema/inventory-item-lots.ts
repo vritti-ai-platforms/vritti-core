@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { check, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, check, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 
@@ -15,6 +15,7 @@ export const inventoryItemLots = coreSchema.table(
     lotNumber: varchar('lot_number', { length: 100 }).notNull(),
     manufacturingDate: timestamp('manufacturing_date', { withTimezone: true, mode: 'string' }),
     expiryDate: timestamp('expiry_date', { withTimezone: true, mode: 'string' }).notNull(),
+    mrp: bigint('mrp', { mode: 'bigint' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

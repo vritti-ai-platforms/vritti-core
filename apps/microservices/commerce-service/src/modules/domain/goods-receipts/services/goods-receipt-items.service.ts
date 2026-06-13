@@ -75,6 +75,7 @@ export class GoodsReceiptItemsService {
   async findForTable(
     goodsReceiptId: string,
     state: TableViewState,
+    buCurrencyCode?: string,
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     await this.ensureReceiptExists(goodsReceiptId);
 
@@ -93,7 +94,7 @@ export class GoodsReceiptItemsService {
       offset,
     });
 
-    return { result: result.map(GoodsReceiptItemDto.from), count };
+    return { result: result.map((row) => GoodsReceiptItemDto.from(row, buCurrencyCode)), count };
   }
 
   async findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostDto> {
@@ -102,11 +103,11 @@ export class GoodsReceiptItemsService {
     return GoodsReceiptItemsCostDto.from(items);
   }
 
-  async findById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemDto> {
+  async findById(goodsReceiptId: string, itemId: string, buCurrencyCode?: string): Promise<GoodsReceiptItemDto> {
     await this.ensureReceiptExists(goodsReceiptId);
     const row = await this.itemsRepository.findByReceiptIdAndItemIdWithRefs(goodsReceiptId, itemId);
     if (!row) throw new NotFoundException('Goods receipt item not found.');
-    return GoodsReceiptItemDto.from(row);
+    return GoodsReceiptItemDto.from(row, buCurrencyCode);
   }
 
   // Returns the unified GR tree: items as roots, lots/lines as descendants per item.tracking.
@@ -128,6 +129,7 @@ export class GoodsReceiptItemsService {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
+    buCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
 
@@ -148,15 +150,19 @@ export class GoodsReceiptItemsService {
     };
 
     // Un-linked GR: the ordered (paid) quantity is uncapped.
-    return this.addItemInternal(receipt, {
-      inventoryItemId: supplierItem.inventoryItemId,
-      uomId: supplierItem.uomId,
-      orderedQty: data.orderedQty,
-      rejectedQuantity: data.rejectedQuantity,
-      unitPrice: data.unitPrice,
-      currencyCode: data.currencyCode,
-      scheme,
-    });
+    return this.addItemInternal(
+      receipt,
+      {
+        inventoryItemId: supplierItem.inventoryItemId,
+        uomId: supplierItem.uomId,
+        orderedQty: data.orderedQty,
+        rejectedQuantity: data.rejectedQuantity,
+        unitPrice: data.unitPrice,
+        currencyCode: data.currencyCode,
+        scheme,
+      },
+      buCurrencyCode,
+    );
   }
 
   // Add an item to a GR by referencing a purchase_order_items row. Used when the GR is linked to a PO.
@@ -172,6 +178,7 @@ export class GoodsReceiptItemsService {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
+    buCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
 
@@ -205,15 +212,19 @@ export class GoodsReceiptItemsService {
       hasScheme: data.hasScheme ?? poItem.hasScheme ?? false,
     };
 
-    return this.addItemInternal(receipt, {
-      inventoryItemId: poItem.inventoryItemId,
-      uomId: poItem.uomId,
-      orderedQty: data.orderedQty,
-      rejectedQuantity: data.rejectedQuantity,
-      unitPrice: data.unitPrice,
-      currencyCode: data.currencyCode,
-      scheme,
-    });
+    return this.addItemInternal(
+      receipt,
+      {
+        inventoryItemId: poItem.inventoryItemId,
+        uomId: poItem.uomId,
+        orderedQty: data.orderedQty,
+        rejectedQuantity: data.rejectedQuantity,
+        unitPrice: data.unitPrice,
+        currencyCode: data.currencyCode,
+        scheme,
+      },
+      buCurrencyCode,
+    );
   }
 
   // Performs the duplicate guard, persists the item, and loads the DTO
@@ -228,6 +239,7 @@ export class GoodsReceiptItemsService {
       currencyCode?: string;
       scheme: FreeScheme;
     },
+    buCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     // Reject duplicate (DB also enforces unique constraint, but produce a clean error)
     const existing = await this.itemsRepository.findByReceiptInventoryItemAndUom(
@@ -275,7 +287,7 @@ export class GoodsReceiptItemsService {
     });
 
     this.logger.log(`Added item ${entity.id} to goods receipt ${receipt.id}`);
-    const dto = await this.findById(receipt.id, entity.id);
+    const dto = await this.findById(receipt.id, entity.id, buCurrencyCode);
     return {
       success: true,
       message: `Item added to goods receipt "${receipt.grNumber}".`,

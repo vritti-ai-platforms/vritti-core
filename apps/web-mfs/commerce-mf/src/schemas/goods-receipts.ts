@@ -76,6 +76,7 @@ export interface GoodsReceiptItemData {
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
   inventoryItemAllowDecimal: boolean;
+  inventoryItemHasMrp: boolean;
   // ordered (paid) quantity for this item
   orderedQty: number;
   // derived bonus quantity from the scheme
@@ -111,6 +112,7 @@ export interface GoodsReceiptItemsCostRow {
   unitPrice: { currency: string; value: string } | null;
   unitCost: { currency: string; value: string } | null;
   lineTotal: { currency: string; value: string } | null;
+  mrp: { currency: string; value: string } | null;
 }
 
 export interface GoodsReceiptItemsCostData {
@@ -143,6 +145,7 @@ export interface GoodsReceiptLotData {
   manufacturingDate: string | null;
   expiryDate: string | null;
   resolvedLotId: string | null;
+  mrp: { currency: string; value: string } | null;
   linesCount: number;
   totalQuantity: number;
   metadata: Record<string, unknown>;
@@ -285,6 +288,7 @@ export const addGoodsReceiptLotSchema = z
     lotNumber: z.string().min(1, 'Lot number is required').max(100),
     manufacturingDate: z.string().optional(),
     expiryDate: z.string().min(1, 'Expiry date is required'),
+    mrp: zodCurrencyField({ positive: true }).optional(),
   })
   .refine((data) => !data.manufacturingDate || new Date(data.expiryDate) > new Date(data.manufacturingDate), {
     message: 'Expiry date must be after manufacturing date',

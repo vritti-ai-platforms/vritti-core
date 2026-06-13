@@ -1,12 +1,12 @@
+import { OrganizationService } from '@domain/organization/services/organization.service';
 import { Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { type SuccessResponseDto, Public, SkipCsrf } from '@vritti/api-sdk';
+import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
 import { ApiCreateOrganizationWebhook } from '../docs/organization.docs';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationWebhookDto } from '../dto/request/create-organization-webhook.dto';
 import { UpdateOrganizationWebhookDto } from '../dto/request/update-organization-webhook.dto';
-import { OrganizationService } from '@domain/organization/services/organization.service';
 
 @ApiTags('Organizations')
 @Controller('organizations')

@@ -1,7 +1,33 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
+
+export class MrpUomConversionDto {
+  @ApiProperty({ description: 'Primary units in one MRP unit', example: 10 })
+  @IsInt()
+  @Min(1)
+  primaryUomQty: number;
+
+  @ApiProperty({ description: 'MRP units (always 1 for a pack)', example: 1 })
+  @IsInt()
+  @Min(1)
+  uomQty: number;
+}
 
 export class CreateInventoryItemDto {
   @ApiProperty({ description: 'Item name', example: 'Basmati Rice' })
@@ -66,4 +92,25 @@ export class CreateInventoryItemDto {
   @IsString()
   @MaxLength(20)
   hsnCode?: string;
+
+  @ApiPropertyOptional({ description: 'Whether this item is MRP-governed' })
+  @IsOptional()
+  @IsBoolean()
+  hasMrp?: boolean;
+
+  @ApiPropertyOptional({ description: 'UOM the MRP is quoted in (the pack); required when hasMrp.' })
+  @IsOptional()
+  @IsUUID()
+  mrpUomId?: string;
+
+  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Default MRP (BU currency)', nullable: true })
+  @IsOptional()
+  @IsCurrency()
+  defaultMrp?: CurrencyAmountDto | null;
+
+  @ApiPropertyOptional({ type: MrpUomConversionDto, description: 'Bridge when the MRP unit is not derivable from primary' })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MrpUomConversionDto)
+  mrpUomConversion?: MrpUomConversionDto;
 }

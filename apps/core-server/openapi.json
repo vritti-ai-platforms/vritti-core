@@ -15507,6 +15507,15 @@
               }
             ]
           },
+          "mrp": {
+            "description": "Printed MRP per primary unit (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
           "schemeBuyQty": {
             "type": "number",
             "description": "Free-goods scheme buy qty (e.g. 9 in \"9+1\"). Prefilled from the PO line."
@@ -15572,6 +15581,15 @@
           "expiryDate": {
             "type": "string",
             "description": "Expiry date (required)"
+          },
+          "mrp": {
+            "description": "Printed MRP per primary unit (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         },
         "required": [
@@ -15594,6 +15612,15 @@
           "expiryDate": {
             "type": "string",
             "description": "Expiry date (cannot be cleared once set)"
+          },
+          "mrp": {
+            "description": "Printed MRP per primary unit (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         }
       },
@@ -15647,6 +15674,25 @@
         },
         "required": [
           "serialNumber"
+        ]
+      },
+      "MrpUomConversionDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "type": "number",
+            "description": "Primary units in one MRP unit",
+            "example": 10
+          },
+          "uomQty": {
+            "type": "number",
+            "description": "MRP units (always 1 for a pack)",
+            "example": 1
+          }
+        },
+        "required": [
+          "primaryUomQty",
+          "uomQty"
         ]
       },
       "CreateInventoryItemDto": {
@@ -15713,6 +15759,31 @@
           "hsnCode": {
             "type": "string",
             "description": "HSN code for tax reporting"
+          },
+          "hasMrp": {
+            "type": "boolean",
+            "description": "Whether this item is MRP-governed"
+          },
+          "mrpUomId": {
+            "type": "string",
+            "description": "UOM the MRP is quoted in (the pack); required when hasMrp."
+          },
+          "defaultMrp": {
+            "description": "Default MRP (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "mrpUomConversion": {
+            "description": "Bridge when the MRP unit is not derivable from primary",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MrpUomConversionDto"
+              }
+            ]
           }
         },
         "required": [
@@ -15849,6 +15920,23 @@
             "type": "object",
             "description": "HSN code for tax reporting",
             "nullable": true
+          },
+          "hasMrp": {
+            "type": "boolean",
+            "description": "Whether this item is MRP-governed"
+          },
+          "mrpUomId": {
+            "type": "string",
+            "description": "UOM the MRP is quoted in (the pack); required when hasMrp."
+          },
+          "defaultMrp": {
+            "description": "Default MRP (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         },
         "required": [
@@ -18124,6 +18212,15 @@
           "expiryDate": {
             "type": "string",
             "description": "Expiry date (required)"
+          },
+          "mrp": {
+            "description": "Printed MRP per primary unit (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         },
         "required": [
@@ -18145,6 +18242,15 @@
           "expiryDate": {
             "type": "string",
             "description": "Expiry date (cannot be cleared once set)"
+          },
+          "mrp": {
+            "description": "Printed MRP per primary unit (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
           }
         }
       },

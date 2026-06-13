@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CurrencyAmountDto } from '@vritti/api-sdk';
 
 export class InventoryItemResponseDto {
   @ApiProperty()
@@ -37,8 +38,22 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ description: 'Purchase tax group ID', nullable: true })
   purchaseTaxGroupId: string | null;
 
+  @ApiPropertyOptional({ description: 'Purchase tax group name', nullable: true })
+  purchaseTaxGroupName: string | null;
+
   @ApiPropertyOptional({ description: 'HSN code for tax reporting', nullable: true })
   hsnCode: string | null;
+
+  @ApiProperty() hasMrp: boolean;
+
+  @ApiPropertyOptional({ description: 'UOM the MRP is quoted in (the pack)', nullable: true })
+  mrpUomId: string | null;
+
+  @ApiPropertyOptional({ description: 'MRP UOM symbol', nullable: true })
+  mrpUomSymbol: string | null;
+
+  @ApiPropertyOptional({ type: () => CurrencyAmountDto, description: 'Default MRP (BU currency)', nullable: true })
+  defaultMrp: CurrencyAmountDto | null;
 
   @ApiProperty({ description: 'Whether this item can be deleted' })
   canDelete: boolean;

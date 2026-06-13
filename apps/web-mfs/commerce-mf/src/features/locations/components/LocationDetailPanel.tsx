@@ -326,7 +326,10 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
                 description: 'Stock batches and landed cost.',
                 className: 'max-w-3xl',
                 content: () => (
-                  <LocationItemQuantsDialogContent locationId={locationId} itemId={row.original.inventoryItemId} />
+                  <LocationItemQuantsDialogContent
+                    locationId={locationId}
+                    itemId={row.original.inventoryItemId}
+                  />
                 ),
               },
             },

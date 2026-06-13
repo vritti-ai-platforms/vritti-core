@@ -361,7 +361,12 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
         { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       ],
-      groupBy: [inventoryItemQuants.inventoryItemId, inventoryItems.name, inventoryItems.code, uom.symbol],
+      groupBy: [
+        inventoryItemQuants.inventoryItemId,
+        inventoryItems.name,
+        inventoryItems.code,
+        uom.symbol,
+      ],
       where,
       orderBy: options.orderBy?.length ? options.orderBy : [asc(inventoryItems.name)],
       limit: options.limit,

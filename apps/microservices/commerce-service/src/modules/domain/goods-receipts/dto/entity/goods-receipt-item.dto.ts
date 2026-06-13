@@ -11,6 +11,7 @@ export class GoodsReceiptItemDto {
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
   inventoryItemAllowDecimal: boolean;
+  inventoryItemHasMrp: boolean;
   orderedQty: number;
   freeQty: number;
   totalQty: number;
@@ -30,7 +31,7 @@ export class GoodsReceiptItemDto {
   metadata: Record<string, unknown>;
   createdAt: string;
 
-  static from(row: GoodsReceiptItemWithRefs): GoodsReceiptItemDto {
+  static from(row: GoodsReceiptItemWithRefs, buCurrencyCode?: string): GoodsReceiptItemDto {
     const dto = new GoodsReceiptItemDto();
     dto.id = row.id;
     dto.goodsReceiptId = row.goodsReceiptId;
@@ -39,6 +40,7 @@ export class GoodsReceiptItemDto {
     dto.inventoryItemTracking = row.inventoryItemTracking;
     dto.inventoryItemUomSymbol = row.inventoryItemUomSymbol ?? '';
     dto.inventoryItemAllowDecimal = row.inventoryItemAllowDecimal ?? false;
+    dto.inventoryItemHasMrp = row.inventoryItemHasMrp ?? false;
     dto.orderedQty = Number(row.orderedQty ?? 0);
     dto.freeQty = Number(row.freeQty ?? 0);
     dto.totalQty = Number(row.totalQty ?? 0);

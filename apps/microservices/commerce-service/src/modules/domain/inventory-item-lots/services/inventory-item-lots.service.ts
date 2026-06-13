@@ -25,6 +25,7 @@ export class InventoryItemLotsService {
   async findLotsForTable(
     inventoryItemId: string,
     state: TableViewState,
+    buCurrencyCode?: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsService.LOTS_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLotsService.LOTS_FIELD_MAP);
@@ -39,7 +40,7 @@ export class InventoryItemLotsService {
       offset,
     });
 
-    return { result: result.map((row) => InventoryItemLotDto.from(row)), count };
+    return { result: result.map((row) => InventoryItemLotDto.from(row, buCurrencyCode)), count };
   }
 
   // Returns existing lot or creates a new one. Lot identity is (orgId, inventoryItemId, lotNumber).
@@ -48,15 +49,20 @@ export class InventoryItemLotsService {
     lotNumber: string;
     manufacturingDate?: string | null;
     expiryDate: string;
+    mrp?: bigint | null;
   }): Promise<InventoryItemLot> {
     const existing = await this.repository.findByItemAndNumber(params.inventoryItemId, params.lotNumber);
-    if (existing) return existing;
+    if (existing) {
+      if (params.mrp != null) await this.repository.updateMrp(existing.id, params.mrp);
+      return existing;
+    }
 
     return this.repository.createLot({
       inventoryItemId: params.inventoryItemId,
       lotNumber: params.lotNumber,
       manufacturingDate: params.manufacturingDate ?? null,
       expiryDate: params.expiryDate,
+      mrp: params.mrp ?? null,
     });
   }
 
@@ -72,12 +78,14 @@ export class InventoryItemLotsService {
     lotNumber: string;
     manufacturingDate?: string | null;
     expiryDate: string;
+    mrp?: bigint | null;
   }): Promise<InventoryItemLot> {
     return this.repository.createLot({
       inventoryItemId: data.inventoryItemId,
       lotNumber: data.lotNumber,
       manufacturingDate: data.manufacturingDate ?? null,
       expiryDate: data.expiryDate,
+      mrp: data.mrp ?? null,
     });
   }
 

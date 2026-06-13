@@ -29,6 +29,7 @@ export class InventoryItemLotsRepository extends PrimaryBaseRepository<typeof in
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
+        mrp: inventoryItemLots.mrp,
         createdAt: inventoryItemLots.createdAt,
         updatedAt: inventoryItemLots.updatedAt,
         stockedQuantity: sql<string>`COALESCE(SUM(${inventoryItemQuants.quantity}), 0)`.as('stockedQuantity'),
@@ -56,5 +57,9 @@ export class InventoryItemLotsRepository extends PrimaryBaseRepository<typeof in
   async createLot(data: typeof inventoryItemLots.$inferInsert): Promise<InventoryItemLot> {
     const results = await this.db.insert(inventoryItemLots).values(data).returning();
     return results[0] as InventoryItemLot;
+  }
+
+  async updateMrp(id: string, mrp: bigint | null): Promise<void> {
+    await this.db.update(inventoryItemLots).set({ mrp }).where(eq(inventoryItemLots.id, id));
   }
 }

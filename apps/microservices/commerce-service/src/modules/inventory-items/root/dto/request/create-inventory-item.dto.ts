@@ -1,7 +1,31 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { type CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import type { InventoryItemType, InventoryPickStrategy, InventoryTracking } from '@/db/schema';
 
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
+
+export class MrpUomConversionDto {
+  @IsInt()
+  @Min(1)
+  primaryUomQty: number;
+
+  @IsInt()
+  @Min(1)
+  uomQty: number;
+}
 
 export class CreateInventoryItemDto {
   @IsString()
@@ -45,4 +69,21 @@ export class CreateInventoryItemDto {
   @IsString()
   @MaxLength(20)
   hsnCode?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  hasMrp?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  mrpUomId?: string;
+
+  @IsOptional()
+  @IsCurrency()
+  defaultMrp?: CurrencyAmountDto | null;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MrpUomConversionDto)
+  mrpUomConversion?: MrpUomConversionDto;
 }

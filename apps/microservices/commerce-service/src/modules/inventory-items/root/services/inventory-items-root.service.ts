@@ -17,10 +17,10 @@ export class InventoryItemsRootService {
     private readonly categoriesService: CategoriesService,
   ) {}
 
-  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(dto: CreateInventoryItemDto, buCurrencyCode?: string): Promise<CreateResponseDto<InventoryItemDto>> {
     this.logger.log(`create — name=${dto.name}, code=${dto.code}, categoryId=${dto.categoryId}`);
     await this.categoriesService.assertIsLeaf(dto.categoryId);
-    return this.inventoryItemsService.create(dto);
+    return this.inventoryItemsService.create(dto, buCurrencyCode);
   }
 
   async update(id: string, dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {

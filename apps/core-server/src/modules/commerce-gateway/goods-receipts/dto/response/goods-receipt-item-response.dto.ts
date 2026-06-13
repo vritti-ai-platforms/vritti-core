@@ -10,6 +10,7 @@ export class GoodsReceiptItemResponseDto {
   inventoryItemTracking: 'quantity' | 'lot' | 'lot_serial' | 'serial';
   @ApiPropertyOptional({ nullable: true }) inventoryItemUomSymbol: string | null;
   @ApiProperty() inventoryItemAllowDecimal: boolean;
+  @ApiProperty() inventoryItemHasMrp: boolean;
   @ApiProperty({ description: 'Ordered (paid) quantity for this item, in the item UOM.' })
   orderedQty: number;
   @ApiProperty({ description: 'Derived free (bonus) quantity from the scheme.' })

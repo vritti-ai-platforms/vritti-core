@@ -14,6 +14,7 @@ import {
   stockAdjustments,
   stockTransfers,
   supplierItems,
+  taxGroups,
   uom,
 } from '@/db/schema';
 
@@ -92,6 +93,31 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     return ((result as unknown as { rows: { id: string }[] }).rows ?? []).map((r) => r.id);
   }
 
+  async findUomBaseUnitId(uomId: string): Promise<{ baseUnitId: string | null } | null> {
+    const [row] = await this.db.select({ baseUnitId: uom.baseUnitId }).from(uom).where(eq(uom.id, uomId)).limit(1);
+    return row ?? null;
+  }
+
+  async insertConversion(
+    inventoryItemId: string,
+    data: { uomId: string; primaryUomQty: number; uomQty: number },
+  ): Promise<void> {
+    await this.db.insert(inventoryItemUomConversions).values({
+      inventoryItemId,
+      uomId: data.uomId,
+      primaryUomQty: data.primaryUomQty,
+      uomQty: data.uomQty,
+    });
+  }
+
+  async findUomFamilyIds(primaryUomId: string): Promise<string[]> {
+    const result = await this.db.execute<{ id: string }>(sql`
+      WITH p AS (SELECT COALESCE(base_unit_id, id) AS family_root FROM ${uom} WHERE id = ${primaryUomId})
+      SELECT u.id FROM ${uom} u, p WHERE COALESCE(u.base_unit_id, u.id) = p.family_root;
+    `);
+    return ((result as unknown as { rows: { id: string }[] }).rows ?? []).map((r) => r.id);
+  }
+
   // Returns paginated inventory items with UOM symbol via LEFT JOIN
   async findAllWithUom(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];
@@ -118,7 +144,15 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   // Returns a single inventory item with UOM symbol and category name via LEFT JOINs
   async findByIdWithUomAndCategory(
     id: string,
-  ): Promise<(typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null }) | null> {
+  ): Promise<
+    | (typeof inventoryItems.$inferSelect & {
+        uomSymbol: string | null;
+        categoryName: string | null;
+        purchaseTaxGroupName: string | null;
+        mrpUomSymbol: string | null;
+      })
+    | null
+  > {
     const [row] = await this.db
       .select({
         id: inventoryItems.id,
@@ -134,11 +168,16 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         uomId: inventoryItems.uomId,
         purchaseTaxGroupId: inventoryItems.purchaseTaxGroupId,
         hsnCode: inventoryItems.hsnCode,
+        hasMrp: inventoryItems.hasMrp,
+        mrpUomId: inventoryItems.mrpUomId,
+        defaultMrp: inventoryItems.defaultMrp,
         metadata: inventoryItems.metadata,
         createdAt: inventoryItems.createdAt,
         updatedAt: inventoryItems.updatedAt,
         uomSymbol: uom.symbol,
         categoryName: categories.name,
+        purchaseTaxGroupName: sql<string | null>`(SELECT tg.name FROM ${taxGroups} tg WHERE tg.id = ${inventoryItems.purchaseTaxGroupId})`,
+        mrpUomSymbol: sql<string | null>`(SELECT u2.symbol FROM ${uom} u2 WHERE u2.id = ${inventoryItems.mrpUomId})`,
       })
       .from(inventoryItems)
       .leftJoin(uom, eq(inventoryItems.uomId, uom.id))

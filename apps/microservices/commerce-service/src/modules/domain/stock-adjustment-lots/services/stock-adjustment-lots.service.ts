@@ -56,7 +56,7 @@ export class StockAdjustmentLotsService {
 
   async addLot(
     adjustment: AdjustmentContext,
-    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
+    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be added to DRAFT adjustments.');
@@ -95,6 +95,7 @@ export class StockAdjustmentLotsService {
       lotNumber,
       manufacturingDate: data.manufacturingDate ?? null,
       expiryDate: data.expiryDate,
+      mrp: data.mrp ?? null,
     });
 
     this.logger.log(`Added lot ${lotNumber} to adjustment ${adjustment.id}`);
@@ -113,7 +114,7 @@ export class StockAdjustmentLotsService {
   async updateLot(
     adjustment: { id: string; status: StockAdjustmentStatus },
     lotId: string,
-    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string },
+    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string; mrp?: bigint | null },
   ): Promise<StockAdjustmentLotDto> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be updated on DRAFT adjustments.');
@@ -146,6 +147,7 @@ export class StockAdjustmentLotsService {
       ...(data.lotNumber !== undefined ? { lotNumber: data.lotNumber.trim() } : {}),
       ...(data.manufacturingDate !== undefined ? { manufacturingDate: data.manufacturingDate ?? null } : {}),
       ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate } : {}),
+      ...(data.mrp !== undefined ? { mrp: data.mrp } : {}),
     });
 
     const rowsWithStats = await this.repository.findByAdjustmentId(adjustment.id);

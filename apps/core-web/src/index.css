@@ -28,3 +28,4 @@
  * unnecessary — and that scan silently fails under pnpm/CI node_modules layouts.
  */
 @source "../src/**/*.{js,ts,jsx,tsx}";
+@source "../../web-mfs/*/src/**/*.{js,ts,jsx,tsx}";

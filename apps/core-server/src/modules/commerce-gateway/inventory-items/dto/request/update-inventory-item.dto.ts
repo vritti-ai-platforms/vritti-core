@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 
@@ -61,4 +62,19 @@ export class UpdateInventoryItemDto {
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
+
+  @ApiPropertyOptional({ description: 'Whether this item is MRP-governed' })
+  @IsOptional()
+  @IsBoolean()
+  hasMrp?: boolean;
+
+  @ApiPropertyOptional({ description: 'UOM the MRP is quoted in (the pack); required when hasMrp.' })
+  @IsOptional()
+  @IsUUID()
+  mrpUomId?: string;
+
+  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Default MRP (BU currency)', nullable: true })
+  @IsOptional()
+  @IsCurrency()
+  defaultMrp?: CurrencyAmountDto | null;
 }

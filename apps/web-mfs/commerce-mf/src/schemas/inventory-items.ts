@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/api-response';
-import { z } from '@vritti/quantum-ui/zod';
+import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 const INVENTORY_ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] as const;
 
@@ -14,6 +14,12 @@ export const createInventoryItemSchema = z.object({
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
   hsnCode: z.string().max(20).optional(),
+  hasMrp: z.boolean(),
+  mrpUomId: z.string().uuid().optional(),
+  mrpUomConversion: z
+    .object({ uomQty: zodNumericField({ min: 1 }), primaryUomQty: zodNumericField({ min: 1 }) })
+    .optional(),
+  defaultMrp: zodCurrencyField({ positive: true }).optional(),
 });
 
 export const updateInventoryItemSchema = z.object({
@@ -26,6 +32,9 @@ export const updateInventoryItemSchema = z.object({
   pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
   purchaseTaxGroupId: z.uuid('Purchase tax group is required'),
   hsnCode: z.string().max(20).nullable().optional(),
+  hasMrp: z.boolean().optional(),
+  mrpUomId: z.string().uuid().optional(),
+  defaultMrp: zodCurrencyField({ positive: true }).optional(),
 });
 
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
@@ -99,6 +108,10 @@ export interface InventoryItemData {
   purchaseTaxGroupId: string | null;
   purchaseTaxGroupName: string | null;
   hsnCode: string | null;
+  hasMrp: boolean;
+  mrpUomId: string | null;
+  mrpUomSymbol: string | null;
+  defaultMrp: { currency: string; value: string } | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;

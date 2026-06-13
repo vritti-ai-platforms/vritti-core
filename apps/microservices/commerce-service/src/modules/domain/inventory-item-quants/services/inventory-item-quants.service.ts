@@ -218,7 +218,7 @@ export class InventoryItemQuantsService {
 
       const lotId = params.lotId ?? null;
 
-      // Merge only into a quant with the SAME unit cost — different cost ⇒ separate cost batch.
+      // Merge only into a quant with the SAME unit cost — a different cost ⇒ separate segment.
       const existing = await this.repository.findByItemLocationLotCost(
         params.inventoryItemId,
         params.locationId,

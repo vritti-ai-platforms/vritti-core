@@ -29,7 +29,7 @@ export class StockAdjustmentsLotsService {
 
   async addLot(
     adjustmentId: string,
-    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
+    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     const adjustment = await this.adjustmentsService.findById(adjustmentId);
     const trimmed = data.lotNumber?.trim();
@@ -50,7 +50,7 @@ export class StockAdjustmentsLotsService {
   async updateLot(
     adjustmentId: string,
     lotId: string,
-    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string },
+    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string; mrp?: bigint | null },
   ): Promise<StockAdjustmentLotDto> {
     if (data.lotNumber !== undefined) {
       const trimmed = data.lotNumber.trim();
@@ -93,6 +93,7 @@ export class StockAdjustmentsLotsService {
         lotNumber: sa.lotNumber,
         manufacturingDate: sa.manufacturingDate ?? null,
         expiryDate: sa.expiryDate,
+        mrp: sa.mrp ?? null,
       });
       await this.lotsRepository.setResolvedLotId(lotId, inserted.id);
       this.logger.log(`Resolved draft lot ${lotId} → inventory lot ${inserted.id}`);

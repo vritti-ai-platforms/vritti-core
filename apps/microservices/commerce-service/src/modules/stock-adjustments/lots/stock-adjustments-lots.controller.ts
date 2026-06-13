@@ -37,10 +37,19 @@ export class StockAdjustmentsLotsController {
   @MessagePattern({ cmd: 'stockAdjustments.addLot' })
   addLot(
     @Payload()
-    data: { adjustmentId: string; lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
+    data: {
+      adjustmentId: string;
+      lotNumber: string;
+      manufacturingDate?: string | null;
+      expiryDate: string;
+      mrp?: string | null;
+    },
   ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${data.adjustmentId}`);
-    return this.appService.addLot(data.adjustmentId, data);
+    return this.appService.addLot(data.adjustmentId, {
+      ...data,
+      mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
+    });
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.updateLot' })
@@ -52,6 +61,7 @@ export class StockAdjustmentsLotsController {
       lotNumber?: string;
       manufacturingDate?: string | null;
       expiryDate?: string;
+      mrp?: string | null;
     },
   ): Promise<StockAdjustmentLotDto> {
     this.logger.log(`stockAdjustments.updateLot — lot: ${data.lotId}`);
@@ -59,6 +69,7 @@ export class StockAdjustmentsLotsController {
       lotNumber: data.lotNumber,
       manufacturingDate: data.manufacturingDate,
       expiryDate: data.expiryDate,
+      mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
     });
   }
 
