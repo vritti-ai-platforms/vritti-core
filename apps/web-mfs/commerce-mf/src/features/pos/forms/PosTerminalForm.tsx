@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -98,12 +99,12 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
         {isEdit && <Switch name="isActive" label="Active" description="Inactive terminals can't take orders" />}
       </div>
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit">{isEdit ? 'Save Changes' : 'Add Terminal'}</Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

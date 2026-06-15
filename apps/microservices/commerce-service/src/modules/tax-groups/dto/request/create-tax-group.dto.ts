@@ -1,15 +1,5 @@
 import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import type { TaxRateType } from '@/db/schema';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class CreateTaxRateDto {
   @IsString()
@@ -18,9 +8,6 @@ export class CreateTaxRateDto {
 
   @IsNumber({ maxDecimalPlaces: 2 })
   rate: number;
-
-  @IsEnum(['inclusive', 'exclusive'])
-  type: TaxRateType;
 }
 
 export class CreateTaxGroupDto {
@@ -33,8 +20,4 @@ export class CreateTaxGroupDto {
   @ValidateNested({ each: true })
   @Type(() => CreateTaxRateDto)
   taxRates?: CreateTaxRateDto[];
-
-  @IsOptional()
-  @IsBoolean()
-  isDefault?: boolean;
 }

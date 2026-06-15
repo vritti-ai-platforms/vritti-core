@@ -24,8 +24,8 @@ export const locations = coreSchema.table(
   'locations',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
     parentId: uuid('parent_id'),
@@ -35,7 +35,6 @@ export const locations = coreSchema.table(
     sortOrder: integer('sort_order').notNull().default(1),
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),
-    address: text('address'),
     locationRole: locationRoleEnum('location_role').notNull().default(LocationRoleValues.STORAGE),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -48,6 +47,7 @@ export const locations = coreSchema.table(
     unique('uq_locations_bu_parent_code').on(table.businessUnitId, table.parentId, table.code),
     index('idx_locations_bu').on(table.organizationId, table.businessUnitId),
     index('idx_locations_parent').on(table.parentId),
+    index('idx_locations_path').using('gist', table.path.asc()),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

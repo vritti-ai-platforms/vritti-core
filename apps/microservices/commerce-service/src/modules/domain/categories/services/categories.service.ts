@@ -11,9 +11,9 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import _ from '@vritti/api-sdk/lodash';
-import { type Category, categories } from '@/db/schema';
+import { type Category, type CategoryRole, CategoryRoleValues, categories } from '@/db/schema';
 import type { CreateCategoryDto } from '@/modules/categories/dto/request/create-category.dto';
 import type { UpdateCategoryDto } from '@/modules/categories/dto/request/update-category.dto';
 import { CategoryDto } from '../dto/entity/category.dto';
@@ -35,13 +35,13 @@ export class CategoriesService {
     private readonly categoriesRepository: CategoriesRepository,
   ) {}
 
-  // Throws if the category has children — used by inventory-items / items services to enforce leaf-only links
+  // Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce leaf-only links
   async assertIsLeaf(categoryId: string): Promise<void> {
-    const childCount = await this.categoriesRepository.countChildren(categoryId);
-    if (childCount > 0) {
+    const category = await this.requireById(categoryId);
+    if (category.categoryRole !== CategoryRoleValues.CATEGORY) {
       throw new BadRequestException({
         label: 'Not a Leaf Category',
-        detail: 'Items can only be linked to leaf categories. Choose a sub-category instead.',
+        detail: 'Items can only be linked to leaf categories. Choose a category (not a group) instead.',
       });
     }
   }
@@ -61,7 +61,7 @@ export class CategoriesService {
       excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
-      conditions: [sql`NOT EXISTS (SELECT 1 FROM ${categories} child WHERE child.parent_id = ${categories}.id)`],
+      conditions: [eq(categories.categoryRole, CategoryRoleValues.CATEGORY)],
     });
   }
 
@@ -80,7 +80,7 @@ export class CategoriesService {
     const roots: CategoryTreeDto[] = [];
 
     for (const row of rows) {
-      const node: CategoryTreeDto = { id: row.id, name: row.name };
+      const node: CategoryTreeDto = { id: row.id, name: row.name, categoryRole: row.categoryRole as CategoryRole };
       nodesById.set(row.id, node);
 
       if (row.parentId === null) {
@@ -132,12 +132,12 @@ export class CategoriesService {
     };
   }
 
-  // Creates a new category, computing its path label and full ltree path; blocks if the parent has items
+  // Creates a new category, computing its path label and full ltree path; blocks adding under a leaf category
   async create(data: CreateCategoryDto): Promise<CreateResponseDto<CategoryDto>> {
     const parent = data.parentId ? await this.loadParent(data.parentId) : null;
     if (parent) {
       await this.assertNoCircularReference(null, parent.id);
-      await this.assertParentAcceptsChildren(parent);
+      this.assertParentAcceptsChildren(parent);
     }
 
     const pathLabel = this.toPathLabel(data.name);
@@ -147,10 +147,12 @@ export class CategoriesService {
       this.categoriesRepository.create({
         name: data.name,
         parentId: parent?.id ?? null,
+        categoryRole: data.categoryRole ?? CategoryRoleValues.CATEGORY,
         pathLabel,
         path,
         sortOrder: data.sortOrder ?? 1,
         isActive: data.isActive ?? true,
+        defaultTaxGroupId: data.defaultTaxGroupId ?? null,
       }),
     );
 
@@ -183,7 +185,11 @@ export class CategoriesService {
 
       if (parentChanged && nextParent) {
         await this.assertNoCircularReference(id, nextParent.id);
-        await this.assertParentAcceptsChildren(nextParent);
+        this.assertParentAcceptsChildren(nextParent);
+      }
+
+      if (data.categoryRole !== undefined) {
+        await this.assertRoleChangeAllowed(existing, data.categoryRole);
       }
 
       const nextPathLabel = nameChanged ? this.toPathLabel(nextName) : existing.pathLabel;
@@ -193,6 +199,7 @@ export class CategoriesService {
           ...data,
           parentId: data.parentId === undefined ? undefined : data.parentId || null,
           pathLabel: nameChanged ? nextPathLabel : undefined,
+          defaultTaxGroupId: data.defaultTaxGroupId === undefined ? undefined : data.defaultTaxGroupId || null,
         }),
       );
 
@@ -296,14 +303,35 @@ export class CategoriesService {
     return existing.parentId ? this.loadParent(existing.parentId) : null;
   }
 
-  // Blocks adding a child if the parent already holds items — user must reclassify first
-  private async assertParentAcceptsChildren(parent: Category): Promise<void> {
-    const itemCount = await this.categoriesRepository.countItemsForCategory(parent.id);
-    if (itemCount > 0) {
+  // Blocks adding a child unless the parent is a GROUP (a leaf CATEGORY cannot hold sub-categories)
+  private assertParentAcceptsChildren(parent: Category): void {
+    if (parent.categoryRole !== CategoryRoleValues.GROUP) {
       throw new BadRequestException({
-        label: 'Parent Has Items',
-        detail: `Cannot use "${parent.name}" as a parent — ${itemCount} item(s) are linked to it. Reassign those items to a sub-category first.`,
+        label: 'Not a Group',
+        detail: `Cannot add a sub-category under "${parent.name}" — it is a leaf category. Change its role to Group first.`,
       });
+    }
+  }
+
+  // Guards a role change: a GROUP can only become a leaf with no children; a leaf can only become a GROUP with no items
+  private async assertRoleChangeAllowed(category: Category, nextRole: CategoryRole): Promise<void> {
+    if (nextRole === category.categoryRole) return;
+    if (nextRole === CategoryRoleValues.CATEGORY) {
+      const childCount = await this.categoriesRepository.countChildren(category.id);
+      if (childCount > 0) {
+        throw new BadRequestException({
+          label: 'Group Has Sub-categories',
+          detail: `Cannot turn "${category.name}" into a leaf category — it still has ${childCount} sub-categor${childCount > 1 ? 'ies' : 'y'}. Move or delete them first.`,
+        });
+      }
+    } else {
+      const itemCount = await this.categoriesRepository.countItemsForCategory(category.id);
+      if (itemCount > 0) {
+        throw new BadRequestException({
+          label: 'Category Has Items',
+          detail: `Cannot turn "${category.name}" into a group — ${itemCount} item(s) are linked to it. Reassign those items first.`,
+        });
+      }
     }
   }
 

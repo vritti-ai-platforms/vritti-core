@@ -12,7 +12,7 @@ export const inventoryItemCosts = coreSchema.table(
   'inventory_item_costs',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     categoryId: uuid('category_id')
       .notNull()
       .references(() => costCategories.id, { onDelete: 'restrict' }),

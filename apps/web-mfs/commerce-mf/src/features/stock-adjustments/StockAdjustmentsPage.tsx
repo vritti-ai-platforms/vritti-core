@@ -156,6 +156,7 @@ export const StockAdjustmentsPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={ClipboardMinus}
         title="New Stock Adjustment"
         description="Create a draft stock adjustment. You can add lines after creation."
         content={(close) => (

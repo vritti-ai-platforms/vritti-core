@@ -5,7 +5,7 @@ import { coreSchema } from './core-schema';
 export const documentCounters = coreSchema.table(
   'document_counters',
   {
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     counterKey: varchar('counter_key', { length: 120 }).notNull(),
     lastNumber: bigint('last_number', { mode: 'bigint' }).notNull().default(0n),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

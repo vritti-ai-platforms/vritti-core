@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
@@ -35,6 +36,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
       minOrderQuantity: undefined,
       leadTimeDays: undefined,
       isPreferred: false,
+      taxInclusive: false,
       schemeBuyQty: undefined,
       schemeFreeQty: undefined,
       hasScheme: false,
@@ -62,6 +64,7 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
         minOrderQuantity: data.minOrderQuantity ?? undefined,
         leadTimeDays: data.leadTimeDays ?? undefined,
         isPreferred: data.isPreferred,
+        taxInclusive: data.taxInclusive,
         schemeBuyQty: data.schemeBuyQty ?? undefined,
         schemeFreeQty: data.schemeFreeQty ?? undefined,
         hasScheme: data.hasScheme,
@@ -107,6 +110,11 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
             />
           </div>
           <Switch
+            name="taxInclusive"
+            label="Price includes tax"
+            description="On = supplier price is tax-inclusive; off = tax added on top"
+          />
+          <Switch
             name="isPreferred"
             label="Preferred Supplier"
             description="Surfaced first when picking suppliers for this item"
@@ -124,14 +132,14 @@ export const AddSupplierItemDialog: React.FC<AddSupplierItemDialogProps> = ({
           )}
         </div>
       </FormSection>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Adding...">
           Add Item
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

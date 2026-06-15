@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { InventoryItemSelector } from '@vritti/quantum-ui/selects/inventory-item';
@@ -37,6 +38,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
       leadTimeDays: item.leadTimeDays ?? undefined,
       isPreferred: item.isPreferred,
       isActive: item.isActive,
+      taxInclusive: item.taxInclusive,
       schemeBuyQty: item.schemeBuyQty ?? undefined,
       schemeFreeQty: item.schemeFreeQty ?? undefined,
       hasScheme: item.hasScheme ?? false,
@@ -62,6 +64,7 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
           leadTimeDays: data.leadTimeDays ?? null,
           isPreferred: data.isPreferred,
           isActive: data.isActive,
+          taxInclusive: data.taxInclusive,
           schemeBuyQty: data.schemeBuyQty ?? null,
           schemeFreeQty: data.schemeFreeQty ?? null,
           hasScheme: data.hasScheme,
@@ -105,6 +108,11 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
               positive
             />
           </div>
+          <Switch
+            name="taxInclusive"
+            label="Price includes tax"
+            description="On = supplier price is tax-inclusive; off = tax added on top"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Switch
               name="isPreferred"
@@ -126,14 +134,14 @@ export const UpdateSupplierItemDialog: React.FC<UpdateSupplierItemDialogProps> =
           )}
         </div>
       </FormSection>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save Changes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

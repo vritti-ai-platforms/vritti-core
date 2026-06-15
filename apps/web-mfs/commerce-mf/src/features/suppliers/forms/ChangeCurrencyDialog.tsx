@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { CurrencySelector } from '@vritti/quantum-ui/selects/currency';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -51,20 +52,22 @@ export const ChangeCurrencyDialog: React.FC<ChangeCurrencyDialogProps> = ({
       />
       <TextField
         name="conversionRate"
-        label={watchedCurrencyCode ? `Conversion Rate (${currentCurrencyCode} → ${watchedCurrencyCode})` : 'Conversion Rate'}
+        label={
+          watchedCurrencyCode ? `Conversion Rate (${currentCurrencyCode} → ${watchedCurrencyCode})` : 'Conversion Rate'
+        }
         type="number"
         placeholder="e.g. 1.25"
         positive
         nonZero
       />
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Changing...">
           Change Currency
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

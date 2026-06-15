@@ -102,6 +102,7 @@ const ItemDetailContent = ({
         <LotsTable
           goodsReceiptId={goodsReceiptId}
           itemId={selection.itemId}
+          hasMrp={item.inventoryItemHasMrp}
           isDraft={isDraft}
           uomSymbol={uomSymbol}
           onSelectLot={(lotId) => onSelectionChange({ kind: 'lot', itemId: selection.itemId, lotId })}

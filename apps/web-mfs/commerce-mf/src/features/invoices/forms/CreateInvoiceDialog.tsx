@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
@@ -74,14 +75,14 @@ export const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ onSucc
       <DatePicker name="dueDate" label="Due Date" />
       <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Create Invoice
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

@@ -4,7 +4,7 @@ import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from 
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ClipboardList, Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ClipboardList, Eye, PackageCheck, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   GOODS_RECEIPT_LINES_BY_LOT_TABLE_KEY,
@@ -256,6 +256,7 @@ export const LinesTable = ({
 
       <Dialog
         handle={addLineDialog}
+        icon={PackageCheck}
         title="Add Line"
         description={
           isSerial

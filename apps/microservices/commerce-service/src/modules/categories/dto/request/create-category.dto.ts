@@ -1,4 +1,5 @@
-import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { type CategoryRole, CategoryRoleValues } from '@/db/schema';
 
 export class CreateCategoryDto {
   @IsString()
@@ -9,6 +10,11 @@ export class CreateCategoryDto {
   @IsUUID()
   parentId?: string | null;
 
+  // GROUP holds sub-categories; CATEGORY (default) is a leaf that holds inventory items.
+  @IsOptional()
+  @IsEnum(CategoryRoleValues)
+  categoryRole?: CategoryRole;
+
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -17,4 +23,8 @@ export class CreateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  defaultTaxGroupId?: string | null;
 }

@@ -8,7 +8,7 @@ import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { useInvoice } from '@/hooks/invoices';
 import { usePayments } from '@/hooks/payments';
@@ -135,7 +135,9 @@ export const InvoiceDetailPage = () => {
                         label="Balance"
                         type="string"
                         mono
-                        value={<span className="font-medium text-destructive">{Number(invoice.balance).toFixed(2)}</span>}
+                        value={
+                          <span className="font-medium text-destructive">{Number(invoice.balance).toFixed(2)}</span>
+                        }
                       />
                     </div>
                   </div>
@@ -236,7 +238,9 @@ export const InvoiceDetailPage = () => {
                                 <Badge variant="outline">{payment.method}</Badge>
                               </td>
                               <td className="py-3 font-mono text-muted-foreground">{payment.reference ?? '—'}</td>
-                              <td className="py-3 text-right font-mono font-medium">{Number(payment.amount).toFixed(2)}</td>
+                              <td className="py-3 text-right font-mono font-medium">
+                                {Number(payment.amount).toFixed(2)}
+                              </td>
                               <td className="py-3">
                                 <Badge variant="secondary" className="bg-success/15 text-success">
                                   {payment.status}
@@ -260,10 +264,16 @@ export const InvoiceDetailPage = () => {
 
       <Dialog
         handle={paymentDialog}
+        icon={FileText}
         title="Record Payment"
         description="Record a payment against this invoice."
         content={(close) => (
-          <RecordPaymentDialog invoiceId={invoice.id} balance={Number(invoice.balance)} onSuccess={close} onCancel={close} />
+          <RecordPaymentDialog
+            invoiceId={invoice.id}
+            balance={Number(invoice.balance)}
+            onSuccess={close}
+            onCancel={close}
+          />
         )}
       />
     </div>

@@ -1,11 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { useBUCurrency, useDialog } from '@vritti/quantum-ui/hooks';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { PackageCheck } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { FreeQtyPreview } from '@/components/FreeQtyPreview';
 import { useUpdateGoodsReceiptItem } from '@/hooks/goods-receipts';
@@ -99,14 +100,14 @@ const EditItemForm = ({
         </div>
       </FormSection>
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -122,6 +123,7 @@ export const EditItemDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={PackageCheck}
     title="Edit Item"
     description="Update the supplier unit price or the damage-on-arrival quantity for this item."
     content={(close) =>

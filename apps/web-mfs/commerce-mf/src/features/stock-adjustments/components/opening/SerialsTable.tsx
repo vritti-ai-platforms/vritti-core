@@ -21,7 +21,7 @@ import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { ScanBarcodeButton } from '@vritti/quantum-ui/ScanBarcodeButton';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
-import { Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
+import { ClipboardMinus, Pencil, Plus, ScanBarcode, Tags, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
@@ -319,6 +319,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
 
       <Dialog
         handle={editLineDialog}
+        icon={ClipboardMinus}
         title="Edit Line"
         description="Update the storage location for this line."
         content={(close) =>

@@ -1,8 +1,9 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { CategorySelector } from '@vritti/quantum-ui/selects/category';
+import { TaxGroupSelector } from '@vritti/quantum-ui/selects/tax-group';
 import { VariantOptionSelector } from '@vritti/quantum-ui/selects/variant-option';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -10,7 +11,6 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateOffering } from '@/hooks/offerings';
-import { useTaxGroups } from '@/hooks/tax-groups';
 import { type OfferingDetail, type UpdateOfferingFormData, updateOfferingSchema } from '@/schemas/offerings';
 
 interface EditOfferingFormProps {
@@ -36,12 +36,6 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
   });
 
   const updateMutation = useUpdateOffering({ onSuccess });
-  const { data: taxGroups = [] } = useTaxGroups(offering.businessUnitId);
-  const taxGroupOptions = taxGroups.map((tg) => ({
-    value: tg.id,
-    label: tg.name,
-    description: tg.taxRates.map((r) => `${r.name} ${r.rate}%`).join(', '),
-  }));
 
   return (
     <Form
@@ -55,7 +49,7 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
           name: data.name,
           description: data.description,
           categoryId: data.categoryId ?? null,
-          salesTaxGroupId: data.salesTaxGroupId || null,
+          salesTaxGroupId: data.salesTaxGroupId,
           isAvailable: data.isAvailable,
           variantOptionIds: data.variantOptionIds ?? [],
         },
@@ -65,12 +59,7 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
 
       <div className="grid grid-cols-2 gap-4">
         <CategorySelector name="categoryId" params={{ buId: offering.businessUnitId, status: 'active' }} clearable />
-        <Select
-          name="salesTaxGroupId"
-          label="Sales Tax Group"
-          placeholder="Select tax group (optional)"
-          options={taxGroupOptions}
-        />
+        <TaxGroupSelector name="salesTaxGroupId" label="Sales Tax Group" placeholder="Select tax group" />
       </div>
 
       <TextArea name="description" label="Description" placeholder="Optional description" rows={3} />
@@ -94,14 +83,14 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
         description="When off, the offering is hidden from POS and order forms"
       />
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save Changes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

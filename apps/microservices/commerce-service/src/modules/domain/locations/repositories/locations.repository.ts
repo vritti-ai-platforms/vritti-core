@@ -9,6 +9,18 @@ import {
   locations,
 } from '@/db/schema';
 
+// Hierarchy row consumed by the service's tree builder. The CTE aliases its columns to these
+// camelCase names, so the query result maps to this shape directly (no row-mapping step).
+export type HierarchyRow = {
+  id: string;
+  parentId: string | null;
+  name: string;
+  locationRole: LocationRole;
+  sortOrder: number;
+  depth: number;
+  path: string[];
+};
+
 @Injectable()
 export class LocationsRepository extends PrimaryBaseRepository<typeof locations> {
   constructor(database: PrimaryDatabaseService) {
@@ -48,25 +60,15 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
   }
 
   // Returns hierarchy rows ordered in tree order using a recursive CTE
-  async findHierarchyRows(
-    search?: string,
-  ): Promise<
-    Array<{ id: string; parentId: string | null; name: string; sortOrder: number; depth: number; path: string[] }>
-  > {
+  async findHierarchyRows(search?: string): Promise<HierarchyRow[]> {
     if (!search) {
-      const result = await this.db.execute<{
-        id: string;
-        parent_id: string | null;
-        name: string;
-        sort_order: number;
-        depth: number;
-        path: string[];
-      }>(sql`
+      const result = await this.db.execute<HierarchyRow>(sql`
         WITH RECURSIVE tree AS (
           SELECT
             root.id::text AS id,
             root.parent_id::text AS parent_id,
             root.name::text AS name,
+            root.location_role::text AS location_role,
             root.sort_order::int AS sort_order,
             0::int AS depth,
             ARRAY[root.id::text] AS path,
@@ -80,6 +82,7 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
             child.id::text AS id,
             child.parent_id::text AS parent_id,
             child.name::text AS name,
+            child.location_role::text AS location_role,
             child.sort_order::int AS sort_order,
             tree.depth + 1 AS depth,
             tree.path || child.id::text AS path,
@@ -88,43 +91,17 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
           JOIN tree ON child.parent_id::text = tree.id
           WHERE NOT (child.id::text = ANY(tree.path))
         )
-        SELECT id, parent_id, name, sort_order, depth, path
+        SELECT id, parent_id AS "parentId", name, location_role AS "locationRole",
+               sort_order AS "sortOrder", depth, path
         FROM tree
         ORDER BY ord
       `);
 
-      const rows =
-        (
-          result as {
-            rows?: Array<{
-              id: string;
-              parent_id: string | null;
-              name: string;
-              sort_order: number;
-              depth: number;
-              path: string[];
-            }>;
-          }
-        ).rows ?? [];
-      return rows.map((row) => ({
-        id: row.id,
-        parentId: row.parent_id,
-        name: row.name,
-        sortOrder: Number(row.sort_order),
-        depth: Number(row.depth),
-        path: row.path ?? [row.id],
-      }));
+      return result.rows ?? [];
     }
 
     const searchPattern = `%${search}%`;
-    const result = await this.db.execute<{
-      id: string;
-      parent_id: string | null;
-      name: string;
-      sort_order: number;
-      depth: number;
-      path: string[];
-    }>(sql`
+    const result = await this.db.execute<HierarchyRow>(sql`
       WITH RECURSIVE matched AS (
         SELECT
           s.id::text AS id,
@@ -153,6 +130,7 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
           s.id::text AS id,
           s.parent_id::text AS parent_id,
           s.name::text AS name,
+          s.location_role::text AS location_role,
           s.sort_order::int AS sort_order
         FROM ${locations} AS s
         JOIN relevant r ON r.id = s.id::text
@@ -164,6 +142,7 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
           roots.id,
           roots.parent_id,
           roots.name,
+          roots.location_role,
           roots.sort_order,
           0::int AS depth,
           ARRAY[roots.id] AS path,
@@ -176,6 +155,7 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
           child.id::text AS id,
           child.parent_id::text AS parent_id,
           child.name::text AS name,
+          child.location_role::text AS location_role,
           child.sort_order::int AS sort_order,
           tree.depth + 1 AS depth,
           tree.path || child.id::text AS path,
@@ -185,32 +165,13 @@ export class LocationsRepository extends PrimaryBaseRepository<typeof locations>
         JOIN relevant ON relevant.id = child.id::text
         WHERE NOT (child.id::text = ANY(tree.path))
       )
-      SELECT id, parent_id, name, sort_order, depth, path
+      SELECT id, parent_id AS "parentId", name, location_role AS "locationRole",
+             sort_order AS "sortOrder", depth, path
       FROM tree
       ORDER BY ord
     `);
 
-    const rows =
-      (
-        result as {
-          rows?: Array<{
-            id: string;
-            parent_id: string | null;
-            name: string;
-            sort_order: number;
-            depth: number;
-            path: string[];
-          }>;
-        }
-      ).rows ?? [];
-    return rows.map((row) => ({
-      id: row.id,
-      parentId: row.parent_id,
-      name: row.name,
-      sortOrder: Number(row.sort_order),
-      depth: Number(row.depth),
-      path: row.path ?? [row.id],
-    }));
+    return result.rows ?? [];
   }
 
   // Returns a set of location IDs that are referenced by inventory batches

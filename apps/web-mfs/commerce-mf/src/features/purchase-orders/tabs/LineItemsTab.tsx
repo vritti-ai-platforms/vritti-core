@@ -11,7 +11,7 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
-import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   PURCHASE_ORDER_ITEMS_TABLE_KEY,
@@ -222,6 +222,7 @@ export const LineItemsTab = ({ purchaseOrder, canModifyItems }: LineItemsTabProp
       <Dialog
         handle={addItemDialog}
         className="max-w-3xl"
+        icon={ClipboardList}
         title="Add Line Item"
         description="Add an inventory item to this purchase order."
         content={(close) => (

@@ -20,6 +20,7 @@ export type GoodsReceiptItemWithRefs = GoodsReceiptItem & {
   inventoryItemTracking: InventoryTracking;
   inventoryItemUomSymbol: string;
   inventoryItemAllowDecimal: boolean;
+  inventoryItemHasMrp: boolean;
   acceptedQuantity: number;
   lotsCount: number;
   linesCount: number;
@@ -271,6 +272,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         inventoryItemTracking: inventoryItems.tracking,
         inventoryItemUomSymbol: uom.symbol,
         inventoryItemAllowDecimal: uom.allowDecimal,
+        inventoryItemHasMrp: inventoryItems.hasMrp,
         poItemId: purchaseOrderItems.id,
         poOrderedQuantity: purchaseOrderItems.uomQty,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,
@@ -462,6 +464,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
         inventoryItemTracking: inventoryItems.tracking,
         inventoryItemUomSymbol: uom.symbol,
         inventoryItemAllowDecimal: uom.allowDecimal,
+        inventoryItemHasMrp: inventoryItems.hasMrp,
         poItemId: purchaseOrderItems.id,
         poOrderedQuantity: purchaseOrderItems.uomQty,
         poReceivedQuantity: purchaseOrderItems.receivedQuantity,

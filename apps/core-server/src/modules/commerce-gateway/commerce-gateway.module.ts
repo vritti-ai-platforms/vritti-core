@@ -1,14 +1,10 @@
 import { Module } from '@nestjs/common';
 import { BusinessUnitDomainModule } from '@/modules/domain/business-unit/business-unit.module';
 import { UserDomainModule } from '@/modules/domain/user/user.module';
-import { BomGatewayController } from './bom/bom-gateway.controller';
-import { BomGatewayService } from './bom/services/bom-gateway.service';
 import { CatalogsGatewayController } from './catalogs/catalogs-gateway.controller';
 import { CatalogsGatewayService } from './catalogs/services/catalogs-gateway.service';
 import { CategoriesGatewayController } from './categories/categories-gateway.controller';
 import { CategoriesGatewayService } from './categories/services/categories-gateway.service';
-import { ConversionsGatewayController } from './conversions/conversions-gateway.controller';
-import { ConversionsGatewayService } from './conversions/services/conversions-gateway.service';
 import { CostCategoriesGatewayController } from './cost-categories/cost-categories-gateway.controller';
 import { CostCategoriesGatewayService } from './cost-categories/services/cost-categories-gateway.service';
 import { CreditNotesGatewayController } from './credit-notes/credit-notes-gateway.controller';
@@ -59,12 +55,10 @@ import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-
 @Module({
   imports: [BusinessUnitDomainModule, UserDomainModule],
   controllers: [
-    BomGatewayController,
     CategoriesGatewayController,
     InventoryItemLotsGatewayController,
     InventoryItemSerialsGatewayController,
     InventoryItemQuantsGatewayController,
-    ConversionsGatewayController,
     CostCategoriesGatewayController,
     CreditNotesGatewayController,
     CustomersGatewayController,
@@ -88,12 +82,10 @@ import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-
     UomDimensionsGatewayController,
   ],
   providers: [
-    BomGatewayService,
     CategoriesGatewayService,
     InventoryItemLotsGatewayService,
     InventoryItemSerialsGatewayService,
     InventoryItemQuantsGatewayService,
-    ConversionsGatewayService,
     CostCategoriesGatewayService,
     CreditNotesGatewayService,
     CustomersGatewayService,

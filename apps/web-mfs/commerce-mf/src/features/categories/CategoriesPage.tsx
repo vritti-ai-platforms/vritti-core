@@ -4,7 +4,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { Plus } from 'lucide-react';
+import { FolderTree, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { CATEGORIES_KEY, useCategoryCount } from '@/hooks/categories';
 import { CategoryDetailPanel, CategoryTreePanel } from './components';
@@ -35,6 +35,7 @@ export const CategoriesPage = () => {
 
       <Dialog
         handle={formDialog}
+        icon={FolderTree}
         title="Add Category"
         description="Enter the details for the new category."
         content={(close) => (

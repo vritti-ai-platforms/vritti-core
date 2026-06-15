@@ -1,5 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, DateCell, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateCell,
+  NumberCell,
+  RowActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Boxes, Eye, Plus } from 'lucide-react';
 import { useMemo } from 'react';
@@ -10,6 +17,7 @@ import { AddLotDialog } from '../forms/AddLotDialog';
 interface LotsTableProps {
   goodsReceiptId: string;
   itemId: string;
+  hasMrp: boolean;
   isDraft: boolean;
   uomSymbol: string | null;
   onSelectLot: (lotId: string) => void;
@@ -18,7 +26,7 @@ interface LotsTableProps {
 // Lots under a lot-tracked item. Reuses the lots list endpoint, adapted into DataTable server-state
 // shape so we get the shared skeleton, empty state, and row interactions. Clicking a row (or the View
 // action) drills into the lot, selecting it in the tree. Add is gated to draft receipts.
-export const LotsTable = ({ goodsReceiptId, itemId, isDraft, uomSymbol, onSelectLot }: LotsTableProps) => {
+export const LotsTable = ({ goodsReceiptId, itemId, hasMrp, isDraft, uomSymbol, onSelectLot }: LotsTableProps) => {
   const addLotDialog = useDialog();
 
   const { data: lots = [], isLoading } = useGoodsReceiptLots(goodsReceiptId, itemId);
@@ -109,7 +117,7 @@ export const LotsTable = ({ goodsReceiptId, itemId, isDraft, uomSymbol, onSelect
         }}
       />
 
-      <AddLotDialog goodsReceiptId={goodsReceiptId} itemId={itemId} handle={addLotDialog} />
+      <AddLotDialog goodsReceiptId={goodsReceiptId} itemId={itemId} hasMrp={hasMrp} handle={addLotDialog} />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
-import { ClipboardList, Plus } from 'lucide-react';
+import { ClipboardList, Plus, Truck } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSupplierContacts } from '@/hooks/suppliers';
 import { AddSupplierContactDialog } from '../forms/AddSupplierContactDialog';
@@ -72,6 +72,7 @@ export const SupplierContactsSidePanel = ({
 
       <Dialog
         handle={addContactDialog}
+        icon={Truck}
         title="Add Contact"
         description="Add a contact for this supplier."
         content={(close) => <AddSupplierContactDialog supplierId={supplierId} onSuccess={close} onCancel={close} />}

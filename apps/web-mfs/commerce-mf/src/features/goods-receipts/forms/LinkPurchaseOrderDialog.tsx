@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { PurchaseOrderSelector } from '@vritti/quantum-ui/selects/purchase-order';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -42,14 +43,14 @@ export const LinkPurchaseOrderDialog: React.FC<LinkPurchaseOrderDialogProps> = (
         placeholder="Select purchase order"
         params={{ status: 'CONFIRMED,PARTIALLY_RECEIVED', supplierId: goodsReceipt.supplierId }}
       />
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Linking...">
           Link Purchase Order
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

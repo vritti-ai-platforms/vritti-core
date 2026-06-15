@@ -30,6 +30,8 @@ import {
 } from '@/db/schema';
 import { GoodsReceiptItemQuantsDto } from '../dto/entity/goods-receipt-item-quants.dto';
 import { InventoryItemQuantDto, LocationStockDto } from '../dto/entity/inventory-item-quant.dto';
+import { LocationItemDto } from '../dto/entity/location-item.dto';
+import { LocationItemQuantDto } from '../dto/entity/location-item-quant.dto';
 import { InventoryItemCostsRepository } from '../repositories/inventory-item-costs.repository';
 import { InventoryItemQuantsRepository } from '../repositories/inventory-item-quants.repository';
 
@@ -69,6 +71,11 @@ export class InventoryItemQuantsService {
     locationId: { column: inventoryItemQuants.locationId, type: 'string' },
     lotId: { column: inventoryItemQuants.lotId, type: 'string' },
   };
+  // Search/sort for a location's grouped items table is on the joined inventory item name + code.
+  private static readonly LOCATION_ITEMS_FIELD_MAP: FieldMap = {
+    itemName: { column: inventoryItems.name, type: 'string' },
+    itemCode: { column: inventoryItems.code, type: 'string' },
+  };
 
   constructor(
     private readonly database: PrimaryDatabaseService,
@@ -90,6 +97,35 @@ export class InventoryItemQuantsService {
   async findCostsByGrItemId(grItemId: string): Promise<GoodsReceiptItemQuantsDto> {
     const rows = await this.repository.findCostsByGrItemId(grItemId);
     return GoodsReceiptItemQuantsDto.from(rows);
+  }
+
+  // Returns a location's stocked items (grouped, non-zero), table-shaped with FilterProcessor search/sort.
+  async findItemsForLocationTable(
+    locationId: string,
+    state: TableViewState,
+  ): Promise<{ result: LocationItemDto[]; count: number }> {
+    this.logger.log(`findItemsForLocationTable — locationId=${locationId}`);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemQuantsService.LOCATION_ITEMS_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemQuantsService.LOCATION_ITEMS_FIELD_MAP);
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsService.LOCATION_ITEMS_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findItemsForLocation(locationId, {
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : undefined,
+      limit,
+      offset,
+    });
+
+    return { result: result.map((row) => LocationItemDto.from(row)), count };
+  }
+
+  // Returns the per-quant breakdown for a single item within a location.
+  async findItemBreakdownForLocation(locationId: string, itemId: string): Promise<LocationItemQuantDto[]> {
+    this.logger.log(`findItemBreakdownForLocation — locationId=${locationId}, itemId=${itemId}`);
+    const rows = await this.repository.findItemBreakdownForLocation(locationId, itemId);
+    return rows.map((row) => LocationItemQuantDto.from(row));
   }
 
   // Creates a new quant in its own transaction and writes the ledger entry. Tracking-aware.
@@ -182,7 +218,7 @@ export class InventoryItemQuantsService {
 
       const lotId = params.lotId ?? null;
 
-      // Merge only into a quant with the SAME unit cost — different cost ⇒ separate cost batch.
+      // Merge only into a quant with the SAME unit cost — a different cost ⇒ separate segment.
       const existing = await this.repository.findByItemLocationLotCost(
         params.inventoryItemId,
         params.locationId,

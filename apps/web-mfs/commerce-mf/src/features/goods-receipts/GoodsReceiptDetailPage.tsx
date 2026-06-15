@@ -5,7 +5,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { CheckCircle, Link2, Unlink } from 'lucide-react';
+import { CheckCircle, Link2, PackageCheck, Unlink } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -135,11 +135,10 @@ export const GoodsReceiptDetailPage = () => {
 
       <Dialog
         handle={linkPoDialog}
+        icon={PackageCheck}
         title="Link Purchase Order"
         description={`Attach a confirmed PO from ${receipt.supplierName} to this goods receipt.`}
-        content={(close) => (
-          <LinkPurchaseOrderDialog goodsReceipt={receipt} onSuccess={close} onCancel={close} />
-        )}
+        content={(close) => <LinkPurchaseOrderDialog goodsReceipt={receipt} onSuccess={close} onCancel={close} />}
       />
     </div>
   );

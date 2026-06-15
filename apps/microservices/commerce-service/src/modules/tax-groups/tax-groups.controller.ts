@@ -2,7 +2,13 @@ import type { TaxGroupDto } from '@domain/tax-groups/dto/entity/tax-group.dto';
 import { TaxGroupsService } from '@domain/tax-groups/services/tax-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto } from '@vritti/api-sdk';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+  TableViewState,
+} from '@vritti/api-sdk';
 import type { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
 
@@ -12,16 +18,23 @@ export class TaxGroupsController {
 
   constructor(private readonly taxGroupsService: TaxGroupsService) {}
 
-  // Lists all tax groups (RLS scopes to org + BU ancestors)
-  @MessagePattern({ cmd: 'taxGroups.list' })
-  async list(): Promise<TaxGroupDto[]> {
-    this.logger.log('taxGroups.list');
-    return this.taxGroupsService.list();
+  // Returns a paginated page of tax groups for the data table
+  @MessagePattern({ cmd: 'taxGroups.table' })
+  async table(@Payload() state: TableViewState): Promise<{ result: TaxGroupDto[]; count: number }> {
+    this.logger.log('taxGroups.table');
+    return this.taxGroupsService.findForTable(state);
+  }
+
+  // Returns tax groups as dropdown options
+  @MessagePattern({ cmd: 'taxGroups.select' })
+  async select(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('taxGroups.select');
+    return this.taxGroupsService.findForSelect(query);
   }
 
   // Creates a new tax group (org_id/bu_id auto-filled by DB defaults from session vars)
   @MessagePattern({ cmd: 'taxGroups.create' })
-  async create(@Payload() dto: CreateTaxGroupDto): Promise<TaxGroupDto> {
+  async create(@Payload() dto: CreateTaxGroupDto): Promise<CreateResponseDto<TaxGroupDto>> {
     this.logger.log(`taxGroups.create — name: ${dto.name}`);
     return this.taxGroupsService.create(dto);
   }
@@ -35,7 +48,7 @@ export class TaxGroupsController {
 
   // Updates a tax group by ID
   @MessagePattern({ cmd: 'taxGroups.update' })
-  async update(@Payload() data: { id: string } & UpdateTaxGroupDto): Promise<TaxGroupDto> {
+  async update(@Payload() data: { id: string } & UpdateTaxGroupDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`taxGroups.update — id: ${id}`);
     return this.taxGroupsService.update(id, updateData);

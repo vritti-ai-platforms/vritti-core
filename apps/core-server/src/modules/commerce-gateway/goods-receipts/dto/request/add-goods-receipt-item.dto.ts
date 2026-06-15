@@ -80,6 +80,11 @@ export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
 
+  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Printed MRP per primary unit (BU currency)', nullable: true })
+  @IsOptional()
+  @IsCurrency()
+  mrp?: CurrencyAmountDto | null;
+
   @ApiPropertyOptional({ description: 'Free-goods scheme buy qty (e.g. 9 in "9+1"). Prefilled from the PO line.' })
   @IsOptional()
   @IsNumber()

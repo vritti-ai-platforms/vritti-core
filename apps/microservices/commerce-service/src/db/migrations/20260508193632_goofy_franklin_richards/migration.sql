@@ -1,2 +1,0 @@
-ALTER TABLE "vritti_core"."categories" ADD COLUMN "path_breadcrumb" text GENERATED ALWAYS AS (vritti_core.format_ltree_path(path)) STORED;--> statement-breakpoint
-ALTER TABLE "vritti_core"."locations" ADD COLUMN "path_breadcrumb" text GENERATED ALWAYS AS (vritti_core.format_ltree_path(path)) STORED;

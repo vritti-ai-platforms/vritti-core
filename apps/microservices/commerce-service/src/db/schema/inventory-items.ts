@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, boolean, index, jsonb, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { categories } from './categories';
 import { coreSchema } from './core-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
@@ -10,8 +10,8 @@ export const inventoryItems = coreSchema.table(
   'inventory_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     type: inventoryItemTypeEnum('type').notNull(),
@@ -24,8 +24,13 @@ export const inventoryItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
-    purchaseTaxGroupId: uuid('purchase_tax_group_id').references(() => taxGroups.id),
+    purchaseTaxGroupId: uuid('purchase_tax_group_id')
+      .notNull()
+      .references(() => taxGroups.id),
     hsnCode: varchar('hsn_code', { length: 20 }),
+    hasMrp: boolean('has_mrp').notNull().default(false),
+    mrpUomId: uuid('mrp_uom_id').references(() => uom.id),
+    defaultMrp: bigint('default_mrp', { mode: 'bigint' }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

@@ -135,6 +135,7 @@ export const addSupplierItemSchema = z
     minOrderQuantity: zodNumericField({ integer: true, positive: true }).optional(),
     leadTimeDays: zodNumericField({ integer: true, positive: true }).optional(),
     isPreferred: z.boolean().optional(),
+    taxInclusive: z.boolean(),
     ...supplierSchemeShape,
   })
   .superRefine(enforceSchemeRatio);
@@ -148,6 +149,7 @@ export const updateSupplierItemSchema = z
     leadTimeDays: zodNumericField({ integer: true, positive: true, nullable: true }).optional(),
     isPreferred: z.boolean().optional(),
     isActive: z.boolean().optional(),
+    taxInclusive: z.boolean(),
     ...supplierSchemeShape,
   })
   .superRefine(enforceSchemeRatio);
@@ -193,6 +195,7 @@ export interface SupplierItemData {
   leadTimeDays: number | null;
   isPreferred: boolean;
   isActive: boolean;
+  taxInclusive: boolean;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   hasScheme: boolean;

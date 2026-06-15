@@ -1,10 +1,15 @@
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
-import type { CreateTaxGroupData, TaxGroupData, UpdateTaxGroupData } from '@/schemas/tax-groups';
+import type {
+  CreateTaxGroupData,
+  TaxGroupData,
+  TaxGroupsTableResponse,
+  UpdateTaxGroupData,
+} from '@/schemas/tax-groups';
 
-// Fetches all tax groups visible for the current BU context
-export function listTaxGroups(): Promise<TaxGroupData[]> {
-  return axios.get<TaxGroupData[]>('commerce-api/tax-groups').then((r) => r.data);
+// Fetches the current page of tax groups for the data table (server-state, BU-scoped via RLS)
+export function getTaxGroupsTable(): Promise<TaxGroupsTableResponse> {
+  return axios.get<TaxGroupsTableResponse>('commerce-api/tax-groups/table').then((r) => r.data);
 }
 
 // Fetches one tax group by ID
@@ -13,13 +18,13 @@ export function getTaxGroup(id: string): Promise<TaxGroupData> {
 }
 
 // Creates a new tax group
-export function createTaxGroup(data: CreateTaxGroupData): Promise<TaxGroupData> {
-  return axios.post<TaxGroupData>('commerce-api/tax-groups', data).then((r) => r.data);
+export function createTaxGroup(data: CreateTaxGroupData): Promise<CreateResponse<TaxGroupData>> {
+  return axios.post<CreateResponse<TaxGroupData>>('commerce-api/tax-groups', data).then((r) => r.data);
 }
 
 // Updates a tax group by ID
-export function updateTaxGroup({ id, data }: { id: string; data: UpdateTaxGroupData }): Promise<TaxGroupData> {
-  return axios.patch<TaxGroupData>(`commerce-api/tax-groups/${id}`, data).then((r) => r.data);
+export function updateTaxGroup({ id, data }: { id: string; data: UpdateTaxGroupData }): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`commerce-api/tax-groups/${id}`, data).then((r) => r.data);
 }
 
 // Deletes a tax group by ID

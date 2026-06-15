@@ -22,8 +22,8 @@ export const suppliers = coreSchema.table(
   'suppliers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
@@ -81,8 +81,8 @@ export const supplierContacts = coreSchema.table(
   'supplier_contacts',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id, { onDelete: 'cascade' }),
@@ -135,7 +135,7 @@ export const supplierItems = coreSchema.table(
   'supplier_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     // No inline .references() on supplier_id — the composite FK below covers it. A single-column
     // FK in addition to the composite would conflict on the delete action.
     supplierId: uuid('supplier_id').notNull(),
@@ -154,6 +154,9 @@ export const supplierItems = coreSchema.table(
     schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
     schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
     hasScheme: boolean('has_scheme').notNull().default(false),
+    // How this supplier quotes the unit price. Mirrors catalogs.taxInclusive on the sale side.
+    // false (default) = B2B/exclusive is the norm.
+    taxInclusive: boolean('tax_inclusive').notNull().default(false),
     isPreferred: boolean('is_preferred').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

@@ -26,16 +26,17 @@ export class GoodsReceiptLotsService {
     private readonly inventoryItemLotsService: InventoryItemLotsService,
   ) {}
 
-  async listByItem(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLotDto[]> {
+  async listByItem(goodsReceiptId: string, itemId: string, buCurrencyCode?: string): Promise<GoodsReceiptLotDto[]> {
     await this.ensureItem(goodsReceiptId, itemId);
     const rows = await this.repository.findByItemId(itemId);
-    return rows.map(GoodsReceiptLotDto.from);
+    return rows.map((row) => GoodsReceiptLotDto.from(row, buCurrencyCode));
   }
 
   async addLot(
     goodsReceiptId: string,
     itemId: string,
-    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string },
+    data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
+    buCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     const { receipt, item } = await this.ensureItem(goodsReceiptId, itemId);
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
@@ -77,6 +78,7 @@ export class GoodsReceiptLotsService {
       lotNumber,
       manufacturingDate: data.manufacturingDate ?? null,
       expiryDate: data.expiryDate,
+      mrp: data.mrp ?? null,
     });
 
     this.logger.log(`Added lot ${lotNumber} to goods-receipt-item ${itemId}`);
@@ -87,7 +89,7 @@ export class GoodsReceiptLotsService {
     return {
       success: true,
       message: `Lot "${lotNumber}" added successfully.`,
-      data: GoodsReceiptLotDto.from(refreshed),
+      data: GoodsReceiptLotDto.from(refreshed, buCurrencyCode),
     };
   }
 
@@ -95,7 +97,8 @@ export class GoodsReceiptLotsService {
     goodsReceiptId: string,
     itemId: string,
     lotId: string,
-    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string },
+    data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string; mrp?: bigint | null },
+    buCurrencyCode?: string,
   ): Promise<GoodsReceiptLotDto> {
     const { receipt, item } = await this.ensureItem(goodsReceiptId, itemId);
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
@@ -131,11 +134,12 @@ export class GoodsReceiptLotsService {
       ...(data.lotNumber !== undefined ? { lotNumber: data.lotNumber.trim() } : {}),
       ...(data.manufacturingDate !== undefined ? { manufacturingDate: data.manufacturingDate ?? null } : {}),
       ...(data.expiryDate !== undefined ? { expiryDate: data.expiryDate } : {}),
+      ...(data.mrp !== undefined ? { mrp: data.mrp } : {}),
     });
 
     const refreshed = (await this.repository.findByItemId(itemId)).find((r) => r.id === lotId);
     if (!refreshed) throw new NotFoundException('Lot not found after update.');
-    return GoodsReceiptLotDto.from(refreshed);
+    return GoodsReceiptLotDto.from(refreshed, buCurrencyCode);
   }
 
   async removeLot(goodsReceiptId: string, itemId: string, lotId: string): Promise<SuccessResponseDto> {

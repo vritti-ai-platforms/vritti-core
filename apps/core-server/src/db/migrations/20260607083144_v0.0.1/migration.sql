@@ -1,0 +1,1 @@
+CREATE INDEX "business_units_path_idx" ON "vritti_core"."business_units" USING gist ("path");

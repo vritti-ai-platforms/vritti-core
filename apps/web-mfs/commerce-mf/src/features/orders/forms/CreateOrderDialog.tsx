@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select } from '@vritti/quantum-ui/Select';
@@ -86,14 +87,14 @@ export const CreateOrderDialog: React.FC<CreateOrderDialogProps> = ({ onSuccess,
         <TextField name="deliveryCharge" label="Delivery Charge" type="number" placeholder="0" />
         <TextField name="discountAmount" label="Discount" type="number" placeholder="0" />
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Create Order
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

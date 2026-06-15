@@ -39,11 +39,6 @@ export class CreateLocationDto {
   @IsUUID()
   managerId?: string;
 
-  @ApiPropertyOptional({ description: 'Location address' })
-  @IsOptional()
-  @IsString()
-  address?: string;
-
   @ApiProperty({
     description: 'Location role',
     enum: Object.values(LocationRoleValues),

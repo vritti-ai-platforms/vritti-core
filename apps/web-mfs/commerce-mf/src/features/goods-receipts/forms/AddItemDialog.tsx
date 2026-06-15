@@ -1,6 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { minorToMajor } from '@vritti/quantum-ui/money';
@@ -10,6 +10,7 @@ import { PurchaseOrderItemSelector } from '@vritti/quantum-ui/selects/purchase-o
 import { SupplierItemSelector } from '@vritti/quantum-ui/selects/supplier-item';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { PackageCheck } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FreeQtyPreview } from '@/components/FreeQtyPreview';
@@ -147,12 +148,12 @@ const SupplierItemForm = ({
           </div>
         </FormSection>
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit">Add Item</Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -279,12 +280,12 @@ const PurchaseOrderItemForm = ({
           </div>
         </FormSection>
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit">Add Item</Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -299,6 +300,7 @@ export const AddItemDialog = ({
   <Dialog
     handle={handle}
     className="max-w-3xl"
+    icon={PackageCheck}
     title="Add Item"
     description={poId ? 'Add an item from the linked purchase order.' : 'Add an item to this goods receipt.'}
     content={(close) =>

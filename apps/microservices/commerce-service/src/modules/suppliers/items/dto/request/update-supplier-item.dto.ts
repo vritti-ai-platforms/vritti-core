@@ -48,4 +48,9 @@ export class UpdateSupplierItemDto {
   @IsOptional()
   @IsBoolean()
   hasScheme?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  taxInclusive?: boolean;
 }

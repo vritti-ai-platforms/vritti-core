@@ -114,7 +114,12 @@ export class StockAdjustmentsGatewayService {
     dto: AddStockAdjustmentLotDto,
   ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${adjustmentId}`);
-    return this.nats.send('commerce', 'stockAdjustments.addLot', { adjustmentId, ...dto });
+    const { mrp, ...rest } = dto;
+    return this.nats.send('commerce', 'stockAdjustments.addLot', {
+      adjustmentId,
+      ...rest,
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+    });
   }
 
   async updateLot(
@@ -123,7 +128,13 @@ export class StockAdjustmentsGatewayService {
     dto: UpdateStockAdjustmentLotDto,
   ): Promise<StockAdjustmentLotResponseDto> {
     this.logger.log(`stockAdjustments.updateLot — lot: ${lotId}`);
-    return this.nats.send('commerce', 'stockAdjustments.updateLot', { adjustmentId, lotId, ...dto });
+    const { mrp, ...rest } = dto;
+    return this.nats.send('commerce', 'stockAdjustments.updateLot', {
+      adjustmentId,
+      lotId,
+      ...rest,
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+    });
   }
 
   async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {

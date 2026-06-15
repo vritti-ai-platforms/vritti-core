@@ -1,7 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, DateCell, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateCell,
+  NumberCell,
+  RowActions,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
@@ -137,6 +144,7 @@ export const StockTransfersPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={ArrowRightLeft}
         title="Create Stock Transfer"
         description="Transfer inventory from one location to another."
         content={(close) => <CreateStockTransferDialog onSuccess={close} onCancel={close} />}

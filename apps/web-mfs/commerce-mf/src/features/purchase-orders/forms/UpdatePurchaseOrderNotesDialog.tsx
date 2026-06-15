@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -43,14 +44,14 @@ export const UpdatePurchaseOrderNotesDialog: React.FC<UpdatePurchaseOrderNotesDi
       })}
     >
       <TextArea name="notes" label="Notes" placeholder="Add notes" />
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Updating...">
           Update Notes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

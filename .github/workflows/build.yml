@@ -6,7 +6,12 @@ name: Build & Push
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      all:
+        description: 'Build ALL apps (ignore nx affected)'
+        type: boolean
+        default: false
 
 concurrency:
   group: build-${{ github.ref }}
@@ -37,9 +42,15 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
       - id: aff
         run: |
-          PROJECTS=$(pnpm exec nx show projects --affected --type app --json)
+          # Manual "Build ALL" toggle bypasses nx affected (forces every app to build).
+          if [ "${{ inputs.all }}" = "true" ]; then
+            PROJECTS=$(pnpm exec nx show projects --type app --json)
+            echo "Forcing ALL apps: $PROJECTS"
+          else
+            PROJECTS=$(pnpm exec nx show projects --affected --type app --json)
+            echo "Affected apps: $PROJECTS"
+          fi
           echo "projects=$PROJECTS" >> "$GITHUB_OUTPUT"
-          echo "Affected apps: $PROJECTS"
 
   core-server:
     needs: affected
@@ -71,6 +82,7 @@ jobs:
       app_name: core-web
       build_command: pnpm exec nx build vritti-core-web
       output_dir: apps/core-web/dist
+      package_json_path: apps/core-web/package.json
       production_domain: https://dev.vrittiai.com
       # core-web is the HOST — bake where it loads remotes from (served by the mf.dev nginx block)
       mf_base_url: https://mf.dev.vrittiai.com
@@ -85,5 +97,6 @@ jobs:
       app_name: commerce-mf
       build_command: pnpm exec nx build commerce-mf
       output_dir: apps/web-mfs/commerce-mf/dist
+      package_json_path: apps/web-mfs/commerce-mf/package.json
       production_domain: https://dev.vrittiai.com
     secrets: inherit

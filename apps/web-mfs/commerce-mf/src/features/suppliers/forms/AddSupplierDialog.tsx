@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Select } from '@vritti/quantum-ui/Select';
@@ -86,7 +87,14 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
               clearable
             />
             <TextField name="paymentTerms" label="Payment Terms" placeholder="e.g. Net 30" />
-            <TextField name="leadTimeDays" label="Lead Time (days)" type="number" placeholder="e.g. 7" integer positive />
+            <TextField
+              name="leadTimeDays"
+              label="Lead Time (days)"
+              type="number"
+              placeholder="e.g. 7"
+              integer
+              positive
+            />
             <div className="sm:col-span-2">
               <TextArea name="address" label="Address" placeholder="Full postal address" />
             </div>
@@ -112,14 +120,14 @@ export const AddSupplierDialog: React.FC<AddSupplierDialogProps> = ({ onSuccess,
           </div>
         </FormSection>
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Add Supplier
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

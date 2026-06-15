@@ -1,5 +1,6 @@
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -59,14 +60,14 @@ export const SetSupplierItemSchemeDialog: React.FC<SetSupplierItemSchemeDialogPr
           </div>
         )}
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Set Scheme
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

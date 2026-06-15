@@ -43,4 +43,7 @@ export class SupplierItemResponseDto {
 
   @ApiProperty({ description: 'Whether a free-goods scheme applies.' })
   hasScheme: boolean;
+
+  @ApiProperty({ description: 'Whether the unit price is quoted tax-inclusive.' })
+  taxInclusive: boolean;
 }

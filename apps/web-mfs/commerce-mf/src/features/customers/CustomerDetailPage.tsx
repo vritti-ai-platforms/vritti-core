@@ -4,7 +4,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Pencil } from 'lucide-react';
+import { Pencil, Users } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer, useDeleteCustomer } from '@/hooks/customers';
@@ -58,6 +58,7 @@ export const CustomerDetailPage = () => {
 
       <Dialog
         handle={editDialog}
+        icon={Users}
         title="Edit Customer"
         description="Update the customer details."
         className="max-w-3xl"

@@ -22,7 +22,7 @@ import { variantOptions, variantOptionValues } from './variant-options';
 export const offeringOptions = coreSchema.table(
   'offering_options',
   {
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     offeringId: uuid('offering_id')
       .notNull()
       .references(() => offerings.id, { onDelete: 'cascade' }),
@@ -44,7 +44,7 @@ export const offeringVariants = coreSchema.table(
   'offering_variants',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     offeringId: uuid('offering_id').notNull(),
     sku: varchar('sku', { length: 100 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
@@ -70,7 +70,7 @@ export type NewOfferingVariant = typeof offeringVariants.$inferInsert;
 export const offeringVariantOptionValues = coreSchema.table(
   'offering_variant_option_values',
   {
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     offeringVariantId: uuid('offering_variant_id').notNull(),
     variantOptionValueId: uuid('variant_option_value_id')
       .notNull()
@@ -88,7 +88,7 @@ export type NewOfferingVariantOptionValue = typeof offeringVariantOptionValues.$
 export const offeringVariantComponents = coreSchema.table(
   'offering_variant_components',
   {
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
     offeringVariantId: uuid('offering_variant_id')
       .notNull()
       .references(() => offeringVariants.id, { onDelete: 'cascade' }),

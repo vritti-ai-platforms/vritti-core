@@ -12,6 +12,8 @@ import type { ReorderCategoriesDto } from '../dto/request/reorder-categories.dto
 import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
 import type { CategoryChildrenTableResponseDto } from '../dto/response/category-children-table-response.dto';
 import type { CategoryCountResponseDto } from '../dto/response/category-count-response.dto';
+import type { CategoryItemResponseDto } from '../dto/response/category-item-response.dto';
+import type { CategoryItemTableResponseDto } from '../dto/response/category-item-table-response.dto';
 import type { CategoryResponseDto } from '../dto/response/category-response.dto';
 import type { CategoryTreeResponseDto } from '../dto/response/category-tree-response.dto';
 
@@ -51,6 +53,22 @@ export class CategoriesGatewayService {
       'commerce',
       'categories.childrenTable',
       { parentId, ...state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns paginated inventory items for a leaf category (Redis-backed table state)
+  async findItemsForTable(userId: string, categoryId: string): Promise<CategoryItemTableResponseDto> {
+    this.logger.log(`categories.itemsTable — categoryId: ${categoryId}`);
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      `category-${categoryId}-items`,
+    );
+    const { result, count } = await this.nats.send<{ result: CategoryItemResponseDto[]; count: number }>(
+      'commerce',
+      'categories.itemsTable',
+      { categoryId, ...state },
     );
 
     return { result, count, state, activeViewId };

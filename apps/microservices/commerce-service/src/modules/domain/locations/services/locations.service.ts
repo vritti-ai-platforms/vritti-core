@@ -99,7 +99,7 @@ export class LocationsService {
     const childrenMap = new Map<string | null, LocationTreeDto[]>();
     for (const row of rows) {
       const siblings = childrenMap.get(row.parentId) ?? [];
-      siblings.push({ id: row.id, name: row.name, path: row.path });
+      siblings.push({ id: row.id, name: row.name, locationRole: row.locationRole });
       childrenMap.set(row.parentId, siblings);
     }
 
@@ -248,7 +248,6 @@ export class LocationsService {
         sortOrder: data.sortOrder ?? 1,
         area: data.area || null,
         managerId: data.managerId ?? null,
-        address: data.address || null,
         locationRole: data.locationRole,
         isActive: data.isActive,
       });
@@ -306,7 +305,6 @@ export class LocationsService {
         ...data,
         parentId: nextParentId,
         area: data.area !== undefined ? data.area || null : undefined,
-        address: data.address !== undefined ? data.address || null : undefined,
       });
 
       if (parentChanged || codeChanged) {

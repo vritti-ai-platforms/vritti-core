@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -62,14 +63,14 @@ export const EditModifierGroupForm: React.FC<EditModifierGroupFormProps> = ({
       <Switch name="isRequired" label="Required" description="Customers must select from this group when ordering" />
       <TextField name="minSelections" label="Min Selections" type="number" placeholder="0" />
       <TextField name="maxSelections" label="Max Selections" type="number" placeholder="Leave empty for unlimited" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save Changes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

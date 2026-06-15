@@ -192,6 +192,7 @@ export class SupplierItemsService {
         schemeBuyQty: data.schemeBuyQty ?? null,
         schemeFreeQty: data.schemeFreeQty ?? null,
         hasScheme: data.hasScheme ?? false,
+        taxInclusive: data.taxInclusive ?? false,
       }),
       this.repository.findUomSymbol(data.uomId),
     ]);
@@ -229,6 +230,7 @@ export class SupplierItemsService {
     if (data.schemeBuyQty !== undefined) update.schemeBuyQty = data.schemeBuyQty;
     if (data.schemeFreeQty !== undefined) update.schemeFreeQty = data.schemeFreeQty;
     if (data.hasScheme !== undefined) update.hasScheme = data.hasScheme;
+    if (data.taxInclusive !== undefined) update.taxInclusive = data.taxInclusive;
 
     if (data.unitPrice) {
       if (data.unitPrice.currency !== supplier.currencyCode) {

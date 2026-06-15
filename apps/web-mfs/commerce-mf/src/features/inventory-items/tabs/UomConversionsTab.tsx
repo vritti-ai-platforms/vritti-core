@@ -3,7 +3,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ArrowLeftRight, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import {
@@ -112,7 +112,8 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
     label: 'conversion',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId)] }),
+    onStatePush: () =>
+      queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId)] }),
   });
 
   return (
@@ -143,6 +144,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
 
       <Dialog
         handle={addDialog}
+        icon={Package}
         title="Add UOM Conversion"
         description="Specify a conversion factor for this inventory item."
         content={(close) => (

@@ -1,6 +1,7 @@
 import { broadcastQueryClient } from '@tanstack/query-broadcast-client-experimental';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ConfirmProvider, LayoutModeProvider } from '@vritti/quantum-ui/context';
+import { ConfirmHost } from '@vritti/quantum-ui/components/ConfirmHost';
+import { LayoutModeProvider } from '@vritti/quantum-ui/context';
 import { QueryErrorBoundary } from '@vritti/quantum-ui/ErrorBoundary';
 import { Toaster } from '@vritti/quantum-ui/Sonner';
 import { ThemeProvider } from '@vritti/quantum-ui/theme';
@@ -31,9 +32,8 @@ const App = () => {
             <LayoutModeProvider>
               <AuthProvider>
                 <PermissionProvider>
-                  <ConfirmProvider>
-                    <AppRender />
-                  </ConfirmProvider>
+                  <ConfirmHost />
+                  <AppRender />
                 </PermissionProvider>
               </AuthProvider>
             </LayoutModeProvider>

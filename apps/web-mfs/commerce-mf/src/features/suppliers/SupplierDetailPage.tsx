@@ -4,7 +4,7 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
-import { Pencil, RefreshCw } from 'lucide-react';
+import { Pencil, RefreshCw, Truck } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteSupplier, useSupplier, useSupplierInventoryItemIds } from '@/hooks/suppliers';
@@ -52,7 +52,12 @@ export const SupplierDetailPage = () => {
             >
               Change Currency
             </Button>
-            <Button variant="outline" size="sm" startAdornment={<Pencil className="size-4" />} onClick={editDialog.open}>
+            <Button
+              variant="outline"
+              size="sm"
+              startAdornment={<Pencil className="size-4" />}
+              onClick={editDialog.open}
+            >
               Edit
             </Button>
           </div>
@@ -69,12 +74,7 @@ export const SupplierDetailPage = () => {
           {
             value: 'items',
             label: `Items (${supplierInventoryItemIds.length})`,
-            content: (
-              <ItemsTab
-                supplierId={supplier.id}
-                supplierCurrencyCode={supplier.currencyCode}
-              />
-            ),
+            content: <ItemsTab supplierId={supplier.id} supplierCurrencyCode={supplier.currencyCode} />,
           },
           {
             value: 'contacts',
@@ -88,6 +88,7 @@ export const SupplierDetailPage = () => {
 
       <Dialog
         handle={editDialog}
+        icon={Truck}
         title="Edit Supplier"
         description="Update the supplier details."
         className="max-w-3xl"
@@ -96,6 +97,7 @@ export const SupplierDetailPage = () => {
 
       <Dialog
         handle={changeCurrencyDialog}
+        icon={Truck}
         title="Change Supplier Currency"
         description="Reprices all catalog items using the provided conversion rate."
         content={(close) => (

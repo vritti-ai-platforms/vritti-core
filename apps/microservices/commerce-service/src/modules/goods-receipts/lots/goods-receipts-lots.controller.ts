@@ -2,6 +2,7 @@ import type { GoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/entity/g
 import { GoodsReceiptLotsService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
 
 @Controller()
@@ -11,9 +12,12 @@ export class GoodsReceiptsLotsController {
   constructor(private readonly service: GoodsReceiptLotsService) {}
 
   @MessagePattern({ cmd: 'goodsReceipts.lots' })
-  lots(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptLotDto[]> {
+  lots(
+    @Payload() data: { goodsReceiptId: string; itemId: string },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<GoodsReceiptLotDto[]> {
     this.logger.log(`goodsReceipts.lots — item: ${data.itemId}`);
-    return this.service.listByItem(data.goodsReceiptId, data.itemId);
+    return this.service.listByItem(data.goodsReceiptId, data.itemId, buCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.addLot' })
@@ -25,14 +29,22 @@ export class GoodsReceiptsLotsController {
       lotNumber: string;
       manufacturingDate?: string | null;
       expiryDate: string;
+      mrp?: string | null;
     },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     this.logger.log(`goodsReceipts.addLot — item: ${data.itemId}`);
-    return this.service.addLot(data.goodsReceiptId, data.itemId, {
-      lotNumber: data.lotNumber,
-      manufacturingDate: data.manufacturingDate,
-      expiryDate: data.expiryDate,
-    });
+    return this.service.addLot(
+      data.goodsReceiptId,
+      data.itemId,
+      {
+        lotNumber: data.lotNumber,
+        manufacturingDate: data.manufacturingDate,
+        expiryDate: data.expiryDate,
+        mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
+      },
+      buCurrencyCode,
+    );
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.updateLot' })
@@ -45,14 +57,23 @@ export class GoodsReceiptsLotsController {
       lotNumber?: string;
       manufacturingDate?: string | null;
       expiryDate?: string;
+      mrp?: string | null;
     },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
   ): Promise<GoodsReceiptLotDto> {
     this.logger.log(`goodsReceipts.updateLot — lot: ${data.lotId}`);
-    return this.service.updateLot(data.goodsReceiptId, data.itemId, data.lotId, {
-      lotNumber: data.lotNumber,
-      manufacturingDate: data.manufacturingDate,
-      expiryDate: data.expiryDate,
-    });
+    return this.service.updateLot(
+      data.goodsReceiptId,
+      data.itemId,
+      data.lotId,
+      {
+        lotNumber: data.lotNumber,
+        manufacturingDate: data.manufacturingDate,
+        expiryDate: data.expiryDate,
+        mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
+      },
+      buCurrencyCode,
+    );
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.removeLot' })

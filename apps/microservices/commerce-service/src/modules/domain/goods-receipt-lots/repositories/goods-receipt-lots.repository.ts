@@ -25,6 +25,7 @@ export class GoodsReceiptLotsRepository extends PrimaryBaseRepository<typeof goo
         manufacturingDate: goodsReceiptLots.manufacturingDate,
         expiryDate: goodsReceiptLots.expiryDate,
         resolvedLotId: goodsReceiptLots.resolvedLotId,
+        mrp: goodsReceiptLots.mrp,
         metadata: goodsReceiptLots.metadata,
         createdAt: goodsReceiptLots.createdAt,
         updatedAt: goodsReceiptLots.updatedAt,

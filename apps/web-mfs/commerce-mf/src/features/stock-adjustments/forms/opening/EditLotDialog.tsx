@@ -1,10 +1,11 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { ClipboardMinus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useUpdateStockAdjustmentLot } from '@/hooks/stock-adjustments';
 import {
@@ -57,14 +58,14 @@ const EditLotForm = ({
       <DatePicker name="manufacturingDate" label="Manufacturing Date" maxDate={mfgMaxDate} />
       <DatePicker name="expiryDate" label="Expiry Date" minDate={expiryMinDate} />
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -80,6 +81,7 @@ export const EditLotDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={ClipboardMinus}
     title="Edit Lot"
     description="Update this lot's number or dates."
     content={(close) =>

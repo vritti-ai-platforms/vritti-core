@@ -26,7 +26,6 @@ const _locationSchema = z.object({
   isActive: z.boolean(),
   area: z.string().max(100).optional().or(z.literal('')),
   managerId: z.string().max(100).optional().or(z.literal('')),
-  address: z.string().max(500).optional().or(z.literal('')),
 });
 
 export type LocationFormData = {
@@ -38,7 +37,6 @@ export type LocationFormData = {
   isActive: boolean;
   area: string;
   managerId: string;
-  address: string;
 };
 export const locationFormResolver = zodResolver(_locationSchema) as unknown as Resolver<LocationFormData>;
 export type CreateLocationResponse = CreateResponse<LocationData>;
@@ -50,12 +48,12 @@ export interface LocationData {
   name: string;
   code: string;
   parentId: string | null;
+  parentName: string | null;
   path: string;
   sortOrder: number;
   locationRole: LocationRole;
   area: string | null;
   managerId: string | null;
-  address: string | null;
   isActive: boolean;
   canDelete: boolean;
   createdAt: string;
@@ -65,7 +63,7 @@ export interface LocationData {
 export interface LocationTreeNode {
   id: string;
   name: string;
-  path: string[];
+  locationRole: LocationRole;
   children?: LocationTreeNode[];
 }
 
@@ -75,6 +73,29 @@ export interface LocationCountData {
 
 export type LocationChildrenTableResponse = TableResponse<LocationData>;
 
+export interface LocationItemRow {
+  inventoryItemId: string;
+  itemName: string;
+  itemCode: string;
+  uomSymbol: string | null;
+  totalQuantity: number;
+  availableQuantity: number;
+  totalValue: { currency: string; value: string } | null;
+  batchCount: number;
+}
+
+export interface LocationItemQuantRow {
+  quantId: string;
+  lotNumber: string | null;
+  expiryDate: string | null;
+  quantity: number;
+  availableQuantity: number;
+  unitCost: { currency: string; value: string } | null;
+  quantValue: { currency: string; value: string } | null;
+}
+
+export type LocationItemsTableResponse = TableResponse<LocationItemRow>;
+
 export interface ReorderLocationsData {
   parentId: string | null;
   orderedIds: string[];
@@ -83,6 +104,6 @@ export interface ReorderLocationsData {
 export type UpdateLocationData = Partial<
   Pick<
     LocationFormData,
-    'name' | 'code' | 'parentId' | 'sortOrder' | 'locationRole' | 'isActive' | 'area' | 'managerId' | 'address'
+    'name' | 'code' | 'parentId' | 'sortOrder' | 'locationRole' | 'isActive' | 'area' | 'managerId'
   >
 >;

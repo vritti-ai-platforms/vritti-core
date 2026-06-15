@@ -5,7 +5,7 @@ import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { CheckCircle2, Pencil, Trash2, UserCircle2 } from 'lucide-react';
+import { CheckCircle2, Pencil, Trash2, Truck, UserCircle2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { useDeleteSupplierContact, useMarkPrimarySupplierContact, useSupplierContacts } from '@/hooks/suppliers';
 import { EditSupplierContactDialog } from '../forms/EditSupplierContactDialog';
@@ -131,6 +131,7 @@ export const SupplierContactsContent = ({
 
       <Dialog
         handle={editDialog}
+        icon={Truck}
         title="Edit Contact"
         description="Update supplier contact details."
         content={(close) => (

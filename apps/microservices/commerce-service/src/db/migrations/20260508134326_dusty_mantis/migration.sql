@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX "uq_supplier_items_preferred" ON "vritti_core"."supplier_items" ("inventory_item_id") WHERE is_preferred = true;

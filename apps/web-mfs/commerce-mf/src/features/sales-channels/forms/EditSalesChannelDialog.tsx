@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -40,16 +41,20 @@ export const EditSalesChannelDialog: React.FC<EditSalesChannelDialogProps> = ({ 
         <TextField name="code" label="Code" value={channel.code} disabled description="Code cannot be changed" />
         <TextField name="kind" label="Kind" value={channel.kind} disabled description="Kind cannot be changed" />
         <TextField name="name" label="Name" placeholder="e.g. In-Store Counter" />
-        <Switch name="isActive" label="Active" description="Inactive channels are hidden from catalog and order forms" />
+        <Switch
+          name="isActive"
+          label="Active"
+          description="Inactive channels are hidden from catalog and order forms"
+        />
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save Changes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

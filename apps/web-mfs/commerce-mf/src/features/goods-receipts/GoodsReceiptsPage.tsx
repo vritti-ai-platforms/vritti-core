@@ -143,6 +143,7 @@ export const GoodsReceiptsPage = () => {
 
       <Dialog
         handle={createDialog}
+        icon={PackageCheck}
         title="New Goods Receipt"
         description="Create a draft goods receipt. Add line items from the detail page."
         content={(close) => (

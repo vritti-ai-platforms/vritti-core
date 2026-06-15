@@ -57,9 +57,7 @@ export default defineConfig({
       name: 'commerce',
       filename: 'remoteEntry.js',
       exposes: {
-        './BOM': './src/features/bom/index.tsx',
         './Categories': './src/features/categories/index.tsx',
-        './Conversions': './src/features/conversions/index.tsx',
         './CostCategories': './src/features/cost-categories/index.tsx',
         './CreditNotes': './src/features/credit-notes/index.tsx',
         './Customers': './src/features/customers/index.tsx',

@@ -234,9 +234,7 @@ export default (rspackEnv) => {
         // TEMPORARY — logs share resolution to name the module behind "getter is not a function". Remove after diagnosis.
         runtimePlugins: [path.resolve(__dirname, 'src/mf-share-logger.ts')],
         exposes: {
-          './BOM': './src/features/bom/index.tsx',
           './Categories': './src/features/categories/index.tsx',
-          './Conversions': './src/features/conversions/index.tsx',
           './CreditNotes': './src/features/credit-notes/index.tsx',
           './Customers': './src/features/customers/index.tsx',
           './GoodsReceipts': './src/features/goods-receipts/index.tsx',

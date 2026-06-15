@@ -1,10 +1,11 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { ClipboardMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useUpdateChangeStockAdjustmentLine } from '@/hooks/stock-adjustments';
@@ -87,7 +88,7 @@ export const EditChangeLineForm = ({
         </p>
       )}
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
@@ -96,7 +97,7 @@ export const EditChangeLineForm = ({
             Save
           </Button>
         )}
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -118,6 +119,7 @@ export const EditChangeLineDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={ClipboardMinus}
     title="Edit Line"
     description="Update the quantity for this line."
     content={(close) =>

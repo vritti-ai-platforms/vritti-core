@@ -179,6 +179,7 @@ export const CostCategoriesPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={Coins}
         title="Add Cost Category"
         description="Create a new cost bucket for inventory cost attribution."
         content={(close) => <AddCostCategoryDialog onSuccess={close} onCancel={close} />}

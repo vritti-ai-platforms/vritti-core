@@ -7,11 +7,8 @@ export class LocationTreeResponseDto {
   @ApiProperty({ description: 'Location name' })
   name: string;
 
-  @ApiProperty({
-    description: 'Hierarchy path as location ID chain from root to current node',
-    type: [String],
-  })
-  path: string[];
+  @ApiProperty({ description: 'Location role (ZONE / STORAGE / RESERVED_STORAGE)' })
+  locationRole: string;
 
   @ApiProperty({
     description: 'Child locations',

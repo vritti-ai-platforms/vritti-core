@@ -28,6 +28,8 @@ RUN apk add --no-cache --virtual .build-deps python3 make g++ \
  && apk del .build-deps
 
 COPY --from=builder /repo/apps/microservices/commerce-service/dist ./dist
+# SQL migration files aren't compiled by SWC — copy them next to dist/db/migrate.js for `db:deploy`.
+COPY --from=builder /repo/apps/microservices/commerce-service/src/db/migrations ./dist/db/migrations
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs \
  && chown -R nestjs:nodejs /app

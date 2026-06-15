@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -89,14 +90,14 @@ export const VariantFormDialog: React.FC<VariantFormDialogProps> = ({
         description="When off, this variant is hidden from POS and order forms"
       />
 
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText={isEdit ? 'Saving...' : 'Adding...'}>
           {isEdit ? 'Save variant' : 'Add variant'}
         </Button>
-      </div>
+      </DialogActions>
     </>
   );
 

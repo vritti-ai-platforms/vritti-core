@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CategoryRoleValues } from '../../constants/category-role.constants';
 
 export class CategoryResponseDto {
   @ApiProperty({ description: 'Category ID' })
@@ -6,6 +7,12 @@ export class CategoryResponseDto {
 
   @ApiProperty({ description: 'Business unit ID' })
   businessUnitId: string;
+
+  @ApiProperty({
+    description: 'GROUP holds sub-categories; CATEGORY is a leaf that holds inventory items',
+    enum: Object.values(CategoryRoleValues),
+  })
+  categoryRole: string;
 
   @ApiProperty({ description: 'Category name' })
   name: string;
@@ -25,8 +32,14 @@ export class CategoryResponseDto {
   @ApiProperty({ description: 'Slugified name segment used inside the ltree path', example: 'antibiotics' })
   pathLabel: string;
 
-  @ApiProperty({ description: 'Full ltree path from root to this category', example: 'medicines.prescription.antibiotics' })
+  @ApiProperty({
+    description: 'Full ltree path from root to this category',
+    example: 'medicines.prescription.antibiotics',
+  })
   path: string;
+
+  @ApiProperty({ description: 'Default tax group ID for items in this category, or null', nullable: true })
+  defaultTaxGroupId: string | null;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

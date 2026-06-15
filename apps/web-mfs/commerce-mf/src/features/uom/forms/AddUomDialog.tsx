@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
 import { Select, type SelectOption } from '@vritti/quantum-ui/Select';
@@ -101,14 +102,14 @@ export const AddUomDialog: React.FC<AddUomDialogProps> = ({ dimensionId, onSucce
         description="Turning on will allow the input of fractional quantities"
       />
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
           Add UOM
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

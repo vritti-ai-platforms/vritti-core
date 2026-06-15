@@ -133,7 +133,13 @@ const LotDetailContent = ({
         }
       />
 
-      <EditLotDialog goodsReceiptId={goodsReceiptId} itemId={selection.itemId} lot={lot} handle={editLotDialog} />
+      <EditLotDialog
+        goodsReceiptId={goodsReceiptId}
+        itemId={selection.itemId}
+        lot={lot}
+        hasMrp={item.inventoryItemHasMrp}
+        handle={editLotDialog}
+      />
     </div>
   );
 };

@@ -149,8 +149,9 @@ export const InventoryItemsPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={Package}
         title="Add Inventory Item"
-        className="max-w-3xl"
+        className="max-w-4xl"
         description="Create a new material or product to track in inventory."
         content={(close) => <AddInventoryItemDialog onSuccess={close} onCancel={close} />}
       />

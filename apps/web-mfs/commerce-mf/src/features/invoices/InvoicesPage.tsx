@@ -152,6 +152,7 @@ export const InvoicesPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={FileText}
         title="New Invoice"
         description="Create an invoice for a supplier or customer."
         content={(close) => <CreateInvoiceDialog onSuccess={close} onCancel={close} />}

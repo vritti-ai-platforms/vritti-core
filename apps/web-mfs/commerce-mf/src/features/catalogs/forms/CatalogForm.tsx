@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -93,14 +94,14 @@ export const CatalogForm: React.FC<CatalogFormProps> = ({ catalog, onSuccess, on
         />
         <Switch name="isActive" label="Active" description="Inactive catalogs are not used for pricing." />
       </div>
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText={isEdit ? 'Saving...' : 'Creating...'}>
           {isEdit ? 'Save Changes' : 'Create Catalog'}
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

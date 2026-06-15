@@ -7,8 +7,8 @@ export const goodsReceiptLineItems = coreSchema.table(
   'goods_receipt_line_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("current_setting('app.org_id')::uuid")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("current_setting('app.bu_id')::uuid")),
+    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     goodsReceiptLineId: uuid('goods_receipt_line_id')
       .notNull()
       .references(() => goodsReceiptLines.id, { onDelete: 'cascade' }),

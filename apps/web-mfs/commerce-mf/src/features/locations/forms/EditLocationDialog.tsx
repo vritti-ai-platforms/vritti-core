@@ -1,10 +1,10 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Form } from '@vritti/quantum-ui/Form';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import { Select } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
-import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -36,11 +36,13 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
       isActive: location.isActive,
       area: location.area ?? '',
       managerId: location.managerId ?? undefined,
-      address: location.address ?? '',
     },
   });
 
   const updateMutation = useUpdateLocation({ onSuccess });
+
+  // A ZONE location cannot have a parent; lock the selector and force null on submit.
+  const isZone = form.watch('locationRole') === 'ZONE';
 
   return (
     <Form
@@ -52,33 +54,49 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
         data: {
           name: data.name,
           code: data.code,
-          parentId: data.parentId || null,
+          parentId: data.locationRole === 'ZONE' ? null : data.parentId || null,
           sortOrder: data.sortOrder,
           locationRole: data.locationRole,
           isActive: data.isActive,
           area: data.area,
           managerId: data.managerId,
-          address: data.address,
         },
       })}
     >
-      <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
-      <TextField name="code" label="Code" placeholder="e.g. WIF" />
-      <LocationSelector name="parentId" label="Parent Location" placeholder="None (root location)" clearable />
-      <TextField name="sortOrder" label="Sort Order" type="number" placeholder="1" />
-      <Select name="locationRole" label="Role" options={roleOptions} />
-      <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
-      <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
-      <TextArea name="address" label="Address" placeholder="Location address" />
-      <Switch name="isActive" label="Active" description="Enable this storage location" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <FormSection title="Details" description="What the location is and where it sits in the hierarchy.">
+        <div className="grid grid-cols-2 gap-4">
+          <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
+          <TextField name="code" label="Code" placeholder="e.g. WIF" />
+          <Select name="locationRole" label="Role" options={roleOptions} />
+          <LocationSelector
+            name="parentId"
+            label="Parent Location"
+            placeholder="None (root location)"
+            clearable={!isZone}
+            disabled={isZone}
+          />
+        </div>
+      </FormSection>
+
+      <FormSection title="Attributes" description="Optional details about this location.">
+        <div className="grid grid-cols-2 gap-4">
+          <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
+          <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
+        </div>
+      </FormSection>
+
+      <FormSection title="Status">
+        <Switch name="isActive" label="Active" description="Enable this storage location" />
+      </FormSection>
+
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save Changes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

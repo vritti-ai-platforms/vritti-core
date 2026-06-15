@@ -135,6 +135,7 @@ export const CatalogsPage = () => {
 
       <Dialog
         handle={addDialog}
+        icon={BookOpen}
         title="New Catalog"
         description="Name the catalog and choose the sales channels it serves."
         className="max-w-lg"
@@ -144,6 +145,7 @@ export const CatalogsPage = () => {
       {editingCatalog && (
         <Dialog
           handle={editDialog}
+          icon={BookOpen}
           title="Edit Catalog"
           description="Update catalog details."
           className="max-w-lg"
@@ -154,6 +156,7 @@ export const CatalogsPage = () => {
       {cloningCatalog && (
         <Dialog
           handle={cloneDialog}
+          icon={BookOpen}
           title="Clone Catalog"
           description="Create a new catalog from a copy of this one."
           className="max-w-lg"

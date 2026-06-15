@@ -12,7 +12,7 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { ClipboardList, Gift, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { ClipboardList, Gift, Pencil, Plus, Star, Trash2, Truck } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import {
   SUPPLIER_ITEMS_TABLE_KEY,
@@ -242,6 +242,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       <Dialog
         handle={addItemDialog}
         className="max-w-3xl"
+        icon={Truck}
         title="Add Supplier Item"
         description="Associate an inventory item with this supplier."
         content={(close) => (
@@ -256,6 +257,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
 
       <Dialog
         handle={setSchemeDialog}
+        icon={Truck}
         title="Set Free Goods Scheme"
         description="Apply a free-goods scheme to the selected supplier items."
         content={(close) => (

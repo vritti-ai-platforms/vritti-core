@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { type CategoryRole, CategoryRoleValues } from '../../constants/category-role.constants';
 
 export class UpdateCategoryDto {
   @ApiPropertyOptional({ description: 'Updated category name' })
@@ -13,6 +14,14 @@ export class UpdateCategoryDto {
   @IsUUID()
   parentId?: string | null;
 
+  @ApiPropertyOptional({
+    description: 'Switch role: leaf→GROUP requires no items; GROUP→leaf requires no sub-categories',
+    enum: Object.values(CategoryRoleValues),
+  })
+  @IsOptional()
+  @IsIn(Object.values(CategoryRoleValues))
+  categoryRole?: CategoryRole;
+
   @ApiPropertyOptional({ description: 'Updated display sort order' })
   @IsOptional()
   @Type(() => Number)
@@ -24,4 +33,9 @@ export class UpdateCategoryDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'Updated default tax group for items in this category', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  defaultTaxGroupId?: string | null;
 }

@@ -1,4 +1,5 @@
-import { IsEnum, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { type CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 import type { InventoryItemType, InventoryPickStrategy } from '@/db/schema';
 
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
@@ -38,12 +39,23 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;
 
-  @IsOptional()
   @IsUUID()
-  purchaseTaxGroupId?: string | null;
+  purchaseTaxGroupId: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(20)
   hsnCode?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  hasMrp?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  mrpUomId?: string;
+
+  @IsOptional()
+  @IsCurrency()
+  defaultMrp?: CurrencyAmountDto | null;
 }

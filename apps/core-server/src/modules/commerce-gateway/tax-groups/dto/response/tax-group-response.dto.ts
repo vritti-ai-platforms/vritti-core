@@ -1,4 +1,4 @@
-import { ApiProperty, } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class TaxRateResponseDto {
   @ApiProperty({ description: 'Tax rate ID' })
@@ -9,9 +9,6 @@ export class TaxRateResponseDto {
 
   @ApiProperty({ description: 'Tax rate percentage', example: 9 })
   rate: number;
-
-  @ApiProperty({ description: 'Rate type', enum: ['inclusive', 'exclusive'] })
-  type: string;
 
   @ApiProperty({ description: 'Sort order' })
   sortOrder: number;
@@ -24,14 +21,11 @@ export class TaxGroupResponseDto {
   @ApiProperty({ description: 'Tax group name' })
   name: string;
 
-  @ApiProperty({ description: 'Whether this is the default tax group' })
-  isDefault: boolean;
-
   @ApiProperty({ description: 'Whether the tax group is active' })
   isActive: boolean;
 
-  @ApiProperty({ description: 'Display sort order' })
-  sortOrder: number;
+  @ApiProperty({ description: 'Whether this tax group can be deleted (not referenced by items or offerings)' })
+  canDelete: boolean;
 
   @ApiProperty({ description: 'Tax rates in this group', type: [TaxRateResponseDto] })
   taxRates: TaxRateResponseDto[];

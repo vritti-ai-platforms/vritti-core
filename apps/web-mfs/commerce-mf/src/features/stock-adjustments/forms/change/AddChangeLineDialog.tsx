@@ -1,11 +1,12 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Dialog, DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { QuantSelector } from '@vritti/quantum-ui/selects/quant';
 import { UomSelector } from '@vritti/quantum-ui/selects/uom';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
+import { ClipboardMinus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAddChangeStockAdjustmentLine } from '@/hooks/stock-adjustments';
@@ -107,16 +108,14 @@ const AddChangeLineForm = ({
       {isCorrection && !isItem && (
         <p className="text-xs text-muted-foreground">Positive quantity adds to the quant; negative deducts.</p>
       )}
-      {isItem && (
-        <p className="text-xs text-muted-foreground">Pick serials to fulfill the quantity above.</p>
-      )}
+      {isItem && <p className="text-xs text-muted-foreground">Pick serials to fulfill the quantity above.</p>}
 
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit">Add Line</Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };
@@ -138,6 +137,7 @@ export const AddChangeLineDialog = ({
 }) => (
   <Dialog
     handle={handle}
+    icon={ClipboardMinus}
     title="Add Line"
     description="Pick a quant and enter the quantity for this line."
     content={(close) => (

@@ -16,7 +16,7 @@ import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
-import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Boxes, ClipboardList, ClipboardMinus, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY,
@@ -359,6 +359,7 @@ const LotDetailContent = ({
 
       <Dialog
         handle={addLineDialog}
+        icon={ClipboardMinus}
         title="Add Line"
         description={
           isSerial

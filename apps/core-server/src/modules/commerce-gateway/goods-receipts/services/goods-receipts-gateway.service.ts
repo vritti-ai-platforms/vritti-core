@@ -179,7 +179,13 @@ export class GoodsReceiptsGatewayService {
     itemId: string,
     dto: AddGoodsReceiptLotDto,
   ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
-    return this.nats.send('commerce', 'goodsReceipts.addLot', { goodsReceiptId, itemId, ...dto });
+    const { mrp, ...rest } = dto;
+    return this.nats.send('commerce', 'goodsReceipts.addLot', {
+      goodsReceiptId,
+      itemId,
+      ...rest,
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+    });
   }
 
   updateLot(
@@ -188,7 +194,14 @@ export class GoodsReceiptsGatewayService {
     lotId: string,
     dto: UpdateGoodsReceiptLotDto,
   ): Promise<GoodsReceiptLotResponseDto> {
-    return this.nats.send('commerce', 'goodsReceipts.updateLot', { goodsReceiptId, itemId, lotId, ...dto });
+    const { mrp, ...rest } = dto;
+    return this.nats.send('commerce', 'goodsReceipts.updateLot', {
+      goodsReceiptId,
+      itemId,
+      lotId,
+      ...rest,
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency as CurrencyCode).toString() : (mrp as null | undefined),
+    });
   }
 
   removeLot(goodsReceiptId: string, itemId: string, lotId: string): Promise<SuccessResponseDto> {

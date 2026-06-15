@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { PhoneField } from '@vritti/quantum-ui/PhoneField';
 import { Switch } from '@vritti/quantum-ui/Switch';
@@ -64,14 +65,14 @@ export const EditSupplierContactDialog: React.FC<EditSupplierContactDialogProps>
       <TextField name="designation" label="Designation" placeholder="e.g. Procurement Manager" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <Switch name="isActive" label="Active" description="Inactive contacts are hidden from POs and selectors" />
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+      <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" loadingText="Saving...">
           Save Changes
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

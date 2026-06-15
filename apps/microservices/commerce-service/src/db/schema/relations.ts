@@ -3,12 +3,20 @@ import * as schema from './index';
 
 export const relations = defineRelations(schema, (r) => ({
   categories: {
+    defaultTaxGroup: r.one.taxGroups({
+      from: r.categories.defaultTaxGroupId,
+      to: r.taxGroups.id,
+    }),
     inventoryItems: r.many.inventoryItems(),
   },
   offerings: {
     catalog: r.one.catalogs({
       from: r.offerings.catalogId,
       to: r.catalogs.id,
+    }),
+    salesTaxGroup: r.one.taxGroups({
+      from: r.offerings.salesTaxGroupId,
+      to: r.taxGroups.id,
     }),
     offeringOptions: r.many.offeringOptions(),
     itemFieldValues: r.many.itemFieldValues(),
@@ -65,7 +73,10 @@ export const relations = defineRelations(schema, (r) => ({
   },
   modifierOptions: {},
   offeringModifierGroups: {},
-  salesChannels: {},
+  salesChannels: {
+    catalogChannels: r.many.catalogChannels(),
+    orders: r.many.orders(),
+  },
   catalogs: {
     channelAssignments: r.many.catalogChannels(),
     offerings: r.many.offerings(),
@@ -84,6 +95,9 @@ export const relations = defineRelations(schema, (r) => ({
   },
   taxGroups: {
     taxRates: r.many.taxRates(),
+    inventoryItems: r.many.inventoryItems(),
+    offerings: r.many.offerings(),
+    categories: r.many.categories(),
   },
   taxRates: {
     taxGroup: r.one.taxGroups({
@@ -104,9 +118,20 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.itemFieldDefinitions.id,
     }),
   },
+  uomDimensions: {
+    uom: r.many.uom(),
+  },
   uom: {
+    dimension: r.one.uomDimensions({
+      from: r.uom.dimensionId,
+      to: r.uomDimensions.id,
+    }),
     inventoryItems: r.many.inventoryItems(),
     supplierItems: r.many.supplierItems(),
+    goodsReceiptItems: r.many.goodsReceiptItems(),
+    purchaseOrderItems: r.many.purchaseOrderItems(),
+    stockAdjustmentLines: r.many.stockAdjustmentLines(),
+    inventoryItemUomConversions: r.many.inventoryItemUomConversions(),
   },
   inventoryItems: {
     category: r.one.categories({
@@ -117,10 +142,12 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItems.uomId,
       to: r.uom.id,
     }),
-    bomLines: r.many.bomLines(),
-    conversionInputs: r.many.conversionInputs(),
-    conversionOutputs: r.many.conversionOutputs(),
+    purchaseTaxGroup: r.one.taxGroups({
+      from: r.inventoryItems.purchaseTaxGroupId,
+      to: r.taxGroups.id,
+    }),
     supplierItems: r.many.supplierItems(),
+    inventoryItemUomConversions: r.many.inventoryItemUomConversions(),
     purchaseOrderItems: r.many.purchaseOrderItems(),
     goodsReceiptItems: r.many.goodsReceiptItems(),
     inventoryItemQuants: r.many.inventoryItemQuants(),
@@ -161,7 +188,12 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItemQuants.lotId,
       to: r.inventoryItemLots.id,
     }),
+    supplier: r.one.suppliers({
+      from: r.inventoryItemQuants.supplierId,
+      to: r.suppliers.id,
+    }),
     inventoryItemSerials: r.many.inventoryItemSerials(),
+    inventoryItemQuantCosts: r.many.inventoryItemQuantCosts(),
   },
   inventoryItemLots: {
     inventoryItem: r.one.inventoryItems({
@@ -177,25 +209,12 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.inventoryItems.id,
     }),
   },
-  bom: {
-    bomLines: r.many.bomLines(),
-    conversions: r.many.conversions(),
-  },
-  bomLines: {
-    bom: r.one.bom({
-      from: r.bomLines.bomId,
-      to: r.bom.id,
-    }),
-    inventoryItem: r.one.inventoryItems({
-      from: r.bomLines.inventoryItemId,
-      to: r.inventoryItems.id,
-    }),
-  },
   suppliers: {
     supplierContacts: r.many.supplierContacts(),
     supplierItems: r.many.supplierItems(),
     purchaseOrders: r.many.purchaseOrders(),
     goodsReceipts: r.many.goodsReceipts(),
+    inventoryItemQuants: r.many.inventoryItemQuants(),
   },
   supplierContacts: {
     supplier: r.one.suppliers({
@@ -234,6 +253,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.purchaseOrderItems.inventoryItemId,
       to: r.inventoryItems.id,
     }),
+    uom: r.one.uom({
+      from: r.purchaseOrderItems.uomId,
+      to: r.uom.id,
+    }),
   },
   goodsReceipts: {
     supplier: r.one.suppliers({
@@ -254,6 +277,10 @@ export const relations = defineRelations(schema, (r) => ({
     inventoryItem: r.one.inventoryItems({
       from: r.goodsReceiptItems.inventoryItemId,
       to: r.inventoryItems.id,
+    }),
+    uom: r.one.uom({
+      from: r.goodsReceiptItems.uomId,
+      to: r.uom.id,
     }),
     goodsReceiptLots: r.many.goodsReceiptLots(),
     goodsReceiptLines: r.many.goodsReceiptLines(),
@@ -292,34 +319,6 @@ export const relations = defineRelations(schema, (r) => ({
     goodsReceiptLine: r.one.goodsReceiptLines({
       from: r.goodsReceiptLineItems.goodsReceiptLineId,
       to: r.goodsReceiptLines.id,
-    }),
-  },
-  conversions: {
-    bom: r.one.bom({
-      from: r.conversions.bomId,
-      to: r.bom.id,
-    }),
-    conversionInputs: r.many.conversionInputs(),
-    conversionOutputs: r.many.conversionOutputs(),
-  },
-  conversionInputs: {
-    conversion: r.one.conversions({
-      from: r.conversionInputs.conversionId,
-      to: r.conversions.id,
-    }),
-    inventoryItem: r.one.inventoryItems({
-      from: r.conversionInputs.inventoryItemId,
-      to: r.inventoryItems.id,
-    }),
-  },
-  conversionOutputs: {
-    conversion: r.one.conversions({
-      from: r.conversionOutputs.conversionId,
-      to: r.conversions.id,
-    }),
-    inventoryItem: r.one.inventoryItems({
-      from: r.conversionOutputs.inventoryItemId,
-      to: r.inventoryItems.id,
     }),
   },
   stockAdjustments: {
@@ -361,6 +360,10 @@ export const relations = defineRelations(schema, (r) => ({
     resolvedQuant: r.one.inventoryItemQuants({
       from: r.stockAdjustmentLines.resolvedQuantId,
       to: r.inventoryItemQuants.id,
+    }),
+    uom: r.one.uom({
+      from: r.stockAdjustmentLines.uomId,
+      to: r.uom.id,
     }),
     stockAdjustmentLineItems: r.many.stockAdjustmentLineItems(),
   },
@@ -417,7 +420,18 @@ export const relations = defineRelations(schema, (r) => ({
     }),
   },
   orders: {
+    salesChannel: r.one.salesChannels({
+      from: r.orders.channelId,
+      to: r.salesChannels.id,
+    }),
+    customer: r.one.customers({
+      from: r.orders.customerId,
+      to: r.customers.id,
+    }),
     orderItems: r.many.orderItems(),
+  },
+  customers: {
+    orders: r.many.orders(),
   },
   orderItems: {
     order: r.one.orders({
@@ -448,6 +462,36 @@ export const relations = defineRelations(schema, (r) => ({
     location: r.one.locations({
       from: r.inventoryItemLocations.locationId,
       to: r.locations.id,
+    }),
+  },
+  costCategories: {
+    inventoryItemCosts: r.many.inventoryItemCosts(),
+  },
+  inventoryItemCosts: {
+    category: r.one.costCategories({
+      from: r.inventoryItemCosts.categoryId,
+      to: r.costCategories.id,
+    }),
+    inventoryItemQuantCosts: r.many.inventoryItemQuantCosts(),
+  },
+  inventoryItemQuantCosts: {
+    quant: r.one.inventoryItemQuants({
+      from: r.inventoryItemQuantCosts.quantId,
+      to: r.inventoryItemQuants.id,
+    }),
+    cost: r.one.inventoryItemCosts({
+      from: r.inventoryItemQuantCosts.costId,
+      to: r.inventoryItemCosts.id,
+    }),
+  },
+  inventoryItemUomConversions: {
+    inventoryItem: r.one.inventoryItems({
+      from: r.inventoryItemUomConversions.inventoryItemId,
+      to: r.inventoryItems.id,
+    }),
+    uom: r.one.uom({
+      from: r.inventoryItemUomConversions.uomId,
+      to: r.uom.id,
     }),
   },
 }));

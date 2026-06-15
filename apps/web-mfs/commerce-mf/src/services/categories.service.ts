@@ -4,6 +4,7 @@ import type {
   CategoryCountData,
   CategoryData,
   CategoryFormData,
+  CategoryItemsTableResponse,
   CategoryTreeNode,
   ReorderCategoriesData,
 } from '@/schemas/categories';
@@ -24,6 +25,12 @@ export function getCategoryCount(): Promise<CategoryCountData> {
 export function getCategoryChildrenTable(parentId: string): Promise<TableResponse<CategoryData>> {
   return axios
     .get<TableResponse<CategoryData>>(`commerce-api/categories/${parentId}/children/table`)
+    .then((r) => r.data);
+}
+
+export function getCategoryItemsTable(categoryId: string): Promise<CategoryItemsTableResponse> {
+  return axios
+    .get<CategoryItemsTableResponse>(`commerce-api/categories/${categoryId}/items/table`)
     .then((r) => r.data);
 }
 

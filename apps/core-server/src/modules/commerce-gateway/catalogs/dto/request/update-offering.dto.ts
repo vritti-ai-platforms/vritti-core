@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class UpdateOfferingDto {
@@ -28,10 +28,9 @@ export class UpdateOfferingDto {
   @IsString()
   description?: string | null;
 
-  @ApiPropertyOptional({ description: 'Sales tax group ID' })
-  @IsOptional()
+  @ApiProperty({ description: 'Sales tax group ID' })
   @IsUUID()
-  salesTaxGroupId?: string | null;
+  salesTaxGroupId: string;
 
   @ApiPropertyOptional({ description: 'Whether the offering is available' })
   @IsOptional()

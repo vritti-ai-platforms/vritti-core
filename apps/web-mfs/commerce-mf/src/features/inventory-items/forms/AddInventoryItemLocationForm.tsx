@@ -1,4 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
+import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { TextField } from '@vritti/quantum-ui/TextField';
@@ -39,14 +40,14 @@ export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationForm
         params={{ locationRoles: LocationRoleValues.RESERVED_STORAGE }}
       />
       <TextField name="reorderLevel" label="Min. Stock Level" type="number" min={0} step="any" />
-      <div className="flex flex-col-reverse gap-2 pt-4 sm:flex-row sm:justify-end">
+      <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel
         </Button>
         <Button type="submit" loadingText="Adding...">
           Add Location
         </Button>
-      </div>
+      </DialogActions>
     </Form>
   );
 };

@@ -1,1 +1,0 @@
-ALTER VIEW "vritti_core"."inventory_levels" RENAME TO "inventory_stock_levels";

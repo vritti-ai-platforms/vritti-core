@@ -5,6 +5,7 @@ import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts
 import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/inventory-item-ledger.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
+import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { Module } from '@nestjs/common';
@@ -23,6 +24,7 @@ import { GoodsReceiptsPublishService } from './root/services/goods-receipts-publ
     GoodsReceiptLinesDomainModule,
     GoodsReceiptLineItemsDomainModule,
     InventoryItemQuantsDomainModule,
+    InventoryItemsDomainModule,
     InventoryItemLedgerDomainModule,
     InventoryItemLotsDomainModule,
     PurchaseOrderItemsDomainModule,

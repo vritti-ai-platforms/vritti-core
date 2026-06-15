@@ -16,6 +16,7 @@ export class SupplierItemDto {
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   hasScheme: boolean;
+  taxInclusive: boolean;
 
   static from(entity: SupplierItem, itemName?: string | null, uomSymbol?: string | null): SupplierItemDto {
     const dto = new SupplierItemDto();
@@ -33,6 +34,7 @@ export class SupplierItemDto {
     dto.schemeBuyQty = entity.schemeBuyQty ?? null;
     dto.schemeFreeQty = entity.schemeFreeQty ?? null;
     dto.hasScheme = entity.hasScheme;
+    dto.taxInclusive = entity.taxInclusive;
     return dto;
   }
 }
