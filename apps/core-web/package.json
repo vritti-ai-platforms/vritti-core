@@ -43,6 +43,6 @@
     "autoprefixer": "^10.4.23",
     "cross-env": "^10.1.0",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }

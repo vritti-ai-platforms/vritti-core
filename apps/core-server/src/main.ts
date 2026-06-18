@@ -1,3 +1,5 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import fastifyCookie from '@fastify/cookie';
 import fastifyCsrfProtection from '@fastify/csrf-protection';
 import fastifyMultipart from '@fastify/multipart';
@@ -9,14 +11,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import {
   BadRequestException,
   CorrelationIdMiddleware,
-  HttpExceptionFilter,
   HttpLoggerInterceptor,
   LoggerService,
+  TransportAwareExceptionFilter,
 } from '@vritti/api-sdk';
 import type { ValidationError } from 'class-validator';
 import fastifyRawBody from 'fastify-raw-body';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { AppModule } from './app.module';
 
 // ============================================================================
@@ -166,7 +166,8 @@ async function bootstrap() {
   });
 
   // Register global exception filter for RFC 7807 Problem Details format
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // (HTTP only; GraphQL errors fall through to Apollo's formatter)
+  app.useGlobalFilters(new TransportAwareExceptionFilter());
 
   // Register correlation ID middleware for request tracking using Fastify hooks
   const correlationMiddleware = app.get(CorrelationIdMiddleware);

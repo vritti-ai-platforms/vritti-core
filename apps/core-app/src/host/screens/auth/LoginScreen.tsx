@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useLogin } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import { useAuth } from '../../providers/AuthProvider';
-import { loginSchema, type LoginFormValues } from '../../schemas/auth/login';
+import { type LoginFormValues, loginSchema } from '../../schemas/auth/login';
 import { buildOrganizationApiBaseURL } from '../../services/auth/deployment.service';
 import { LoginForm } from './form/LoginForm';
 
@@ -25,8 +25,8 @@ export const LoginScreen = () => {
     defaultValues: { email, password: '' },
   });
 
-  const loginMutation = useLogin({
-    onSuccess: () => {
+  const [login, loginResult] = useLogin({
+    onCompleted: () => {
       beginStatusConfirmation();
     },
   });
@@ -65,10 +65,14 @@ export const LoginScreen = () => {
   const handleSubmit = async (values: LoginFormValues) => {
     if (isPreparingTenantURL) return;
     try {
-      await loginMutation.mutateAsync({
-        email: values.email,
-        password: values.password,
-        organizationId,
+      await login({
+        variables: {
+          input: {
+            email: values.email,
+            password: values.password,
+            organizationId,
+          },
+        },
       });
     } catch (error) {
       mapApiErrorsToForm(error, form);
@@ -80,7 +84,7 @@ export const LoginScreen = () => {
       <Text className="text-xl text-center font-bold">Welcome back</Text>
       <LoginForm
         form={form}
-        isSubmitting={loginMutation.isPending}
+        isSubmitting={loginResult.loading}
         isPreparingTenantURL={isPreparingTenantURL}
         onSubmit={handleSubmit}
       />

@@ -1,8 +1,8 @@
-import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
-import { SessionService } from '@domain/session/services/session.service';
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { OrganizationRepository } from "@domain/organization/repositories/organization.repository";
+import { SessionService } from "@domain/session/services/session.service";
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   BadRequestException,
   ConflictException,
@@ -16,15 +16,23 @@ import {
   type SelectQueryResult,
   type SortCondition,
   SuccessResponseDto,
-} from '@vritti/api-sdk';
-import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
-import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
-import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
-import { UserDto } from '../dto/entity/user.dto';
-import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
-import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
-import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
-import { UserRepository } from '../repositories/user.repository';
+} from "@vritti/api-sdk";
+import { and, desc, eq } from "@vritti/api-sdk/drizzle-orm";
+import {
+  SessionTypeValues,
+  type User,
+  UserStatusValues,
+  users,
+} from "@/db/schema";
+import {
+  AUTH_STATUS_EVENTS,
+  UserUpdatedEvent,
+} from "@/modules/core-api/auth/root/events/auth-status.events";
+import { UserDto } from "../dto/entity/user.dto";
+import { CreateUserWebhookDto } from "../dto/request/create-user-webhook.dto";
+import { UpdateUserWebhookDto } from "../dto/request/update-user-webhook.dto";
+import type { UsersTableResponseDto } from "../dto/response/users-table-response.dto";
+import { UserRepository } from "../repositories/user.repository";
 
 export interface LookupOrganizationSummary {
   id: string;
@@ -42,10 +50,10 @@ export class UserService {
   private readonly logger = new Logger(UserService.name);
 
   private static readonly FIELD_MAP: FieldMap = {
-    fullName: { column: users.fullName, type: 'string' },
-    email: { column: users.email, type: 'string' },
-    status: { column: users.status, type: 'string' },
-    createdAt: { column: users.createdAt, type: 'string' },
+    fullName: { column: users.fullName, type: "string" },
+    email: { column: users.email, type: "string" },
+    status: { column: users.status, type: "string" },
+    createdAt: { column: users.createdAt, type: "string" },
   };
 
   constructor(
@@ -59,12 +67,14 @@ export class UserService {
 
   // Returns paginated user options for the select component
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log(`Fetched user select options (limit: ${query.limit}, offset: ${query.offset})`);
+    this.logger.log(
+      `Fetched user select options (limit: ${query.limit}, offset: ${query.offset})`,
+    );
 
     return this.userRepository.findForSelect({
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'fullName',
-      description: query.descriptionKey || 'email',
+      value: query.valueKey || "id",
+      label: query.labelKey || "fullName",
+      description: query.descriptionKey || "email",
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
       search: query.search,
@@ -72,44 +82,59 @@ export class UserService {
       offset: query.offset,
       values: query.values,
       excludeIds: query.excludeIds,
-      orderByKey: query.orderByKey || 'fullName',
-      orderDirection: query.orderDirection || 'asc',
+      orderByKey: query.orderByKey || "fullName",
+      orderDirection: query.orderDirection || "asc",
     });
   }
 
   // Creates a portal user from cloud-server webhook and sends invite email
-  async createFromWebhook(dto: CreateUserWebhookDto): Promise<SuccessResponseDto> {
-    const existingUser = await this.userRepository.findByEmailAndOrg(dto.email, dto.orgId);
+  async createFromWebhook(
+    dto: CreateUserWebhookDto,
+  ): Promise<SuccessResponseDto> {
+    const existingUser = await this.userRepository.findByEmailAndOrg(
+      dto.email,
+      dto.orgId,
+    );
     if (existingUser) {
       throw new ConflictException({
-        label: 'User Already Exists',
+        label: "User Already Exists",
         detail: `A user with email ${dto.email} already exists in this organization.`,
-        errors: [{ field: 'email', message: 'Already invited' }],
+        errors: [{ field: "email", message: "Already invited" }],
       });
     }
 
-    const displayName = dto.fullName.trim().split(' ')[0];
+    const displayName = dto.fullName.trim().split(" ")[0];
 
     const user = await this.userRepository.create({
       email: dto.email,
       fullName: dto.fullName,
       displayName,
       organizationId: dto.orgId,
-      status: 'PENDING',
+      status: "PENDING",
       ...(dto.phone && { phone: dto.phone }),
       ...(dto.phoneCountry && { phoneCountry: dto.phoneCountry }),
     });
 
-    this.logger.log(`Created portal user from webhook: ${user.email} (${user.id})`);
+    this.logger.log(
+      `Created portal user from webhook: ${user.email} (${user.id})`,
+    );
 
     const org = await this.organizationRepository.findById(dto.orgId);
-    if (!org) throw new NotFoundException('Organization not found.');
-    const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
-    const { accessToken } = await this.sessionService.createSession(user.id, SessionTypeValues.SET_PASSWORD, {});
+    if (!org) throw new NotFoundException("Organization not found.");
+    const baseDomain = this.config.getOrThrow<string>("BASE_DOMAIN");
+    const { accessToken } = await this.sessionService.createSession(
+      user.id,
+      SessionTypeValues.SET_PASSWORD,
+      {},
+    );
     const inviteUrl = `https://${org.subdomain}.${baseDomain}/accept-invite?token=${accessToken}`;
-    await this.emailService.sendInviteEmail({ to: user.email, name: user.fullName, inviteUrl });
+    await this.emailService.sendInviteEmail({
+      to: user.email,
+      name: user.fullName,
+      inviteUrl,
+    });
 
-    return { success: true, message: 'User invited successfully.' };
+    return { success: true, message: "User invited successfully." };
   }
 
   // Finds a user by email for auth — returns entity (not DTO)
@@ -118,7 +143,10 @@ export class UserService {
   }
 
   // Finds a user by email within a specific organization — returns entity (not DTO)
-  async findByEmailAndOrg(email: string, organizationId: string): Promise<User | undefined> {
+  async findByEmailAndOrg(
+    email: string,
+    organizationId: string,
+  ): Promise<User | undefined> {
     return this.userRepository.findByEmailAndOrg(email, organizationId);
   }
 
@@ -128,14 +156,19 @@ export class UserService {
   }
 
   // Looks up all organizations a user belongs to by email
-  async lookupOrganizationsByEmail(email: string): Promise<LookupOrganizationsResult> {
+  async lookupOrganizationsByEmail(
+    email: string,
+  ): Promise<LookupOrganizationsResult> {
     const usersWithOrg = await this.userRepository.findAllByEmailWithOrg(email);
 
     if (usersWithOrg.length === 0) {
       throw new NotFoundException({
-        label: 'Account Not Found',
-        detail: 'No account is associated with this email address. Please check the email and try again.',
-        errors: [{ field: 'email', message: 'No organization found for this email' }],
+        label: "Account Not Found",
+        detail:
+          "No account is associated with this email address. Please check the email and try again.",
+        errors: [
+          { field: "email", message: "No organization found for this email" },
+        ],
       });
     }
 
@@ -158,7 +191,7 @@ export class UserService {
   async findByIdOrThrow(id: string): Promise<User> {
     const user = await this.userRepository.findById(id);
     if (!user) {
-      throw new NotFoundException('User not found.');
+      throw new NotFoundException("User not found.");
     }
     return user;
   }
@@ -183,9 +216,19 @@ export class UserService {
     limit: number,
     offset: number,
   ): Promise<UsersTableResponseDto> {
-    const filterWhere = FilterProcessor.buildWhere(filters, UserService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(search, UserService.FIELD_MAP);
-    const where = and(eq(users.organizationId, orgId), filterWhere, searchWhere);
+    const filterWhere = FilterProcessor.buildWhere(
+      filters,
+      UserService.FIELD_MAP,
+    );
+    const searchWhere = FilterProcessor.buildSearch(
+      search,
+      UserService.FIELD_MAP,
+    );
+    const where = and(
+      eq(users.organizationId, orgId),
+      filterWhere,
+      searchWhere,
+    );
     const orderBy = FilterProcessor.buildOrderBy(sort, UserService.FIELD_MAP);
 
     const { rows, total } = await this.userRepository.findForTable({
@@ -200,18 +243,24 @@ export class UserService {
   }
 
   // Updates a portal user's details from cloud-server webhook
-  async updateFromWebhook(id: string, dto: UpdateUserWebhookDto): Promise<SuccessResponseDto> {
+  async updateFromWebhook(
+    id: string,
+    dto: UpdateUserWebhookDto,
+  ): Promise<SuccessResponseDto> {
     const user = await this.userRepository.findById(id);
-    if (!user) throw new NotFoundException('User not found.');
+    if (!user) throw new NotFoundException("User not found.");
 
     // Check for email uniqueness within the same org if email is being changed
     if (dto.email && dto.email !== user.email) {
-      const existing = await this.userRepository.findByEmailAndOrg(dto.email, user.organizationId);
+      const existing = await this.userRepository.findByEmailAndOrg(
+        dto.email,
+        user.organizationId,
+      );
       if (existing) {
         throw new ConflictException({
-          label: 'Email Already In Use',
+          label: "Email Already In Use",
           detail: `A user with email ${dto.email} already exists in this organization.`,
-          errors: [{ field: 'email', message: 'Already in use' }],
+          errors: [{ field: "email", message: "Already in use" }],
         });
       }
     }
@@ -219,34 +268,41 @@ export class UserService {
     await this.userRepository.update(id, {
       ...(dto.email && { email: dto.email }),
       ...(dto.fullName && { fullName: dto.fullName }),
-      ...(dto.status && { status: dto.status as (typeof UserStatusValues)[keyof typeof UserStatusValues] }),
+      ...(dto.status && {
+        status:
+          dto.status as (typeof UserStatusValues)[keyof typeof UserStatusValues],
+      }),
       ...(dto.locale && { locale: dto.locale }),
       ...(dto.timezone && { timezone: dto.timezone }),
       updatedAt: new Date(),
     });
 
     // Re-push fresh auth-state to the user's live SSE connections (locale/timezone changed)
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.USER_UPDATED, new UserUpdatedEvent(id));
+    this.eventEmitter.emit(
+      AUTH_STATUS_EVENTS.USER_UPDATED,
+      new UserUpdatedEvent(id),
+    );
 
-    return { success: true, message: 'User updated successfully.' };
+    return { success: true, message: "User updated successfully." };
   }
 
   // Resends invitation email to a pending user with a fresh SET_PASSWORD token
   async resendInvite(id: string): Promise<SuccessResponseDto> {
     const user = await this.userRepository.findById(id);
-    if (!user) throw new NotFoundException('User not found.');
+    if (!user) throw new NotFoundException("User not found.");
 
-    if (user.status !== 'PENDING') {
+    if (user.status !== "PENDING") {
       throw new BadRequestException({
-        label: 'Cannot Resend Invite',
-        detail: 'Invitations can only be resent to users with pending status.',
+        label: "Cannot Resend Invite",
+        detail: "Invitations can only be resent to users with pending status.",
       });
     }
 
     if (user.passwordHash) {
       throw new BadRequestException({
-        label: 'Cannot Resend Invite',
-        detail: 'This user has already set their password. They can log in directly.',
+        label: "Cannot Resend Invite",
+        detail:
+          "This user has already set their password. They can log in directly.",
       });
     }
 
@@ -254,15 +310,23 @@ export class UserService {
     await this.sessionService.deleteAllUserSessions(user.id);
 
     const org = await this.organizationRepository.findById(user.organizationId);
-    if (!org) throw new NotFoundException('Organization not found.');
+    if (!org) throw new NotFoundException("Organization not found.");
 
-    const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
-    const { accessToken } = await this.sessionService.createSession(user.id, 'SET_PASSWORD', {});
+    const baseDomain = this.config.getOrThrow<string>("BASE_DOMAIN");
+    const { accessToken } = await this.sessionService.createSession(
+      user.id,
+      "SET_PASSWORD",
+      {},
+    );
     const inviteUrl = `https://${org.subdomain}.${baseDomain}/accept-invite?token=${accessToken}`;
-    await this.emailService.sendInviteEmail({ to: user.email, name: user.fullName, inviteUrl });
+    await this.emailService.sendInviteEmail({
+      to: user.email,
+      name: user.fullName,
+      inviteUrl,
+    });
 
     this.logger.log(`Resent invitation to user: ${user.email} (${user.id})`);
 
-    return { success: true, message: 'Invitation email resent successfully.' };
+    return { success: true, message: "Invitation email resent successfully." };
   }
 }

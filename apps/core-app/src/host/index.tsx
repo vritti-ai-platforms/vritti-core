@@ -1,4 +1,6 @@
 import 'react-native-gesture-handler';
+// Must load before @apollo/client (v4 needs FinalizationRegistry/WeakRef, absent in Hermes).
+import './polyfills';
 import { Script, ScriptManager } from '@callstack/repack/client';
 import { lazy, Suspense } from 'react';
 import { AppRegistry } from 'react-native';

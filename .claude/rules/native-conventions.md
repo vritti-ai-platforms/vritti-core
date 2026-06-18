@@ -1,7 +1,8 @@
 ---
-description: React Native conventions for core-app using @vritti/quantum-ui-native
+description: React Native conventions for core-app + micro-apps using @vritti/quantum-ui-native
 paths:
   - "apps/core-app/src/**/*.{ts,tsx}"
+  - "apps/micro-apps/**/*.{ts,tsx}"
 ---
 
 # Native Conventions
@@ -19,17 +20,23 @@ import { Button } from '@vritti/quantum-ui-native/Button';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 ```
 
-## Button — never use Pressable/TouchableOpacity directly for actions
+## Button — never use Pressable/TouchableOpacity directly; ALWAYS pass a `<Text>` child
 
 > WHY: Pressable loses themed colors, haptic feedback, loading spinner state, disabled opacity, and accessibility labels. Every raw Pressable becomes a bug report.
+>
+> WHY (`<Text>` child): `Button` renders its `children` RAW inside a `View` — it does NOT auto-wrap strings. A bare string label throws **"Text strings must be rendered within a `<Text>` component"** at render. Pass an explicit `<Text>` child; it inherits the button's per-variant text color/size via `TextClassContext`, so no `className` is needed.
 
 ```tsx
-// WRONG
+// WRONG — raw Pressable
 <Pressable onPress={onBack}><Text>Back</Text></Pressable>
+
+// WRONG — bare string child → "Text strings must be rendered within a <Text> component"
+<Button variant="ghost" onPress={onBack}>Back</Button>
 
 // CORRECT
 import { Button } from '@vritti/quantum-ui-native/Button';
-<Button variant="ghost" onPress={onBack}>Back</Button>
+import { Text } from '@vritti/quantum-ui-native/Text';
+<Button variant="ghost" onPress={onBack}><Text>Back</Text></Button>
 ```
 
 ## Spinner — never use ActivityIndicator
@@ -189,6 +196,6 @@ const form = useForm<MyValues>({ resolver: zodResolver(mySchema) });
 
 <Form form={form} onSubmit={handleSubmit}>
   <TextField name="email" label="Email" keyboardType="email-address" autoCapitalize="none" />
-  <Button isLoading={isPending} onPress={form.handleSubmit(handleSubmit)}>Submit</Button>
+  <Button isLoading={isPending} onPress={form.handleSubmit(handleSubmit)}><Text>Submit</Text></Button>
 </Form>
 ```

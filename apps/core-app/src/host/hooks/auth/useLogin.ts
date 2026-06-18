@@ -1,18 +1,28 @@
-import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import { completeMobileLoginSession } from '@vritti/quantum-ui-native/utils';
-import { type LoginDto, type LoginResponse, login } from '../../services/auth/auth.service';
+import type { MobileLoginInput } from '../../graphql/generated/graphql';
+import type { LoginResponse } from '../../services/auth/auth.service';
+import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
+import { MOBILE_LOGIN } from './graphql';
 
-type UseLoginOptions = Omit<UseMutationOptions<LoginResponse, AxiosError, LoginDto>, 'mutationFn'>;
+interface MobileLoginData {
+  mobileLogin: LoginResponse;
+}
 
-// Authenticates and stores tokens on success
-export const useLogin = (options?: UseLoginOptions) => {
-  return useMutation<LoginResponse, AxiosError, LoginDto>({
+interface MobileLoginVariables {
+  input: MobileLoginInput;
+}
+
+type UseLoginOptions = Omit<UseGqlMutationOptions<MobileLoginData, MobileLoginVariables>, 'mutation'>;
+
+// Authenticates over GraphQL and, on success, hands the returned tokens to the package's
+// session bootstrap — stores the refresh token in the Keychain and schedules the proactive
+// refresh timer — exactly as the previous axios path did.
+export function useLogin(options?: UseLoginOptions) {
+  return useGqlMutation<MobileLoginData, MobileLoginVariables>(MOBILE_LOGIN, {
     ...options,
-    mutationFn: login,
-    onSuccess: async (...args) => {
-      await completeMobileLoginSession(args[0]);
-      options?.onSuccess?.(...args);
+    onCompleted: async (data, clientOptions) => {
+      await completeMobileLoginSession(data.mobileLogin);
+      options?.onCompleted?.(data, clientOptions);
     },
   });
-};
+}

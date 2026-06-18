@@ -12,6 +12,7 @@ import { ForgotPasswordController } from './forgot-password/controllers/forgot-p
 import { PasswordResetService } from './forgot-password/services/password-reset.service';
 import { AuthController } from './root/controllers/auth.controller';
 import { AuthStatusEventListener } from './root/listeners/auth-status-event.listener';
+import { AuthResolver } from './root/resolvers/auth.resolver';
 import { AuthService } from './root/services/auth.service';
 import { AuthStatusSseService } from './root/services/auth-status-sse.service';
 
@@ -37,6 +38,7 @@ import { AuthStatusSseService } from './root/services/auth-status-sse.service';
   providers: [
     // Root
     AuthService,
+    AuthResolver,
     AuthStatusSseService,
     AuthStatusEventListener,
     // Forgot password

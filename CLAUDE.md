@@ -140,6 +140,7 @@ automatically when you work in core-app:
 - `export const` for hooks/services — use `export function`
 - Screen component directly containing form JSX — forms belong in a `form/` subdirectory
 - Screen calling services directly — screens call hooks, hooks call services
+- Bare string child in `<Button>` (e.g. `<Button>Save</Button>`) — Button renders children raw in a View → "Text strings must be rendered within a `<Text>`"; pass a `<Text>` child
 
 ### Architecture
 

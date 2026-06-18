@@ -1,19 +1,17 @@
 import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
-import { PrimaryDatabaseService } from '@vritti/api-sdk';
-import type { FastifyRequest } from 'fastify';
+import { getRequestFromContext, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { from, type Observable } from 'rxjs';
 
-// Sets app.org_id in AsyncLocalStorage for every authenticated HTTP request so RLS
-// org_isolation policies apply to the session's organization. Skips unauthenticated
+// Sets app.org_id in AsyncLocalStorage for every authenticated request (HTTP + GraphQL) so
+// RLS org_isolation policies apply to the session's organization. Skips unauthenticated
 // requests (no sessionInfo) so auth/health endpoints are unaffected.
 @Injectable()
 export class RlsInterceptor implements NestInterceptor {
-
   constructor(private readonly db: PrimaryDatabaseService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest<FastifyRequest>();
-    const orgId = request.sessionInfo?.organizationId;
+    const request = getRequestFromContext(context);
+    const orgId = request?.sessionInfo?.organizationId;
 
     if (!orgId) {
       return next.handle();

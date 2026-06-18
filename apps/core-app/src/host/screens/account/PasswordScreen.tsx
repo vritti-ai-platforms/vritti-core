@@ -18,17 +18,18 @@ export const PasswordScreen = () => {
     },
   });
 
-  const changePasswordMutation = useChangePassword({
-    onSuccess: () => {
+  const [changePassword, changePasswordResult] = useChangePassword({
+    onCompleted: () => {
       form.reset({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     },
   });
 
   const handleSubmit = async (values: ChangePasswordFormValues) => {
     try {
-      await changePasswordMutation.mutateAsync({
-        currentPassword: values.currentPassword,
-        newPassword: values.newPassword,
+      await changePassword({
+        variables: {
+          input: { currentPassword: values.currentPassword, newPassword: values.newPassword },
+        },
       });
     } catch (error) {
       mapApiErrorsToForm(error, form);
@@ -43,7 +44,7 @@ export const PasswordScreen = () => {
           Enter and confirm your new password to keep your account secure.
         </Text>
       </View>
-      <ChangePasswordForm form={form} isSubmitting={changePasswordMutation.isPending} onSubmit={handleSubmit} />
+      <ChangePasswordForm form={form} isSubmitting={changePasswordResult.loading} onSubmit={handleSubmit} />
     </ScreenContainer>
   );
 };

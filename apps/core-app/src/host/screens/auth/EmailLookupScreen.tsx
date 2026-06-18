@@ -23,16 +23,19 @@ export const EmailLookupScreen = () => {
     defaultValues: { email: '' },
   });
 
-  const lookupMutation = useLookupOrganizations({
-    onSuccess: (data, variables) => {
-      setOrganizations({ email: variables.email, organizations: data.organizations });
-      push('OrgSelection');
-    },
-  });
+  const [lookupOrganizations, lookupResult] = useLookupOrganizations();
 
   const handleSubmit = async (values: EmailLookupFormValues) => {
     try {
-      await lookupMutation.mutateAsync({ email: values.email, deploymentBaseURL });
+      const result = await lookupOrganizations({ variables: { email: values.email } });
+      // useLazyQuery may resolve with an `error` (errorPolicy) instead of throwing — handle both.
+      if (result.error) {
+        mapApiErrorsToForm(result.error, form);
+        return;
+      }
+      if (!result.data) return;
+      setOrganizations({ email: values.email, organizations: result.data.organizationsByEmail });
+      push('OrgSelection');
     } catch (error) {
       mapApiErrorsToForm(error, form);
     }
@@ -41,7 +44,7 @@ export const EmailLookupScreen = () => {
   return (
     <ScreenContainer className="px-5">
       <Text className="text-xl text-center font-bold">Enter your email</Text>
-      <EmailLookupForm form={form} isSubmitting={lookupMutation.isPending} onSubmit={handleSubmit} />
+      <EmailLookupForm form={form} isSubmitting={lookupResult.loading} onSubmit={handleSubmit} />
     </ScreenContainer>
   );
 };

@@ -5,9 +5,10 @@ import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Skeleton } from '@vritti/quantum-ui-native/Skeleton';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { cn } from '@vritti/quantum-ui-native/utils';
+import { useState } from 'react';
 import { View } from 'react-native';
 import { useRevokeAllSessions, useRevokeSession, useSessions } from '../../hooks/account';
-import type { SessionData } from '../../services/account/security.service';
+import type { SessionData } from '../../types/account';
 
 function formatRelativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -53,11 +54,13 @@ const SessionCard = ({ session, onRevoke, isRevoking }: SessionCardProps) => (
 );
 
 export const SessionsScreen = () => {
-  const { data: sessions, isLoading } = useSessions();
-  const revokeSessionMutation = useRevokeSession();
-  const revokeAllMutation = useRevokeAllSessions();
+  const { data, loading: isLoading } = useSessions();
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
+  const [revokeSession] = useRevokeSession();
+  const [revokeAll, revokeAllResult] = useRevokeAllSessions();
   const confirm = useConfirm();
 
+  const sessions = data?.sessions;
   const currentSession = sessions?.find((s) => s.isCurrent);
   const otherSessions = sessions?.filter((s) => !s.isCurrent) ?? [];
 
@@ -69,7 +72,8 @@ export const SessionsScreen = () => {
       variant: 'destructive',
     });
     if (confirmed) {
-      revokeSessionMutation.mutate(sessionId);
+      setRevokingSessionId(sessionId);
+      revokeSession({ variables: { sessionId } }).finally(() => setRevokingSessionId(null));
     }
   };
 
@@ -81,7 +85,7 @@ export const SessionsScreen = () => {
       variant: 'destructive',
     });
     if (confirmed) {
-      revokeAllMutation.mutate();
+      void revokeAll();
     }
   };
 
@@ -107,7 +111,7 @@ export const SessionsScreen = () => {
                 key={session.sessionId}
                 session={session}
                 onRevoke={() => handleRevokeSession(session.sessionId)}
-                isRevoking={revokeSessionMutation.isPending && revokeSessionMutation.variables === session.sessionId}
+                isRevoking={revokingSessionId === session.sessionId}
               />
             ))
           ) : (
@@ -120,7 +124,7 @@ export const SessionsScreen = () => {
         <Button
           variant="destructive"
           onPress={handleRevokeAll}
-          isLoading={revokeAllMutation.isPending}
+          isLoading={revokeAllResult.loading}
           loadingText="Signing out..."
         >
           <Text>Sign Out All Other Devices</Text>

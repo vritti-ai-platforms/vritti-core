@@ -1,22 +1,20 @@
-import { type UseMutationOptions, useMutation } from "@tanstack/react-query";
-import type { AxiosError } from "axios";
-import {
-  type LookupOrganizationsDto,
-  type LookupResponse,
-  lookupOrganizations,
-} from "../../services/auth/auth.service";
+import { useLazyQuery } from '@apollo/client/react';
+import type { LookupOrganization } from '../../services/auth/auth.service';
+import { ORGANIZATIONS_BY_EMAIL } from './graphql';
 
-type UseLookupOrganizationsOptions = Omit<
-  UseMutationOptions<LookupResponse, AxiosError, LookupOrganizationsDto>,
-  "mutationFn"
->;
+interface OrganizationsByEmailData {
+  organizationsByEmail: LookupOrganization[];
+}
 
-// Looks up organizations for an email address
-export const useLookupOrganizations = (
-  options?: UseLookupOrganizationsOptions,
-) => {
-  return useMutation<LookupResponse, AxiosError, LookupOrganizationsDto>({
-    ...options,
-    mutationFn: lookupOrganizations,
+interface OrganizationsByEmailVariables {
+  email: string;
+}
+
+// Looks up organizations for an email against the already-selected deployment (Apollo's
+// authLink resolves the tenant base URL per request). Lazy so the auth flow triggers it
+// imperatively on form submit, mirroring the previous mutateAsync call site.
+export function useLookupOrganizations() {
+  return useLazyQuery<OrganizationsByEmailData, OrganizationsByEmailVariables>(ORGANIZATIONS_BY_EMAIL, {
+    fetchPolicy: 'network-only',
   });
-};
+}

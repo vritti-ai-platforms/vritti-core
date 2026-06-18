@@ -141,6 +141,28 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     });
   }
 
+  // Returns up to limit+1 inventory items with UOM symbol via LEFT JOIN for keyset pagination
+  async findKeysetWithUom(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
+    rows: (typeof inventoryItems.$inferSelect & { uomSymbol: string | null; categoryName: string | null })[];
+    hasMore: boolean;
+  }> {
+    return this.findKeyset({
+      select: {
+        ...inventoryItems,
+        uomSymbol: uom.symbol,
+        categoryName: sql<string | null>`(
+          SELECT c.name
+          FROM ${categories} c
+          WHERE c.id = ${inventoryItems.categoryId}
+        )`,
+      },
+      leftJoin: { table: uom, on: eq(inventoryItems.uomId, uom.id) },
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
+    });
+  }
+
   // Returns a single inventory item with UOM symbol and category name via LEFT JOINs
   async findByIdWithUomAndCategory(
     id: string,

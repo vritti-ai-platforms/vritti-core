@@ -1,19 +1,25 @@
-import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import { clearTokens, getOnSessionExpired } from '@vritti/quantum-ui-native/utils';
-import { logout } from '../../services/auth/auth.service';
+import { apolloClient } from '../../config/apollo';
+import type { MessageResponse } from '../../graphql/generated/graphql';
+import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
+import { MOBILE_LOGOUT } from './graphql';
 
-type UseLogoutOptions = Omit<UseMutationOptions<void, AxiosError, void>, 'mutationFn'>;
+interface MobileLogoutData {
+  mobileLogout: MessageResponse;
+}
 
-// Logs out and clears all stored tokens
-export const useLogout = (options?: UseLogoutOptions) => {
-  return useMutation<void, AxiosError, void>({
+type UseLogoutOptions = Omit<UseGqlMutationOptions<MobileLogoutData, Record<string, never>>, 'mutation'>;
+
+// Logs out over GraphQL, then tears down the session: clears the Keychain tokens, notifies the
+// host (mirrors the axios path), and resets Apollo's store so no tenant-scoped cache survives.
+export function useLogout(options?: UseLogoutOptions) {
+  return useGqlMutation<MobileLogoutData, Record<string, never>>(MOBILE_LOGOUT, {
     ...options,
-    mutationFn: logout,
-    onSuccess: async (...args) => {
+    onCompleted: async (data, clientOptions) => {
       await clearTokens();
+      await apolloClient.clearStore();
       getOnSessionExpired()?.();
-      options?.onSuccess?.(...args);
+      options?.onCompleted?.(data, clientOptions);
     },
   });
-};
+}

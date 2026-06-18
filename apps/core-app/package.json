@@ -5,9 +5,11 @@
   "scripts": {
     "start": "react-native start --config rspack.host.config.mjs --host 0.0.0.0",
     "android": "react-native run-android",
-    "ios": "react-native run-ios"
+    "ios": "react-native run-ios",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@apollo/client": "^4.2.3",
     "@callstack/liquid-glass": "^0.7.1",
     "@gorhom/bottom-sheet": "5.2.13",
     "@hookform/resolvers": "^5.2.2",
@@ -18,11 +20,13 @@
     "@react-navigation/elements": "3.0.0-alpha.20",
     "@react-navigation/native": "8.0.0-alpha.17",
     "@react-navigation/native-stack": "8.0.0-alpha.25",
+    "@tanstack/react-query": "^5.90.21",
     "@vritti/quantum-ui-native": "workspace:*",
     "axios": "^1.14.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "colorjs.io": "^0.5.0",
+    "graphql": "^16.14.2",
     "nativewind": "5.0.0-preview.3",
     "postcss": "^8.5.8",
     "react": "19.2.3",
@@ -46,6 +50,10 @@
   "devDependencies": {
     "@callstack/repack": "5.2.5",
     "@callstack/repack-plugin-reanimated": "^5.2.5",
+    "@graphql-codegen/cli": "^7.1.3",
+    "@graphql-codegen/typescript": "^6.0.2",
+    "@graphql-codegen/typescript-operations": "^6.0.4",
+    "@graphql-codegen/typescript-react-apollo": "^4.4.2",
     "@react-native-community/cli": "20.0.0",
     "@react-native-community/cli-platform-android": "20.0.0",
     "@react-native-community/cli-platform-ios": "20.0.0",
@@ -59,7 +67,7 @@
     "lightningcss": "1.30.1",
     "postcss-loader": "^8.2.1",
     "react-native-safe-area-context": "^5.7.0",
-    "typescript": "~5.9.2"
+    "typescript": "^6.0.3"
   },
   "private": true
 }

@@ -5,8 +5,11 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type {
   CreateResponseDto,
+  FilterCondition,
+  SearchState,
   SelectOptionsQueryDto,
   SelectQueryResult,
+  SortCondition,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk';
@@ -30,6 +33,21 @@ export class InventoryItemsRootController {
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');
     return this.service.findForTable(state, buCurrencyCode);
+  }
+
+  @MessagePattern({ cmd: 'inventoryItems.feed' })
+  async feed(
+    @Payload()
+    query: {
+      filters?: FilterCondition[];
+      search?: SearchState | null;
+      sort?: SortCondition[];
+      limit?: number;
+      cursor?: string;
+    },
+  ): Promise<{ items: InventoryItemDto[]; nextCursor: string | null; hasMore: boolean }> {
+    this.logger.log('inventoryItems.feed');
+    return this.service.findForFeed(query);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.select' })

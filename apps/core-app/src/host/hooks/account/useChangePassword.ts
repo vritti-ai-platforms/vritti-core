@@ -1,12 +1,32 @@
-import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
-import { type ChangePasswordDto, changePassword, type SuccessResponse } from '../../services/account/security.service';
+import { gql } from '@apollo/client';
+import type { ChangePasswordInput, MessageResponse } from '../../types/account';
+import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
 
-type UseChangePasswordOptions = Omit<UseMutationOptions<SuccessResponse, AxiosError, ChangePasswordDto>, 'mutationFn'>;
+export const CHANGE_PASSWORD_MUTATION = gql`
+  mutation ChangePassword($input: ChangePasswordInput!) {
+    changePassword(input: $input) {
+      success
+      message
+    }
+  }
+`;
 
-export const useChangePassword = (options?: UseChangePasswordOptions) => {
-  return useMutation<SuccessResponse, AxiosError, ChangePasswordDto>({
+interface ChangePasswordResult {
+  changePassword: MessageResponse;
+}
+
+interface ChangePasswordVariables {
+  input: ChangePasswordInput;
+}
+
+type UseChangePasswordOptions = Omit<UseGqlMutationOptions<ChangePasswordResult, ChangePasswordVariables>, 'mutation'>;
+
+export function useChangePassword(options?: UseChangePasswordOptions) {
+  return useGqlMutation<ChangePasswordResult, ChangePasswordVariables>(CHANGE_PASSWORD_MUTATION, {
+    toast: {
+      loadingMessage: 'Changing password...',
+      successMessage: 'Password changed successfully',
+    },
     ...options,
-    mutationFn: changePassword,
   });
-};
+}

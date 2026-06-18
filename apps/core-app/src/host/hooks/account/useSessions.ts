@@ -1,15 +1,23 @@
-import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
-import { type SessionData, getSessions } from '../../services/account/security.service';
+import { gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
+import type { SessionData } from '../../types/account';
 
-export const SESSIONS_QUERY_KEY = ['account', 'sessions'] as const;
+export const SESSIONS_QUERY = gql`
+  query Sessions {
+    sessions {
+      sessionId
+      device
+      ipAddress
+      lastActive
+      isCurrent
+    }
+  }
+`;
 
-type UseSessionsOptions = Omit<UseQueryOptions<SessionData[], AxiosError>, 'queryKey' | 'queryFn'>;
+interface SessionsQueryResult {
+  sessions: SessionData[];
+}
 
-export function useSessions(options?: UseSessionsOptions) {
-  return useQuery<SessionData[], AxiosError>({
-    queryKey: SESSIONS_QUERY_KEY,
-    queryFn: getSessions,
-    ...options,
-  });
+export function useSessions() {
+  return useQuery<SessionsQueryResult>(SESSIONS_QUERY);
 }

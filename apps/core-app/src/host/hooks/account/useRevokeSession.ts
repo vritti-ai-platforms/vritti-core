@@ -1,19 +1,42 @@
-import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
-import { type SuccessResponse, revokeSession } from '../../services/account/security.service';
-import { SESSIONS_QUERY_KEY } from './useSessions';
+import { gql } from '@apollo/client';
+import type { MessageResponse } from '../../types/account';
+import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
 
-type UseRevokeSessionOptions = Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>;
+export const REVOKE_SESSION_MUTATION = gql`
+  mutation RevokeSession($sessionId: ID!) {
+    revokeSession(sessionId: $sessionId) {
+      success
+      message
+    }
+  }
+`;
+
+interface RevokeSessionResult {
+  revokeSession: MessageResponse;
+}
+
+interface RevokeSessionVariables {
+  sessionId: string;
+}
+
+type UseRevokeSessionOptions = Omit<UseGqlMutationOptions<RevokeSessionResult, RevokeSessionVariables>, 'mutation'>;
 
 export function useRevokeSession(options?: UseRevokeSessionOptions) {
-  const queryClient = useQueryClient();
-
-  return useMutation<SuccessResponse, AxiosError, string>({
-    mutationFn: revokeSession,
-    ...options,
-    onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
-      options?.onSuccess?.(...args);
+  return useGqlMutation<RevokeSessionResult, RevokeSessionVariables>(REVOKE_SESSION_MUTATION, {
+    toast: {
+      loadingMessage: 'Revoking session...',
+      successMessage: 'Session revoked successfully',
     },
+    // Evict the revoked session from the cached `sessions` list so the screen updates without
+    // a refetch. Apollo normalizes UserSession by sessionId, so remove the matching cache object
+    // and prune the dangling reference from the `sessions` query field.
+    update: (cache, _result, { variables }) => {
+      const sessionId = variables?.sessionId;
+      if (!sessionId) return;
+      const id = cache.identify({ __typename: 'UserSession', sessionId });
+      if (id) cache.evict({ id });
+      cache.gc();
+    },
+    ...options,
   });
 }

@@ -1,19 +1,32 @@
-import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
-import { type SuccessResponse, revokeAllSessions } from '../../services/account/security.service';
-import { SESSIONS_QUERY_KEY } from './useSessions';
+import { gql, type OperationVariables } from '@apollo/client';
+import type { MessageResponse } from '../../types/account';
+import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
+import { SESSIONS_QUERY } from './useSessions';
 
-type UseRevokeAllSessionsOptions = Omit<UseMutationOptions<SuccessResponse, AxiosError, void>, 'mutationFn'>;
+export const REVOKE_ALL_SESSIONS_MUTATION = gql`
+  mutation RevokeAllSessions {
+    revokeAllSessions {
+      success
+      message
+    }
+  }
+`;
+
+interface RevokeAllSessionsResult {
+  revokeAllSessions: MessageResponse;
+}
+
+type UseRevokeAllSessionsOptions = Omit<UseGqlMutationOptions<RevokeAllSessionsResult, OperationVariables>, 'mutation'>;
 
 export function useRevokeAllSessions(options?: UseRevokeAllSessionsOptions) {
-  const queryClient = useQueryClient();
-
-  return useMutation<SuccessResponse, AxiosError, void>({
-    mutationFn: revokeAllSessions,
-    ...options,
-    onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SESSIONS_QUERY_KEY });
-      options?.onSuccess?.(...args);
+  return useGqlMutation<RevokeAllSessionsResult, OperationVariables>(REVOKE_ALL_SESSIONS_MUTATION, {
+    toast: {
+      loadingMessage: 'Signing out all devices...',
+      successMessage: 'Signed out from all other devices',
     },
+    // Revoking all sessions drops every session except the current one. Refetch `sessions` so
+    // the cached list reflects the single surviving session rather than guessing which to evict.
+    refetchQueries: [{ query: SESSIONS_QUERY }],
+    ...options,
   });
 }

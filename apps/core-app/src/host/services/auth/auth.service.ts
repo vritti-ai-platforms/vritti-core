@@ -1,5 +1,7 @@
-import { axios } from '@vritti/quantum-ui-native/utils';
-import { buildPublicApiBaseURL } from './deployment.service';
+// Auth network calls moved to GraphQL (Apollo): see hooks/auth/useLogin, useLogout,
+// useLookupOrganizations and the colocated gql documents in hooks/auth/graphql.ts.
+// These TypeScript types remain the shared contract consumed by the auth hooks and
+// the auth flow screens/providers; they mirror the GraphQL schema's mobile auth shapes.
 
 export interface LoginResponse {
   accessToken: string;
@@ -27,23 +29,4 @@ export interface LookupResponse {
 
 export interface LookupOrganizationsDto {
   email: string;
-  deploymentBaseURL: string;
 }
-
-export const login = (dto: LoginDto): Promise<LoginResponse> => {
-  return axios.post<LoginResponse>('auth/mobile/login', dto, { public: true }).then((r) => r.data);
-};
-
-export const lookupOrganizations = ({ email, deploymentBaseURL }: LookupOrganizationsDto): Promise<LookupResponse> => {
-  return axios
-    .get<LookupResponse>('users/organizations-by-email', {
-      baseURL: buildPublicApiBaseURL(deploymentBaseURL),
-      params: { email },
-      public: true,
-    })
-    .then((r) => r.data);
-};
-
-export const logout = (): Promise<void> => {
-  return axios.post('auth/mobile/logout').then(() => undefined);
-};

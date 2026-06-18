@@ -285,8 +285,19 @@ export default (rspackEnv) => {
           },
           'react-native-safe-area-context': { singleton: true, eager: true, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: true, requiredVersion: '^4.24.0' },
-          '@tanstack/react-query': { singleton: true, eager: true },
           axios: { singleton: true, eager: true },
+          // Provided for un-migrated micro-apps (e.g. commerce-ma) that still consume TanStack over
+          // Module Federation (declared `import: false` singleton → they rely on the HOST to supply
+          // it). The host's own code uses Apollo, not this — it's purely a shared-provider role.
+          '@tanstack/react-query': { singleton: true, eager: true },
+          // Apollo is the host's data layer. Shared as eager singletons so every micro-app shares
+          // ONE Apollo cache and one client instance from the host. The subpaths Apollo v4 splits
+          // its API across must each be shared so they resolve to the same singleton.
+          '@apollo/client': { singleton: true, eager: true },
+          '@apollo/client/react': { singleton: true, eager: true },
+          '@apollo/client/link/error': { singleton: true, eager: true },
+          '@apollo/client/link/context': { singleton: true, eager: true },
+          graphql: { singleton: true, eager: true },
           '@gorhom/bottom-sheet': { singleton: true, eager: true },
           '@vritti/quantum-ui-native': {
             singleton: true,
@@ -303,6 +314,21 @@ export default (rspackEnv) => {
           // Shared (host-owned) so micro-apps use the host's configured + authenticated axios
           // and the host's portal store — see @vritti/quantum-ui-native/BottomSheet pattern.
           '@vritti/quantum-ui-native/Select': {
+            singleton: true,
+            eager: true,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          // Host-owned so direct `axios`/config imports in micro-apps use the host's configured +
+          // authenticated instance (baseURL set via configureMobileAxios). Without this a remote
+          // bundles its own copy with the default relative '/api' → requests resolve to file:///api/...
+          '@vritti/quantum-ui-native/utils': {
+            singleton: true,
+            eager: true,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          '@vritti/quantum-ui-native/config': {
             singleton: true,
             eager: true,
             version: '0.1.0',

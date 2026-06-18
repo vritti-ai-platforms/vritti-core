@@ -1,7 +1,7 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { clearTokens, getStoredMobileBaseURL, initializeMobileSession } from '@vritti/quantum-ui-native/utils';
 import { useCallback, useEffect, useState } from 'react';
 import mobileAxiosConfig from '../../../../quantum-ui-native.config';
+import { apolloClient } from '../../config/apollo';
 import type { AuthStatusResponse } from '../../types/auth-status';
 import { useAuthStatusStream } from './useAuthStatusStream';
 
@@ -17,19 +17,18 @@ function isAuthenticatedResponse(
 }
 
 export const useAuthSessionController = () => {
-  const queryClient = useQueryClient();
   const [phase, setPhase] = useState<AuthSessionPhase>('bootstrapping');
   const [authState, setAuthState] = useState<AuthStatusResponse | null>(null);
   const [hasTenantBaseURL, setHasTenantBaseURL] = useState(false);
   const [sessionOrigin, setSessionOrigin] = useState<AuthSessionOrigin>(null);
 
   const resetSignedOutState = useCallback(() => {
-    queryClient.clear();
+    void apolloClient.clearStore();
     setAuthState(null);
     setHasTenantBaseURL(false);
     setSessionOrigin(null);
     setPhase('signedOut');
-  }, [queryClient]);
+  }, []);
 
   const { authState: streamAuthState } = useAuthStatusStream(
     hasTenantBaseURL && (phase === 'awaitingStatus' || phase === 'authenticated'),

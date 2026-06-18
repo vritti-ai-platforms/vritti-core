@@ -1,0 +1,79 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Profile {
+  id: ID!
+  email: String!
+  fullName: String!
+  displayName: String
+  status: String!
+  hasPassword: Boolean!
+  locale: String!
+  timezone: String!
+  createdAt: String!
+  lastLoginAt: String
+}
+
+type MessageResponse {
+  message: String!
+  success: Boolean
+}
+
+type UserSession {
+  sessionId: ID!
+  device: String!
+  ipAddress: String
+  lastActive: String!
+  isCurrent: Boolean!
+}
+
+type LookupOrganization {
+  id: ID!
+  name: String!
+  subdomain: String!
+  logoUrl: String
+}
+
+type MobileAuthSession {
+  accessToken: String
+  refreshToken: String
+  expiresIn: Int
+  isAuthenticated: Boolean
+}
+
+type MobileTokens {
+  accessToken: String!
+  refreshToken: String!
+  expiresIn: Int!
+}
+
+type Query {
+  organizationsByEmail(email: String!): [LookupOrganization!]!
+  profile: Profile!
+  sessions: [UserSession!]!
+}
+
+type Mutation {
+  mobileLogin(input: MobileLoginInput!): MobileAuthSession!
+  mobileRefreshTokens(input: MobileRefreshInput!): MobileTokens!
+  mobileLogout: MessageResponse!
+  changePassword(input: ChangePasswordInput!): MessageResponse!
+  revokeSession(sessionId: ID!): MessageResponse!
+  revokeAllSessions: MessageResponse!
+}
+
+input MobileLoginInput {
+  email: String!
+  password: String!
+  organizationId: ID!
+}
+
+input MobileRefreshInput {
+  refreshToken: String!
+}
+
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}

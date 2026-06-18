@@ -17,6 +17,8 @@ import type { InventoryItemLotResponseDto } from '../dto/response/inventory-item
 import type { InventoryItemLotTableResponseDto } from '../dto/response/inventory-item-lot-table-response.dto';
 import type { InventoryItemQuantResponseDto } from '../dto/response/inventory-item-quant-response.dto';
 import type { InventoryItemQuantTableResponseDto } from '../dto/response/inventory-item-quant-table-response.dto';
+import type { InventoryItemsFeedQueryDto } from '../dto/request/inventory-items-feed-query.dto';
+import type { InventoryItemFeedResponseDto } from '../dto/response/inventory-item-feed-response.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
 import type { InventoryItemStockResponseDto } from '../dto/response/inventory-item-stock-response.dto';
 import type {
@@ -52,6 +54,12 @@ export class InventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Returns keyset/cursor-paginated inventory items for infinite feeds
+  async findForFeed(query: InventoryItemsFeedQueryDto): Promise<InventoryItemFeedResponseDto> {
+    this.logger.log('inventoryItems.feed');
+    return this.nats.send('commerce', 'inventoryItems.feed', query);
   }
 
   // Returns paginated inventory item options (with optional excludeOnSupplierId)

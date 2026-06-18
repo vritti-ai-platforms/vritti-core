@@ -1,6 +1,5 @@
-import { axios } from '@vritti/quantum-ui-native/utils';
-import type { CloudDeploymentDto, CloudDeploymentsResponse, Deployment } from '../../types/deployment';
 import { config } from '../../config/env';
+import type { CloudDeploymentDto, CloudDeploymentsResponse, Deployment } from '../../types/deployment';
 
 const DEPLOYMENTS_ENDPOINT = 'cloud-api/deployments/all';
 
@@ -10,13 +9,24 @@ interface ParsedApiBaseURL {
   port: string;
 }
 
+// Deployment discovery runs against the cloud catalog, before any tenant/deployment is
+// selected — so it bypasses both Apollo (no base URL yet) and the authed axios instance.
+// It uses the global fetch against the same cloud base URL the axios path used, and returns
+// the same mapped Deployment[] shape.
 export function getDeployments(): Promise<Deployment[]> {
-  return axios
-    .get<CloudDeploymentsResponse>(DEPLOYMENTS_ENDPOINT, {
-      baseURL: config.api.deploymentsBaseUrl,
-      public: true,
+  const url = `${config.api.deploymentsBaseUrl.replace(/\/$/, '')}/${DEPLOYMENTS_ENDPOINT}`;
+
+  return fetch(url, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load deployments (${response.status})`);
+      }
+      return response.json() as Promise<CloudDeploymentsResponse>;
     })
-    .then((r) => r.data.result.map(mapDeployment));
+    .then((data) => data.result.map(mapDeployment));
 }
 
 export function buildOrganizationApiBaseURL(deploymentBaseURL: string, subdomain: string): string {

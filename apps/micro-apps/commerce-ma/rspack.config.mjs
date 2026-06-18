@@ -296,7 +296,14 @@ export default (rspackEnv) => {
           },
           'react-native-safe-area-context': { singleton: true, eager: false, import: false, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: false, import: false, requiredVersion: '^4.24.0' },
+          // @tanstack still needed transitively via quantum-ui-native's Select/useInfiniteList
+          // until those are migrated to Apollo. Provided by the host.
           '@tanstack/react-query': { singleton: true, eager: false, import: false },
+          // Apollo client + cache come from the HOST (shared singleton). commerce-ma consumes the
+          // host's one ApolloClient — it does not create its own.
+          '@apollo/client': { singleton: true, eager: false, import: false },
+          '@apollo/client/react': { singleton: true, eager: false, import: false },
+          graphql: { singleton: true, eager: false, import: false },
           axios: { singleton: true, eager: false, import: false },
           '@gorhom/bottom-sheet': { singleton: true, eager: false, import: false },
           '@vritti/quantum-ui-native': {
@@ -316,6 +323,23 @@ export default (rspackEnv) => {
           // Consume the host's Select so its async axios is configured + authenticated
           // (this micro-app never configures its own copy) and its popover uses the host portal.
           '@vritti/quantum-ui-native/Select': {
+            singleton: true,
+            eager: false,
+            import: false,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          // Consume the host's axios/config (import: false → never bundle our own). Direct `axios`
+          // imports in this micro-app then use the host's configured + authenticated instance;
+          // otherwise our own copy keeps the default relative '/api' → requests hit file:///api/...
+          '@vritti/quantum-ui-native/utils': {
+            singleton: true,
+            eager: false,
+            import: false,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          '@vritti/quantum-ui-native/config': {
             singleton: true,
             eager: false,
             import: false,

@@ -5244,6 +5244,50 @@
         ]
       }
     },
+    "/commerce-api/inventory-items/feed": {
+      "post": {
+        "description": "Returns keyset/cursor-paginated inventory items for infinite scroll. Pass the returned nextCursor to fetch the next page.",
+        "operationId": "InventoryItemsGatewayController_feed",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryItemsFeedQueryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inventory items page retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemFeedResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Inventory items feed (cursor pagination)",
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/inventory-items": {
       "post": {
         "operationId": "InventoryItemsGatewayController_create",
@@ -13433,7 +13477,7 @@
   ],
   "servers": [
     {
-      "url": "https://local.vrittiai.com:3001",
+      "url": "http://local.vrittiai.com:3001",
       "description": "Local Development"
     }
   ],
@@ -15636,6 +15680,267 @@
         },
         "required": [
           "serialNumber"
+        ]
+      },
+      "FeedFilterConditionDto": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Field to filter on",
+            "example": "type"
+          },
+          "operator": {
+            "type": "string",
+            "description": "Filter operator",
+            "enum": [
+              "equals",
+              "notEquals",
+              "contains",
+              "notContains",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "isAnyOf",
+              "isNotAnyOf"
+            ],
+            "example": "equals"
+          },
+          "value": {
+            "type": "object",
+            "description": "Value to compare against",
+            "example": "RAW_MATERIAL"
+          }
+        },
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ]
+      },
+      "FeedSearchStateDto": {
+        "type": "object",
+        "properties": {
+          "columnId": {
+            "type": "string",
+            "description": "Column to search, or \"all\"",
+            "example": "all"
+          },
+          "value": {
+            "type": "string",
+            "description": "Search term",
+            "example": "widget"
+          }
+        },
+        "required": [
+          "columnId",
+          "value"
+        ]
+      },
+      "FeedSortConditionDto": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Field to sort by",
+            "example": "name"
+          },
+          "direction": {
+            "type": "string",
+            "description": "Sort direction",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "example": "asc"
+          }
+        },
+        "required": [
+          "field",
+          "direction"
+        ]
+      },
+      "InventoryItemsFeedQueryDto": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "description": "Filter conditions",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedFilterConditionDto"
+            }
+          },
+          "search": {
+            "description": "Search state",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FeedSearchStateDto"
+              }
+            ]
+          },
+          "sort": {
+            "description": "Sort conditions",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedSortConditionDto"
+            }
+          },
+          "limit": {
+            "type": "number",
+            "description": "Page size",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "cursor": {
+            "type": "string",
+            "description": "Opaque cursor from a previous page"
+          }
+        }
+      },
+      "InventoryItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "RAW_MATERIAL",
+              "SEMI_FINISHED",
+              "FINISHED_GOOD",
+              "PACKAGING",
+              "CONSUMABLE"
+            ]
+          },
+          "tracking": {
+            "type": "string",
+            "enum": [
+              "quantity",
+              "lot",
+              "lot_serial",
+              "serial"
+            ]
+          },
+          "pickStrategy": {
+            "type": "string",
+            "enum": [
+              "none",
+              "fifo",
+              "fefo"
+            ],
+            "default": "none"
+          },
+          "categoryId": {
+            "type": "string"
+          },
+          "categoryName": {
+            "type": "object",
+            "nullable": true
+          },
+          "description": {
+            "type": "object",
+            "nullable": true
+          },
+          "uomId": {
+            "type": "string"
+          },
+          "uomSymbol": {
+            "type": "object",
+            "nullable": true
+          },
+          "purchaseTaxGroupId": {
+            "type": "object",
+            "description": "Purchase tax group ID",
+            "nullable": true
+          },
+          "purchaseTaxGroupName": {
+            "type": "object",
+            "description": "Purchase tax group name",
+            "nullable": true
+          },
+          "hsnCode": {
+            "type": "object",
+            "description": "HSN code for tax reporting",
+            "nullable": true
+          },
+          "hasMrp": {
+            "type": "boolean"
+          },
+          "mrpUomId": {
+            "type": "object",
+            "description": "UOM the MRP is quoted in (the pack)",
+            "nullable": true
+          },
+          "mrpUomSymbol": {
+            "type": "object",
+            "description": "MRP UOM symbol",
+            "nullable": true
+          },
+          "defaultMrp": {
+            "description": "Default MRP (BU currency)",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "Whether this item can be deleted"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code",
+          "type",
+          "tracking",
+          "pickStrategy",
+          "categoryId",
+          "uomId",
+          "hasMrp",
+          "canDelete",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "InventoryItemFeedResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "object",
+            "nullable": true
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "hasMore"
         ]
       },
       "MrpUomConversionDto": {
