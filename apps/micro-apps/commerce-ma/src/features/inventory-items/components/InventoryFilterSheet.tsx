@@ -4,7 +4,7 @@ import { Select, type SelectValue } from '@vritti/quantum-ui-native/Select';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { forwardRef, useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { type InventoryFilterState, TRACKING_OPTIONS, TYPE_OPTIONS } from '../filterOptions';
+import { type InventoryFilterState, TRACKING_OPTIONS, TYPE_OPTIONS } from '../../../services/inventory-items';
 
 // Select's `multiple` onChange is typed as a single-or-array union; in multiple mode it always
 // emits SelectValue[]. Normalize to string[] (our enum values are all strings).

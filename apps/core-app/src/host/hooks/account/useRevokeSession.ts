@@ -1,15 +1,6 @@
-import { gql } from '@apollo/client';
+import { REVOKE_SESSION_MUTATION } from '../../graphql/account';
 import type { MessageResponse } from '../../types/account';
 import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
-
-export const REVOKE_SESSION_MUTATION = gql`
-  mutation RevokeSession($sessionId: ID!) {
-    revokeSession(sessionId: $sessionId) {
-      success
-      message
-    }
-  }
-`;
 
 interface RevokeSessionResult {
   revokeSession: MessageResponse;

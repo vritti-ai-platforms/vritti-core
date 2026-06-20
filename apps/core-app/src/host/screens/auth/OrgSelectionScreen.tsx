@@ -9,7 +9,7 @@ import * as React from 'react';
 import { View } from 'react-native';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import type { AuthRoute } from '../../routes/auth/authRoutes';
-import type { LookupOrganization } from '../../services/auth/auth.service';
+import type { LookupOrganization } from '../../services/auth';
 import { SelectableCard } from './components/SelectableCard';
 
 function orgInitials(name: string) {

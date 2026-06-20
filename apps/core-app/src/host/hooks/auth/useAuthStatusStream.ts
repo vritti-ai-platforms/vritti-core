@@ -1,14 +1,14 @@
-import { getAxios, getToken } from "@vritti/quantum-ui-native/utils";
-import { useEffect, useState } from "react";
-import { Platform } from "react-native";
-import EventSource from "react-native-sse";
-import type { AuthStatusResponse } from "../../types/auth-status";
+import { getAxios, getToken } from '@vritti/quantum-ui-native/utils';
+import { useEffect, useState } from 'react';
+import { Platform } from 'react-native';
+import EventSource from 'react-native-sse';
+import type { AuthStatusResponse } from '../../types/auth-status';
 
 function buildAuthStatusUrl(baseURL: string): string {
-  return `${baseURL.replace(/\/$/, "")}/auth/status`;
+  return `${baseURL.replace(/\/$/, '')}/auth/status`;
 }
 
-export const useAuthStatusStream = (enabled: boolean) => {
+export function useAuthStatusStream(enabled: boolean) {
   const [authState, setAuthState] = useState<AuthStatusResponse | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const token = getToken();
@@ -20,24 +20,21 @@ export const useAuthStatusStream = (enabled: boolean) => {
       return;
     }
 
-    const eventSource = new EventSource<"auth-state">(
-      buildAuthStatusUrl(baseURL),
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Tells SSE handler to deliver MOBILE route blocks (per-OS remoteEntry) instead of WEB.
-          "X-Platform": Platform.OS,
-        },
-        pollingInterval: 0,
+    const eventSource = new EventSource<'auth-state'>(buildAuthStatusUrl(baseURL), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // Tells SSE handler to deliver MOBILE route blocks (per-OS remoteEntry) instead of WEB.
+        'X-Platform': Platform.OS,
       },
-    );
+      pollingInterval: 0,
+    });
 
     const handleAuthState = (event: { data?: string | null }) => {
       if (!event.data) return;
 
       try {
         const data = JSON.parse(event.data) as AuthStatusResponse;
-        console.log("[auth-status] SSE event data", data);
+        console.log('[auth-status] SSE event data', data);
         setAuthState(data);
       } catch {
         // Ignore malformed SSE payloads and keep the stream alive.
@@ -46,21 +43,17 @@ export const useAuthStatusStream = (enabled: boolean) => {
 
     const handleOpen = () => {
       setIsConnected(true);
-      console.log("[auth-status] SSE connected");
+      console.log('[auth-status] SSE connected');
     };
 
     const handleError = (event: { type?: string; message?: string | null }) => {
       setIsConnected(false);
-      console.warn(
-        "[auth-status] SSE error",
-        event?.type,
-        event?.message ?? "",
-      );
+      console.warn('[auth-status] SSE error', event?.type, event?.message ?? '');
     };
 
-    eventSource.addEventListener("open", handleOpen);
-    eventSource.addEventListener("auth-state", handleAuthState);
-    eventSource.addEventListener("error", handleError);
+    eventSource.addEventListener('open', handleOpen);
+    eventSource.addEventListener('auth-state', handleAuthState);
+    eventSource.addEventListener('error', handleError);
 
     return () => {
       setIsConnected(false);
@@ -70,4 +63,4 @@ export const useAuthStatusStream = (enabled: boolean) => {
   }, [baseURL, enabled, token]);
 
   return { authState, isConnected };
-};
+}

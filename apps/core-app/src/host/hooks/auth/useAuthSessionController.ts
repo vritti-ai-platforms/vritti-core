@@ -16,7 +16,7 @@ function isAuthenticatedResponse(
   return response?.isAuthenticated === true;
 }
 
-export const useAuthSessionController = () => {
+export function useAuthSessionController() {
   const [phase, setPhase] = useState<AuthSessionPhase>('bootstrapping');
   const [authState, setAuthState] = useState<AuthStatusResponse | null>(null);
   const [hasTenantBaseURL, setHasTenantBaseURL] = useState(false);
@@ -108,4 +108,4 @@ export const useAuthSessionController = () => {
     beginStatusConfirmation,
     logout,
   };
-};
+}

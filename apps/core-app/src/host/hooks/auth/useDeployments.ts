@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getDeployments } from '../../services/auth/deployment.service';
+import { getDeployments } from '../../services/auth';
 import type { Deployment } from '../../types/deployment';
 
 interface UseDeploymentsResult {

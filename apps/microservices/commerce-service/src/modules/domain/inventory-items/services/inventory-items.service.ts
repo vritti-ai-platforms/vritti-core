@@ -137,13 +137,12 @@ export class InventoryItemsService {
     };
   }
 
-  // Returns keyset/cursor-paginated inventory items for infinite feeds (mobile)
+  // Returns a keyset/cursor Relay connection of inventory items for infinite feeds (mobile / GraphQL).
   async findForFeed(
     query: InventoryItemsFeedQuery,
   ): Promise<{
-    items: InventoryItemDto[];
-    nextCursor: string | null;
-    hasMore: boolean;
+    edges: { cursor: string; node: InventoryItemDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
     const filterWhere = FilterProcessor.buildWhere(
       query.filters,
@@ -203,20 +202,21 @@ export class InventoryItemsService {
       limit,
     });
 
-    const items = rows.map((row) =>
-      InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName),
-    );
-    const lastRow = rows[rows.length - 1];
-    const nextCursor =
-      hasMore && lastRow
-        ? CursorCodec.encode(
-            orderByEntries.map(
-              (e) => (lastRow as Record<string, unknown>)[e.key],
-            ),
-          )
-        : null;
+    // One opaque keyset cursor per row (Relay edge cursor); values read by JS accessor key.
+    const edges = rows.map((row) => ({
+      cursor: CursorCodec.encode(
+        orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
+      ),
+      node: InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName),
+    }));
 
-    return { items, nextCursor, hasMore };
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: hasMore,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+      },
+    };
   }
 
   findForSelect(

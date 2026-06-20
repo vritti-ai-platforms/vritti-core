@@ -1,15 +1,6 @@
-import { gql } from '@apollo/client';
+import { CHANGE_PASSWORD_MUTATION } from '../../graphql/account';
 import type { ChangePasswordInput, MessageResponse } from '../../types/account';
 import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
-
-export const CHANGE_PASSWORD_MUTATION = gql`
-  mutation ChangePassword($input: ChangePasswordInput!) {
-    changePassword(input: $input) {
-      success
-      message
-    }
-  }
-`;
 
 interface ChangePasswordResult {
   changePassword: MessageResponse;

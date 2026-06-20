@@ -88,7 +88,6 @@ const componentDirs = [
 
 // @vritti/quantum-ui-native/selects/<entity> subpaths (mirrors quantum-ui/lib/selects)
 const selectDirs = [
-  'bom',
   'category',
   'cost-category',
   'currency',
@@ -103,6 +102,7 @@ const selectDirs = [
   'serial',
   'supplier',
   'supplier-item',
+  'tax-group',
   'timezone',
   'uom',
   'user',
@@ -296,9 +296,6 @@ export default (rspackEnv) => {
           },
           'react-native-safe-area-context': { singleton: true, eager: false, import: false, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: false, import: false, requiredVersion: '^4.24.0' },
-          // @tanstack still needed transitively via quantum-ui-native's Select/useInfiniteList
-          // until those are migrated to Apollo. Provided by the host.
-          '@tanstack/react-query': { singleton: true, eager: false, import: false },
           // Apollo client + cache come from the HOST (shared singleton). commerce-ma consumes the
           // host's one ApolloClient — it does not create its own.
           '@apollo/client': { singleton: true, eager: false, import: false },

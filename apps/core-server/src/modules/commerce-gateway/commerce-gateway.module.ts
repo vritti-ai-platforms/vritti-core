@@ -4,6 +4,7 @@ import { UserDomainModule } from '@/modules/domain/user/user.module';
 import { CatalogsGatewayController } from './catalogs/catalogs-gateway.controller';
 import { CatalogsGatewayService } from './catalogs/services/catalogs-gateway.service';
 import { CategoriesGatewayController } from './categories/categories-gateway.controller';
+import { CategoriesResolver } from './categories/resolvers/categories.resolver';
 import { CategoriesGatewayService } from './categories/services/categories-gateway.service';
 import { CostCategoriesGatewayController } from './cost-categories/cost-categories-gateway.controller';
 import { CostCategoriesGatewayService } from './cost-categories/services/cost-categories-gateway.service';
@@ -20,6 +21,7 @@ import { InventoryItemQuantsGatewayService } from './inventory-item-quants/servi
 import { InventoryItemSerialsGatewayController } from './inventory-item-serials/inventory-item-serials-gateway.controller';
 import { InventoryItemSerialsGatewayService } from './inventory-item-serials/services/inventory-item-serials-gateway.service';
 import { InventoryItemsGatewayController } from './inventory-items/inventory-items-gateway.controller';
+import { InventoryItemsResolver } from './inventory-items/resolvers/inventory-items.resolver';
 import { InventoryItemsGatewayService } from './inventory-items/services/inventory-items-gateway.service';
 import { InvoicesGatewayController } from './invoices/invoices-gateway.controller';
 import { InvoicesGatewayService } from './invoices/services/invoices-gateway.service';
@@ -51,6 +53,19 @@ import { UomGatewayService } from './uom/services/uom-gateway.service';
 import { UomGatewayController } from './uom/uom-gateway.controller';
 import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimensions-gateway.service';
 import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-gateway.controller';
+// Select options resolvers (Select→Apollo migration) — thin GraphQL forwards to each gateway `.select()`.
+import { CostCategoriesResolver } from './cost-categories/resolvers/cost-categories.resolver';
+import { CustomersResolver } from './customers/resolvers/customers.resolver';
+import { InventoryItemLotsResolver } from './inventory-item-lots/resolvers/inventory-item-lots.resolver';
+import { InventoryItemQuantsResolver } from './inventory-item-quants/resolvers/inventory-item-quants.resolver';
+import { InventoryItemSerialsResolver } from './inventory-item-serials/resolvers/inventory-item-serials.resolver';
+import { LocationsResolver } from './locations/resolvers/locations.resolver';
+import { PurchaseOrderItemsResolver } from './purchase-order-items/resolvers/purchase-order-items.resolver';
+import { PurchaseOrdersResolver } from './purchase-orders/resolvers/purchase-orders.resolver';
+import { SupplierItemsResolver } from './supplier-items/resolvers/supplier-items.resolver';
+import { SuppliersResolver } from './suppliers/resolvers/suppliers.resolver';
+import { TaxGroupsResolver } from './tax-groups/resolvers/tax-groups.resolver';
+import { UomResolver } from './uom/resolvers/uom.resolver';
 
 @Module({
   imports: [BusinessUnitDomainModule, UserDomainModule],
@@ -83,6 +98,7 @@ import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-
   ],
   providers: [
     CategoriesGatewayService,
+    CategoriesResolver,
     InventoryItemLotsGatewayService,
     InventoryItemSerialsGatewayService,
     InventoryItemQuantsGatewayService,
@@ -91,6 +107,7 @@ import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-
     CustomersGatewayService,
     GoodsReceiptsGatewayService,
     InventoryItemsGatewayService,
+    InventoryItemsResolver,
     LocationsGatewayService,
     InvoicesGatewayService,
     CatalogsGatewayService,
@@ -107,6 +124,19 @@ import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-
     TaxGroupsGatewayService,
     UomGatewayService,
     UomDimensionsGatewayService,
+    // Select options resolvers
+    CostCategoriesResolver,
+    CustomersResolver,
+    InventoryItemLotsResolver,
+    InventoryItemQuantsResolver,
+    InventoryItemSerialsResolver,
+    LocationsResolver,
+    PurchaseOrderItemsResolver,
+    PurchaseOrdersResolver,
+    SupplierItemsResolver,
+    SuppliersResolver,
+    TaxGroupsResolver,
+    UomResolver,
   ],
 })
 export class CommerceGatewayModule {}

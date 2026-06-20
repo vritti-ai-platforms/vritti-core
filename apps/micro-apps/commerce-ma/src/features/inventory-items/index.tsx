@@ -1,6 +1,10 @@
+import { useQuery } from '@apollo/client/react';
 import { type RouteProp, useNavigation } from "@react-navigation/native";
+import { Button } from "@vritti/quantum-ui-native/Button";
 import { Card } from "@vritti/quantum-ui-native/Card";
+import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
 import { FlashList } from "@vritti/quantum-ui-native/FlashList";
+import { useConfirm } from "@vritti/quantum-ui-native/hooks";
 import {
   PushNavigator,
   type PushScreenConfig,
@@ -8,7 +12,10 @@ import {
 import { ScreenContainer, useScreenSearch } from "@vritti/quantum-ui-native/ScreenContainer";
 import { ScreenHeader } from "@vritti/quantum-ui-native/ScreenHeader";
 import { Spinner } from "@vritti/quantum-ui-native/Spinner";
+import { StaticAlert } from "@vritti/quantum-ui-native/StaticAlert";
 import { Text } from "@vritti/quantum-ui-native/Text";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { useEffect, useMemo, useState } from "react";
 import { RefreshControl, View } from "react-native";
 import type {
@@ -18,15 +25,50 @@ import type {
   SortCondition,
 } from "../../types/list";
 import { InventoryItemCard } from "./components/InventoryItemCard";
-import { trackingLabel, typeLabel } from "./filterOptions";
-import { useInventoryItemsFeed } from "./hooks/useInventoryItemsFeed";
+import { trackingLabel, typeLabel } from "../../services/inventory-items";
+import { INVENTORY_ITEM_QUERY } from "../../graphql/inventory-items";
+import {
+  useCreateInventoryItem,
+  useDeleteInventoryItem,
+  useInventoryItemsFeed,
+  useUpdateInventoryItem,
+} from "../../hooks/inventory-items";
+import {
+  createInventoryItemSchema,
+  type CreateInventoryItemFormValues,
+  updateInventoryItemSchema,
+  type UpdateInventoryItemFormValues,
+} from "../../schemas/inventory-items/inventory-item";
+import { InventoryItemForm } from "./forms/InventoryItemForm";
 
-type InventoryRoute = "InventoryList" | "InventoryItemDetail";
+type InventoryRoute =
+  | "InventoryList"
+  | "InventoryItemDetail"
+  | "InventoryItemCreate"
+  | "InventoryItemEdit";
 
-// The full row is passed as a nav param (it's a plain serializable object). PushNavigator.push is
-// param-less, so we use React Navigation's navigate directly — same as the UOM feature.
+// Detail + Edit take the item id (not the whole row), so they read it live from the cache and reflect
+// edits immediately. PushNavigator.push is param-less, so we use React Navigation's navigate directly.
 interface InventoryItemDetailParams {
-  item: InventoryItem;
+  id: string;
+}
+
+interface InventoryItemEditParams {
+  id: string;
+}
+
+type InventoryNavigation = {
+  navigate: {
+    (screen: "InventoryItemDetail", params: InventoryItemDetailParams): void;
+    (screen: "InventoryItemEdit", params: InventoryItemEditParams): void;
+    (screen: "InventoryItemCreate"): void;
+  };
+  goBack: () => void;
+};
+
+// Single-item query result shape.
+interface InventoryItemQueryData {
+  inventoryItem: InventoryItem | null;
 }
 
 // Stable empty refs (filters/sort not exposed yet) — the feed key only varies by `search`.
@@ -34,13 +76,25 @@ const EMPTY_FILTERS: FilterCondition[] = [];
 const EMPTY_SORT: SortCondition[] = [];
 const SEARCH_DEBOUNCE_MS = 300;
 
+const CREATE_ICON = { sfSymbol: "plus", materialIcon: "add" } as const;
+
+function CreateButton() {
+  const navigation = useNavigation() as unknown as InventoryNavigation;
+  return (
+    <Button
+      variant="glass"
+      size="icon"
+      onPress={() => navigation.navigate("InventoryItemCreate")}
+      accessibilityLabel="Create item"
+      hitSlop={8}
+    >
+      <DynamicIcon icon={CREATE_ICON} size={24} />
+    </Button>
+  );
+}
+
 function InventoryList() {
-  const navigation = useNavigation() as unknown as {
-    navigate: (
-      screen: "InventoryItemDetail",
-      params: InventoryItemDetailParams,
-    ) => void;
-  };
+  const navigation = useNavigation() as unknown as InventoryNavigation;
 
   // The search field lives in the ScreenHeader; its value arrives here via the route-keyed registry.
   // Debounce before it hits the feed (a new search = a fresh p1 stream; keepPreviousData avoids a flash).
@@ -85,7 +139,7 @@ function InventoryList() {
         <InventoryItemCard
           item={item}
           onPress={(selected) =>
-            navigation.navigate("InventoryItemDetail", { item: selected })
+            navigation.navigate("InventoryItemDetail", { id: selected.id })
           }
         />
       )}
@@ -118,7 +172,30 @@ function InventoryItemDetail({
     "InventoryItemDetail"
   >;
 }) {
-  const item = route.params?.item;
+  const navigation = useNavigation() as unknown as InventoryNavigation;
+  const confirm = useConfirm();
+  const id = route.params?.id;
+
+  // cache-only: the item is already fully cached from the feed (same InventoryItemFields fragment), so
+  // the detail never needs the network. Crucially this stops it from refetching inventoryItem(id) after
+  // a delete evicts the record — which would call findById on the deleted id and 500. Edits still
+  // reflect because the update mutation auto-merges into the cached InventoryItem:{id}.
+  const { data, loading } = useQuery<InventoryItemQueryData>(INVENTORY_ITEM_QUERY, {
+    variables: { id },
+    skip: !id,
+    fetchPolicy: "cache-only",
+  });
+  const item = data?.inventoryItem;
+
+  const [deleteItem, { loading: deleting, error: deleteError }] = useDeleteInventoryItem();
+
+  if (loading && !item) {
+    return (
+      <ScreenContainer className="flex-1 items-center justify-center">
+        <Spinner size="large" />
+      </ScreenContainer>
+    );
+  }
 
   if (!item) {
     return (
@@ -129,6 +206,19 @@ function InventoryItemDetail({
       </ScreenContainer>
     );
   }
+
+  const handleDelete = async () => {
+    const confirmed = await confirm({
+      title: `Delete ${item.name}?`,
+      description: `${item.name} will be permanently removed. This cannot be undone.`,
+      confirmLabel: "Delete",
+      variant: "destructive",
+    });
+    if (!confirmed) return;
+    // cache.evict drops the row from the list automatically; go back to it on success.
+    const result = await deleteItem({ variables: { id: item.id } });
+    if (!result.error) navigation.goBack();
+  };
 
   return (
     <ScreenContainer
@@ -146,6 +236,138 @@ function InventoryItemDetail({
         <DetailRow label="HSN code" value={item.hsnCode} />
         <DetailRow label="Description" value={item.description} />
       </Card>
+
+      {deleteError ? (
+        <StaticAlert
+          variant="destructive"
+          title="Delete failed"
+          description={deleteError.message}
+        />
+      ) : null}
+
+      <View className="gap-3">
+        <Button onPress={() => navigation.navigate("InventoryItemEdit", { id: item.id })}>
+          <Text>Edit item</Text>
+        </Button>
+        <Button variant="destructive" isLoading={deleting} onPress={handleDelete}>
+          <Text>Delete item</Text>
+        </Button>
+      </View>
+    </ScreenContainer>
+  );
+}
+
+function InventoryItemCreate() {
+  const navigation = useNavigation() as unknown as InventoryNavigation;
+  const [createItem, { loading, error }] = useCreateInventoryItem();
+
+  const form = useForm<CreateInventoryItemFormValues>({
+    resolver: zodResolver(createInventoryItemSchema),
+    defaultValues: {
+      name: "",
+      code: "",
+      type: "RAW_MATERIAL",
+      tracking: "quantity",
+      pickStrategy: "none",
+      categoryId: "",
+      uomId: "",
+      purchaseTaxGroupId: "",
+      description: "",
+      hsnCode: "",
+      hasMrp: false,
+    },
+  });
+
+  const handleSubmit = async (values: CreateInventoryItemFormValues) => {
+    // cache.modify prepends the created item into the feed — no refetch needed; go back to the list.
+    const result = await createItem({ variables: { input: values } });
+    if (!result.error) navigation.goBack();
+  };
+
+  return (
+    <ScreenContainer scrollable contentContainerStyle={{ padding: 16, gap: 16 }}>
+      {error ? (
+        <StaticAlert variant="destructive" title="Create failed" description={error.message} />
+      ) : null}
+      <InventoryItemForm
+        form={form}
+        isSubmitting={loading}
+        onSubmit={(v) => handleSubmit(v as CreateInventoryItemFormValues)}
+        mode="create"
+      />
+    </ScreenContainer>
+  );
+}
+
+function InventoryItemEdit({
+  route,
+}: {
+  route: RouteProp<{ InventoryItemEdit: InventoryItemEditParams }, "InventoryItemEdit">;
+}) {
+  const navigation = useNavigation() as unknown as InventoryNavigation;
+  const id = route.params?.id;
+
+  // Read the item live so the form prefills from the latest cache state (reflects prior edits).
+  const { data, loading: loadingItem } = useQuery<InventoryItemQueryData>(INVENTORY_ITEM_QUERY, {
+    variables: { id },
+    skip: !id,
+  });
+  const item = data?.inventoryItem;
+
+  const [updateItem, { loading: updating, error }] = useUpdateInventoryItem();
+
+  const form = useForm<UpdateInventoryItemFormValues>({
+    resolver: zodResolver(updateInventoryItemSchema),
+    values: item
+      ? {
+          name: item.name,
+          code: item.code,
+          type: item.type,
+          pickStrategy: item.pickStrategy,
+          categoryId: item.categoryId,
+          uomId: item.uomId,
+          purchaseTaxGroupId: item.purchaseTaxGroupId ?? "",
+          description: item.description ?? "",
+          hsnCode: item.hsnCode ?? "",
+          hasMrp: false,
+        }
+      : undefined,
+  });
+
+  const handleSubmit = async (values: UpdateInventoryItemFormValues) => {
+    if (!id) return;
+    // The mutation returns the entity → Apollo auto-merges by id, so list + detail update on success.
+    const result = await updateItem({ variables: { id, input: values } });
+    if (!result.error) navigation.goBack();
+  };
+
+  if (loadingItem && !item) {
+    return (
+      <ScreenContainer className="flex-1 items-center justify-center">
+        <Spinner size="large" />
+      </ScreenContainer>
+    );
+  }
+
+  if (!item) {
+    return (
+      <ScreenContainer className="flex-1 items-center justify-center">
+        <Text className="text-base text-muted-foreground">No item selected.</Text>
+      </ScreenContainer>
+    );
+  }
+
+  return (
+    <ScreenContainer scrollable contentContainerStyle={{ padding: 16, gap: 16 }}>
+      {error ? (
+        <StaticAlert variant="destructive" title="Update failed" description={error.message} />
+      ) : null}
+      <InventoryItemForm
+        form={form}
+        isSubmitting={updating}
+        onSubmit={(v) => handleSubmit(v as UpdateInventoryItemFormValues)}
+        mode="edit"
+      />
     </ScreenContainer>
   );
 }
@@ -160,6 +382,7 @@ const screens: ReadonlyArray<PushScreenConfig<InventoryRoute>> = [
         subtitle="Browse and manage your stock items"
         searchable
         searchPlaceholder="Search by name or code"
+        rightActions={<CreateButton />}
       />
     ),
   },
@@ -168,6 +391,18 @@ const screens: ReadonlyArray<PushScreenConfig<InventoryRoute>> = [
     component: InventoryItemDetail,
     headerShown: true,
     title: "Item Detail",
+  },
+  {
+    name: "InventoryItemCreate",
+    component: InventoryItemCreate,
+    headerShown: true,
+    title: "New Item",
+  },
+  {
+    name: "InventoryItemEdit",
+    component: InventoryItemEdit,
+    headerShown: true,
+    title: "Edit Item",
   },
 ];
 

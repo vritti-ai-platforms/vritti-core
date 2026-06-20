@@ -89,7 +89,6 @@ const componentDirs = [
 
 // @vritti/quantum-ui-native/selects/<entity> subpaths (mirrors quantum-ui/lib/selects)
 const selectDirs = [
-  'bom',
   'category',
   'cost-category',
   'currency',
@@ -104,6 +103,7 @@ const selectDirs = [
   'serial',
   'supplier',
   'supplier-item',
+  'tax-group',
   'timezone',
   'uom',
   'user',
@@ -286,10 +286,6 @@ export default (rspackEnv) => {
           'react-native-safe-area-context': { singleton: true, eager: true, requiredVersion: '^5.7.0' },
           'react-native-screens': { singleton: true, eager: true, requiredVersion: '^4.24.0' },
           axios: { singleton: true, eager: true },
-          // Provided for un-migrated micro-apps (e.g. commerce-ma) that still consume TanStack over
-          // Module Federation (declared `import: false` singleton → they rely on the HOST to supply
-          // it). The host's own code uses Apollo, not this — it's purely a shared-provider role.
-          '@tanstack/react-query': { singleton: true, eager: true },
           // Apollo is the host's data layer. Shared as eager singletons so every micro-app shares
           // ONE Apollo cache and one client instance from the host. The subpaths Apollo v4 splits
           // its API across must each be shared so they resolve to the same singleton.

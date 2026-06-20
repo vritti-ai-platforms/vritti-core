@@ -1,18 +1,6 @@
-import { gql } from '@apollo/client';
 import { useQuery } from '@apollo/client/react';
+import { SESSIONS_QUERY } from '../../graphql/account';
 import type { SessionData } from '../../types/account';
-
-export const SESSIONS_QUERY = gql`
-  query Sessions {
-    sessions {
-      sessionId
-      device
-      ipAddress
-      lastActive
-      isCurrent
-    }
-  }
-`;
 
 interface SessionsQueryResult {
   sessions: SessionData[];

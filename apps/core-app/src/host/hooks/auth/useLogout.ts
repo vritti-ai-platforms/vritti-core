@@ -1,8 +1,8 @@
 import { clearTokens, getOnSessionExpired } from '@vritti/quantum-ui-native/utils';
 import { apolloClient } from '../../config/apollo';
+import { MOBILE_LOGOUT } from '../../graphql/auth';
 import type { MessageResponse } from '../../graphql/generated/graphql';
 import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
-import { MOBILE_LOGOUT } from './graphql';
 
 interface MobileLogoutData {
   mobileLogout: MessageResponse;

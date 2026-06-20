@@ -1,8 +1,8 @@
 import { completeMobileLoginSession } from '@vritti/quantum-ui-native/utils';
+import { MOBILE_LOGIN } from '../../graphql/auth';
 import type { MobileLoginInput } from '../../graphql/generated/graphql';
-import type { LoginResponse } from '../../services/auth/auth.service';
+import type { LoginResponse } from '../../services/auth';
 import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
-import { MOBILE_LOGIN } from './graphql';
 
 interface MobileLoginData {
   mobileLogin: LoginResponse;

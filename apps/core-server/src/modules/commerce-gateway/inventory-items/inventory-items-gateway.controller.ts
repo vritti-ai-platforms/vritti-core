@@ -20,16 +20,13 @@ import {
   UserId,
 } from "@vritti/api-sdk";
 import { SessionTypeValues } from "@/db/schema";
-import { ApiFeedInventoryItems } from "./docs/inventory-items-gateway.docs";
 import { CreateInventoryItemDto } from "./dto/request/create-inventory-item.dto";
 import { CreateInventoryItemLocationDto } from "./dto/request/create-inventory-item-location.dto";
 import { CreateInventoryItemUomConversionDto } from "./dto/request/create-inventory-item-uom-conversion.dto";
-import { InventoryItemsFeedQueryDto } from "./dto/request/inventory-items-feed-query.dto";
 import { InventoryItemsSelectQueryDto } from "./dto/request/inventory-items-select-query.dto";
 import { UpdateInventoryItemDto } from "./dto/request/update-inventory-item.dto";
 import { UpdateInventoryItemLocationDto } from "./dto/request/update-inventory-item-location.dto";
 import { UpdateInventoryItemUomConversionDto } from "./dto/request/update-inventory-item-uom-conversion.dto";
-import type { InventoryItemFeedResponseDto } from "./dto/response/inventory-item-feed-response.dto";
 import type { InventoryItemLedgerTableResponseDto } from "./dto/response/inventory-item-ledger-table-response.dto";
 import type { InventoryItemLocationTableResponseDto } from "./dto/response/inventory-item-location-table-response.dto";
 import type { InventoryItemLotTableResponseDto } from "./dto/response/inventory-item-lot-table-response.dto";
@@ -71,18 +68,6 @@ export class InventoryItemsGatewayController {
   ): Promise<SelectQueryResult> {
     this.logger.log("GET /commerce-api/inventory-items/select");
     return this.service.select(query, query.excludeOnSupplierId);
-  }
-
-  // Returns keyset/cursor-paginated inventory items for infinite feeds
-  @Post("feed")
-  @HttpCode(HttpStatus.OK)
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
-  @ApiFeedInventoryItems()
-  feed(
-    @Body() query: InventoryItemsFeedQueryDto,
-  ): Promise<InventoryItemFeedResponseDto> {
-    this.logger.log("POST /commerce-api/inventory-items/feed");
-    return this.service.findForFeed(query);
   }
 
   // Creates a new inventory item

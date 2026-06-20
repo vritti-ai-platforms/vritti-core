@@ -8,7 +8,7 @@ import { useLogin } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { type LoginFormValues, loginSchema } from '../../schemas/auth/login';
-import { buildOrganizationApiBaseURL } from '../../services/auth/deployment.service';
+import { buildOrganizationApiBaseURL } from '../../services/auth';
 import { LoginForm } from './form/LoginForm';
 
 export const LoginScreen = () => {

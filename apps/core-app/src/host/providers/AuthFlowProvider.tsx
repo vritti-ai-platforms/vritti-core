@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
-import type { LookupOrganization } from '../services/auth/auth.service';
+import type { LookupOrganization } from '../services/auth';
 
 interface AuthFlowState {
   deploymentBaseURL: string | null;

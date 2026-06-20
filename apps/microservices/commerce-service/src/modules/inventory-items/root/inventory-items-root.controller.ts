@@ -45,7 +45,10 @@ export class InventoryItemsRootController {
       limit?: number;
       cursor?: string;
     },
-  ): Promise<{ items: InventoryItemDto[]; nextCursor: string | null; hasMore: boolean }> {
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log('inventoryItems.feed');
     return this.service.findForFeed(query);
   }

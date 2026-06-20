@@ -1,6 +1,6 @@
 import { useLazyQuery } from '@apollo/client/react';
-import type { LookupOrganization } from '../../services/auth/auth.service';
-import { ORGANIZATIONS_BY_EMAIL } from './graphql';
+import { ORGANIZATIONS_BY_EMAIL } from '../../graphql/auth';
+import type { LookupOrganization } from '../../services/auth';
 
 interface OrganizationsByEmailData {
   organizationsByEmail: LookupOrganization[];

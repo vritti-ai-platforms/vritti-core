@@ -16,6 +16,12 @@ export const TRACKING_OPTIONS: SelectOption[] = [
   { value: 'serial', label: 'Serial' },
 ];
 
+export const PICK_STRATEGY_OPTIONS: SelectOption[] = [
+  { value: 'none', label: 'None' },
+  { value: 'fifo', label: 'FIFO', description: 'First in, first out' },
+  { value: 'fefo', label: 'FEFO', description: 'First expired, first out' },
+];
+
 const TYPE_LABELS = Object.fromEntries(TYPE_OPTIONS.map((o) => [o.value, o.label])) as Record<string, string>;
 const TRACKING_LABELS = Object.fromEntries(TRACKING_OPTIONS.map((o) => [o.value, o.label])) as Record<string, string>;
 

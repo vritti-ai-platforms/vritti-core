@@ -2,8 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
   DataTableStateService,
+  type FilterCondition,
+  type SearchState,
   SelectOptionsQueryDto,
   type SelectQueryResult,
+  type SortCondition,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
@@ -17,8 +20,6 @@ import type { InventoryItemLotResponseDto } from '../dto/response/inventory-item
 import type { InventoryItemLotTableResponseDto } from '../dto/response/inventory-item-lot-table-response.dto';
 import type { InventoryItemQuantResponseDto } from '../dto/response/inventory-item-quant-response.dto';
 import type { InventoryItemQuantTableResponseDto } from '../dto/response/inventory-item-quant-table-response.dto';
-import type { InventoryItemsFeedQueryDto } from '../dto/request/inventory-items-feed-query.dto';
-import type { InventoryItemFeedResponseDto } from '../dto/response/inventory-item-feed-response.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
 import type { InventoryItemStockResponseDto } from '../dto/response/inventory-item-stock-response.dto';
 import type {
@@ -56,8 +57,17 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns keyset/cursor-paginated inventory items for infinite feeds
-  async findForFeed(query: InventoryItemsFeedQueryDto): Promise<InventoryItemFeedResponseDto> {
+  // Keyset/cursor Relay connection for the mobile infinite feed (GraphQL-only — no REST route).
+  async findForFeed(query: {
+    filters?: FilterCondition[];
+    search?: SearchState | null;
+    sort?: SortCondition[];
+    limit?: number;
+    cursor?: string;
+  }): Promise<{
+    edges: { cursor: string; node: InventoryItemResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log('inventoryItems.feed');
     return this.nats.send('commerce', 'inventoryItems.feed', query);
   }

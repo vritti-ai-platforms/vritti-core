@@ -1,16 +1,7 @@
-import { gql, type OperationVariables } from '@apollo/client';
+import type { OperationVariables } from '@apollo/client';
+import { REVOKE_ALL_SESSIONS_MUTATION, SESSIONS_QUERY } from '../../graphql/account';
 import type { MessageResponse } from '../../types/account';
 import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
-import { SESSIONS_QUERY } from './useSessions';
-
-export const REVOKE_ALL_SESSIONS_MUTATION = gql`
-  mutation RevokeAllSessions {
-    revokeAllSessions {
-      success
-      message
-    }
-  }
-`;
 
 interface RevokeAllSessionsResult {
   revokeAllSessions: MessageResponse;

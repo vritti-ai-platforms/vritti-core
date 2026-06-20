@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apollo Cache & API Flow — Inventory Items KT</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212b; --ink:#e7eaf0; --muted:#9aa3b2;
+    --line:#2a2f3a; --code:#0c0e12;
+    --create:#34d399; --update:#60a5fa; --delete:#f87171; --read:#c084fc; --accent:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;font-size:16px}
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:30px;line-height:1.2;margin:0 0 6px}
+  h2{font-size:22px;margin:44px 0 14px;padding-top:14px;border-top:1px solid var(--line)}
+  h3{font-size:16px;margin:22px 0 8px;color:var(--ink)}
+  p{margin:10px 0;color:#cdd3de}
+  .lede{color:var(--muted);font-size:17px;margin-top:0}
+  code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+  p code,li code{background:#23283340;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:#e7eaf0}
+  .muted{color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:999px;vertical-align:middle}
+  .t-create{background:#0c2a20;color:var(--create);border:1px solid #1f5c47}
+  .t-update{background:#0c1f38;color:var(--update);border:1px solid #1e4a80}
+  .t-delete{background:#341414;color:var(--delete);border:1px solid #7a2b2b}
+  .t-read{background:#241433;color:var(--read);border:1px solid #5a307e}
+
+  /* layered stack */
+  .stack{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:16px 0}
+  .layer{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:14px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .layer:last-child{border-bottom:0}
+  .layer .who{font-weight:700;font-size:14px}
+  .layer .who small{display:block;color:var(--muted);font-weight:500;font-size:12px;margin-top:2px}
+  .layer .what{color:#cdd3de;font-size:14px}
+  .arrowrow{text-align:center;color:var(--accent);font-size:13px;padding:3px 0;background:var(--panel2)}
+
+  /* generic card */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin:16px 0}
+  .card.create{border-left:4px solid var(--create)}
+  .card.update{border-left:4px solid var(--update)}
+  .card.delete{border-left:4px solid var(--delete)}
+  .card.read{border-left:4px solid var(--read)}
+
+  /* numbered steps */
+  ol.steps{list-style:none;counter-reset:s;margin:14px 0 0;padding:0}
+  ol.steps>li{counter-increment:s;position:relative;padding:0 0 16px 42px;border-left:2px dashed var(--line);margin-left:13px}
+  ol.steps>li:last-child{border-left:2px solid transparent;padding-bottom:0}
+  ol.steps>li::before{content:counter(s);position:absolute;left:-14px;top:-2px;width:26px;height:26px;border-radius:50%;
+    background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center}
+  ol.steps>li b{color:#fff}
+  ol.steps .sub{color:var(--muted);font-size:13.5px;margin-top:3px}
+
+  pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow-x:auto;margin:10px 0}
+  pre code{color:#d7dce6;font-size:12.5px;line-height:1.5}
+  .c-key{color:#8be9c6}.c-com{color:#6b7280}.c-str{color:#fbbf24}.c-fn{color:#60a5fa}
+
+  /* cache box */
+  .cachebox{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0;font-size:12.5px}
+  .cachebox .row{display:flex;gap:8px;padding:3px 0;align-items:baseline;flex-wrap:wrap}
+  .ckey{color:#8be9c6;font-family:ui-monospace,monospace}
+  .cval{color:#9aa3b2;font-family:ui-monospace,monospace}
+  .hl-add{color:var(--create);font-weight:700}
+  .hl-del{color:var(--delete);text-decoration:line-through}
+  .hl-chg{color:var(--update);font-weight:700}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}.layer{grid-template-columns:1fr}.layer .who small{margin-bottom:4px}}
+  .beforeafter{display:grid;grid-template-columns:1fr 28px 1fr;align-items:center;gap:6px;margin:12px 0}
+  .beforeafter .mid{text-align:center;color:var(--accent);font-size:18px}
+  .panel-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px;font-weight:700}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  td b{color:#fff}
+  .key{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0;font-size:13px;color:var(--muted)}
+  .callout{background:#1a1e27;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 14px;margin:14px 0;font-size:14px}
+  .callout b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Apollo Cache &amp; API Flow</h1>
+  <p class="lede">How the inventory-items feed reads, and how <span class="tag t-create">create</span> <span class="tag t-update">update</span> <span class="tag t-delete">delete</span> stay live <b>without refetching the list</b> — grounded in the actual commerce-ma / core-server code.</p>
+
+  <div class="callout">
+    <b>The one idea behind everything:</b> the Apollo cache is a <b>normalized store</b> — every entity is saved once under a key like <code>InventoryItem:abc123</code>, and every list/screen just holds a <i>reference</i> to it. So we never re-download a list; we surgically edit the cache, and every view that points at the same entity updates itself.
+  </div>
+
+  <!-- ============ PART A : API STRUCTURE ============ -->
+  <h2>① The API structure — one request, five hops</h2>
+  <p>The mobile feed talks <b>GraphQL</b> (not REST). A query/mutation travels down this chain and the response comes back up the same way:</p>
+
+  <div class="stack">
+    <div class="layer">
+      <div class="who">commerce-ma <small>mobile remote</small></div>
+      <div class="what">Apollo Client builds the operation &amp; sends <code>HTTP POST {tenantBaseURL}/graphql</code>. <span class="muted">authLink attaches the token, <code>x-bu-id</code>, platform; tenant URL comes from Keychain.</span></div>
+    </div>
+    <div class="arrowrow">▼ &nbsp;HTTPS · GraphQL over POST</div>
+    <div class="layer">
+      <div class="who">core-server <small>GraphQL gateway</small></div>
+      <div class="what"><code>InventoryItemsResolver</code> (Apollo driver on Fastify) receives the operation, e.g. <code>inventoryItems(first, after, filters, search, sort)</code>.</div>
+    </div>
+    <div class="arrowrow">▼ &nbsp;resolver → gateway service</div>
+    <div class="layer">
+      <div class="who">Gateway service <small>thin forwarder</small></div>
+      <div class="what"><code>InventoryItemsGatewayService.findForFeed()</code> reshapes args and forwards over the message bus.</div>
+    </div>
+    <div class="arrowrow">▼ &nbsp;<code>nats.send('commerce', 'inventoryItems.feed', payload)</code> · request/reply</div>
+    <div class="layer">
+      <div class="who">commerce-service <small>NATS microservice</small></div>
+      <div class="what">NATS handler → <code>InventoryItemsService.findForFeed()</code> builds the keyset query (FilterProcessor + KeysetProcessor + CursorCodec) → Repository → <b>Postgres</b>.</div>
+    </div>
+    <div class="arrowrow">▲ &nbsp;result travels back up the same chain</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Two pagination styles, on purpose</h3>
+      <p class="muted" style="font-size:13.5px;margin:4px 0">The <b>web</b> table uses offset pagination (<code>inventoryItems.table</code>). The <b>mobile</b> feed uses <b>keyset/cursor</b> (<code>inventoryItems.feed</code>) → returns a Relay <b>connection</b>. Offset drifts when rows are inserted/deleted mid-list; keyset is stable for infinite scroll.</p>
+    </div>
+    <div class="card">
+      <h3>What a "Relay connection" is</h3>
+<pre><code>{
+  <span class="c-key">edges</span>: [{ <span class="c-key">cursor</span>, <span class="c-key">node</span>: {…item} }],
+  <span class="c-key">pageInfo</span>: { <span class="c-key">hasNextPage</span>, <span class="c-key">endCursor</span> }
+}</code></pre>
+      <p class="muted" style="font-size:13px;margin:4px 0">Each row carries its own opaque <code>cursor</code> (encoded sort-key values). The next page asks for rows <i>after</i> <code>endCursor</code>.</p>
+    </div>
+  </div>
+
+  <!-- ============ PART B : CACHE MODEL ============ -->
+  <h2>② How the cache is laid out</h2>
+  <p>The host (<code>core-app/src/host/config/apollo.ts</code>) creates <b>one</b> <code>InMemoryCache</code>; the commerce-ma remote shares it. The cache is a flat key→value map with two kinds of entries:</p>
+
+  <div class="cachebox">
+    <div class="panel-label">Normalized entities — saved once, by identity</div>
+    <div class="row"><span class="ckey">InventoryItem:abc</span><span class="cval">{ id:"abc", name:"Steel bolt", code:"BOLT-M6", … }</span></div>
+    <div class="row"><span class="ckey">InventoryItem:def</span><span class="cval">{ id:"def", name:"Washer", … }</span></div>
+    <div class="panel-label" style="margin-top:12px">ROOT_QUERY fields — hold references (→), not copies</div>
+    <div class="row"><span class="ckey">inventoryItems({filters,search,sort})</span><span class="cval">{ edges:[{cursor, node:→InventoryItem:abc}, {…→def}], pageInfo }</span></div>
+    <div class="row"><span class="ckey">inventoryItem({id:"abc"})</span><span class="cval">→ (redirected to InventoryItem:abc)</span></div>
+  </div>
+
+  <p>Two <code>typePolicies</code> make this work:</p>
+  <div class="grid2">
+    <div class="card">
+      <h3><code>relayStylePagination(['filters','search','sort'])</code></h3>
+      <p class="muted" style="font-size:13.5px">Teaches the cache to <b>merge pages</b> of the connection automatically. The key args are filters/search/sort — so each filter combo is its <i>own</i> cached connection, while <code>first/after</code> (the page cursor) are excluded. Result: <code>fetchMore</code> appends to the same cached list with no manual merge code.</p>
+    </div>
+    <div class="card">
+      <h3><code>inventoryItem</code> read redirect</h3>
+<pre><code><span class="c-fn">read</span>(_e, {args, toReference}) {
+  <span class="c-com">// point the single-item query at the</span>
+  <span class="c-com">// entity the FEED already cached</span>
+  <span class="c-key">return</span> toReference({
+    __typename:<span class="c-str">'InventoryItem'</span>, id: args.id
+  });
+}</code></pre>
+      <p class="muted" style="font-size:13px;margin:2px 0">So opening an item's detail reads it straight from cache — <b>no network call</b>.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <b>The fragment trick:</b> the feed query, the single-item query, and create/update mutations all select the <b>same</b> <code>InventoryItemFields</code> fragment. So the object the feed caches is byte-for-byte the object detail/edit need — they all resolve to the <i>one</i> <code>InventoryItem:{id}</code> record. Edit it once → every view updates.
+  </div>
+
+  <!-- ============ CREATE ============ -->
+  <h2><span class="tag t-create">create</span> &nbsp;Insert without refetch</h2>
+  <div class="card create">
+    <ol class="steps">
+      <li><b>Submit form</b> → <code>useCreateInventoryItem().mutate({input})</code>
+        <div class="sub">POST <code>createInventoryItem(input)</code> → resolver → gateway → NATS → DB insert.</div></li>
+      <li><b>Server returns the full new entity</b> (resolver returns <code>result.data</code>, selected via the shared fragment).</li>
+      <li><b>Apollo auto-normalizes it</b> → writes a new <code>InventoryItem:newId</code> record into the store.</li>
+      <li><b>The hook's <code>update()</code> runs <code>cache.modify</code></b> on the <code>inventoryItems</code> field → <b>prepends a new edge</b> pointing at the new entity. <span class="sub">(dedupes by id; skips if already present)</span></li>
+      <li><b>Every screen reading the feed re-renders</b> with the item on top. <b>No list GET.</b></li>
+    </ol>
+    <div class="beforeafter">
+      <div>
+        <div class="panel-label">connection.edges — before</div>
+        <div class="cachebox"><div class="row"><span class="cval">[ →abc, →def ]</span></div></div>
+      </div>
+      <div class="mid">→</div>
+      <div>
+        <div class="panel-label">after cache.modify</div>
+        <div class="cachebox"><div class="row"><span class="cval">[ <span class="hl-add">→new</span>, →abc, →def ]</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ UPDATE ============ -->
+  <h2><span class="tag t-update">update</span> &nbsp;Edit with zero cache surgery</h2>
+  <div class="card update">
+    <ol class="steps">
+      <li><b>Submit edit</b> → <code>useUpdateInventoryItem().mutate({id, input})</code>
+        <div class="sub">POST <code>updateInventoryItem(id, input)</code>.</div></li>
+      <li><b>Server updates, then <u>re-fetches</u> &amp; returns the full entity.</b>
+        <div class="sub">In the resolver: <code>await update(id, input); return findById(id);</code> — the REST/NATS update only returns <code>{success}</code>, so the resolver composes a fresh read so the client gets the whole object back.</div></li>
+      <li><b>Apollo merges it by identity</b> into the existing <code>InventoryItem:{id}</code> — same key, fields overwritten.</li>
+      <li><b>List cell + detail update automatically</b>, because both already point at that same record. <b>No <code>cache.modify</code>, no refetch.</b></li>
+    </ol>
+    <div class="beforeafter">
+      <div>
+        <div class="panel-label">InventoryItem:abc — before</div>
+        <div class="cachebox"><div class="row"><span class="cval">{ name:"Steel bolt", code:"BOLT-M6" }</span></div></div>
+      </div>
+      <div class="mid">→</div>
+      <div>
+        <div class="panel-label">after merge</div>
+        <div class="cachebox"><div class="row"><span class="cval">{ name:<span class="hl-chg">"Steel bolt v2"</span>, code:"BOLT-M6" }</span></div></div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">Identity merge is why returning the entity matters — a mutation that returns only <code>{success}</code> would force you to refetch.</p>
+  </div>
+
+  <!-- ============ DELETE ============ -->
+  <h2><span class="tag t-delete">delete</span> &nbsp;Remove from every list at once</h2>
+  <div class="card delete">
+    <ol class="steps">
+      <li><b>Confirm</b> → <code>useDeleteInventoryItem().mutate({id})</code>
+        <div class="sub">POST <code>deleteInventoryItem(id)</code> → server checks references → DB delete → returns <code>{success}</code>. The client already holds the <code>id</code> it deleted.</div></li>
+      <li><b>Hook's <code>update()</code> drops the edge</b> — <code>cache.modify</code> filters the connection's <code>edges</code> to remove the one whose node id matches.</li>
+      <li><b><code>cache.evict({id:'InventoryItem:'+id})</code></b> removes the normalized entity itself.</li>
+      <li><b><code>cache.gc()</code></b> sweeps up any now-dangling references across all cached queries.</li>
+      <li><b>Row disappears from every cached list.</b> The detail screen's <code>inventoryItem(id)</code> redirect now points at a missing record → resolves to <b>null</b> (no <code>findById</code> on a deleted id → no 500).</li>
+    </ol>
+    <div class="beforeafter">
+      <div>
+        <div class="panel-label">store — before</div>
+        <div class="cachebox">
+          <div class="row"><span class="cval">edges: [ →abc, →def ]</span></div>
+          <div class="row"><span class="ckey">InventoryItem:abc</span><span class="cval">{…}</span></div>
+        </div>
+      </div>
+      <div class="mid">→</div>
+      <div>
+        <div class="panel-label">after modify + evict + gc</div>
+        <div class="cachebox">
+          <div class="row"><span class="cval">edges: [ <span class="hl-del">→abc</span>, →def ]</span></div>
+          <div class="row"><span class="ckey hl-del">InventoryItem:abc</span><span class="cval hl-del">{…}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ READ ============ -->
+  <h2><span class="tag t-read">read</span> &nbsp;Opening detail — why it never hits the network</h2>
+  <div class="card read">
+    <ol class="steps">
+      <li><b>Feed already cached the entity</b> (same fragment) as <code>InventoryItem:{id}</code>.</li>
+      <li><b>Detail uses</b> <code>useQuery(INVENTORY_ITEM_QUERY, { fetchPolicy: 'cache-only' })</code> — it is forbidden from going to the network.</li>
+      <li><b>The <code>inventoryItem</code> read redirect</b> resolves the query to the cached <code>InventoryItem:{id}</code> → renders instantly.</li>
+      <li><b>After a delete</b>, that reference dangles → returns null → the screen shows "no item" gracefully instead of refetching a deleted row.</li>
+    </ol>
+    <p class="muted" style="font-size:13px;margin:6px 0 0"><code>cache-only</code> + the redirect are a <b>pair</b>: the redirect populates the field from the feed's entity; <code>cache-only</code> stops a post-delete refetch storm.</p>
+  </div>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <h2>③ Cheat sheet</h2>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Op</th><th>Server returns</th><th>Cache technique</th><th>List refetch?</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag t-create">create</span></td><td>full entity</td><td><code>cache.modify</code> → prepend edge</td><td><b>No</b></td></tr>
+      <tr><td><span class="tag t-update">update</span></td><td>full entity (re-fetched)</td><td>identity auto-merge (nothing manual)</td><td><b>No</b></td></tr>
+      <tr><td><span class="tag t-delete">delete</span></td><td><code>{success}</code></td><td><code>cache.modify</code> + <code>cache.evict</code> + <code>cache.gc</code></td><td><b>No</b></td></tr>
+      <tr><td><span class="tag t-read">read</span></td><td>— (cache-only)</td><td>read redirect → cached entity</td><td><b>No</b></td></tr>
+      <tr><td class="muted">paginate</td><td>next connection page</td><td><code>relayStylePagination</code> merges pages</td><td><b>No</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <b>When you SHOULD refetch instead:</b> if sorting/filtering changes which rows belong (or their order), or a server-computed field changes that you can't reproduce on the client. Cache surgery is for membership you can compute locally (add/remove/edit a known row); a refetch is correct when the server decides membership.
+  </div>
+
+  <h2 style="border:0">Where each piece lives</h2>
+  <table>
+    <tbody>
+      <tr><td><b>Cache config</b></td><td><code>core-app/src/host/config/apollo.ts</code> — typePolicies (host-owned)</td></tr>
+      <tr><td><b>Feed read</b></td><td><code>quantum-ui-native/lib/hooks/useApolloInfiniteList.ts</code> + <code>commerce-ma/src/hooks/inventory-items/useInventoryItemsFeed.ts</code></td></tr>
+      <tr><td><b>Mutations</b></td><td><code>commerce-ma/src/hooks/inventory-items/use{Create,Update,Delete}InventoryItem.ts</code></td></tr>
+      <tr><td><b>Documents</b></td><td><code>commerce-ma/src/graphql/inventory-items/{queries,mutations,fragments}.ts</code></td></tr>
+      <tr><td><b>Resolver</b></td><td><code>core-server/…/commerce-gateway/inventory-items/resolvers/inventory-items.resolver.ts</code></td></tr>
+      <tr><td><b>Keyset query</b></td><td><code>commerce-service/…/domain/inventory-items/services/inventory-items.service.ts</code> → <code>findForFeed()</code></td></tr>
+    </tbody>
+  </table>
+
+</div>
+</body>
+</html>
