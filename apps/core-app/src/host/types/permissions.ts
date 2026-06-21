@@ -20,6 +20,11 @@ export interface PermissionFeature {
     exposedModule: string;
     routePrefix: string;
   };
+  // App grouping (sent by the SSE) — drives app tabs + the per-app feature side menu
+  appCode: string;
+  appName: string;
+  appIcon: string | null;
+  appSortOrder: number;
 }
 
 export interface PermissionsResponse {

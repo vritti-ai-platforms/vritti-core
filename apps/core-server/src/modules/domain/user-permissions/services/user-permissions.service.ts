@@ -92,19 +92,22 @@ export class UserPermissionsService {
     // Get all role assignments for this user at this BU
     const assignments = await this.userRoleAssignmentRepository.findByUserAndBU(userId, buId);
 
-    // Merge features from all assigned roles additively
+    // Role grants are stored per platform; resolve only the requesting surface's bucket.
+    // web → 'web'; ios/android → 'mobile'. (x-platform still drives the per-OS route below.)
+    const bucket: 'web' | 'mobile' = platform === 'web' ? 'web' : 'mobile';
+
+    // Merge features from all assigned roles additively, taking only this platform's grants
     const mergedFeatures = new Map<string, Set<string>>();
     for (const assignment of assignments) {
       if (!assignment.features) continue;
 
-      const features = assignment.features as Record<string, string[]>;
-      for (const [code, perms] of Object.entries(features)) {
-        if (!mergedFeatures.has(code)) {
-          mergedFeatures.set(code, new Set());
-        }
-        for (const perm of perms) {
-          mergedFeatures.get(code)?.add(perm);
-        }
+      const features = assignment.features as Record<string, { web?: string[]; mobile?: string[] } | string[]>;
+      for (const [code, grant] of Object.entries(features)) {
+        // Tolerate the legacy flat shape (string[]) during re-provisioning
+        const perms = Array.isArray(grant) ? grant : (grant?.[bucket] ?? []);
+        if (perms.length === 0) continue;
+        if (!mergedFeatures.has(code)) mergedFeatures.set(code, new Set());
+        for (const perm of perms) mergedFeatures.get(code)?.add(perm);
       }
     }
 

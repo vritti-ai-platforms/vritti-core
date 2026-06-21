@@ -46,7 +46,7 @@ export class RoleItemDto {
   @ApiProperty({ example: { products: ['VIEW', 'CREATE'] } })
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
-  features: Record<string, string[]>;
+  features: Record<string, { web?: string[]; mobile?: string[] }>;
 }
 
 export class ProvisionRolesWebhookDto {

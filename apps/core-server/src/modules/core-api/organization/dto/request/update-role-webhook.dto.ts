@@ -29,5 +29,5 @@ export class UpdateRoleWebhookDto {
   @IsOptional()
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
-  features?: Record<string, string[]>;
+  features?: Record<string, { web?: string[]; mobile?: string[] }>;
 }

@@ -17,7 +17,11 @@ export const orgRoles = coreSchema.table(
     sourceRoleId: uuid('source_role_id'),
     isLocked: boolean('is_locked').notNull().default(false),
     appCodes: jsonb('app_codes').$type<string[]>().notNull().default([]),
-    features: jsonb('features').$type<Record<string, string[]>>().notNull().default({}),
+    // featureCode → granted permission codes per platform (the role's grants, split web/mobile)
+    features: jsonb('features')
+      .$type<Record<string, { web?: string[]; mobile?: string[] }>>()
+      .notNull()
+      .default({}),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

@@ -63,9 +63,6 @@ importers:
       '@react-navigation/native-stack':
         specifier: 8.0.0-alpha.25
         version: 8.0.0-alpha.25(c691e0f8f9586fc551eeb8478e0236f4)
-      '@tanstack/react-query':
-        specifier: ^5.90.21
-        version: 5.100.10(react@19.2.3)
       '@vritti/quantum-ui-native':
         specifier: link:../../../quantum-ui-native
         version: link:../../../quantum-ui-native
@@ -477,9 +474,6 @@ importers:
       '@react-navigation/native':
         specifier: 8.0.0-alpha.17
         version: 8.0.0-alpha.17(react-native@0.83.2(@babel/core@7.29.0)(@react-native-community/cli@20.0.0(typescript@6.0.3))(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.3))(react@19.2.3)
-      '@tanstack/react-query':
-        specifier: ^5.90.21
-        version: 5.90.21(react@19.2.3)
       '@vritti/quantum-ui-native':
         specifier: link:../../../../quantum-ui-native
         version: link:../../../../quantum-ui-native
@@ -5814,16 +5808,8 @@ packages:
   '@tanstack/query-core@5.100.10':
     resolution: {integrity: sha512-8UR0yJR+GiQ40m3lPhUr0xbfAupe6GSQiksSBSa9SM2NjezFyxXCIA69/lz8cSoNKZLrw1/PktIyQBJcVeMi3w==}
 
-  '@tanstack/query-core@5.90.20':
-    resolution: {integrity: sha512-OMD2HLpNouXEfZJWcKeVKUgQ5n+n3A2JFmBaScpNDUqSrQSjiveC7dKMe53uJUg1nDG16ttFPz2xfilz6i2uVg==}
-
   '@tanstack/react-query@5.100.10':
     resolution: {integrity: sha512-FLaZf2RCrA/Zgp4aiu5tG3TyasTRO7aZ99skxQpr3Hg/zXOhu6yq5FZCYQ/tRaJtM9ylnoK8tFK7PolXQadv6Q==}
-    peerDependencies:
-      react: ^18 || ^19
-
-  '@tanstack/react-query@5.90.21':
-    resolution: {integrity: sha512-0Lu6y5t+tvlTJMTO7oh5NSpJfpg/5D41LlThfepTixPYkJ0sE2Jj0m0f6yYqujBwIXlId87e234+MxG3D3g7kg==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -18813,9 +18799,7 @@ snapshots:
       metro-runtime: 0.83.5
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-colors@0.83.2': {}
 
@@ -19814,16 +19798,9 @@ snapshots:
 
   '@tanstack/query-core@5.100.10': {}
 
-  '@tanstack/query-core@5.90.20': {}
-
   '@tanstack/react-query@5.100.10(react@19.2.3)':
     dependencies:
       '@tanstack/query-core': 5.100.10
-      react: 19.2.3
-
-  '@tanstack/react-query@5.90.21(react@19.2.3)':
-    dependencies:
-      '@tanstack/query-core': 5.90.20
       react: 19.2.3
 
   '@tanstack/react-table@8.21.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':

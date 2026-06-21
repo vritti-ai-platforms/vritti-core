@@ -14497,13 +14497,15 @@
           "features": {
             "type": "object",
             "example": {
-              "products": [
-                "VIEW",
-                "CREATE"
-              ],
-              "orders": [
-                "VIEW"
-              ]
+              "products": {
+                "web": [
+                  "VIEW",
+                  "CREATE"
+                ],
+                "mobile": [
+                  "VIEW"
+                ]
+              }
             }
           }
         },
