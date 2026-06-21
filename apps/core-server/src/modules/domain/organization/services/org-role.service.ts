@@ -17,10 +17,13 @@ export class OrgRoleService {
     private readonly businessUnitRepository: BusinessUnitRepository,
   ) {}
 
-  // Provisions multiple roles for an organization
+  // Provisions role templates for an organization — adds genuinely-new templates, keeps customized ones
   async provision(orgId: string, roles: RoleItemDto[]): Promise<SuccessResponseDto> {
+    const existingSourceIds = new Set(await this.orgRoleRepository.findSourceRoleIdsByOrg(orgId));
+    const newRoles = roles.filter((role) => !role.sourceRoleId || !existingSourceIds.has(role.sourceRoleId));
+
     await this.database.runInTransaction(async () => {
-      for (const role of roles) {
+      for (const role of newRoles) {
         await this.orgRoleRepository.create({
           organizationId: orgId,
           name: role.name,
@@ -35,8 +38,9 @@ export class OrgRoleService {
       }
     });
 
-    this.logger.log(`Provisioned ${roles.length} roles for org ${orgId}`);
-    return { success: true, message: `${roles.length} role(s) provisioned successfully.` };
+    const skipped = roles.length - newRoles.length;
+    this.logger.log(`Provisioned ${newRoles.length} new role(s) for org ${orgId} (${skipped} already present)`);
+    return { success: true, message: `${newRoles.length} role(s) provisioned successfully.` };
   }
 
   // Lists all roles for an organization

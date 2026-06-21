@@ -122,10 +122,6 @@ class EnvironmentVariables {
   @IsString()
   NEXUS_WEBHOOK_SECRET: string;
 
-  // Cloud API
-  @IsString()
-  CLOUD_API_URL: string;
-
   // Redis
   @IsString()
   REDIS_URL: string;

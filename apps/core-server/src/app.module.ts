@@ -31,12 +31,10 @@ import { AccountModule } from "./modules/account/account.module";
 import { CommerceGatewayModule } from "./modules/commerce-gateway/commerce-gateway.module";
 import { AuthApiModule } from "./modules/core-api/auth/auth.module";
 import { BusinessUnitApiModule } from "./modules/core-api/business-unit/business-unit.module";
-import { ConfigApiModule } from "./modules/core-api/config/config-api.module";
 import { OrganizationApiModule } from "./modules/core-api/organization/organization.module";
 import { UserApiModule } from "./modules/core-api/user/user.module";
 import { UserPermissionsApiModule } from "./modules/core-api/user-permissions/user-permissions.module";
 import { BusinessUnitDomainModule } from "./modules/domain/business-unit/business-unit.module";
-import { ConfigCacheDomainModule } from "./modules/domain/config-cache/config-cache.module";
 import { OrganizationDomainModule } from "./modules/domain/organization/organization.module";
 import { SessionDomainModule } from "./modules/domain/session/session.module";
 import { UserDomainModule } from "./modules/domain/user/user.module";
@@ -214,7 +212,6 @@ import { VerificationDomainModule } from "./modules/domain/verification/verifica
     // Data table views — server-stored table state
     DataTableModule.forRoot({ tableViews: schema.tableViews }),
     // Domain modules — services + repositories only
-    ConfigCacheDomainModule,
     SessionDomainModule,
     VerificationDomainModule,
     BusinessUnitDomainModule,
@@ -273,7 +270,6 @@ import { VerificationDomainModule } from "./modules/domain/verification/verifica
     }),
     // API modules — controllers + DTOs + docs
     AuthApiModule,
-    ConfigApiModule,
     UserApiModule,
     OrganizationApiModule,
     BusinessUnitApiModule,

@@ -933,43 +933,6 @@
         ]
       }
     },
-    "/config/webhook/invalidate/{orgId}": {
-      "post": {
-        "operationId": "ConfigWebhookController_invalidate",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Config"
-        ]
-      }
-    },
-    "/config/webhook/invalidate-all": {
-      "post": {
-        "operationId": "ConfigWebhookController_invalidateAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Config"
-        ]
-      }
-    },
     "/users/organizations-by-email": {
       "get": {
         "description": "Returns all organizations associated with the given email address. Public endpoint used by the mobile app before login.",
@@ -13477,7 +13440,7 @@
   ],
   "servers": [
     {
-      "url": "http://local.vrittiai.com:3001",
+      "url": "https://local.vrittiai.com:3001",
       "description": "Local Development"
     }
   ],
@@ -14807,10 +14770,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "featureCatalog": {
+            "type": "array",
+            "description": "Resolved feature catalog for this business unit",
+            "items": {
+              "type": "object"
+            }
           }
         },
         "required": [
-          "appCodes"
+          "appCodes",
+          "featureCatalog"
         ]
       },
       "UpdateBusinessUnitWebhookDto": {

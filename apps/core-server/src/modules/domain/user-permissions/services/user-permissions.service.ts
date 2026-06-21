@@ -1,5 +1,4 @@
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
-import { ConfigCacheService } from '@domain/config-cache/services/config-cache.service';
 import { UserRoleAssignmentRepository } from '@domain/user-role/repositories/user-role-assignment.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
@@ -13,6 +12,9 @@ export interface PermissionFeature {
   sfSymbol: string;
   materialSymbol: string;
   permissions: string[];
+  // Plan lock overlay (for upsell rendering): feature-level + the granted permissions that are plan-locked
+  locked: boolean;
+  lockedPermissions: string[];
   route: {
     remoteEntry: string;
     exposedModule: string;
@@ -40,7 +42,6 @@ export class UserPermissionsService {
   constructor(
     private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
-    private readonly configCacheService: ConfigCacheService,
   ) {}
 
   // Returns distinct business units where the user has role assignments
@@ -84,7 +85,8 @@ export class UserPermissionsService {
     const bu = await this.businessUnitRepository.findById(buId);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    const catalog = await this.configCacheService.getFeatureCatalog(_orgId, buId);
+    // Catalog is pushed from cloud and stored on the BU row — no runtime cloud dependency
+    const catalog = bu.featureCatalog ?? [];
     const catalogMap = new Map(catalog.map((f) => [f.code, f]));
 
     // Get all role assignments for this user at this BU
@@ -116,13 +118,19 @@ export class UserPermissionsService {
       // Feature isn't published to this platform — omit so client doesn't see an unloadable tile.
       if (!route) continue;
 
+      // The plan locks a subset of permissions; surface which granted ones are locked (for upsell)
+      const lockedSet = new Set((catalogEntry.permissions ?? []).filter((p) => p.locked).map((p) => p.code));
+      const grantedPerms = [...permsSet];
+
       features.push({
         code,
         name: catalogEntry.name,
         icon: catalogEntry.icon,
         sfSymbol: catalogEntry.sfSymbol,
         materialSymbol: catalogEntry.materialSymbol,
-        permissions: [...permsSet],
+        permissions: grantedPerms,
+        locked: catalogEntry.locked ?? false,
+        lockedPermissions: grantedPerms.filter((c) => lockedSet.has(c)),
         route,
         appCode: catalogEntry.appCode,
         appName: catalogEntry.appName,

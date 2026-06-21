@@ -23,6 +23,9 @@ export interface FeatureCatalogEntry {
   appName: string;
   appIcon: string | null;
   appSortOrder: number;
+  // Plan lock overlay: feature-level locked (all permissions locked) + per-permission lock for upsell
+  locked: boolean;
+  permissions: Array<{ code: string; locked: boolean }>;
 }
 
 export const organizations = coreSchema.table('organizations', {

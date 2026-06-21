@@ -2,7 +2,7 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, customType, index, integer, jsonb, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { buTypeEnum, pickStrategyEnum } from './enums';
-import { organizations } from './organizations';
+import { type FeatureCatalogEntry, organizations } from './organizations';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
@@ -38,6 +38,7 @@ export const businessUnits = coreSchema.table(
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
     appCodes: jsonb('app_codes').$type<string[]>().notNull().default([]),
+    featureCatalog: jsonb('feature_catalog').$type<FeatureCatalogEntry[]>().notNull().default([]),
     timezone: varchar('timezone', { length: 50 }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     pickStrategy: pickStrategyEnum('pick_strategy').notNull().default('FEFO'),

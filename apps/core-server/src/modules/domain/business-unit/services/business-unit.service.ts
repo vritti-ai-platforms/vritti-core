@@ -116,6 +116,7 @@ export class BusinessUnitService {
 
     await this.businessUnitRepository.update(id, {
       appCodes: dto.appCodes,
+      featureCatalog: dto.featureCatalog ?? [],
       updatedAt: new Date(),
     });
 
