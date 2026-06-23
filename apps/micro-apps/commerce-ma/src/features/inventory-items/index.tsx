@@ -1,5 +1,6 @@
 import { useQuery } from '@apollo/client/react';
 import { type RouteProp, useNavigation } from "@react-navigation/native";
+import { registerConnection } from "@vritti/quantum-ui-native/apollo";
 import { Button } from "@vritti/quantum-ui-native/Button";
 import { Card } from "@vritti/quantum-ui-native/Card";
 import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
@@ -40,6 +41,18 @@ import {
   type UpdateInventoryItemFormValues,
 } from "../../schemas/inventory-items/inventory-item";
 import { InventoryItemForm } from "./forms/InventoryItemForm";
+
+// Register this micro-app's cache policies on the host's shared Apollo cache: relayStylePagination on
+// the `inventoryItems` feed connection + a by-id read redirect for `inventoryItem`. Runs once at module
+// eval — this is the MF-exposed feature entry the host lazily imports, so it executes before any screen
+// here mounts or queries. The host cache stays schema-agnostic; these policies are present for the first
+// read (registering in a hook/effect would be too late and miss the page-1 relay merge).
+registerConnection({
+  field: "inventoryItems",
+  keyArgs: ["filters", "search", "sort"],
+  singleField: "inventoryItem",
+  typename: "InventoryItem",
+});
 
 type InventoryRoute =
   | "InventoryList"
@@ -307,10 +320,15 @@ function InventoryItemEdit({
   const navigation = useNavigation() as unknown as InventoryNavigation;
   const id = route.params?.id;
 
-  // Read the item live so the form prefills from the latest cache state (reflects prior edits).
+  // cache-only (like InventoryItemDetail): the item is already cached from the feed (same
+  // InventoryItemFields fragment), and the normalized cache reflects prior edits, so the form prefills
+  // with no network read. Under the cache-and-network default an unset policy would background-fetch
+  // inventoryItem(id) and race/overwrite the save mutation in the shared InventoryItem:{id} record —
+  // which the list row reads — causing a ~1s stale flash on the list after editing.
   const { data, loading: loadingItem } = useQuery<InventoryItemQueryData>(INVENTORY_ITEM_QUERY, {
     variables: { id },
     skip: !id,
+    fetchPolicy: "cache-only",
   });
   const item = data?.inventoryItem;
 

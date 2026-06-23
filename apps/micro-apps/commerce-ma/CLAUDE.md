@@ -58,12 +58,14 @@ src/
    multiple hooks in one file. Consumers import from the `hooks/<domain>` barrel.
 2. **GraphQL operations** use `graphql()` from `src/gql` (never `gql` from `@apollo/client`); a shared
    per-entity fragment is reused across feed/single/create/update so cached records identity-merge by `id`.
-3. **CRUD without refetch** (the GitHub/Shopify method): create → `cache.modify` prepends the edge;
-   update → the mutation returns the entity → Apollo auto-merges by id; delete → `cache.modify` drops the
-   edge + `cache.evict`/`gc`. Never blanket-refetch the list. Detail/edit read `inventoryItem(id)` with
-   `fetchPolicy: 'cache-only'` (the host has a `Query.inventoryItem` `read` redirect).
-4. **Cache field policies** (`relayStylePagination`, single-item redirect) live in the host
-   (`core-app/src/host/config/apollo.ts`) — not here (for now).
+3. **CRUD without refetch** (the GitHub/Shopify method) via the generic helpers from
+   `@vritti/quantum-ui-native/apollo`: create → `prependEdgeToConnection`; update → the mutation returns
+   the entity → Apollo auto-merges by id (no surgery); delete → `removeEdgeFromConnection` + `evictEntity`.
+   Never blanket-refetch the list. Detail/edit read `inventoryItem(id)` with `fetchPolicy: 'cache-only'`
+   (the `Query.inventoryItem` `read` redirect is registered by this app — see #4).
+4. **Cache field policies** are registered by THIS app at runtime, not hardcoded in the host. The feature
+   entry (`features/inventory-items/index.tsx`) calls `registerConnection({ field: 'inventoryItems', … })`
+   at module top-level (before any query). The host's `createApolloClient` cache stays schema-agnostic.
 5. **Forms**: quantum `<Form>` wires fields by `name` via each field's `fieldBinding`. No `<Controller>`.
 6. **quantum-ui-native**: subpath imports only; `<Button>` needs a `<Text>` child; `FlashList` not
    FlatList; `Spinner` not ActivityIndicator; semantic color tokens only.

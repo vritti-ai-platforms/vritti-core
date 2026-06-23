@@ -8,6 +8,15 @@ import { createPreferences } from '@vritti/quantum-ui-native/utils';
 // `preferences` is the raw MMKV instance for direct reads/writes.
 export const { instance: preferences, storage: preferencesStorage } = createPreferences('vritti.preferences');
 
+// Dedicated non-secret MMKV store for the persisted Apollo cache snapshot (normalized GraphQL data
+// only — never secrets). Kept separate from `preferences` so purging the cache on logout / BU switch
+// never touches theme/BU prefs, and the snapshot bytes don't bloat the prefs store.
+export const { instance: apolloCacheStore } = createPreferences('vritti.apollo-cache');
+
+// Dedicated non-secret MMKV store for the persisted offline mutation queue (operation name + variables +
+// captured context). Survives app kill so offline writes replay on next launch + reconnect.
+export const { instance: offlineQueueStore } = createPreferences('vritti.offline-queue');
+
 // --- Selected business unit -------------------------------------------------
 // Persists the active BU across launches and is the single source the x-bu-id request
 // header reads from. PermissionProvider keeps it in sync with the in-memory selection.

@@ -35,3 +35,10 @@ export const config = {
 } as const;
 
 export type AppConfig = typeof config;
+
+// Dev-only API host override: in development, API_BASE_URL (config.api.devRawCoreBaseUrl) is the single
+// source of truth for the API base URL — it wins over any selected-deployment/tenant URL. In production
+// devRawCoreBaseUrl is undefined, so the real (deployment-resolved) URL is returned unchanged.
+export function resolveApiBaseUrl(productionUrl: string): string {
+  return config.api.devRawCoreBaseUrl ?? productionUrl;
+}

@@ -109,6 +109,7 @@ const selectDirs = [
 ];
 
 const quantumAliases = {
+  '@vritti/quantum-ui-native/apollo': path.join(quantumUiNative, 'lib/apollo/index.ts'),
   '@vritti/quantum-ui-native/utils': path.join(quantumUiNative, 'lib/utils/index.ts'),
   '@vritti/quantum-ui-native/hooks': path.join(quantumUiNative, 'lib/hooks/index.ts'),
   '@vritti/quantum-ui-native/config': path.join(quantumUiNative, 'lib/config/index.ts'),
@@ -300,10 +301,21 @@ export default (rspackEnv) => {
           // host's one ApolloClient — it does not create its own.
           '@apollo/client': { singleton: true, eager: false, import: false },
           '@apollo/client/react': { singleton: true, eager: false, import: false },
+          // relayStylePagination (used by registerConnection) must resolve to the host's singleton.
+          '@apollo/client/utilities': { singleton: true, eager: false, import: false },
           graphql: { singleton: true, eager: false, import: false },
           axios: { singleton: true, eager: false, import: false },
           '@gorhom/bottom-sheet': { singleton: true, eager: false, import: false },
           '@vritti/quantum-ui-native': {
+            singleton: true,
+            eager: false,
+            import: false,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          // Consume the host's one Apollo client + type-policy registry (createApolloClient runs in the
+          // host). This micro-app only registers its policies + runs cache surgery against that singleton.
+          '@vritti/quantum-ui-native/apollo': {
             singleton: true,
             eager: false,
             import: false,

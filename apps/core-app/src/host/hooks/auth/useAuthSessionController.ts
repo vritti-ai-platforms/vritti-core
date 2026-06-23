@@ -1,7 +1,13 @@
-import { clearTokens, getStoredMobileBaseURL, initializeMobileSession } from '@vritti/quantum-ui-native/utils';
+import {
+  clearTokens,
+  getStoredMobileBaseURL,
+  initializeMobileSession,
+  setMobileBaseURL,
+} from '@vritti/quantum-ui-native/utils';
 import { useCallback, useEffect, useState } from 'react';
 import mobileAxiosConfig from '../../../../quantum-ui-native.config';
-import { apolloClient } from '../../config/apollo';
+import { purgeApolloCache } from '../../config/apollo';
+import { config } from '../../config/env';
 import type { AuthStatusResponse } from '../../types/auth-status';
 import { useAuthStatusStream } from './useAuthStatusStream';
 
@@ -23,7 +29,7 @@ export function useAuthSessionController() {
   const [sessionOrigin, setSessionOrigin] = useState<AuthSessionOrigin>(null);
 
   const resetSignedOutState = useCallback(() => {
-    void apolloClient.clearStore();
+    void purgeApolloCache();
     setAuthState(null);
     setHasTenantBaseURL(false);
     setSessionOrigin(null);
@@ -58,6 +64,11 @@ export function useAuthSessionController() {
           ...mobileAxiosConfig,
           onSessionExpired: resetSignedOutState,
         });
+        // Dev: API_BASE_URL is the single API host — pin it over any stored deployment/tenant URL so
+        // GraphQL, REST, token-refresh and SSE all target it. No-op in prod (devRawCoreBaseUrl undefined).
+        if (config.api.devRawCoreBaseUrl) {
+          await setMobileBaseURL(config.api.devRawCoreBaseUrl);
+        }
         const storedBaseURL = await getStoredMobileBaseURL();
 
         if (!active) return;

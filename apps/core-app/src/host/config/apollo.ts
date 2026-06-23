@@ -1,79 +1,61 @@
-import { ApolloClient, CombinedGraphQLErrors, from, HttpLink, InMemoryCache } from '@apollo/client';
-import { SetContextLink } from '@apollo/client/link/context';
-import { ErrorLink } from '@apollo/client/link/error';
-import { relayStylePagination } from '@apollo/client/utilities';
+import type { ApolloClient } from '@apollo/client';
+import { createApolloClient } from '@vritti/quantum-ui-native/apollo';
 import { clearTokens, getOnSessionExpired, getStoredMobileBaseURL, getToken } from '@vritti/quantum-ui-native/utils';
 import { Platform } from 'react-native';
 import { ErrorCode } from '../types/error-code';
-import { getSelectedBusinessUnitId } from './storage';
+import { netInfoConnectivity } from './connectivity';
+import { apolloCacheStore, getSelectedBusinessUnitId, offlineQueueStore } from './storage';
 
+// The generic Apollo layer (link chain, normalized InMemoryCache, MMKV persistence) lives in
+// @vritti/quantum-ui-native/apollo so every RN app reuses it. The host injects ONLY its session +
+// transport behavior below; it owns NO micro-app schema. Each micro-app registers its own entity
+// cache policies (relayStylePagination, by-id read redirects) at runtime via `registerConnection`,
+// so the host cache stays schema-agnostic.
+//
 // Apollo runs ALONGSIDE TanStack Query during the GraphQL migration — it does NOT replace it.
-// Secrets (access token, deployment base URL) stay in quantum-ui-native (in-memory token +
-// Keychain base URL); proactive token refresh stays the timer inside the package. This client
-// only reads those values per request; it never owns or refreshes the session.
-
-// Resolves headers + the per-request endpoint. The tenant base URL lives in the Keychain and is
-// read async, so it's set on the context as `uri` (HttpLink honours a per-operation context uri)
-// rather than the HttpLink constructor's static uri. Auth + tenant + platform headers mirror the
-// axios request interceptor.
-const authLink = new SetContextLink(async (prevContext) => {
-  const baseURL = await getStoredMobileBaseURL();
-  const token = getToken();
-  const businessUnitId = getSelectedBusinessUnitId();
-
-  const headers: Record<string, string> = {
-    ...prevContext.headers,
-    'X-Platform': Platform.OS,
-  };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  if (businessUnitId) headers['x-bu-id'] = businessUnitId;
-
-  return {
-    headers,
-    ...(baseURL ? { uri: `${baseURL}/graphql` } : {}),
-  };
-});
-
-// On UNAUTHENTICATED, clear the session and notify the host (mirrors the axios 401 path). All
-// other errors pass through untouched for callers / useGqlMutation to surface.
-const errorLink = new ErrorLink(({ error }) => {
-  if (!CombinedGraphQLErrors.is(error)) return;
-
-  for (const graphQLError of error.errors) {
-    if (graphQLError.extensions?.code === ErrorCode.UNAUTHENTICATED) {
-      void clearTokens().finally(() => getOnSessionExpired()?.());
-      return;
-    }
-  }
-});
-
-// Falls back to a relative /graphql when no Keychain base URL is stored yet; authLink overrides
-// this with the tenant-specific endpoint on every request once a deployment is selected.
-const httpLink = new HttpLink({ uri: '/graphql' });
-
-export const apolloClient = new ApolloClient({
-  cache: new InMemoryCache({
-    // relayStylePagination merges paginated Relay connections directly in the cache — the hook no
-    // longer needs a manual updateQuery, and create/delete cache surgery (cache.modify/evict) works
-    // cleanly on the connection. keyArgs = filters/search/sort → each filter combo is its own cached
-    // connection; the pagination args (first/after) are excluded. The field name is a remote's query
-    // (commerce-ma's `inventoryItems`) — the only coupling the host cache takes on.
-    typePolicies: {
-      Query: {
-        fields: {
-          inventoryItems: relayStylePagination(['filters', 'search', 'sort']),
-          // Cache redirect: resolve the single-item query from the normalized entity the feed already
-          // cached (same InventoryItemFields fragment), so the detail/edit screens read it with NO
-          // network round-trip. After a delete evicts the entity this yields a dangling ref →
-          // cache-only returns null → still no refetch (no findById on a deleted id).
-          inventoryItem: {
-            read(_existing, { args, toReference }) {
-              return args?.id ? toReference({ __typename: 'InventoryItem', id: args.id as string }) : undefined;
-            },
-          },
-        },
-      },
+// Secrets (access token, deployment base URL) stay in quantum-ui-native (in-memory token + Keychain
+// base URL); proactive token refresh stays the timer inside the package. This client only reads those
+// values per request; it never owns or refreshes the session.
+const created = createApolloClient({
+  getToken,
+  resolveBaseURL: getStoredMobileBaseURL,
+  // Tenant + platform headers mirror the axios request interceptor. Authorization is added by the
+  // factory from the token.
+  buildHeaders: () => {
+    const businessUnitId = getSelectedBusinessUnitId();
+    return {
+      'X-Platform': Platform.OS,
+      ...(businessUnitId ? { 'x-bu-id': businessUnitId } : {}),
+    };
+  },
+  // On UNAUTHENTICATED, clear the session and notify the host (mirrors the axios 401 path).
+  onUnauthenticated: () => {
+    void clearTokens().finally(() => getOnSessionExpired()?.());
+  },
+  unauthenticatedCode: ErrorCode.UNAUTHENTICATED,
+  // Non-secret MMKV snapshot so the last-fetched data renders instantly on relaunch.
+  persistence: { mmkv: apolloCacheStore },
+  // NetInfo drives replay-on-reconnect; the offline queue persists opted-in writes across app kills.
+  // captureContext snapshots the active BU so each queued write replays under its original x-bu-id.
+  connectivity: netInfoConnectivity,
+  offline: {
+    mmkv: offlineQueueStore,
+    captureContext: (): Record<string, string> => {
+      const businessUnitId = getSelectedBusinessUnitId();
+      return businessUnitId ? { 'x-bu-id': businessUnitId } : {};
     },
-  }),
-  link: from([errorLink, authLink, httpLink]),
+  },
 });
+
+// `created.client` is typed against quantum-ui-native's own @apollo/client install; re-anchor it to
+// this app's install (they are the SAME class at runtime — one Module-Federation singleton — but
+// distinct nominal types across the two node_modules, so a direct assignment won't unify).
+export const apolloClient = created.client as unknown as ApolloClient;
+// Awaited at the App root (`use(apolloReady)`) so the persisted snapshot rehydrates before any query
+// reads the cache.
+export const apolloReady = created.ready;
+// Logout / session-expiry: empty the live cache AND the persisted snapshot — no tenant data survives.
+export const purgeApolloCache = created.purge;
+// BU / tenant switch: purge ONLY the persisted snapshot; the active-query refetch keeps the live cache
+// on screen (no blank flash) while preventing a relaunch from rehydrating the previous BU's rows.
+export const purgeApolloPersisted = created.purgePersisted;

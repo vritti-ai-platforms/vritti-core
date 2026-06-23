@@ -1,5 +1,5 @@
 import { clearTokens, getOnSessionExpired } from '@vritti/quantum-ui-native/utils';
-import { apolloClient } from '../../config/apollo';
+import { purgeApolloCache } from '../../config/apollo';
 import { MOBILE_LOGOUT } from '../../graphql/auth';
 import type { MessageResponse } from '../../graphql/generated/graphql';
 import { type UseGqlMutationOptions, useGqlMutation } from '../useGqlMutation';
@@ -17,7 +17,7 @@ export function useLogout(options?: UseLogoutOptions) {
     ...options,
     onCompleted: async (data, clientOptions) => {
       await clearTokens();
-      await apolloClient.clearStore();
+      await purgeApolloCache();
       getOnSessionExpired()?.();
       options?.onCompleted?.(data, clientOptions);
     },

@@ -1,6 +1,6 @@
 import { FormatProvider } from '@vritti/quantum-ui-native/context';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { apolloClient } from '../config/apollo';
+import { apolloClient, purgeApolloPersisted } from '../config/apollo';
 import { getSelectedBusinessUnitId, setSelectedBusinessUnitId } from '../config/storage';
 import type { AssignedBU, PermissionFeature } from '../types/permissions';
 import { useAuthSessionSnapshot } from './AuthProvider';
@@ -104,8 +104,10 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
   // include: 'active' refetches every currently-mounted query while keeping the previously-cached
   // data on screen during the background refetch — so freshly-remounted feature screens never flash
   // blank. (clearStore() here would empty the shared cache and leave those screens blank until a
-  // second mount.) Runs after the remount commit, so it targets the new observers; skips the
-  // initial selection (nothing to refetch at login).
+  // second mount.) We DO purge the persisted MMKV snapshot, though: it's BU-scoped, so leaving it
+  // would let a relaunch under a different BU rehydrate the previous BU's rows (the active-query
+  // refetch overwrites the live cache, and the persistor re-snapshots the fresh BU on its next write).
+  // Runs after the remount commit, so it targets the new observers; skips the initial selection.
   const didInitialSelect = useRef(false);
   useEffect(() => {
     if (!selectedBuId) return;
@@ -113,6 +115,7 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
       didInitialSelect.current = true;
       return;
     }
+    void purgeApolloPersisted();
     void apolloClient.refetchQueries({ include: 'active' });
   }, [selectedBuId]);
 

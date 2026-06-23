@@ -111,6 +111,7 @@ const selectDirs = [
 
 const quantumAliases = {
   // Non-component subpaths
+  '@vritti/quantum-ui-native/apollo': path.join(quantumUiNative, 'lib/apollo/index.ts'),
   '@vritti/quantum-ui-native/utils': path.join(quantumUiNative, 'lib/utils/index.ts'),
   '@vritti/quantum-ui-native/hooks': path.join(quantumUiNative, 'lib/hooks/index.ts'),
   '@vritti/quantum-ui-native/config': path.join(quantumUiNative, 'lib/config/index.ts'),
@@ -293,9 +294,23 @@ export default (rspackEnv) => {
           '@apollo/client/react': { singleton: true, eager: true },
           '@apollo/client/link/error': { singleton: true, eager: true },
           '@apollo/client/link/context': { singleton: true, eager: true },
+          // relayStylePagination (used by the runtime type-policy registry) lives here — must resolve
+          // to the same singleton as the host cache.
+          '@apollo/client/utilities': { singleton: true, eager: true },
           graphql: { singleton: true, eager: true },
+          // Carries the CachePersistor the host constructs for MMKV cache persistence.
+          'apollo3-cache-persist': { singleton: true, eager: true },
           '@gorhom/bottom-sheet': { singleton: true, eager: true },
           '@vritti/quantum-ui-native': {
+            singleton: true,
+            eager: true,
+            version: '0.1.0',
+            requiredVersion: '>=0.0.0-0',
+          },
+          // Host-owned so the one Apollo client + its type-policy registry are a single instance the
+          // whole federation shares (createApolloClient runs here; remotes register their policies + run
+          // cache surgery against this same module).
+          '@vritti/quantum-ui-native/apollo': {
             singleton: true,
             eager: true,
             version: '0.1.0',

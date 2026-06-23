@@ -4,6 +4,7 @@ import { Text } from '@vritti/quantum-ui-native/Text';
 import { mapApiErrorsToForm, setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
+import { resolveApiBaseUrl } from '../../config/env';
 import { useLogin } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import { useAuth } from '../../providers/AuthProvider';
@@ -40,7 +41,7 @@ export const LoginScreen = () => {
 
       try {
         const tenantBaseURL = buildOrganizationApiBaseURL(deploymentBaseURL, organizationSubdomain);
-        await setMobileBaseURL(tenantBaseURL);
+        await setMobileBaseURL(resolveApiBaseUrl(tenantBaseURL));
       } catch {
         if (active) {
           form.setError('root', {

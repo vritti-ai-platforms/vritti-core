@@ -104,15 +104,26 @@ generated types are `string`. Where enum precision matters (forms, `useQuery<…
 explicit hand type whose enums are unions (kept in `src/types/`). Fixing this properly = making those
 server fields GraphQL enums (then drop the hand types).
 
-## Cache policies — host-owned (for now)
+## Cache policies — each micro-app registers its own
 
-Field policies (`relayStylePagination`, single-item `read` redirects) live in `core-app/src/host/config/apollo.ts`.
-They're created with the cache (guaranteed before any query), so a micro-app paginated field is registered
-there today. FUTURE: let a micro-app own + register its policies at runtime via
-`cache.policies.addTypePolicies` (decouples the host from remote query-field names) — register before the
-first query for that field.
+The generic Apollo layer lives in `@vritti/quantum-ui-native/apollo`: the host builds the one client +
+persisted `InMemoryCache` via `createApolloClient(...)` in `core-app/src/host/config/apollo.ts` and takes
+NO micro-app schema. Each micro-app registers its own entity policies at runtime:
+
+```ts
+// top of the MF-exposed feature entry (e.g. features/inventory-items/index.tsx) — module-eval scope
+import { registerConnection } from '@vritti/quantum-ui-native/apollo';
+registerConnection({ field: 'inventoryItems', keyArgs: ['filters', 'search', 'sort'], singleField: 'inventoryItem', typename: 'InventoryItem' });
+```
+
+`registerConnection` adds `relayStylePagination` on the feed field + a by-id `read` redirect for the
+single-item field (via `cache.policies.addTypePolicies`). Call it at the feature module's TOP-LEVEL (it
+runs once on the host's lazy import, before any screen here mounts/queries) — NEVER in a hook/effect,
+which runs after the first render and misses the page-1 relay merge. For a bare field use
+`registerTypePolicies(policies)`.
 
 ## Also applies
 - `export function useX()` (not const); hooks in `src/hooks/<domain>/` with a barrel; one domain owns its operations (`src/graphql/<domain>/`).
-- Mutations keep the cache live with surgery (`cache.modify` insert / `cache.evict` delete / identity
-  auto-merge on update) — never blanket refetch. See [[project_apollo_infinite_list_hook]] equivalents.
+- Mutations keep the cache live with surgery — use the generic helpers from `@vritti/quantum-ui-native/apollo`:
+  `prependEdgeToConnection` (create), `removeEdgeFromConnection` + `evictEntity` (delete); update is identity
+  auto-merge by id (no surgery). Never blanket refetch. See [[project_apollo_infinite_list_hook]] equivalents.

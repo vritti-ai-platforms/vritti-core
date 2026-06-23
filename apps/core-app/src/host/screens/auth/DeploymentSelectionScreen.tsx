@@ -8,6 +8,7 @@ import { Text } from '@vritti/quantum-ui-native/Text';
 import { setSelectedDeploymentBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
 import { View } from 'react-native';
+import { resolveApiBaseUrl } from '../../config/env';
 import { useDeployments } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import type { AuthRoute } from '../../routes/auth/authRoutes';
@@ -36,7 +37,7 @@ export const DeploymentSelectionScreen = () => {
 
   async function handleConnect() {
     if (!selectedDeployment) return;
-    await setSelectedDeploymentBaseURL(selectedDeployment.url);
+    await setSelectedDeploymentBaseURL(resolveApiBaseUrl(selectedDeployment.url));
     setDeployment(selectedDeployment.url);
     push('EmailLookup');
   }
