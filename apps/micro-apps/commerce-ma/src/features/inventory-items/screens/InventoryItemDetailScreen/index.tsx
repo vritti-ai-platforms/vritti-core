@@ -1,25 +1,25 @@
-import { useQuery } from "@apollo/client/react";
-import { useRoute } from "@react-navigation/native";
+import { useQuery } from '@apollo/client/react';
+import { useRoute } from '@react-navigation/native';
 import {
   ScreenHeader,
   type ScreenHeaderTabConfig,
   useScreenHeaderTabContent,
-} from "@vritti/quantum-ui-native/ScreenHeader";
-import { useMemo } from "react";
-import { INVENTORY_ITEM_QUERY } from "../../../../graphql/inventory-items";
-import { ComingSoonTab } from "./tabs/ComingSoonTab";
-import { OverviewTab } from "./tabs/OverviewTab";
-import type { InventoryItemDetailParams, InventoryItemQueryData } from "../../types";
+} from '@vritti/quantum-ui-native/ScreenHeader';
+import { useMemo } from 'react';
+import { INVENTORY_ITEM_QUERY } from '../../../../graphql/inventory-items';
+import type { InventoryItemDetailParams, InventoryItemQueryData } from '../../types';
+import { ComingSoonTab } from './tabs/ComingSoonTab';
+import { OverviewTab } from './tabs/OverviewTab';
 
 const TAB_ICONS = {
-  overview: { sfSymbol: "info.circle", materialIcon: "info" },
-  uom: { sfSymbol: "arrow.left.arrow.right", materialIcon: "swap-horiz" },
-  stock: { sfSymbol: "chart.bar", materialIcon: "bar-chart" },
-  locations: { sfSymbol: "mappin.and.ellipse", materialIcon: "place" },
-  suppliers: { sfSymbol: "shippingbox", materialIcon: "local-shipping" },
-  lots: { sfSymbol: "square.stack.3d.up", materialIcon: "layers" },
-  quants: { sfSymbol: "cube.box", materialIcon: "inventory-2" },
-  ledger: { sfSymbol: "list.bullet.rectangle", materialIcon: "receipt-long" },
+  overview: { sfSymbol: 'info.circle', materialSymbol: 'info' },
+  uom: { sfSymbol: 'arrow.left.arrow.right', materialSymbol: 'swap_horiz' },
+  stock: { sfSymbol: 'chart.bar', materialSymbol: 'bar_chart' },
+  locations: { sfSymbol: 'mappin.and.ellipse', materialSymbol: 'place' },
+  suppliers: { sfSymbol: 'shippingbox', materialSymbol: 'local_shipping' },
+  lots: { sfSymbol: 'square.stack.3d.up', materialSymbol: 'layers' },
+  quants: { sfSymbol: 'cube.box', materialSymbol: 'inventory_2' },
+  ledger: { sfSymbol: 'list.bullet.rectangle', materialSymbol: 'receipt_long' },
 };
 
 // The detail screen's header renders the ScreenHeader tabs variant. It runs inside the route's
@@ -35,24 +35,34 @@ export function InventoryItemDetailHeader() {
   const { data } = useQuery<InventoryItemQueryData>(INVENTORY_ITEM_QUERY, {
     variables: { id },
     skip: !id,
-    fetchPolicy: "cache-only",
+    fetchPolicy: 'cache-only',
   });
   const item = data?.inventoryItem;
 
   const tabs = useMemo<ScreenHeaderTabConfig[]>(() => {
     if (!item) return [];
-    const lotTracked = item.tracking === "lot" || item.tracking === "lot_serial";
+    const lotTracked = item.tracking === 'lot' || item.tracking === 'lot_serial';
     return [
-      { id: "overview", label: "Overview", icon: TAB_ICONS.overview, content: <OverviewTab item={item} /> },
-      { id: "uom-conversions", label: "UOM Conversions", icon: TAB_ICONS.uom, content: <ComingSoonTab label="UOM Conversions" /> },
-      { id: "stock-levels", label: "Stock Levels", icon: TAB_ICONS.stock, content: <ComingSoonTab label="Stock Levels" /> },
-      { id: "locations", label: "Locations", icon: TAB_ICONS.locations, content: <ComingSoonTab label="Locations" /> },
-      { id: "suppliers", label: "Suppliers", icon: TAB_ICONS.suppliers, content: <ComingSoonTab label="Suppliers" /> },
+      { id: 'overview', label: 'Overview', icon: TAB_ICONS.overview, content: <OverviewTab item={item} /> },
+      {
+        id: 'uom-conversions',
+        label: 'UOM Conversions',
+        icon: TAB_ICONS.uom,
+        content: <ComingSoonTab label="UOM Conversions" />,
+      },
+      {
+        id: 'stock-levels',
+        label: 'Stock Levels',
+        icon: TAB_ICONS.stock,
+        content: <ComingSoonTab label="Stock Levels" />,
+      },
+      { id: 'locations', label: 'Locations', icon: TAB_ICONS.locations, content: <ComingSoonTab label="Locations" /> },
+      { id: 'suppliers', label: 'Suppliers', icon: TAB_ICONS.suppliers, content: <ComingSoonTab label="Suppliers" /> },
       ...(lotTracked
-        ? [{ id: "lots", label: "Lots", icon: TAB_ICONS.lots, content: <ComingSoonTab label="Lots" /> }]
+        ? [{ id: 'lots', label: 'Lots', icon: TAB_ICONS.lots, content: <ComingSoonTab label="Lots" /> }]
         : []),
-      { id: "quants", label: "Quants", icon: TAB_ICONS.quants, content: <ComingSoonTab label="Quants" /> },
-      { id: "ledger", label: "Ledger", icon: TAB_ICONS.ledger, content: <ComingSoonTab label="Ledger" /> },
+      { id: 'quants', label: 'Quants', icon: TAB_ICONS.quants, content: <ComingSoonTab label="Quants" /> },
+      { id: 'ledger', label: 'Ledger', icon: TAB_ICONS.ledger, content: <ComingSoonTab label="Ledger" /> },
     ];
   }, [item]);
 
