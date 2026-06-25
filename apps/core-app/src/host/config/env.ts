@@ -21,7 +21,10 @@ export const config = {
   api: {
     deploymentsBaseUrl: raw.deploymentsApiBaseUrl,
     fallbackBaseUrl: raw.apiBaseUrl,
-    devRawCoreBaseUrl: isDev ? raw.apiBaseUrl : undefined,
+    // Undefined → buildOrganizationApiBaseURL applies the real org subdomain
+    // (https://<org>.local.vrittiai.com:3001); the backend resolves the org from that subdomain.
+    // Set a value only to force a single raw core host in dev (skips per-org subdomain routing).
+    devRawCoreBaseUrl: undefined,
   },
 
   mf: {

@@ -19,7 +19,7 @@ export class PermissionFeatureDto {
   name: string;
 
   @ApiProperty({ example: 'box', nullable: true })
-  icon: string | null;
+  lucideIcon: string | null;
 
   @ApiProperty({ example: 'cart.fill', description: 'iOS SF Symbol' })
   sfSymbol: string;

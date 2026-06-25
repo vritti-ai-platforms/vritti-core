@@ -146,19 +146,19 @@ export const AccountScreen = () => {
                   value: 'system',
                   label: 'System',
                   hint: 'Follows device',
-                  icon: { sfSymbol: 'gearshape', materialIcon: 'settings' },
+                  icon: { sfSymbol: 'gearshape', materialSymbol: 'settings' },
                 },
                 {
                   value: 'light',
                   label: 'Light',
                   hint: 'Always light',
-                  icon: { sfSymbol: 'sun.max', materialIcon: 'light-mode' },
+                  icon: { sfSymbol: 'sun.max', materialSymbol: 'light_mode' },
                 },
                 {
                   value: 'dark',
                   label: 'Dark',
                   hint: 'Always dark',
-                  icon: { sfSymbol: 'moon', materialIcon: 'dark-mode' },
+                  icon: { sfSymbol: 'moon', materialSymbol: 'dark_mode' },
                 },
               ] as const
             ).map(({ value, label, hint, icon }) => (

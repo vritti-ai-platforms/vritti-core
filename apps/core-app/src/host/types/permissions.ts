@@ -11,7 +11,7 @@ export interface AssignedBU {
 export interface PermissionFeature {
   code: string;
   name: string;
-  icon: string | null;
+  lucideIcon: string | null;
   sfSymbol: string;
   materialSymbol: string;
   permissions: string[];

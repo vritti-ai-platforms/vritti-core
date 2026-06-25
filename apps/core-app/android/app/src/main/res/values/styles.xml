@@ -8,7 +8,9 @@
     <item name="android:alertDialogTheme">@style/AppAlertDialog</item>
   </style>
   <style name="AppAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog.Centered">
-    <item name="android:windowBackground">@drawable/m3_dialog_background</item>
+    <!-- windowBackground intentionally omitted: the Material3 parent supplies the rounded dialog
+         background. Referencing @drawable/m3_dialog_background (a private Material drawable not
+         exported by material 1.12/1.13) broke resource linking. -->
     <item name="android:windowMinWidthMinor">85%</item>
     <item name="android:windowMinWidthMajor">60%</item>
   </style>

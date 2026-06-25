@@ -36,7 +36,7 @@ export const Sidebar = () => {
       label: app.appName,
       items: featuresByApp[app.appCode].map((f) => ({
         title: f.name,
-        icon: resolveIcon(f.icon),
+        icon: resolveIcon(f.lucideIcon),
         path: `/${buSlug}/${f.route.routePrefix.replace(/^\//, '')}`,
       })),
     }));

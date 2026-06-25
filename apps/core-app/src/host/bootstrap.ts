@@ -5,10 +5,18 @@ import '../../global.css';
 // micro-apps that consume it (import: false) can resolve it. Mirrors App.tsx → BottomSheet.
 import '@vritti/quantum-ui-native/Select';
 import { registerRemotes } from '@module-federation/enhanced/runtime';
+import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';
 import { enableScreens } from 'react-native-screens';
+import mobileAxiosConfig from '../../quantum-ui-native.config';
 import { ALL_REMOTES } from './config/remotes.config';
 
 enableScreens();
+
+// Register the Keychain storage adapter + base axios config eagerly, before any screen renders.
+// Session restore (initializeMobileSession) later refines the base URL/tokens — this is idempotent.
+// Without it, the first storage write (e.g. setMobileBaseURL on deployment select) throws
+// "Mobile axios storage is not configured" because the adapter was only set inside a React effect.
+configureMobileAxios(mobileAxiosConfig);
 
 registerRemotes(
   ALL_REMOTES.filter((remote) => remote.registerAtStartup !== false).map((remote) => ({

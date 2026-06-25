@@ -27,7 +27,6 @@ export const DynamicFeatureNavigator = () => {
           icon: {
             sfSymbol: feature.sfSymbol,
             materialSymbol: feature.materialSymbol,
-            materialIcon: feature.materialSymbol.replace(/_/g, '-'),
           } as TabIcon,
           label: feature.name,
           options: {

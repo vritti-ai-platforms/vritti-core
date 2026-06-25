@@ -8,7 +8,7 @@ export type ClientPlatform = 'web' | 'ios' | 'android';
 export interface PermissionFeature {
   code: string;
   name: string;
-  icon: string | null;
+  lucideIcon: string | null;
   sfSymbol: string;
   materialSymbol: string;
   permissions: string[];
@@ -128,7 +128,7 @@ export class UserPermissionsService {
       features.push({
         code,
         name: catalogEntry.name,
-        icon: catalogEntry.icon,
+        lucideIcon: catalogEntry.lucideIcon,
         sfSymbol: catalogEntry.sfSymbol,
         materialSymbol: catalogEntry.materialSymbol,
         permissions: grantedPerms,

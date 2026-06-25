@@ -5,10 +5,9 @@ import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Text';
-import { setSelectedDeploymentBaseURL } from '@vritti/quantum-ui-native/utils';
+import { setMobileBaseURL } from '@vritti/quantum-ui-native/utils';
 import * as React from 'react';
 import { View } from 'react-native';
-import { resolveApiBaseUrl } from '../../config/env';
 import { useDeployments } from '../../hooks/auth';
 import { useAuthFlow } from '../../providers/AuthFlowProvider';
 import type { AuthRoute } from '../../routes/auth/authRoutes';
@@ -37,8 +36,11 @@ export const DeploymentSelectionScreen = () => {
 
   async function handleConnect() {
     if (!selectedDeployment) return;
-    await setSelectedDeploymentBaseURL(resolveApiBaseUrl(selectedDeployment.url));
+    // Point the API base URL (BASE_URL_KEY) at the chosen deployment so the pre-login
+    // organizationsByEmail GraphQL resolves against it; LoginScreen later refines it with the org subdomain.
+    await setMobileBaseURL(selectedDeployment.url);
     setDeployment(selectedDeployment.url);
+    console.log('Selected deployment:', selectedDeployment);
     push('EmailLookup');
   }
 

@@ -4,7 +4,7 @@
 export interface PermissionFeature {
   code: string;
   name: string;
-  icon: string | null;
+  lucideIcon: string | null;
   permissions: string[];
   route: {
     remoteEntry: string;

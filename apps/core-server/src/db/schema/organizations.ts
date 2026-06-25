@@ -5,7 +5,7 @@ import { orgPlanEnum, orgSizeEnum } from './enums';
 export interface FeatureCatalogEntry {
   code: string;
   name: string;
-  icon: string | null;
+  lucideIcon: string | null;
   sfSymbol: string;
   materialSymbol: string;
   // WEB route — present when feature has a web microfrontend
