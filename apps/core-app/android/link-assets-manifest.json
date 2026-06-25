@@ -42,6 +42,10 @@
       "sha1": "50fc729787e6133b511444b185c7397bd3ccd3da"
     },
     {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/MaterialSymbols_400Regular.ttf",
+      "sha1": "74464e713d20b0821cb0e57ea8e4f1bde786da0d"
+    },
+    {
       "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/PlayfairDisplay.ttf",
       "sha1": "a0e3babd3c318e1b14fd3e43b9570153a5b194fe"
     }

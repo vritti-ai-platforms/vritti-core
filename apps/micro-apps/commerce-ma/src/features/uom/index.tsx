@@ -239,7 +239,7 @@ function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams },
   );
 }
 
-const CREATE_ICON = { sfSymbol: 'plus', materialIcon: 'add' } as const;
+const CREATE_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
 
 function CreateButton() {
   // onPress is a placeholder — the create flow is not wired up yet.

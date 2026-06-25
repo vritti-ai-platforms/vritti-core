@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEBUG-ONLY network security config (app/src/debug overlay — never ships in release).
+  Trusts the locally-generated mkcert root CA so the emulator accepts the dev HTTPS
+  endpoints (https://*.local.vrittiai.com:300x). Mirrors the iOS simulator
+  `simctl keychain add-root-cert` step.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+            <certificates src="@raw/mkcert_ca" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

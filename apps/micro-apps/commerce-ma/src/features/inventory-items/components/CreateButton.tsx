@@ -3,7 +3,7 @@ import { Button } from "@vritti/quantum-ui-native/Button";
 import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
 import type { InventoryNavigation } from "../types";
 
-const CREATE_ICON = { sfSymbol: "plus", materialIcon: "add" } as const;
+const CREATE_ICON = { sfSymbol: "plus", materialSymbol: "add" } as const;
 
 // Inventory list header action — navigates to the create screen.
 export function CreateButton() {
