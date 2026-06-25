@@ -68,6 +68,7 @@ const componentDirs = [
   'FormattedDate',
   'Label',
   'ListItem',
+  'MenuButton',
   'NativeStack',
   'Progress',
   'PushNavigator',
@@ -385,6 +386,10 @@ export default (rspackEnv) => {
             version: '1.2.2',
             requiredVersion: '>=0.0.0-0',
           },
+          // NOTE: MenuButton's native menu modules (react-native-ios-context-menu / -ios-utilities /
+          // @react-native-menu/menu) are intentionally NOT shared — the host renders no menu and can't
+          // provide them, so a host-provided share throws "getter is not a function" here. commerce-ma
+          // bundles its own JS copy; the native views still register once in the host binary (via the pods).
           '@react-native-vector-icons/material-icons': {
             singleton: true,
             eager: false,
