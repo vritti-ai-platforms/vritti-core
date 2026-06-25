@@ -1,0 +1,49 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Bold.ttf",
+      "sha1": "08da9d533ed175a9b8d30296648304ffb8565066"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-BoldItalic.ttf",
+      "sha1": "43e26fa515506ab500913a51bb5e40b10ed1ba8f"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Italic.ttf",
+      "sha1": "14e432f76a2ddfb4cfea8d70df88e3199774d5f4"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Medium.ttf",
+      "sha1": "250143dcd884f0fedc102dcdb959d7793ef8f601"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-MediumItalic.ttf",
+      "sha1": "5ab27d60f1da15ba2a95a3a26c7e0b7aac247ae1"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Regular.ttf",
+      "sha1": "ffb289ffccf9f372fdb14f0d86651fab997cf0c6"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBold.ttf",
+      "sha1": "25d7c27ec9e484e5a35720a334f06f4aa1424d54"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBoldItalic.ttf",
+      "sha1": "728c2769db2560c718d799a888f7ed3934c8fea5"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Bold.ttf",
+      "sha1": "8a0806a42bb8c44290735c17fbb439b8d8c08ec5"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Regular.ttf",
+      "sha1": "50fc729787e6133b511444b185c7397bd3ccd3da"
+    },
+    {
+      "path": "node_modules/@vritti/quantum-ui-native/lib/assets/fonts/PlayfairDisplay.ttf",
+      "sha1": "a0e3babd3c318e1b14fd3e43b9570153a5b194fe"
+    }
+  ]
+}

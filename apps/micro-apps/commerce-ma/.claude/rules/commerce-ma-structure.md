@@ -28,8 +28,14 @@ src/
 ├── schemas/<domain>/                 # zod schemas + inferred types (form values)
 ├── types/                            # shared hand TS types (enum unions for the codegen `string` caveat)
 └── features/<domain>/                # UI ONLY — no operations/hooks/schemas here
-    ├── index.tsx                     #   PushNavigator + screens
-    ├── components/                   #   screen-local components
+    ├── index.tsx                     #   NAVIGATOR ONLY: the `screens` PushScreenConfig[] + the PushNavigator
+    │                                 #   default export. NO screen bodies here.
+    ├── cache.ts                      #   registerConnection(...) cache policies; side-effect-imported by index.tsx
+    ├── types.ts                      #   feature route/nav types (RouteName union, *Params, Navigation, query-data shapes)
+    ├── screens/                      #   screens — a simple screen is <Thing>Screen.tsx; a screen that owns sub-content
+    │                                 #   (tabs) is a FOLDER <Thing>Screen/ with index.tsx + its own tabs/ (the tabs
+    │                                 #   belong to that screen — ScreenHeader variant="tabs")
+    ├── components/                   #   screen-local components (cards, header actions like CreateButton, chips, sheets)
     └── forms/                        #   quantum <Form> components
 ```
 
@@ -42,9 +48,17 @@ src/hooks/inventory-items/     useInventoryItemsFeed.ts useCreateInventoryItem.t
 src/services/inventory-items/  filterOptions.ts index.ts
 src/schemas/inventory-items/   inventory-item.ts
 src/types/                     list.ts
-src/features/inventory-items/  index.tsx  components/{InventoryItemCard,ActiveFilterChips,InventoryFilterSheet}.tsx
+src/features/inventory-items/  index.tsx (navigator only)  cache.ts  types.ts
+                               screens/{InventoryListScreen,InventoryItemCreateScreen,InventoryItemEditScreen}.tsx
+                               screens/InventoryItemDetailScreen/  index.tsx  tabs/{OverviewTab,ComingSoonTab}.tsx
+                               components/{InventoryItemCard,CreateButton,…}.tsx
                                forms/InventoryItemForm.tsx
 ```
+
+The detail screen is tabbed (mirrors web) and so is a FOLDER: `screens/InventoryItemDetailScreen/index.tsx` exports
+`InventoryItemDetailHeader` (builds `ScreenHeader variant="tabs"`) + `InventoryItemDetail` (body =
+`useScreenHeaderTabContent()`); its tab-content components live in its OWN `tabs/` folder (the tabs belong to that
+screen). Overview is built; the rest are `ComingSoonTab` placeholders, filled in screen-by-screen.
 
 ## Rules
 
@@ -58,9 +72,16 @@ src/features/inventory-items/  index.tsx  components/{InventoryItemCard,ActiveFi
 4. **`graphql()` documents import from `src/gql`** (codegen), never `gql` from `@apollo/client`. `src/gql/`
    is git-ignored — `pnpm codegen` before `tsc`/dev.
 5. **CRUD keeps the cache live with surgery, no list refetch** — see `native-graphql.md` and the hooks here.
+6. **A feature's `index.tsx` is the navigator only** — the `screens` PushScreenConfig[] + the `PushNavigator`
+   default export, nothing else. Each screen body lives in its own `screens/<Thing>Screen.tsx` — or, when a screen
+   owns tabs, a folder `screens/<Thing>Screen/` with `index.tsx` + its own nested `tabs/` (the tabs belong to that
+   screen); the feature's route/nav types in `types.ts`; and the `registerConnection(...)` cache-policy
+   call in `cache.ts`, which `index.tsx` imports for its side effect so it runs once at feature-module eval (before
+   any screen queries). Header-action components (e.g. `CreateButton`) live in `components/`.
 
 ## When adding a new domain (e.g. `customers`)
 
 Create `src/graphql/customers/`, `src/hooks/customers/`, `src/services/customers/` (if needed),
-`src/schemas/customers/`, and `src/features/customers/` — each following the layout above. Add the entity's
-cache field policy to the host (`core-app/src/host/config/apollo.ts`) for now.
+`src/schemas/customers/`, and `src/features/customers/` — each following the layout above (`index.tsx` navigator,
+`screens/`, `cache.ts`, `types.ts`). Register the entity's cache field policy via `registerConnection(...)` in the
+feature's `cache.ts` (the host cache stays schema-agnostic).

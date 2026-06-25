@@ -47,8 +47,12 @@ src/
 ├── schemas/inventory-items/          # zod schemas + inferred form types
 ├── types/                            # shared hand types (enum unions — see enum caveat in native-graphql.md)
 └── features/inventory-items/         # UI ONLY
-    ├── index.tsx                     # PushNavigator + List/Detail/Create/Edit screens
-    ├── components/                   # screen-local components
+    ├── index.tsx                     # NAVIGATOR ONLY: `screens` config + PushNavigator default export
+    ├── cache.ts                      # registerConnection(...) cache policies (side-effect-imported by index.tsx)
+    ├── types.ts                      # feature route/nav types (RouteName, *Params, Navigation, query-data)
+    ├── screens/                      # <Thing>Screen.tsx per screen; a tabbed screen is a FOLDER <Thing>Screen/
+    │                                 #   with index.tsx + its own nested tabs/ (e.g. InventoryItemDetailScreen/)
+    ├── components/                   # screen-local components (cards, header actions like CreateButton)
     └── forms/                        # form components (quantum <Form>)
 ```
 
