@@ -6,6 +6,7 @@ import {
   DataTable,
   NumberCell,
   RowActions,
+  StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
@@ -173,7 +174,7 @@ const LotDetailContent = ({
       {
         accessorKey: 'locationName',
         header: 'Location',
-        cell: ({ row }) => row.original.locationName ?? row.original.locationId ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.locationName ?? row.original.locationId} />,
         enableSorting: true,
       },
       {

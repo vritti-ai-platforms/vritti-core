@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
@@ -29,12 +29,12 @@ export const CustomersPage = () => {
       {
         accessorKey: 'phone',
         header: 'Phone',
-        cell: ({ row }) => row.original.phone ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.phone} />,
       },
       {
         accessorKey: 'email',
         header: 'Email',
-        cell: ({ row }) => row.original.email ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.email} />,
       },
       {
         accessorKey: 'isActive',

@@ -56,7 +56,7 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol
       {
         accessorKey: 'locationName',
         header: 'Location',
-        cell: ({ row }) => row.original.locationName ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.locationName} />,
       },
       {
         accessorKey: 'locationPath',

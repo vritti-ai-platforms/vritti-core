@@ -8,6 +8,7 @@ import {
   getSelectionColumn,
   NumberCell,
   RowActions,
+  StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -81,7 +82,7 @@ export const ItemsTab = ({ supplierId, supplierCurrencyCode }: ItemsTabProps) =>
       {
         accessorKey: 'supplierItemCode',
         header: 'Supplier Item Code',
-        cell: ({ row }) => row.original.supplierItemCode ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.supplierItemCode} />,
       },
       {
         accessorKey: 'uomSymbol',

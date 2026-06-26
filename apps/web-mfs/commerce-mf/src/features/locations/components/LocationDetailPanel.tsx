@@ -7,6 +7,7 @@ import {
   NumberCell,
   type RowAction,
   RowActions,
+  StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
@@ -295,7 +296,7 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
       {
         accessorKey: 'uomSymbol',
         header: 'UoM',
-        cell: ({ row }) => row.original.uomSymbol ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.uomSymbol} />,
       },
       {
         accessorKey: 'totalQuantity',

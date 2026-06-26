@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
@@ -66,7 +66,7 @@ export const PosTerminalsTab = () => {
         accessorKey: 'locationName',
         header: 'Linked Location',
         enableSorting: true,
-        cell: ({ row }) => row.original.locationName ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.locationName} />,
       },
       {
         accessorKey: 'locationPath',

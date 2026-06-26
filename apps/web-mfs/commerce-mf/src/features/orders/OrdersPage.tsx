@@ -83,7 +83,7 @@ export const OrdersPage = () => {
       {
         accessorKey: 'customerName',
         header: 'Customer',
-        cell: ({ row }) => row.original.customerName ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.customerName} />,
         enableSorting: true,
       },
       {

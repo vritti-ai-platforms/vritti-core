@@ -7,6 +7,7 @@ import {
   DateCell,
   NumberCell,
   RowActions,
+  StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -41,7 +42,7 @@ export const StockTransfersPage = () => {
       {
         accessorKey: 'inventoryItemName',
         header: 'Inventory Item',
-        cell: ({ row }) => row.original.inventoryItemName ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.inventoryItemName} />,
         enableSorting: true,
       },
       {

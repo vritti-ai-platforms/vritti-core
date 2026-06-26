@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { type ColumnDef, DataTable, DateCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck } from 'lucide-react';
 import { useMemo } from 'react';
@@ -37,7 +37,7 @@ export const GoodsReceiptsTab = ({ poId }: GoodsReceiptsTabProps) => {
       {
         accessorKey: 'notes',
         header: 'Notes',
-        cell: ({ row }) => row.original.notes ?? '--',
+        cell: ({ row }) => <StringCell value={row.original.notes} />,
       },
       {
         id: 'actions',

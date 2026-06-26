@@ -1,5 +1,5 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { type ColumnDef, DataTable, NumberCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { MapPin } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -19,7 +19,7 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId,
       {
         accessorKey: 'locationName',
         header: 'Location',
-        cell: ({ row }) => row.original.locationName ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.locationName} />,
         enableSorting: true,
       },
       {

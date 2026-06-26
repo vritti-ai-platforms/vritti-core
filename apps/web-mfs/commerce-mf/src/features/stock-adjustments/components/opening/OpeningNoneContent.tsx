@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { UomFilter } from '@vritti/quantum-ui/selects/uom';
@@ -46,7 +46,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
       {
         accessorKey: 'locationName',
         header: 'Location',
-        cell: ({ row }) => row.original.locationName ?? row.original.locationId ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.locationName ?? row.original.locationId} />,
         enableSorting: true,
       },
       {

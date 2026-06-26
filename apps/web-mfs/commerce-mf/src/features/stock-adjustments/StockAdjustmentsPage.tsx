@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
@@ -35,13 +35,13 @@ export const StockAdjustmentsPage = () => {
       {
         accessorKey: 'inventoryItemName',
         header: 'Inventory Item',
-        cell: ({ row }) => row.original.inventoryItemName ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.inventoryItemName} />,
         enableSorting: true,
       },
       {
         accessorKey: 'inventoryItemTracking',
         header: 'Tracking',
-        cell: ({ row }) => inventoryTrackingConfig[row.original.inventoryItemTracking]?.label ?? '—',
+        cell: ({ row }) => <StringCell value={inventoryTrackingConfig[row.original.inventoryItemTracking]?.label} />,
         enableSorting: false,
       },
       {
@@ -63,7 +63,7 @@ export const StockAdjustmentsPage = () => {
       {
         accessorKey: 'reason',
         header: 'Reason',
-        cell: ({ row }) => row.original.reason ?? '—',
+        cell: ({ row }) => <StringCell value={row.original.reason} />,
         enableSorting: false,
       },
 
