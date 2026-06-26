@@ -151,9 +151,11 @@ export class UserPermissionsService {
 // Returns null when the catalog entry doesn't publish to that platform.
 function pickRouteForPlatform(
   entry: {
-    remoteEntry: string | null;
-    exposedModule: string | null;
-    routePrefix: string | null;
+    web: {
+      remoteEntry: string;
+      exposedModule: string;
+      routePrefix: string;
+    } | null;
     mobile: {
       remoteEntryAndroid: string;
       remoteEntryIos: string;
@@ -172,10 +174,10 @@ function pickRouteForPlatform(
     };
   }
   // Web
-  if (!entry.remoteEntry || !entry.exposedModule || !entry.routePrefix) return null;
+  if (!entry.web) return null;
   return {
-    remoteEntry: entry.remoteEntry,
-    exposedModule: entry.exposedModule,
-    routePrefix: entry.routePrefix,
+    remoteEntry: entry.web.remoteEntry,
+    exposedModule: entry.web.exposedModule,
+    routePrefix: entry.web.routePrefix,
   };
 }
