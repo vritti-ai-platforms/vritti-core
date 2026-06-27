@@ -5,7 +5,7 @@ export class BulkSetSupplierItemPreferredDto {
   @ApiProperty({ type: [String], description: 'Supplier item IDs to update.' })
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   supplierItemIds: string[];
 
   @ApiProperty({ description: 'Whether to mark the items as the preferred supplier for their inventory items.' })

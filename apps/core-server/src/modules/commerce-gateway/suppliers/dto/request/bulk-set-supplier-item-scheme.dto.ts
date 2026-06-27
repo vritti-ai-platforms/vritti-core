@@ -5,7 +5,7 @@ export class BulkSetSupplierItemSchemeDto {
   @ApiProperty({ type: [String], description: 'Supplier item IDs to apply the scheme to.' })
   @IsArray()
   @ArrayNotEmpty()
-  @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   supplierItemIds: string[];
 
   @ApiPropertyOptional({ description: 'Free-goods scheme buy qty (e.g. 9 in "9+1").' })
