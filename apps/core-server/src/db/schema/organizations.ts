@@ -25,10 +25,15 @@ export interface FeatureCatalogEntry {
   appName: string;
   appIcon: string | null;
   appSortOrder: number;
-  // Plan lock overlay: feature-level locked (all permissions locked) + per-permission lock for upsell
+  // Lock overlay: locked + why (PLAN = org's plan, BU = this BU restricts) + plans that would unlock it (upsell)
   locked: boolean;
-  permissions: Array<{ code: string; locked: boolean }>;
+  lockReason: LockReason | null;
+  unlockPlans: string[];
+  permissions: Array<{ code: string; locked: boolean; lockReason: LockReason | null; unlockPlans: string[] }>;
 }
+
+// Why a feature/permission is locked
+export type LockReason = 'PLAN' | 'BU';
 
 export const organizations = coreSchema.table('organizations', {
   id: uuid('id').primaryKey().defaultRandom(),

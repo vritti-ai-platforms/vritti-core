@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
   UseInterceptors,
@@ -22,12 +23,12 @@ import {
   ApiDeleteBusinessUnitWebhook,
   ApiGetBusinessUnitWebhook,
   ApiListBusinessUnitsWebhook,
-  ApiUpdateBuAppsWebhook,
+  ApiReplaceBuSnapshotWebhook,
   ApiUpdateBusinessUnitWebhook,
 } from '../docs/business-unit.docs';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
+import { ReplaceBuSnapshotWebhookDto } from '../dto/request/replace-bu-snapshot-webhook.dto';
 import { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { BusinessUnitApiService } from '../services/business-unit-api.service';
 
@@ -74,12 +75,15 @@ export class BusinessUnitController {
     return this.businessUnitApiService.findRoleAssignments(id);
   }
 
-  // Sets the assigned apps and feature catalog for a business unit
-  @Patch(':id/apps')
-  @ApiUpdateBuAppsWebhook()
-  async updateApps(@Param('id') id: string, @Body() dto: UpdateBuAppsWebhookDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /api/business-units/webhook/${id}/apps`);
-    return this.businessUnitApiService.updateApps(id, dto);
+  // Replaces the business unit's snapshot (feature catalog); apps are derived from it
+  @Put(':id/snapshot')
+  @ApiReplaceBuSnapshotWebhook()
+  async replaceSnapshot(
+    @Param('id') id: string,
+    @Body() dto: ReplaceBuSnapshotWebhookDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /api/business-units/webhook/${id}/snapshot`);
+    return this.businessUnitApiService.replaceSnapshot(id, dto);
   }
 
   // Updates a business unit

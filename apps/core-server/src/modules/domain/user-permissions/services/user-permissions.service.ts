@@ -2,8 +2,16 @@ import { BusinessUnitRepository } from '@domain/business-unit/repositories/busin
 import { UserRoleAssignmentRepository } from '@domain/user-role/repositories/user-role-assignment.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
+import type { LockReason } from '@/db/schema';
 
 export type ClientPlatform = 'web' | 'ios' | 'android';
+
+// A granted permission that is locked, with why and which plans would unlock it (for upsell)
+export interface LockedPermission {
+  code: string;
+  reason: LockReason | null;
+  unlockPlans: string[];
+}
 
 export interface PermissionFeature {
   code: string;
@@ -12,9 +20,11 @@ export interface PermissionFeature {
   sfSymbol: string;
   materialSymbol: string;
   permissions: string[];
-  // Plan lock overlay (for upsell rendering): feature-level + the granted permissions that are plan-locked
+  // Lock overlay (for upsell): feature-level locked + reason + unlock plans, and the granted-but-locked permissions
   locked: boolean;
-  lockedPermissions: string[];
+  lockReason: LockReason | null;
+  unlockPlans: string[];
+  lockedPermissions: LockedPermission[];
   route: {
     remoteEntry: string;
     exposedModule: string;
@@ -104,10 +114,11 @@ export class UserPermissionsService {
       const features = assignment.features as Record<string, { web?: string[]; mobile?: string[] } | string[]>;
       for (const [code, grant] of Object.entries(features)) {
         // Tolerate the legacy flat shape (string[]) during re-provisioning
-        const perms = Array.isArray(grant) ? grant : (grant?.[bucket] ?? []);
-        if (perms.length === 0) continue;
+        const granted = Array.isArray(grant) ? grant : grant?.[bucket];
+        // Membership is the gate: undefined = not a member on this platform; [] = member with no actions (view-only)
+        if (granted === undefined) continue;
         if (!mergedFeatures.has(code)) mergedFeatures.set(code, new Set());
-        for (const perm of perms) mergedFeatures.get(code)?.add(perm);
+        for (const perm of granted) mergedFeatures.get(code)?.add(perm);
       }
     }
 
@@ -121,9 +132,13 @@ export class UserPermissionsService {
       // Feature isn't published to this platform — omit so client doesn't see an unloadable tile.
       if (!route) continue;
 
-      // The plan locks a subset of permissions; surface which granted ones are locked (for upsell)
-      const lockedSet = new Set((catalogEntry.permissions ?? []).filter((p) => p.locked).map((p) => p.code));
+      // Plan/BU lock a subset of permissions; surface which GRANTED ones are locked + why + how to unlock (upsell)
+      const permByCode = new Map((catalogEntry.permissions ?? []).map((p) => [p.code, p]));
       const grantedPerms = [...permsSet];
+      const lockedPermissions: LockedPermission[] = grantedPerms
+        .map((c) => permByCode.get(c))
+        .filter((p): p is NonNullable<typeof p> => !!p?.locked)
+        .map((p) => ({ code: p.code, reason: p.lockReason ?? null, unlockPlans: p.unlockPlans ?? [] }));
 
       features.push({
         code,
@@ -133,7 +148,9 @@ export class UserPermissionsService {
         materialSymbol: catalogEntry.materialSymbol,
         permissions: grantedPerms,
         locked: catalogEntry.locked ?? false,
-        lockedPermissions: grantedPerms.filter((c) => lockedSet.has(c)),
+        lockReason: catalogEntry.lockReason ?? null,
+        unlockPlans: catalogEntry.unlockPlans ?? [],
+        lockedPermissions,
         route,
         appCode: catalogEntry.appCode,
         appName: catalogEntry.appName,

@@ -2141,10 +2141,10 @@
         ]
       }
     },
-    "/business-units/webhook/{id}/apps": {
-      "patch": {
-        "description": "Sets the assigned app codes for a business unit. Requires X-Webhook-Secret header.",
-        "operationId": "BusinessUnitController_updateApps",
+    "/business-units/webhook/{id}/snapshot": {
+      "put": {
+        "description": "Replaces the business unit feature catalog (snapshot). Assigned apps are derived from it. Requires X-Webhook-Secret header.",
+        "operationId": "BusinessUnitController_replaceSnapshot",
         "parameters": [
           {
             "name": "id",
@@ -2170,14 +2170,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateBuAppsWebhookDto"
+                "$ref": "#/components/schemas/ReplaceBuSnapshotWebhookDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Business unit apps updated successfully.",
+            "description": "Business unit snapshot updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2193,7 +2193,7 @@
             "description": "Business unit not found."
           }
         },
-        "summary": "Update business unit apps",
+        "summary": "Replace business unit snapshot",
         "tags": [
           "Business Units"
         ]
@@ -14715,30 +14715,18 @@
           "updatedAt"
         ]
       },
-      "UpdateBuAppsWebhookDto": {
+      "ReplaceBuSnapshotWebhookDto": {
         "type": "object",
         "properties": {
-          "appCodes": {
-            "description": "App codes to assign to this business unit",
-            "example": [
-              "inventory",
-              "pos"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "featureCatalog": {
             "type": "array",
-            "description": "Resolved feature catalog for this business unit",
+            "description": "Resolved feature catalog (snapshot) for this business unit",
             "items": {
               "type": "object"
             }
           }
         },
         "required": [
-          "appCodes",
           "featureCatalog"
         ]
       },

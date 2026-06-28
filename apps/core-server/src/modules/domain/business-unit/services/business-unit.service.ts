@@ -6,7 +6,7 @@ import type { BuMetadata, BuType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import type { UpdateBuAppsWebhookDto } from '../dto/request/update-bu-apps-webhook.dto';
+import type { ReplaceBuSnapshotWebhookDto } from '../dto/request/replace-bu-snapshot-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { BusinessUnitRepository } from '../repositories/business-unit.repository';
 
@@ -107,22 +107,24 @@ export class BusinessUnitService {
     return { success: true, message: 'Business unit updated successfully.' };
   }
 
-  // Sets the assigned apps for a business unit
-  async updateApps(id: string, dto: UpdateBuAppsWebhookDto): Promise<SuccessResponseDto> {
+  // Replaces the business unit's snapshot (feature catalog). Apps are DERIVED from it — an app is assigned
+  // when it owns at least one usable (non-locked) feature.
+  async replaceSnapshot(id: string, dto: ReplaceBuSnapshotWebhookDto): Promise<SuccessResponseDto> {
     const bu = await this.businessUnitRepository.findById(id);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    this.logger.log(`updateApps — appCodes: ${JSON.stringify(dto.appCodes)}`);
+    const featureCatalog = dto.featureCatalog ?? [];
+    const appCodes = [...new Set(featureCatalog.filter((f) => !f.locked).map((f) => f.appCode))];
 
-    await this.businessUnitRepository.update(id, {
-      appCodes: dto.appCodes,
-      featureCatalog: dto.featureCatalog ?? [],
-      updatedAt: new Date(),
-    });
+    await this.businessUnitRepository.update(id, { appCodes, featureCatalog, updatedAt: new Date() });
 
     this.buContextCache.invalidate(id);
-    this.logger.log(`Updated apps for business unit ${id}: [${dto.appCodes.join(', ')}]`);
-    return { success: true, message: 'Business unit apps updated successfully.' };
+    // Push the refreshed feature set to live SSE connections of users in this BU
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
+    this.logger.log(
+      `Replaced snapshot for business unit ${id}: ${featureCatalog.length} feature(s), [${appCodes.join(', ')}]`,
+    );
+    return { success: true, message: 'Business unit snapshot updated successfully.' };
   }
 
   // Deletes a business unit after checking it has no children
