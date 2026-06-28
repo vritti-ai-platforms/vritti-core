@@ -7,6 +7,7 @@ import {
 } from '@vritti/quantum-ui-native/ScreenHeader';
 import { useMemo } from 'react';
 import { INVENTORY_ITEM_QUERY } from '../../../../graphql/inventory-items';
+import { ItemActionsMenu } from '../../components/ItemActionsMenu';
 import type { InventoryItemDetailParams, InventoryItemQueryData } from '../../types';
 import { ComingSoonTab } from './tabs/ComingSoonTab';
 import { OverviewTab } from './tabs/OverviewTab';
@@ -66,8 +67,17 @@ export function InventoryItemDetailHeader() {
     ];
   }, [item]);
 
-  if (!item) return <ScreenHeader title="Item" />;
-  return <ScreenHeader variant="tabs" title={item.name} subtitle={item.code} tabs={tabs} />;
+  if (!item) return <ScreenHeader title="Item" backButton />;
+  // Centered-title tabs header: built-in back button + an overflow menu (Edit/Delete) on the right.
+  return (
+    <ScreenHeader
+      variant="tabs"
+      title={item.name}
+      tabs={tabs}
+      backButton
+      rightActions={<ItemActionsMenu item={item} />}
+    />
+  );
 }
 
 // Body renders the active tab's content (lazy cross-fade) from the per-route registry the header

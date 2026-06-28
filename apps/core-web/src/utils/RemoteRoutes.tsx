@@ -9,16 +9,10 @@ const registeredRemotes = new Set<string>();
 // Global route cache — persists across component instances
 const globalRouteCache = new Map<string, unknown>();
 
-// TEMP: force remoteEntry URLs to http so local dev works without SSL certs.
-// Revert by removing this function and the toHttpEntry() call below.
-function toHttpEntry(entry: string): string {
-  return entry.replace(/^https:\/\//, 'http://');
-}
-
 // Registers a remote on-the-fly if not already registered
 function ensureRemoteRegistered(remoteName: string, remoteEntry?: string) {
   if (!remoteEntry || registeredRemotes.has(remoteName)) return;
-  registerRemotes([{ name: remoteName, entry: toHttpEntry(remoteEntry) }]);
+  registerRemotes([{ name: remoteName, entry: remoteEntry }]);
   registeredRemotes.add(remoteName);
 }
 

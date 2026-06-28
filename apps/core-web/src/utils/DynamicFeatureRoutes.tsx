@@ -1,6 +1,7 @@
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { useMemo } from 'react';
 import { Navigate, type RouteObject, useLocation, useRoutes } from 'react-router-dom';
+import { resolveCommerceRemoteEntry } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteRoutes } from './RemoteRoutes';
 
@@ -19,7 +20,7 @@ export const DynamicFeatureRoutes = () => {
           <RemoteRoutes
             key={feature.code}
             remoteName="commerce"
-            remoteEntry={feature.route.remoteEntry}
+            remoteEntry={resolveCommerceRemoteEntry(feature.route.remoteEntry)}
             moduleName={feature.route.exposedModule}
           />
         ),

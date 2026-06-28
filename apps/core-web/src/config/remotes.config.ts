@@ -80,6 +80,15 @@ const buildRemoteEntry = (config: {
   }
 };
 
+// Resolves a feature-catalog remoteEntry for the commerce MF.
+// The cloud-pushed catalog sometimes stores a host-less value ("/mf-manifest.json" or
+// an empty string) instead of a fully qualified URL; fall back to the commerce MF origin
+// (port-based local / MF_BASE_URL prod) so MF can register the remote. Absolute URLs are trusted.
+export function resolveCommerceRemoteEntry(remoteEntry?: string): string {
+  if (remoteEntry && /^https?:\/\//i.test(remoteEntry)) return remoteEntry;
+  return buildRemoteEntry({ portEnvVar: 'PUBLIC_COMMERCE_MF_PORT', prodPath: 'commerce-microfrontend' });
+}
+
 // Registry of all remote micro-frontends — add new remotes here as they are developed
 //
 // Local example (with PUBLIC_CLOUD_MF_PORT=3002):
