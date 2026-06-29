@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService, type TypedDrizzleClient } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type BusinessUnit, businessUnits } from '@/db/schema';
 
@@ -63,7 +63,7 @@ export class BusinessUnitRepository extends PrimaryBaseRepository<typeof busines
   }
 
   // Updates the path for a business unit
-  async updatePath(id: string, path: string, tx?: TypedDrizzleClient): Promise<BusinessUnit> {
-    return this.update(id, { path, updatedAt: new Date() }, tx);
+  async updatePath(id: string, path: string): Promise<BusinessUnit> {
+    return this.update(id, { path, updatedAt: new Date() });
   }
 }
