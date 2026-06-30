@@ -22,6 +22,14 @@ export class InventoryItemsQuantsController {
     return this.itemsQuantsService.findForTable(data.inventoryItemId, data);
   }
 
+  @MessagePattern({ cmd: 'inventoryItems.quantsFeed' })
+  async quantsFeed(
+    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
+  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
+    this.logger.log(`inventoryItems.quantsFeed — inventoryItemId: ${data.inventoryItemId}`);
+    return this.itemsQuantsService.findFeed(data.inventoryItemId, data.limit, data.offset);
+  }
+
   @MessagePattern({ cmd: 'inventoryItems.findQuantById' })
   async findById(@Payload() data: { id: string }): Promise<InventoryItemQuantDto> {
     this.logger.log(`inventoryItems.findQuantById — id: ${data.id}`);

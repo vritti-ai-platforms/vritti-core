@@ -45,6 +45,16 @@ export class InventoryItemLocationsService {
     return { result: result.map(InventoryItemLocationDto.from), count };
   }
 
+  // Offset-paginated feed for the mobile Relay locations list (stable order applied in the repo).
+  async findLocationsFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
+    const { result, count } = await this.repository.findLocationsFeedPage(inventoryItemId, limit, offset);
+    return { result: result.map(InventoryItemLocationDto.from), count };
+  }
+
   // Creates a new config for an item at a location
   async create(
     inventoryItemId: string,

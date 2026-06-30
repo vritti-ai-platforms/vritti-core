@@ -14,4 +14,12 @@ export class InventoryItemsStocksController {
     this.logger.log(`inventoryItems.stocks — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findStocks(data.inventoryItemId);
   }
+
+  @MessagePattern({ cmd: 'inventoryItems.stocksFeed' })
+  async stocksFeed(
+    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
+  ): Promise<{ result: LocationStockDto[]; count: number }> {
+    this.logger.log(`inventoryItems.stocksFeed — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findStocksFeed(data.inventoryItemId, data.limit, data.offset);
+  }
 }

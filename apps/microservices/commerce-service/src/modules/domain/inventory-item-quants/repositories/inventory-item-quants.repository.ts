@@ -104,6 +104,20 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     });
   }
 
+  // Stable-ordered page for the mobile Relay quants feed: newest first with an id tie-breaker so the
+  // total order is deterministic (offset cursors don't skip/duplicate). Reuses findQuantsForTable's select.
+  async findQuantsFeedPage(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemQuantWithRefs[]; count: number }> {
+    return this.findQuantsForTable(inventoryItemId, {
+      orderBy: [desc(inventoryItemQuants.createdAt), asc(inventoryItemQuants.id)],
+      limit,
+      offset,
+    });
+  }
+
   async findById(id: string): Promise<InventoryItemQuantWithRefs | undefined> {
     const rows = await this.db
       .select({
@@ -333,6 +347,51 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       .from(inventoryStockLevels)
       .leftJoin(locations, eq(inventoryStockLevels.locationId, locations.id))
       .where(eq(inventoryStockLevels.inventoryItemId, inventoryItemId));
+  }
+
+  // Offset-paginated per-location stock for an item (backs the mobile Relay stock-levels feed). Stable order
+  // (location name, then id) so offset cursors don't skip/duplicate rows; returns the page + total count.
+  async findLocationStockPage(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{
+    result: {
+      locationId: string;
+      locationName: string | null;
+      locationPath: string | null;
+      stockedQuantity: string;
+      reservedQuantity: string;
+      availableQuantity: string;
+      reorderLevel: number | null;
+    }[];
+    count: number;
+  }> {
+    const where = eq(inventoryStockLevels.inventoryItemId, inventoryItemId);
+
+    const result = await this.db
+      .select({
+        locationId: inventoryStockLevels.locationId,
+        locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
+        stockedQuantity: inventoryStockLevels.stockedQuantity,
+        reservedQuantity: inventoryStockLevels.reservedQuantity,
+        availableQuantity: inventoryStockLevels.availableQuantity,
+        reorderLevel: inventoryStockLevels.reorderLevel,
+      })
+      .from(inventoryStockLevels)
+      .leftJoin(locations, eq(inventoryStockLevels.locationId, locations.id))
+      .where(where)
+      .orderBy(sql`${locations.name} asc nulls last`, asc(inventoryStockLevels.locationId))
+      .limit(limit)
+      .offset(offset);
+
+    const countRows = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryStockLevels)
+      .where(where);
+
+    return { result, count: Number(countRows[0]?.count ?? 0) };
   }
 
   // Groups a location's non-zero quants by inventory item: SUM(quantity), SUM(reserved),

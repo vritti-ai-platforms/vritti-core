@@ -10,7 +10,13 @@ import { INVENTORY_ITEM_QUERY } from '../../../../graphql/inventory-items';
 import { ItemActionsMenu } from '../../components/ItemActionsMenu';
 import type { InventoryItemDetailParams, InventoryItemQueryData } from '../../types';
 import { ComingSoonTab } from './tabs/ComingSoonTab';
+import { LedgerTab } from './tabs/LedgerTab';
+import { LocationsTab } from './tabs/LocationsTab';
 import { OverviewTab } from './tabs/OverviewTab';
+import { QuantsTab } from './tabs/QuantsTab';
+import { StockLevelsTab } from './tabs/StockLevelsTab';
+import { SuppliersTab } from './tabs/SuppliersTab';
+import { UomConversionsTab } from './tabs/UomConversionsTab';
 
 const TAB_ICONS = {
   overview: { sfSymbol: 'info.circle', materialSymbol: 'info' },
@@ -49,21 +55,21 @@ export function InventoryItemDetailHeader() {
         id: 'uom-conversions',
         label: 'UOM Conversions',
         icon: TAB_ICONS.uom,
-        content: <ComingSoonTab label="UOM Conversions" />,
+        content: <UomConversionsTab item={item} />,
       },
       {
         id: 'stock-levels',
         label: 'Stock Levels',
         icon: TAB_ICONS.stock,
-        content: <ComingSoonTab label="Stock Levels" />,
+        content: <StockLevelsTab item={item} />,
       },
-      { id: 'locations', label: 'Locations', icon: TAB_ICONS.locations, content: <ComingSoonTab label="Locations" /> },
-      { id: 'suppliers', label: 'Suppliers', icon: TAB_ICONS.suppliers, content: <ComingSoonTab label="Suppliers" /> },
+      { id: 'locations', label: 'Locations', icon: TAB_ICONS.locations, content: <LocationsTab item={item} /> },
+      { id: 'suppliers', label: 'Suppliers', icon: TAB_ICONS.suppliers, content: <SuppliersTab item={item} /> },
       ...(lotTracked
         ? [{ id: 'lots', label: 'Lots', icon: TAB_ICONS.lots, content: <ComingSoonTab label="Lots" /> }]
         : []),
-      { id: 'quants', label: 'Quants', icon: TAB_ICONS.quants, content: <ComingSoonTab label="Quants" /> },
-      { id: 'ledger', label: 'Ledger', icon: TAB_ICONS.ledger, content: <ComingSoonTab label="Ledger" /> },
+      { id: 'quants', label: 'Quants', icon: TAB_ICONS.quants, content: <QuantsTab item={item} /> },
+      { id: 'ledger', label: 'Ledger', icon: TAB_ICONS.ledger, content: <LedgerTab item={item} /> },
     ];
   }, [item]);
 

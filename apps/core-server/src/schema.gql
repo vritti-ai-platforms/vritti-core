@@ -85,6 +85,163 @@ type InventoryItemConnection {
   pageInfo: InventoryItemPageInfo!
 }
 
+type InventoryItemStockLevel {
+  id: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  stockedQuantity: Float!
+  reservedQuantity: Float!
+  availableQuantity: Float!
+  reorderLevel: Float
+}
+
+type InventoryItemStockLevelPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemStockLevelEdge {
+  cursor: String!
+  node: InventoryItemStockLevel!
+}
+
+type InventoryItemStockLevelConnection {
+  edges: [InventoryItemStockLevelEdge!]!
+  pageInfo: InventoryItemStockLevelPageInfo!
+}
+
+type InventoryItemLocation {
+  id: ID!
+  inventoryItemId: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  reorderLevel: Float!
+}
+
+type InventoryItemLocationPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemLocationEdge {
+  cursor: String!
+  node: InventoryItemLocation!
+}
+
+type InventoryItemLocationConnection {
+  edges: [InventoryItemLocationEdge!]!
+  pageInfo: InventoryItemLocationPageInfo!
+}
+
+type SupplierUnitPrice {
+  currency: String!
+  value: String!
+}
+
+type InventoryItemSupplier {
+  id: ID!
+  supplierId: ID!
+  supplierName: String
+  supplierCode: String
+  supplierItemCode: String
+  unitPrice: SupplierUnitPrice
+  uomId: ID!
+  uomSymbol: String!
+  minOrderQuantity: Float
+  leadTimeDays: Int
+  isPreferred: Boolean!
+  isActive: Boolean!
+}
+
+type InventoryItemSupplierPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemSupplierEdge {
+  cursor: String!
+  node: InventoryItemSupplier!
+}
+
+type InventoryItemSupplierConnection {
+  edges: [InventoryItemSupplierEdge!]!
+  pageInfo: InventoryItemSupplierPageInfo!
+}
+
+type InventoryItemQuant {
+  id: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  lotId: ID
+  lotNumber: String
+  quantity: Float!
+  reservedQuantity: Float!
+  availableQuantity: Float!
+  manufacturingDate: String
+  expiryDate: String
+  createdAt: String!
+}
+
+type InventoryItemQuantPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemQuantEdge {
+  cursor: String!
+  node: InventoryItemQuant!
+}
+
+type InventoryItemQuantConnection {
+  edges: [InventoryItemQuantEdge!]!
+  pageInfo: InventoryItemQuantPageInfo!
+}
+
+type InventoryItemLedgerEntry {
+  id: ID!
+  type: String!
+  quantity: Float!
+  balanceAfter: Float
+  referenceType: String
+  referenceId: ID
+  notes: String
+  createdAt: String!
+}
+
+type InventoryItemLedgerPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemLedgerEdge {
+  cursor: String!
+  node: InventoryItemLedgerEntry!
+}
+
+type InventoryItemLedgerConnection {
+  edges: [InventoryItemLedgerEdge!]!
+  pageInfo: InventoryItemLedgerPageInfo!
+}
+
+type InventoryItemUomConversion {
+  id: ID!
+  inventoryItemId: ID!
+  uomId: ID!
+  uomName: String!
+  uomSymbol: String!
+  primaryUomQty: Int!
+  uomQty: Int!
+  toPrimaryConversionFactor: Float!
+  toUomConversionFactor: Float!
+  canEdit: Boolean!
+  canDelete: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
 type MutationResult {
   success: Boolean!
   message: String!
@@ -118,6 +275,12 @@ type Query {
   categoriesOptions(input: SelectOptionsInput): SelectOptions!
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
   inventoryItem(id: ID!): InventoryItem!
+  inventoryItemUomConversions(inventoryItemId: ID!): [InventoryItemUomConversion!]!
+  inventoryItemStockLevels(inventoryItemId: ID!, first: Int, after: String): InventoryItemStockLevelConnection!
+  inventoryItemLocations(inventoryItemId: ID!, first: Int, after: String): InventoryItemLocationConnection!
+  inventoryItemSuppliers(inventoryItemId: ID!, first: Int, after: String): InventoryItemSupplierConnection!
+  inventoryItemQuants(inventoryItemId: ID!, first: Int, after: String): InventoryItemQuantConnection!
+  inventoryItemLedger(inventoryItemId: ID!, first: Int, after: String): InventoryItemLedgerConnection!
   inventoryItemsOptions(input: SelectOptionsInput, excludeOnSupplierId: ID): SelectOptions!
   costCategoriesOptions(input: SelectOptionsInput): SelectOptions!
   customersOptions(input: SelectOptionsInput): SelectOptions!
@@ -174,6 +337,12 @@ type Mutation {
   createInventoryItem(input: CreateInventoryItemInput!): InventoryItem!
   updateInventoryItem(id: ID!, input: UpdateInventoryItemInput!): InventoryItem!
   deleteInventoryItem(id: ID!): MutationResult!
+  createInventoryItemUomConversion(inventoryItemId: ID!, input: CreateInventoryItemUomConversionInput!): InventoryItemUomConversion!
+  updateInventoryItemUomConversion(id: ID!, input: UpdateInventoryItemUomConversionInput!): MutationResult!
+  deleteInventoryItemUomConversion(id: ID!): MutationResult!
+  createInventoryItemLocation(inventoryItemId: ID!, input: CreateInventoryItemLocationInput!): InventoryItemLocation!
+  updateInventoryItemLocation(id: ID!, input: UpdateInventoryItemLocationInput!): MutationResult!
+  deleteInventoryItemLocation(id: ID!): MutationResult!
 }
 
 input MobileLoginInput {
@@ -216,4 +385,24 @@ input UpdateInventoryItemInput {
   purchaseTaxGroupId: String!
   hsnCode: String
   hasMrp: Boolean
+}
+
+input CreateInventoryItemUomConversionInput {
+  uomId: String!
+  primaryUomQty: Int!
+  uomQty: Int!
+}
+
+input UpdateInventoryItemUomConversionInput {
+  primaryUomQty: Int!
+  uomQty: Int!
+}
+
+input CreateInventoryItemLocationInput {
+  locationId: ID!
+  reorderLevel: Float!
+}
+
+input UpdateInventoryItemLocationInput {
+  reorderLevel: Float!
 }

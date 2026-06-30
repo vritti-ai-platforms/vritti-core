@@ -18,6 +18,14 @@ export class InventoryItemsLocationsController {
     return this.service.findForTable(data.inventoryItemId, data);
   }
 
+  @MessagePattern({ cmd: 'inventoryItems.locationsFeed' })
+  async locationsFeed(
+    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
+  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
+    this.logger.log(`inventoryItems.locationsFeed — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findLocationsFeed(data.inventoryItemId, data.limit, data.offset);
+  }
+
   @MessagePattern({ cmd: 'inventoryItems.addLocation' })
   async createLocation(
     @Payload() data: { inventoryItemId: string; locationId: string; reorderLevel: number },

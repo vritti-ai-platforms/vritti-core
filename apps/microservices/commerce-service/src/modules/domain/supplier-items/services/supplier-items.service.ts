@@ -128,6 +128,21 @@ export class SupplierItemsService {
     };
   }
 
+  // Offset-paginated suppliers feed for the mobile Relay list (stable order applied in the repo).
+  async findSuppliersFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
+    const { result, count } = await this.repository.findSuppliersFeedPage(inventoryItemId, limit, offset);
+    return {
+      result: result.map((row) =>
+        InventoryItemSupplierDto.from(row, row.supplierName, row.supplierCode, row.uomSymbol),
+      ),
+      count,
+    };
+  }
+
   async findItemIds(supplierId: string): Promise<string[]> {
     const supplier = await this.repository.findSupplierById(supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');

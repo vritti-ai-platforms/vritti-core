@@ -3,7 +3,7 @@ import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { View } from 'react-native';
 import { trackingLabel, typeLabel } from '../../../../../services/inventory-items';
-import type { InventoryItem } from '../../../../../types/list';
+import type { InventoryItem } from '../../../../../types/inventory-items';
 
 function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (

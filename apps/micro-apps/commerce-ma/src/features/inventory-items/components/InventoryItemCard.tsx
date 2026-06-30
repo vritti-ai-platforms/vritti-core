@@ -2,7 +2,7 @@ import { Badge } from '@vritti/quantum-ui-native/Badge';
 import { CardPressable } from '@vritti/quantum-ui-native/CardPressable';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { View } from 'react-native';
-import type { InventoryItem } from '../../../types/list';
+import type { InventoryItem } from '../../../types/inventory-items';
 import { trackingLabel, typeLabel } from '../../../services/inventory-items';
 
 interface InventoryItemCardProps {

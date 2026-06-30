@@ -1,5 +1,5 @@
 import type { SelectOption } from '@vritti/quantum-ui-native/Select';
-import type { FilterCondition, InventoryItemTracking, InventoryItemType } from '../../types/list';
+import type { FilterCondition, InventoryItemTracking, InventoryItemType } from '../../types/inventory-items';
 
 export const TYPE_OPTIONS: SelectOption[] = [
   { value: 'RAW_MATERIAL', label: 'Raw material' },

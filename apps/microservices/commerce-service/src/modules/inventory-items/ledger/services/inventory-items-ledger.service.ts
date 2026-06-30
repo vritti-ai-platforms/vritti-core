@@ -22,4 +22,14 @@ export class InventoryItemsLedgerService {
     await this.inventoryItemsService.findById(inventoryItemId);
     return this.ledgerService.findForTable(state);
   }
+
+  async findFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
+    this.logger.log(`findFeed — inventoryItemId=${inventoryItemId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.ledgerService.findFeed(inventoryItemId, limit, offset);
+  }
 }

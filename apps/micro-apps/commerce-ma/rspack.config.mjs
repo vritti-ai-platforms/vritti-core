@@ -63,6 +63,7 @@ const componentDirs = [
   'DateTimePicker',
   'DateTimeRangePicker',
   'DynamicIcon',
+  'Fab',
   'FlashList',
   'Form',
   'FormattedDate',

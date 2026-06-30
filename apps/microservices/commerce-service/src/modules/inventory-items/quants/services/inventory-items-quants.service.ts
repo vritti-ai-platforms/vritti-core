@@ -23,4 +23,14 @@ export class InventoryItemsQuantsService {
     await this.inventoryItemsService.findById(inventoryItemId);
     return this.quantsService.findQuantsForTable(inventoryItemId, state);
   }
+
+  async findFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
+    this.logger.log(`findFeed — inventoryItemId=${inventoryItemId}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.quantsService.findQuantsFeed(inventoryItemId, limit, offset);
+  }
 }

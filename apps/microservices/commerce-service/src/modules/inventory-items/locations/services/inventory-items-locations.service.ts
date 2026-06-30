@@ -25,6 +25,17 @@ export class InventoryItemsLocationsService {
     return this.itemLocationsService.findForTable(inventoryItemId, state);
   }
 
+  // Offset-paginated location configs for the mobile Relay feed (can exceed 100 locations).
+  async findLocationsFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
+    this.logger.log(`findLocationsFeed — inventoryItemId=${inventoryItemId} limit=${limit} offset=${offset}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.itemLocationsService.findLocationsFeed(inventoryItemId, limit, offset);
+  }
+
   async create(
     inventoryItemId: string,
     data: { locationId: string; reorderLevel: number },

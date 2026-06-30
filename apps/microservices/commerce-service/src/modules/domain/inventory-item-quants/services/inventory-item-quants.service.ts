@@ -458,6 +458,16 @@ export class InventoryItemQuantsService {
     return { result: result.map((row) => InventoryItemQuantDto.from(row, true)), count };
   }
 
+  // Offset-paginated quants for the mobile Relay feed (read-only). Mirrors findQuantsForTable's mapping.
+  async findQuantsFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
+    const { result, count } = await this.repository.findQuantsFeedPage(inventoryItemId, limit, offset);
+    return { result: result.map((row) => InventoryItemQuantDto.from(row, false)), count };
+  }
+
   async findQuantById(id: string): Promise<InventoryItemQuantDto> {
     const row = await this.repository.findById(id);
     if (!row) throw new NotFoundException('Quant not found.');
@@ -477,6 +487,29 @@ export class InventoryItemQuantsService {
       dto.reorderLevel = row.reorderLevel;
       return dto;
     });
+  }
+
+  // Offset-paginated variant of the above (backs the mobile Relay stock-levels feed).
+  async findLocationStockPage(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: LocationStockDto[]; count: number }> {
+    const { result, count } = await this.repository.findLocationStockPage(inventoryItemId, limit, offset);
+    return {
+      result: result.map((row) => {
+        const dto = new LocationStockDto();
+        dto.locationId = row.locationId;
+        dto.locationName = row.locationName ?? null;
+        dto.locationPath = row.locationPath ?? null;
+        dto.stockedQuantity = Number(row.stockedQuantity);
+        dto.reservedQuantity = Number(row.reservedQuantity);
+        dto.availableQuantity = Number(row.availableQuantity);
+        dto.reorderLevel = row.reorderLevel;
+        return dto;
+      }),
+      count,
+    };
   }
 
   async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {

@@ -26,6 +26,16 @@ export class InventoryItemLedgerService {
     return entry;
   }
 
+  // Offset-paginated ledger entries for one item (mobile Relay feed, read-only).
+  async findFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
+    const { result, count } = await this.repository.findLedgerFeedPage(inventoryItemId, limit, offset);
+    return { result: result.map((r) => InventoryItemLedgerDto.from(r, r.inventoryItemName)), count };
+  }
+
   // Returns paginated ledger entries for the data table
   async findForTable(state: TableViewState): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLedgerService.FIELD_MAP);

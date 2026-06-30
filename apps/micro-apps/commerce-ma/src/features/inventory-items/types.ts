@@ -1,4 +1,4 @@
-import type { InventoryItem } from "../../types/list";
+import type { InventoryItem } from "../../types/inventory-items";
 
 export type InventoryRoute =
   | "InventoryList"

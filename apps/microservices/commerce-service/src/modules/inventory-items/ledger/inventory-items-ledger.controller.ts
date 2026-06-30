@@ -18,4 +18,12 @@ export class InventoryItemsLedgerController {
     this.logger.log(`inventoryItems.ledgerTable — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findForTable(data.inventoryItemId, data);
   }
+
+  @MessagePattern({ cmd: 'inventoryItems.ledgerFeed' })
+  async ledgerFeed(
+    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
+  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
+    this.logger.log(`inventoryItems.ledgerFeed — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findFeed(data.inventoryItemId, data.limit, data.offset);
+  }
 }

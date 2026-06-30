@@ -12,3 +12,34 @@ registerConnection({
   singleField: "inventoryItem",
   typename: "InventoryItem",
 });
+
+// Per-item stock-levels feed — relayStylePagination keyed by inventoryItemId so each item's connection is
+// cached separately (first/after are excluded so pages merge). Read-only, so no single-item read redirect.
+registerConnection({
+  field: "inventoryItemStockLevels",
+  keyArgs: ["inventoryItemId"],
+});
+
+// Per-item locations feed — same per-item relay connection; create/delete patch it via cache surgery.
+registerConnection({
+  field: "inventoryItemLocations",
+  keyArgs: ["inventoryItemId"],
+});
+
+// Per-item suppliers feed — read-only per-item relay connection, keyed by inventoryItemId.
+registerConnection({
+  field: "inventoryItemSuppliers",
+  keyArgs: ["inventoryItemId"],
+});
+
+// Per-item quants feed — read-only per-item relay connection, keyed by inventoryItemId.
+registerConnection({
+  field: "inventoryItemQuants",
+  keyArgs: ["inventoryItemId"],
+});
+
+// Per-item ledger feed — read-only per-item relay connection, keyed by inventoryItemId.
+registerConnection({
+  field: "inventoryItemLedger",
+  keyArgs: ["inventoryItemId"],
+});

@@ -18,4 +18,12 @@ export class InventoryItemsSupplierItemsController {
     this.logger.log(`inventoryItems.suppliersTable — inventoryItemId: ${inventoryItemId}`);
     return this.service.findSuppliersForItem(inventoryItemId, state);
   }
+
+  @MessagePattern({ cmd: 'inventoryItems.suppliersFeed' })
+  async suppliersFeed(
+    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
+  ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
+    this.logger.log(`inventoryItems.suppliersFeed — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findSuppliersFeed(data.inventoryItemId, data.limit, data.offset);
+  }
 }

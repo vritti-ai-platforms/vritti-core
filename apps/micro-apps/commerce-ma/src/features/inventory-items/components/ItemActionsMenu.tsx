@@ -4,7 +4,7 @@ import { useConfirm, usePlatformInfo } from '@vritti/quantum-ui-native/hooks';
 import { type MenuAction, MenuButton } from '@vritti/quantum-ui-native/MenuButton';
 import { Alert } from 'react-native';
 import { useDeleteInventoryItem } from '../../../hooks/inventory-items';
-import type { InventoryItem } from '../../../types/list';
+import type { InventoryItem } from '../../../types/inventory-items';
 import type { InventoryNavigation } from '../types';
 
 // iOS 26's liquid-glass trigger carries the bare dots; pre-iOS 26 + Android (flat ghost trigger) use an

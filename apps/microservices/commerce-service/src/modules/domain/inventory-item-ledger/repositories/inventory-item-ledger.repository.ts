@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { asc, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemLedgerEntry,
   inventoryItemLedger,
@@ -44,6 +44,21 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
       orderBy: options.orderBy?.length ? options.orderBy : [desc(inventoryItemLedger.createdAt)],
       limit: options.limit,
       offset: options.offset,
+    });
+  }
+
+  // Stable-ordered page for the mobile Relay ledger feed, scoped to one item: newest first with an id
+  // tie-breaker so offset cursors are deterministic. Reuses findAllForTable's select + item-name join.
+  async findLedgerFeedPage(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: (InventoryItemLedgerEntry & { inventoryItemName: string })[]; count: number }> {
+    return this.findAllForTable({
+      where: eq(inventoryItemLedger.inventoryItemId, inventoryItemId),
+      orderBy: [desc(inventoryItemLedger.createdAt), asc(inventoryItemLedger.id)],
+      limit,
+      offset,
     });
   }
 }

@@ -20,4 +20,15 @@ export class InventoryItemsStocksService {
     await this.inventoryItemsService.findById(inventoryItemId);
     return this.quantsService.findLocationStockByInventoryItemId(inventoryItemId);
   }
+
+  // Offset-paginated stock aggregate for the mobile Relay feed (can exceed 100 locations).
+  async findStocksFeed(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{ result: LocationStockDto[]; count: number }> {
+    this.logger.log(`findStocksFeed — inventoryItemId=${inventoryItemId} limit=${limit} offset=${offset}`);
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.quantsService.findLocationStockPage(inventoryItemId, limit, offset);
+  }
 }

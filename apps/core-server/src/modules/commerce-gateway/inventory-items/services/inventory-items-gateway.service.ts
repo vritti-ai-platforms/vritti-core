@@ -14,6 +14,8 @@ import type { CreateInventoryItemDto } from '../dto/request/create-inventory-ite
 import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
+import type { InventoryItemLedgerResponseDto } from '../dto/response/inventory-item-ledger-response.dto';
+import type { InventoryItemLedgerTableResponseDto } from '../dto/response/inventory-item-ledger-table-response.dto';
 import type { InventoryItemLocationResponseDto } from '../dto/response/inventory-item-location-response.dto';
 import type { InventoryItemLocationTableResponseDto } from '../dto/response/inventory-item-location-table-response.dto';
 import type { InventoryItemLotResponseDto } from '../dto/response/inventory-item-lot-response.dto';
@@ -28,8 +30,11 @@ import type {
 } from '../dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '../dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
-import type { InventoryItemLedgerResponseDto } from '../dto/response/inventory-item-ledger-response.dto';
-import type { InventoryItemLedgerTableResponseDto } from '../dto/response/inventory-item-ledger-table-response.dto';
+
+// Offset cursors for the stock-levels Relay feed: encode a row's absolute index; the next page starts one
+// past the last edge's index (decoded value + 1).
+const encodeOffsetCursor = (index: number): string => Buffer.from(String(index), 'utf8').toString('base64');
+const decodeOffsetCursor = (cursor: string): number => Number(Buffer.from(cursor, 'base64').toString('utf8'));
 
 @Injectable()
 export class InventoryItemsGatewayService {
@@ -101,6 +106,33 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
+  // Offset-paginated Relay connection of an item's supplier links for the mobile infinite feed (mirrors
+  // findStockLevelsForFeed). Read-only; each row already has a unique id, so the node is forwarded as-is.
+  async findSuppliersForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
+    edges: { cursor: string; node: InventoryItemSupplierResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`inventoryItems.suppliersFeed — inventoryItemId: ${query.inventoryItemId}`);
+    const limit = query.first ?? 20;
+    const offset = query.after ? decodeOffsetCursor(query.after) + 1 : 0;
+
+    const { result, count } = await this.nats.send<{ result: InventoryItemSupplierResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.suppliersFeed',
+      { inventoryItemId: query.inventoryItemId, limit, offset },
+    );
+
+    const edges = result.map((row, i) => ({ cursor: encodeOffsetCursor(offset + i), node: row }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: offset + result.length < count,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+      },
+    };
+  }
+
   // Returns a single inventory item
   async findById(id: string): Promise<InventoryItemResponseDto> {
     this.logger.log(`inventoryItems.findById — id: ${id}`);
@@ -124,10 +156,68 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
+  // Offset-paginated Relay connection of an item's ledger entries for the mobile infinite feed (mirrors
+  // findStockLevelsForFeed). Read-only; each row already has a unique id, so the node is forwarded as-is.
+  async findLedgerForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
+    edges: { cursor: string; node: InventoryItemLedgerResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`inventoryItems.ledgerFeed — inventoryItemId: ${query.inventoryItemId}`);
+    const limit = query.first ?? 20;
+    const offset = query.after ? decodeOffsetCursor(query.after) + 1 : 0;
+
+    const { result, count } = await this.nats.send<{ result: InventoryItemLedgerResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.ledgerFeed',
+      { inventoryItemId: query.inventoryItemId, limit, offset },
+    );
+
+    const edges = result.map((row, i) => ({ cursor: encodeOffsetCursor(offset + i), node: row }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: offset + result.length < count,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+      },
+    };
+  }
+
   // Returns location-wise stock aggregates for an inventory item, sourced from inventory_item_quants.
   async findStocks(inventoryItemId: string): Promise<InventoryItemStockResponseDto[]> {
     this.logger.log(`inventoryItems.stocks — inventoryItemId: ${inventoryItemId}`);
     return this.nats.send('commerce', 'inventoryItems.stocks', { inventoryItemId });
+  }
+
+  // Offset-paginated Relay connection of per-location stock levels for the mobile infinite feed (a single
+  // item can be stocked in >100 locations). The cursor encodes a row's absolute offset; the commerce-service
+  // paginates at the DB. The client merges pages via relayStylePagination. `id` is composite per (item, location).
+  async findStockLevelsForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
+    edges: { cursor: string; node: InventoryItemStockResponseDto & { id: string } }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`inventoryItems.stocksFeed — inventoryItemId: ${query.inventoryItemId}`);
+    const limit = query.first ?? 20;
+    const offset = query.after ? decodeOffsetCursor(query.after) + 1 : 0;
+
+    const { result, count } = await this.nats.send<{ result: InventoryItemStockResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.stocksFeed',
+      { inventoryItemId: query.inventoryItemId, limit, offset },
+    );
+
+    const edges = result.map((row, i) => ({
+      cursor: encodeOffsetCursor(offset + i),
+      node: { id: `${query.inventoryItemId}:${row.locationId}`, ...row },
+    }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: offset + result.length < count,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+      },
+    };
   }
 
   // Returns paginated quants for an inventory item data table
@@ -144,6 +234,33 @@ export class InventoryItemsGatewayService {
     }>('commerce', 'inventoryItems.quantsTable', { inventoryItemId, ...state });
 
     return { result, count, state, activeViewId };
+  }
+
+  // Offset-paginated Relay connection of an item's quants for the mobile infinite feed (mirrors
+  // findStockLevelsForFeed). Read-only; each row already has a unique id, so the node is forwarded as-is.
+  async findQuantsForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
+    edges: { cursor: string; node: InventoryItemQuantResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`inventoryItems.quantsFeed — inventoryItemId: ${query.inventoryItemId}`);
+    const limit = query.first ?? 20;
+    const offset = query.after ? decodeOffsetCursor(query.after) + 1 : 0;
+
+    const { result, count } = await this.nats.send<{ result: InventoryItemQuantResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.quantsFeed',
+      { inventoryItemId: query.inventoryItemId, limit, offset },
+    );
+
+    const edges = result.map((row, i) => ({ cursor: encodeOffsetCursor(offset + i), node: row }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: offset + result.length < count,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+      },
+    };
   }
 
   // Returns paginated lots for an inventory item data table
@@ -163,7 +280,10 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns paginated item-location configs for an inventory item
-  async findItemLocationsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLocationTableResponseDto> {
+  async findItemLocationsForTable(
+    inventoryItemId: string,
+    userId: string,
+  ): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log('inventoryItems.locationsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
@@ -178,20 +298,50 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates an item-location config for an inventory item
-  async createItemLocation(inventoryItemId: string, dto: { locationId: string; reorderLevel: number }) {
+  // Offset-paginated Relay connection of an item's location configs for the mobile infinite feed (mirrors
+  // findStockLevelsForFeed). Each row already has a unique id, so the node is forwarded as-is.
+  async findItemLocationsForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
+    edges: { cursor: string; node: InventoryItemLocationResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`inventoryItems.locationsFeed — inventoryItemId: ${query.inventoryItemId}`);
+    const limit = query.first ?? 20;
+    const offset = query.after ? decodeOffsetCursor(query.after) + 1 : 0;
+
+    const { result, count } = await this.nats.send<{ result: InventoryItemLocationResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.locationsFeed',
+      { inventoryItemId: query.inventoryItemId, limit, offset },
+    );
+
+    const edges = result.map((row, i) => ({ cursor: encodeOffsetCursor(offset + i), node: row }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: offset + result.length < count,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+      },
+    };
+  }
+
+  // Creates an item-location config; returns the created entity so the client inserts it into the cached feed.
+  async createItemLocation(
+    inventoryItemId: string,
+    dto: { locationId: string; reorderLevel: number },
+  ): Promise<CreateResponseDto<InventoryItemLocationResponseDto>> {
     this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
     return this.nats.send('commerce', 'inventoryItems.addLocation', { inventoryItemId, ...dto });
   }
 
   // Updates an item-location config
-  async updateItemLocation(id: string, dto: { reorderLevel: number }) {
+  async updateItemLocation(id: string, dto: { reorderLevel: number }): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.updateLocation — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.updateLocation', { id, ...dto });
   }
 
   // Deletes an item-location config
-  async deleteItemLocation(id: string) {
+  async deleteItemLocation(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.removeLocation — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.removeLocation', { id });
   }
@@ -211,6 +361,20 @@ export class InventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Lean list of an item's UOM conversion overrides for the mobile detail tab — skips the web DataTableState
+  // machinery (no per-user saved views). The per-item list is small/bounded, so request a single large page.
+  // The commerce-service handler reads state.pagination/filters/search/sort, so pass an explicit default state
+  // (pagination is required — it destructures state.pagination.limit).
+  async findUomConversions(inventoryItemId: string): Promise<InventoryItemUomConversionResponseDto[]> {
+    this.logger.log(`inventoryItems.uomConversionsTable (list) — inventoryItemId: ${inventoryItemId}`);
+    const { result } = await this.nats.send<{ result: InventoryItemUomConversionResponseDto[]; count: number }>(
+      'commerce',
+      'inventoryItems.uomConversionsTable',
+      { inventoryItemId, filters: [], search: null, sort: [], pagination: { limit: 100, offset: 0 } },
+    );
+    return result;
   }
 
   // Creates a per-item UOM conversion override

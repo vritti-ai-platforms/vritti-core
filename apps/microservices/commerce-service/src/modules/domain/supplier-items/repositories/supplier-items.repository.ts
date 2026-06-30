@@ -5,7 +5,7 @@ import {
   PrimaryDatabaseService,
   type SelectQueryResult,
 } from '@vritti/api-sdk';
-import { and, desc, eq, inArray, ne, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, inArray, ne, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
   goodsReceiptItems,
@@ -166,6 +166,24 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
         : [desc(supplierItems.isPreferred), desc(supplierItems.createdAt)],
       limit: options.limit,
       offset: options.offset,
+    });
+  }
+
+  // Stable-ordered page for the mobile Relay suppliers feed: preferred first, then newest, with an id
+  // tie-breaker so the total order is deterministic (offset cursors don't skip/duplicate). Reuses the same
+  // select + count as findSuppliersForItem.
+  async findSuppliersFeedPage(
+    inventoryItemId: string,
+    limit: number,
+    offset: number,
+  ): Promise<{
+    result: (SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string })[];
+    count: number;
+  }> {
+    return this.findSuppliersForItem(inventoryItemId, {
+      orderBy: [desc(supplierItems.isPreferred), desc(supplierItems.createdAt), asc(supplierItems.id)],
+      limit,
+      offset,
     });
   }
 
