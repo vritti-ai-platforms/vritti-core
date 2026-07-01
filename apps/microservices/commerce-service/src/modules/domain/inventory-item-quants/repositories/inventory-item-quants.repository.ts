@@ -104,17 +104,41 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
     });
   }
 
-  // Stable-ordered page for the mobile Relay quants feed: newest first with an id tie-breaker so the
-  // total order is deterministic (offset cursors don't skip/duplicate). Reuses findQuantsForTable's select.
-  async findQuantsFeedPage(
-    inventoryItemId: string,
-    limit: number,
-    offset: number,
-  ): Promise<{ result: InventoryItemQuantWithRefs[]; count: number }> {
-    return this.findQuantsForTable(inventoryItemId, {
-      orderBy: [desc(inventoryItemQuants.createdAt), asc(inventoryItemQuants.id)],
-      limit,
-      offset,
+  // Keyset page for the mobile Relay quants feed. `where` already carries the item filter + cursor
+  // predicate; `orderBy` is (createdAt desc, id asc). Returns {rows, hasMore} (fetches limit+1 internally).
+  async findQuantsFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
+    rows: InventoryItemQuantWithRefs[];
+    hasMore: boolean;
+  }> {
+    return this.findKeyset<InventoryItemQuantWithRefs>({
+      select: {
+        id: inventoryItemQuants.id,
+        organizationId: inventoryItemQuants.organizationId,
+        businessUnitId: inventoryItemQuants.businessUnitId,
+        inventoryItemId: inventoryItemQuants.inventoryItemId,
+        locationId: inventoryItemQuants.locationId,
+        lotId: inventoryItemQuants.lotId,
+        quantity: inventoryItemQuants.quantity,
+        reservedQuantity: inventoryItemQuants.reservedQuantity,
+        unitCost: inventoryItemQuants.unitCost,
+        costCurrency: inventoryItemQuants.costCurrency,
+        quantCost: inventoryItemQuants.quantCost,
+        quantValue: inventoryItemQuants.quantValue,
+        createdAt: inventoryItemQuants.createdAt,
+        updatedAt: inventoryItemQuants.updatedAt,
+        locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
+        lotNumber: inventoryItemLots.lotNumber,
+        manufacturingDate: inventoryItemLots.manufacturingDate,
+        expiryDate: inventoryItemLots.expiryDate,
+      },
+      leftJoins: [
+        { table: locations, on: eq(inventoryItemQuants.locationId, locations.id) },
+        { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
+      ],
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
     });
   }
 
@@ -349,14 +373,11 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       .where(eq(inventoryStockLevels.inventoryItemId, inventoryItemId));
   }
 
-  // Offset-paginated per-location stock for an item (backs the mobile Relay stock-levels feed). Stable order
-  // (location name, then id) so offset cursors don't skip/duplicate rows; returns the page + total count.
-  async findLocationStockPage(
-    inventoryItemId: string,
-    limit: number,
-    offset: number,
-  ): Promise<{
-    result: {
+  // Keyset page for the mobile Relay stock-levels feed (a VIEW aggregate — not this repo's base table, so
+  // built directly on this.db rather than the base findKeyset). `where` carries the item filter + cursor
+  // predicate; `orderBy` is (locationName asc, locationId asc). Returns {rows, hasMore} (fetches limit+1).
+  async findLocationStockKeyset(options: { where: SQL; orderBy: SQL[]; limit: number }): Promise<{
+    rows: {
       locationId: string;
       locationName: string | null;
       locationPath: string | null;
@@ -365,11 +386,9 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       availableQuantity: string;
       reorderLevel: number | null;
     }[];
-    count: number;
+    hasMore: boolean;
   }> {
-    const where = eq(inventoryStockLevels.inventoryItemId, inventoryItemId);
-
-    const result = await this.db
+    const rows = await this.db
       .select({
         locationId: inventoryStockLevels.locationId,
         locationName: locations.name,
@@ -381,17 +400,12 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       })
       .from(inventoryStockLevels)
       .leftJoin(locations, eq(inventoryStockLevels.locationId, locations.id))
-      .where(where)
-      .orderBy(sql`${locations.name} asc nulls last`, asc(inventoryStockLevels.locationId))
-      .limit(limit)
-      .offset(offset);
+      .where(options.where)
+      .orderBy(...options.orderBy)
+      .limit(options.limit + 1);
 
-    const countRows = await this.db
-      .select({ count: sql<number>`count(*)` })
-      .from(inventoryStockLevels)
-      .where(where);
-
-    return { result, count: Number(countRows[0]?.count ?? 0) };
+    const hasMore = rows.length > options.limit;
+    return { rows: hasMore ? rows.slice(0, options.limit) : rows, hasMore };
   }
 
   // Groups a location's non-zero quants by inventory item: SUM(quantity), SUM(reserved),

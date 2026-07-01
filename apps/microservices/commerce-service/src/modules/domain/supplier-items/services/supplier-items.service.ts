@@ -14,8 +14,11 @@ import {
   type SuccessResponseDto,
   type TableViewState,
   ValidationException,
+  CursorCodec,
+  type KeysetOrderBy,
+  KeysetProcessor,
 } from '@vritti/api-sdk';
-import { and } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
 import type { AddSupplierItemDto } from '@/modules/suppliers/items/dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '@/modules/suppliers/items/dto/request/update-supplier-item.dto';
@@ -129,17 +132,33 @@ export class SupplierItemsService {
   }
 
   // Offset-paginated suppliers feed for the mobile Relay list (stable order applied in the repo).
+  // Keyset feed of an item's supplier links. Ordered by (isPreferred desc, createdAt desc, id asc); the
+  // cursor encodes those boundary values (via CursorCodec) so pages don't skip/duplicate.
   async findSuppliersFeed(
     inventoryItemId: string,
     limit: number,
-    offset: number,
-  ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
-    const { result, count } = await this.repository.findSuppliersFeedPage(inventoryItemId, limit, offset);
+    cursor?: string,
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemSupplierDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    const orderByEntries: (KeysetOrderBy & { key: string })[] = [
+      { column: supplierItems.isPreferred, direction: 'desc', key: 'isPreferred' },
+      { column: supplierItems.createdAt, direction: 'desc', key: 'createdAt' },
+      { column: supplierItems.id, direction: 'asc', key: 'id' },
+    ];
+    const orderBy = orderByEntries.map((e) => (e.direction === 'asc' ? asc(e.column) : desc(e.column)));
+    const cursorWhere = cursor ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(cursor)) : undefined;
+    const where = and(eq(supplierItems.inventoryItemId, inventoryItemId), cursorWhere);
+
+    const { rows, hasMore } = await this.repository.findSuppliersFeedKeyset({ where, orderBy, limit });
+    const edges = rows.map((row) => ({
+      cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key])),
+      node: InventoryItemSupplierDto.from(row, row.supplierName, row.supplierCode, row.uomSymbol),
+    }));
     return {
-      result: result.map((row) =>
-        InventoryItemSupplierDto.from(row, row.supplierName, row.supplierCode, row.uomSymbol),
-      ),
-      count,
+      edges,
+      pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
     };
   }
 

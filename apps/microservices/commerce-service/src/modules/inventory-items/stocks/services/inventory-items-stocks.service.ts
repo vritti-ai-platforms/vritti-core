@@ -21,14 +21,17 @@ export class InventoryItemsStocksService {
     return this.quantsService.findLocationStockByInventoryItemId(inventoryItemId);
   }
 
-  // Offset-paginated stock aggregate for the mobile Relay feed (can exceed 100 locations).
+  // Keyset stock aggregate for the mobile Relay feed (can exceed 100 locations).
   async findStocksFeed(
     inventoryItemId: string,
     limit: number,
-    offset: number,
-  ): Promise<{ result: LocationStockDto[]; count: number }> {
-    this.logger.log(`findStocksFeed — inventoryItemId=${inventoryItemId} limit=${limit} offset=${offset}`);
+    cursor?: string,
+  ): Promise<{
+    edges: { cursor: string; node: LocationStockDto & { id: string } }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`findStocksFeed — inventoryItemId=${inventoryItemId} limit=${limit}`);
     await this.inventoryItemsService.findById(inventoryItemId);
-    return this.quantsService.findLocationStockPage(inventoryItemId, limit, offset);
+    return this.quantsService.findLocationStockFeed(inventoryItemId, limit, cursor);
   }
 }

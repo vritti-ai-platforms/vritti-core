@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { and, asc, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { type InventoryItemLocation, inventoryItemLocations, locations } from '@/db/schema';
 
 @Injectable()
@@ -42,20 +42,29 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
     });
   }
 
-  // Stable-ordered page for the mobile Relay locations feed: order by location name then locationId so the
-  // total order is deterministic (offset cursors don't skip/duplicate). Reuses the same select + count.
-  async findLocationsFeedPage(
-    inventoryItemId: string,
-    limit: number,
-    offset: number,
-  ): Promise<{
-    result: (InventoryItemLocation & { locationName: string | null; locationPath: string | null })[];
-    count: number;
+  // Keyset page for the mobile Relay locations feed. `where` carries the item filter + cursor predicate;
+  // `orderBy` is (locationName asc, id asc). Returns {rows, hasMore} (fetches limit+1 internally).
+  async findLocationsFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
+    rows: (InventoryItemLocation & { locationName: string | null; locationPath: string | null })[];
+    hasMore: boolean;
   }> {
-    return this.findByInventoryItemId(inventoryItemId, {
-      orderBy: [sql`${locations.name} asc nulls last`, asc(inventoryItemLocations.locationId)],
-      limit,
-      offset,
+    return this.findKeyset<InventoryItemLocation & { locationName: string | null; locationPath: string | null }>({
+      select: {
+        id: inventoryItemLocations.id,
+        organizationId: inventoryItemLocations.organizationId,
+        businessUnitId: inventoryItemLocations.businessUnitId,
+        inventoryItemId: inventoryItemLocations.inventoryItemId,
+        locationId: inventoryItemLocations.locationId,
+        reorderLevel: inventoryItemLocations.reorderLevel,
+        createdAt: inventoryItemLocations.createdAt,
+        updatedAt: inventoryItemLocations.updatedAt,
+        locationName: locations.name,
+        locationPath: locations.pathBreadcrumb,
+      },
+      leftJoins: [{ table: locations, on: eq(inventoryItemLocations.locationId, locations.id) }],
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
     });
   }
 

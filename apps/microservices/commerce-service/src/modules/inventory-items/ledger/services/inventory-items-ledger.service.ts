@@ -20,16 +20,19 @@ export class InventoryItemsLedgerService {
   ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
     this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
     await this.inventoryItemsService.findById(inventoryItemId);
-    return this.ledgerService.findForTable(state);
+    return this.ledgerService.findForTable(inventoryItemId, state);
   }
 
   async findFeed(
     inventoryItemId: string,
     limit: number,
-    offset: number,
-  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
+    cursor?: string,
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemLedgerDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log(`findFeed — inventoryItemId=${inventoryItemId}`);
     await this.inventoryItemsService.findById(inventoryItemId);
-    return this.ledgerService.findFeed(inventoryItemId, limit, offset);
+    return this.ledgerService.findFeed(inventoryItemId, limit, cursor);
   }
 }

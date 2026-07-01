@@ -2,13 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
   type CreateResponseDto,
+  CursorCodec,
   type FieldMap,
   FilterProcessor,
+  type KeysetOrderBy,
+  KeysetProcessor,
   NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemLocations, locations } from '@/db/schema';
 import { InventoryItemLocationDto } from '../dto/entity/inventory-item-location.dto';
 import { InventoryItemLocationsRepository } from '../repositories/inventory-item-locations.repository';
@@ -45,14 +48,33 @@ export class InventoryItemLocationsService {
     return { result: result.map(InventoryItemLocationDto.from), count };
   }
 
-  // Offset-paginated feed for the mobile Relay locations list (stable order applied in the repo).
+  // Keyset feed for the mobile Relay locations list. Ordered by (locationName asc, id asc); the cursor
+  // encodes those boundary values (via CursorCodec) so pages don't skip/duplicate.
   async findLocationsFeed(
     inventoryItemId: string,
     limit: number,
-    offset: number,
-  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
-    const { result, count } = await this.repository.findLocationsFeedPage(inventoryItemId, limit, offset);
-    return { result: result.map(InventoryItemLocationDto.from), count };
+    cursor?: string,
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemLocationDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    const orderByEntries: (KeysetOrderBy & { key: string })[] = [
+      { column: locations.name, direction: 'asc', key: 'locationName' },
+      { column: inventoryItemLocations.id, direction: 'asc', key: 'id' },
+    ];
+    const orderBy = orderByEntries.map((e) => (e.direction === 'asc' ? asc(e.column) : desc(e.column)));
+    const cursorWhere = cursor ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(cursor)) : undefined;
+    const where = and(eq(inventoryItemLocations.inventoryItemId, inventoryItemId), cursorWhere);
+
+    const { rows, hasMore } = await this.repository.findLocationsFeedKeyset({ where, orderBy, limit });
+    const edges = rows.map((row) => ({
+      cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key])),
+      node: InventoryItemLocationDto.from(row),
+    }));
+    return {
+      edges,
+      pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
+    };
   }
 
   // Creates a new config for an item at a location

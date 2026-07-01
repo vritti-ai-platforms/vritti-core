@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   BadRequestException,
+  CursorCodec,
   type FieldMap,
   FilterProcessor,
+  type KeysetOrderBy,
+  KeysetProcessor,
   NotFoundException,
   PrimaryDatabaseService,
   type SelectOptionsQueryDto,
@@ -10,7 +13,7 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
-import { and, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   CostDistributionMethodValues,
   type CostSourceType,
@@ -25,6 +28,7 @@ import {
   inventoryItemLots,
   inventoryItemQuants,
   inventoryItems,
+  inventoryStockLevels,
   locations,
   uom,
 } from '@/db/schema';
@@ -458,14 +462,34 @@ export class InventoryItemQuantsService {
     return { result: result.map((row) => InventoryItemQuantDto.from(row, true)), count };
   }
 
-  // Offset-paginated quants for the mobile Relay feed (read-only). Mirrors findQuantsForTable's mapping.
+  // Keyset page of an item's quants for the mobile Relay feed (read-only). Ordered by (createdAt desc,
+  // id asc); the cursor encodes those boundary values (via CursorCodec) so pages don't skip/duplicate on
+  // concurrent insert/delete.
   async findQuantsFeed(
     inventoryItemId: string,
     limit: number,
-    offset: number,
-  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
-    const { result, count } = await this.repository.findQuantsFeedPage(inventoryItemId, limit, offset);
-    return { result: result.map((row) => InventoryItemQuantDto.from(row, false)), count };
+    cursor?: string,
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemQuantDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    const orderByEntries: (KeysetOrderBy & { key: string })[] = [
+      { column: inventoryItemQuants.createdAt, direction: 'desc', key: 'createdAt' },
+      { column: inventoryItemQuants.id, direction: 'asc', key: 'id' },
+    ];
+    const orderBy = orderByEntries.map((e) => (e.direction === 'asc' ? asc(e.column) : desc(e.column)));
+    const cursorWhere = cursor ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(cursor)) : undefined;
+    const where = and(eq(inventoryItemQuants.inventoryItemId, inventoryItemId), cursorWhere);
+
+    const { rows, hasMore } = await this.repository.findQuantsFeedKeyset({ where, orderBy, limit });
+    const edges = rows.map((row) => ({
+      cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key])),
+      node: InventoryItemQuantDto.from(row, false),
+    }));
+    return {
+      edges,
+      pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
+    };
   }
 
   async findQuantById(id: string): Promise<InventoryItemQuantDto> {
@@ -489,26 +513,48 @@ export class InventoryItemQuantsService {
     });
   }
 
-  // Offset-paginated variant of the above (backs the mobile Relay stock-levels feed).
-  async findLocationStockPage(
+  // Keyset page backing the mobile Relay stock-levels feed. Ordered by (locationName asc, locationId asc);
+  // the cursor encodes those boundary values. Node id is composite (item:location) so Apollo keys each row
+  // uniquely per item (the view has no own id).
+  async findLocationStockFeed(
     inventoryItemId: string,
     limit: number,
-    offset: number,
-  ): Promise<{ result: LocationStockDto[]; count: number }> {
-    const { result, count } = await this.repository.findLocationStockPage(inventoryItemId, limit, offset);
+    cursor?: string,
+  ): Promise<{
+    edges: { cursor: string; node: LocationStockDto & { id: string } }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    // Keyset on the real joined `locations` columns (the view's own columns are aliased SQL, not
+    // Columns). locations.id equals the view's locationId via the join, so it's a stable unique tiebreaker.
+    const orderByEntries: (KeysetOrderBy & { key: string })[] = [
+      { column: locations.name, direction: 'asc', key: 'locationName' },
+      { column: locations.id, direction: 'asc', key: 'locationId' },
+    ];
+    const orderBy = orderByEntries.map((e) => (e.direction === 'asc' ? asc(e.column) : desc(e.column)));
+    const cursorWhere = cursor ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(cursor)) : undefined;
+    const baseWhere = eq(inventoryStockLevels.inventoryItemId, inventoryItemId);
+    const where = cursorWhere ? (and(baseWhere, cursorWhere) as SQL) : baseWhere;
+
+    const { rows, hasMore } = await this.repository.findLocationStockKeyset({ where, orderBy, limit });
+    const edges = rows.map((row) => {
+      const node: LocationStockDto & { id: string } = {
+        id: `${inventoryItemId}:${row.locationId}`,
+        locationId: row.locationId,
+        locationName: row.locationName ?? null,
+        locationPath: row.locationPath ?? null,
+        stockedQuantity: Number(row.stockedQuantity),
+        reservedQuantity: Number(row.reservedQuantity),
+        availableQuantity: Number(row.availableQuantity),
+        reorderLevel: row.reorderLevel,
+      };
+      return {
+        cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key])),
+        node,
+      };
+    });
     return {
-      result: result.map((row) => {
-        const dto = new LocationStockDto();
-        dto.locationId = row.locationId;
-        dto.locationName = row.locationName ?? null;
-        dto.locationPath = row.locationPath ?? null;
-        dto.stockedQuantity = Number(row.stockedQuantity);
-        dto.reservedQuantity = Number(row.reservedQuantity);
-        dto.availableQuantity = Number(row.availableQuantity);
-        dto.reorderLevel = row.reorderLevel;
-        return dto;
-      }),
-      count,
+      edges,
+      pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
     };
   }
 

@@ -24,10 +24,13 @@ export class InventoryItemsQuantsController {
 
   @MessagePattern({ cmd: 'inventoryItems.quantsFeed' })
   async quantsFeed(
-    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
-  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
+    @Payload() data: { inventoryItemId: string; limit: number; cursor?: string },
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemQuantDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log(`inventoryItems.quantsFeed — inventoryItemId: ${data.inventoryItemId}`);
-    return this.itemsQuantsService.findFeed(data.inventoryItemId, data.limit, data.offset);
+    return this.itemsQuantsService.findFeed(data.inventoryItemId, data.limit, data.cursor);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.findQuantById' })

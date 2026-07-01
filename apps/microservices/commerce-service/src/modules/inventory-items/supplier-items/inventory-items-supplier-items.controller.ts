@@ -21,9 +21,12 @@ export class InventoryItemsSupplierItemsController {
 
   @MessagePattern({ cmd: 'inventoryItems.suppliersFeed' })
   async suppliersFeed(
-    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
-  ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
+    @Payload() data: { inventoryItemId: string; limit: number; cursor?: string },
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemSupplierDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log(`inventoryItems.suppliersFeed — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findSuppliersFeed(data.inventoryItemId, data.limit, data.offset);
+    return this.service.findSuppliersFeed(data.inventoryItemId, data.limit, data.cursor);
   }
 }

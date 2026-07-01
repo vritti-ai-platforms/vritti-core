@@ -172,18 +172,37 @@ export class SupplierItemsRepository extends PrimaryBaseRepository<typeof suppli
   // Stable-ordered page for the mobile Relay suppliers feed: preferred first, then newest, with an id
   // tie-breaker so the total order is deterministic (offset cursors don't skip/duplicate). Reuses the same
   // select + count as findSuppliersForItem.
-  async findSuppliersFeedPage(
-    inventoryItemId: string,
-    limit: number,
-    offset: number,
-  ): Promise<{
-    result: (SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string })[];
-    count: number;
+  async findSuppliersFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
+    rows: (SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string })[];
+    hasMore: boolean;
   }> {
-    return this.findSuppliersForItem(inventoryItemId, {
-      orderBy: [desc(supplierItems.isPreferred), desc(supplierItems.createdAt), asc(supplierItems.id)],
-      limit,
-      offset,
+    return this.findKeyset<SupplierItem & { supplierName: string; supplierCode: string; uomSymbol: string }>({
+      select: {
+        id: supplierItems.id,
+        organizationId: supplierItems.organizationId,
+        supplierId: supplierItems.supplierId,
+        inventoryItemId: supplierItems.inventoryItemId,
+        supplierItemCode: supplierItems.supplierItemCode,
+        unitPrice: supplierItems.unitPrice,
+        currencyCode: supplierItems.currencyCode,
+        uomId: supplierItems.uomId,
+        minOrderQuantity: supplierItems.minOrderQuantity,
+        leadTimeDays: supplierItems.leadTimeDays,
+        isPreferred: supplierItems.isPreferred,
+        isActive: supplierItems.isActive,
+        createdAt: supplierItems.createdAt,
+        updatedAt: supplierItems.updatedAt,
+        supplierName: suppliers.name,
+        supplierCode: suppliers.code,
+        uomSymbol: uom.symbol,
+      },
+      leftJoins: [
+        { table: suppliers, on: eq(supplierItems.supplierId, suppliers.id) },
+        { table: uom, on: eq(supplierItems.uomId, uom.id) },
+      ],
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
     });
   }
 

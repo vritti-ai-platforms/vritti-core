@@ -20,10 +20,13 @@ export class InventoryItemsLocationsController {
 
   @MessagePattern({ cmd: 'inventoryItems.locationsFeed' })
   async locationsFeed(
-    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
-  ): Promise<{ result: InventoryItemLocationDto[]; count: number }> {
+    @Payload() data: { inventoryItemId: string; limit: number; cursor?: string },
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemLocationDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log(`inventoryItems.locationsFeed — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findLocationsFeed(data.inventoryItemId, data.limit, data.offset);
+    return this.service.findLocationsFeed(data.inventoryItemId, data.limit, data.cursor);
   }
 
   @MessagePattern({ cmd: 'inventoryItems.addLocation' })

@@ -21,9 +21,12 @@ export class InventoryItemsLedgerController {
 
   @MessagePattern({ cmd: 'inventoryItems.ledgerFeed' })
   async ledgerFeed(
-    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
-  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
+    @Payload() data: { inventoryItemId: string; limit: number; cursor?: string },
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemLedgerDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log(`inventoryItems.ledgerFeed — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findFeed(data.inventoryItemId, data.limit, data.offset);
+    return this.service.findFeed(data.inventoryItemId, data.limit, data.cursor);
   }
 }

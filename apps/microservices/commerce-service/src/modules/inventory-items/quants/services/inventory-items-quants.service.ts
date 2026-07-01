@@ -27,10 +27,13 @@ export class InventoryItemsQuantsService {
   async findFeed(
     inventoryItemId: string,
     limit: number,
-    offset: number,
-  ): Promise<{ result: InventoryItemQuantDto[]; count: number }> {
+    cursor?: string,
+  ): Promise<{
+    edges: { cursor: string; node: InventoryItemQuantDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log(`findFeed — inventoryItemId=${inventoryItemId}`);
     await this.inventoryItemsService.findById(inventoryItemId);
-    return this.quantsService.findQuantsFeed(inventoryItemId, limit, offset);
+    return this.quantsService.findQuantsFeed(inventoryItemId, limit, cursor);
   }
 }

@@ -17,9 +17,12 @@ export class InventoryItemsStocksController {
 
   @MessagePattern({ cmd: 'inventoryItems.stocksFeed' })
   async stocksFeed(
-    @Payload() data: { inventoryItemId: string; limit: number; offset: number },
-  ): Promise<{ result: LocationStockDto[]; count: number }> {
+    @Payload() data: { inventoryItemId: string; limit: number; cursor?: string },
+  ): Promise<{
+    edges: { cursor: string; node: LocationStockDto & { id: string } }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
     this.logger.log(`inventoryItems.stocksFeed — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findStocksFeed(data.inventoryItemId, data.limit, data.offset);
+    return this.service.findStocksFeed(data.inventoryItemId, data.limit, data.cursor);
   }
 }
