@@ -15,21 +15,21 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { type SuccessResponseDto, Public, SkipCsrf } from '@vritti/api-sdk';
-import type { OrgRole } from '@/db/schema';
+import type { Role } from '@/db/schema';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
 import { WebhookSessionInterceptor } from '@/common/interceptors/webhook-session.interceptor';
 import {
-  ApiCompatibleRolesWebhook,
   ApiCreateRoleWebhook,
   ApiDeleteRoleWebhook,
   ApiListRolesWebhook,
   ApiProvisionRolesWebhook,
+  ApiRolesForBuWebhook,
   ApiUpdateRoleWebhook,
-} from '../docs/org-roles.docs';
+} from '../docs/roles.docs';
 import { CreateRoleWebhookDto } from '../dto/request/create-role-webhook.dto';
 import { ProvisionRolesWebhookDto } from '../dto/request/provision-roles-webhook.dto';
 import { UpdateRoleWebhookDto } from '../dto/request/update-role-webhook.dto';
-import { OrgRoleService } from '@domain/organization/services/org-role.service';
+import { RoleService } from '@domain/organization/services/role.service';
 
 @ApiTags('Organization Roles')
 @Controller('organizations/webhook/roles')
@@ -37,10 +37,10 @@ import { OrgRoleService } from '@domain/organization/services/org-role.service';
 @SkipCsrf()
 @UseGuards(WebhookSecretGuard)
 @UseInterceptors(WebhookSessionInterceptor)
-export class OrgRolesController {
-  private readonly logger = new Logger(OrgRolesController.name);
+export class RolesController {
+  private readonly logger = new Logger(RolesController.name);
 
-  constructor(private readonly orgRoleService: OrgRoleService) {}
+  constructor(private readonly roleService: RoleService) {}
 
   // Bulk provisions roles and their feature mappings for an organization
   @Post()
@@ -48,23 +48,23 @@ export class OrgRolesController {
   @ApiProvisionRolesWebhook()
   async provision(@Body() dto: ProvisionRolesWebhookDto): Promise<SuccessResponseDto> {
     this.logger.log(`POST /api/organizations/webhook/roles — orgId: ${dto.orgId}`);
-    return this.orgRoleService.provision(dto.orgId, dto.roles);
+    return this.roleService.provision(dto.orgId, dto.roles);
   }
 
   // Lists all roles for an organization
   @Get()
   @ApiListRolesWebhook()
-  async list(@Query('orgId') orgId: string): Promise<OrgRole[]> {
+  async list(@Query('orgId') orgId: string): Promise<Role[]> {
     this.logger.log(`GET /api/organizations/webhook/roles?orgId=${orgId}`);
-    return this.orgRoleService.findByOrg(orgId);
+    return this.roleService.findByOrg(orgId);
   }
 
-  // Returns roles whose appCodes are compatible with the given business unit
-  @Get('compatible')
-  @ApiCompatibleRolesWebhook()
-  async findCompatible(@Query('buId') buId: string): Promise<OrgRole[]> {
-    this.logger.log(`GET /api/organizations/webhook/roles/compatible?buId=${buId}`);
-    return this.orgRoleService.findCompatibleWithBU(buId);
+  // Returns all roles for the given business unit's organization
+  @Get('for-bu')
+  @ApiRolesForBuWebhook()
+  async findForBu(@Query('buId') buId: string): Promise<Role[]> {
+    this.logger.log(`GET /api/organizations/webhook/roles/for-bu?buId=${buId}`);
+    return this.roleService.findForBU(buId);
   }
 
   // Creates a single role with features
@@ -73,7 +73,7 @@ export class OrgRolesController {
   @ApiCreateRoleWebhook()
   async create(@Body() dto: CreateRoleWebhookDto): Promise<SuccessResponseDto> {
     this.logger.log(`POST /api/organizations/webhook/roles/create — "${dto.name}" for org ${dto.orgId}`);
-    return this.orgRoleService.create(dto.orgId, dto);
+    return this.roleService.create(dto.orgId, dto);
   }
 
   // Updates an existing role's metadata and features
@@ -81,7 +81,7 @@ export class OrgRolesController {
   @ApiUpdateRoleWebhook()
   async update(@Param('id') id: string, @Body() dto: UpdateRoleWebhookDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /api/organizations/webhook/roles/${id}`);
-    return this.orgRoleService.update(id, dto);
+    return this.roleService.update(id, dto);
   }
 
   // Deletes a role and its associated data
@@ -90,6 +90,6 @@ export class OrgRolesController {
   @ApiDeleteRoleWebhook()
   async remove(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /api/organizations/webhook/roles/${id}`);
-    return this.orgRoleService.remove(id);
+    return this.roleService.remove(id);
   }
 }

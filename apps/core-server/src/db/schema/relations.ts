@@ -41,7 +41,7 @@ export const relations = defineRelations(schema, (r) => ({
   organizations: {
     users: r.many.users(),
     businessUnits: r.many.businessUnits(),
-    orgRoles: r.many.orgRoles(),
+    roles: r.many.roles(),
   },
 
   // Business unit relations
@@ -60,10 +60,10 @@ export const relations = defineRelations(schema, (r) => ({
     }),
   },
 
-  // Org role relations
-  orgRoles: {
+  // Role relations
+  roles: {
     organization: r.one.organizations({
-      from: r.orgRoles.organizationId,
+      from: r.roles.organizationId,
       to: r.organizations.id,
     }),
     assignments: r.many.userRoleAssignments(),
@@ -75,9 +75,9 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.userRoleAssignments.userId,
       to: r.users.id,
     }),
-    orgRole: r.one.orgRoles({
-      from: r.userRoleAssignments.orgRoleId,
-      to: r.orgRoles.id,
+    role: r.one.roles({
+      from: r.userRoleAssignments.roleId,
+      to: r.roles.id,
     }),
     businessUnit: r.one.businessUnits({
       from: r.userRoleAssignments.businessUnitId,

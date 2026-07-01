@@ -4,7 +4,7 @@ import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import {
   type UserRoleAssignment,
   businessUnits,
-  orgRoles,
+  roles,
   userRoleAssignments,
   users,
 } from '@/db/schema';
@@ -23,18 +23,18 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
       .select({
         id: userRoleAssignments.id,
         userId: userRoleAssignments.userId,
-        orgRoleId: userRoleAssignments.orgRoleId,
+        roleId: userRoleAssignments.roleId,
         businessUnitId: userRoleAssignments.businessUnitId,
         assignmentType: userRoleAssignments.assignmentType,
         grantedBy: userRoleAssignments.grantedBy,
         isActive: userRoleAssignments.isActive,
         createdAt: userRoleAssignments.createdAt,
         updatedAt: userRoleAssignments.updatedAt,
-        roleName: orgRoles.name,
+        roleName: roles.name,
         businessUnitName: businessUnits.name,
       })
       .from(userRoleAssignments)
-      .innerJoin(orgRoles, eq(orgRoles.id, userRoleAssignments.orgRoleId))
+      .innerJoin(roles, eq(roles.id, userRoleAssignments.roleId))
       .innerJoin(businessUnits, eq(businessUnits.id, userRoleAssignments.businessUnitId))
       .where(eq(userRoleAssignments.userId, userId));
 
@@ -49,7 +49,7 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
       .select({
         id: userRoleAssignments.id,
         userId: userRoleAssignments.userId,
-        orgRoleId: userRoleAssignments.orgRoleId,
+        roleId: userRoleAssignments.roleId,
         businessUnitId: userRoleAssignments.businessUnitId,
         assignmentType: userRoleAssignments.assignmentType,
         grantedBy: userRoleAssignments.grantedBy,
@@ -58,11 +58,11 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
         updatedAt: userRoleAssignments.updatedAt,
         userName: users.fullName,
         userEmail: users.email,
-        roleName: orgRoles.name,
+        roleName: roles.name,
       })
       .from(userRoleAssignments)
       .innerJoin(users, eq(users.id, userRoleAssignments.userId))
-      .innerJoin(orgRoles, eq(orgRoles.id, userRoleAssignments.orgRoleId))
+      .innerJoin(roles, eq(roles.id, userRoleAssignments.roleId))
       .where(eq(userRoleAssignments.businessUnitId, buId));
 
     return rows as (UserRoleAssignment & { userName: string; userEmail: string; roleName: string })[];
@@ -75,10 +75,10 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
   ): Promise<{ features: Record<string, string[]> }[]> {
     const rows = await this.db
       .select({
-        features: orgRoles.features,
+        features: roles.features,
       })
       .from(userRoleAssignments)
-      .innerJoin(orgRoles, eq(orgRoles.id, userRoleAssignments.orgRoleId))
+      .innerJoin(roles, eq(roles.id, userRoleAssignments.roleId))
       .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.businessUnitId, buId)));
 
     return rows as unknown as { features: Record<string, string[]> }[];
@@ -87,11 +87,11 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
   // Finds a specific assignment for duplicate check
   async findByUserAndRoleAndBU(
     userId: string,
-    orgRoleId: string,
+    roleId: string,
     buId: string,
   ): Promise<UserRoleAssignment | undefined> {
     return this.model.findFirst({
-      where: { userId, orgRoleId, businessUnitId: buId },
+      where: { userId, roleId, businessUnitId: buId },
     });
   }
 }

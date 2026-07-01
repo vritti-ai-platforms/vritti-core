@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConflictException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import type { AssignmentType, UserRoleAssignment } from '@/db/schema';
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
-import { OrgRoleRepository } from '@domain/organization/repositories/org-role.repository';
+import { RoleRepository } from '@domain/organization/repositories/role.repository';
 import type { AssignRoleWebhookDto } from '../dto/request/assign-role-webhook.dto';
 import { UserRoleAssignmentRepository } from '../repositories/user-role-assignment.repository';
 
@@ -12,14 +12,14 @@ export class UserRoleService {
 
   constructor(
     private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
-    private readonly orgRoleRepository: OrgRoleRepository,
+    private readonly roleRepository: RoleRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
   ) {}
 
   // Assigns a role to a user within a business unit
   async assignRole(userId: string, dto: AssignRoleWebhookDto): Promise<SuccessResponseDto> {
     // Validate role exists
-    const role = await this.orgRoleRepository.findById(dto.orgRoleId);
+    const role = await this.roleRepository.findById(dto.roleId);
     if (!role) throw new NotFoundException('Role not found.');
 
     // Validate business unit exists
@@ -29,7 +29,7 @@ export class UserRoleService {
     // Check for duplicate assignment
     const existing = await this.userRoleAssignmentRepository.findByUserAndRoleAndBU(
       userId,
-      dto.orgRoleId,
+      dto.roleId,
       dto.businessUnitId,
     );
     if (existing) {
@@ -41,7 +41,7 @@ export class UserRoleService {
 
     await this.userRoleAssignmentRepository.create({
       userId,
-      orgRoleId: dto.orgRoleId,
+      roleId: dto.roleId,
       businessUnitId: dto.businessUnitId,
       assignmentType: (dto.assignmentType as AssignmentType) ?? 'DIRECT',
     });

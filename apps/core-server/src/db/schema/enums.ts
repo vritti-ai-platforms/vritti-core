@@ -48,11 +48,9 @@ export const buTypeEnum = coreSchema.enum('bu_type', [
   'DEPARTMENT',
   'CUSTOM',
 ]);
-export const roleScopeEnum = coreSchema.enum('role_scope', ['GLOBAL', 'SUBTREE', 'SINGLE_BU']);
 export const assignmentTypeEnum = coreSchema.enum('assignment_type', ['DIRECT', 'INHERITED']);
 
 export type BuType = (typeof buTypeEnum.enumValues)[number];
-export type RoleScope = (typeof roleScopeEnum.enumValues)[number];
 export type AssignmentType = (typeof assignmentTypeEnum.enumValues)[number];
 
 export const BuTypeValues = {
@@ -63,12 +61,6 @@ export const BuTypeValues = {
   TEAM: 'TEAM' as const,
   DEPARTMENT: 'DEPARTMENT' as const,
   CUSTOM: 'CUSTOM' as const,
-};
-
-export const RoleScopeValues = {
-  GLOBAL: 'GLOBAL' as const,
-  SUBTREE: 'SUBTREE' as const,
-  SINGLE_BU: 'SINGLE_BU' as const,
 };
 
 export const AssignmentTypeValues = {

@@ -2,7 +2,7 @@ import { boolean, timestamp, uniqueIndex, uuid } from '@vritti/api-sdk/drizzle-p
 import { businessUnits } from './business-unit';
 import { coreSchema } from './core-schema';
 import { assignmentTypeEnum } from './enums';
-import { orgRoles } from './org-role';
+import { roles } from './role';
 import { users } from './users';
 
 export const userRoleAssignments = coreSchema.table(
@@ -12,9 +12,9 @@ export const userRoleAssignments = coreSchema.table(
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    orgRoleId: uuid('org_role_id')
+    roleId: uuid('role_id')
       .notNull()
-      .references(() => orgRoles.id, { onDelete: 'cascade' }),
+      .references(() => roles.id, { onDelete: 'cascade' }),
     businessUnitId: uuid('business_unit_id')
       .notNull()
       .references(() => businessUnits.id, { onDelete: 'cascade' }),
@@ -27,7 +27,7 @@ export const userRoleAssignments = coreSchema.table(
   (table) => [
     uniqueIndex('user_role_assignments_user_role_bu_unique').on(
       table.userId,
-      table.orgRoleId,
+      table.roleId,
       table.businessUnitId,
     ),
   ],

@@ -4,14 +4,12 @@ import {
   Allow,
   IsArray,
   IsBoolean,
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
   ValidateNested,
 } from 'class-validator';
-import { RoleScopeValues } from '@/db/schema';
 
 export class RoleItemDto {
   @ApiProperty({ example: 'Inventory Manager' })
@@ -24,10 +22,6 @@ export class RoleItemDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({ enum: ['GLOBAL', 'SUBTREE', 'SINGLE_BU'], example: 'GLOBAL' })
-  @IsEnum(RoleScopeValues)
-  scope: string;
-
   @ApiPropertyOptional({ example: 'uuid-here' })
   @IsOptional()
   @IsUUID()
@@ -37,16 +31,11 @@ export class RoleItemDto {
   @IsBoolean()
   isLocked: boolean;
 
-  @ApiPropertyOptional({ description: 'App codes linked to this role', example: ['inventory', 'pos'] })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  appCodes?: string[];
 
   @ApiProperty({ example: { products: ['VIEW', 'CREATE'] } })
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
-  features: Record<string, { web?: string[]; mobile?: string[] }>;
+  features: Record<string, { app?: string; web?: string[]; mobile?: string[] }>;
 }
 
 export class ProvisionRolesWebhookDto {

@@ -3,9 +3,9 @@ import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { AssignmentTypeValues } from '@/db/schema';
 
 export class AssignRoleWebhookDto {
-  @ApiProperty({ description: 'Organization role ID', example: 'uuid-here' })
+  @ApiProperty({ description: 'Role ID', example: 'uuid-here' })
   @IsUUID()
-  orgRoleId: string;
+  roleId: string;
 
   @ApiProperty({ description: 'Business unit ID', example: 'uuid-here' })
   @IsUUID()

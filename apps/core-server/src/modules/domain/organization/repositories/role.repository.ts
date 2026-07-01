@@ -1,22 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { type OrgRole, orgRoles } from '@/db/schema';
+import { type Role, roles } from '@/db/schema';
 
 @Injectable()
-export class OrgRoleRepository extends PrimaryBaseRepository<typeof orgRoles> {
+export class RoleRepository extends PrimaryBaseRepository<typeof roles> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, orgRoles);
+    super(database, roles);
   }
 
   // Finds all roles for an organization
-  async findByOrg(orgId: string): Promise<OrgRole[]> {
+  async findByOrg(orgId: string): Promise<Role[]> {
     return this.model.findMany({
       where: { organizationId: orgId },
     });
   }
 
   // Finds a role by organization ID and name for uniqueness check
-  async findByOrgAndName(orgId: string, name: string): Promise<OrgRole | undefined> {
+  async findByOrgAndName(orgId: string, name: string): Promise<Role | undefined> {
     return this.model.findFirst({
       where: { organizationId: orgId, name },
     });
@@ -24,10 +24,10 @@ export class OrgRoleRepository extends PrimaryBaseRepository<typeof orgRoles> {
 
   // Returns the set of source role template IDs already provisioned for an organization
   async findSourceRoleIdsByOrg(orgId: string): Promise<string[]> {
-    const roles = await this.model.findMany({
+    const rows = await this.model.findMany({
       where: { organizationId: orgId },
       columns: { sourceRoleId: true },
     });
-    return roles.map((r) => r.sourceRoleId).filter((id): id is string => Boolean(id));
+    return rows.map((r) => r.sourceRoleId).filter((id): id is string => Boolean(id));
   }
 }

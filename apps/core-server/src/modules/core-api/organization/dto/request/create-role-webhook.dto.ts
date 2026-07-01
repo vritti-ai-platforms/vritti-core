@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { Allow, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
-import { RoleScopeValues } from '@/db/schema';
+import { Allow, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateRoleWebhookDto {
   @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
@@ -18,10 +17,6 @@ export class CreateRoleWebhookDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({ enum: ['GLOBAL', 'SUBTREE', 'SINGLE_BU'], example: 'GLOBAL' })
-  @IsEnum(RoleScopeValues)
-  scope: string;
-
   @ApiPropertyOptional({ example: 'uuid-here' })
   @IsOptional()
   @IsUUID()
@@ -32,14 +27,9 @@ export class CreateRoleWebhookDto {
   @IsBoolean()
   isLocked?: boolean;
 
-  @ApiPropertyOptional({ description: 'App codes linked to this role', example: ['inventory', 'pos'] })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  appCodes?: string[];
 
   @ApiProperty({ example: { products: { web: ['VIEW','CREATE'], mobile: ['VIEW'] } } })
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
-  features: Record<string, { web?: string[]; mobile?: string[] }>;
+  features: Record<string, { app?: string; web?: string[]; mobile?: string[] }>;
 }

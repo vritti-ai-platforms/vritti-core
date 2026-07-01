@@ -10,7 +10,7 @@ export function ApiProvisionRolesWebhook() {
     ApiOperation({
       summary: 'Bulk provision roles',
       description:
-        'Receives bulk role provisioning from cloud-server. Creates org_roles rows with features stored as a jsonb array. Requires X-Webhook-Secret header.',
+        'Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires X-Webhook-Secret header.',
     }),
     ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
     ApiBody({ type: ProvisionRolesWebhookDto }),
@@ -54,7 +54,7 @@ export function ApiUpdateRoleWebhook() {
     ApiOperation({
       summary: 'Update a role',
       description:
-        'Updates role metadata (name, description, scope). If features are provided, replaces the features jsonb array.',
+        'Updates role metadata (name, description). If features are provided, replaces the features jsonb array.',
     }),
     ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
     ApiParam({ name: 'id', description: 'Role ID' }),
@@ -65,16 +65,15 @@ export function ApiUpdateRoleWebhook() {
   );
 }
 
-export function ApiCompatibleRolesWebhook() {
+export function ApiRolesForBuWebhook() {
   return applyDecorators(
     ApiOperation({
-      summary: 'List roles compatible with a business unit',
-      description:
-        'Returns roles whose appCodes are a subset of the business unit appCodes. Roles with no appCodes are always included.',
+      summary: 'List all roles for a business unit',
+      description: "Returns every role in the business unit's organization.",
     }),
     ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
     ApiQuery({ name: 'buId', description: 'Business unit ID', required: true }),
-    ApiResponse({ status: 200, description: 'Compatible roles retrieved successfully.' }),
+    ApiResponse({ status: 200, description: 'Roles retrieved successfully.' }),
     ApiResponse({ status: 404, description: 'Business unit not found.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing webhook secret.' }),
   );

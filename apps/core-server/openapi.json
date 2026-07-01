@@ -1584,8 +1584,8 @@
     },
     "/organizations/webhook/roles": {
       "post": {
-        "description": "Receives bulk role provisioning from cloud-server. Creates org_roles rows with features stored as a jsonb array. Requires X-Webhook-Secret header.",
-        "operationId": "OrgRolesController_provision",
+        "description": "Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires X-Webhook-Secret header.",
+        "operationId": "RolesController_provision",
         "parameters": [
           {
             "name": "X-Webhook-Secret",
@@ -1632,7 +1632,7 @@
       },
       "get": {
         "description": "Returns all roles for an organization with their feature counts. Protected by webhook secret.",
-        "operationId": "OrgRolesController_list",
+        "operationId": "RolesController_list",
         "parameters": [
           {
             "name": "orgId",
@@ -1667,10 +1667,10 @@
         ]
       }
     },
-    "/organizations/webhook/roles/compatible": {
+    "/organizations/webhook/roles/for-bu": {
       "get": {
-        "description": "Returns roles whose appCodes are a subset of the business unit appCodes. Roles with no appCodes are always included.",
-        "operationId": "OrgRolesController_findCompatible",
+        "description": "Returns every role in the business unit's organization.",
+        "operationId": "RolesController_findForBu",
         "parameters": [
           {
             "name": "buId",
@@ -1693,7 +1693,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Compatible roles retrieved successfully."
+            "description": "Roles retrieved successfully."
           },
           "401": {
             "description": "Invalid or missing webhook secret."
@@ -1702,7 +1702,7 @@
             "description": "Business unit not found."
           }
         },
-        "summary": "List roles compatible with a business unit",
+        "summary": "List all roles for a business unit",
         "tags": [
           "Organization Roles"
         ]
@@ -1711,7 +1711,7 @@
     "/organizations/webhook/roles/create": {
       "post": {
         "description": "Creates a new role with validated features. Features must belong to the organization. Validates name uniqueness within the org.",
-        "operationId": "OrgRolesController_create",
+        "operationId": "RolesController_create",
         "parameters": [
           {
             "name": "X-Webhook-Secret",
@@ -1762,8 +1762,8 @@
     },
     "/organizations/webhook/roles/{id}": {
       "patch": {
-        "description": "Updates role metadata (name, description, scope). If features are provided, replaces the features jsonb array.",
-        "operationId": "OrgRolesController_update",
+        "description": "Updates role metadata (name, description). If features are provided, replaces the features jsonb array.",
+        "operationId": "RolesController_update",
         "parameters": [
           {
             "name": "id",
@@ -1819,7 +1819,7 @@
       },
       "delete": {
         "description": "Deletes a role. Cascade delete removes associated user_role_assignments automatically.",
-        "operationId": "OrgRolesController_remove",
+        "operationId": "RolesController_remove",
         "parameters": [
           {
             "name": "id",
@@ -14206,9 +14206,9 @@
       "AssignRoleWebhookDto": {
         "type": "object",
         "properties": {
-          "orgRoleId": {
+          "roleId": {
             "type": "string",
-            "description": "Organization role ID",
+            "description": "Role ID",
             "example": "uuid-here"
           },
           "businessUnitId": {
@@ -14227,7 +14227,7 @@
           }
         },
         "required": [
-          "orgRoleId",
+          "roleId",
           "businessUnitId"
         ]
       },
@@ -14385,15 +14385,6 @@
             "type": "string",
             "example": "Can manage all inventory operations"
           },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "GLOBAL",
-              "SUBTREE",
-              "SINGLE_BU"
-            ],
-            "example": "GLOBAL"
-          },
           "sourceRoleId": {
             "type": "string",
             "example": "uuid-here"
@@ -14401,17 +14392,6 @@
           "isLocked": {
             "type": "boolean",
             "example": false
-          },
-          "appCodes": {
-            "description": "App codes linked to this role",
-            "example": [
-              "inventory",
-              "pos"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "features": {
             "type": "object",
@@ -14425,7 +14405,6 @@
         },
         "required": [
           "name",
-          "scope",
           "isLocked",
           "features"
         ]
@@ -14466,15 +14445,6 @@
             "type": "string",
             "example": "Can manage all inventory operations"
           },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "GLOBAL",
-              "SUBTREE",
-              "SINGLE_BU"
-            ],
-            "example": "GLOBAL"
-          },
           "sourceRoleId": {
             "type": "string",
             "example": "uuid-here"
@@ -14482,17 +14452,6 @@
           "isLocked": {
             "type": "boolean",
             "example": false
-          },
-          "appCodes": {
-            "description": "App codes linked to this role",
-            "example": [
-              "inventory",
-              "pos"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "features": {
             "type": "object",
@@ -14512,7 +14471,6 @@
         "required": [
           "orgId",
           "name",
-          "scope",
           "features"
         ]
       },
@@ -14526,26 +14484,6 @@
           "description": {
             "type": "string",
             "example": "Can manage all inventory operations"
-          },
-          "scope": {
-            "type": "string",
-            "enum": [
-              "GLOBAL",
-              "SUBTREE",
-              "SINGLE_BU"
-            ],
-            "example": "GLOBAL"
-          },
-          "appCodes": {
-            "description": "App codes linked to this role",
-            "example": [
-              "inventory",
-              "pos"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "features": {
             "type": "object",
