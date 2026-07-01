@@ -2,11 +2,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUomDimensionDto {
-  @ApiProperty({ description: 'Unique code (uppercase, A-Z 0-9 _)', example: 'MASS' })
+  @ApiProperty({ description: 'Unique code — a single lowercase word (hyphens allowed)', example: 'mass' })
   @IsString()
   @MinLength(1)
   @MaxLength(50)
-  @Matches(/^[A-Z][A-Z0-9_]*$/, { message: 'code must start with uppercase letter' })
+  @Matches(/^[a-z][a-z0-9-]*$/, { message: 'code must be a single lowercase word (hyphens allowed)' })
   code: string;
 
   @ApiProperty({ description: 'Display name', example: 'Mass' })

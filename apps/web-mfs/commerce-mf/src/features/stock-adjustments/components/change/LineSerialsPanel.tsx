@@ -13,7 +13,7 @@ import {
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
-import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useBarcodeScanner, useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { formatHotkey, KbdGroup } from '@vritti/quantum-ui/Kbd';
@@ -191,43 +191,39 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-start gap-2">
-          <div>
-            <div className="flex items-center gap-2">
-              {line.quantLotNumber && (
-                <h3 className="text-xl font-semibold leading-none tracking-tight">{line.quantLotNumber}</h3>
-              )}
-              <Badge variant={line.isBalanced ? 'success' : 'warning'}>
-                {line.lineItemsCount}/{line.uomQty} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
-              </Badge>
-            </div>
-            {line.quantLocationPath && <p className="mt-1 text-sm text-muted-foreground">{line.quantLocationPath}</p>}
-          </div>
-        </div>
-        {isDraft && (
-          <div className="flex items-center gap-2">
-            <ScanBarcodeButton scanner={scanner} />
-            <Button
-              size="sm"
-              variant="outline"
-              startAdornment={<Pencil className="size-3.5" />}
-              onClick={editLineDialog.open}
-            >
-              Edit Line
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              startAdornment={<Trash2 className="size-3.5" />}
-              onClick={handleRemoveLine}
-              isLoading={removeLineMutation.isPending}
-            >
-              Remove Line
-            </Button>
-          </div>
-        )}
-      </div>
+      <DetailHeader
+        title={line.quantLotNumber}
+        badges={
+          <Badge variant={line.isBalanced ? 'success' : 'warning'}>
+            {line.lineItemsCount}/{line.uomQty} · {line.isBalanced ? 'Balanced' : 'Not Balanced'}
+          </Badge>
+        }
+        description={line.quantLocationPath || undefined}
+        actions={
+          isDraft ? (
+            <>
+              <ScanBarcodeButton scanner={scanner} />
+              <Button
+                size="sm"
+                variant="outline"
+                startAdornment={<Pencil className="size-3.5" />}
+                onClick={editLineDialog.open}
+              >
+                Edit Line
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                startAdornment={<Trash2 className="size-3.5" />}
+                onClick={handleRemoveLine}
+                isLoading={removeLineMutation.isPending}
+              >
+                Remove Line
+              </Button>
+            </>
+          ) : undefined
+        }
+      />
 
       <DetailSection wrap>
         <DetailField

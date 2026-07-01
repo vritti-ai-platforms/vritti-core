@@ -4,7 +4,7 @@ export class CreateUomDimensionDto {
   @IsString()
   @MinLength(1)
   @MaxLength(50)
-  @Matches(/^[A-Z][A-Z0-9_]*$/, { message: 'code must be uppercase letters, digits, underscores' })
+  @Matches(/^[a-z][a-z0-9-]*$/, { message: 'code must be a single lowercase word (hyphens allowed)' })
   code: string;
 
   @IsString()

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConflictException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
+import { NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import type { AssignmentType, UserRoleAssignment } from '@/db/schema';
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { RoleRepository } from '@domain/organization/repositories/role.repository';
@@ -16,7 +16,7 @@ export class UserRoleService {
     private readonly businessUnitRepository: BusinessUnitRepository,
   ) {}
 
-  // Assigns a role to a user within a business unit
+  // Assigns (or replaces) a user's single role within a business unit
   async assignRole(userId: string, dto: AssignRoleWebhookDto): Promise<SuccessResponseDto> {
     // Validate role exists
     const role = await this.roleRepository.findById(dto.roleId);
@@ -26,17 +26,15 @@ export class UserRoleService {
     const bu = await this.businessUnitRepository.findById(dto.businessUnitId);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    // Check for duplicate assignment
-    const existing = await this.userRoleAssignmentRepository.findByUserAndRoleAndBU(
-      userId,
-      dto.roleId,
-      dto.businessUnitId,
-    );
+    // One role per user per BU — replace the existing assignment's role if there is one
+    const existing = await this.userRoleAssignmentRepository.findAssignmentByUserAndBU(userId, dto.businessUnitId);
     if (existing) {
-      throw new ConflictException({
-        label: 'Duplicate Assignment',
-        detail: `This user already has the role "${role.name}" assigned in business unit "${bu.name}".`,
-      });
+      if (existing.roleId === dto.roleId) {
+        return { success: true, message: 'Role already assigned.' };
+      }
+      await this.userRoleAssignmentRepository.update(existing.id, { roleId: dto.roleId, updatedAt: new Date() });
+      this.logger.log(`Updated role to "${role.name}" for user ${userId} in BU "${bu.name}"`);
+      return { success: true, message: 'Role updated successfully.' };
     }
 
     await this.userRoleAssignmentRepository.create({

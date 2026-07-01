@@ -12,8 +12,8 @@ export const roles = coreSchema.table(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
-    sourceRoleId: uuid('source_role_id'),
-    isLocked: boolean('is_locked').notNull().default(false),
+    // Non-null when provisioned from a role template — its presence marks the role as a read-only default role
+    code: varchar('code', { length: 255 }),
     // featureCode → { app: appCode, granted permission codes per platform } — the role's grants, app stamped
     features: jsonb('features')
       .$type<Record<string, { app?: string; web?: string[]; mobile?: string[] }>>()
@@ -23,7 +23,10 @@ export const roles = coreSchema.table(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [uniqueIndex('roles_org_name_unique').on(table.organizationId, table.name)],
+  (table) => [
+    uniqueIndex('roles_org_name_unique').on(table.organizationId, table.name),
+    uniqueIndex('roles_org_code_unique').on(table.organizationId, table.code),
+  ],
 );
 
 export type Role = typeof roles.$inferSelect;

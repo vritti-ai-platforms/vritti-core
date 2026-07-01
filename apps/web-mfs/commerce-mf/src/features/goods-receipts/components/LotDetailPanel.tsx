@@ -1,5 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -71,30 +71,32 @@ const LotDetailContent = ({
   return (
     <div className="space-y-4">
       <div className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <h3 className="text-xl font-semibold">{lot.lotNumber}</h3>
-          {isDraft && (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                startAdornment={<Pencil className="size-3.5" />}
-                onClick={editLotDialog.open}
-              >
-                Edit Lot
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                startAdornment={<Trash2 className="size-3.5" />}
-                onClick={handleRemoveLot}
-                isLoading={removeLotMutation.isPending}
-              >
-                Remove Lot
-              </Button>
-            </div>
-          )}
-        </div>
+        <DetailHeader
+          title={lot.lotNumber}
+          actions={
+            isDraft ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  startAdornment={<Pencil className="size-3.5" />}
+                  onClick={editLotDialog.open}
+                >
+                  Edit Lot
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  startAdornment={<Trash2 className="size-3.5" />}
+                  onClick={handleRemoveLot}
+                  isLoading={removeLotMutation.isPending}
+                >
+                  Remove Lot
+                </Button>
+              </>
+            ) : undefined
+          }
+        />
         <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
           <DetailSection wrap>
             <DetailField className="px-4 py-2" label="Mfg Date" type="date" value={lot.manufacturingDate} />

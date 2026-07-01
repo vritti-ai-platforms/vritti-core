@@ -17,28 +17,39 @@ export class RoleService {
     private readonly businessUnitRepository: BusinessUnitRepository,
   ) {}
 
-  // Provisions role templates for an organization — adds genuinely-new templates, keeps customized ones
+  // Provisions role templates for an organization — creates new templates, updates existing ones by code
   async provision(orgId: string, roles: RoleItemDto[]): Promise<SuccessResponseDto> {
-    const existingSourceIds = new Set(await this.roleRepository.findSourceRoleIdsByOrg(orgId));
-    const newRoles = roles.filter((role) => !role.sourceRoleId || !existingSourceIds.has(role.sourceRoleId));
+    const existing = await this.roleRepository.findByOrg(orgId);
+    const byCode = new Map(existing.filter((r) => r.code).map((r) => [r.code, r]));
+    let created = 0;
+    let updated = 0;
 
     await this.database.runInTransaction(async () => {
-      for (const role of newRoles) {
-        await this.roleRepository.create({
-          organizationId: orgId,
-          name: role.name,
-          description: role.description,
-          sourceRoleId: role.sourceRoleId,
-          isLocked: role.isLocked,
-          features: role.features,
-        });
-        this.logger.log(`Provisioned role "${role.name}" for org ${orgId}`);
+      for (const role of roles) {
+        const match = role.code ? byCode.get(role.code) : undefined;
+        if (match) {
+          await this.roleRepository.update(match.id, {
+            name: role.name,
+            description: role.description,
+            features: role.features,
+            updatedAt: new Date(),
+          });
+          updated++;
+        } else {
+          await this.roleRepository.create({
+            organizationId: orgId,
+            name: role.name,
+            description: role.description,
+            code: role.code,
+            features: role.features,
+          });
+          created++;
+        }
       }
     });
 
-    const skipped = roles.length - newRoles.length;
-    this.logger.log(`Provisioned ${newRoles.length} new role(s) for org ${orgId} (${skipped} already present)`);
-    return { success: true, message: `${newRoles.length} role(s) provisioned successfully.` };
+    this.logger.log(`Provisioned roles for org ${orgId}: ${created} created, ${updated} updated`);
+    return { success: true, message: `${created} role(s) created, ${updated} updated.` };
   }
 
   // Lists all roles for an organization
@@ -60,8 +71,7 @@ export class RoleService {
       organizationId: orgId,
       name: dto.name,
       description: dto.description,
-      sourceRoleId: dto.sourceRoleId,
-      isLocked: dto.isLocked ?? false,
+      code: dto.code,
       features: dto.features,
     });
 

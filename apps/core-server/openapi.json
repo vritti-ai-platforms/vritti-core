@@ -14385,13 +14385,9 @@
             "type": "string",
             "example": "Can manage all inventory operations"
           },
-          "sourceRoleId": {
+          "code": {
             "type": "string",
-            "example": "uuid-here"
-          },
-          "isLocked": {
-            "type": "boolean",
-            "example": false
+            "example": "cashier"
           },
           "features": {
             "type": "object",
@@ -14405,7 +14401,6 @@
         },
         "required": [
           "name",
-          "isLocked",
           "features"
         ]
       },
@@ -14445,13 +14440,9 @@
             "type": "string",
             "example": "Can manage all inventory operations"
           },
-          "sourceRoleId": {
+          "code": {
             "type": "string",
-            "example": "uuid-here"
-          },
-          "isLocked": {
-            "type": "boolean",
-            "example": false
+            "example": "cashier"
           },
           "features": {
             "type": "object",
@@ -19052,8 +19043,8 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Unique code (uppercase, A-Z 0-9 _)",
-            "example": "MASS"
+            "description": "Unique code — a single lowercase word (hyphens allowed)",
+            "example": "mass"
           },
           "name": {
             "type": "string",
@@ -19075,8 +19066,8 @@
         "properties": {
           "code": {
             "type": "string",
-            "description": "Unique code (uppercase, A-Z 0-9 _)",
-            "example": "MASS"
+            "description": "Unique code — a single lowercase word (hyphens allowed)",
+            "example": "mass"
           },
           "name": {
             "type": "string",

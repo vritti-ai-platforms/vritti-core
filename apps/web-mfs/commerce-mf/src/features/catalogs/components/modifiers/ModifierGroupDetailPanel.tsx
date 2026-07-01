@@ -1,9 +1,9 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
+import { DetailHeader } from '@vritti/quantum-ui/DetailField';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
-import { Typography } from '@vritti/quantum-ui/Typography';
 import { Layers, Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useModifierGroup } from '@/hooks/modifiers';
@@ -102,36 +102,36 @@ const ModifierGroupDetailContent: React.FC<ModifierGroupDetailContentProps> = ({
   onDeleteOption,
 }) => (
   <div className="space-y-6">
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3 flex-wrap">
-          <Typography variant="h3">{group.name}</Typography>
+    <DetailHeader
+      title={group.name}
+      badges={
+        <>
           {group.minSelections > 0 && <Badge variant="secondary">Required</Badge>}
           <Badge variant="outline">{group.selectionType === 'SINGLE' ? 'Single choice' : 'Multi choice'}</Badge>
-        </div>
-        <Typography variant="body2" intent="muted">
-          Min selections: {group.minSelections} · Max selections: {group.maxSelections ?? 'Unlimited'}
-        </Typography>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEditGroup(group)}
-          startAdornment={<Pencil className="size-3.5" />}
-        >
-          Edit Group
-        </Button>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => onDeleteGroup(group)}
-          startAdornment={<Trash2 className="size-3.5" />}
-        >
-          Delete
-        </Button>
-      </div>
-    </div>
+        </>
+      }
+      description={`Min selections: ${group.minSelections} · Max selections: ${group.maxSelections ?? 'Unlimited'}`}
+      actions={
+        <>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEditGroup(group)}
+            startAdornment={<Pencil className="size-3.5" />}
+          >
+            Edit Group
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => onDeleteGroup(group)}
+            startAdornment={<Trash2 className="size-3.5" />}
+          >
+            Delete
+          </Button>
+        </>
+      }
+    />
 
     <ModifierOptionsTable
       options={group.options}

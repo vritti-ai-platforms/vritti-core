@@ -21,13 +21,4 @@ export class RoleRepository extends PrimaryBaseRepository<typeof roles> {
       where: { organizationId: orgId, name },
     });
   }
-
-  // Returns the set of source role template IDs already provisioned for an organization
-  async findSourceRoleIdsByOrg(orgId: string): Promise<string[]> {
-    const rows = await this.model.findMany({
-      where: { organizationId: orgId },
-      columns: { sourceRoleId: true },
-    });
-    return rows.map((r) => r.sourceRoleId).filter((id): id is string => Boolean(id));
-  }
 }

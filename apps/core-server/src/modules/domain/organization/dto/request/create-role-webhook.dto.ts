@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { Allow, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Allow, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateRoleWebhookDto {
   @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
@@ -17,15 +17,10 @@ export class CreateRoleWebhookDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-here' })
+  @ApiPropertyOptional({ example: 'cashier' })
   @IsOptional()
-  @IsUUID()
-  sourceRoleId?: string;
-
-  @ApiPropertyOptional({ example: false })
-  @IsOptional()
-  @IsBoolean()
-  isLocked?: boolean;
+  @IsString()
+  code?: string;
 
 
   @ApiProperty({ example: { products: { web: ['VIEW','CREATE'], mobile: ['VIEW'] } } })

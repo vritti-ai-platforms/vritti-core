@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."roles" DROP COLUMN "is_locked";

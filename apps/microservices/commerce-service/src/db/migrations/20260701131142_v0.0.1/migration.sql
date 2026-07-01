@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."uom_dimensions" ADD CONSTRAINT "uom_dimensions_code_lowercase_chk" CHECK ("code" ~ '^[a-z][a-z0-9-]*$');

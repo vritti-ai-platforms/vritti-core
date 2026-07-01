@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export class LockedPermissionDto {
+  @ApiProperty({ example: 'delete' })
+  code: string;
+
+  @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'BU'], nullable: true })
+  reason: 'PLAN' | 'BU' | null;
+
+  @ApiProperty({ example: ['pro'], description: 'Plan codes that would unlock this permission' })
+  unlockPlans: string[];
+}
+
 export class PermissionRouteDto {
   @ApiProperty()
   remoteEntry: string;
@@ -29,6 +40,18 @@ export class PermissionFeatureDto {
 
   @ApiProperty({ example: ['VIEW', 'CREATE', 'EDIT'] })
   permissions: string[];
+
+  @ApiProperty({ example: false, description: 'Whole feature locked by plan/BU' })
+  locked: boolean;
+
+  @ApiProperty({ example: 'PLAN', enum: ['PLAN', 'BU'], nullable: true })
+  lockReason: 'PLAN' | 'BU' | null;
+
+  @ApiProperty({ example: ['pro'], description: 'Plan codes that would unlock this feature' })
+  unlockPlans: string[];
+
+  @ApiProperty({ type: [LockedPermissionDto] })
+  lockedPermissions: LockedPermissionDto[];
 
   @ApiProperty({ type: PermissionRouteDto })
   route: PermissionRouteDto;

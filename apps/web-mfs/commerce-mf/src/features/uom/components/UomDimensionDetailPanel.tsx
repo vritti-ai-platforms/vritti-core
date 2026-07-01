@@ -1,6 +1,6 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
@@ -65,35 +65,37 @@ const UomDimensionDetailContent: React.FC<UomDimensionDetailContentProps> = ({ d
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <Typography variant="h3">{dimension.name}</Typography>
+      <DetailHeader
+        title={dimension.name}
+        badges={
           <Badge variant="outline" className="font-mono">
             {dimension.code}
           </Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={editDialog.open}
-            disabled={!dimension.canEdit}
-            startAdornment={<Pencil className="size-3.5" />}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDelete}
-            disabled={!dimension.canDelete || deleteMutation.isPending}
-            isLoading={deleteMutation.isPending}
-            startAdornment={<Trash2 className="size-3.5" />}
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
+        }
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={editDialog.open}
+              disabled={!dimension.canEdit}
+              startAdornment={<Pencil className="size-3.5" />}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={!dimension.canDelete || deleteMutation.isPending}
+              isLoading={deleteMutation.isPending}
+              startAdornment={<Trash2 className="size-3.5" />}
+            >
+              Delete
+            </Button>
+          </>
+        }
+      />
 
       <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
         <DetailSection wrap>

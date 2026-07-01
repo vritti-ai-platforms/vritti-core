@@ -21,7 +21,7 @@ const _createUomDimensionSchema = z.object({
     .string()
     .min(1, 'Code is required')
     .max(50)
-    .regex(/^[A-Z][A-Z0-9_]*$/, 'Use uppercase letters, digits, underscores'),
+    .regex(/^[a-z][a-z0-9-]*$/, 'Use lowercase letters, digits, hyphens'),
   name: z.string().min(1, 'Name is required').max(100),
   description: z.string().optional(),
 });

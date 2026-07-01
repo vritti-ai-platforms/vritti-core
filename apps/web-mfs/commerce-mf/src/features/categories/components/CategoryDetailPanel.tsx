@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
@@ -130,38 +130,42 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <Typography variant="h3">{category.name}</Typography>
-          <Badge
-            variant={category.isActive ? 'secondary' : 'outline'}
-            className={category.isActive ? 'bg-success/15 text-success' : ''}
-          >
-            {category.isActive ? 'Active' : 'Inactive'}
-          </Badge>
-          <Badge variant="outline">{CategoryRoleLabels[category.categoryRole]}</Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={editDialog.open}
-            startAdornment={<Pencil className="size-3.5" />}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDelete}
-            disabled={!category.canDelete || deleteMutation.isPending}
-            isLoading={deleteMutation.isPending}
-            startAdornment={<Trash2 className="size-3.5" />}
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
+      <DetailHeader
+        title={category.name}
+        badges={
+          <>
+            <Badge
+              variant={category.isActive ? 'secondary' : 'outline'}
+              className={category.isActive ? 'bg-success/15 text-success' : ''}
+            >
+              {category.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+            <Badge variant="outline">{CategoryRoleLabels[category.categoryRole]}</Badge>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={editDialog.open}
+              startAdornment={<Pencil className="size-3.5" />}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={!category.canDelete || deleteMutation.isPending}
+              isLoading={deleteMutation.isPending}
+              startAdornment={<Trash2 className="size-3.5" />}
+            >
+              Delete
+            </Button>
+          </>
+        }
+      />
 
       <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
         <DetailSection wrap>

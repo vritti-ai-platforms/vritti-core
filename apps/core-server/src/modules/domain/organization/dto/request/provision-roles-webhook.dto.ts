@@ -22,14 +22,10 @@ export class RoleItemDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-here' })
+  @ApiPropertyOptional({ example: 'cashier' })
   @IsOptional()
-  @IsUUID()
-  sourceRoleId?: string;
-
-  @ApiProperty({ example: false })
-  @IsBoolean()
-  isLocked: boolean;
+  @IsString()
+  code?: string;
 
 
   @ApiProperty({ example: { products: ['VIEW', 'CREATE'] } })

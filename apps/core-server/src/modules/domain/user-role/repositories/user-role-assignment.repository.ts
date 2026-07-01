@@ -84,14 +84,10 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
     return rows as unknown as { features: Record<string, string[]> }[];
   }
 
-  // Finds a specific assignment for duplicate check
-  async findByUserAndRoleAndBU(
-    userId: string,
-    roleId: string,
-    buId: string,
-  ): Promise<UserRoleAssignment | undefined> {
+  // Finds the user's single assignment within a business unit (one role per user per BU)
+  async findAssignmentByUserAndBU(userId: string, buId: string): Promise<UserRoleAssignment | undefined> {
     return this.model.findFirst({
-      where: { userId, roleId, businessUnitId: buId },
+      where: { userId, businessUnitId: buId },
     });
   }
 }
