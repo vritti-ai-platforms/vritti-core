@@ -47,9 +47,6 @@ export class BusinessUnitDto {
   @ApiProperty({ example: '2024-01-15T10:30:00Z' })
   createdAt: string;
 
-  @ApiProperty({ example: ['inventory', 'pos'], type: [String] })
-  appCodes: string[];
-
   @ApiProperty({ example: '2024-01-15T10:30:00Z' })
   updatedAt: string;
 
@@ -68,7 +65,6 @@ export class BusinessUnitDto {
     dto.sortOrder = bu.sortOrder;
     dto.timezone = bu.timezone;
     dto.currencyCode = bu.currencyCode;
-    dto.appCodes = bu.appCodes ?? [];
     dto.metadata = bu.metadata ?? null;
     dto.createdAt = bu.createdAt.toISOString();
     dto.updatedAt = bu.updatedAt.toISOString();

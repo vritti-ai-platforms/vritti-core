@@ -2202,64 +2202,6 @@
         ]
       }
     },
-    "/business-units/webhook/{id}/snapshot": {
-      "put": {
-        "description": "Replaces the business unit feature catalog (snapshot). Assigned apps are derived from it. Requires X-Webhook-Secret header.",
-        "operationId": "BusinessUnitController_replaceSnapshot",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Business unit ID",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Webhook-Secret",
-            "in": "header",
-            "description": "Webhook authentication secret",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReplaceBuSnapshotWebhookDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Business unit snapshot updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessResponseDto"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or missing webhook secret."
-          },
-          "404": {
-            "description": "Business unit not found."
-          }
-        },
-        "summary": "Replace business unit snapshot",
-        "tags": [
-          "Business Units"
-        ]
-      }
-    },
     "/business-units/webhook/{id}/unlocks": {
       "put": {
         "description": "Replaces the business unit feature unlock overlay (restriction within the plan ceiling, clamped in cloud). Null inherits the full plan. Requires X-Webhook-Secret header.",
@@ -14852,21 +14794,6 @@
           "currencyCode",
           "createdAt",
           "updatedAt"
-        ]
-      },
-      "ReplaceBuSnapshotWebhookDto": {
-        "type": "object",
-        "properties": {
-          "featureCatalog": {
-            "type": "array",
-            "description": "Resolved feature catalog (snapshot) for this business unit",
-            "items": {
-              "type": "object"
-            }
-          }
-        },
-        "required": [
-          "featureCatalog"
         ]
       },
       "SetBuUnlocksWebhookDto": {

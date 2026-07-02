@@ -5,7 +5,6 @@ import type { SuccessResponseDto } from '@vritti/api-sdk';
 import type { UserRoleAssignment } from '@/db/schema';
 import type { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import type { ReplaceBuSnapshotWebhookDto } from '../dto/request/replace-bu-snapshot-webhook.dto';
 import type { SetBuUnlocksWebhookDto } from '../dto/request/set-bu-unlocks-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 
@@ -36,11 +35,6 @@ export class BusinessUnitApiService {
     buId: string,
   ): Promise<(UserRoleAssignment & { userName: string; userEmail: string; roleName: string })[]> {
     return this.userRoleService.findByBusinessUnit(buId);
-  }
-
-  // Replaces the business unit's snapshot (feature catalog); apps are derived from it
-  async replaceSnapshot(id: string, dto: ReplaceBuSnapshotWebhookDto): Promise<SuccessResponseDto> {
-    return this.businessUnitService.replaceSnapshot(id, dto);
   }
 
   // Replaces the business unit's feature unlock overlay (null = inherit the full plan)

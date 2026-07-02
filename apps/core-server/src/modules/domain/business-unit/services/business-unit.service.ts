@@ -7,7 +7,6 @@ import type { BuMetadata, BuType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import type { ReplaceBuSnapshotWebhookDto } from '../dto/request/replace-bu-snapshot-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { BusinessUnitRepository } from '../repositories/business-unit.repository';
 
@@ -106,26 +105,6 @@ export class BusinessUnitService {
 
     this.logger.log(`Updated business unit ${id}`);
     return { success: true, message: 'Business unit updated successfully.' };
-  }
-
-  // Replaces the business unit's snapshot (feature catalog). Apps are DERIVED from it — an app is assigned
-  // when it owns at least one usable (non-locked) feature.
-  async replaceSnapshot(id: string, dto: ReplaceBuSnapshotWebhookDto): Promise<SuccessResponseDto> {
-    const bu = await this.businessUnitRepository.findById(id);
-    if (!bu) throw new NotFoundException('Business unit not found.');
-
-    const featureCatalog = dto.featureCatalog ?? [];
-    const appCodes = [...new Set(featureCatalog.filter((f) => !f.locked).map((f) => f.appCode))];
-
-    await this.businessUnitRepository.update(id, { appCodes, featureCatalog, updatedAt: new Date() });
-
-    this.buContextCache.invalidate(id);
-    // Push the refreshed feature set to live SSE connections of users in this BU
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
-    this.logger.log(
-      `Replaced snapshot for business unit ${id}: ${featureCatalog.length} feature(s), [${appCodes.join(', ')}]`,
-    );
-    return { success: true, message: 'Business unit snapshot updated successfully.' };
   }
 
   // Replaces the business unit's feature unlock overlay (null = inherit the full plan)
