@@ -24,11 +24,13 @@ import {
   ApiGetBusinessUnitWebhook,
   ApiListBusinessUnitsWebhook,
   ApiReplaceBuSnapshotWebhook,
+  ApiSetBuUnlocksWebhook,
   ApiUpdateBusinessUnitWebhook,
 } from '../docs/business-unit.docs';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
 import { ReplaceBuSnapshotWebhookDto } from '../dto/request/replace-bu-snapshot-webhook.dto';
+import { SetBuUnlocksWebhookDto } from '../dto/request/set-bu-unlocks-webhook.dto';
 import { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { BusinessUnitApiService } from '../services/business-unit-api.service';
 
@@ -84,6 +86,14 @@ export class BusinessUnitController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PUT /api/business-units/webhook/${id}/snapshot`);
     return this.businessUnitApiService.replaceSnapshot(id, dto);
+  }
+
+  // Replaces the business unit's feature unlock overlay (null = inherit the full plan)
+  @Put(':id/unlocks')
+  @ApiSetBuUnlocksWebhook()
+  async setUnlocks(@Param('id') id: string, @Body() dto: SetBuUnlocksWebhookDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /api/business-units/webhook/${id}/unlocks`);
+    return this.businessUnitApiService.setFeatureUnlocks(id, dto);
   }
 
   // Updates a business unit

@@ -1,4 +1,4 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { LocationItemRow } from '../../repositories/inventory-item-quants.repository';
 
 export class LocationItemDto {

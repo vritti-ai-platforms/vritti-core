@@ -1,40 +1,21 @@
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
+import { CatalogService } from '@domain/catalog/services/catalog.service';
+import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
 import { UserRoleAssignmentRepository } from '@domain/user-role/repositories/user-role-assignment.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
-import type { LockReason } from '@/db/schema';
+import {
+  type ClientPlatform,
+  type LockedPermission,
+  type PermissionFeature,
+  pickRouteForPlatform,
+  type RoleFeatureGrant,
+  resolveUserFeatures,
+} from '@vritti/api-sdk/catalog-resolver';
+import type { BusinessUnit } from '@/db/schema';
 
-export type ClientPlatform = 'web' | 'ios' | 'android';
-
-// A granted permission that is locked, with why and which plans would unlock it (for upsell)
-export interface LockedPermission {
-  code: string;
-  reason: LockReason | null;
-  unlockPlans: string[];
-}
-
-export interface PermissionFeature {
-  code: string;
-  name: string;
-  lucideIcon: string | null;
-  sfSymbol: string;
-  materialSymbol: string;
-  permissions: string[];
-  // Lock overlay (for upsell): feature-level locked + reason + unlock plans, and the granted-but-locked permissions
-  locked: boolean;
-  lockReason: LockReason | null;
-  unlockPlans: string[];
-  lockedPermissions: LockedPermission[];
-  route: {
-    remoteEntry: string;
-    exposedModule: string;
-    routePrefix: string;
-  };
-  appCode: string;
-  appName: string;
-  appIcon: string | null;
-  appSortOrder: number;
-}
+// Role grants joined per assignment at a BU — as returned by UserRoleAssignmentRepository.findByUserAndBU
+type AssignmentGrants = { features: Record<string, string[]> };
 
 export interface AssignedBU {
   id: string;
@@ -52,6 +33,8 @@ export class UserPermissionsService {
   constructor(
     private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
+    private readonly organizationRepository: OrganizationRepository,
+    private readonly catalogService: CatalogService,
   ) {}
 
   // Returns distinct business units where the user has role assignments
@@ -81,11 +64,9 @@ export class UserPermissionsService {
   }
 
   // Resolves combined features + MF config for a user at a specific BU.
-  // platform picks which microfrontend block flows into PermissionFeature.route:
-  //   'web'     → WEB block (remoteEntry + exposedModule + routePrefix)
-  //   'ios'     → MOBILE block, remoteEntry = remoteEntryIos
-  //   'android' → MOBILE block, remoteEntry = remoteEntryAndroid
-  // Features missing the requested platform's block are filtered out.
+  // Primary path: active signed catalog snapshot ∧ org entitlement ∧ BU unlocks ∧ role grants
+  // via api-sdk resolveUserFeatures. Falls back to the legacy per-BU feature_catalog when no
+  // active snapshot exists or the org has no entitlement yet (safe cutover — removed in Stage 4).
   async getPermissions(
     userId: string,
     buId: string,
@@ -95,12 +76,59 @@ export class UserPermissionsService {
     const bu = await this.businessUnitRepository.findById(buId);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
+    // Get all role assignments for this user at this BU
+    const assignments = await this.userRoleAssignmentRepository.findByUserAndBU(userId, buId);
+
+    const snapshot = await this.catalogService.getActiveSnapshot();
+    const org = await this.organizationRepository.findById(bu.organizationId);
+
+    if (snapshot && org?.businessCode) {
+      const features = resolveUserFeatures({
+        snapshot,
+        businessCode: org.businessCode,
+        planCode: org.planCode ?? undefined,
+        buUnlocks: bu.featureUnlocks ?? undefined,
+        roleFeatures: this.mergeRoleGrants(assignments),
+        platform,
+      });
+
+      this.logger.log(`Resolved ${features.length} features for user ${userId} at BU ${buId} (platform=${platform})`);
+      return { features };
+    }
+
+    return this.resolveFromLegacyCatalog(userId, bu, assignments, platform);
+  }
+
+  // Merges the role grants of all assignments additively per feature, per platform bucket.
+  // Legacy flat string[] grants apply to both buckets; undefined bucket = not a member there.
+  private mergeRoleGrants(assignments: AssignmentGrants[]): Record<string, RoleFeatureGrant> {
+    const merged: Record<string, { web?: string[]; mobile?: string[] }> = {};
+    for (const assignment of assignments) {
+      if (!assignment.features) continue;
+
+      const features = assignment.features as Record<string, { web?: string[]; mobile?: string[] } | string[]>;
+      for (const [code, grant] of Object.entries(features)) {
+        const web = Array.isArray(grant) ? grant : grant?.web;
+        const mobile = Array.isArray(grant) ? grant : grant?.mobile;
+        merged[code] ??= {};
+        const entry = merged[code];
+        if (web !== undefined) entry.web = [...new Set([...(entry.web ?? []), ...web])];
+        if (mobile !== undefined) entry.mobile = [...new Set([...(entry.mobile ?? []), ...mobile])];
+      }
+    }
+    return merged;
+  }
+
+  // LEGACY fallback: resolves against the per-BU feature_catalog pushed by the old sync (Stage 4 removes this)
+  private resolveFromLegacyCatalog(
+    userId: string,
+    bu: BusinessUnit,
+    assignments: AssignmentGrants[],
+    platform: ClientPlatform,
+  ): { features: PermissionFeature[] } {
     // Catalog is pushed from cloud and stored on the BU row — no runtime cloud dependency
     const catalog = bu.featureCatalog ?? [];
     const catalogMap = new Map(catalog.map((f) => [f.code, f]));
-
-    // Get all role assignments for this user at this BU
-    const assignments = await this.userRoleAssignmentRepository.findByUserAndBU(userId, buId);
 
     // Role grants are stored per platform; resolve only the requesting surface's bucket.
     // web → 'web'; ios/android → 'mobile'. (x-platform still drives the per-OS route below.)
@@ -159,42 +187,9 @@ export class UserPermissionsService {
       });
     }
 
-    this.logger.log(`Resolved ${features.length} features for user ${userId} at BU ${buId} (platform=${platform})`);
+    this.logger.log(
+      `Resolved ${features.length} features for user ${userId} at BU ${bu.id} via legacy catalog (platform=${platform})`,
+    );
     return { features };
   }
-}
-
-// Selects the route block from a catalog entry for the requested platform.
-// Returns null when the catalog entry doesn't publish to that platform.
-function pickRouteForPlatform(
-  entry: {
-    web: {
-      remoteEntry: string;
-      exposedModule: string;
-      routePrefix: string;
-    } | null;
-    mobile: {
-      remoteEntryAndroid: string;
-      remoteEntryIos: string;
-      exposedModule: string;
-      routePrefix: string;
-    } | null;
-  },
-  platform: ClientPlatform,
-): { remoteEntry: string; exposedModule: string; routePrefix: string } | null {
-  if (platform === 'ios' || platform === 'android') {
-    if (!entry.mobile) return null;
-    return {
-      remoteEntry: platform === 'ios' ? entry.mobile.remoteEntryIos : entry.mobile.remoteEntryAndroid,
-      exposedModule: entry.mobile.exposedModule,
-      routePrefix: entry.mobile.routePrefix,
-    };
-  }
-  // Web
-  if (!entry.web) return null;
-  return {
-    remoteEntry: entry.web.remoteEntry,
-    exposedModule: entry.web.exposedModule,
-    routePrefix: entry.web.routePrefix,
-  };
 }

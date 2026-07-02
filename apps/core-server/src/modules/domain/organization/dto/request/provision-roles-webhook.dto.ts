@@ -1,15 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import {
-  Allow,
-  IsArray,
-  IsBoolean,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-  ValidateNested,
-} from 'class-validator';
+import { Allow, IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 
 export class RoleItemDto {
   @ApiProperty({ example: 'Inventory Manager' })
@@ -26,7 +17,6 @@ export class RoleItemDto {
   @IsOptional()
   @IsString()
   code?: string;
-
 
   @ApiProperty({ example: { products: ['VIEW', 'CREATE'] } })
   @Allow()

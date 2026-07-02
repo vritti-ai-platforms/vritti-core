@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -108,7 +108,10 @@ export class CreateInventoryItemDto {
   @IsCurrency()
   defaultMrp?: CurrencyAmountDto | null;
 
-  @ApiPropertyOptional({ type: MrpUomConversionDto, description: 'Bridge when the MRP unit is not derivable from primary' })
+  @ApiPropertyOptional({
+    type: MrpUomConversionDto,
+    description: 'Bridge when the MRP unit is not derivable from primary',
+  })
   @IsOptional()
   @ValidateNested()
   @Type(() => MrpUomConversionDto)

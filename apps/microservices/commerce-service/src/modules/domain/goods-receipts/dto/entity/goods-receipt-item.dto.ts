@@ -1,5 +1,5 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { InventoryTracking } from '@/db/schema';
 import type { GoodsReceiptItemWithRefs } from '../../repositories/goods-receipt-items.repository';
 

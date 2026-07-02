@@ -22,8 +22,7 @@ export class CreateRoleWebhookDto {
   @IsString()
   code?: string;
 
-
-  @ApiProperty({ example: { products: { web: ['VIEW','CREATE'], mobile: ['VIEW'] } } })
+  @ApiProperty({ example: { products: { web: ['VIEW', 'CREATE'], mobile: ['VIEW'] } } })
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
   features: Record<string, { app?: string; web?: string[]; mobile?: string[] }>;

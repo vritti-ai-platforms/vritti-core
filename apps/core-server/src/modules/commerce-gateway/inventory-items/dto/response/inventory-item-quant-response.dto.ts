@@ -1,5 +1,4 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CurrencyAmountDto } from '@vritti/api-sdk';
 
 // Per-quant row for the inventory item Quants tab — one row per (item, location, lot).
 export class InventoryItemQuantResponseDto {

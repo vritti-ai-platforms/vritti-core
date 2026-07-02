@@ -1,4 +1,4 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { InventoryItem, InventoryItemType, InventoryPickStrategy, InventoryTracking } from '@/db/schema';
 
 export class InventoryItemDto {
@@ -49,8 +49,7 @@ export class InventoryItemDto {
     dto.hsnCode = entity.hsnCode ?? null;
     dto.hasMrp = entity.hasMrp;
     dto.mrpUomId = entity.mrpUomId ?? null;
-    dto.defaultMrp =
-      entity.hasMrp && buCurrencyCode ? CurrencyAmountDto.from(entity.defaultMrp, buCurrencyCode) : null;
+    dto.defaultMrp = entity.hasMrp && buCurrencyCode ? CurrencyAmountDto.from(entity.defaultMrp, buCurrencyCode) : null;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

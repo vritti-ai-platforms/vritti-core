@@ -7,7 +7,9 @@ export const tableViews = coreSchema.table(
   'table_views',
   {
     ...dataTableViewsColumns(),
-    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
   },
   dataTableViewsIndexes,
 );

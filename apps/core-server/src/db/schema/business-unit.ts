@@ -1,5 +1,16 @@
+import type { BuFeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, customType, index, integer, jsonb, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  boolean,
+  customType,
+  index,
+  integer,
+  jsonb,
+  pgPolicy,
+  timestamp,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { buTypeEnum, pickStrategyEnum } from './enums';
 import { type FeatureCatalogEntry, organizations } from './organizations';
@@ -39,6 +50,8 @@ export const businessUnits = coreSchema.table(
     sortOrder: integer('sort_order').notNull().default(0),
     appCodes: jsonb('app_codes').$type<string[]>().notNull().default([]),
     featureCatalog: jsonb('feature_catalog').$type<FeatureCatalogEntry[]>().notNull().default([]),
+    // Per-feature unlock overlay (subset of the plan); null = inherit the full plan
+    featureUnlocks: jsonb('feature_unlocks').$type<BuFeatureUnlocks>(),
     timezone: varchar('timezone', { length: 50 }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     pickStrategy: pickStrategyEnum('pick_strategy').notNull().default('FEFO'),

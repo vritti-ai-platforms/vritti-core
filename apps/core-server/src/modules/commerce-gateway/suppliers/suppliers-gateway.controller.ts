@@ -2,13 +2,13 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Pat
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
   type CreateResponseDto,
-  type CurrencyAmountDto,
   RequireSession,
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   UserId,
 } from '@vritti/api-sdk';
+import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { SessionTypeValues } from '@/db/schema';
 import { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
 import { BulkSetSupplierItemPreferredDto } from './dto/request/bulk-set-supplier-item-preferred.dto';

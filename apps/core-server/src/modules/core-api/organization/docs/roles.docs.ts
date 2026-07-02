@@ -83,8 +83,7 @@ export function ApiDeleteRoleWebhook() {
   return applyDecorators(
     ApiOperation({
       summary: 'Delete a role',
-      description:
-        'Deletes a role. Cascade delete removes associated user_role_assignments automatically.',
+      description: 'Deletes a role. Cascade delete removes associated user_role_assignments automatically.',
     }),
     ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
     ApiParam({ name: 'id', description: 'Role ID' }),

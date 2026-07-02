@@ -1582,6 +1582,67 @@
         ]
       }
     },
+    "/organizations/webhook/{orgId}/entitlement": {
+      "patch": {
+        "description": "Receives the signed plan entitlement (planCode + businessCode) from cloud-server, verifies its Ed25519 signature and org/deployment binding, and stores it. Older issuedAt values are ignored (replay guard). Requires X-Webhook-Secret header.",
+        "operationId": "OrganizationController_receiveEntitlement",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "description": "Organization ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiveEntitlementWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entitlement stored successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "403": {
+            "description": "Invalid signature, org mismatch, or deployment binding failure."
+          },
+          "404": {
+            "description": "Organization not found."
+          }
+        },
+        "summary": "Receive organization entitlement",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
     "/organizations/webhook/roles": {
       "post": {
         "description": "Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires X-Webhook-Secret header.",
@@ -2196,6 +2257,113 @@
         "summary": "Replace business unit snapshot",
         "tags": [
           "Business Units"
+        ]
+      }
+    },
+    "/business-units/webhook/{id}/unlocks": {
+      "put": {
+        "description": "Replaces the business unit feature unlock overlay (restriction within the plan ceiling, clamped in cloud). Null inherits the full plan. Requires X-Webhook-Secret header.",
+        "operationId": "BusinessUnitController_setUnlocks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Business unit ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetBuUnlocksWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feature unlocks updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "404": {
+            "description": "Business unit not found."
+          }
+        },
+        "summary": "Replace business unit feature unlocks",
+        "tags": [
+          "Business Units"
+        ]
+      }
+    },
+    "/catalog/webhook": {
+      "put": {
+        "description": "Receives the signed version snapshot (catalog license) from cloud-server, verifies its Ed25519 signature and snapshot hash, stores it append-only, and activates it. Idempotent by snapshot hash. Requires X-Webhook-Secret header.",
+        "operationId": "CatalogController_receive",
+        "parameters": [
+          {
+            "name": "X-Webhook-Secret",
+            "in": "header",
+            "description": "Webhook authentication secret",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiveCatalogWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Catalog verified and activated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing webhook secret."
+          },
+          "403": {
+            "description": "Invalid signature, hash mismatch, or deployment binding failure."
+          }
+        },
+        "summary": "Receive catalog license",
+        "tags": [
+          "Catalog"
         ]
       }
     },
@@ -14374,6 +14542,24 @@
           }
         }
       },
+      "ReceiveEntitlementWebhookDto": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Entitlement payload: deploymentId, orgId, planCode, businessCode, issuedAt",
+            "additionalProperties": true
+          },
+          "signature": {
+            "type": "string",
+            "description": "Base64 Ed25519 signature over the canonical payload JSON"
+          }
+        },
+        "required": [
+          "payload",
+          "signature"
+        ]
+      },
       "RoleItemDto": {
         "type": "object",
         "properties": {
@@ -14659,6 +14845,20 @@
           "featureCatalog"
         ]
       },
+      "SetBuUnlocksWebhookDto": {
+        "type": "object",
+        "properties": {
+          "featureUnlocks": {
+            "type": "object",
+            "description": "Per-feature unlock overlay (featureCode -> { web?, mobile? }); null = inherit the full plan",
+            "additionalProperties": true,
+            "nullable": true
+          }
+        },
+        "required": [
+          "featureUnlocks"
+        ]
+      },
       "UpdateBusinessUnitWebhookDto": {
         "type": "object",
         "properties": {
@@ -14706,6 +14906,24 @@
             "example": true
           }
         }
+      },
+      "ReceiveCatalogWebhookDto": {
+        "type": "object",
+        "properties": {
+          "payload": {
+            "type": "object",
+            "description": "Catalog license payload: deploymentId, version, hash, snapshot, issuedAt",
+            "additionalProperties": true
+          },
+          "signature": {
+            "type": "string",
+            "description": "Base64 Ed25519 signature over the canonical payload JSON"
+          }
+        },
+        "required": [
+          "payload",
+          "signature"
+        ]
       },
       "ProfileDto": {
         "type": "object",

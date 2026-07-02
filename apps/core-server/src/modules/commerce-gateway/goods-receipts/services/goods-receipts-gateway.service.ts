@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, type CurrencyCode, DataTableStateService, majorToMinor, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
+import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type {
   AddGoodsReceiptItemFromPurchaseOrderItemDto,
@@ -12,9 +13,9 @@ import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.
 import type { UpdateGoodsReceiptItemDto } from '../dto/request/update-goods-receipt-item.dto';
 import type { UpdateGoodsReceiptLineDto } from '../dto/request/update-goods-receipt-line.dto';
 import type { UpdateGoodsReceiptLotDto } from '../dto/request/update-goods-receipt-lot.dto';
+import type { GoodsReceiptItemQuantsResponseDto } from '../dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemResponseDto } from '../dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from '../dto/response/goods-receipt-item-table-response.dto';
-import type { GoodsReceiptItemQuantsResponseDto } from '../dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemsCostResponseDto } from '../dto/response/goods-receipt-items-cost-response.dto';
 import type { GoodsReceiptLineItemResponseDto } from '../dto/response/goods-receipt-line-item-response.dto';
 import type { GoodsReceiptLineItemTableResponseDto } from '../dto/response/goods-receipt-line-item-table-response.dto';
@@ -113,7 +114,6 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'goodsReceipts.itemById', { goodsReceiptId, itemId });
   }
 
-
   addItemFromSupplierItem(
     goodsReceiptId: string,
     dto: AddGoodsReceiptItemFromSupplierItemDto,
@@ -146,11 +146,7 @@ export class GoodsReceiptsGatewayService {
     });
   }
 
-  updateItem(
-    goodsReceiptId: string,
-    itemId: string,
-    dto: UpdateGoodsReceiptItemDto,
-  ): Promise<SuccessResponseDto> {
+  updateItem(goodsReceiptId: string, itemId: string, dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
     const { unitPrice, ...rest } = dto;
     const unitPriceMinor = unitPrice
       ? majorToMinor(unitPrice.value, unitPrice.currency as CurrencyCode).toString()
@@ -245,11 +241,7 @@ export class GoodsReceiptsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  findLineById(
-    goodsReceiptId: string,
-    itemId: string,
-    lineId: string,
-  ): Promise<GoodsReceiptLineResponseDto> {
+  findLineById(goodsReceiptId: string, itemId: string, lineId: string): Promise<GoodsReceiptLineResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.lineById', { goodsReceiptId, itemId, lineId });
   }
 

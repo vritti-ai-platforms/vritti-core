@@ -1,3 +1,4 @@
+import { RoleService } from '@domain/organization/services/role.service';
 import {
   Body,
   Controller,
@@ -14,10 +15,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { type SuccessResponseDto, Public, SkipCsrf } from '@vritti/api-sdk';
-import type { Role } from '@/db/schema';
+import type { CreateResponseDto } from '@vritti/api-sdk';
+import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
 import { WebhookSessionInterceptor } from '@/common/interceptors/webhook-session.interceptor';
+import type { Role } from '@/db/schema';
 import {
   ApiCreateRoleWebhook,
   ApiDeleteRoleWebhook,
@@ -29,7 +31,6 @@ import {
 import { CreateRoleWebhookDto } from '../dto/request/create-role-webhook.dto';
 import { ProvisionRolesWebhookDto } from '../dto/request/provision-roles-webhook.dto';
 import { UpdateRoleWebhookDto } from '../dto/request/update-role-webhook.dto';
-import { RoleService } from '@domain/organization/services/role.service';
 
 @ApiTags('Organization Roles')
 @Controller('organizations/webhook/roles')
@@ -71,7 +72,7 @@ export class RolesController {
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateRoleWebhook()
-  async create(@Body() dto: CreateRoleWebhookDto): Promise<SuccessResponseDto> {
+  async create(@Body() dto: CreateRoleWebhookDto): Promise<CreateResponseDto<Role>> {
     this.logger.log(`POST /api/organizations/webhook/roles/create — "${dto.name}" for org ${dto.orgId}`);
     return this.roleService.create(dto.orgId, dto);
   }

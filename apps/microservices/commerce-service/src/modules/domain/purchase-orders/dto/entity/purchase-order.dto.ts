@@ -1,4 +1,4 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { ExchangeRateType, PurchaseOrder, PurchaseOrderStatus } from '@/db/schema';
 
 export class PurchaseOrderDto {

@@ -7,7 +7,7 @@ import { VerificationDomainModule } from '@domain/verification/verification.modu
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { EmailModule } from '@vritti/api-sdk';
+import { EmailModule } from '@vritti/api-sdk/email';
 import { ForgotPasswordController } from './forgot-password/controllers/forgot-password.controller';
 import { PasswordResetService } from './forgot-password/services/password-reset.service';
 import { AuthController } from './root/controllers/auth.controller';

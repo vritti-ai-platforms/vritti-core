@@ -3,9 +3,10 @@ import { Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Patch, P
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
 import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
-import { ApiCreateOrganizationWebhook } from '../docs/organization.docs';
+import { ApiCreateOrganizationWebhook, ApiReceiveEntitlementWebhook } from '../docs/organization.docs';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationWebhookDto } from '../dto/request/create-organization-webhook.dto';
+import { ReceiveEntitlementWebhookDto } from '../dto/request/receive-entitlement-webhook.dto';
 import { UpdateOrganizationWebhookDto } from '../dto/request/update-organization-webhook.dto';
 
 @ApiTags('Organizations')
@@ -38,6 +39,20 @@ export class OrganizationController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /organizations/webhook/${id}`);
     return this.organizationService.updateFromWebhook(id, dto);
+  }
+
+  // Receives the organization's signed plan entitlement from cloud-server via webhook
+  @Patch('webhook/:orgId/entitlement')
+  @Public()
+  @UseGuards(WebhookSecretGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiReceiveEntitlementWebhook()
+  async receiveEntitlement(
+    @Param('orgId') orgId: string,
+    @Body() dto: ReceiveEntitlementWebhookDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /organizations/webhook/${orgId}/entitlement`);
+    return this.organizationService.receiveEntitlement(orgId, dto);
   }
 
   // Receives organization deletion from cloud-server via webhook

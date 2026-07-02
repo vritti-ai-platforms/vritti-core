@@ -1,4 +1,4 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { GoodsReceiptLotWithStats } from '../../repositories/goods-receipt-lots.repository';
 
 export class GoodsReceiptLotDto {

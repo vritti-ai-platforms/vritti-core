@@ -1,4 +1,4 @@
-import { IsCurrencyCode } from '@vritti/api-sdk';
+import { IsCurrencyCode } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
 import {
   IsEnum,

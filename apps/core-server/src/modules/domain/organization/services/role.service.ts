@@ -1,7 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConflictException, NotFoundException, PrimaryDatabaseService, SuccessResponseDto } from '@vritti/api-sdk';
-import type { Role } from '@/db/schema';
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  type CreateResponseDto,
+  NotFoundException,
+  PrimaryDatabaseService,
+  SuccessResponseDto,
+} from '@vritti/api-sdk';
+import type { Role } from '@/db/schema';
 import type { CreateRoleWebhookDto } from '../dto/request/create-role-webhook.dto';
 import type { RoleItemDto } from '../dto/request/provision-roles-webhook.dto';
 import type { UpdateRoleWebhookDto } from '../dto/request/update-role-webhook.dto';
@@ -57,17 +63,18 @@ export class RoleService {
     return this.roleRepository.findByOrg(orgId);
   }
 
-  // Creates a single role with features as a string array
-  async create(orgId: string, dto: CreateRoleWebhookDto): Promise<SuccessResponseDto> {
+  // Creates a single role and returns it so the caller can navigate to the new record
+  async create(orgId: string, dto: CreateRoleWebhookDto): Promise<CreateResponseDto<Role>> {
     const existing = await this.roleRepository.findByOrgAndName(orgId, dto.name);
     if (existing) {
       throw new ConflictException({
         label: 'Role Already Exists',
         detail: `A role named "${dto.name}" already exists in this organization.`,
+        errors: [{ field: 'name', message: 'Name already in use' }],
       });
     }
 
-    await this.roleRepository.create({
+    const role = await this.roleRepository.create({
       organizationId: orgId,
       name: dto.name,
       description: dto.description,
@@ -76,13 +83,25 @@ export class RoleService {
     });
 
     this.logger.log(`Created role "${dto.name}" for org ${orgId}`);
-    return { success: true, message: `Role "${dto.name}" created successfully.` };
+    return { success: true, message: `Role "${dto.name}" created successfully.`, data: role };
   }
 
   // Updates role metadata and optionally replaces its features
   async update(roleId: string, dto: UpdateRoleWebhookDto): Promise<SuccessResponseDto> {
     const role = await this.roleRepository.findById(roleId);
     if (!role) throw new NotFoundException('Role not found.');
+
+    // Renaming into another role's name would trip the unique index — surface it as a form field error instead
+    if (dto.name && dto.name !== role.name) {
+      const clash = await this.roleRepository.findByOrgAndName(role.organizationId, dto.name);
+      if (clash) {
+        throw new ConflictException({
+          label: 'Role Already Exists',
+          detail: `A role named "${dto.name}" already exists in this organization.`,
+          errors: [{ field: 'name', message: 'Name already in use' }],
+        });
+      }
+    }
 
     await this.roleRepository.update(roleId, {
       ...(dto.name && { name: dto.name }),

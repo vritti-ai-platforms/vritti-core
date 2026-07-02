@@ -1,4 +1,4 @@
-import { type CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { type CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 import type { InventoryItemType, InventoryPickStrategy } from '@/db/schema';
 

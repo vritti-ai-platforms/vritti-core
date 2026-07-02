@@ -34,4 +34,9 @@ export class BuContextCacheService {
     this.cache.delete(buId);
     this.logger.debug(`Invalidated BU context cache for ${buId}`);
   }
+
+  invalidateAll(): void {
+    this.cache.clear();
+    this.logger.debug('Invalidated entire BU context cache');
+  }
 }
