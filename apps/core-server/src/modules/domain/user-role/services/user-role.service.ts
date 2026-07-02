@@ -1,8 +1,8 @@
+import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
+import { RoleRepository } from '@domain/organization/repositories/role.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import type { AssignmentType, UserRoleAssignment } from '@/db/schema';
-import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
-import { RoleRepository } from '@domain/organization/repositories/role.repository';
 import type { AssignRoleWebhookDto } from '../dto/request/assign-role-webhook.dto';
 import { UserRoleAssignmentRepository } from '../repositories/user-role-assignment.repository';
 

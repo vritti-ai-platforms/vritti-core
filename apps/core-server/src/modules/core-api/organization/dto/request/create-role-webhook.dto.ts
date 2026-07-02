@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
 import { Transform } from 'class-transformer';
 import { Allow, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
@@ -17,13 +18,19 @@ export class CreateRoleWebhookDto {
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'cashier' })
-  @IsOptional()
+  @ApiProperty({ description: 'Template code this role builds on', example: 'cashier' })
   @IsString()
-  code?: string;
+  @IsNotEmpty()
+  code: string;
 
   @ApiProperty({ example: { products: { web: ['VIEW', 'CREATE'], mobile: ['VIEW'] } } })
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
   features: Record<string, { app?: string; web?: string[]; mobile?: string[] }>;
+
+  @ApiPropertyOptional({ example: { products: { web: ['DELETE'], mobile: null } } })
+  @IsOptional()
+  @Allow()
+  @Transform(({ value }) => value, { toClassOnly: true })
+  revoked?: RevokedGrants;
 }

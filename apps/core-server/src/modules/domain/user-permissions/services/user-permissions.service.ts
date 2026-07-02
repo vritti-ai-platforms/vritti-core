@@ -6,16 +6,19 @@ import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException } from '@vritti/api-sdk';
 import {
   type ClientPlatform,
+  composeRoleGrants,
   type LockedPermission,
   type PermissionFeature,
   pickRouteForPlatform,
+  type RevokedGrants,
   type RoleFeatureGrant,
   resolveUserFeatures,
+  type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
 import type { BusinessUnit } from '@/db/schema';
 
 // Role grants joined per assignment at a BU — as returned by UserRoleAssignmentRepository.findByUserAndBU
-type AssignmentGrants = { features: Record<string, string[]> };
+type AssignmentGrants = { features: Record<string, string[]>; code: string; revoked: RevokedGrants | null };
 
 export interface AssignedBU {
   id: string;
@@ -82,13 +85,18 @@ export class UserPermissionsService {
     const snapshot = await this.catalogService.getActiveSnapshot();
     const org = await this.organizationRepository.findById(bu.organizationId);
 
+    // Compose each role's effective grants first: base template (live from the snapshot) ∪ additions − revoked
+    const effectiveGrants = assignments.map((a) =>
+      this.composeAssignment(a, snapshot ?? undefined, org?.businessCode ?? undefined),
+    );
+
     if (snapshot && org?.businessCode) {
       const features = resolveUserFeatures({
         snapshot,
         businessCode: org.businessCode,
         planCode: org.planCode ?? undefined,
         buUnlocks: bu.featureUnlocks ?? undefined,
-        roleFeatures: this.mergeRoleGrants(assignments),
+        roleFeatures: this.mergeRoleGrants(effectiveGrants),
         platform,
       });
 
@@ -96,17 +104,32 @@ export class UserPermissionsService {
       return { features };
     }
 
-    return this.resolveFromLegacyCatalog(userId, bu, assignments, platform);
+    return this.resolveFromLegacyCatalog(userId, bu, effectiveGrants, platform);
   }
 
-  // Merges the role grants of all assignments additively per feature, per platform bucket.
-  // Legacy flat string[] grants apply to both buckets; undefined bucket = not a member there.
-  private mergeRoleGrants(assignments: AssignmentGrants[]): Record<string, RoleFeatureGrant> {
-    const merged: Record<string, { web?: string[]; mobile?: string[] }> = {};
-    for (const assignment of assignments) {
-      if (!assignment.features) continue;
+  // Composes one assignment's effective grants: template (from the active snapshot) ∪ additions − revoked.
+  // A role's `code` IS its template link; missing template or legacy path (no snapshot) degrades gracefully.
+  private composeAssignment(
+    assignment: AssignmentGrants,
+    snapshot: VersionSnapshot | undefined,
+    businessCode: string | undefined,
+  ): Record<string, RoleFeatureGrant> {
+    const baseFeatures =
+      snapshot && businessCode
+        ? snapshot.businesses?.[businessCode]?.roleTemplates?.find((t) => t.code === assignment.code)?.features
+        : undefined;
+    return composeRoleGrants({
+      baseFeatures,
+      additions: (assignment.features ?? {}) as Record<string, RoleFeatureGrant>,
+      revoked: assignment.revoked ?? undefined,
+    });
+  }
 
-      const features = assignment.features as Record<string, { web?: string[]; mobile?: string[] } | string[]>;
+  // Merges the effective grants of all assignments additively per feature, per platform bucket.
+  // Legacy flat string[] grants apply to both buckets; undefined bucket = not a member there.
+  private mergeRoleGrants(grantSets: Record<string, RoleFeatureGrant>[]): Record<string, RoleFeatureGrant> {
+    const merged: Record<string, { web?: string[]; mobile?: string[] }> = {};
+    for (const features of grantSets) {
       for (const [code, grant] of Object.entries(features)) {
         const web = Array.isArray(grant) ? grant : grant?.web;
         const mobile = Array.isArray(grant) ? grant : grant?.mobile;
@@ -123,7 +146,7 @@ export class UserPermissionsService {
   private resolveFromLegacyCatalog(
     userId: string,
     bu: BusinessUnit,
-    assignments: AssignmentGrants[],
+    grantSets: Record<string, RoleFeatureGrant>[],
     platform: ClientPlatform,
   ): { features: PermissionFeature[] } {
     // Catalog is pushed from cloud and stored on the BU row — no runtime cloud dependency
@@ -136,10 +159,7 @@ export class UserPermissionsService {
 
     // Merge features from all assigned roles additively, taking only this platform's grants
     const mergedFeatures = new Map<string, Set<string>>();
-    for (const assignment of assignments) {
-      if (!assignment.features) continue;
-
-      const features = assignment.features as Record<string, { web?: string[]; mobile?: string[] } | string[]>;
+    for (const features of grantSets) {
       for (const [code, grant] of Object.entries(features)) {
         // Tolerate the legacy flat shape (string[]) during re-provisioning
         const granted = Array.isArray(grant) ? grant : grant?.[bucket];

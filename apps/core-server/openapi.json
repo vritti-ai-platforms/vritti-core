@@ -14628,6 +14628,7 @@
           },
           "code": {
             "type": "string",
+            "description": "Template code this role builds on",
             "example": "cashier"
           },
           "features": {
@@ -14643,11 +14644,23 @@
                 ]
               }
             }
+          },
+          "revoked": {
+            "type": "object",
+            "example": {
+              "products": {
+                "web": [
+                  "DELETE"
+                ],
+                "mobile": null
+              }
+            }
           }
         },
         "required": [
           "orgId",
           "name",
+          "code",
           "features"
         ]
       },
@@ -14669,6 +14682,17 @@
                 "VIEW",
                 "CREATE"
               ]
+            }
+          },
+          "revoked": {
+            "type": "object",
+            "example": {
+              "products": {
+                "web": [
+                  "DELETE"
+                ],
+                "mobile": null
+              }
             }
           }
         }
