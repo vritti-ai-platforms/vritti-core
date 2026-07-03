@@ -54,7 +54,7 @@ export function InventoryList() {
         ) : null
       }
       refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => feed.refresh()} />}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+      contentContainerStyle={{ paddingTop: 16, paddingHorizontal: 16, paddingBottom: 16 }}
       ItemSeparatorComponent={() => <View className="h-3" />}
       emptyText={
         feed.isError ? "Couldn't load items." : search ? 'No items match your search.' : 'No inventory items yet.'

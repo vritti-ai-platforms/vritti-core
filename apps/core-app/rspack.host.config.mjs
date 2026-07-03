@@ -357,6 +357,8 @@ export default (rspackEnv) => {
           // date pickers, so it can't provide it; the commerce-ma remote bundles its own copy.)
           'react-native-svg': { singleton: true, eager: true, version: '15.15.4', requiredVersion: '>=0.0.0-0' },
           'react-native-sfsymbols': { singleton: true, eager: true, version: '1.2.2', requiredVersion: '>=0.0.0-0' },
+          // ScreenHeader tabs render tab content through a native pager (UIPageViewController / ViewPager2).
+          'react-native-pager-view': { singleton: true, eager: true, version: '8.0.2', requiredVersion: '>=0.0.0-0' },
           // NOTE: MenuButton's native menu modules (react-native-ios-context-menu / -ios-utilities /
           // @react-native-menu/menu) are intentionally NOT shared here — the host renders no menu, so it
           // can't provide them (a host-provided share the host doesn't import throws "getter is not a

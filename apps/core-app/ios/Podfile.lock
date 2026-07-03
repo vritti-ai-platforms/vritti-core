@@ -2171,6 +2171,35 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - react-native-pager-view (8.0.2):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - SwiftUIIntrospect (~> 1.0)
+    - Yoga
   - react-native-safe-area-context (5.7.0):
     - boost
     - DoubleConversion
@@ -3227,6 +3256,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
+  - SwiftUIIntrospect (1.3.0)
   - SwiftyRSA (1.7.0):
     - SwiftyRSA/ObjC (= 1.7.0)
   - SwiftyRSA/ObjC (1.7.0)
@@ -3286,6 +3316,7 @@ DEPENDENCIES:
   - react-native-ios-utilities (from `../../../node_modules/react-native-ios-utilities`)
   - "react-native-menu (from `../../../node_modules/@react-native-menu/menu`)"
   - "react-native-netinfo (from `../../../node_modules/@react-native-community/netinfo`)"
+  - react-native-pager-view (from `../../../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../../../node_modules/react-native-safe-area-context`)
   - react-native-sfsymbols (from `../../../node_modules/react-native-sfsymbols`)
   - React-NativeModulesApple (from `../../../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -3340,6 +3371,7 @@ SPEC REPOS:
     - JWTDecode
     - MMKVCore
     - SocketRocket
+    - SwiftUIIntrospect
     - SwiftyRSA
 
 EXTERNAL SOURCES:
@@ -3448,6 +3480,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/@react-native-menu/menu"
   react-native-netinfo:
     :path: "../../../node_modules/@react-native-community/netinfo"
+  react-native-pager-view:
+    :path: "../../../node_modules/react-native-pager-view"
   react-native-safe-area-context:
     :path: "../../../node_modules/react-native-safe-area-context"
   react-native-sfsymbols:
@@ -3595,6 +3629,7 @@ SPEC CHECKSUMS:
   react-native-ios-utilities: 2881513015f4f1fa550d8b4c344c594805249340
   react-native-menu: 8d2c831a735c9e6528c28b26ca14e57591d87e14
   react-native-netinfo: a0be8c77f8420a60ddf07eb87be1a36f02a1bd65
+  react-native-pager-view: 2694b7efa49588b1cc3aecb5f513871135f499cc
   react-native-safe-area-context: befb5404eb8a16fdc07fa2bebab3568ecabcbb8a
   react-native-sfsymbols: 3309f24c98d32705568c84b714268f3ec62017c7
   React-NativeModulesApple: 5327be5c0d9734f0c6db2219f3c20c13aef13884
@@ -3639,6 +3674,7 @@ SPEC CHECKSUMS:
   RNSVG: 3405336c4507ee0bafb02b08058d57216daa2c50
   RNWorklets: 6842755a1353955d55ac03778ac42f334616eafa
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   SwiftyRSA: 8c6dd1ea7db1b8dc4fb517a202f88bb1354bc2c6
   Yoga: 3d56e80930898685da43cbf53b5843932df8e765
 

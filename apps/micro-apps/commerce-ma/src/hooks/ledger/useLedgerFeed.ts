@@ -1,4 +1,8 @@
-import { type UseInfiniteListReturn, useApolloInfiniteQuery } from '@vritti/quantum-ui-native/hooks';
+import {
+  type UseInfiniteListReturn,
+  useApolloInfiniteQuery,
+  useRevalidateOnceFetchPolicy,
+} from '@vritti/quantum-ui-native/hooks';
 import { useCallback } from 'react';
 import { INVENTORY_ITEM_LEDGER_QUERY } from '../../graphql/ledger';
 import type { LedgerEntry } from '../../types/ledger';
@@ -13,10 +17,16 @@ export function useLedgerFeed(inventoryItemId: string): UseInfiniteListReturn<Le
     [inventoryItemId],
   );
 
+  // Revalidate over the network the first time this feed is shown in the session (so newly-added rows
+  // appear despite a stale/empty persisted connection), then serve from cache on tab revisits — no
+  // per-tab-switch refetch. Pull-to-refresh still forces a reload.
+  const fetchPolicy = useRevalidateOnceFetchPolicy(`inventoryItemLedger:${inventoryItemId}`);
+
   return useApolloInfiniteQuery<LedgerEntry>({
     query: INVENTORY_ITEM_LEDGER_QUERY,
     getVariables,
     dataKey: 'inventoryItemLedger',
     enabled: !!inventoryItemId,
+    fetchPolicy,
   });
 }

@@ -387,6 +387,14 @@ export default (rspackEnv) => {
             version: '1.2.2',
             requiredVersion: '>=0.0.0-0',
           },
+          // ScreenHeader tabs render tab content through a native pager — host-provided singleton.
+          'react-native-pager-view': {
+            singleton: true,
+            eager: false,
+            import: false,
+            version: '8.0.2',
+            requiredVersion: '>=0.0.0-0',
+          },
           // NOTE: MenuButton's native menu modules (react-native-ios-context-menu / -ios-utilities /
           // @react-native-menu/menu) are intentionally NOT shared — the host renders no menu and can't
           // provide them, so a host-provided share throws "getter is not a function" here. commerce-ma

@@ -1,4 +1,8 @@
-import { type UseInfiniteListReturn, useApolloInfiniteQuery } from '@vritti/quantum-ui-native/hooks';
+import {
+  type UseInfiniteListReturn,
+  useApolloInfiniteQuery,
+  useRevalidateOnceFetchPolicy,
+} from '@vritti/quantum-ui-native/hooks';
 import { useCallback } from 'react';
 import { INVENTORY_ITEM_QUANTS_QUERY } from '../../graphql/quants';
 import type { Quant } from '../../types/quants';
@@ -13,10 +17,16 @@ export function useQuantsFeed(inventoryItemId: string): UseInfiniteListReturn<Qu
     [inventoryItemId],
   );
 
+  // Revalidate over the network the first time this feed is shown in the session (so newly-added rows
+  // appear despite a stale/empty persisted connection), then serve from cache on tab revisits — no
+  // per-tab-switch refetch. Pull-to-refresh still forces a reload.
+  const fetchPolicy = useRevalidateOnceFetchPolicy(`inventoryItemQuants:${inventoryItemId}`);
+
   return useApolloInfiniteQuery<Quant>({
     query: INVENTORY_ITEM_QUANTS_QUERY,
     getVariables,
     dataKey: 'inventoryItemQuants',
     enabled: !!inventoryItemId,
+    fetchPolicy,
   });
 }
