@@ -22,7 +22,11 @@ export const UomPage = () => {
         title="Units of Measure"
         description={pluralize('dimension', dimensionCount.count, true)}
         actions={
-          <Button onClick={addDimensionDialog.open} startAdornment={<Plus className="size-4" />}>
+          <Button
+            onClick={addDimensionDialog.open}
+            startAdornment={<Plus className="size-4" />}
+            permission="uom.dim.add"
+          >
             Add Dimension
           </Button>
         }

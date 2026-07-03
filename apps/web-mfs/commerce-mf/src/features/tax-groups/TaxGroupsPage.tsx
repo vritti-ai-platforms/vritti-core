@@ -166,11 +166,7 @@ export const TaxGroupsPage = () => {
           title: 'No tax groups',
           description: 'Create your first tax group to assign tax structures to items.',
           action: (
-            <Button
-              onClick={addDialog.open}
-              startAdornment={<Plus className="size-4" />}
-              permission="tax-groups.create"
-            >
+            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />} permission="tax-groups.add">
               Add Tax Group
             </Button>
           ),
