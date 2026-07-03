@@ -90,6 +90,7 @@ export const TaxGroupsPage = () => {
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
+                permission: 'tax-groups.edit',
                 dialog: {
                   title: 'Edit Tax Group',
                   description: 'Update the rates and default behaviour for this tax group.',
@@ -100,6 +101,7 @@ export const TaxGroupsPage = () => {
                 id: 'delete',
                 icon: Trash2,
                 label: 'Delete',
+                permission: 'tax-groups.delete',
                 variant: 'destructive',
                 disabled: deleteMutation.isPending || !row.original.canDelete,
                 onClick: () => handleDelete(row.original),
@@ -149,7 +151,12 @@ export const TaxGroupsPage = () => {
         ]}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addDialog.open} startAdornment={<Plus className="size-4" />}>
+            <Button
+              size="sm"
+              onClick={addDialog.open}
+              startAdornment={<Plus className="size-4" />}
+              permission="tax-groups.create"
+            >
               Add Tax Group
             </Button>
           ),
@@ -159,7 +166,11 @@ export const TaxGroupsPage = () => {
           title: 'No tax groups',
           description: 'Create your first tax group to assign tax structures to items.',
           action: (
-            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />}>
+            <Button
+              onClick={addDialog.open}
+              startAdornment={<Plus className="size-4" />}
+              permission="tax-groups.create"
+            >
               Add Tax Group
             </Button>
           ),

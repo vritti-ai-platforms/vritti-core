@@ -1,8 +1,9 @@
 import { groupBy, sortBy, uniqBy } from '@vritti/quantum-ui/lodash';
+import { lockedTip, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { Sidebar as QSidebar, type SidebarNavGroup } from '@vritti/quantum-ui/Sidebar';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
-import { Box, Lock } from 'lucide-react';
+import { Box } from 'lucide-react';
 import { DynamicIcon, type IconName, iconNames } from 'lucide-react/dynamic';
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -16,18 +17,15 @@ function resolveIcon(name: string | null): React.ComponentType<{ className?: str
   return ({ className }: { className?: string }) => <DynamicIcon name={iconName} className={className} />;
 }
 
-// A warning lock chip for a plan/BU-locked feature; hover reveals the plans that would unlock it
+// A lock chip for a locked feature — warning lock + unlocking plans for plan locks, red keyhole for BU locks
 function LockChip({ feature }: { feature: PermissionFeature }) {
-  const tip =
-    feature.lockReason === 'BU'
-      ? 'Not enabled for this business unit'
-      : feature.unlockPlans.length > 0
-        ? `Available in ${feature.unlockPlans.join(', ')}`
-        : 'Not included in your plan';
+  const isBuLock = feature.lockReason === 'BU';
   return (
-    <Tooltip content={tip} side="right">
-      <span className="flex size-4 items-center justify-center rounded bg-warning/15 text-warning">
-        <Lock className="size-3" />
+    <Tooltip content={lockedTip({ reason: feature.lockReason, unlockPlans: feature.unlockPlans })} side="right">
+      <span
+        className={`flex size-4 items-center justify-center rounded ${isBuLock ? 'bg-destructive/15' : 'bg-warning/15'}`}
+      >
+        <PermissionLockIcon reason={feature.lockReason} className="size-3" />
       </span>
     </Tooltip>
   );
@@ -57,8 +55,9 @@ export const Sidebar = () => {
         title: f.name,
         icon: resolveIcon(f.lucideIcon),
         path: `/${buSlug}/${f.route.routePrefix.replace(/^\//, '')}`,
-        // Locked features render greyed + non-navigating with a lock chip (hover shows the unlocking plans)
-        disabled: f.locked,
+        // Plan-locked = upsell-only: greyed + non-navigating (its route isn't mounted). BU-locked stays
+        // navigable — the page renders with its actions gated — but carries the red lock chip.
+        disabled: f.locked && f.lockReason === 'PLAN',
         endAdornment: f.locked ? <LockChip feature={f} /> : undefined,
       })),
     }));

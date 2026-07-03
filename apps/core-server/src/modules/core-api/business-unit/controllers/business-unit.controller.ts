@@ -23,12 +23,12 @@ import {
   ApiDeleteBusinessUnitWebhook,
   ApiGetBusinessUnitWebhook,
   ApiListBusinessUnitsWebhook,
-  ApiSetBuUnlocksWebhook,
+  ApiSetBuLocksWebhook,
   ApiUpdateBusinessUnitWebhook,
 } from '../docs/business-unit.docs';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import { SetBuUnlocksWebhookDto } from '../dto/request/set-bu-unlocks-webhook.dto';
+import { SetBuLocksWebhookDto } from '../dto/request/set-bu-locks-webhook.dto';
 import { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 import { BusinessUnitApiService } from '../services/business-unit-api.service';
 
@@ -75,12 +75,12 @@ export class BusinessUnitController {
     return this.businessUnitApiService.findRoleAssignments(id);
   }
 
-  // Replaces the business unit's feature unlock overlay (null = inherit the full plan)
-  @Put(':id/unlocks')
-  @ApiSetBuUnlocksWebhook()
-  async setUnlocks(@Param('id') id: string, @Body() dto: SetBuUnlocksWebhookDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /api/business-units/webhook/${id}/unlocks`);
-    return this.businessUnitApiService.setFeatureUnlocks(id, dto);
+  // Replaces the business unit's feature lock deny-list (null = inherit the full plan)
+  @Put(':id/locks')
+  @ApiSetBuLocksWebhook()
+  async setLocks(@Param('id') id: string, @Body() dto: SetBuLocksWebhookDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /api/business-units/webhook/${id}/locks`);
+    return this.businessUnitApiService.setFeatureLocks(id, dto);
   }
 
   // Updates a business unit

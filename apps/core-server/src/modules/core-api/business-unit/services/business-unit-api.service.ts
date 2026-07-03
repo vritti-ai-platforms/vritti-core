@@ -5,7 +5,7 @@ import type { SuccessResponseDto } from '@vritti/api-sdk';
 import type { UserRoleAssignment } from '@/db/schema';
 import type { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import type { SetBuUnlocksWebhookDto } from '../dto/request/set-bu-unlocks-webhook.dto';
+import type { SetBuLocksWebhookDto } from '../dto/request/set-bu-locks-webhook.dto';
 import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 
 @Injectable()
@@ -37,9 +37,9 @@ export class BusinessUnitApiService {
     return this.userRoleService.findByBusinessUnit(buId);
   }
 
-  // Replaces the business unit's feature unlock overlay (null = inherit the full plan)
-  async setFeatureUnlocks(id: string, dto: SetBuUnlocksWebhookDto): Promise<SuccessResponseDto> {
-    return this.businessUnitService.setFeatureUnlocks(id, dto.featureUnlocks ?? null);
+  // Replaces the business unit's feature lock deny-list (null = inherit the full plan)
+  async setFeatureLocks(id: string, dto: SetBuLocksWebhookDto): Promise<SuccessResponseDto> {
+    return this.businessUnitService.setFeatureLocks(id, dto.featureLocks ?? null);
   }
 
   // Updates a business unit

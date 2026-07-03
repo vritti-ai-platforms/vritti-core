@@ -102,6 +102,11 @@ export default defineConfig({
           singleton: true,
           eager: true,
         },
+        // The permission gate context must be a singleton — remotes read the provider the host mounts
+        '@vritti/quantum-ui/PermissionGate': {
+          singleton: true,
+          eager: true,
+        },
         axios: {
           singleton: true,
           eager: true,

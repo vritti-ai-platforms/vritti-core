@@ -1,4 +1,4 @@
-import type { BuFeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
+import type { BuFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
@@ -48,8 +48,8 @@ export const businessUnits = coreSchema.table(
     inheritConfig: boolean('inherit_config').notNull().default(true),
     isActive: boolean('is_active').notNull().default(true),
     sortOrder: integer('sort_order').notNull().default(0),
-    // Per-feature unlock overlay (subset of the plan); null = inherit the full plan
-    featureUnlocks: jsonb('feature_unlocks').$type<BuFeatureUnlocks>(),
+    // Per-feature lock deny-list within the plan; null = inherit the full plan
+    featureLocks: jsonb('feature_locks').$type<BuFeatureLocks>(),
     timezone: varchar('timezone', { length: 50 }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     pickStrategy: pickStrategyEnum('pick_strategy').notNull().default('FEFO'),

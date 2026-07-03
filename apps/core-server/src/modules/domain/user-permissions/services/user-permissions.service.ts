@@ -64,7 +64,7 @@ export class UserPermissionsService {
   }
 
   // Resolves combined features + MF config for a user at a specific BU:
-  // active signed catalog snapshot ∧ org entitlement ∧ BU unlocks ∧ role grants via api-sdk resolveUserFeatures.
+  // active signed catalog snapshot ∧ org entitlement ∧ BU locks ∧ role grants via api-sdk resolveUserFeatures.
   // No active snapshot or entitlement = zero features (that IS the enforcement).
   async getPermissions(
     userId: string,
@@ -95,7 +95,7 @@ export class UserPermissionsService {
       snapshot,
       businessCode: org.businessCode,
       planCode: org.planCode ?? undefined,
-      buUnlocks: bu.featureUnlocks ?? undefined,
+      buLocks: bu.featureLocks ?? undefined,
       roleFeatures: this.mergeRoleGrants(effectiveGrants),
       platform,
     });

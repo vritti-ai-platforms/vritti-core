@@ -11,7 +11,11 @@ export const DynamicFeatureRoutes = () => {
   const routes = useMemo<RouteObject[]>(() => {
     if (!selectedBuId || features.length === 0) return [];
 
-    return features.map((feature) => {
+    // Plan-locked features are upsell-only — their remote is never mounted (no route in the DOM).
+    // BU-locked features stay routable: the page renders with every action gated red.
+    const routable = features.filter((f) => !(f.locked && f.lockReason === 'PLAN'));
+
+    return routable.map((feature) => {
       const routePrefix = feature.route.routePrefix.replace(/^\//, '');
       return {
         path: `${routePrefix}/*`,

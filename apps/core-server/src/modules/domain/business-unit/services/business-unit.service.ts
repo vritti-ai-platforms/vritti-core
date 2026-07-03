@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import { type BuFeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
+import { type BuFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import type { BuMetadata, BuType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
@@ -107,21 +107,21 @@ export class BusinessUnitService {
     return { success: true, message: 'Business unit updated successfully.' };
   }
 
-  // Replaces the business unit's feature unlock overlay (null = inherit the full plan)
-  async setFeatureUnlocks(id: string, featureUnlocks: BuFeatureUnlocks | null): Promise<SuccessResponseDto> {
+  // Replaces the business unit's feature lock deny-list (null = inherit the full plan)
+  async setFeatureLocks(id: string, featureLocks: BuFeatureLocks | null): Promise<SuccessResponseDto> {
     const bu = await this.businessUnitRepository.findById(id);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    await this.businessUnitRepository.update(id, { featureUnlocks, updatedAt: new Date() });
+    await this.businessUnitRepository.update(id, { featureLocks, updatedAt: new Date() });
 
     this.buContextCache.invalidate(id);
     // Push the refreshed feature set to live SSE connections of users in this BU
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
 
     this.logger.log(
-      `Set feature unlocks for business unit ${id}: ${featureUnlocks ? `${Object.keys(featureUnlocks).length} feature(s)` : 'inherit full plan'}`,
+      `Set feature locks for business unit ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
     );
-    return { success: true, message: 'Business unit feature unlocks updated successfully.' };
+    return { success: true, message: 'Business unit feature locks updated successfully.' };
   }
 
   // Deletes a business unit after checking it has no children

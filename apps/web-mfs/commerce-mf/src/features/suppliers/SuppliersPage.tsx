@@ -74,6 +74,7 @@ export const SuppliersPage = () => {
                 id: 'view',
                 icon: Eye,
                 label: 'View',
+                permission: 'suppliers.view',
                 onClick: () => navigate(buildSlug(row.original.name, row.original.id)),
               },
             ]}
@@ -114,7 +115,7 @@ export const SuppliersPage = () => {
         filters={[<InventoryItemFilter key="inventoryItemId" />]}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addDialog.open}>
+            <Button size="sm" permission="suppliers.create" onClick={addDialog.open}>
               <Plus className="mr-2 size-4" />
               Add Supplier
             </Button>
@@ -125,7 +126,7 @@ export const SuppliersPage = () => {
           title: 'No suppliers',
           description: 'Add your first supplier to start managing procurement.',
           action: (
-            <Button onClick={addDialog.open}>
+            <Button permission="suppliers.create" onClick={addDialog.open}>
               <Plus className="mr-2 size-4" />
               Add Supplier
             </Button>

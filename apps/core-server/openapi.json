@@ -2202,10 +2202,10 @@
         ]
       }
     },
-    "/business-units/webhook/{id}/unlocks": {
+    "/business-units/webhook/{id}/locks": {
       "put": {
-        "description": "Replaces the business unit feature unlock overlay (restriction within the plan ceiling, clamped in cloud). Null inherits the full plan. Requires X-Webhook-Secret header.",
-        "operationId": "BusinessUnitController_setUnlocks",
+        "description": "Replaces the business unit feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires X-Webhook-Secret header.",
+        "operationId": "BusinessUnitController_setLocks",
         "parameters": [
           {
             "name": "id",
@@ -2231,14 +2231,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetBuUnlocksWebhookDto"
+                "$ref": "#/components/schemas/SetBuLocksWebhookDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Feature unlocks updated successfully.",
+            "description": "Feature locks updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2254,7 +2254,7 @@
             "description": "Business unit not found."
           }
         },
-        "summary": "Replace business unit feature unlocks",
+        "summary": "Replace business unit feature locks",
         "tags": [
           "Business Units"
         ]
@@ -14796,18 +14796,18 @@
           "updatedAt"
         ]
       },
-      "SetBuUnlocksWebhookDto": {
+      "SetBuLocksWebhookDto": {
         "type": "object",
         "properties": {
-          "featureUnlocks": {
+          "featureLocks": {
             "type": "object",
-            "description": "Per-feature unlock overlay (featureCode -> { web?, mobile? }); null = inherit the full plan",
+            "description": "Per-feature lock deny-list (featureCode -> { web?, mobile? }; platform null locks the whole feature); null = inherit the full plan",
             "additionalProperties": true,
             "nullable": true
           }
         },
         "required": [
-          "featureUnlocks"
+          "featureLocks"
         ]
       },
       "UpdateBusinessUnitWebhookDto": {

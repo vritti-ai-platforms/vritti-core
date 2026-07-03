@@ -3,7 +3,7 @@ import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } fro
 import { SuccessResponseDto } from '@vritti/api-sdk';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import { SetBuUnlocksWebhookDto } from '../dto/request/set-bu-unlocks-webhook.dto';
+import { SetBuLocksWebhookDto } from '../dto/request/set-bu-locks-webhook.dto';
 import { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
 
 export function ApiCreateBusinessUnitWebhook() {
@@ -65,17 +65,17 @@ export function ApiUpdateBusinessUnitWebhook() {
   );
 }
 
-export function ApiSetBuUnlocksWebhook() {
+export function ApiSetBuLocksWebhook() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Replace business unit feature unlocks',
+      summary: 'Replace business unit feature locks',
       description:
-        'Replaces the business unit feature unlock overlay (restriction within the plan ceiling, clamped in cloud). Null inherits the full plan. Requires X-Webhook-Secret header.',
+        'Replaces the business unit feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires X-Webhook-Secret header.',
     }),
     ApiHeader({ name: 'X-Webhook-Secret', description: 'Webhook authentication secret', required: true }),
     ApiParam({ name: 'id', description: 'Business unit ID' }),
-    ApiBody({ type: SetBuUnlocksWebhookDto }),
-    ApiResponse({ status: 200, description: 'Feature unlocks updated successfully.', type: SuccessResponseDto }),
+    ApiBody({ type: SetBuLocksWebhookDto }),
+    ApiResponse({ status: 200, description: 'Feature locks updated successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Business unit not found.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing webhook secret.' }),
   );

@@ -1,6 +1,11 @@
 import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
-import { parseSlug } from '@vritti/quantum-ui/slug';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
+import {
+  type PermissionGate,
+  PermissionGateProvider,
+  type PermissionGateResult,
+} from '@vritti/quantum-ui/PermissionGate';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -23,6 +28,28 @@ const PermissionContext = createContext<PermissionContextValue>({
   isLoadingBUs: false,
   isLoadingPermissions: false,
 });
+
+const DENY: PermissionGateResult = Object.freeze({ granted: false, locked: false, reason: null, unlockPlans: [] });
+
+// Resolves a "feature.permission" code against the selected BU's resolved features
+function buildGate(features: PermissionFeature[]): PermissionGate {
+  return (code) => {
+    const dotIndex = code.indexOf('.');
+    const featureCode = dotIndex === -1 ? code : code.slice(0, dotIndex);
+    const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
+    const feature = features.find((f) => f.code === featureCode);
+    if (!feature) return DENY;
+    if (!permissionCode)
+      return { granted: true, locked: feature.locked, reason: feature.lockReason, unlockPlans: feature.unlockPlans };
+    if (!feature.permissions.includes(permissionCode)) return DENY;
+    if (feature.locked)
+      return { granted: true, locked: true, reason: feature.lockReason, unlockPlans: feature.unlockPlans };
+    const permissionLock = feature.lockedPermissions.find((p) => p.code === permissionCode);
+    if (permissionLock)
+      return { granted: true, locked: true, reason: permissionLock.reason, unlockPlans: permissionLock.unlockPlans };
+    return { granted: true, locked: false, reason: null, unlockPlans: [] };
+  };
+}
 
 // Extracts buId from URL path like /bu-Name~uuid/products
 function extractBuIdFromPath(pathname: string): string | null {
@@ -67,11 +94,24 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   const contextValue = useMemo<PermissionContextValue>(
-    () => ({ businessUnits, selectedBuId, selectBu, features, isLoadingBUs: isLoading, isLoadingPermissions: isLoading }),
+    () => ({
+      businessUnits,
+      selectedBuId,
+      selectBu,
+      features,
+      isLoadingBUs: isLoading,
+      isLoadingPermissions: isLoading,
+    }),
     [businessUnits, selectedBuId, selectBu, features, isLoading],
   );
 
-  return <PermissionContext.Provider value={contextValue}>{children}</PermissionContext.Provider>;
+  const gate = useMemo(() => buildGate(features), [features]);
+
+  return (
+    <PermissionContext.Provider value={contextValue}>
+      <PermissionGateProvider value={gate}>{children}</PermissionGateProvider>
+    </PermissionContext.Provider>
+  );
 };
 
 // Hook to access BU + permission state — must be used within PermissionProvider
