@@ -7,8 +7,8 @@ export {
 } from './keys';
 export { useCategoryById } from './useCategoryById';
 export { useCategoryChildrenTable } from './useCategoryChildrenTable';
-export { useCategoryItemsTable } from './useCategoryItemsTable';
 export { useCategoryCount } from './useCategoryCount';
+export { useCategoryItemsTable } from './useCategoryItemsTable';
 export { useCategoryTree } from './useCategoryTree';
 export { useCreateCategory } from './useCreateCategory';
 export { useDeleteCategory } from './useDeleteCategory';

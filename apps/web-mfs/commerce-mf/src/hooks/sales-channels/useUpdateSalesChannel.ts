@@ -10,7 +10,9 @@ interface Vars {
   data: UpdateSalesChannelPayload;
 }
 
-export function useUpdateSalesChannel(options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, Vars>, 'mutationFn'>) {
+export function useUpdateSalesChannel(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, Vars>, 'mutationFn'>,
+) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, Vars>({
     ...options,

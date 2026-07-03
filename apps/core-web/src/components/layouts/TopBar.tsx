@@ -33,7 +33,7 @@ export const TopBar = () => {
               <div className="flex flex-col">
                 <span className="text-sm font-semibold leading-tight">{org.name}</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-muted-foreground">Powered by</span>
+                  <span className="text-xs text-muted-foreground">Powered by</span>
                   <img src={logoImg} alt="Vritti Core" className="h-2.5 w-auto" />
                 </div>
               </div>

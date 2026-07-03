@@ -226,7 +226,10 @@ export function addStockAdjustmentLineItem(
   data: AddStockAdjustmentLineItemPayload,
 ): Promise<CreateResponse<StockAdjustmentLineItemData>> {
   return axios
-    .post<CreateResponse<StockAdjustmentLineItemData>>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items`, data)
+    .post<CreateResponse<StockAdjustmentLineItemData>>(
+      `commerce-api/stock-adjustments/${id}/lines/${lineId}/items`,
+      data,
+    )
     .then((r) => r.data);
 }
 

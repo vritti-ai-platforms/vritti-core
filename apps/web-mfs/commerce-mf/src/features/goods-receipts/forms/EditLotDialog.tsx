@@ -100,7 +100,14 @@ export const EditLotDialog = ({
     description="Update this lot's number or dates."
     content={(close) =>
       lot ? (
-        <EditLotForm goodsReceiptId={goodsReceiptId} itemId={itemId} lot={lot} hasMrp={hasMrp} onSuccess={close} onCancel={close} />
+        <EditLotForm
+          goodsReceiptId={goodsReceiptId}
+          itemId={itemId}
+          lot={lot}
+          hasMrp={hasMrp}
+          onSuccess={close}
+          onCancel={close}
+        />
       ) : null
     }
   />

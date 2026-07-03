@@ -1,7 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, DateCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateCell,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';

@@ -26,9 +26,7 @@ export function getCostCategory(id: string): Promise<CostCategoryData> {
 }
 
 export function createCostCategory(data: CreateCostCategoryPayload): Promise<CostCategoryData> {
-  return axios
-    .post<CreateResponse<CostCategoryData>>('commerce-api/cost-categories', data)
-    .then((r) => r.data.data);
+  return axios.post<CreateResponse<CostCategoryData>>('commerce-api/cost-categories', data).then((r) => r.data.data);
 }
 
 export function updateCostCategory({

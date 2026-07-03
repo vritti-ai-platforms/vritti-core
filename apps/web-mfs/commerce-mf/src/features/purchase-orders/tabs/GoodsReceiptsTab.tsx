@@ -1,5 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { type ColumnDef, DataTable, DateCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  DateCell,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck } from 'lucide-react';
 import { useMemo } from 'react';

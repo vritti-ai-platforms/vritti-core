@@ -15,7 +15,7 @@ export const ItemsGrid = ({ items, isLoading, onSelect }: ItemsGridProps) => {
     return (
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
         {Array.from({ length: 12 }, (_, i) => `tile-${i}`).map((key) => (
-          <Skeleton key={key} className="h-[150px] rounded-2xl" />
+          <Skeleton key={key} className="h-37.5 rounded-2xl" />
         ))}
       </div>
     );

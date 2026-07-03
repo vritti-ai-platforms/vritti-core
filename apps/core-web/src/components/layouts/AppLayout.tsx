@@ -7,7 +7,7 @@ export const AppLayout = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <TopBar />
-      <main className="flex-1 overflow-auto pt-20 px-0 sm:px-8 lg:px-32 py-2.5 min-w-[280px]">
+      <main className="flex-1 overflow-auto pt-20 px-0 sm:px-8 lg:px-32 py-2.5 min-w-70">
         <QueryErrorBoundary>
           <Outlet />
         </QueryErrorBoundary>

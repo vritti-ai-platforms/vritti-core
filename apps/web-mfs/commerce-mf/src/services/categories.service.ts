@@ -29,9 +29,7 @@ export function getCategoryChildrenTable(parentId: string): Promise<TableRespons
 }
 
 export function getCategoryItemsTable(categoryId: string): Promise<CategoryItemsTableResponse> {
-  return axios
-    .get<CategoryItemsTableResponse>(`commerce-api/categories/${categoryId}/items/table`)
-    .then((r) => r.data);
+  return axios.get<CategoryItemsTableResponse>(`commerce-api/categories/${categoryId}/items/table`).then((r) => r.data);
 }
 
 export function getCategoryById(id: string): Promise<CategoryData> {

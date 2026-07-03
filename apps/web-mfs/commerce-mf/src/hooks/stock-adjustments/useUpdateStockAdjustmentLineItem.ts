@@ -1,7 +1,7 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { AxiosError } from 'axios';
 import {
   type UpdateStockAdjustmentLineItemPayload,
   updateStockAdjustmentLineItem,
@@ -19,10 +19,7 @@ export function useUpdateStockAdjustmentLineItem(
   adjustmentId: string,
   lineId: string,
   itemId: string,
-  options?: Omit<
-    UseMutationOptions<SuccessResponse, AxiosError, UpdateStockAdjustmentLineItemPayload>,
-    'mutationFn'
-  >,
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpdateStockAdjustmentLineItemPayload>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
 

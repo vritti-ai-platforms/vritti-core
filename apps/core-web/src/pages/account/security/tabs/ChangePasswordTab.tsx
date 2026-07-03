@@ -70,7 +70,7 @@ export const ChangePasswordTab: React.FC = () => {
 
           <div className="bg-muted/50 border border-border rounded-lg p-4">
             <div className="flex items-start gap-2">
-              <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <div className="space-y-1">
                 <Typography variant="body2" className="font-medium">
                   Password Requirements

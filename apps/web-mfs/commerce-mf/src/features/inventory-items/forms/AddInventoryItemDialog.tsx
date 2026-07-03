@@ -97,7 +97,12 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
               name="uomId"
               label="Unit of Measure"
               placeholder="Select unit"
-              fieldKeys={{ valueKey: 'id', labelKey: 'name', groupIdKey: 'dimensionId', additionalKeys: 'symbol,baseUnitId' }}
+              fieldKeys={{
+                valueKey: 'id',
+                labelKey: 'name',
+                groupIdKey: 'dimensionId',
+                additionalKeys: 'symbol,baseUnitId',
+              }}
               onOptionSelect={(o) =>
                 setPrimaryUom({
                   id: o?.value as string,
@@ -138,7 +143,12 @@ export const AddInventoryItemDialog: React.FC<AddInventoryItemDialogProps> = ({ 
                   name="mrpUomId"
                   label="MRP Unit"
                   placeholder="Select unit"
-                  fieldKeys={{ valueKey: 'id', labelKey: 'name', groupIdKey: 'dimensionId', additionalKeys: 'symbol,baseUnitId' }}
+                  fieldKeys={{
+                    valueKey: 'id',
+                    labelKey: 'name',
+                    groupIdKey: 'dimensionId',
+                    additionalKeys: 'symbol,baseUnitId',
+                  }}
                   onOptionSelect={(o) =>
                     setMrpUom({
                       id: o?.value as string,

@@ -10,7 +10,9 @@ interface Vars {
   data: UpdateCostCategoryPayload;
 }
 
-export function useUpdateCostCategory(options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, Vars>, 'mutationFn'>) {
+export function useUpdateCostCategory(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, Vars>, 'mutationFn'>,
+) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, Vars>({
     ...options,

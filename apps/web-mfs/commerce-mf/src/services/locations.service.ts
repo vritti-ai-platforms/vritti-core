@@ -32,9 +32,7 @@ export function getLocationChildrenTable(parentId: string): Promise<LocationChil
 }
 
 export function getLocationItemsTable(locationId: string): Promise<LocationItemsTableResponse> {
-  return axios
-    .get<LocationItemsTableResponse>(`commerce-api/locations/${locationId}/items/table`)
-    .then((r) => r.data);
+  return axios.get<LocationItemsTableResponse>(`commerce-api/locations/${locationId}/items/table`).then((r) => r.data);
 }
 
 export function getLocationItemQuants(locationId: string, itemId: string): Promise<LocationItemQuantRow[]> {

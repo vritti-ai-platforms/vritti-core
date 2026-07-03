@@ -62,7 +62,7 @@ export const BUSelectionPage = () => {
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold truncate">{bu.name}</h3>
-                <Badge variant="outline" className="text-[10px] mt-1">
+                <Badge variant="outline" className="text-xs mt-1">
                   {bu.type}
                 </Badge>
               </div>

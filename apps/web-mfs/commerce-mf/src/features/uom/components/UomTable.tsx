@@ -70,9 +70,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
       {
         id: 'baseUnit',
         header: 'Base',
-        cell: ({ row }) => (
-          <StringCell value={row.original.baseUnitSymbol} mono className="text-muted-foreground" />
-        ),
+        cell: ({ row }) => <StringCell value={row.original.baseUnitSymbol} mono className="text-muted-foreground" />,
         enableSorting: false,
       },
       {

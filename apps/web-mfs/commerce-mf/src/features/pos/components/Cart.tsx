@@ -33,7 +33,7 @@ export const Cart = ({ lines, subtotal, isPlacing, onUpdateQty, onRemove, onClea
   };
 
   return (
-    <aside className="dark flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-gradient-to-b from-card to-background text-foreground shadow-[-16px_0_36px_-28px_rgba(0,0,0,0.9)]">
+    <aside className="dark flex h-full w-95 shrink-0 flex-col border-l border-border bg-gradient-to-b from-card to-background text-foreground shadow-[-16px_0_36px_-28px_rgba(0,0,0,0.9)]">
       <div className="flex items-center justify-between border-b border-border/80 px-5 py-4">
         <div className="flex items-center gap-2.5">
           <Receipt className="size-5 text-muted-foreground" />
@@ -69,7 +69,7 @@ export const Cart = ({ lines, subtotal, isPlacing, onUpdateQty, onRemove, onClea
               <Typography variant="subtitle1" className="text-foreground">
                 No items yet
               </Typography>
-              <Typography variant="caption" intent="muted" className="mt-1 block max-w-[200px]">
+              <Typography variant="caption" intent="muted" className="mt-1 block max-w-50">
                 Tap a product to start building this order.
               </Typography>
             </div>
@@ -92,7 +92,7 @@ export const Cart = ({ lines, subtotal, isPlacing, onUpdateQty, onRemove, onClea
               <span className="font-mono tabular-nums text-foreground">{totalText}</span>
             </div>
             <div className="flex items-end justify-between border-t border-border/60 pt-3">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total due</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total due</div>
               <div
                 key={subtotal?.value ?? 'empty'}
                 className="pos-pop font-mono text-3xl font-bold leading-none tabular-nums text-foreground"

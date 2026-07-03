@@ -5,9 +5,13 @@ import type {
   InventoryItemUomConversionsTableResponse,
 } from '@/schemas/inventory-item-uom-conversions';
 
-export function getInventoryItemUomConversionsTable(inventoryItemId: string): Promise<InventoryItemUomConversionsTableResponse> {
+export function getInventoryItemUomConversionsTable(
+  inventoryItemId: string,
+): Promise<InventoryItemUomConversionsTableResponse> {
   return axios
-    .get<InventoryItemUomConversionsTableResponse>(`commerce-api/inventory-items/${inventoryItemId}/uom-conversions/table`)
+    .get<InventoryItemUomConversionsTableResponse>(
+      `commerce-api/inventory-items/${inventoryItemId}/uom-conversions/table`,
+    )
     .then((r) => r.data);
 }
 
@@ -33,7 +37,10 @@ export function updateInventoryItemUomConversion(
     .then((r) => r.data);
 }
 
-export function deleteInventoryItemUomConversion(inventoryItemId: string, conversionId: string): Promise<SuccessResponse> {
+export function deleteInventoryItemUomConversion(
+  inventoryItemId: string,
+  conversionId: string,
+): Promise<SuccessResponse> {
   return axios
     .delete<SuccessResponse>(`commerce-api/inventory-items/${inventoryItemId}/uom-conversions/${conversionId}`)
     .then((r) => r.data);

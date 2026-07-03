@@ -17,7 +17,7 @@ export const AuthLayout: React.FC = () => {
         <div className="hidden sm:block fixed top-6 right-6 z-50">
           <ThemeToggle />
         </div>
-        <Card className="w-full max-w-[448px] border-border shadow-lg">
+        <Card className="w-full max-w-md border-border shadow-lg">
           <CardContent className="flex flex-col items-center py-16 text-center">
             <div className="flex items-center justify-center size-16 rounded-full bg-destructive/15 mb-4">
               <Building2 className="size-8 text-destructive" />
@@ -39,7 +39,7 @@ export const AuthLayout: React.FC = () => {
         <ThemeToggle />
       </div>
 
-      <Card className="w-full max-w-[448px] min-h-[60svh] border-border shadow-lg gap-0">
+      <Card className="w-full max-w-md min-h-[60svh] border-border shadow-lg gap-0">
         <CardHeader className="flex flex-col items-center pt-8 pb-4">
           {!isLoading && org ? (
             <>
@@ -52,7 +52,7 @@ export const AuthLayout: React.FC = () => {
               )}
               <h1 className="text-lg font-semibold">{org.name}</h1>
               <div className="flex items-center gap-1.5 mt-2 ">
-                <span className="text-[10px] text-muted-foreground">Powered by</span>
+                <span className="text-xs text-muted-foreground">Powered by</span>
                 <img src={logo} alt="Vritti" className="h-3.5 w-auto" />
               </div>
             </>

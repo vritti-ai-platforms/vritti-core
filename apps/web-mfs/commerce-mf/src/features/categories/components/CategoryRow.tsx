@@ -30,7 +30,7 @@ export const CategoryRow: React.FC<TreeRenderItemParams> = ({ item, isOpen }) =>
       </Typography>
       <div className="flex items-center gap-1 shrink-0 ml-auto">
         {childCount > 0 && (
-          <Badge variant="secondary" className="text-[10px] rounded-full px-1.5 py-0.5 leading-none">
+          <Badge variant="secondary" className="text-xs rounded-full px-1.5 py-0.5 leading-none">
             {childCount}
           </Badge>
         )}

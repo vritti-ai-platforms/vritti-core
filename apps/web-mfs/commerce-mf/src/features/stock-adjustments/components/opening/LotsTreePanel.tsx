@@ -59,7 +59,7 @@ const TreeRow = ({ uomSymbol }: { uomSymbol: string }) =>
         </Typography>
         <Badge
           variant="secondary"
-          className={`ml-auto text-[10px] rounded-full px-1.5 py-0.5 leading-none ${
+          className={`ml-auto text-xs rounded-full px-1.5 py-0.5 leading-none ${
             balanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
           }`}
         >

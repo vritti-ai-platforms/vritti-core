@@ -12,9 +12,9 @@ import { useCreateCategory, useUpdateCategory } from '@/hooks/categories';
 import {
   type CategoryData,
   type CategoryFormData,
-  categoryFormResolver,
   CategoryRoleLabels,
   CategoryRoleValues,
+  categoryFormResolver,
 } from '@/schemas/categories';
 
 const roleOptions = Object.values(CategoryRoleValues).map((value) => ({ value, label: CategoryRoleLabels[value] }));
