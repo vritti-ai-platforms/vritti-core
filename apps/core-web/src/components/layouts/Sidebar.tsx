@@ -1,3 +1,4 @@
+import type { PermissionFeature } from '@vritti/api-sdk/catalog-resolver';
 import { groupBy, sortBy, uniqBy } from '@vritti/quantum-ui/lodash';
 import { lockedTip, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { Sidebar as QSidebar, type SidebarNavGroup } from '@vritti/quantum-ui/Sidebar';
@@ -8,7 +9,6 @@ import { DynamicIcon, type IconName, iconNames } from 'lucide-react/dynamic';
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePermissionContext } from '../../providers/PermissionProvider';
-import type { PermissionFeature } from '../../services/permissions.service';
 
 // Returns a lucide component for a given icon name string, falls back to Box
 function resolveIcon(name: string | null): React.ComponentType<{ className?: string }> {

@@ -1,5 +1,6 @@
+import type { PermissionFeature } from '@vritti/api-sdk/catalog-resolver';
 import axios from '@vritti/quantum-ui/axios';
-import type { AssignedBU, PermissionFeature } from './permissions.service';
+import type { AssignedBU } from './permissions.service';
 
 export interface User {
   id: string;

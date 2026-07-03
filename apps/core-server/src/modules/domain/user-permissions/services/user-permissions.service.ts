@@ -7,21 +7,22 @@ import { NotFoundException } from '@vritti/api-sdk';
 import {
   type ClientPlatform,
   composeRoleGrants,
+  type FeatureUnlocks,
   type PermissionFeature,
   type RevokedGrants,
-  type RoleFeatureGrant,
   resolveUserFeatures,
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
+import type { BuType } from '@/db/schema';
 
 // Role grants joined per assignment at a BU — as returned by UserRoleAssignmentRepository.findByUserAndBU
-type AssignmentGrants = { features: Record<string, string[]>; code: string; revoked: RevokedGrants | null };
+type AssignmentGrants = { features: FeatureUnlocks; code: string; revoked: RevokedGrants | null };
 
 export interface AssignedBU {
   id: string;
   name: string;
   code: string | null;
-  type: string;
+  type: BuType;
   timezone: string;
   currencyCode: string;
 }
@@ -55,7 +56,7 @@ export class UserPermissionsService {
           id: bu.id,
           name: bu.name,
           code: bu.code,
-          type: bu.type as string,
+          type: bu.type,
           timezone: bu.timezone,
           currencyCode: bu.currencyCode,
         });
@@ -110,30 +111,28 @@ export class UserPermissionsService {
     assignment: AssignmentGrants,
     snapshot: VersionSnapshot | undefined,
     businessCode: string | undefined,
-  ): Record<string, RoleFeatureGrant> {
+  ): FeatureUnlocks {
     const baseFeatures =
       snapshot && businessCode
-        ? snapshot.businesses?.[businessCode]?.roleTemplates?.find((t) => t.code === assignment.code)?.features
+        ? snapshot.businesses?.[businessCode]?.roleTemplates?.[assignment.code]?.features
         : undefined;
     return composeRoleGrants({
       baseFeatures,
-      additions: (assignment.features ?? {}) as Record<string, RoleFeatureGrant>,
+      additions: assignment.features ?? {},
       revoked: assignment.revoked ?? undefined,
     });
   }
 
   // Merges the effective grants of all assignments additively per feature, per platform bucket.
-  // Legacy flat string[] grants apply to both buckets; undefined bucket = not a member there.
-  private mergeRoleGrants(grantSets: Record<string, RoleFeatureGrant>[]): Record<string, RoleFeatureGrant> {
-    const merged: Record<string, { web?: string[]; mobile?: string[] }> = {};
+  // Undefined bucket = not a member there.
+  private mergeRoleGrants(grantSets: FeatureUnlocks[]): FeatureUnlocks {
+    const merged: FeatureUnlocks = {};
     for (const features of grantSets) {
       for (const [code, grant] of Object.entries(features)) {
-        const web = Array.isArray(grant) ? grant : grant?.web;
-        const mobile = Array.isArray(grant) ? grant : grant?.mobile;
         merged[code] ??= {};
         const entry = merged[code];
-        if (web !== undefined) entry.web = [...new Set([...(entry.web ?? []), ...web])];
-        if (mobile !== undefined) entry.mobile = [...new Set([...(entry.mobile ?? []), ...mobile])];
+        if (grant.web !== undefined) entry.web = [...new Set([...(entry.web ?? []), ...grant.web])];
+        if (grant.mobile !== undefined) entry.mobile = [...new Set([...(entry.mobile ?? []), ...grant.mobile])];
       }
     }
     return merged;

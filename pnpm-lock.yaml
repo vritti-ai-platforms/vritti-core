@@ -411,6 +411,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.100.10
         version: 5.100.10(react@19.2.3)
+      '@vritti/api-sdk':
+        specifier: link:../../../api-sdk
+        version: link:../../../api-sdk
       '@vritti/quantum-ui':
         specifier: link:../../../quantum-ui
         version: link:../../../quantum-ui

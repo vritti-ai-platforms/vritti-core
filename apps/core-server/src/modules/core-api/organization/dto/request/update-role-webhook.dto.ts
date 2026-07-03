@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import type { RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
+import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
 import { Transform } from 'class-transformer';
 import { Allow, IsOptional, IsString } from 'class-validator';
 
@@ -18,7 +18,7 @@ export class UpdateRoleWebhookDto {
   @IsOptional()
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
-  features?: Record<string, { app?: string; web?: string[]; mobile?: string[] }>;
+  features?: FeatureUnlocks;
 
   @ApiPropertyOptional({ example: { products: { web: ['DELETE'], mobile: null } } })
   @IsOptional()

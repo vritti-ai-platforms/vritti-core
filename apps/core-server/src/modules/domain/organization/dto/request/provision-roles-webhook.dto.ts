@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
 import { Transform, Type } from 'class-transformer';
 import { Allow, IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateNested } from 'class-validator';
 
@@ -21,7 +22,7 @@ export class RoleItemDto {
   @ApiProperty({ example: { products: ['VIEW', 'CREATE'] } })
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })
-  features: Record<string, { app?: string; web?: string[]; mobile?: string[] }>;
+  features: FeatureUnlocks;
 }
 
 export class ProvisionRolesWebhookDto {

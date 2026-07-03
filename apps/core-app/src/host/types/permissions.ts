@@ -8,6 +8,16 @@ export interface AssignedBU {
   currencyCode: string;
 }
 
+export type LockReason = 'PLAN' | 'BU';
+
+// Mirrors @vritti/api-sdk/catalog-resolver LockedPermission (RN cannot depend on the server SDK)
+export interface LockedPermission {
+  code: string;
+  reason: LockReason | null;
+  unlockPlans: string[];
+}
+
+// Mirrors @vritti/api-sdk/catalog-resolver PermissionFeature (RN cannot depend on the server SDK)
 export interface PermissionFeature {
   code: string;
   name: string;
@@ -15,6 +25,11 @@ export interface PermissionFeature {
   sfSymbol: string;
   materialSymbol: string;
   permissions: string[];
+  // Lock overlay: feature-level lock + reason + the plans that would unlock it (upsell), plus per-permission locks
+  locked: boolean;
+  lockReason: LockReason | null;
+  unlockPlans: string[];
+  lockedPermissions: LockedPermission[];
   route: {
     remoteEntry: string;
     exposedModule: string;

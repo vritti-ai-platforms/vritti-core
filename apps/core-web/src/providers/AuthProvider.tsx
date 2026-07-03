@@ -1,7 +1,8 @@
 import { useAuthStatusStream } from '@hooks/auth/useAuthStatusStream';
+import type { AssignedBU } from '@services/permissions.service';
 import type { AuthOrg, User } from '@services/user.service';
-import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
 import { useQueryClient } from '@tanstack/react-query';
+import type { PermissionFeature } from '@vritti/api-sdk/catalog-resolver';
 import { clearToken } from '@vritti/quantum-ui/axios';
 import { getLocale, setLocale } from '@vritti/quantum-ui/locale';
 import { getUserTimeZone, setUserTimeZone } from '@vritti/quantum-ui/timezone';

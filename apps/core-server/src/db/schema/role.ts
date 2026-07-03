@@ -1,4 +1,4 @@
-import type { RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
+import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
 import { boolean, jsonb, text, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 
 import { coreSchema } from './core-schema';
@@ -16,11 +16,8 @@ export const roles = coreSchema.table(
     // The template this role builds on — effective grants composed at read time from the active snapshot.
     // A role with zero deltas (empty features + revoked) is a "default" role that tracks its template exactly.
     code: varchar('code', { length: 255 }).notNull(),
-    // featureCode → { app: appCode, granted permission codes per platform } — the role's grants, app stamped
-    features: jsonb('features')
-      .$type<Record<string, { app?: string; web?: string[]; mobile?: string[] }>>()
-      .notNull()
-      .default({}),
+    // featureCode → granted permission codes per platform bucket — the role's own grant deltas
+    features: jsonb('features').$type<FeatureUnlocks>().notNull().default({}),
     // Inherited grants removed from the base — null platform revokes membership, string[] revokes codes
     revoked: jsonb('revoked').$type<RevokedGrants>(),
     isActive: boolean('is_active').notNull().default(true),

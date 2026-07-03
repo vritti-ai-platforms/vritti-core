@@ -1,4 +1,5 @@
-import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
+import type { AssignedBU } from '@services/permissions.service';
+import type { PermissionFeature } from '@vritti/api-sdk/catalog-resolver';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
 import {
   type PermissionGate,

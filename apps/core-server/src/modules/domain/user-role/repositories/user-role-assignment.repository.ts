@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import type { RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
+import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { businessUnits, roles, type UserRoleAssignment, userRoleAssignments, users } from '@/db/schema';
 
@@ -65,8 +65,8 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
   async findByUserAndBU(
     userId: string,
     buId: string,
-  ): Promise<{ features: Record<string, string[]>; code: string; revoked: RevokedGrants | null }[]> {
-    const rows = await this.db
+  ): Promise<{ features: FeatureUnlocks; code: string; revoked: RevokedGrants | null }[]> {
+    return this.db
       .select({
         features: roles.features,
         code: roles.code,
@@ -75,12 +75,6 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
       .from(userRoleAssignments)
       .innerJoin(roles, eq(roles.id, userRoleAssignments.roleId))
       .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.businessUnitId, buId)));
-
-    return rows as unknown as {
-      features: Record<string, string[]>;
-      code: string;
-      revoked: RevokedGrants | null;
-    }[];
   }
 
   // Finds the user's single assignment within a business unit (one role per user per BU)
