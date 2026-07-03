@@ -1,4 +1,4 @@
-import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
 

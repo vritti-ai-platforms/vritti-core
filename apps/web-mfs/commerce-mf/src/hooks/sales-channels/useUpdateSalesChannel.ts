@@ -1,6 +1,6 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { type UpdateSalesChannelPayload, updateSalesChannel } from '@/services/sales-channels.service';
 import { SALES_CHANNEL_KEY, SALES_CHANNELS_TABLE_KEY } from './keys';

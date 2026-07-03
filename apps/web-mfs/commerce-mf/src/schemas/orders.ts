@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
 const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);

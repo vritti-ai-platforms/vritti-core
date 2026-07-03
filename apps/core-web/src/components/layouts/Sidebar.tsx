@@ -1,9 +1,9 @@
-import type { PermissionFeature } from '@vritti/api-sdk/catalog-resolver';
 import { groupBy, sortBy, uniqBy } from '@vritti/quantum-ui/lodash';
 import { lockedTip, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { Sidebar as QSidebar, type SidebarNavGroup } from '@vritti/quantum-ui/Sidebar';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
+import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
 import { Box } from 'lucide-react';
 import { DynamicIcon, type IconName, iconNames } from 'lucide-react/dynamic';
 import { useMemo } from 'react';

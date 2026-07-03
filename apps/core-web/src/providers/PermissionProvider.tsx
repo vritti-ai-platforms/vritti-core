@@ -1,5 +1,4 @@
 import type { AssignedBU } from '@services/permissions.service';
-import type { PermissionFeature } from '@vritti/api-sdk/catalog-resolver';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
 import {
   type PermissionGate,
@@ -8,6 +7,7 @@ import {
 } from '@vritti/quantum-ui/PermissionGate';
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
+import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';

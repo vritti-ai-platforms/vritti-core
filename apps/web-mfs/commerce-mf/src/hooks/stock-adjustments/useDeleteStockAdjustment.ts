@@ -1,6 +1,6 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { deleteStockAdjustment } from '@/services/stock-adjustments.service';
 import { STOCK_ADJUSTMENTS_TABLE_KEY } from './keys';

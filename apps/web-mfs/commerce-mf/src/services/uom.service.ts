@@ -1,5 +1,5 @@
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { CreateUomData, CreateUomResponse, UomTableResponse, UpdateUomData } from '@/schemas/uom';
 
 // Fetches UOM table for a dimension with server-side pagination/sorting/filtering

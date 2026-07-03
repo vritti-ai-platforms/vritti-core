@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodPhoneField } from '@vritti/quantum-ui/zod';
 
 export const createCustomerSchema = z.object({

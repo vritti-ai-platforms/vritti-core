@@ -1,6 +1,6 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { INVOICES_TABLE_KEY } from '@/hooks/invoices';
 import { type ApplyCreditNotePayload, applyCreditNote } from '@/services/credit-notes.service';

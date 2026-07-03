@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
 export const SALES_CHANNEL_KIND_VALUES = ['IN_STORE', 'ONLINE', 'ZOMATO', 'SWIGGY', 'OTHER'] as const;

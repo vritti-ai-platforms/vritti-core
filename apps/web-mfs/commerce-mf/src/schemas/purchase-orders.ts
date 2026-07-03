@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export const ExchangeRateTypeEnum = z.enum(['FIXED', 'VARIABLE']);

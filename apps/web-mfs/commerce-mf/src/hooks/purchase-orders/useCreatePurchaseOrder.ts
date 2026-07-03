@@ -1,6 +1,6 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { CreateResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { PurchaseOrderData } from '@/schemas/purchase-orders';
 import { type CreatePurchaseOrderPayload, createPurchaseOrder } from '@/services/purchase-orders.service';

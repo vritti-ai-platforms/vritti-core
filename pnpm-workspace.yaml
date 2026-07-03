@@ -19,8 +19,8 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
-  '@vritti/api-sdk': link:../api-sdk
-  '@vritti/quantum-ui': link:../quantum-ui
+  # '@vritti/api-sdk': link:../api-sdk
+  # '@vritti/quantum-ui': link:../quantum-ui
   '@vritti/quantum-ui-native': link:../quantum-ui-native
   lightningcss: 1.30.1
   # Force RN-0.83-compatible native-menu versions — zeego 3.0.6 pins pre-RN-0.81 versions
