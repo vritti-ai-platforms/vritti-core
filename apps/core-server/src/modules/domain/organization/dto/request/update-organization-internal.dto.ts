@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { OrgSizeValues } from '@/db/schema';
 
-export class UpdateOrganizationWebhookDto {
+export class UpdateOrganizationInternalDto {
   @ApiPropertyOptional({ example: 'Acme Corp' })
   @IsOptional()
   @IsString()

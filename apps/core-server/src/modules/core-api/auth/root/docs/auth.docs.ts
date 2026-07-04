@@ -45,7 +45,7 @@ export function ApiSetPassword() {
     ApiOperation({
       summary: 'Set password for first login',
       description:
-        'Sets a password for a nexus user who was created via webhook. Requires a SET_PASSWORD session token. Invalidates the session on success — user must log in again.',
+        'Sets a password for a nexus user who was created by cloud. Requires a SET_PASSWORD session token. Invalidates the session on success — user must log in again.',
     }),
     ApiBody({ type: SetPasswordDto }),
     ApiResponse({ status: 200, description: 'Password set successfully.', type: MessageResponseDto }),

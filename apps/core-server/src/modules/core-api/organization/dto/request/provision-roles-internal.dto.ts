@@ -25,7 +25,7 @@ export class RoleItemDto {
   features: FeatureUnlocks;
 }
 
-export class ProvisionRolesWebhookDto {
+export class ProvisionRolesInternalDto {
   @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
   @IsUUID()
   orgId: string;

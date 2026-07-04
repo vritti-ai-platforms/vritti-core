@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { UserStatusValues } from '@/db/schema';
 
-export class UpdateUserWebhookDto {
+export class UpdateUserInternalDto {
   @ApiPropertyOptional({ example: 'jane@example.com' })
   @IsOptional()
   @IsEmail()

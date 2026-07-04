@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { AssignmentTypeValues } from '@/db/schema';
 
-export class AssignRoleWebhookDto {
+export class AssignRoleInternalDto {
   @ApiProperty({ description: 'Role ID', example: 'uuid-here' })
   @IsUUID()
   roleId: string;

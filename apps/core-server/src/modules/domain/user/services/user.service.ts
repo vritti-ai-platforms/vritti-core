@@ -21,8 +21,8 @@ import { EmailService } from '@vritti/api-sdk/email';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { UserDto } from '../dto/entity/user.dto';
-import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
-import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
+import { CreateUserInternalDto } from '../dto/request/create-user-internal.dto';
+import { UpdateUserInternalDto } from '../dto/request/update-user-internal.dto';
 import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
 import { UserRepository } from '../repositories/user.repository';
 
@@ -77,8 +77,8 @@ export class UserService {
     });
   }
 
-  // Creates a portal user from cloud-server webhook and sends invite email
-  async createFromWebhook(dto: CreateUserWebhookDto): Promise<SuccessResponseDto> {
+  // Creates a portal user from a cloud-server internal request and sends invite email
+  async createFromCloud(dto: CreateUserInternalDto): Promise<SuccessResponseDto> {
     const existingUser = await this.userRepository.findByEmailAndOrg(dto.email, dto.orgId);
     if (existingUser) {
       throw new ConflictException({
@@ -100,7 +100,7 @@ export class UserService {
       ...(dto.phoneCountry && { phoneCountry: dto.phoneCountry }),
     });
 
-    this.logger.log(`Created portal user from webhook: ${user.email} (${user.id})`);
+    this.logger.log(`Created portal user from cloud: ${user.email} (${user.id})`);
 
     const org = await this.organizationRepository.findById(dto.orgId);
     if (!org) throw new NotFoundException('Organization not found.');
@@ -203,8 +203,8 @@ export class UserService {
     return { result: rows.map(UserDto.from), count: total };
   }
 
-  // Updates a portal user's details from cloud-server webhook
-  async updateFromWebhook(id: string, dto: UpdateUserWebhookDto): Promise<SuccessResponseDto> {
+  // Updates a portal user's details from a cloud-server internal request
+  async updateFromCloud(id: string, dto: UpdateUserInternalDto): Promise<SuccessResponseDto> {
     const user = await this.userRepository.findById(id);
     if (!user) throw new NotFoundException('User not found.');
 

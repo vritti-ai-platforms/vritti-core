@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ForbiddenException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import { type OrgEntitlement, type SignedDocument, verifyDocument } from '@vritti/api-sdk/license';
+import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
+import { verifyDocument } from '@vritti/api-sdk/signing';
 import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import type { OrgSize } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { OrganizationDto } from '../dto/entity/organization.dto';
-import { CreateOrganizationWebhookDto } from '../dto/request/create-organization-webhook.dto';
-import type { UpdateOrganizationWebhookDto } from '../dto/request/update-organization-webhook.dto';
+import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
+import type { UpdateOrganizationInternalDto } from '../dto/request/update-organization-internal.dto';
 import { OrganizationRepository } from '../repositories/organization.repository';
 
 @Injectable()
@@ -24,7 +25,7 @@ export class OrganizationService {
     private readonly eventEmitter: EventEmitter2,
     configService: ConfigService,
   ) {
-    this.licensePublicKey = configService.getOrThrow<string>('LICENSE_PUBLIC_KEY');
+    this.licensePublicKey = configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');
     this.deploymentId = configService.get<string>('DEPLOYMENT_ID');
   }
 
@@ -40,8 +41,8 @@ export class OrganizationService {
     return org ? OrganizationDto.from(org) : null;
   }
 
-  // Creates an organization from a cloud-server webhook payload
-  async createFromWebhook(dto: CreateOrganizationWebhookDto): Promise<OrganizationDto> {
+  // Creates an organization from a cloud-server internal request payload
+  async createFromCloud(dto: CreateOrganizationInternalDto): Promise<OrganizationDto> {
     const org = await this.organizationRepository.create({
       name: dto.name,
       subdomain: dto.subdomain,
@@ -50,13 +51,13 @@ export class OrganizationService {
       logoUrl: dto.logoUrl,
     });
 
-    this.logger.log(`Created organization from webhook: ${org.subdomain} (${org.id})`);
+    this.logger.log(`Created organization from cloud: ${org.subdomain} (${org.id})`);
 
     return OrganizationDto.from(org);
   }
 
-  // Updates an organization from a cloud-server webhook payload
-  async updateFromWebhook(id: string, dto: UpdateOrganizationWebhookDto): Promise<SuccessResponseDto> {
+  // Updates an organization from a cloud-server internal request payload
+  async updateFromCloud(id: string, dto: UpdateOrganizationInternalDto): Promise<SuccessResponseDto> {
     const org = await this.organizationRepository.findById(id);
     if (!org) throw new NotFoundException('Organization not found.');
 
@@ -67,7 +68,7 @@ export class OrganizationService {
       updatedAt: new Date(),
     });
 
-    this.logger.log(`Updated organization from webhook: ${org.subdomain} (${id})`);
+    this.logger.log(`Updated organization from cloud: ${org.subdomain} (${id})`);
     return { success: true, message: 'Organization updated successfully.' };
   }
 
@@ -126,14 +127,14 @@ export class OrganizationService {
     }
   }
 
-  // Deletes an organization from a cloud-server webhook
-  async deleteFromWebhook(id: string): Promise<SuccessResponseDto> {
+  // Deletes an organization from a cloud-server internal request
+  async deleteFromCloud(id: string): Promise<SuccessResponseDto> {
     const org = await this.organizationRepository.findById(id);
     if (!org) throw new NotFoundException('Organization not found.');
 
     await this.organizationRepository.delete(id);
 
-    this.logger.log(`Deleted organization from webhook: ${org.subdomain} (${id})`);
+    this.logger.log(`Deleted organization from cloud: ${org.subdomain} (${id})`);
     return { success: true, message: 'Organization deleted successfully.' };
   }
 }

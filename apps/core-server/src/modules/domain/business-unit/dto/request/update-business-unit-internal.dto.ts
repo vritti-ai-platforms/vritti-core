@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 import { BuTypeValues } from '@/db/schema';
 
-export class UpdateBusinessUnitWebhookDto {
+export class UpdateBusinessUnitInternalDto {
   @ApiPropertyOptional({ example: 'US East Region' })
   @IsOptional()
   @IsString()

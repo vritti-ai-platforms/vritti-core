@@ -3,7 +3,7 @@ import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-reso
 import { Transform } from 'class-transformer';
 import { Allow, IsOptional, IsString } from 'class-validator';
 
-export class UpdateRoleWebhookDto {
+export class UpdateRoleInternalDto {
   @ApiPropertyOptional({ example: 'Inventory Manager' })
   @IsOptional()
   @IsString()

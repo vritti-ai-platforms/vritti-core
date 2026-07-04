@@ -1,15 +1,15 @@
-import { Module } from '@nestjs/common';
 import { UserDomainModule } from '@domain/user/user.module';
 import { UserRoleDomainModule } from '@domain/user-role/user-role.module';
-import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
-import { WebhookSessionInterceptor } from '@/common/interceptors/webhook-session.interceptor';
-import { UserRoleController } from './controllers/user-role.controller';
+import { Module } from '@nestjs/common';
+import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
+import { OrgScopeInterceptor } from '@/common/interceptors/org-scope.interceptor';
 import { UserController } from './controllers/user.controller';
+import { UserRoleController } from './controllers/user-role.controller';
 import { UserResolver } from './resolvers/user.resolver';
 
 @Module({
   imports: [UserDomainModule, UserRoleDomainModule],
   controllers: [UserController, UserRoleController],
-  providers: [WebhookSecretGuard, WebhookSessionInterceptor, UserResolver],
+  providers: [CloudSignatureGuard, OrgScopeInterceptor, UserResolver],
 })
 export class UserApiModule {}

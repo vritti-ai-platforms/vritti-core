@@ -3,7 +3,7 @@ import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-reso
 import { Transform } from 'class-transformer';
 import { Allow, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class CreateRoleWebhookDto {
+export class CreateRoleInternalDto {
   @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
   @IsUUID()
   orgId: string;

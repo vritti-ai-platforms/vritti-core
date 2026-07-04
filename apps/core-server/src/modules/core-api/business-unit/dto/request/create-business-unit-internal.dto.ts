@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
 import { BuTypeValues } from '@/db/schema';
 
-export class CreateBusinessUnitWebhookDto {
+export class CreateBusinessUnitInternalDto {
   @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
   @IsUUID()
   orgId: string;

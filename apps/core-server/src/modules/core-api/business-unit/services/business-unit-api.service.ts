@@ -4,9 +4,9 @@ import { Injectable } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk';
 import type { UserRoleAssignment } from '@/db/schema';
 import type { BusinessUnitDto } from '../dto/entity/business-unit.dto';
-import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import type { SetBuLocksWebhookDto } from '../dto/request/set-bu-locks-webhook.dto';
-import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
+import type { CreateBusinessUnitInternalDto } from '../dto/request/create-business-unit-internal.dto';
+import type { SetBuLocksInternalDto } from '../dto/request/set-bu-locks-internal.dto';
+import type { UpdateBusinessUnitInternalDto } from '../dto/request/update-business-unit-internal.dto';
 
 @Injectable()
 export class BusinessUnitApiService {
@@ -16,7 +16,7 @@ export class BusinessUnitApiService {
   ) {}
 
   // Creates a new business unit
-  async create(orgId: string, dto: CreateBusinessUnitWebhookDto): Promise<BusinessUnitDto> {
+  async create(orgId: string, dto: CreateBusinessUnitInternalDto): Promise<BusinessUnitDto> {
     return this.businessUnitService.create(orgId, dto);
   }
 
@@ -38,12 +38,12 @@ export class BusinessUnitApiService {
   }
 
   // Replaces the business unit's feature lock deny-list (null = inherit the full plan)
-  async setFeatureLocks(id: string, dto: SetBuLocksWebhookDto): Promise<SuccessResponseDto> {
+  async setFeatureLocks(id: string, dto: SetBuLocksInternalDto): Promise<SuccessResponseDto> {
     return this.businessUnitService.setFeatureLocks(id, dto.featureLocks ?? null);
   }
 
   // Updates a business unit
-  async update(id: string, dto: UpdateBusinessUnitWebhookDto): Promise<SuccessResponseDto> {
+  async update(id: string, dto: UpdateBusinessUnitInternalDto): Promise<SuccessResponseDto> {
     return this.businessUnitService.update(id, dto);
   }
 

@@ -3,7 +3,7 @@ import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator
 import type { OrgPlan, OrgSize } from '@/db/schema';
 import { OrgPlanValues, OrgSizeValues } from '@/db/schema';
 
-export class CreateOrganizationWebhookDto {
+export class CreateOrganizationInternalDto {
   @ApiProperty({ description: 'Organization name', example: 'Acme Corp' })
   @IsString()
   @IsNotEmpty()

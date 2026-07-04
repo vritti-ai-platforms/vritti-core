@@ -59,7 +59,7 @@ const CORS_CONFIG = {
   origin: CORS_ORIGINS,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Webhook-Secret'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
 };
 
 // ============================================================================
@@ -142,8 +142,8 @@ async function bootstrap() {
     },
   });
 
-  // Register raw body plugin for webhook signature validation
-  // global: true ensures rawBody is available for all routes (needed for webhooks)
+  // Register raw body plugin for request signature validation
+  // global: true ensures rawBody is available for all routes (needed for signed internal API requests)
   await app.register(fastifyRawBody, {
     field: 'rawBody',
     global: true,

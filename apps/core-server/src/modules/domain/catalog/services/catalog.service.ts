@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ForbiddenException, NotFoundException, type SuccessResponseDto } from '@vritti/api-sdk';
 import { type VersionSnapshot } from '@vritti/api-sdk/catalog-resolver';
-import { type CatalogLicense, hashSnapshot, type SignedDocument, verifyDocument } from '@vritti/api-sdk/license';
+import { type CatalogLicense, hashSnapshot, type SignedDocument } from '@vritti/api-sdk/license';
+import { verifyDocument } from '@vritti/api-sdk/signing';
 import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { CatalogRepository } from '../repositories/catalog.repository';
@@ -23,7 +24,7 @@ export class CatalogService {
     private readonly eventEmitter: EventEmitter2,
     configService: ConfigService,
   ) {
-    this.publicKey = configService.getOrThrow<string>('LICENSE_PUBLIC_KEY');
+    this.publicKey = configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');
     this.deploymentId = configService.get<string>('DEPLOYMENT_ID');
   }
 

@@ -129,13 +129,9 @@ class EnvironmentVariables {
   @Min(1)
   OTP_MAX_ATTEMPTS: number;
 
-  // Webhook
+  // Cloud deployment public key (Ed25519, base64 spki DER) — verifies signed internal API requests and licenses
   @IsString()
-  NEXUS_WEBHOOK_SECRET: string;
-
-  // Catalog license (Ed25519 public key, base64 spki DER)
-  @IsString()
-  LICENSE_PUBLIC_KEY: string;
+  CLOUD_PUBLIC_KEY: string;
 
   @IsString()
   @IsOptional()

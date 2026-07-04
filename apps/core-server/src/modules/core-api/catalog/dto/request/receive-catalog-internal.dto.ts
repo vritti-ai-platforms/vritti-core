@@ -3,7 +3,7 @@ import type { CatalogLicense, SignedDocument } from '@vritti/api-sdk/license';
 import { Type } from 'class-transformer';
 import { IsObject, IsString } from 'class-validator';
 
-export class ReceiveCatalogWebhookDto implements SignedDocument<CatalogLicense> {
+export class ReceiveCatalogInternalDto implements SignedDocument<CatalogLicense> {
   // Signed as-is — validated cryptographically in CatalogService, not field-by-field here.
   // @Type(() => Object) pins the type so implicit conversion doesn't coerce nested arrays.
   @ApiProperty({

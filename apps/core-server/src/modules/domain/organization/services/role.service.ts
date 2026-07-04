@@ -8,9 +8,9 @@ import {
   SuccessResponseDto,
 } from '@vritti/api-sdk';
 import type { Role } from '@/db/schema';
-import type { CreateRoleWebhookDto } from '../dto/request/create-role-webhook.dto';
-import type { RoleItemDto } from '../dto/request/provision-roles-webhook.dto';
-import type { UpdateRoleWebhookDto } from '../dto/request/update-role-webhook.dto';
+import type { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
+import type { RoleItemDto } from '../dto/request/provision-roles-internal.dto';
+import type { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
 import { RoleRepository } from '../repositories/role.repository';
 
 @Injectable()
@@ -57,7 +57,7 @@ export class RoleService {
   }
 
   // Creates a single role and returns it so the caller can navigate to the new record
-  async create(orgId: string, dto: CreateRoleWebhookDto): Promise<CreateResponseDto<Role>> {
+  async create(orgId: string, dto: CreateRoleInternalDto): Promise<CreateResponseDto<Role>> {
     const existing = await this.roleRepository.findByOrgAndName(orgId, dto.name);
     if (existing) {
       throw new ConflictException({
@@ -81,7 +81,7 @@ export class RoleService {
   }
 
   // Updates role metadata and optionally replaces its features
-  async update(roleId: string, dto: UpdateRoleWebhookDto): Promise<SuccessResponseDto> {
+  async update(roleId: string, dto: UpdateRoleInternalDto): Promise<SuccessResponseDto> {
     const role = await this.roleRepository.findById(roleId);
     if (!role) throw new NotFoundException('Role not found.');
 

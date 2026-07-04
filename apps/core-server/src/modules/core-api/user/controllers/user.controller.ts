@@ -1,3 +1,4 @@
+import { UserService } from '@domain/user/services/user.service';
 import {
   Body,
   Controller,
@@ -12,23 +13,29 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, RequireSession, SelectOptionsQueryDto, type SelectQueryResult, SkipCsrf, SuccessResponseDto } from '@vritti/api-sdk';
-import { SessionTypeValues } from '@/db/schema';
-import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
 import {
-  ApiCreateUserWebhook,
-  ApiGetOrganizationsByEmail,
-  ApiGetUsersWebhook,
-  ApiResendInviteWebhook,
-  ApiUpdateUserWebhook,
-} from '../docs/user.docs';
+  Public,
+  RequireSession,
+  SelectOptionsQueryDto,
+  type SelectQueryResult,
+  SkipCsrf,
+  SuccessResponseDto,
+} from '@vritti/api-sdk';
+import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
+import { SessionTypeValues } from '@/db/schema';
 import { MobileLookupDto } from '../../auth/root/dto/request/mobile-lookup.dto';
 import { MobileLookupResponseDto } from '../../auth/root/dto/response/mobile-lookup-response.dto';
-import { CreateUserWebhookDto } from '../dto/request/create-user-webhook.dto';
-import { GetUsersWebhookDto } from '../dto/request/get-users-webhook.dto';
-import { UpdateUserWebhookDto } from '../dto/request/update-user-webhook.dto';
+import {
+  ApiCreateUser,
+  ApiGetOrganizationsByEmail,
+  ApiGetUsers,
+  ApiResendInvite,
+  ApiUpdateUser,
+} from '../docs/user.docs';
+import { CreateUserInternalDto } from '../dto/request/create-user-internal.dto';
+import { GetUsersInternalDto } from '../dto/request/get-users-internal.dto';
+import { UpdateUserInternalDto } from '../dto/request/update-user-internal.dto';
 import type { UsersTableResponseDto } from '../dto/response/users-table-response.dto';
-import { UserService } from '@domain/user/services/user.service';
 
 @ApiTags('Users')
 @Controller('users')
@@ -54,24 +61,24 @@ export class UserController {
     return this.userService.findForSelect(query);
   }
 
-  // Receives user creation from cloud-server via webhook and upserts in nexus
-  @Post('webhook')
+  // Receives user creation from cloud-server via the internal API and upserts in nexus
+  @Post('internal')
   @Public()
-  @UseGuards(WebhookSecretGuard)
+  @UseGuards(CloudSignatureGuard)
   @HttpCode(HttpStatus.CREATED)
-  @ApiCreateUserWebhook()
-  async createFromWebhook(@Body() dto: CreateUserWebhookDto): Promise<SuccessResponseDto> {
-    this.logger.log('POST /api/users/webhook');
-    return this.userService.createFromWebhook(dto);
+  @ApiCreateUser()
+  async createFromCloud(@Body() dto: CreateUserInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log('POST /api/users/internal');
+    return this.userService.createFromCloud(dto);
   }
 
   // Returns paginated, filtered, and sorted portal users for the data table
-  @Get('webhook')
+  @Get('internal')
   @Public()
-  @UseGuards(WebhookSecretGuard)
-  @ApiGetUsersWebhook()
-  async getUsersByOrg(@Query() dto: GetUsersWebhookDto): Promise<UsersTableResponseDto> {
-    this.logger.log(`GET /users/webhook?orgId=${dto.orgId}`);
+  @UseGuards(CloudSignatureGuard)
+  @ApiGetUsers()
+  async getUsersByOrg(@Query() dto: GetUsersInternalDto): Promise<UsersTableResponseDto> {
+    this.logger.log(`GET /users/internal?orgId=${dto.orgId}`);
     const filters = dto.filters ? JSON.parse(dto.filters) : [];
     const search = dto.search ? JSON.parse(dto.search) : null;
     const sort = dto.sort ? JSON.parse(dto.sort) : [];
@@ -79,23 +86,23 @@ export class UserController {
   }
 
   // Updates a portal user's details
-  @Patch('webhook/:id')
+  @Patch('internal/:id')
   @Public()
-  @UseGuards(WebhookSecretGuard)
-  @ApiUpdateUserWebhook()
-  async updateFromWebhook(@Param('id') id: string, @Body() dto: UpdateUserWebhookDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /users/webhook/${id}`);
-    return this.userService.updateFromWebhook(id, dto);
+  @UseGuards(CloudSignatureGuard)
+  @ApiUpdateUser()
+  async updateFromCloud(@Param('id') id: string, @Body() dto: UpdateUserInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /users/internal/${id}`);
+    return this.userService.updateFromCloud(id, dto);
   }
 
   // Resends invitation email to a pending user with a fresh SET_PASSWORD token
-  @Post('webhook/:id/resend-invite')
+  @Post('internal/:id/resend-invite')
   @Public()
-  @UseGuards(WebhookSecretGuard)
+  @UseGuards(CloudSignatureGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiResendInviteWebhook()
+  @ApiResendInvite()
   async resendInvite(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /api/users/webhook/${id}/resend-invite`);
+    this.logger.log(`POST /api/users/internal/${id}/resend-invite`);
     return this.userService.resendInvite(id);
   }
 }

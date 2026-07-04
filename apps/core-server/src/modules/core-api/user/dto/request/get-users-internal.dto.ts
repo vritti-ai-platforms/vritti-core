@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
-export class GetUsersWebhookDto {
+export class GetUsersInternalDto {
   @ApiProperty({ description: 'Organisation ID to fetch users for', example: 'uuid-here' })
   @IsUUID()
   orgId: string;

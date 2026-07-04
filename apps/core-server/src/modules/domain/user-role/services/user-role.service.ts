@@ -3,7 +3,7 @@ import { RoleRepository } from '@domain/organization/repositories/role.repositor
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import type { AssignmentType, UserRoleAssignment } from '@/db/schema';
-import type { AssignRoleWebhookDto } from '../dto/request/assign-role-webhook.dto';
+import type { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
 import { UserRoleAssignmentRepository } from '../repositories/user-role-assignment.repository';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class UserRoleService {
   ) {}
 
   // Assigns (or replaces) a user's single role within a business unit
-  async assignRole(userId: string, dto: AssignRoleWebhookDto): Promise<SuccessResponseDto> {
+  async assignRole(userId: string, dto: AssignRoleInternalDto): Promise<SuccessResponseDto> {
     // Validate role exists
     const role = await this.roleRepository.findById(dto.roleId);
     if (!role) throw new NotFoundException('Role not found.');

@@ -58,7 +58,7 @@ export class CatalogRepository extends PrimaryBaseRepository<typeof catalogs> {
     return stale.length;
   }
 
-  // Returns every business unit id across all organizations (webhook path runs without an RLS org context)
+  // Returns every business unit id across all organizations (internal cloud request runs without an RLS org context)
   async findAllBusinessUnitIds(): Promise<string[]> {
     const rows = await this.db.select({ id: businessUnits.id }).from(businessUnits);
     return rows.map((r) => r.id);

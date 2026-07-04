@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class CreateUserWebhookDto {
+export class CreateUserInternalDto {
   @ApiProperty({ description: 'Nexus organisation ID', example: 'uuid-here' })
   @IsUUID()
   @IsNotEmpty()
@@ -20,4 +20,9 @@ export class CreateUserWebhookDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @ApiPropertyOptional({ description: 'Phone country code (ISO 3166-1 alpha-2)', example: 'IN' })
+  @IsString()
+  @IsOptional()
+  phoneCountry?: string;
 }
