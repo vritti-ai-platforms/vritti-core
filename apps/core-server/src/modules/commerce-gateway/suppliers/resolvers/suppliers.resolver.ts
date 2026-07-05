@@ -15,7 +15,7 @@ export class SuppliersResolver {
 
   constructor(private readonly suppliersGatewayService: SuppliersGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'suppliersOptions' })
   async suppliersOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

@@ -7,7 +7,7 @@ import { InventoryItemSerialsGatewayService } from './services/inventory-item-se
 
 @ApiTags('Commerce - Inventory Item Serials')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('inventory-item-serials')
 export class InventoryItemSerialsGatewayController {
   private readonly logger = new Logger(InventoryItemSerialsGatewayController.name);
@@ -15,7 +15,7 @@ export class InventoryItemSerialsGatewayController {
   constructor(private readonly service: InventoryItemSerialsGatewayService) {}
 
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   select(@Query() query: SerialsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-item-serials/select');
     return this.service.select(query);

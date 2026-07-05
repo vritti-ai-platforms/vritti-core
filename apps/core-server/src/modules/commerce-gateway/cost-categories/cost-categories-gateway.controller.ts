@@ -17,7 +17,7 @@ import { CostCategoriesGatewayService } from './services/cost-categories-gateway
 
 @ApiTags('Commerce - Cost Categories')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('cost-categories')
 export class CostCategoriesGatewayController {
   private readonly logger = new Logger(CostCategoriesGatewayController.name);

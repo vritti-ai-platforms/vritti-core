@@ -15,7 +15,7 @@ export class CategoriesResolver {
 
   constructor(private readonly categoriesGatewayService: CategoriesGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'categoriesOptions' })
   async categoriesOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

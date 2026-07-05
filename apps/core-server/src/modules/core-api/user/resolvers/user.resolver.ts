@@ -1,7 +1,7 @@
+import { UserService } from '@domain/user/services/user.service';
 import { Logger } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession, type SelectOptionsQueryDto } from '@vritti/api-sdk';
-import { UserService } from '@domain/user/services/user.service';
 import { SessionTypeValues } from '@/db/schema';
 import { SelectOptionsInput } from '../../../commerce-gateway/_shared/graphql/select.input';
 import { SelectOptions } from '../../../commerce-gateway/_shared/graphql/select.type';
@@ -15,7 +15,7 @@ export class UserResolver {
 
   constructor(private readonly userService: UserService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'usersOptions' })
   async usersOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

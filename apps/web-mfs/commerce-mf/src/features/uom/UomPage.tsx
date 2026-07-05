@@ -1,8 +1,10 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { PageContent, PageContentPanel } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { lockedTip, PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Layers, Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -33,7 +35,25 @@ export const UomPage = () => {
       />
 
       <PageContent>
-        <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
+        <PermissionGate
+          permission="uom.dim.view"
+          fallback={({ granted, reason, unlockPlans }) => (
+            <PageContentPanel
+              isEmpty
+              emptyState={
+                <Empty
+                  icon={<PermissionLockIcon reason={reason} />}
+                  title={granted ? 'Dimensions locked' : 'No access'}
+                  description={
+                    granted ? lockedTip({ reason, unlockPlans }) : 'You do not have access to view dimensions.'
+                  }
+                />
+              }
+            />
+          )}
+        >
+          <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
+        </PermissionGate>
         <UomDimensionDetailPanel dimensionId={selectedDimensionId} onDeleted={() => setSelectedDimensionId(null)} />
       </PageContent>
 

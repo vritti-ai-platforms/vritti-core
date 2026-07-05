@@ -215,7 +215,7 @@ export class PasswordResetService {
 
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       userId,
-      SessionTypeValues.NEXUS,
+      SessionTypeValues.WEB,
       {},
     );
 

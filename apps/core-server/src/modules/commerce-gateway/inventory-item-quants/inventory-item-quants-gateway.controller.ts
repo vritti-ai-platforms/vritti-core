@@ -7,7 +7,7 @@ import { InventoryItemQuantsGatewayService } from './services/inventory-item-qua
 
 @ApiTags('Commerce - Inventory Item Batches')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('inventory-item-quants')
 export class InventoryItemQuantsGatewayController {
   private readonly logger = new Logger(InventoryItemQuantsGatewayController.name);
@@ -15,7 +15,7 @@ export class InventoryItemQuantsGatewayController {
   constructor(private readonly service: InventoryItemQuantsGatewayService) {}
 
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   select(@Query() query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/inventory-item-quants/select');
     return this.service.select(query);

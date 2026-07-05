@@ -2,9 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import { type BuFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
-import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
+import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import type { BuMetadata, BuType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitInternalDto } from '../dto/request/create-business-unit-internal.dto';
 import type { UpdateBusinessUnitInternalDto } from '../dto/request/update-business-unit-internal.dto';
@@ -23,6 +24,7 @@ export class BusinessUnitService {
   constructor(
     private readonly businessUnitRepository: BusinessUnitRepository,
     private readonly buContextCache: BuContextCacheService,
+    private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -98,7 +100,7 @@ export class BusinessUnitService {
       updatedAt: new Date(),
     });
 
-    this.buContextCache.invalidate(id);
+    await this.buContextCache.invalidate(id);
 
     // Re-push fresh auth-state to live SSE connections of users in this BU (timezone/currency changed)
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
@@ -114,7 +116,8 @@ export class BusinessUnitService {
 
     await this.businessUnitRepository.update(id, { featureLocks, updatedAt: new Date() });
 
-    this.buContextCache.invalidate(id);
+    await this.buContextCache.invalidate(id);
+    await this.permissionSetCache.invalidateByBu(id);
     // Push the refreshed feature set to live SSE connections of users in this BU
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
 
@@ -139,7 +142,7 @@ export class BusinessUnitService {
 
     await this.businessUnitRepository.delete(id);
 
-    this.buContextCache.invalidate(id);
+    await this.buContextCache.invalidate(id);
     this.logger.log(`Deleted business unit "${bu.name}" (${id})`);
     return { success: true, message: 'Business unit deleted successfully.' };
   }

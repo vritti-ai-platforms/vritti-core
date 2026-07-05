@@ -2,9 +2,9 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import type { SerialsSelectQueryDto } from '../dto/request/serials-select-query.dto';
 import { SelectOptionsInput } from '../../_shared/graphql/select.input';
 import { SelectOptions } from '../../_shared/graphql/select.type';
+import type { SerialsSelectQueryDto } from '../dto/request/serials-select-query.dto';
 import { InventoryItemSerialsGatewayService } from '../services/inventory-item-serials-gateway.service';
 
 // GraphQL options query for the Serial Select dropdown. Thin forward to the existing gateway `.select()`
@@ -16,7 +16,7 @@ export class InventoryItemSerialsResolver {
 
   constructor(private readonly inventoryItemSerialsGatewayService: InventoryItemSerialsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'inventoryItemSerialsOptions' })
   async inventoryItemSerialsOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

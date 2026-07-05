@@ -9,11 +9,13 @@ import {
   composeRoleGrants,
   type FeatureUnlocks,
   type PermissionFeature,
+  type PlatformBucket,
   type RevokedGrants,
   resolveUserFeatures,
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
 import type { BuType } from '@/db/schema';
+import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 
 // Role grants joined per assignment at a BU — as returned by UserRoleAssignmentRepository.findByUserAndBU
 type AssignmentGrants = { features: FeatureUnlocks; code: string; revoked: RevokedGrants | null };
@@ -36,7 +38,31 @@ export class UserPermissionsService {
     private readonly businessUnitRepository: BusinessUnitRepository,
     private readonly organizationRepository: OrganizationRepository,
     private readonly catalogService: CatalogService,
+    private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
+
+  // Resolves the API-enforceable enabled-permission set for a user at a BU on a platform (cache-first,
+  // DB fallback). The platform bucket comes from the session type (web vs mobile resolve to different sets).
+  // Enabled = granted ∧ not-locked: a plan/BU-locked permission is DENIED even though the UI only disables it.
+  async resolveEnabledPermissions(userId: string, buId: string, bucket: PlatformBucket = 'web'): Promise<Set<string>> {
+    const cached = await this.permissionSetCache.get(userId, buId, bucket);
+    if (cached) return cached;
+
+    // getPermissions collapses ClientPlatform → bucket internally; 'android' stands in for the mobile bucket
+    const { features } = await this.getPermissions(userId, buId, '', bucket === 'web' ? 'web' : 'android');
+
+    const enabled = new Set<string>();
+    for (const feature of features) {
+      if (feature.locked) continue;
+      const locked = new Set(feature.lockedPermissions.map((p) => p.code));
+      for (const perm of feature.permissions) {
+        if (!locked.has(perm)) enabled.add(`${feature.code}.${perm}`);
+      }
+    }
+
+    await this.permissionSetCache.set(userId, buId, bucket, enabled);
+    return enabled;
+  }
 
   // Returns distinct business units where the user has role assignments
   async getAssignedBusinessUnits(userId: string, orgId: string): Promise<AssignedBU[]> {

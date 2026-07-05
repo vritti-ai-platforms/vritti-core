@@ -18,7 +18,7 @@ import { UomGatewayService } from './services/uom-gateway.service';
 
 @ApiTags('Commerce - Units of Measure')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('uom')
 export class UomGatewayController {
   private readonly logger = new Logger(UomGatewayController.name);
@@ -41,7 +41,7 @@ export class UomGatewayController {
 
   // Returns paginated UOM options for select dropdowns; pass derivedOnly=true to filter to derived units only
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   select(@Query() query: UomSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/uom/select');
     return this.uomGatewayService.select(query);
@@ -49,10 +49,7 @@ export class UomGatewayController {
 
   // Returns paginated UOMs for the data table, scoped to a dimension
   @Get('dimension/:dimensionId/table')
-  findForTable(
-    @Param('dimensionId') dimensionId: string,
-    @UserId() userId: string,
-  ): Promise<UomTableResponseDto> {
+  findForTable(@Param('dimensionId') dimensionId: string, @UserId() userId: string): Promise<UomTableResponseDto> {
     this.logger.log(`GET /commerce-api/uom/dimension/${dimensionId}/table`);
     return this.uomGatewayService.findForTable(userId, dimensionId);
   }

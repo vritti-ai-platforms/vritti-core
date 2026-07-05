@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   type CreateResponseDto,
@@ -23,7 +36,7 @@ import { LocationsGatewayService } from './services/locations-gateway.service';
 
 @ApiTags('Commerce - Storage Locations')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('locations')
 export class LocationsGatewayController {
   private readonly logger = new Logger(LocationsGatewayController.name);
@@ -56,7 +69,7 @@ export class LocationsGatewayController {
 
   // Returns paginated location options for select dropdowns
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   select(@Query() query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/locations/select');
     return this.locationsGatewayService.select(query);

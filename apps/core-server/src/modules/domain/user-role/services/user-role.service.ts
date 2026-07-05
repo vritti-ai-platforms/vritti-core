@@ -3,6 +3,7 @@ import { RoleRepository } from '@domain/organization/repositories/role.repositor
 import { Injectable, Logger } from '@nestjs/common';
 import { NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import type { AssignmentType, UserRoleAssignment } from '@/db/schema';
+import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
 import { UserRoleAssignmentRepository } from '../repositories/user-role-assignment.repository';
 
@@ -14,6 +15,7 @@ export class UserRoleService {
     private readonly userRoleAssignmentRepository: UserRoleAssignmentRepository,
     private readonly roleRepository: RoleRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
+    private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 
   // Assigns (or replaces) a user's single role within a business unit
@@ -33,6 +35,7 @@ export class UserRoleService {
         return { success: true, message: 'Role already assigned.' };
       }
       await this.userRoleAssignmentRepository.update(existing.id, { roleId: dto.roleId, updatedAt: new Date() });
+      await this.permissionSetCache.invalidate(userId, dto.businessUnitId);
       this.logger.log(`Updated role to "${role.name}" for user ${userId} in BU "${bu.name}"`);
       return { success: true, message: 'Role updated successfully.' };
     }
@@ -44,6 +47,7 @@ export class UserRoleService {
       assignmentType: (dto.assignmentType as AssignmentType) ?? 'DIRECT',
     });
 
+    await this.permissionSetCache.invalidate(userId, dto.businessUnitId);
     this.logger.log(`Assigned role "${role.name}" to user ${userId} in BU "${bu.name}"`);
     return { success: true, message: 'Role assigned successfully.' };
   }
@@ -69,6 +73,7 @@ export class UserRoleService {
 
     await this.userRoleAssignmentRepository.delete(assignmentId);
 
+    await this.permissionSetCache.invalidate(assignment.userId, assignment.businessUnitId);
     this.logger.log(`Removed role assignment ${assignmentId}`);
     return { success: true, message: 'Role assignment removed successfully.' };
   }

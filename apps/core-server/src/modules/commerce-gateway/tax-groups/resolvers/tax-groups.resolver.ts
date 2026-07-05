@@ -15,7 +15,7 @@ export class TaxGroupsResolver {
 
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'taxGroupsOptions' })
   async taxGroupsOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

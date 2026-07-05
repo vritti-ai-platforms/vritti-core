@@ -21,8 +21,8 @@ import {
   type SuccessResponseDto,
   UserId,
 } from '@vritti/api-sdk';
-import { BuId } from '@/common/decorators';
 import { SessionTypeValues } from '@/db/schema';
+import { BuId } from '@/security/decorators';
 import {
   ApiAssignCatalogChannel,
   ApiCloneCatalog,
@@ -87,7 +87,7 @@ import { CatalogsGatewayService } from './services/catalogs-gateway.service';
 
 @ApiTags('Commerce - Catalogs')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('catalogs')
 export class CatalogsGatewayController {
   private readonly logger = new Logger(CatalogsGatewayController.name);

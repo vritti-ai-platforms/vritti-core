@@ -69,7 +69,7 @@ export class AuthService {
   async login(
     dto: LoginDto,
     ipAddress?: string,
-    sessionType: SessionType = SessionTypeValues.NEXUS,
+    sessionType: SessionType = SessionTypeValues.WEB,
     userAgent?: string,
   ): Promise<AuthResponseDto & { refreshToken?: string }> {
     const user = dto.organizationId

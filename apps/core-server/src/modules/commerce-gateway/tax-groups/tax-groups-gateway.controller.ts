@@ -25,7 +25,7 @@ import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 
 @ApiTags('Commerce - Tax Groups')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('tax-groups')
 export class TaxGroupsGatewayController {
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}

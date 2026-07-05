@@ -30,7 +30,7 @@ import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.s
 
 @ApiTags('Commerce - Goods Receipts')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('goods-receipts')
 export class GoodsReceiptsGatewayController {
   private readonly logger = new Logger(GoodsReceiptsGatewayController.name);

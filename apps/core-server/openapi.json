@@ -613,7 +613,7 @@
     },
     "/auth/set-password": {
       "post": {
-        "description": "Sets a password for a nexus user who was created via webhook. Requires a SET_PASSWORD session token. Invalidates the session on success — user must log in again.",
+        "description": "Sets a password for a nexus user who was created by cloud. Requires a SET_PASSWORD session token. Invalidates the session on success — user must log in again.",
         "operationId": "AuthController_setPassword",
         "parameters": [],
         "requestBody": {
@@ -1116,17 +1116,17 @@
         ]
       }
     },
-    "/users/webhook": {
+    "/users/internal": {
       "post": {
         "description": "Receives a user creation event from cloud-server and upserts the user in the nexus database. Idempotent — safe to call multiple times for the same externalId.",
-        "operationId": "UserController_createFromWebhook",
+        "operationId": "UserController_createFromCloud",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserWebhookDto"
+                "$ref": "#/components/schemas/CreateUserInternalDto"
               }
             }
           }
@@ -1146,13 +1146,13 @@
             "description": "Invalid input data or validation error."
           }
         },
-        "summary": "Create or update user from webhook",
+        "summary": "Create or update user from cloud",
         "tags": [
           "Users"
         ]
       },
       "get": {
-        "description": "Returns paginated, filtered, and sorted users for the given organisation. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by webhook secret.",
+        "description": "Returns paginated, filtered, and sorted users for the given organisation. Filter/sort/search state is passed as JSON query params from cloud-server. Protected by request signature.",
         "operationId": "UserController_getUsersByOrg",
         "parameters": [
           {
@@ -1225,7 +1225,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           }
         },
         "summary": "Get portal users by org",
@@ -1234,10 +1234,10 @@
         ]
       }
     },
-    "/users/webhook/{id}": {
+    "/users/internal/{id}": {
       "patch": {
-        "description": "Updates a portal user role, status or name. Protected by webhook secret.",
-        "operationId": "UserController_updateFromWebhook",
+        "description": "Updates a portal user role, status or name. Protected by request signature.",
+        "operationId": "UserController_updateFromCloud",
         "parameters": [
           {
             "name": "id",
@@ -1254,7 +1254,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserWebhookDto"
+                "$ref": "#/components/schemas/UpdateUserInternalDto"
               }
             }
           }
@@ -1271,7 +1271,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "User not found."
@@ -1283,7 +1283,7 @@
         ]
       }
     },
-    "/users/webhook/{id}/resend-invite": {
+    "/users/internal/{id}/resend-invite": {
       "post": {
         "description": "Resends the invitation email to a PENDING user with a fresh SET_PASSWORD token. Deletes all existing sessions before creating a new one.",
         "operationId": "UserController_resendInvite",
@@ -1313,7 +1313,7 @@
             "description": "User is not in PENDING status or has already set a password."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "User not found."
@@ -1325,7 +1325,7 @@
         ]
       }
     },
-    "/users/webhook/{id}/roles": {
+    "/users/internal/{id}/roles": {
       "post": {
         "description": "Assigns an organization role to a user within a specific business unit. Validates the role and business unit exist, and checks for duplicate assignments.",
         "operationId": "UserRoleController_assignRole",
@@ -1340,9 +1340,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1354,7 +1363,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AssignRoleWebhookDto"
+                "$ref": "#/components/schemas/AssignRoleInternalDto"
               }
             }
           }
@@ -1371,7 +1380,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Role or business unit not found."
@@ -1399,9 +1408,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1413,7 +1431,7 @@
             "description": "Role assignments retrieved successfully."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           }
         },
         "summary": "List user role assignments",
@@ -1422,7 +1440,7 @@
         ]
       }
     },
-    "/users/webhook/{id}/roles/{assignmentId}": {
+    "/users/internal/{id}/roles/{assignmentId}": {
       "delete": {
         "description": "Removes a specific role assignment from a user.",
         "operationId": "UserRoleController_removeRole",
@@ -1446,9 +1464,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1467,7 +1494,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Role assignment not found."
@@ -1479,15 +1506,24 @@
         ]
       }
     },
-    "/organizations/webhook": {
+    "/organizations/internal": {
       "post": {
-        "description": "Receives an organization creation event from cloud-server. Requires X-Webhook-Secret header for authentication.",
-        "operationId": "OrganizationController_createFromWebhook",
+        "description": "Receives an organization creation event from cloud-server. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "OrganizationController_createFromCloud",
         "parameters": [
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1499,7 +1535,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrganizationWebhookDto"
+                "$ref": "#/components/schemas/CreateOrganizationInternalDto"
               }
             }
           }
@@ -1519,18 +1555,18 @@
             "description": "Invalid input data or validation error."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           }
         },
-        "summary": "Create organization from webhook",
+        "summary": "Create organization from cloud",
         "tags": [
           "Organizations"
         ]
       }
     },
-    "/organizations/webhook/{id}": {
+    "/organizations/internal/{id}": {
       "patch": {
-        "operationId": "OrganizationController_updateFromWebhook",
+        "operationId": "OrganizationController_updateFromCloud",
         "parameters": [
           {
             "name": "id",
@@ -1546,7 +1582,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOrganizationWebhookDto"
+                "$ref": "#/components/schemas/UpdateOrganizationInternalDto"
               }
             }
           }
@@ -1561,7 +1597,7 @@
         ]
       },
       "delete": {
-        "operationId": "OrganizationController_deleteFromWebhook",
+        "operationId": "OrganizationController_deleteFromCloud",
         "parameters": [
           {
             "name": "id",
@@ -1582,9 +1618,9 @@
         ]
       }
     },
-    "/organizations/webhook/{orgId}/entitlement": {
+    "/organizations/internal/{orgId}/entitlement": {
       "patch": {
-        "description": "Receives the signed plan entitlement (planCode + businessCode) from cloud-server, verifies its Ed25519 signature and org/deployment binding, and stores it. Older issuedAt values are ignored (replay guard). Requires X-Webhook-Secret header.",
+        "description": "Receives the signed plan entitlement (planCode + businessCode) from cloud-server, verifies its Ed25519 signature and org/deployment binding, and stores it. Older issuedAt values are ignored (replay guard). Requires Ed25519 signature headers (x-timestamp, x-signature).",
         "operationId": "OrganizationController_receiveEntitlement",
         "parameters": [
           {
@@ -1597,9 +1633,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1611,7 +1656,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReceiveEntitlementWebhookDto"
+                "$ref": "#/components/schemas/ReceiveEntitlementInternalDto"
               }
             }
           }
@@ -1628,7 +1673,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "403": {
             "description": "Invalid signature, org mismatch, or deployment binding failure."
@@ -1643,15 +1688,24 @@
         ]
       }
     },
-    "/organizations/webhook/roles": {
+    "/organizations/internal/roles": {
       "post": {
-        "description": "Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires X-Webhook-Secret header.",
+        "description": "Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires Ed25519 signature headers (x-timestamp, x-signature).",
         "operationId": "RolesController_provision",
         "parameters": [
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1663,7 +1717,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProvisionRolesWebhookDto"
+                "$ref": "#/components/schemas/ProvisionRolesInternalDto"
               }
             }
           }
@@ -1683,7 +1737,7 @@
             "description": "Invalid input data or validation error."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           }
         },
         "summary": "Bulk provision roles",
@@ -1692,7 +1746,7 @@
         ]
       },
       "get": {
-        "description": "Returns all roles for an organization with their feature counts. Protected by webhook secret.",
+        "description": "Returns all roles for an organization with their feature counts. Protected by request signature.",
         "operationId": "RolesController_list",
         "parameters": [
           {
@@ -1705,9 +1759,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1719,7 +1782,7 @@
             "description": "Roles retrieved successfully."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           }
         },
         "summary": "List roles for organization",
@@ -1728,7 +1791,7 @@
         ]
       }
     },
-    "/organizations/webhook/roles/for-bu": {
+    "/organizations/internal/roles/for-bu": {
       "get": {
         "description": "Returns every role in the business unit's organization.",
         "operationId": "RolesController_findForBu",
@@ -1743,9 +1806,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1757,7 +1829,7 @@
             "description": "Roles retrieved successfully."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Business unit not found."
@@ -1769,15 +1841,24 @@
         ]
       }
     },
-    "/organizations/webhook/roles/create": {
+    "/organizations/internal/roles/create": {
       "post": {
         "description": "Creates a new role with validated features. Features must belong to the organization. Validates name uniqueness within the org.",
         "operationId": "RolesController_create",
         "parameters": [
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1789,7 +1870,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRoleWebhookDto"
+                "$ref": "#/components/schemas/CreateRoleInternalDto"
               }
             }
           }
@@ -1809,7 +1890,7 @@
             "description": "Invalid features or validation error."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "409": {
             "description": "Role name already exists."
@@ -1821,7 +1902,7 @@
         ]
       }
     },
-    "/organizations/webhook/roles/{id}": {
+    "/organizations/internal/roles/{id}": {
       "patch": {
         "description": "Updates role metadata (name, description). If features are provided, replaces the features jsonb array.",
         "operationId": "RolesController_update",
@@ -1836,9 +1917,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1850,7 +1940,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateRoleWebhookDto"
+                "$ref": "#/components/schemas/UpdateRoleInternalDto"
               }
             }
           }
@@ -1867,7 +1957,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Role not found."
@@ -1892,9 +1982,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1913,7 +2012,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Role not found."
@@ -1925,15 +2024,24 @@
         ]
       }
     },
-    "/business-units/webhook": {
+    "/business-units/internal": {
       "post": {
-        "description": "Creates a new business unit for an organization. Computes depth and materialized path from the parent. Requires X-Webhook-Secret header.",
+        "description": "Creates a new business unit for an organization. Computes depth and materialized path from the parent. Requires Ed25519 signature headers (x-timestamp, x-signature).",
         "operationId": "BusinessUnitController_create",
         "parameters": [
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -1945,7 +2053,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateBusinessUnitWebhookDto"
+                "$ref": "#/components/schemas/CreateBusinessUnitInternalDto"
               }
             }
           }
@@ -1965,7 +2073,7 @@
             "description": "Invalid input data or validation error."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Parent business unit not found."
@@ -1990,9 +2098,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -2014,7 +2131,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           }
         },
         "summary": "List business units",
@@ -2023,7 +2140,7 @@
         ]
       }
     },
-    "/business-units/webhook/{id}": {
+    "/business-units/internal/{id}": {
       "get": {
         "description": "Returns a business unit and all its descendants using materialized path prefix matching.",
         "operationId": "BusinessUnitController_getById",
@@ -2038,9 +2155,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -2062,7 +2188,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Business unit not found."
@@ -2087,9 +2213,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -2101,7 +2236,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateBusinessUnitWebhookDto"
+                "$ref": "#/components/schemas/UpdateBusinessUnitInternalDto"
               }
             }
           }
@@ -2118,7 +2253,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Business unit not found."
@@ -2143,9 +2278,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -2167,7 +2311,7 @@
             "description": "Business unit has children."
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Business unit not found."
@@ -2179,7 +2323,7 @@
         ]
       }
     },
-    "/business-units/webhook/{id}/role-assignments": {
+    "/business-units/internal/{id}/role-assignments": {
       "get": {
         "operationId": "BusinessUnitController_listRoleAssignments",
         "parameters": [
@@ -2202,9 +2346,9 @@
         ]
       }
     },
-    "/business-units/webhook/{id}/locks": {
+    "/business-units/internal/{id}/locks": {
       "put": {
-        "description": "Replaces the business unit feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires X-Webhook-Secret header.",
+        "description": "Replaces the business unit feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires Ed25519 signature headers (x-timestamp, x-signature).",
         "operationId": "BusinessUnitController_setLocks",
         "parameters": [
           {
@@ -2217,9 +2361,18 @@
             }
           },
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -2231,7 +2384,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetBuLocksWebhookDto"
+                "$ref": "#/components/schemas/SetBuLocksInternalDto"
               }
             }
           }
@@ -2248,7 +2401,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "404": {
             "description": "Business unit not found."
@@ -2260,15 +2413,24 @@
         ]
       }
     },
-    "/catalog/webhook": {
+    "/catalog/internal": {
       "put": {
-        "description": "Receives the signed version snapshot (catalog license) from cloud-server, verifies its Ed25519 signature and snapshot hash, stores it append-only, and activates it. Idempotent by snapshot hash. Requires X-Webhook-Secret header.",
+        "description": "Receives the signed version snapshot (catalog license) from cloud-server, verifies its Ed25519 signature and snapshot hash, stores it append-only, and activates it. Idempotent by snapshot hash. Requires Ed25519 signature headers (x-timestamp, x-signature).",
         "operationId": "CatalogController_receive",
         "parameters": [
           {
-            "name": "X-Webhook-Secret",
+            "name": "x-timestamp",
             "in": "header",
-            "description": "Webhook authentication secret",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
             "required": true,
             "schema": {
               "type": "string"
@@ -2280,7 +2442,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReceiveCatalogWebhookDto"
+                "$ref": "#/components/schemas/ReceiveCatalogInternalDto"
               }
             }
           }
@@ -2297,7 +2459,7 @@
             }
           },
           "401": {
-            "description": "Invalid or missing webhook secret."
+            "description": "Invalid or missing request signature."
           },
           "403": {
             "description": "Invalid signature, hash mismatch, or deployment binding failure."
@@ -14153,7 +14315,7 @@
           "expiresIn"
         ]
       },
-      "CreateUserWebhookDto": {
+      "CreateUserInternalDto": {
         "type": "object",
         "properties": {
           "orgId": {
@@ -14284,7 +14446,7 @@
           "count"
         ]
       },
-      "UpdateUserWebhookDto": {
+      "UpdateUserInternalDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -14313,7 +14475,7 @@
           }
         }
       },
-      "AssignRoleWebhookDto": {
+      "AssignRoleInternalDto": {
         "type": "object",
         "properties": {
           "roleId": {
@@ -14341,7 +14503,7 @@
           "businessUnitId"
         ]
       },
-      "CreateOrganizationWebhookDto": {
+      "CreateOrganizationInternalDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -14460,7 +14622,7 @@
           "createdAt"
         ]
       },
-      "UpdateOrganizationWebhookDto": {
+      "UpdateOrganizationInternalDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -14484,7 +14646,7 @@
           }
         }
       },
-      "ReceiveEntitlementWebhookDto": {
+      "ReceiveEntitlementInternalDto": {
         "type": "object",
         "properties": {
           "payload": {
@@ -14532,7 +14694,7 @@
           "features"
         ]
       },
-      "ProvisionRolesWebhookDto": {
+      "ProvisionRolesInternalDto": {
         "type": "object",
         "properties": {
           "orgId": {
@@ -14552,7 +14714,7 @@
           "roles"
         ]
       },
-      "CreateRoleWebhookDto": {
+      "CreateRoleInternalDto": {
         "type": "object",
         "properties": {
           "orgId": {
@@ -14606,7 +14768,7 @@
           "features"
         ]
       },
-      "UpdateRoleWebhookDto": {
+      "UpdateRoleInternalDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -14639,7 +14801,7 @@
           }
         }
       },
-      "CreateBusinessUnitWebhookDto": {
+      "CreateBusinessUnitInternalDto": {
         "type": "object",
         "properties": {
           "orgId": {
@@ -14796,7 +14958,7 @@
           "updatedAt"
         ]
       },
-      "SetBuLocksWebhookDto": {
+      "SetBuLocksInternalDto": {
         "type": "object",
         "properties": {
           "featureLocks": {
@@ -14810,7 +14972,7 @@
           "featureLocks"
         ]
       },
-      "UpdateBusinessUnitWebhookDto": {
+      "UpdateBusinessUnitInternalDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -14858,7 +15020,7 @@
           }
         }
       },
-      "ReceiveCatalogWebhookDto": {
+      "ReceiveCatalogInternalDto": {
         "type": "object",
         "properties": {
           "payload": {

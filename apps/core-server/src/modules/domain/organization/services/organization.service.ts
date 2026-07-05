@@ -4,7 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ForbiddenException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
-import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
+import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import type { OrgSize } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { OrganizationDto } from '../dto/entity/organization.dto';
@@ -103,7 +103,7 @@ export class OrganizationService {
     // Next getPermissions read resolves with the new plan; push fresh auth-state to the org's live BUs
     const buIds = await this.organizationRepository.findBusinessUnitIds(orgId);
     for (const buId of buIds) {
-      this.buContextCache.invalidate(buId);
+      await this.buContextCache.invalidate(buId);
       this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(buId));
     }
 

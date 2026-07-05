@@ -39,7 +39,7 @@ import { PurchaseOrdersGatewayService } from './services/purchase-orders-gateway
 
 @ApiTags('Commerce - Purchase Orders')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('purchase-orders')
 export class PurchaseOrdersGatewayController {
   private readonly logger = new Logger(PurchaseOrdersGatewayController.name);
@@ -55,7 +55,7 @@ export class PurchaseOrdersGatewayController {
 
   // Returns purchase order options for select dropdowns
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   select(@Query() query: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/purchase-orders/select');
     return this.service.select(query);

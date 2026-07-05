@@ -1,7 +1,7 @@
 import type { AssignedBU } from '@services/permissions.service';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
 import {
-  type PermissionGate,
+  type PermissionGateFn,
   PermissionGateProvider,
   type PermissionGateResult,
 } from '@vritti/quantum-ui/PermissionGate';
@@ -33,7 +33,7 @@ const PermissionContext = createContext<PermissionContextValue>({
 const DENY: PermissionGateResult = Object.freeze({ granted: false, locked: false, reason: null, unlockPlans: [] });
 
 // Resolves a "feature.permission" code against the selected BU's resolved features
-function buildGate(features: PermissionFeature[]): PermissionGate {
+function buildGate(features: PermissionFeature[]): PermissionGateFn {
   return (code) => {
     const dotIndex = code.indexOf('.');
     const featureCode = dotIndex === -1 ? code : code.slice(0, dotIndex);

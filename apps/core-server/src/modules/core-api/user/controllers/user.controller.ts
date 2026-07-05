@@ -21,8 +21,8 @@ import {
   SkipCsrf,
   SuccessResponseDto,
 } from '@vritti/api-sdk';
-import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
 import { SessionTypeValues } from '@/db/schema';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { MobileLookupDto } from '../../auth/root/dto/request/mobile-lookup.dto';
 import { MobileLookupResponseDto } from '../../auth/root/dto/response/mobile-lookup-response.dto';
 import {
@@ -55,7 +55,7 @@ export class UserController {
 
   // Returns paginated user options for the select component
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   findForSelect(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /users/select');
     return this.userService.findForSelect(query);

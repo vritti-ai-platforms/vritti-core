@@ -13,7 +13,7 @@ interface ItemsGridProps {
 export const ItemsGrid = ({ items, isLoading, onSelect }: ItemsGridProps) => {
   if (isLoading) {
     return (
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
+      <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(190px,1fr))]">
         {Array.from({ length: 12 }, (_, i) => `tile-${i}`).map((key) => (
           <Skeleton key={key} className="h-37.5 rounded-2xl" />
         ))}
@@ -32,7 +32,7 @@ export const ItemsGrid = ({ items, isLoading, onSelect }: ItemsGridProps) => {
   }
 
   return (
-    <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(190px,1fr))]">
+    <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(190px,1fr))]">
       {items.map((item, index) => (
         <ItemCard key={item.offeringId} item={item} index={index} onSelect={onSelect} />
       ))}

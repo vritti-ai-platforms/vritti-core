@@ -2,9 +2,9 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import type { LocationsSelectQueryDto } from '../dto/request/locations-select-query.dto';
 import { SelectOptionsInput } from '../../_shared/graphql/select.input';
 import { SelectOptions } from '../../_shared/graphql/select.type';
+import type { LocationsSelectQueryDto } from '../dto/request/locations-select-query.dto';
 import { LocationsGatewayService } from '../services/locations-gateway.service';
 
 // GraphQL options query for the Location Select dropdown. Thin forward to the existing gateway `.select()`
@@ -16,7 +16,7 @@ export class LocationsResolver {
 
   constructor(private readonly locationsGatewayService: LocationsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'locationsOptions' })
   async locationsOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

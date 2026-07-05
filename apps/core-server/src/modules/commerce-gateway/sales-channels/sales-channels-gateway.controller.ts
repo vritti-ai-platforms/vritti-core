@@ -17,7 +17,7 @@ import { SalesChannelsGatewayService } from './services/sales-channels-gateway.s
 
 @ApiTags('Commerce - Sales Channels')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('sales-channels')
 export class SalesChannelsGatewayController {
   private readonly logger = new Logger(SalesChannelsGatewayController.name);

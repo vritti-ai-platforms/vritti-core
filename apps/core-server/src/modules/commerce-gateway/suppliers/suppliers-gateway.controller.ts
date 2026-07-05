@@ -29,7 +29,7 @@ import { SuppliersGatewayService } from './services/suppliers-gateway.service';
 
 @ApiTags('Commerce - Suppliers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('suppliers')
 export class SuppliersGatewayController {
   private readonly logger = new Logger(SuppliersGatewayController.name);
@@ -45,7 +45,7 @@ export class SuppliersGatewayController {
 
   // Returns paginated supplier options for select dropdowns
   @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/suppliers/select');
     return this.suppliersGatewayService.select(query);

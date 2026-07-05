@@ -14,9 +14,9 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
-import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/common/interceptors/org-scope.interceptor';
 import type { UserRoleAssignment } from '@/db/schema';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
+import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import { ApiAssignRole, ApiListUserRoles, ApiRemoveRoleAssignment } from '../docs/user-role.docs';
 import { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
 

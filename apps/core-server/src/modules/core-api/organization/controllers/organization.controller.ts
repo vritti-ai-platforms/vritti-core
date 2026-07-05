@@ -2,7 +2,7 @@ import { OrganizationService } from '@domain/organization/services/organization.
 import { Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
-import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { ApiCreateOrganization, ApiReceiveEntitlement } from '../docs/organization.docs';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';

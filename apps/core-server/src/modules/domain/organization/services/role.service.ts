@@ -8,6 +8,7 @@ import {
   SuccessResponseDto,
 } from '@vritti/api-sdk';
 import type { Role } from '@/db/schema';
+import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
 import type { RoleItemDto } from '../dto/request/provision-roles-internal.dto';
 import type { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
@@ -21,6 +22,7 @@ export class RoleService {
     private readonly database: PrimaryDatabaseService,
     private readonly roleRepository: RoleRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
+    private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 
   // Provisions template roles for an organization — creates a zero-delta stub per template code that has no
@@ -104,6 +106,11 @@ export class RoleService {
       ...(dto.revoked !== undefined && { revoked: dto.revoked }),
       updatedAt: new Date(),
     });
+
+    // Custom role grant/revoke edits alter enabled sets for every assignee — drop the whole cache
+    if (dto.features !== undefined || dto.revoked !== undefined) {
+      await this.permissionSetCache.invalidateAll();
+    }
 
     this.logger.log(`Updated role ${roleId}`);
     return { success: true, message: 'Role updated successfully.' };

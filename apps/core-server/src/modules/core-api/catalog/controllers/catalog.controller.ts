@@ -2,7 +2,7 @@ import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Body, Controller, HttpCode, HttpStatus, Logger, Put, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
-import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { ApiReceiveCatalog } from '../docs/catalog.docs';
 import { ReceiveCatalogInternalDto } from '../dto/request/receive-catalog-internal.dto';
 

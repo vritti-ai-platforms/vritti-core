@@ -2,9 +2,9 @@ import { Logger } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import type { PurchaseOrderItemsSelectQueryDto } from '../dto/request/purchase-order-items-select-query.dto';
 import { SelectOptionsInput } from '../../_shared/graphql/select.input';
 import { SelectOptions } from '../../_shared/graphql/select.type';
+import type { PurchaseOrderItemsSelectQueryDto } from '../dto/request/purchase-order-items-select-query.dto';
 import { PurchaseOrderItemsGatewayService } from '../services/purchase-order-items-gateway.service';
 
 // GraphQL options query for the Purchase Order Item Select dropdown. Thin forward to the existing gateway
@@ -16,7 +16,7 @@ export class PurchaseOrderItemsResolver {
 
   constructor(private readonly purchaseOrderItemsGatewayService: PurchaseOrderItemsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'purchaseOrderItemsOptions' })
   async purchaseOrderItemsOptions(
     @Args('purchaseOrderId', { type: () => String }) purchaseOrderId: string,

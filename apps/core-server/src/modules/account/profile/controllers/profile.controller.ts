@@ -8,7 +8,7 @@ import { ProfileService } from '../services/profile.service';
 
 @ApiTags('Account - Profile')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('profile')
 export class ProfileController {
   private readonly logger = new Logger(ProfileController.name);

@@ -4,7 +4,7 @@ import { BusinessUnitRepository } from '@domain/business-unit/repositories/busin
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_INTERCEPTOR, RouterModule } from '@nestjs/core';
+import { RouterModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
 import {
@@ -22,10 +22,12 @@ import {
 import { EmailModule } from '@vritti/api-sdk/email';
 import { NatsClientModule } from '@vritti/api-sdk/nats';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { RlsInterceptor } from '@/common/interceptors/rls.interceptor';
-import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
+import { BuContextModule } from '@/bu-context/bu-context.module';
+import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
+import { RbacModule } from '@/rbac/rbac.module';
+import { SecurityModule } from '@/security/security.module';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
@@ -46,39 +48,16 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
 
 @Module({
   imports: [
+    // --- Infrastructure ---
+    // Global environment config with schema validation
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
       validate,
     }),
-    // Event emitter for real-time updates
+    // In-process event bus for real-time updates
     EventEmitterModule.forRoot(),
-    // GraphQL transport (Apollo on Fastify) — code-first schema
-    GraphQLModule.forRoot<ApolloDriverConfig>({
-      driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
-      path: '/graphql',
-      csrfPrevention: true,
-      // Apollo Sandbox + introspection only outside production
-      playground: false,
-      introspection: process.env.NODE_ENV !== 'production',
-      // Expose the Fastify request as `req` so the request-scoped auth guard,
-      // RequestService (@Inject(REQUEST)), and param decorators resolve it.
-      context: (request: FastifyRequest, reply: FastifyReply) => ({
-        req: request,
-        reply,
-      }),
-      // Standardized GraphQL error shaping (SDK): normalizes extensions.code to the ErrorCode
-      // contract, adds traceId + timestamp + fieldErrors, and strips internals in production.
-      // Composes with TransportAwareExceptionFilter (which re-throws GraphQL errors to Apollo).
-      // traceId is sourced from the per-request correlation id in AsyncLocalStorage, populated by
-      // CorrelationIdMiddleware.onRequest (wired in main.ts) — formatError has no request arg.
-      formatError: createGraphqlFormatError({
-        isProduction: process.env.NODE_ENV === 'production',
-        getTraceId: () => getCorrelationContext()?.correlationId,
-      }),
-    }),
-    // Logger module
+    // Structured application + HTTP request logging
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -96,13 +75,30 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           httpLogger: {
             enableRequestLog: true,
             enableResponseLog: true,
-            slowRequestThreshold: 3000, // milliseconds
+            slowRequestThreshold: 3000,
           },
         };
       },
       inject: [ConfigService],
     }),
-    // Database module
+    // Apollo GraphQL transport (code-first schema on Fastify)
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      path: '/graphql',
+      csrfPrevention: true,
+      playground: false,
+      introspection: process.env.NODE_ENV !== 'production',
+      context: (request: FastifyRequest, reply: FastifyReply) => ({
+        req: request,
+        reply,
+      }),
+      formatError: createGraphqlFormatError({
+        isProduction: process.env.NODE_ENV === 'production',
+        getTraceId: () => getCorrelationContext()?.correlationId,
+      }),
+    }),
+    // Drizzle/Postgres connection pool + RLS context hook
     DatabaseModule.forServer({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -116,15 +112,8 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
             schema: config.get<string>('PRIMARY_DB_SCHEMA'),
             sslMode: config.get<'require' | 'prefer' | 'disable' | 'no-verify'>('PRIMARY_DB_SSL_MODE'),
           },
-
-          // Relations drive db.query.X in Drizzle 1.0; schema generic was removed.
           drizzleRelations: relations,
-
-          // Connection pool configuration
           maxConnections: 10,
-
-          // Used by the internal API path (OrgScopeInterceptor) — sets app.org_id for RLS.
-          // Other HTTP routes don't stash an RLS context, so this is a no-op for them.
           applyRlsContext: async (client, ctx) => {
             const r = ctx as { orgId: string };
             await client.query("SELECT set_config('app.org_id', $1, true)", [r.orgId]);
@@ -133,8 +122,7 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
         return options;
       },
     }),
-    // Authentication module (Global guard + JWT)
-    // Must be imported after DatabaseModule since VrittiAuthGuard depends on its services
+    // JWT auth + global VrittiAuthGuard (must load after DatabaseModule)
     AuthConfigModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -152,7 +140,6 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
         guard: {
           csrfExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
           refreshTokenBindingExemptSessionTypes: [schema.SessionTypeValues.MOBILE],
-          // GraphQL is a bearer-token, cookie-less transport → cookie-based CSRF doesn't apply.
           csrfExemptTransports: ['graphql'],
           onAuthenticated: (requestService, sessionInfo) => {
             const hostname = requestService.getHostname();
@@ -167,21 +154,17 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
               return;
             }
 
-            // Extract subdomain from request host
             const requestSubdomain = hostname.split('.')[0];
             if (!requestSubdomain) {
               throw new UnauthorizedException('Invalid request host');
             }
 
-            // Validate request subdomain matches the token's subdomain (skip for old tokens without subdomain)
             if (sessionInfo.subdomain !== requestSubdomain) {
               throw new UnauthorizedException('Subdomain mismatch — token does not belong to this organization');
             }
 
-            // Set subdomain on sessionInfo
             sessionInfo.subdomain = requestSubdomain;
 
-            // Extract BU ID from header
             const buHeader = requestService.getHeader('x-bu-id');
             const buId = Array.isArray(buHeader) ? buHeader[0] : buHeader;
             if (buId) {
@@ -191,13 +174,22 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
         },
       }),
     }),
-    // Root module — health check and CSRF endpoints
+
+    // --- Cross-cutting SDK modules ---
+    // Health check + CSRF endpoints
     RootModule,
-    // Email module — globally provided EmailService
+    // Globally provided EmailService
     EmailModule,
-    // Data table views — server-stored table state
+    // Server-stored data table view state
     DataTableModule.forRoot({ tableViews: schema.tableViews }),
-    // Domain modules — services + repositories only
+    // Permission-set cache + @RequirePermission guard
+    RbacModule,
+    // Cloud-signature guard + org-scope/RLS interceptors (global)
+    SecurityModule,
+    // Per-BU context cache (timezone, currency, hierarchy ids)
+    BuContextModule,
+
+    // --- Domain modules (services + repositories only) ---
     SessionDomainModule,
     VerificationDomainModule,
     BusinessUnitDomainModule,
@@ -206,7 +198,9 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     UserDomainModule,
     UserRoleDomainModule,
     UserPermissionsDomainModule,
-    // NATS client — gateway mode, resolves BU context from sessionInfo
+
+    // --- Messaging ---
+    // NATS client (gateway mode) — resolves BU context from sessionInfo
     NatsClientModule.forRoot({
       imports: [BusinessUnitDomainModule],
       inject: [ConfigService, BusinessUnitRepository, BuContextCacheService],
@@ -217,7 +211,7 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           const buId = sessionInfo.buId ?? '';
           const orgId = sessionInfo.organizationId ?? '';
 
-          const cached = buContextCache.get(buId);
+          const cached = await buContextCache.get(buId);
           if (cached) {
             return { orgId, userId: sessionInfo.userId, buId, ...cached };
           }
@@ -230,7 +224,7 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
           const buTimezone = bu?.timezone ?? 'UTC';
           const buCurrencyCode = bu?.currencyCode ?? '';
 
-          buContextCache.set(buId, {
+          await buContextCache.set(buId, {
             buTimezone,
             buCurrencyCode,
             buAncestorIds,
@@ -248,26 +242,20 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
         },
       }),
     }),
-    // API modules — controllers + DTOs + docs
+
+    // --- API modules (controllers + DTOs + docs) ---
     AuthApiModule,
     UserApiModule,
     OrganizationApiModule,
     BusinessUnitApiModule,
     CatalogApiModule,
     UserPermissionsApiModule,
-    // Account module — profile and security management
+    // Profile and security management
     AccountModule,
-    // GraphQL probe — health + me query to prove auth wiring (no business logic)
-    // Commerce gateway — forwards requests to commerce-service via NATS
+    // Forwards requests to commerce-service via NATS
     CommerceGatewayModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),
-  ],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: RlsInterceptor,
-    },
   ],
 })
 export class AppModule {}

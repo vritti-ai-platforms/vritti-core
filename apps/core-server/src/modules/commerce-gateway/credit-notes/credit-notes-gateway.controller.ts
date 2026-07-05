@@ -9,10 +9,9 @@ import { CreditNotesGatewayService } from './services/credit-notes-gateway.servi
 
 @ApiTags('Commerce - Credit Notes')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('credit-notes')
 export class CreditNotesGatewayController {
-
   constructor(private readonly creditNotesGatewayService: CreditNotesGatewayService) {}
 
   // Creates a new credit note

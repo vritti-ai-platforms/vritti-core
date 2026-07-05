@@ -2,9 +2,9 @@ import { Logger } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import type { SupplierItemsSelectQueryDto } from '../dto/request/supplier-items-select-query.dto';
 import { SelectOptionsInput } from '../../_shared/graphql/select.input';
 import { SelectOptions } from '../../_shared/graphql/select.type';
+import type { SupplierItemsSelectQueryDto } from '../dto/request/supplier-items-select-query.dto';
 import { SupplierItemsGatewayService } from '../services/supplier-items-gateway.service';
 
 // GraphQL options query for the Supplier Item Select dropdown. Thin forward to the existing gateway
@@ -17,7 +17,7 @@ export class SupplierItemsResolver {
 
   constructor(private readonly supplierItemsGatewayService: SupplierItemsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'supplierItemsOptions' })
   async supplierItemsOptions(
     @Args('supplierId', { type: () => String, nullable: true }) supplierId?: string,

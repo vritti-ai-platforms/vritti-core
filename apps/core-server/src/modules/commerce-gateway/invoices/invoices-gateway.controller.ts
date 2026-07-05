@@ -10,10 +10,9 @@ import { InvoicesGatewayService } from './services/invoices-gateway.service';
 
 @ApiTags('Commerce - Invoices')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('invoices')
 export class InvoicesGatewayController {
-
   constructor(private readonly invoicesGatewayService: InvoicesGatewayService) {}
 
   // Returns paginated invoices for the data table with server-stored state

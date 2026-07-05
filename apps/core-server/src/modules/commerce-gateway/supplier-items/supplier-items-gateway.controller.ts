@@ -7,7 +7,7 @@ import { SupplierItemsGatewayService } from './services/supplier-items-gateway.s
 
 @ApiTags('Commerce - Supplier Items')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('supplier-items')
 export class SupplierItemsGatewayController {
   private readonly logger = new Logger(SupplierItemsGatewayController.name);

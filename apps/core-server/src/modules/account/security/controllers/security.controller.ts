@@ -10,7 +10,7 @@ import { SecurityService } from '../services/security.service';
 
 @ApiTags('Account - Security')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+@RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
 @Controller('security')
 export class SecurityController {
   private readonly logger = new Logger(SecurityController.name);

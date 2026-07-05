@@ -16,7 +16,7 @@ export class InventoryItemQuantsResolver {
 
   constructor(private readonly inventoryItemQuantsGatewayService: InventoryItemQuantsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'inventoryItemQuantsOptions' })
   async inventoryItemQuantsOptions(
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,

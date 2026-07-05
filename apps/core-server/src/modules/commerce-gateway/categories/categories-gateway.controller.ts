@@ -42,7 +42,7 @@ import { CategoriesGatewayService } from './services/categories-gateway.service'
 
 @ApiTags('Commerce - Categories')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('categories')
 export class CategoriesGatewayController {
   private readonly logger = new Logger(CategoriesGatewayController.name);
@@ -87,7 +87,7 @@ export class CategoriesGatewayController {
   // Returns paginated category options for the select component
   @Get('select')
   @ApiGetCategoriesSelect()
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   async select(@Query() query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
     return this.categoriesGatewayService.select(query);
   }
@@ -117,7 +117,10 @@ export class CategoriesGatewayController {
   // Updates a category by ID
   @Patch(':id')
   @ApiUpdateCategory()
-  async update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
+  async update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateCategoryDto,
+  ): Promise<CategoryResponseDto> {
     return this.categoriesGatewayService.update(id, dto);
   }
 

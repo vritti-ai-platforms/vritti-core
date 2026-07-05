@@ -8,10 +8,9 @@ import { PaymentsGatewayService } from './services/payments-gateway.service';
 
 @ApiTags('Commerce - Payments')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('payments')
 export class PaymentsGatewayController {
-
   constructor(private readonly paymentsGatewayService: PaymentsGatewayService) {}
 
   // Creates a payment against an invoice

@@ -7,7 +7,7 @@ import { PurchaseOrderItemsGatewayService } from './services/purchase-order-item
 
 @ApiTags('Commerce - Purchase Order Items')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('purchase-order-items')
 export class PurchaseOrderItemsGatewayController {
   private readonly logger = new Logger(PurchaseOrderItemsGatewayController.name);

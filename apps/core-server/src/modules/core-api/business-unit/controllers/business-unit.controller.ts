@@ -16,8 +16,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf, SuccessResponseDto } from '@vritti/api-sdk';
-import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/common/interceptors/org-scope.interceptor';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
+import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import {
   ApiCreateBusinessUnit,
   ApiDeleteBusinessUnit,

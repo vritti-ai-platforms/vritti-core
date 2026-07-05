@@ -33,7 +33,7 @@ export const Cart = ({ lines, subtotal, isPlacing, onUpdateQty, onRemove, onClea
   };
 
   return (
-    <aside className="dark flex h-full w-95 shrink-0 flex-col border-l border-border bg-gradient-to-b from-card to-background text-foreground shadow-[-16px_0_36px_-28px_rgba(0,0,0,0.9)]">
+    <aside className="dark flex h-full w-95 shrink-0 flex-col border-l border-border bg-linear-to-b from-card to-background text-foreground shadow-[-16px_0_36px_-28px_rgba(0,0,0,0.9)]">
       <div className="flex items-center justify-between border-b border-border/80 px-5 py-4">
         <div className="flex items-center gap-2.5">
           <Receipt className="size-5 text-muted-foreground" />

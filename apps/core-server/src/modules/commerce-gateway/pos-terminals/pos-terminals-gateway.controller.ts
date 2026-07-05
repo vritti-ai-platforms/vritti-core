@@ -39,7 +39,7 @@ import { PosTerminalsGatewayService } from './services/pos-terminals-gateway.ser
 
 @ApiTags('Commerce - POS Terminals')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('pos-terminals')
 export class PosTerminalsGatewayController {
   private readonly logger = new Logger(PosTerminalsGatewayController.name);
@@ -57,7 +57,7 @@ export class PosTerminalsGatewayController {
   // Returns paginated POS terminal options for select dropdowns
   @Get('select')
   @ApiSelect()
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/pos-terminals/select');
     return this.posTerminalsGatewayService.select(query);
@@ -66,7 +66,7 @@ export class PosTerminalsGatewayController {
   // Returns POS-role storage location options for select dropdowns
   @Get('locations/select')
   @ApiSelectLocations()
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   selectLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/pos-terminals/locations/select');
     return this.posTerminalsGatewayService.selectPosLocations(query);

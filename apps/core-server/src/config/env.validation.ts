@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -140,6 +141,11 @@ class EnvironmentVariables {
   // Redis
   @IsString()
   REDIS_URL: string;
+
+  // Cache
+  @IsOptional()
+  @IsIn(['lru', 'redis'])
+  CACHE_DRIVER?: 'lru' | 'redis';
 
   // Domains
   @IsString()

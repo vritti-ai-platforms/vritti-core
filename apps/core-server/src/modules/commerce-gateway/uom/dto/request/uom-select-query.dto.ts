@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk';
-import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 
 export class UomSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: 'When true, only derived units (non-base) are returned' })
@@ -29,7 +29,9 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
   @IsUUID()
   inventoryItemId?: string;
 
-  @ApiPropertyOptional({ description: 'Restrict to UOMs the supplier offers for this item, excluding already-linked UOMs' })
+  @ApiPropertyOptional({
+    description: 'Restrict to UOMs the supplier offers for this item, excluding already-linked UOMs',
+  })
   @IsOptional()
   @IsUUID()
   supplierId?: string;

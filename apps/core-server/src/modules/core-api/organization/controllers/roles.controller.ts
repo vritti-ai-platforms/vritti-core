@@ -17,9 +17,9 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import type { CreateResponseDto } from '@vritti/api-sdk';
 import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
-import { CloudSignatureGuard } from '@/common/guards/cloud-signature.guard';
-import { OrgScopeInterceptor } from '@/common/interceptors/org-scope.interceptor';
 import type { Role } from '@/db/schema';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
+import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import {
   ApiCreateRole,
   ApiDeleteRole,

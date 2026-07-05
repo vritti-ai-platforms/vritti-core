@@ -10,10 +10,9 @@ import { OrdersGatewayService } from './services/orders-gateway.service';
 
 @ApiTags('Commerce - Orders')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('orders')
 export class OrdersGatewayController {
-
   constructor(private readonly ordersGatewayService: OrdersGatewayService) {}
 
   // Returns paginated orders for the data table with server-stored state

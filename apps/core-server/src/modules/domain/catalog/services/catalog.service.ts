@@ -5,8 +5,9 @@ import { ForbiddenException, NotFoundException, type SuccessResponseDto } from '
 import { type VersionSnapshot } from '@vritti/api-sdk/catalog-resolver';
 import { type CatalogLicense, hashSnapshot, type SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
-import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
+import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { CatalogRepository } from '../repositories/catalog.repository';
 
 @Injectable()
@@ -21,6 +22,7 @@ export class CatalogService {
   constructor(
     private readonly catalogRepository: CatalogRepository,
     private readonly buContextCache: BuContextCacheService,
+    private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
     configService: ConfigService,
   ) {
@@ -111,7 +113,8 @@ export class CatalogService {
 
   // Drops the whole BU context cache and re-pushes auth-state to live SSE clients of every BU
   private async refreshAllBusinessUnits(): Promise<void> {
-    this.buContextCache.invalidateAll();
+    await this.buContextCache.invalidateAll();
+    await this.permissionSetCache.invalidateAll();
     const buIds = await this.catalogRepository.findAllBusinessUnitIds();
     for (const buId of buIds) {
       this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(buId));

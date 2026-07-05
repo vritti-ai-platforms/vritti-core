@@ -10,10 +10,9 @@ import { StockTransfersGatewayService } from './services/stock-transfers-gateway
 
 @ApiTags('Commerce - Stock Transfers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('stock-transfers')
 export class StockTransfersGatewayController {
-
   constructor(private readonly service: StockTransfersGatewayService) {}
 
   // Returns paginated stock transfers for the data table with server-stored state
