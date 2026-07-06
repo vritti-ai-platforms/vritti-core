@@ -9,6 +9,8 @@ import {
   FilterProcessor,
   type KeysetOrderBy,
   KeysetProcessor,
+  keysetSignature,
+  MAX_PAGE_SIZE,
   NotFoundException,
   type SearchState,
   type SelectOptionsQueryDto,
@@ -185,17 +187,23 @@ export class InventoryItemsService {
     const orderBy = orderByEntries.map((e) =>
       e.direction === "asc" ? asc(e.column) : desc(e.column),
     );
+    // Bind the cursor to this exact sort so a cursor minted under one sort is rejected (400) if the
+    // client changes `sort` mid-pagination, rather than silently applying boundary values to the wrong
+    // columns. The feed's sort is user-controlled, so this binding matters here (unlike the fixed feeds).
+    const signature = keysetSignature(orderByEntries);
 
-    // When a cursor is present, restrict to rows strictly after the boundary row
+    // When a cursor is present, restrict to rows strictly after the boundary row. decode throws
+    // InvalidCursorException (400) on a malformed/forged cursor or a sort mismatch.
     const cursorWhere = query.cursor
       ? KeysetProcessor.buildAfter(
           orderByEntries,
-          CursorCodec.decode(query.cursor),
+          CursorCodec.decode(query.cursor, signature),
         )
       : undefined;
     const where = and(baseWhere, cursorWhere);
 
-    const limit = query.limit ?? 20;
+    // Clamp defensively in addition to the repository clamp (findKeyset) — one source of truth in MAX_PAGE_SIZE.
+    const limit = Math.min(query.limit ?? 20, MAX_PAGE_SIZE);
     const { rows, hasMore } = await this.repository.findKeysetWithUom({
       where: where || undefined,
       orderBy,
@@ -206,6 +214,7 @@ export class InventoryItemsService {
     const edges = rows.map((row) => ({
       cursor: CursorCodec.encode(
         orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
+        signature,
       ),
       node: InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName),
     }));

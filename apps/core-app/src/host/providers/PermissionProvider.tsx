@@ -1,6 +1,8 @@
+import { evictRegisteredConnections } from '@vritti/quantum-ui-native/apollo';
 import { FormatProvider } from '@vritti/quantum-ui-native/context';
+import { clearRevalidatedSession } from '@vritti/quantum-ui-native/hooks';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { apolloClient, purgeApolloPersisted } from '../config/apollo';
+import { apolloClient, restoreApolloCache } from '../config/apollo';
 import { getSelectedBusinessUnitId, setSelectedBusinessUnitId } from '../config/storage';
 import type { AssignedBU, PermissionFeature } from '../types/permissions';
 import { useAuthSessionSnapshot } from './AuthProvider';
@@ -100,13 +102,16 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
     [selectedBuId],
   );
 
-  // After a BU change, refetch all server-state under the new x-bu-id. refetchQueries with
-  // include: 'active' refetches every currently-mounted query while keeping the previously-cached
-  // data on screen during the background refetch — so freshly-remounted feature screens never flash
-  // blank. (clearStore() here would empty the shared cache and leave those screens blank until a
-  // second mount.) We DO purge the persisted MMKV snapshot, though: it's BU-scoped, so leaving it
-  // would let a relaunch under a different BU rehydrate the previous BU's rows (the active-query
-  // refetch overwrites the live cache, and the persistor re-snapshots the fresh BU on its next write).
+  // After a BU change, hand the Apollo cache cleanly to the new tenant. Order matters:
+  //   1. clearRevalidatedSession() — forget revalidate-once keys so the new tenant's feeds revalidate
+  //      over the network on their next mount instead of serving the previous tenant's cached connection.
+  //   2. evictRegisteredConnections() — drop the previous tenant's list rows from the LIVE cache, so a
+  //      remounted feed doesn't flash old-BU rows before the refetch lands (persisted-snapshot purge
+  //      alone never touched the live cache — the old gap this closes).
+  //   3. restoreApolloCache() — load the NEW BU's namespaced snapshot for instant cold data; a no-op on
+  //      first visit to that BU (nothing persisted yet), where step 2 already cleared the stale rows.
+  //   4. refetchQueries({ include: 'active' }) — revalidate every mounted query under the new x-bu-id
+  //      while keeping current data on screen (no blank flash; clearStore() would blank them).
   // Runs after the remount commit, so it targets the new observers; skips the initial selection.
   const didInitialSelect = useRef(false);
   useEffect(() => {
@@ -115,8 +120,12 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
       didInitialSelect.current = true;
       return;
     }
-    void purgeApolloPersisted();
-    void apolloClient.refetchQueries({ include: 'active' });
+    void (async () => {
+      clearRevalidatedSession();
+      evictRegisteredConnections();
+      await restoreApolloCache();
+      void apolloClient.refetchQueries({ include: 'active' });
+    })();
   }, [selectedBuId]);
 
   const value = useMemo<PermissionContextValue>(

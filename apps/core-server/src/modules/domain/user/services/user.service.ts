@@ -6,7 +6,6 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   BadRequestException,
   ConflictException,
-  EmailService,
   type FieldMap,
   type FilterCondition,
   FilterProcessor,
@@ -18,6 +17,7 @@ import {
   SuccessResponseDto,
 } from "@vritti/api-sdk";
 import { and, desc, eq } from "@vritti/api-sdk/drizzle-orm";
+import { EmailService } from "@vritti/api-sdk/email";
 import {
   SessionTypeValues,
   type User,

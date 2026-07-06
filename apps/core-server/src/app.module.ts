@@ -7,19 +7,20 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR, RouterModule } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { GraphQLModule } from "@nestjs/graphql";
+import { depthLimit } from "./common/graphql/depth-limit.validation";
 import {
   AuthConfigModule,
   createGraphqlFormatError,
   DatabaseModule,
   type DatabaseModuleOptions,
   DataTableModule,
-  EmailModule,
   getCorrelationContext,
   LoggerModule,
   RootModule,
   type TokenExpiryString,
   UnauthorizedException,
 } from "@vritti/api-sdk";
+import { EmailModule } from "@vritti/api-sdk/email";
 import { NatsClientModule } from "@vritti/api-sdk/nats";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { RlsInterceptor } from "@/common/interceptors/rls.interceptor";
@@ -57,6 +58,9 @@ import { VerificationDomainModule } from "./modules/domain/verification/verifica
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),
       path: "/graphql",
       csrfPrevention: true,
+      // Reject abusively deep queries before execution (defense-in-depth with the keyset page clamp).
+      // 12 is generous for this flat schema (connection → edges → node → nested entity → scalars ≈ 6).
+      validationRules: [depthLimit(12)],
       // Apollo Sandbox + introspection only outside production
       playground: false,
       introspection: process.env.NODE_ENV !== "production",

@@ -1,8 +1,4 @@
-import {
-  type UseInfiniteListReturn,
-  useApolloInfiniteQuery,
-  useRevalidateOnceFetchPolicy,
-} from '@vritti/quantum-ui-native/hooks';
+import { type UseInfiniteListReturn, useApolloInfiniteQuery } from '@vritti/quantum-ui-native/hooks';
 import { useCallback } from 'react';
 import { INVENTORY_ITEM_LOCATIONS_QUERY } from '../../graphql/item-locations';
 import type { ItemLocation } from '../../types/item-locations';
@@ -20,13 +16,12 @@ export function useItemLocationsFeed(inventoryItemId: string): UseInfiniteListRe
   // Revalidate over the network the first time this feed is shown in the session (so newly-added rows
   // appear despite a stale/empty persisted connection), then serve from cache on tab revisits — no
   // per-tab-switch refetch. Create/delete still patch the cached connection; pull-to-refresh reloads.
-  const fetchPolicy = useRevalidateOnceFetchPolicy(`inventoryItemLocations:${inventoryItemId}`);
-
+  // Marked revalidated only on network success; reset on logout/BU switch.
   return useApolloInfiniteQuery<ItemLocation>({
     query: INVENTORY_ITEM_LOCATIONS_QUERY,
     getVariables,
     dataKey: 'inventoryItemLocations',
     enabled: !!inventoryItemId,
-    fetchPolicy,
+    revalidateKey: `inventoryItemLocations:${inventoryItemId}`,
   });
 }

@@ -42,6 +42,12 @@ export const inventoryItems = coreSchema.table(
     unique('uq_inventory_items_bu_code').on(table.businessUnitId, table.code),
     index('idx_inventory_items_bu').on(table.organizationId, table.businessUnitId),
     index('idx_inventory_items_category').on(table.categoryId),
+    // Keyset feed: default order (created_at DESC, id ASC) scoped by tenant so the mobile infinite feed
+    // scans the index instead of sorting. organization_id leads (RLS filters it by equality).
+    index('idx_inventory_items_feed').on(table.organizationId, table.createdAt.desc(), table.id),
+    // Companions for the realistic user-sort columns (name, code) — (col, id) keyset order, tenant-led.
+    index('idx_inventory_items_name').on(table.organizationId, table.name, table.id),
+    index('idx_inventory_items_code_sort').on(table.organizationId, table.code, table.id),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

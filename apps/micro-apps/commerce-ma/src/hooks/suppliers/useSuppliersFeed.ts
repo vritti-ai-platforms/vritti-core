@@ -1,8 +1,4 @@
-import {
-  type UseInfiniteListReturn,
-  useApolloInfiniteQuery,
-  useRevalidateOnceFetchPolicy,
-} from '@vritti/quantum-ui-native/hooks';
+import { type UseInfiniteListReturn, useApolloInfiniteQuery } from '@vritti/quantum-ui-native/hooks';
 import { useCallback } from 'react';
 import { INVENTORY_ITEM_SUPPLIERS_QUERY } from '../../graphql/suppliers';
 import type { Supplier } from '../../types/suppliers';
@@ -19,14 +15,12 @@ export function useSuppliersFeed(inventoryItemId: string): UseInfiniteListReturn
 
   // Revalidate over the network the first time this feed is shown in the session (so newly-added rows
   // appear despite a stale/empty persisted connection), then serve from cache on tab revisits — no
-  // per-tab-switch refetch. Pull-to-refresh still forces a reload.
-  const fetchPolicy = useRevalidateOnceFetchPolicy(`inventoryItemSuppliers:${inventoryItemId}`);
-
+  // per-tab-switch refetch. Marked revalidated only on network success; reset on logout/BU switch.
   return useApolloInfiniteQuery<Supplier>({
     query: INVENTORY_ITEM_SUPPLIERS_QUERY,
     getVariables,
     dataKey: 'inventoryItemSuppliers',
     enabled: !!inventoryItemId,
-    fetchPolicy,
+    revalidateKey: `inventoryItemSuppliers:${inventoryItemId}`,
   });
 }

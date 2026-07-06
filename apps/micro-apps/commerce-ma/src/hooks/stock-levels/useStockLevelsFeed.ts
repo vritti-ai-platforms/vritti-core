@@ -1,8 +1,4 @@
-import {
-  type UseInfiniteListReturn,
-  useApolloInfiniteQuery,
-  useRevalidateOnceFetchPolicy,
-} from '@vritti/quantum-ui-native/hooks';
+import { type UseInfiniteListReturn, useApolloInfiniteQuery } from '@vritti/quantum-ui-native/hooks';
 import { useCallback } from 'react';
 import { INVENTORY_ITEM_STOCK_LEVELS_QUERY } from '../../graphql/stock-levels';
 import type { StockLevel } from '../../types/stock-levels';
@@ -19,14 +15,12 @@ export function useStockLevelsFeed(inventoryItemId: string): UseInfiniteListRetu
 
   // Revalidate over the network the first time this feed is shown in the session (so newly-added rows
   // appear despite a stale/empty persisted connection), then serve from cache on tab revisits — no
-  // per-tab-switch refetch. Pull-to-refresh still forces a reload.
-  const fetchPolicy = useRevalidateOnceFetchPolicy(`inventoryItemStockLevels:${inventoryItemId}`);
-
+  // per-tab-switch refetch. Marked revalidated only on network success; reset on logout/BU switch.
   return useApolloInfiniteQuery<StockLevel>({
     query: INVENTORY_ITEM_STOCK_LEVELS_QUERY,
     getVariables,
     dataKey: 'inventoryItemStockLevels',
     enabled: !!inventoryItemId,
-    fetchPolicy,
+    revalidateKey: `inventoryItemStockLevels:${inventoryItemId}`,
   });
 }

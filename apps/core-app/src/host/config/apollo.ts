@@ -33,8 +33,10 @@ const created = createApolloClient({
     void clearTokens().finally(() => getOnSessionExpired()?.());
   },
   unauthenticatedCode: ErrorCode.UNAUTHENTICATED,
-  // Non-secret MMKV snapshot so the last-fetched data renders instantly on relaunch.
-  persistence: { mmkv: apolloCacheStore },
+  // Non-secret MMKV snapshot so the last-fetched data renders instantly on relaunch. Namespaced per BU
+  // so each tenant keeps its own snapshot — switching BUs swaps snapshots (instant cold data both ways)
+  // instead of overwriting one, and a relaunch rehydrates the currently-selected BU's data (no leak).
+  persistence: { mmkv: apolloCacheStore, namespace: () => getSelectedBusinessUnitId() },
   // NetInfo drives replay-on-reconnect; the offline queue persists opted-in writes across app kills.
   // captureContext snapshots the active BU so each queued write replays under its original x-bu-id.
   connectivity: netInfoConnectivity,
@@ -59,3 +61,8 @@ export const purgeApolloCache = created.purge;
 // BU / tenant switch: purge ONLY the persisted snapshot; the active-query refetch keeps the live cache
 // on screen (no blank flash) while preventing a relaunch from rehydrating the previous BU's rows.
 export const purgeApolloPersisted = created.purgePersisted;
+// BU / tenant switch: re-restore the NEW BU's namespaced snapshot into the live cache for instant cold
+// data (a no-op on first visit to that BU). Paired with evictRegisteredConnections in PermissionProvider.
+export const restoreApolloCache = created.restore;
+// Lets the host observe how close the persisted snapshot is to the maxSize self-disable cliff.
+export const getApolloCacheSize = created.getCacheSize;

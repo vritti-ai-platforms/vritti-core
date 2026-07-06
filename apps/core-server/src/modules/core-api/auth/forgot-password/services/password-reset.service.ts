@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException, EmailService } from '@vritti/api-sdk';
+import { BadRequestException } from '@vritti/api-sdk';
+import { EmailService } from '@vritti/api-sdk/email';
 import * as argon2 from 'argon2';
 import { SessionTypeValues } from '@/db/schema';
 import { SessionService } from '@domain/session/services/session.service';
