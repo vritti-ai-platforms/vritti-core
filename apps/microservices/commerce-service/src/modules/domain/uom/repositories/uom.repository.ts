@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { aliasedTable, and, eq, ilike, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { aliasedTable, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, inventoryItemUomConversions, supplierItems, type Uom, uom } from '@/db/schema';
 
 export type UomWithBase = Uom & { baseUnitSymbol: string | null };
@@ -69,20 +69,6 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
       offset: options.offset,
     });
     return { result, count };
-  }
-
-  // Returns base units, optionally filtered by name or symbol
-  async findBaseUnits(search?: string): Promise<Uom[]> {
-    const baseCondition = isNull(uom.baseUnitId);
-    const where = search
-      ? and(baseCondition, or(ilike(uom.name, `%${search}%`), ilike(uom.symbol, `%${search}%`)))
-      : baseCondition;
-    return this.db.select().from(uom).where(where).orderBy(uom.name);
-  }
-
-  // Returns all derived units for a given base unit
-  async findDerivedUnits(baseUnitId: string): Promise<Uom[]> {
-    return this.db.select().from(uom).where(eq(uom.baseUnitId, baseUnitId)).orderBy(uom.name);
   }
 
   // Returns a set of UOM IDs that have at least one reference (cannot be deleted)

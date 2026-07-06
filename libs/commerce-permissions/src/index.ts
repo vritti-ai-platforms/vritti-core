@@ -1,0 +1,4 @@
+// Barrel — prefer the per-feature subpaths (@vritti/commerce-permissions/uom) in app code.
+
+export { TAX_GROUPS } from './tax-groups';
+export { UOM } from './uom';

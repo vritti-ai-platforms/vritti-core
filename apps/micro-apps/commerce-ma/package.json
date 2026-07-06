@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@apollo/client": "^4.2.3",
+    "@vritti/commerce-permissions": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
     "@react-navigation/bottom-tabs": "8.0.0-alpha.22",
     "@react-navigation/elements": "3.0.0-alpha.20",

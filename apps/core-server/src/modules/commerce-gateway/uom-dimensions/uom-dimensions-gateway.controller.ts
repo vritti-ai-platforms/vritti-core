@@ -7,6 +7,7 @@ import {
   type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
+import { UOM } from '@vritti/commerce-permissions/uom';
 import { SessionTypeValues } from '@/db/schema';
 import { RequirePermission } from '@/rbac/decorators';
 import { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
@@ -27,7 +28,7 @@ export class UomDimensionsGatewayController {
 
   // Returns dimensions, optionally filtered by search
   @Get()
-  @RequirePermission('uom.dim.view')
+  @RequirePermission(UOM.dim.view)
   list(@Query() query: UomDimensionsQueryDto): Promise<UomDimensionResponseDto[]> {
     this.logger.log('GET /commerce-api/uom-dimensions');
     return this.service.list(query.search);
@@ -58,7 +59,7 @@ export class UomDimensionsGatewayController {
   // Creates a new dimension
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermission('uom.dim.add')
+  @RequirePermission(UOM.dim.add)
   create(@Body() dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
     this.logger.log('POST /commerce-api/uom-dimensions');
     return this.service.create(dto);
@@ -66,7 +67,7 @@ export class UomDimensionsGatewayController {
 
   // Updates a dimension by ID
   @Patch(':id')
-  @RequirePermission('uom.dim.edit')
+  @RequirePermission(UOM.dim.edit)
   update(@Param('id') id: string, @Body() dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/uom-dimensions/${id}`);
     return this.service.update(id, dto);
@@ -74,7 +75,7 @@ export class UomDimensionsGatewayController {
 
   // Deletes a dimension by ID
   @Delete(':id')
-  @RequirePermission('uom.dim.delete')
+  @RequirePermission(UOM.dim.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/uom-dimensions/${id}`);
     return this.service.delete(id);

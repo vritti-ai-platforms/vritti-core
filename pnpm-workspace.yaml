@@ -3,6 +3,7 @@ packages:
   - apps/micro-apps/*
   - apps/microservices/*
   - apps/web-mfs/*
+  - libs/*
   - e2e/*
 
 nodeLinker: hoisted

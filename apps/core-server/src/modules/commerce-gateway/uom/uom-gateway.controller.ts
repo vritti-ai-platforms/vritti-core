@@ -7,9 +7,10 @@ import {
   type SuccessResponseDto,
   UserId,
 } from '@vritti/api-sdk';
+import { UOM } from '@vritti/commerce-permissions/uom';
 import { SessionTypeValues } from '@/db/schema';
+import { RequirePermission } from '@/rbac/decorators';
 import { CreateUomDto } from './dto/request/create-uom.dto';
-import { UomBaseQueryDto } from './dto/request/uom-base-query.dto';
 import { UomSelectQueryDto } from './dto/request/uom-select-query.dto';
 import { UpdateUomDto } from './dto/request/update-uom.dto';
 import type { UomResponseDto } from './dto/response/uom-response.dto';
@@ -25,20 +26,6 @@ export class UomGatewayController {
 
   constructor(private readonly uomGatewayService: UomGatewayService) {}
 
-  // Returns base units, optionally filtered by search
-  @Get('base')
-  findBaseUnits(@Query() query: UomBaseQueryDto): Promise<UomResponseDto[]> {
-    this.logger.log('GET /commerce-api/uom/base');
-    return this.uomGatewayService.findBaseUnits(query.search);
-  }
-
-  // Returns derived units for a given base unit
-  @Get(':id/derived')
-  findDerivedUnits(@Param('id') id: string): Promise<UomResponseDto[]> {
-    this.logger.log(`GET /commerce-api/uom/${id}/derived`);
-    return this.uomGatewayService.findDerivedUnits(id);
-  }
-
   // Returns paginated UOM options for select dropdowns; pass derivedOnly=true to filter to derived units only
   @Get('select')
   @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
@@ -49,6 +36,7 @@ export class UomGatewayController {
 
   // Returns paginated UOMs for the data table, scoped to a dimension
   @Get('dimension/:dimensionId/table')
+  @RequirePermission(UOM.view)
   findForTable(@Param('dimensionId') dimensionId: string, @UserId() userId: string): Promise<UomTableResponseDto> {
     this.logger.log(`GET /commerce-api/uom/dimension/${dimensionId}/table`);
     return this.uomGatewayService.findForTable(userId, dimensionId);
@@ -57,6 +45,7 @@ export class UomGatewayController {
   // Creates a new UOM
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(UOM.create)
   async create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
     this.logger.log('POST /commerce-api/uom');
     return this.uomGatewayService.create(dto);
@@ -64,6 +53,7 @@ export class UomGatewayController {
 
   // Updates a UOM by ID
   @Patch(':id')
+  @RequirePermission(UOM.edit)
   update(@Param('id') id: string, @Body() dto: UpdateUomDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/uom/${id}`);
     return this.uomGatewayService.update(id, dto);
@@ -71,6 +61,7 @@ export class UomGatewayController {
 
   // Deletes a UOM by ID
   @Delete(':id')
+  @RequirePermission(UOM.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/uom/${id}`);
     return this.uomGatewayService.delete(id);

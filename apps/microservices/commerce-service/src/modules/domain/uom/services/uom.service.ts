@@ -63,22 +63,6 @@ export class UomService {
     };
   }
 
-  // Returns base units, optionally filtered by search
-  async findBaseUnits(search: string | undefined, currentBuId: string): Promise<UomDto[]> {
-    const entities = await this.uomRepository.findBaseUnits(search);
-    const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
-    return entities.map((e) => UomDto.from(e, currentBuId, !referencedIds.has(e.id)));
-  }
-
-  // Returns all derived units for a given base unit
-  async findDerivedUnits(baseUnitId: string, currentBuId: string): Promise<UomDto[]> {
-    const baseUnit = await this.uomRepository.findById(baseUnitId);
-    if (!baseUnit) throw new NotFoundException('Base unit not found.');
-    const entities = await this.uomRepository.findDerivedUnits(baseUnitId);
-    const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
-    return entities.map((e) => UomDto.from(e, currentBuId, !referencedIds.has(e.id)));
-  }
-
   // Returns paginated UOM options for select dropdowns. When `inventoryItemId` is set, the
   // result is restricted to that item's allowed-UOMs set (see UomRepository.allowedUomIdsForItemSubquery).
   // When `supplierId` is also set (no purchaseOrderId): restricts to UOMs the supplier offers for this item,

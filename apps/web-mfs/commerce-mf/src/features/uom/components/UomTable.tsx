@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { UOM } from '@vritti/commerce-permissions/uom';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
@@ -143,6 +144,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
       <DataTable
         table={table}
         isLoading={isLoading}
+        permission={UOM.view}
         mode="compact"
         filters={[
           <SelectFilter
@@ -158,7 +160,12 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
         ]}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addDialog.open} startAdornment={<Plus className="size-4" />}>
+            <Button
+              size="sm"
+              onClick={addDialog.open}
+              startAdornment={<Plus className="size-4" />}
+              permission={UOM.create}
+            >
               Add UOM
             </Button>
           ),
@@ -168,7 +175,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
           title: 'No UOMs yet',
           description: 'Add a UOM to this dimension.',
           action: (
-            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />}>
+            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />} permission={UOM.create}>
               Add UOM
             </Button>
           ),

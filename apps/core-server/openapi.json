@@ -12944,63 +12944,6 @@
         ]
       }
     },
-    "/commerce-api/uom/base": {
-      "get": {
-        "operationId": "UomGatewayController_findBaseUnits",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "description": "Search by name or symbol",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Units of Measure"
-        ]
-      }
-    },
-    "/commerce-api/uom/{id}/derived": {
-      "get": {
-        "operationId": "UomGatewayController_findDerivedUnits",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce - Units of Measure"
-        ]
-      }
-    },
     "/commerce-api/uom/select": {
       "get": {
         "operationId": "UomGatewayController_select",

@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -90,7 +91,7 @@ export const TaxGroupsPage = () => {
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
-                permission: 'tax-groups.edit',
+                permission: TAX_GROUPS.edit,
                 dialog: {
                   title: 'Edit Tax Group',
                   description: 'Update the rates and default behaviour for this tax group.',
@@ -101,7 +102,7 @@ export const TaxGroupsPage = () => {
                 id: 'delete',
                 icon: Trash2,
                 label: 'Delete',
-                permission: 'tax-groups.delete',
+                permission: TAX_GROUPS.delete,
                 variant: 'destructive',
                 disabled: deleteMutation.isPending || !row.original.canDelete,
                 onClick: () => handleDelete(row.original),
@@ -155,7 +156,7 @@ export const TaxGroupsPage = () => {
               size="sm"
               onClick={addDialog.open}
               startAdornment={<Plus className="size-4" />}
-              permission="tax-groups.create"
+              permission={TAX_GROUPS.add}
             >
               Add Tax Group
             </Button>
@@ -166,7 +167,7 @@ export const TaxGroupsPage = () => {
           title: 'No tax groups',
           description: 'Create your first tax group to assign tax structures to items.',
           action: (
-            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />} permission="tax-groups.add">
+            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />} permission={TAX_GROUPS.add}>
               Add Tax Group
             </Button>
           ),

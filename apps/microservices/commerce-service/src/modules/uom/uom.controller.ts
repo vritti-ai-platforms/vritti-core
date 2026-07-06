@@ -34,20 +34,6 @@ export class UomController {
     return this.uomService.findForTable(state, buId);
   }
 
-  // Returns base units, optionally filtered by search
-  @MessagePattern({ cmd: 'uom.base' })
-  async base(@Payload() data: { search?: string }, @RpcBuId() buId: string): Promise<UomDto[]> {
-    this.logger.log('uom.base');
-    return this.uomService.findBaseUnits(data.search, buId);
-  }
-
-  // Returns derived units for a given base unit
-  @MessagePattern({ cmd: 'uom.derived' })
-  async derived(@Payload() data: { baseUnitId: string }, @RpcBuId() buId: string): Promise<UomDto[]> {
-    this.logger.log(`uom.derived — baseUnitId: ${data.baseUnitId}`);
-    return this.uomService.findDerivedUnits(data.baseUnitId, buId);
-  }
-
   // Returns paginated UOM options for the select component
   @MessagePattern({ cmd: 'uom.select' })
   async select(

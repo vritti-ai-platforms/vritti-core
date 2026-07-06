@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
+    "@vritti/commerce-permissions": "workspace:*",
     "@as-integrations/fastify": "^3.1.0",
     "@aws-sdk/client-s3": "^3.1023.0",
     "@aws-sdk/s3-request-presigner": "^3.1023.0",

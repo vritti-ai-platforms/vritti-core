@@ -21,18 +21,6 @@ export class UomGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
-  // Returns base units, optionally filtered by search
-  async findBaseUnits(search?: string): Promise<UomResponseDto[]> {
-    this.logger.log('uom.base');
-    return this.nats.send('commerce', 'uom.base', { search });
-  }
-
-  // Returns derived units for a given base unit
-  async findDerivedUnits(baseUnitId: string): Promise<UomResponseDto[]> {
-    this.logger.log(`uom.derived — baseUnitId: ${baseUnitId}`);
-    return this.nats.send('commerce', 'uom.derived', { baseUnitId });
-  }
-
   // Returns paginated UOM options for select dropdowns
   async select(
     params: SelectOptionsQueryDto & { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string },

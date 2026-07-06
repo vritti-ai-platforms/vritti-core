@@ -1,3 +1,4 @@
+import { UOM } from '@vritti/commerce-permissions/uom';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
@@ -27,7 +28,7 @@ export const UomPage = () => {
           <Button
             onClick={addDimensionDialog.open}
             startAdornment={<Plus className="size-4" />}
-            permission="uom.dim.add"
+            permission={UOM.dim.add}
           >
             Add Dimension
           </Button>
@@ -36,7 +37,7 @@ export const UomPage = () => {
 
       <PageContent>
         <PermissionGate
-          permission="uom.dim.view"
+          permission={UOM.dim.view}
           fallback={({ granted, reason, unlockPlans }) => (
             <PageContentPanel
               isEmpty

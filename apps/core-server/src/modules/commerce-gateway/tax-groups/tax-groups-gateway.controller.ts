@@ -8,7 +8,9 @@ import {
   type SuccessResponseDto,
   UserId,
 } from '@vritti/api-sdk';
+import { TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { SessionTypeValues } from '@/db/schema';
+import { RequirePermission } from '@/rbac/decorators';
 import {
   ApiCreateTaxGroup,
   ApiDeleteTaxGroup,
@@ -47,6 +49,7 @@ export class TaxGroupsGatewayController {
   // Creates a new tax group
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(TAX_GROUPS.add)
   @ApiCreateTaxGroup()
   async create(@Body() dto: CreateTaxGroupDto): Promise<CreateResponseDto<TaxGroupResponseDto>> {
     return this.taxGroupsGatewayService.create(dto);
@@ -61,6 +64,7 @@ export class TaxGroupsGatewayController {
 
   // Updates a tax group by ID
   @Patch(':id')
+  @RequirePermission(TAX_GROUPS.edit)
   @ApiUpdateTaxGroup()
   async update(@Param('id') id: string, @Body() dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
     return this.taxGroupsGatewayService.update(id, dto);
@@ -68,6 +72,7 @@ export class TaxGroupsGatewayController {
 
   // Deletes a tax group by ID
   @Delete(':id')
+  @RequirePermission(TAX_GROUPS.delete)
   @ApiDeleteTaxGroup()
   async delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.taxGroupsGatewayService.delete(id);

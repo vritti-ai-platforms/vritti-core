@@ -1,0 +1,15 @@
+{
+  "name": "@vritti/commerce-permissions",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./uom": { "types": "./dist/uom.d.ts", "default": "./dist/uom.js" },
+    "./tax-groups": { "types": "./dist/tax-groups.d.ts", "default": "./dist/tax-groups.js" }
+  },
+  "files": ["dist"],
+  "scripts": { "build": "tsc -p tsconfig.json", "clean": "rm -rf dist" },
+  "devDependencies": { "typescript": "^6.0.3" }
+}
