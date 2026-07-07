@@ -1,6 +1,7 @@
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { useMemo } from 'react';
 import { Navigate, type RouteObject, useLocation, useRoutes } from 'react-router-dom';
+import { Upsell } from '../components/Upsell';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteRoutes } from './RemoteRoutes';
 
@@ -11,15 +12,16 @@ export const DynamicFeatureRoutes = () => {
   const routes = useMemo<RouteObject[]>(() => {
     if (!selectedBuId || features.length === 0) return [];
 
-    // Plan-locked features are upsell-only — their remote is never mounted (no route in the DOM).
-    // BU-locked features stay routable: the page renders with every action gated red.
-    const routable = features.filter((f) => !(f.locked && f.lockReason === 'PLAN'));
-
-    return routable.map((feature) => {
+    // Every feature gets a route. Plan-locked features render an upsell screen instead of mounting the
+    // remote; BU-locked (and unlocked) features mount the micro-app (BU-locked pages gate actions red).
+    return features.map((feature) => {
       const routePrefix = feature.route.routePrefix.replace(/^\//, '');
+      const planLocked = feature.locked && feature.lockReason === 'PLAN';
       return {
         path: `${routePrefix}/*`,
-        element: (
+        element: planLocked ? (
+          <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} upsell={feature.upsell} />
+        ) : (
           <RemoteRoutes
             key={feature.code}
             remoteName="commerce"

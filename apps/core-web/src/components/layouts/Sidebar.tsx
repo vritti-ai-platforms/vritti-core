@@ -55,9 +55,8 @@ export const Sidebar = () => {
         title: f.name,
         icon: resolveIcon(f.lucideIcon),
         path: `/${buSlug}/${f.route.routePrefix.replace(/^\//, '')}`,
-        // Plan-locked = upsell-only: greyed + non-navigating (its route isn't mounted). BU-locked stays
-        // navigable — the page renders with its actions gated — but carries the red lock chip.
-        disabled: f.locked && f.lockReason === 'PLAN',
+        // Locked features stay navigable — plan-locked routes render an upsell screen, BU-locked pages
+        // render with their actions gated. Both carry the lock chip (warning for plan, red for BU).
         endAdornment: f.locked ? <LockChip feature={f} /> : undefined,
       })),
     }));
