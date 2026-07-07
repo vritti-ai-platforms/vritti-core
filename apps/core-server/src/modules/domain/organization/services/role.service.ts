@@ -1,4 +1,5 @@
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
+import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   ConflictException,
@@ -7,7 +8,9 @@ import {
   PrimaryDatabaseService,
   SuccessResponseDto,
 } from '@vritti/api-sdk';
+import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
 import type { Role } from '@/db/schema';
+import { validateGrantDependencies } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
 import type { RoleItemDto } from '../dto/request/provision-roles-internal.dto';
@@ -23,7 +26,15 @@ export class RoleService {
     private readonly roleRepository: RoleRepository,
     private readonly businessUnitRepository: BusinessUnitRepository,
     private readonly permissionSetCache: PermissionSetCacheService,
+    private readonly catalogService: CatalogService,
   ) {}
+
+  // Rejects grants that enable a dependent permission without its prerequisite, against the active snapshot
+  private async assertGrantDependencies(features: FeatureUnlocks): Promise<void> {
+    const snapshot = await this.catalogService.getActiveSnapshot();
+    if (!snapshot) return;
+    validateGrantDependencies(features, snapshot);
+  }
 
   // Provisions template roles for an organization — creates a zero-delta stub per template code that has no
   // role yet. Grants are NOT copied: they flow from the template at read time (a role with empty deltas
@@ -69,6 +80,8 @@ export class RoleService {
       });
     }
 
+    await this.assertGrantDependencies(dto.features);
+
     const role = await this.roleRepository.create({
       organizationId: orgId,
       name: dto.name,
@@ -97,6 +110,10 @@ export class RoleService {
           errors: [{ field: 'name', message: 'Name already in use' }],
         });
       }
+    }
+
+    if (dto.features !== undefined) {
+      await this.assertGrantDependencies(dto.features);
     }
 
     await this.roleRepository.update(roleId, {

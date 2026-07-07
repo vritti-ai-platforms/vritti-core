@@ -159,11 +159,11 @@ export const PosBillingPage = () => {
       items: cart.map((line) => ({
         offeringVariantId: line.offeringVariantId,
         quantity: line.quantity,
+        // Server re-derives each modifier's authoritative price from the catalog — client sends identity only
         modifiers: line.modifiers.map((modifier) => ({
           modifierGroupId: modifier.modifierGroupId,
           modifierOptionId: modifier.modifierOptionId,
           name: modifier.name,
-          additionalPrice: Number(minorToMajor(modifier.additionalPrice, line.unitPrice.currency)),
         })),
       })),
     });

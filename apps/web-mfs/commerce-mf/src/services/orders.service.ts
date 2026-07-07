@@ -18,7 +18,7 @@ export interface CreateOrderPayload {
     offeringVariantId: string;
     quantity: number;
     notes?: string;
-    modifiers?: { modifierGroupId: string; modifierOptionId: string; name: string; additionalPrice: number }[];
+    modifiers?: { modifierGroupId: string; modifierOptionId: string; name: string }[];
   }[];
 }
 

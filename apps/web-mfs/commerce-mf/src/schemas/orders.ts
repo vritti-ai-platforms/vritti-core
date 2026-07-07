@@ -66,7 +66,6 @@ const orderItemModifierSchema = z.object({
   modifierGroupId: z.string().min(1),
   modifierOptionId: z.string().min(1),
   name: z.string().min(1),
-  additionalPrice: z.number(),
 });
 
 const orderItemSchema = z.object({

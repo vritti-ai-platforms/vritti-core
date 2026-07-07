@@ -1,3 +1,4 @@
+import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
@@ -5,6 +6,7 @@ import { type BuFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import type { BuMetadata, BuType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { normalizeLockCascade } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitInternalDto } from '../dto/request/create-business-unit-internal.dto';
@@ -26,6 +28,7 @@ export class BusinessUnitService {
     private readonly buContextCache: BuContextCacheService,
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly catalogService: CatalogService,
   ) {}
 
   // Creates a business unit, computes depth/path from parent, and updates path with new ID
@@ -114,7 +117,14 @@ export class BusinessUnitService {
     const bu = await this.businessUnitRepository.findById(id);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    await this.businessUnitRepository.update(id, { featureLocks, updatedAt: new Date() });
+    // Locking a prerequisite must also lock its dependents — expand the deny-list before persisting
+    let expanded = featureLocks;
+    if (featureLocks) {
+      const snapshot = await this.catalogService.getActiveSnapshot();
+      if (snapshot) expanded = normalizeLockCascade(featureLocks, snapshot);
+    }
+
+    await this.businessUnitRepository.update(id, { featureLocks: expanded, updatedAt: new Date() });
 
     await this.buContextCache.invalidate(id);
     await this.permissionSetCache.invalidateByBu(id);
