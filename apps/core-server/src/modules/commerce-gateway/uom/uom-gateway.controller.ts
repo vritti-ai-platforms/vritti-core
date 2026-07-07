@@ -45,7 +45,7 @@ export class UomGatewayController {
   // Creates a new UOM
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(UOM.create)
+  @RequirePermission(UOM.add)
   async create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
     this.logger.log('POST /commerce-api/uom');
     return this.uomGatewayService.create(dto);

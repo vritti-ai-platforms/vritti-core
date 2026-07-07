@@ -1,7 +1,7 @@
 // UOM permission codes — MUST match the cloud catalog's authored codes exactly.
 export const UOM = {
   view: 'uom.view',
-  create: 'uom.create',
+  add: 'uom.add',
   edit: 'uom.edit',
   delete: 'uom.delete',
   dim: {

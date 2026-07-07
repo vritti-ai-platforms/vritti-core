@@ -164,7 +164,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
               size="sm"
               onClick={addDialog.open}
               startAdornment={<Plus className="size-4" />}
-              permission={UOM.create}
+              permission={UOM.add}
             >
               Add UOM
             </Button>
@@ -175,7 +175,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
           title: 'No UOMs yet',
           description: 'Add a UOM to this dimension.',
           action: (
-            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />} permission={UOM.create}>
+            <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />} permission={UOM.add}>
               Add UOM
             </Button>
           ),
