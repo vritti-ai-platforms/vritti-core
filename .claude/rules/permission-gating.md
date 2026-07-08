@@ -14,10 +14,10 @@ auth-state stream and are exposed through `@vritti/quantum-ui/PermissionGate`.
 - **render = role**: the user's role grants the feature → it's visible. Not granted → it does not exist for them (render nothing).
 - **enable = role ∧ plan ∧ BU**: granted but plan- or BU-locked → visible but **disabled with a lock + upsell**, not hidden.
 
-`usePermission(code)` returns `{ granted, locked, reason, unlockPlans }`:
+`usePermission(code)` returns `{ granted, locked, reason, unlockPlans, available }`:
 - `granted: false` → hide (render nothing / `null`).
 - `granted && locked` → show a lock (`reason` = `'PLAN' | 'BU'`), disabled; `lockedTip({ reason, unlockPlans })` gives the copy.
-- `granted && !locked` → fully enabled.
+- `available` (= `granted && !locked`) → fully enabled. **Prefer `available` over recomputing `granted && !locked`.**
 
 ## Permission codes — NEVER hardcode string literals
 
@@ -43,6 +43,7 @@ catalog exactly.
 |---|---|---|
 | `<PermissionGate permission=… fallback=…>` | a **view / page / subtree** | children (and their queries) mount **only** when `granted && !locked`; else renders `fallback` |
 | `permission` prop on `Button` / `RowActions` / `DataTable` | a single **action** or a **table** | gated in place — hidden when not granted, disabled + lock when locked |
+| `permission` on a `Tabs` `TabItem` | a single **tab** | not granted → the tab is dropped; granted but locked → visible, disabled, lock + upsell tip; the default selection skips locked/disabled tabs |
 | `usePermission(code)` | bespoke logic | raw `{ granted, locked, reason, unlockPlans }` |
 
 ### `<PermissionGate>` — the mount-boundary gate
@@ -97,12 +98,12 @@ import { UOM } from '@vritti/commerce-permissions/uom';
 
 export function useUomTable(dimensionId: string | null, options?: Omit<UseQueryOptions<…>, 'queryKey' | 'queryFn'>) {
   // The table endpoint is guarded by uom.view — self-gate so a locked/denied user never fires the request
-  const { granted, locked } = usePermission(UOM.view);
+  const { available } = usePermission(UOM.view);
   return useQuery<…>({
     queryKey: [...UOM_TABLE_KEY, dimensionId],
     queryFn: () => getUomTable(dimensionId as string),
     ...options,
-    enabled: !!dimensionId && granted && !locked && (options?.enabled ?? true),
+    enabled: !!dimensionId && available && (options?.enabled ?? true),
   });
 }
 ```

@@ -135,6 +135,7 @@ export const TaxGroupsPage = () => {
       <DataTable
         table={table}
         isLoading={isLoading}
+        permission={TAX_GROUPS.view}
         searchConfig={{
           columns: [{ id: 'name', label: 'Name' }],
           searchAll: true,

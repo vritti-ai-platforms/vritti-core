@@ -7,12 +7,10 @@ import { ArrowUpRight, Check, Sparkles } from 'lucide-react';
 interface UpsellProps {
   featureName?: string;
   unlockPlans: string[];
-  // Per unlocking plan, the extra features that plan adds vs the current plan (resolved server-side)
   upsell: PlanUpsell[];
 }
 
-// Full-page screen shown at a plan-locked feature's route — reframed as an aspirational unlock: the
-// gated feature, the plans that lift it, and the extra features each plan adds (no price).
+// Full-page screen at a plan-locked feature's route — the gated feature and the plans that unlock it
 export const Upsell = ({ featureName, unlockPlans, upsell }: UpsellProps) => {
   const groups = upsell.filter((group) => group.features.length > 0);
 

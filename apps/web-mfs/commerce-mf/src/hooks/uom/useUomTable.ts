@@ -11,11 +11,11 @@ export function useUomTable(
   options?: Omit<UseQueryOptions<UomTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
   // The table endpoint is guarded by uom.view — self-gate so a locked/denied user never fires the request
-  const { granted, locked } = usePermission(UOM.view);
+  const { available } = usePermission(UOM.view);
   return useQuery<UomTableResponse, AxiosError>({
     queryKey: [...UOM_TABLE_KEY, dimensionId],
     queryFn: () => getUomTable(dimensionId as string),
     ...options,
-    enabled: !!dimensionId && granted && !locked && (options?.enabled ?? true),
+    enabled: !!dimensionId && available && (options?.enabled ?? true),
   });
 }

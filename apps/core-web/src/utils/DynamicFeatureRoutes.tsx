@@ -12,8 +12,7 @@ export const DynamicFeatureRoutes = () => {
   const routes = useMemo<RouteObject[]>(() => {
     if (!selectedBuId || features.length === 0) return [];
 
-    // Every feature gets a route. Plan-locked features render an upsell screen instead of mounting the
-    // remote; BU-locked (and unlocked) features mount the micro-app (BU-locked pages gate actions red).
+    // Plan-locked features render an upsell instead of mounting the remote; others mount the micro-app
     return features.map((feature) => {
       const routePrefix = feature.route.routePrefix.replace(/^\//, '');
       const planLocked = feature.locked && feature.lockReason === 'PLAN';

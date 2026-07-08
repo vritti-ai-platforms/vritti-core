@@ -30,7 +30,18 @@ const PermissionContext = createContext<PermissionContextValue>({
   isLoadingPermissions: false,
 });
 
-const DENY: PermissionGateResult = Object.freeze({ granted: false, locked: false, reason: null, unlockPlans: [] });
+const DENY: PermissionGateResult = Object.freeze({
+  granted: false,
+  locked: false,
+  reason: null,
+  unlockPlans: [],
+  available: false,
+});
+
+// Builds a granted result, deriving `available` (granted && !locked) so it's always consistent
+function grant(locked: boolean, reason: PermissionGateResult['reason'], unlockPlans: string[]): PermissionGateResult {
+  return { granted: true, locked, reason, unlockPlans, available: !locked };
+}
 
 // Resolves a "feature.permission" code against the selected BU's resolved features
 function buildGate(features: PermissionFeature[]): PermissionGateFn {
@@ -40,15 +51,12 @@ function buildGate(features: PermissionFeature[]): PermissionGateFn {
     const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
     const feature = features.find((f) => f.code === featureCode);
     if (!feature) return DENY;
-    if (!permissionCode)
-      return { granted: true, locked: feature.locked, reason: feature.lockReason, unlockPlans: feature.unlockPlans };
+    if (!permissionCode) return grant(feature.locked, feature.lockReason, feature.unlockPlans);
     if (!feature.permissions.includes(permissionCode)) return DENY;
-    if (feature.locked)
-      return { granted: true, locked: true, reason: feature.lockReason, unlockPlans: feature.unlockPlans };
+    if (feature.locked) return grant(true, feature.lockReason, feature.unlockPlans);
     const permissionLock = feature.lockedPermissions.find((p) => p.code === permissionCode);
-    if (permissionLock)
-      return { granted: true, locked: true, reason: permissionLock.reason, unlockPlans: permissionLock.unlockPlans };
-    return { granted: true, locked: false, reason: null, unlockPlans: [] };
+    if (permissionLock) return grant(true, permissionLock.reason, permissionLock.unlockPlans);
+    return grant(false, null, []);
   };
 }
 
