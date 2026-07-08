@@ -48,15 +48,27 @@ catalog exactly.
 ### `<PermissionGate>` — the mount-boundary gate
 
 Children mount only when granted **and** unlocked, so their data queries never fire otherwise.
-`fallback` is a node **or** `(result) => node` receiving the gate result (so it can show the lock reason / upsell).
+`fallback` is a node **or** a callback. The callback receives the gate result **plus a ready-to-render
+`title` + `tip`** that already resolve the not-granted vs granted-but-locked split — render them directly.
+**Never import or call `lockedTip` inside a fallback**; that copy is handed to you as `tip`.
 
 ```tsx
-import { PermissionGate } from '@vritti/quantum-ui/PermissionGate';
+import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 
-<PermissionGate permission={UOM.dim.view} fallback={({ reason, unlockPlans }) => <FeatureLocked reason={reason} unlockPlans={unlockPlans} />}>
+// title/tip cover both cases (no access / plan- or BU-locked); reason drives the lock icon
+<PermissionGate
+  permission={UOM.dim.view}
+  fallback={({ reason, title, tip }) => (
+    <Empty icon={<PermissionLockIcon reason={reason} />} title={title} description={tip} />
+  )}
+>
   <UomDimensionsPage />
 </PermissionGate>
 ```
+
+Need feature-specific copy? The callback still gets `granted`/`reason`/`unlockPlans` — branch and override
+`title`/`tip` yourself. `lockedTip({ reason, unlockPlans })` stays exported only for **feature-level** lock
+displays *outside* a gate (sidebar item, upsell panel).
 
 Must **conditionally mount** (render fallback *instead of* children) — never CSS-hide a still-mounted subtree, or its hooks keep firing. Default (no `fallback`): renders nothing when not granted, a lock chip when locked.
 

@@ -5,7 +5,7 @@ import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent, PageContentPanel } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
-import { lockedTip, PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
+import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Layers, Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -38,18 +38,10 @@ export const UomPage = () => {
       <PageContent>
         <PermissionGate
           permission={UOM.dim.view}
-          fallback={({ granted, reason, unlockPlans }) => (
+          fallback={({ reason, title, tip }) => (
             <PageContentPanel
               isEmpty
-              emptyState={
-                <Empty
-                  icon={<PermissionLockIcon reason={reason} />}
-                  title={granted ? 'Dimensions locked' : 'No access'}
-                  description={
-                    granted ? lockedTip({ reason, unlockPlans }) : 'You do not have access to view dimensions.'
-                  }
-                />
-              }
+              emptyState={<Empty icon={<PermissionLockIcon reason={reason} />} title={title} description={tip} />}
             />
           )}
         >
