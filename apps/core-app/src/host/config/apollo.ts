@@ -4,7 +4,7 @@ import { clearTokens, getOnSessionExpired, getStoredMobileBaseURL, getToken } fr
 import { Platform } from 'react-native';
 import { ErrorCode } from '../types/error-code';
 import { netInfoConnectivity } from './connectivity';
-import { apolloCacheStore, getSelectedBusinessUnitId, offlineQueueStore } from './storage';
+import { getSelectedBusinessUnitId, offlineQueueStore } from './storage';
 
 // The generic Apollo layer (link chain, normalized InMemoryCache, MMKV persistence) lives in
 // @vritti/quantum-ui-native/apollo so every RN app reuses it. The host injects ONLY its session +
@@ -33,10 +33,10 @@ const created = createApolloClient({
     void clearTokens().finally(() => getOnSessionExpired()?.());
   },
   unauthenticatedCode: ErrorCode.UNAUTHENTICATED,
-  // Non-secret MMKV snapshot so the last-fetched data renders instantly on relaunch. Namespaced per BU
-  // so each tenant keeps its own snapshot — switching BUs swaps snapshots (instant cold data both ways)
-  // instead of overwriting one, and a relaunch rehydrates the currently-selected BU's data (no leak).
-  persistence: { mmkv: apolloCacheStore, namespace: () => getSelectedBusinessUnitId() },
+  // Ephemeral cache: no MMKV snapshot — every cold launch starts empty and fetches fresh.
+  // Pin cache-and-network explicitly: WITHOUT `persistence` the factory default silently flips to
+  // Apollo's cache-first, which would stop watch queries revalidating on mount within a session.
+  watchQueryFetchPolicy: 'cache-and-network',
   // NetInfo drives replay-on-reconnect; the offline queue persists opted-in writes across app kills.
   // captureContext snapshots the active BU so each queued write replays under its original x-bu-id.
   connectivity: netInfoConnectivity,

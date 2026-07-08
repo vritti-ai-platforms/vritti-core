@@ -1,266 +1,52 @@
-import { type RouteProp, useNavigation } from '@react-navigation/native';
-import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
 import { Button } from '@vritti/quantum-ui-native/Button';
-import { Checkbox } from '@vritti/quantum-ui-native/Checkbox';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { PushNavigator, type PushScreenConfig } from '@vritti/quantum-ui-native/PushNavigator';
-import { RadioGroup } from '@vritti/quantum-ui-native/RadioGroup';
-import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { ScreenHeader } from '@vritti/quantum-ui-native/ScreenHeader';
-import { Select, type SelectOption, type SelectValue } from '@vritti/quantum-ui-native/Select';
-import { TextField } from '@vritti/quantum-ui-native/TextField';
-import { Text } from '@vritti/quantum-ui-native/Text';
-import { useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+// Side-effect: registers this feature's Apollo cache policies (uomDimension by-id read redirect) at module eval.
+import './cache';
+import { UomDimensionDetail } from './screens/UomDimensionDetailScreen';
+import { UomDimensionsList } from './screens/UomDimensionsListScreen';
+import type { UomRoute } from './types';
+import { UomCreateProvider, useUomCreate } from './UomCreateContext';
 
-type UOMRoute = 'UOMList' | 'UOMDetail';
+const PLUS_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
 
-interface UOMDetailParams {
-  id: number;
-}
-
-function UOMList() {
-  const navigation = useNavigation() as unknown as {
-    navigate: (screen: 'UOMDetail', params: UOMDetailParams) => void;
-  };
-
-  return (
-    <ScreenContainer scrollable>
-      <View className="gap-3 p-4">
-        {Array.from({ length: 30 }).map((_, i) => {
-          const id = i + 1;
-          return (
-            <Pressable
-              key={`uom-${id}`}
-              onPress={() => navigation.navigate('UOMDetail', { id })}
-              android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
-              className="bg-card border border-border rounded-xl p-4"
-            >
-              <Text className="text-base font-semibold text-foreground">UOM #{id}</Text>
-              <Text className="text-sm text-muted-foreground">Placeholder row {id}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </ScreenContainer>
-  );
-}
-
-const UOM_TYPE_OPTIONS: SelectOption[] = [
-  { value: 'weight', label: 'Weight', description: 'kg, g, lb, oz' },
-  { value: 'volume', label: 'Volume', description: 'L, mL, gal' },
-  { value: 'length', label: 'Length', description: 'm, cm, ft, in' },
-  { value: 'count', label: 'Count', description: 'pcs, dozen, box' },
-  { value: 'area', label: 'Area', description: 'm², ft²' },
-  { value: 'temperature', label: 'Temperature', description: '°C, °F (coming soon)', disabled: true },
-];
-
-// 20 options to exercise the Select sheet's scrolling + footer with a longer list.
-const LONG_OPTIONS: SelectOption[] = Array.from({ length: 20 }, (_, i) => ({
-  value: `opt-${i + 1}`,
-  label: `Option ${i + 1}`,
-  description: `Description for option ${i + 1}`,
-}));
-
-// Demonstrates Checkbox + single/multi Select + RadioGroup from quantum-ui-native
-function SelectCheckboxExamples() {
-  const [active, setActive] = useState(true);
-  const [allowDecimals, setAllowDecimals] = useState(false);
-  const [singleType, setSingleType] = useState<SelectValue | undefined>('weight');
-  const [multiTypes, setMultiTypes] = useState<SelectValue[]>(['weight', 'count']);
-  const [singleLong, setSingleLong] = useState<SelectValue | undefined>(undefined);
-  const [multiLong, setMultiLong] = useState<SelectValue[]>([]);
-  const [unitName, setUnitName] = useState('');
-  const [system, setSystem] = useState('metric');
-  const [rounding, setRounding] = useState('nearest');
-
-  return (
-    <View className="gap-5">
-      <Text className="text-base font-semibold text-foreground">Select, Checkbox & Radio examples</Text>
-
-      <TextField
-        label="Name"
-        placeholder="e.g. Kilogram"
-        value={unitName}
-        onChangeText={setUnitName}
-        autoCapitalize="words"
-      />
-
-      <View className="gap-3">
-        <Checkbox label="Active" checked={active} onCheckedChange={setActive} />
-        <Checkbox label="Allow decimal quantities" checked={allowDecimals} onCheckedChange={setAllowDecimals} />
-        <Checkbox label="System unit (locked)" checked disabled onCheckedChange={() => {}} />
-      </View>
-
-      <Select
-        multiple
-        label="Compatible types"
-        placeholder="Select types"
-        options={UOM_TYPE_OPTIONS}
-        value={multiTypes}
-        onChange={(values: SelectValue[]) => setMultiTypes(values)}
-        searchable
-      />
-
-      <Select
-        label="Measurement type"
-        placeholder="Select a type"
-        options={UOM_TYPE_OPTIONS}
-        value={singleType}
-        onChange={(value: SelectValue) => setSingleType(value)}
-        searchable
-        clearable
-      />
-
-      <Select
-        multiple
-        label="Tags (20 options)"
-        placeholder="Select tags"
-        options={LONG_OPTIONS}
-        value={multiLong}
-        onChange={(values: SelectValue[]) => setMultiLong(values)}
-        searchable
-      />
-
-      <Select
-        label="Primary tag (20 options)"
-        placeholder="Select a tag"
-        options={LONG_OPTIONS}
-        value={singleLong}
-        onChange={(value: SelectValue) => setSingleLong(value)}
-        searchable
-        clearable
-      />
-
-      <RadioGroup
-        label="Measurement system"
-        value={system}
-        onValueChange={setSystem}
-        options={[
-          { value: 'metric', label: 'Metric', description: 'kg, m, L' },
-          { value: 'imperial', label: 'Imperial', description: 'lb, ft, gal' },
-        ]}
-      />
-
-      <RadioGroup
-        label="Rounding"
-        variant="card"
-        value={rounding}
-        onValueChange={setRounding}
-        options={[
-          { value: 'nearest', label: 'Nearest', description: 'Round to the nearest whole unit' },
-          { value: 'up', label: 'Round up', description: 'Always round up' },
-          { value: 'down', label: 'Round down', description: 'Always round down' },
-        ]}
-      />
-    </View>
-  );
-}
-
-function UOMDetail({ route }: { route: RouteProp<{ UOMDetail: UOMDetailParams }, 'UOMDetail'> }) {
-  const id = route.params?.id ?? '?';
-  const fullSheetRef = useRef<BottomSheetRef>(null);
-  const halfSheetRef = useRef<BottomSheetRef>(null);
-
-  return (
-    <ScreenContainer scrollable>
-      <View className="p-4 gap-4">
-        <Text className="text-2xl font-bold text-foreground">UOM #{id}</Text>
-        <Text className="text-base text-muted-foreground">
-          Pushed via PushNavigator from the UOM list. Use the back button or swipe right to return.
-        </Text>
-
-        <View className="bg-card border border-border rounded-xl p-4 gap-3">
-          <View>
-            <Text className="text-xs uppercase text-muted-foreground">ID</Text>
-            <Text className="text-base font-semibold text-foreground">{id}</Text>
-          </View>
-          <View>
-            <Text className="text-xs uppercase text-muted-foreground">Name</Text>
-            <Text className="text-base font-semibold text-foreground">Unit #{id}</Text>
-          </View>
-          <View>
-            <Text className="text-xs uppercase text-muted-foreground">Type</Text>
-            <Text className="text-base font-semibold text-foreground">Placeholder</Text>
-          </View>
-        </View>
-
-        <SelectCheckboxExamples />
-
-        <View className="gap-3">
-          <Text className="text-base font-semibold text-foreground">Bottom sheet examples</Text>
-          <Button onPress={() => fullSheetRef.current?.present()}>
-            <Text>Open full sheet</Text>
-          </Button>
-          <Button variant="ghost" onPress={() => halfSheetRef.current?.present()}>
-            <Text>Open half sheet</Text>
-          </Button>
-        </View>
-      </View>
-
-      <BottomSheet
-        ref={fullSheetRef}
-        detents={['full']}
-        title="Full sheet"
-        onClose={() => fullSheetRef.current?.dismiss()}
-      >
-        <View className="gap-3 px-4">
-          <Text className="text-base font-semibold text-foreground">Full-height sheet</Text>
-          <Text className="text-sm text-muted-foreground">
-            Opens to the full screen height with a scrollable body. Tap Close or drag down to dismiss.
-          </Text>
-          {Array.from({ length: 30 }).map((_, i) => {
-            const row = i + 1;
-            return (
-              <View key={`full-row-${row}`} className="bg-card border border-border rounded-xl p-4">
-                <Text className="text-sm font-semibold text-foreground">Row {row}</Text>
-                <Text className="text-xs text-muted-foreground">Placeholder content</Text>
-              </View>
-            );
-          })}
-        </View>
-      </BottomSheet>
-
-      <BottomSheet ref={halfSheetRef} detents={['80%']}>
-        <View className="gap-3 px-4 pb-8 pt-2">
-        <TextField
-        label="Name"
-        placeholder="e.g. Kilogram"
-        value={''}
-        autoCapitalize="words"
-      />
-          <Text className="text-base font-semibold text-foreground">Half-height sheet</Text>
-          <Text className="text-sm text-muted-foreground">
-            Opens to roughly half the screen height. Drag the grabber up to expand or down to dismiss.
-          </Text>
-        </View>
-      </BottomSheet>
-    </ScreenContainer>
-  );
-}
-
-const CREATE_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
-
+// Header action — opens the create sheet the list screen owns (via UomCreateContext).
 function CreateButton() {
-  // onPress is a placeholder — the create flow is not wired up yet.
+  const { requestCreate } = useUomCreate();
   return (
-    <Button variant="glass" size="icon" onPress={() => {}} accessibilityLabel="Create" hitSlop={8}>
-      <DynamicIcon icon={CREATE_ICON} size={24} />
+    <Button variant="glass" size="icon" onPress={requestCreate} accessibilityLabel="Add dimension" hitSlop={8}>
+      <DynamicIcon icon={PLUS_ICON} size={24} />
     </Button>
   );
 }
 
-const screens: ReadonlyArray<PushScreenConfig<UOMRoute>> = [
+const screens: ReadonlyArray<PushScreenConfig<UomRoute>> = [
   {
-    name: 'UOMList',
-    component: UOMList,
+    name: 'UomDimensionsList',
+    component: UomDimensionsList,
     header: () => (
-      <ScreenHeader title="Units of Measure" rightActions={<CreateButton />} />
+      <ScreenHeader
+        title="Units of Measure"
+        subtitle="Manage measurement dimensions"
+        searchable
+        searchPlaceholder="Search dimensions"
+        rightActions={<CreateButton />}
+      />
     ),
   },
-  { name: 'UOMDetail', component: UOMDetail, headerShown: true, title: 'UOM Detail' },
+  {
+    name: 'UomDimensionDetail',
+    component: UomDimensionDetail,
+    headerShown: true,
+    title: 'Dimension',
+  },
 ];
 
-export default function UOMScreen() {
-  return <PushNavigator<UOMRoute> initialRoute="UOMList" screens={screens} />;
+export default function UomScreen() {
+  return (
+    <UomCreateProvider>
+      <PushNavigator<UomRoute> initialRoute="UomDimensionsList" screens={screens} />
+    </UomCreateProvider>
+  );
 }

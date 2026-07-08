@@ -247,6 +247,46 @@ type MutationResult {
   message: String!
 }
 
+type UomDimension {
+  id: ID!
+  code: String!
+  name: String!
+  description: String
+  canEdit: Boolean
+  canDelete: Boolean
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Uom {
+  id: ID!
+  dimensionId: ID!
+  name: String!
+  symbol: String!
+  baseUnitId: ID
+  baseUnitSymbol: String
+  baseUomQty: Int!
+  uomQty: Int!
+  canEdit: Boolean!
+  canDelete: Boolean!
+  createdAt: String!
+}
+
+type UomPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type UomEdge {
+  cursor: String!
+  node: Uom!
+}
+
+type UomConnection {
+  edges: [UomEdge!]!
+  pageInfo: UomPageInfo!
+}
+
 type LookupOrganization {
   id: ID!
   name: String!
@@ -294,6 +334,10 @@ type Query {
   suppliersOptions(input: SelectOptionsInput): SelectOptions!
   taxGroupsOptions(input: SelectOptionsInput): SelectOptions!
   uomOptions(input: SelectOptionsInput, dimensionId: ID, baseOnly: Boolean, derivedOnly: Boolean): SelectOptions!
+  uomDimensions(search: String): [UomDimension!]!
+  uomDimension(id: ID!): UomDimension!
+  uomsFeed(dimensionId: ID!, first: Int, after: String): UomConnection!
+  uom(id: ID!): Uom!
 }
 
 input SelectOptionsInput {
@@ -340,6 +384,12 @@ type Mutation {
   createInventoryItemUomConversion(inventoryItemId: ID!, input: CreateInventoryItemUomConversionInput!): InventoryItemUomConversion!
   updateInventoryItemUomConversion(id: ID!, input: UpdateInventoryItemUomConversionInput!): MutationResult!
   deleteInventoryItemUomConversion(id: ID!): MutationResult!
+  createUomDimension(input: CreateUomDimensionInput!): UomDimension!
+  updateUomDimension(id: ID!, input: UpdateUomDimensionInput!): UomDimension!
+  deleteUomDimension(id: ID!): MutationResult!
+  createUom(input: CreateUomInput!): Uom!
+  updateUom(id: ID!, input: UpdateUomInput!): Uom!
+  deleteUom(id: ID!): MutationResult!
   createInventoryItemLocation(inventoryItemId: ID!, input: CreateInventoryItemLocationInput!): InventoryItemLocation!
   updateInventoryItemLocation(id: ID!, input: UpdateInventoryItemLocationInput!): MutationResult!
   deleteInventoryItemLocation(id: ID!): MutationResult!
@@ -396,6 +446,38 @@ input CreateInventoryItemUomConversionInput {
 input UpdateInventoryItemUomConversionInput {
   primaryUomQty: Int!
   uomQty: Int!
+}
+
+input CreateUomDimensionInput {
+  code: String!
+  name: String!
+  description: String
+}
+
+input UpdateUomDimensionInput {
+  code: String
+  name: String
+  description: String
+}
+
+input CreateUomInput {
+  dimensionId: ID!
+  name: String!
+  symbol: String!
+  baseUnitId: ID
+  baseUomQty: Int
+  uomQty: Int
+  allowDecimal: Boolean
+}
+
+input UpdateUomInput {
+  dimensionId: ID
+  name: String
+  symbol: String
+  baseUnitId: ID
+  baseUomQty: Int
+  uomQty: Int
+  allowDecimal: Boolean
 }
 
 input CreateInventoryItemLocationInput {

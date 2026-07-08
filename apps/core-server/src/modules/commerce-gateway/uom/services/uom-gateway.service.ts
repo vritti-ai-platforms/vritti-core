@@ -21,6 +21,21 @@ export class UomGatewayService {
     private readonly dataTableStateService: DataTableStateService,
   ) {}
 
+  // Keyset/cursor Relay connection of a dimension's units for the mobile infinite feed (GraphQL-only).
+  async findForFeed(query: { dimensionId: string; limit?: number; cursor?: string }): Promise<{
+    edges: { cursor: string; node: UomResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`uom.feed — dimensionId: ${query.dimensionId}`);
+    return this.nats.send('commerce', 'uom.feed', query);
+  }
+
+  // Returns a single UOM by ID
+  async findById(id: string): Promise<UomResponseDto> {
+    this.logger.log(`uom.findById — id: ${id}`);
+    return this.nats.send('commerce', 'uom.findById', { id });
+  }
+
   // Returns base units, optionally filtered by search
   async findBaseUnits(search?: string): Promise<UomResponseDto[]> {
     this.logger.log('uom.base');

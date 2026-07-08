@@ -34,6 +34,19 @@ export class UomController {
     return this.uomService.findForTable(state, buId);
   }
 
+  // Returns a keyset/cursor Relay connection of a dimension's units for the mobile infinite feed
+  @MessagePattern({ cmd: 'uom.feed' })
+  async feed(
+    @Payload() data: { dimensionId: string; limit?: number; cursor?: string },
+    @RpcBuId() buId: string,
+  ): Promise<{
+    edges: { cursor: string; node: UomDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`uom.feed — dimensionId: ${data.dimensionId}`);
+    return this.uomService.findForFeed(data, buId);
+  }
+
   // Returns base units, optionally filtered by search
   @MessagePattern({ cmd: 'uom.base' })
   async base(@Payload() data: { search?: string }, @RpcBuId() buId: string): Promise<UomDto[]> {

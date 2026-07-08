@@ -30,7 +30,10 @@ export class UomDimensionsService {
   // Returns all dimensions, optionally filtered by name or code
   async list(search: string | undefined, currentBuId: string): Promise<UomDimensionDto[]> {
     const rows = await this.repository.findAllOrSearch(search);
-    return rows.map((r) => UomDimensionDto.from(r, currentBuId));
+    // Compute canDelete per row (BU-owned AND unreferenced) via one batch reference check, so the list
+    // cards can hide the delete action for in-use / non-owned dimensions — matching the web.
+    const referenced = await this.repository.findReferencedDimensionIds(rows.map((r) => r.id));
+    return rows.map((r) => UomDimensionDto.from(r, currentBuId, !referenced.has(r.id)));
   }
 
   // Returns paginated dimension options for the select component

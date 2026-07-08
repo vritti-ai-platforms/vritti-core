@@ -49,10 +49,7 @@ export class UomGatewayController {
 
   // Returns paginated UOMs for the data table, scoped to a dimension
   @Get('dimension/:dimensionId/table')
-  findForTable(
-    @Param('dimensionId') dimensionId: string,
-    @UserId() userId: string,
-  ): Promise<UomTableResponseDto> {
+  findForTable(@Param('dimensionId') dimensionId: string, @UserId() userId: string): Promise<UomTableResponseDto> {
     this.logger.log(`GET /commerce-api/uom/dimension/${dimensionId}/table`);
     return this.uomGatewayService.findForTable(userId, dimensionId);
   }

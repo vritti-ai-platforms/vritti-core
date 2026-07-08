@@ -71,6 +71,37 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
     return { result, count };
   }
 
+  // Returns up to limit+1 UOMs joined with their base unit symbol (self-join) for keyset pagination.
+  // The keyset `where` predicate + `orderBy` are built by the service; base findKeyset clamps to
+  // MAX_PAGE_SIZE, fetches limit+1, and reports hasMore.
+  async findKeysetWithBase(options: {
+    where?: SQL;
+    orderBy: SQL[];
+    limit: number;
+  }): Promise<{ rows: UomWithBase[]; hasMore: boolean }> {
+    const baseUom = aliasedTable(uom, 'base_uom');
+    return this.findKeyset<UomWithBase>({
+      select: {
+        id: uom.id,
+        organizationId: uom.organizationId,
+        businessUnitId: uom.businessUnitId,
+        dimensionId: uom.dimensionId,
+        name: uom.name,
+        symbol: uom.symbol,
+        baseUnitId: uom.baseUnitId,
+        baseUomQty: uom.baseUomQty,
+        uomQty: uom.uomQty,
+        allowDecimal: uom.allowDecimal,
+        createdAt: uom.createdAt,
+        baseUnitSymbol: baseUom.symbol,
+      },
+      leftJoin: { table: baseUom, on: eq(uom.baseUnitId, baseUom.id) },
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
+    });
+  }
+
   // Returns base units, optionally filtered by name or symbol
   async findBaseUnits(search?: string): Promise<Uom[]> {
     const baseCondition = isNull(uom.baseUnitId);

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
-import { eq, ilike, or, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq, ilike, inArray, or, sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, supplierItems, type UomDimension, uom, uomDimensions } from '@/db/schema';
 
 @Injectable()
@@ -40,6 +40,30 @@ export class UomDimensionsRepository extends PrimaryBaseRepository<typeof uomDim
       inventoryItems: Number(invResult[0]?.count ?? 0),
       supplierItems: Number(suppResult[0]?.count ?? 0),
     };
+  }
+
+  // Batch version of countReferences for the list: of the given dimension ids, returns the set that are
+  // referenced by any inventory item or supplier item (through their UOM). Lets the list compute canDelete
+  // per row in two queries instead of an N+1 countReferences per dimension.
+  async findReferencedDimensionIds(ids: string[]): Promise<Set<string>> {
+    if (ids.length === 0) return new Set();
+    const [invRows, suppRows] = await Promise.all([
+      this.db
+        .selectDistinct({ dimensionId: uom.dimensionId })
+        .from(inventoryItems)
+        .innerJoin(uom, eq(uom.id, inventoryItems.uomId))
+        .where(inArray(uom.dimensionId, ids)),
+      this.db
+        .selectDistinct({ dimensionId: uom.dimensionId })
+        .from(supplierItems)
+        .innerJoin(uom, eq(uom.id, supplierItems.uomId))
+        .where(inArray(uom.dimensionId, ids)),
+    ]);
+    const referenced = new Set<string>();
+    for (const row of [...invRows, ...suppRows]) {
+      if (row.dimensionId) referenced.add(row.dimensionId);
+    }
+    return referenced;
   }
 
   // Bulk-deletes all UOMs in a dimension (used to cascade on dimension delete)

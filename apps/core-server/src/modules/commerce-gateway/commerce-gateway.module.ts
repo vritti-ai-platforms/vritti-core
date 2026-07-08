@@ -70,6 +70,7 @@ import { TaxGroupsGatewayController } from './tax-groups/tax-groups-gateway.cont
 import { UomResolver } from './uom/resolvers/uom.resolver';
 import { UomGatewayService } from './uom/services/uom-gateway.service';
 import { UomGatewayController } from './uom/uom-gateway.controller';
+import { UomDimensionsResolver } from './uom-dimensions/resolvers/uom-dimensions.resolver';
 import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimensions-gateway.service';
 import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-gateway.controller';
 
@@ -136,6 +137,7 @@ import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-
     TaxGroupsGatewayService,
     UomGatewayService,
     UomDimensionsGatewayService,
+    UomDimensionsResolver,
     // Select options resolvers
     CostCategoriesResolver,
     CustomersResolver,

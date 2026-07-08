@@ -3,15 +3,20 @@ import {
   BadRequestException,
   ConflictException,
   type CreateResponseDto,
+  CursorCodec,
   type FieldMap,
   FilterProcessor,
+  type KeysetOrderBy,
+  KeysetProcessor,
+  keysetSignature,
+  MAX_PAGE_SIZE,
   NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemUomConversions, purchaseOrderItems, supplierItems, uom, uomDimensions } from '@/db/schema';
 import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
 import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
@@ -60,6 +65,55 @@ export class UomService {
     return {
       result: rows.map((row) => UomDto.from(row, currentBuId, !referencedIds.has(row.id), row.baseUnitSymbol)),
       count,
+    };
+  }
+
+  // Keyset/cursor Relay connection of a dimension's units (base + derived) for the mobile infinite feed.
+  // Fixed order: base units first (baseUnitId NULLS FIRST), then by name, with id as the unique tie-breaker
+  // (required for keyset correctness). Joins the base-unit symbol; buId scopes canEdit and the batch
+  // reference check gates canDelete.
+  async findForFeed(
+    query: { dimensionId: string; limit?: number; cursor?: string },
+    currentBuId: string,
+  ): Promise<{
+    edges: { cursor: string; node: UomDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    // baseUnitId is nullable (base units), so the NULL-aware keyset path is used; the id tie-breaker makes
+    // the order total. Each entry carries the row accessor key so cursor values are read by JS property.
+    const orderByEntries: (KeysetOrderBy & { key: string })[] = [
+      { column: uom.baseUnitId, direction: 'asc', nulls: 'first', key: 'baseUnitId' },
+      { column: uom.name, direction: 'asc', key: 'name' },
+      { column: uom.id, direction: 'asc', key: 'id' },
+    ];
+    const orderBy = [sql`${uom.baseUnitId} ASC NULLS FIRST`, asc(uom.name), asc(uom.id)];
+
+    // The sort is fixed (not client-controlled), but still bind the cursor to it — decode throws
+    // InvalidCursorException (400) on a malformed/forged cursor.
+    const signature = keysetSignature(orderByEntries);
+    const cursorWhere = query.cursor
+      ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(query.cursor, signature))
+      : undefined;
+    const where = and(eq(uom.dimensionId, query.dimensionId), cursorWhere);
+
+    const limit = Math.min(query.limit ?? 20, MAX_PAGE_SIZE);
+    const { rows, hasMore } = await this.uomRepository.findKeysetWithBase({ where, orderBy, limit });
+
+    const referencedIds = await this.uomRepository.findReferencedIds(rows.map((r) => r.id));
+    const edges = rows.map((row) => ({
+      cursor: CursorCodec.encode(
+        orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
+        signature,
+      ),
+      node: UomDto.from(row, currentBuId, !referencedIds.has(row.id), row.baseUnitSymbol),
+    }));
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: hasMore,
+        endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
+      },
     };
   }
 
@@ -204,16 +258,32 @@ export class UomService {
     return {
       success: true,
       message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
-      // pass entity.businessUnitId so canEdit resolves to true for a freshly created row
-      data: UomDto.from(entity, entity.businessUnitId),
+      // Re-read a complete DTO (joins baseUnitSymbol; a fresh row has no references so canDelete=true).
+      // buId is the row's own BU, so canEdit resolves to true.
+      data: await this.toDto(entity.id, entity.businessUnitId),
     };
+  }
+
+  // Builds a COMPLETE UomDto by id — same primitives findForFeed uses, so canEdit/canDelete and
+  // baseUnitSymbol are computed identically on every read path (the by-id re-read after update/create).
+  // Without this, a bare UomDto.from(entity, buId) defaults canDelete=true and baseUnitSymbol=null, which
+  // Apollo then auto-merges over the feed's correct values (delete button reappears; conversion shows "—").
+  private async toDto(id: string, currentBuId: string): Promise<UomDto> {
+    const { result } = await this.uomRepository.findForTableWithBase({
+      where: eq(uom.id, id),
+      orderBy: [asc(uom.name)],
+      limit: 1,
+      offset: 0,
+    });
+    const row = result[0];
+    if (!row) throw new NotFoundException('Unit of measure not found.');
+    const referenced = await this.uomRepository.findReferencedIds([id]);
+    return UomDto.from(row, currentBuId, !referenced.has(id), row.baseUnitSymbol);
   }
 
   // Finds a UOM by ID or throws NotFoundException
   async findById(id: string, currentBuId: string): Promise<UomDto> {
-    const entity = await this.uomRepository.findById(id);
-    if (!entity) throw new NotFoundException('Unit of measure not found.');
-    return UomDto.from(entity, currentBuId);
+    return this.toDto(id, currentBuId);
   }
 
   // Updates a UOM
