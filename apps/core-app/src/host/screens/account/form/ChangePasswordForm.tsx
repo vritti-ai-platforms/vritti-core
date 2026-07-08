@@ -13,8 +13,7 @@ interface ChangePasswordFormProps {
 }
 
 export const ChangePasswordForm = ({ form, isSubmitting, onSubmit }: ChangePasswordFormProps) => {
-  // Watching newPassword keeps the strength indicator and the confirm-match
-  // indicator on the third field reactive without the user having to blur.
+  // Watching newPassword keeps the strength and confirm-match indicators reactive without a blur.
   const newPassword = form.watch('newPassword');
 
   return (

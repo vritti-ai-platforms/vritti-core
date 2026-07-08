@@ -6,9 +6,6 @@ import { SessionTypeValues } from '@/db/schema';
 import { SelectOptionsInput } from '../../../commerce-gateway/_shared/graphql/select.input';
 import { SelectOptions } from '../../../commerce-gateway/_shared/graphql/select.type';
 
-// GraphQL options query for the User Select dropdown. Thin forward to the existing `UserService.findForSelect`
-// (which backs GET /users/select). No entity params — just the shared SelectOptionsInput. Reuses the shared
-// SelectOptions/SelectOptionsInput GraphQL types defined under commerce-gateway/_shared/graphql.
 @Resolver()
 export class UserResolver {
   private readonly logger = new Logger(UserResolver.name);

@@ -12,8 +12,7 @@ interface OpeningItemContentProps {
   isDraft: boolean;
 }
 
-// 2-column layout: lots/lines tree (left) + content (right). Right pane shows
-// the lines table when a lot is selected, or the serials table when a line is selected.
+// 2-column layout: lots/lines tree on the left, selected lot or line detail on the right.
 export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentProps) => {
   const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [selectedLineId, setSelectedLineId] = useState<string | null>(null);

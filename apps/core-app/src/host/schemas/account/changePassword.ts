@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-// Mirrors apps/core-web/src/schemas/account.ts:changePasswordSchema so the
-// native and web flows enforce identical password rules end-to-end.
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Current password is required'),

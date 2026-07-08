@@ -21,9 +21,7 @@ export const config = {
   api: {
     deploymentsBaseUrl: raw.deploymentsApiBaseUrl,
     fallbackBaseUrl: raw.apiBaseUrl,
-    // Undefined → buildOrganizationApiBaseURL applies the real org subdomain
-    // (https://<org>.local.vrittiai.com:3001); the backend resolves the org from that subdomain.
-    // Set a value only to force a single raw core host in dev (skips per-org subdomain routing).
+    // Undefined → real org subdomain is applied; set a value only to force a single raw core host in dev.
     devRawCoreBaseUrl: undefined,
   },
 
@@ -39,9 +37,7 @@ export const config = {
 
 export type AppConfig = typeof config;
 
-// Dev-only API host override: in development, API_BASE_URL (config.api.devRawCoreBaseUrl) is the single
-// source of truth for the API base URL — it wins over any selected-deployment/tenant URL. In production
-// devRawCoreBaseUrl is undefined, so the real (deployment-resolved) URL is returned unchanged.
+// Dev-only API host override: devRawCoreBaseUrl wins in dev; in prod it's undefined so the real URL passes through.
 export function resolveApiBaseUrl(productionUrl: string): string {
   return config.api.devRawCoreBaseUrl ?? productionUrl;
 }

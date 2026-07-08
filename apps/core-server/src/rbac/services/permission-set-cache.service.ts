@@ -5,9 +5,6 @@ import type { PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
 const TTL_SECONDS = 5 * 60;
 const PREFIX = 'perm';
 
-// Caches a user's enabled-permission code set per BU per platform bucket, backed by the api-sdk
-// CacheService (LRU in-memory today; swap the module's driver to 'redis' when core-server scales out).
-// Web and mobile resolve to different feature sets, so the platform is part of the key.
 @Injectable()
 export class PermissionSetCacheService {
   constructor(private readonly cache: CacheService) {}

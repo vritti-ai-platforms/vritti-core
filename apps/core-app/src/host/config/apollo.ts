@@ -6,21 +6,10 @@ import { ErrorCode } from '../types/error-code';
 import { netInfoConnectivity } from './connectivity';
 import { apolloCacheStore, getSelectedBusinessUnitId, offlineQueueStore } from './storage';
 
-// The generic Apollo layer (link chain, normalized InMemoryCache, MMKV persistence) lives in
-// @vritti/quantum-ui-native/apollo so every RN app reuses it. The host injects ONLY its session +
-// transport behavior below; it owns NO micro-app schema. Each micro-app registers its own entity
-// cache policies (relayStylePagination, by-id read redirects) at runtime via `registerConnection`,
-// so the host cache stays schema-agnostic.
-//
-// Apollo runs ALONGSIDE TanStack Query during the GraphQL migration — it does NOT replace it.
-// Secrets (access token, deployment base URL) stay in quantum-ui-native (in-memory token + Keychain
-// base URL); proactive token refresh stays the timer inside the package. This client only reads those
-// values per request; it never owns or refreshes the session.
 const created = createApolloClient({
   getToken,
   resolveBaseURL: getStoredMobileBaseURL,
-  // Tenant + platform headers mirror the axios request interceptor. Authorization is added by the
-  // factory from the token.
+  // Tenant + platform headers mirror the axios interceptor; Authorization is added from the token.
   buildHeaders: () => {
     const businessUnitId = getSelectedBusinessUnitId();
     return {
@@ -36,7 +25,6 @@ const created = createApolloClient({
   // Non-secret MMKV snapshot so the last-fetched data renders instantly on relaunch.
   persistence: { mmkv: apolloCacheStore },
   // NetInfo drives replay-on-reconnect; the offline queue persists opted-in writes across app kills.
-  // captureContext snapshots the active BU so each queued write replays under its original x-bu-id.
   connectivity: netInfoConnectivity,
   offline: {
     mmkv: offlineQueueStore,
@@ -47,15 +35,7 @@ const created = createApolloClient({
   },
 });
 
-// `created.client` is typed against quantum-ui-native's own @apollo/client install; re-anchor it to
-// this app's install (they are the SAME class at runtime — one Module-Federation singleton — but
-// distinct nominal types across the two node_modules, so a direct assignment won't unify).
 export const apolloClient = created.client as unknown as ApolloClient;
-// Awaited at the App root (`use(apolloReady)`) so the persisted snapshot rehydrates before any query
-// reads the cache.
 export const apolloReady = created.ready;
-// Logout / session-expiry: empty the live cache AND the persisted snapshot — no tenant data survives.
 export const purgeApolloCache = created.purge;
-// BU / tenant switch: purge ONLY the persisted snapshot; the active-query refetch keeps the live cache
-// on screen (no blank flash) while preventing a relaunch from rehydrating the previous BU's rows.
 export const purgeApolloPersisted = created.purgePersisted;

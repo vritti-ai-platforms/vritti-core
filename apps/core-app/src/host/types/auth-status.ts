@@ -6,7 +6,6 @@ export interface AuthStatusUser {
   fullName: string;
   status: string;
   hasPassword: boolean;
-  // Sent by the server (auth-status SSE) — drive locale-aware date/number formatting.
   locale: string;
   timezone: string;
   createdAt: string;

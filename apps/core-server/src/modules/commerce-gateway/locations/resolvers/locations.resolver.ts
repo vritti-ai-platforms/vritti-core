@@ -7,9 +7,6 @@ import { SelectOptions } from '../../_shared/graphql/select.type';
 import type { LocationsSelectQueryDto } from '../dto/request/locations-select-query.dto';
 import { LocationsGatewayService } from '../services/locations-gateway.service';
 
-// GraphQL options query for the Location Select dropdown. Thin forward to the existing gateway `.select()`
-// (which NATS-forwards to commerce-service). Entity params (locationRoles / inventoryItemId / goods-receipt
-// exclusion scope) merge into the same LocationsSelectQueryDto the service expects; buId flows via NATS context.
 @Resolver()
 export class LocationsResolver {
   private readonly logger = new Logger(LocationsResolver.name);

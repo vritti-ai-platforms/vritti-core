@@ -59,8 +59,7 @@ const AddSerialForm = ({
   );
 };
 
-// Computes the next serial number based on the last added one.
-// Heuristic: trailing digits become incremented.
+// Computes the next serial number by incrementing the trailing digits of the last one.
 export const suggestNextSerial = (last: string | undefined): string | undefined => {
   if (!last) return undefined;
   const match = last.match(/^(.*?)(\d+)$/);

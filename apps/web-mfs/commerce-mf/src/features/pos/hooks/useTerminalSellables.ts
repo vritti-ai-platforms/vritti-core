@@ -14,7 +14,6 @@ export interface PosSellableItem {
   priceRange: { min: CurrencyAmount; max: CurrencyAmount } | null;
   variantCount: number;
   modifierGroupCount: number;
-  // The lone available variant, present only when variantCount === 1
   singleVariant?: OfferingVariant;
 }
 
@@ -31,8 +30,7 @@ interface SellablesData {
   variantsByOffering: Record<string, OfferingVariant[]>;
 }
 
-// Lists the terminal's catalog offerings and their variants so each offering can be mapped
-// to a single sellable tile with a price range and instant-add metadata.
+// Lists the terminal's catalog offerings and their variants so each maps to one sellable tile.
 async function fetchSellables(catalogId: string): Promise<SellablesData> {
   const table = await getOfferingsTable(catalogId);
   const offerings = table.result.filter((offering) => offering.isAvailable);

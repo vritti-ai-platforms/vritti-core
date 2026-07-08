@@ -48,7 +48,6 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
 
 @Module({
   imports: [
-    // --- Infrastructure ---
     // Global environment config with schema validation
     ConfigModule.forRoot({
       isGlobal: true,
@@ -175,7 +174,6 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
       }),
     }),
 
-    // --- Cross-cutting SDK modules ---
     // Health check + CSRF endpoints
     RootModule,
     // Globally provided EmailService
@@ -199,7 +197,6 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     UserRoleDomainModule,
     UserPermissionsDomainModule,
 
-    // --- Messaging ---
     // NATS client (gateway mode) — resolves BU context from sessionInfo
     NatsClientModule.forRoot({
       imports: [BusinessUnitDomainModule],

@@ -34,8 +34,7 @@ export function useAuthStatusStream(enabled = true) {
         setToken(response.accessToken);
         scheduleTokenRefresh(response.expiresIn);
       } else if (!response.isAuthenticated && wasAuthenticated.current) {
-        // Mid-session revocation: was authenticated, now kicked out
-        // Clear credentials — AppRender switches to publicRoutes automatically (no redirect needed)
+        // Mid-session revocation: clear credentials — AppRender switches to publicRoutes automatically
         wasAuthenticated.current = false;
         clearToken();
         queryClient.clear();

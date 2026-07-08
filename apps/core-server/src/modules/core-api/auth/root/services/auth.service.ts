@@ -36,8 +36,7 @@ export class AuthService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // Resolves the user's BUs + per-BU features within an RLS context so the org_isolation
-  // policy on business_units sees app.org_id. Used by both getStatus branches.
+  // Resolves the user's BUs + per-BU features within an RLS context so org_isolation sees app.org_id
   private async resolvePermissionContext(
     userId: string,
     orgId: string,
@@ -227,8 +226,7 @@ export class AuthService {
     return { message: 'Password set successfully. You can now log in.' };
   }
 
-  // Returns auth status without throwing 401 — resolves org from subdomain via Host header.
-  // platform selects which microfrontend route (WEB/MOBILE) flows into featuresByBuId entries.
+  // Returns auth status without throwing 401 — resolves org from subdomain; platform selects WEB/MOBILE features
   async getStatus(
     refreshToken: string | undefined,
     subdomain?: string,
@@ -311,8 +309,7 @@ export class AuthService {
       const { accessToken, expiresIn, userId, sessionId } = await this.sessionService.generateAccessToken(refreshToken);
       const user = await this.userService.findById(userId);
 
-      // Web connects via refresh cookie (native EventSource can't send a bearer header), so enrich
-      // BUs + features here too. Org comes from the subdomain-resolved entity.
+      // Web connects via refresh cookie (no bearer header), so enrich BUs + features here too from the subdomain-resolved org
       let businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>> = [];
       let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> =
         {};

@@ -43,8 +43,7 @@ interface SerialsTableProps {
   onLineRemoved?: () => void;
 }
 
-// Right column for OPENING + serial flow: line items (serials) rendered as a DataTable.
-// Edit / Remove of the selected LINE live in this panel's toolbar so the side rail stays clean.
+// Right column for OPENING + serial flow: the selected line's serials rendered as a DataTable.
 export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, onLineRemoved }: SerialsTableProps) => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();

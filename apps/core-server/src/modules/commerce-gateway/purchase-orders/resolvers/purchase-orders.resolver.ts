@@ -7,9 +7,6 @@ import { SelectOptions } from '../../_shared/graphql/select.type';
 import type { PurchaseOrderSelectQueryDto } from '../dto/request/purchase-order-select-query.dto';
 import { PurchaseOrdersGatewayService } from '../services/purchase-orders-gateway.service';
 
-// GraphQL options query for the Purchase Order Select dropdown. Thin forward to the existing gateway
-// `.select()` (which NATS-forwards to commerce-service). Entity params (status / supplierId) merge into the
-// same PurchaseOrderSelectQueryDto the service expects; buId flows via the NATS request context.
 @Resolver()
 export class PurchaseOrdersResolver {
   private readonly logger = new Logger(PurchaseOrdersResolver.name);

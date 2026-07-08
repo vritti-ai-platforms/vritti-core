@@ -1,7 +1,5 @@
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
-// Money fields below are bigint minor units serialized as strings — feed straight into
-// formatCurrency() / minorToMajor(). For arithmetic, parse with BigInt(...).
 export interface CreditNoteApplicationData {
   id: string;
   creditNoteId: string;

@@ -22,14 +22,9 @@ export const AccountScreen = () => {
   const { push } = usePushNavigator<HostAppRoute>();
   const { isDark, colorScheme, themePreference, setThemePreference } = useTheme();
   const themeSheetRef = useRef<BottomSheetRef>(null);
-  // Held across the dismiss → onDismiss boundary. Using a ref (not state) so
-  // the sheet content doesn't re-render mid-close.
   const pendingThemeRef = useRef<ThemePreferenceValue | null>(null);
 
-  // Defer setThemePreference until the sheet has fully closed. On Android the
-  // theme flip remounts both Tab.Navigator and Stack.Navigator, which tears
-  // down the React subtree underneath the gorhom BottomSheetModal Portal —
-  // doing that while the sheet's worklets are still running crashes the app.
+  // Defer setThemePreference until the sheet closes — on Android the theme flip remounts the navigators under the BottomSheetModal Portal and crashes if worklets are still running.
   const handleSelectTheme = (value: ThemePreferenceValue) => {
     pendingThemeRef.current = value;
     themeSheetRef.current?.dismiss();

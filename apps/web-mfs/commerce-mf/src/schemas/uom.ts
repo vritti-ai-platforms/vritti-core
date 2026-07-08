@@ -2,8 +2,6 @@ import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/types/api
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
 
-// Unified UOM form schema — supports both base and derived units.
-// For derived units, the user enters the integer pair: 1 Box = 12 Each → baseUomQty=12, uomQty=1.
 const positiveInt = zodNumericField({ positive: true, integer: true });
 
 const _uomFormSchema = z

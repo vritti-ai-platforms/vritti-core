@@ -1,14 +1,3 @@
-// Remote Module Federation Configuration
-//
-// Defines all remote micro-frontends loaded by the host application.
-// All remotes are loaded unconditionally at startup.
-//
-// ENVIRONMENT-DRIVEN APPROACH:
-// - Automatically detects protocol (HTTP/HTTPS) from window.location.protocol
-// - Uses PUBLIC_ prefixed environment variables (Rsbuild convention)
-// - Local mode: PORT env vars defined → port-based routing
-// - Production mode: PORT env vars undefined → path-based routing with PUBLIC_MF_BASE_URL
-
 export interface RemoteConfig {
   name: string;
   entry: string;
@@ -59,35 +48,24 @@ const getEnvironmentConfig = (): EnvironmentConfig => {
 
 // Builds the remote entry manifest URL based on environment and configuration
 const buildRemoteEntry = (config: {
-  portEnvVar: string; // Environment variable name (e.g., 'PUBLIC_CLOUD_MF_PORT')
+  portEnvVar: string;
   prodPath: string;
 }): string => {
   const { protocol, host } = getEnvironmentConfig();
 
   // Check if the port environment variable is defined
-  // Rsbuild exposes PUBLIC_ prefixed env vars via import.meta.env
   const remotePort = getEnvVar(config.portEnvVar);
 
   if (remotePort) {
     // Local: port-based routing with environment variable port
-    // Example: http://local.vrittiai.com:3001/mf-manifest.json
     return `${protocol}://${host}:${remotePort}/mf-manifest.json`;
   } else {
     // Production: path-based routing with MF_BASE_URL
-    // Example: https://mf.vrittiai.com/auth-microfrontend/mf-manifest.json
     const mfBaseUrl = import.meta.env.PUBLIC_MF_BASE_URL || `${protocol}://${host}`;
     return `${mfBaseUrl}/${config.prodPath}/mf-manifest.json`;
   }
 };
 
-// Registry of all remote micro-frontends — add new remotes here as they are developed
-//
-// Local example (with PUBLIC_CLOUD_MF_PORT=3002):
-//   https://local.vrittiai.com:3002/mf-manifest.json
-//
-// Production example (with PUBLIC_MF_BASE_URL=https://mf.vrittiai.com):
-//   https://mf.vrittiai.com/cloud-microfrontend/mf-manifest.json
-// Commerce MF is loaded dynamically via the permission feature catalog — not registered here
 export const ALL_REMOTES: RemoteConfig[] = [
   {
     name: 'VrittiCloud',

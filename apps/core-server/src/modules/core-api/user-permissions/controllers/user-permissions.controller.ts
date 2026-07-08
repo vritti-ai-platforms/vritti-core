@@ -12,8 +12,7 @@ export class UserPermissionsController {
 
   constructor(private readonly userPermissionsApiService: UserPermissionsApiService) {}
 
-  // Returns assigned BUs in select dropdown format (BU switcher).
-  // Full BUs + resolved features are delivered via the SSE /auth/status stream, not REST.
+  // Returns assigned BUs in select dropdown format (BU switcher); full BUs + resolved features via SSE /auth/status
   @Get('business-units/select')
   async getBusinessUnitsSelect(@UserId() userId: string): Promise<BuSelectResponseDto> {
     this.logger.log(`GET /api/user-permissions/business-units/select — user: ${userId}`);

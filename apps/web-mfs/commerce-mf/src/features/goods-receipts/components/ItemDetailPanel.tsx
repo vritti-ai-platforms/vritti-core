@@ -53,8 +53,7 @@ const ItemDetailContent = ({
   // How much of the total received quantity is still undistributed — the cap for adding/editing lines.
   const remainingToDistribute = Math.max(item.totalQty - item.acceptedQuantity, 0);
 
-  // Quantity/serial items are received directly into location lines; lot/lot_serial items break down
-  // into lots first.
+  // Quantity/serial items receive directly into location lines; lot/lot_serial items break into lots first.
   const usesLines = tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL;
 
   const handleRemoveItem = async () => {

@@ -36,9 +36,7 @@ export class RoleService {
     validateGrantDependencies(features, snapshot);
   }
 
-  // Provisions template roles for an organization — creates a zero-delta stub per template code that has no
-  // role yet. Grants are NOT copied: they flow from the template at read time (a role with empty deltas
-  // tracks its template exactly), so template edits reach every role without re-provisioning.
+  // Provisions template roles for an organization — creates a zero-delta stub per template code with no role yet
   async provision(orgId: string, roles: RoleItemDto[]): Promise<SuccessResponseDto> {
     const existing = await this.roleRepository.findByOrg(orgId);
     const existingCodes = new Set(existing.map((r) => r.code));

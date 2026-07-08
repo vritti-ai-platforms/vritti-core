@@ -9,9 +9,7 @@ export class SupplierItemsGatewayService {
 
   constructor(private readonly nats: NatsClientService) {}
 
-  // Returns paginated supplier item options. When supplierId is absent, includes the supplier name as
-  // each option's description. When purchaseOrderId is provided, the option `additionals` carries the
-  // negotiated PO line price for pre-fill on the GR add-item flow.
+  // Returns paginated supplier item options, with supplier name and negotiated PO price as additionals when applicable
   async select(query: SupplierItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`supplierItems.select — supplierId: ${query.supplierId ?? 'all'}`);
     return this.nats.send('commerce', 'supplierItems.select', query);

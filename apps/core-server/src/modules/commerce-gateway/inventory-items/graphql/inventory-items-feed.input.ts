@@ -25,8 +25,6 @@ export class FeedFilterInput implements FilterCondition {
   @IsIn(FILTER_OPERATORS)
   operator: FilterOperator;
 
-  // Mobile filters are array-valued (isAnyOf on type/tracking — see filterOptions.toFilterConditions).
-  // The REST DTO allows string | number | string[]; string[] is the only shape the mobile feed produces.
   @Field(() => [String])
   @IsArray()
   value: string[];

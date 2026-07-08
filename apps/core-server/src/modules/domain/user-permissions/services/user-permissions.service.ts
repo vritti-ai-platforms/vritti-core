@@ -17,7 +17,6 @@ import {
 import type { BuType } from '@/db/schema';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 
-// Role grants joined per assignment at a BU — as returned by UserRoleAssignmentRepository.findByUserAndBU
 type AssignmentGrants = { features: FeatureUnlocks; code: string; revoked: RevokedGrants | null };
 
 export interface AssignedBU {
@@ -41,9 +40,7 @@ export class UserPermissionsService {
     private readonly permissionSetCache: PermissionSetCacheService,
   ) {}
 
-  // Resolves the API-enforceable enabled-permission set for a user at a BU on a platform (cache-first,
-  // DB fallback). The platform bucket comes from the session type (web vs mobile resolve to different sets).
-  // Enabled = granted ∧ not-locked: a plan/BU-locked permission is DENIED even though the UI only disables it.
+  // Resolves the API-enforceable enabled-permission set (granted ∧ not-locked) for a user at a BU on a platform
   async resolveEnabledPermissions(userId: string, buId: string, bucket: PlatformBucket = 'web'): Promise<Set<string>> {
     const cached = await this.permissionSetCache.get(userId, buId, bucket);
     if (cached) return cached;
@@ -90,9 +87,7 @@ export class UserPermissionsService {
     return result;
   }
 
-  // Resolves combined features + MF config for a user at a specific BU:
-  // active signed catalog snapshot ∧ org entitlement ∧ BU locks ∧ role grants via api-sdk resolveUserFeatures.
-  // No active snapshot or entitlement = zero features (that IS the enforcement).
+  // Resolves combined features + MF config for a user at a BU via api-sdk resolveUserFeatures; no snapshot/entitlement = zero features
   async getPermissions(
     userId: string,
     buId: string,
@@ -131,8 +126,7 @@ export class UserPermissionsService {
     return { features };
   }
 
-  // Composes one assignment's effective grants: template (from the active snapshot) ∪ additions − revoked.
-  // A role's `code` IS its template link; missing template or legacy path (no snapshot) degrades gracefully.
+  // Composes one assignment's effective grants: template (from the active snapshot) ∪ additions − revoked
   private composeAssignment(
     assignment: AssignmentGrants,
     snapshot: VersionSnapshot | undefined,
@@ -149,8 +143,7 @@ export class UserPermissionsService {
     });
   }
 
-  // Merges the effective grants of all assignments additively per feature, per platform bucket.
-  // Undefined bucket = not a member there.
+  // Merges the effective grants of all assignments additively per feature, per platform bucket
   private mergeRoleGrants(grantSets: FeatureUnlocks[]): FeatureUnlocks {
     const merged: FeatureUnlocks = {};
     for (const features of grantSets) {

@@ -3,14 +3,11 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { type RouteObject, useRoutes } from 'react-router-dom';
 import { MicrofrontendSkeletonFullPage } from './MircrofrontendFullPageSkeleton';
 
-// Tracks which remotes have been dynamically registered
 const registeredRemotes = new Set<string>();
 
-// Global route cache — persists across component instances
 const globalRouteCache = new Map<string, unknown>();
 
-// TEMP: force remoteEntry URLs to http so local dev works without SSL certs.
-// Revert by removing this function and the toHttpEntry() call below.
+// TEMP: force remoteEntry URLs to http so local dev works without SSL certs
 function toHttpEntry(entry: string): string {
   return entry.replace(/^https:\/\//, 'http://');
 }

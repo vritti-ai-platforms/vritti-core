@@ -6,8 +6,7 @@ import { lazy, Suspense } from 'react';
 import { AppRegistry } from 'react-native';
 import { getRemoteAssetBase, getRemoteConfigByRuntimeName } from './config/remotes.config';
 
-// Resolve host-local split chunks from the host dev server/filesystem and remote
-// containers/chunks from the registered remote asset base.
+// Resolve host-local split chunks from the host dev server/filesystem and remote containers/chunks from the registered remote asset base.
 ScriptManager.shared.addResolver(async (scriptId, caller) => {
   const remoteContainer = getRemoteConfigByRuntimeName(scriptId);
   if (remoteContainer) {
@@ -34,8 +33,7 @@ ScriptManager.shared.addResolver(async (scriptId, caller) => {
   return undefined;
 });
 
-// Async boundary — MF shared scope initializes before bootstrap runs.
-// Only react + react-native (eager:true) are used above this line.
+// Async boundary — MF shared scope initializes before bootstrap runs (only eager react + react-native used above this line).
 const LazyApp = lazy(() => import('./bootstrap'));
 
 function Root() {

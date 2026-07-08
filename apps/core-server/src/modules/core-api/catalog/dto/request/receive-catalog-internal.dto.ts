@@ -4,8 +4,6 @@ import { Type } from 'class-transformer';
 import { IsObject, IsString } from 'class-validator';
 
 export class ReceiveCatalogInternalDto implements SignedDocument<CatalogLicense> {
-  // Signed as-is — validated cryptographically in CatalogService, not field-by-field here.
-  // @Type(() => Object) pins the type so implicit conversion doesn't coerce nested arrays.
   @ApiProperty({
     description: 'Catalog license payload: deploymentId, version, hash, snapshot, issuedAt',
     type: 'object',

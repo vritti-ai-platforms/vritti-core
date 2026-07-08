@@ -9,9 +9,7 @@ export class PurchaseOrderItemsGatewayService {
 
   constructor(private readonly nats: NatsClientService) {}
 
-  // Returns paginated PO line options for the GR AddItem selector. The option `additionals` carry
-  // (inventoryItemId, uomId, unitPrice, currencyCode, allowDecimal, symbol, orderedQuantity,
-  // receivedQuantity) so the dialog can post the GR add-item payload directly.
+  // Returns paginated PO line options for the GR AddItem selector, with pricing/quantity additionals for direct payload post
   async select(query: PurchaseOrderItemsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`purchaseOrderItems.select — poId: ${query.purchaseOrderId}`);
     return this.nats.send('commerce', 'purchaseOrderItems.select', query);

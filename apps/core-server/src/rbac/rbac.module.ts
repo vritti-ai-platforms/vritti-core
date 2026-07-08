@@ -6,8 +6,6 @@ import { UserPermissionsDomainModule } from '@/modules/domain/user-permissions/u
 import { PermissionInterceptor } from './interceptors/permission.interceptor';
 import { PermissionSetCacheService } from './services/permission-set-cache.service';
 
-// @RequirePermission is enforced by a global interceptor (not a guard) so it always runs after
-// VrittiAuthGuard — interceptors execute after all guards, so request.sessionInfo is guaranteed populated.
 @Global()
 @Module({
   imports: [

@@ -5,10 +5,6 @@ import { getSelectedBusinessUnitId, setSelectedBusinessUnitId } from '../config/
 import type { AssignedBU, PermissionFeature } from '../types/permissions';
 import { useAuthSessionSnapshot } from './AuthProvider';
 
-// ---------------------------------------------------------------------------
-// Context
-// ---------------------------------------------------------------------------
-
 interface PermissionContextValue {
   businessUnits: AssignedBU[];
   selectedBuId: string | null;
@@ -25,10 +21,6 @@ export const usePermissionContext = (): PermissionContextValue => {
   if (!ctx) throw new Error('usePermissionContext must be used within PermissionProvider');
   return ctx;
 };
-
-// ---------------------------------------------------------------------------
-// Provider
-// ---------------------------------------------------------------------------
 
 interface PermissionProviderProps {
   children: React.ReactNode;
@@ -70,9 +62,7 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
       return;
     }
 
-    // 2+ BUs. On a fresh LOGIN, leave selectedBuId null so AppRender shows the picker (ask every
-    // login). On a session RESTORE (app relaunch), don't re-ask — restore the last-used BU
-    // (persisted), falling back to the first if it's no longer assigned.
+    // 2+ BUs: on a fresh LOGIN leave selectedBuId null so the picker shows; on RESTORE re-use the last-used BU, falling back to the first.
     if (sessionOrigin === 'login') {
       return;
     }
@@ -100,14 +90,7 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
     [selectedBuId],
   );
 
-  // After a BU change, refetch all server-state under the new x-bu-id. refetchQueries with
-  // include: 'active' refetches every currently-mounted query while keeping the previously-cached
-  // data on screen during the background refetch — so freshly-remounted feature screens never flash
-  // blank. (clearStore() here would empty the shared cache and leave those screens blank until a
-  // second mount.) We DO purge the persisted MMKV snapshot, though: it's BU-scoped, so leaving it
-  // would let a relaunch under a different BU rehydrate the previous BU's rows (the active-query
-  // refetch overwrites the live cache, and the persistor re-snapshots the fresh BU on its next write).
-  // Runs after the remount commit, so it targets the new observers; skips the initial selection.
+  // After a BU change, refetch active queries under the new x-bu-id (keeps cached data on screen) and purge the BU-scoped MMKV snapshot; skips the initial selection.
   const didInitialSelect = useRef(false);
   useEffect(() => {
     if (!selectedBuId) return;
@@ -131,12 +114,7 @@ export const PermissionProvider = ({ children }: PermissionProviderProps) => {
     [businessUnits, selectedBuId, selectBu, features, isLoadingBUs, isLoadingPermissions],
   );
 
-  // Feed the active BU's timezone + currency and the user's locale to quantum-ui-native's
-  // FormatProvider so the BU-aware date/time components (DatePicker, DateRangePicker, DateTimePicker,
-  // DateTimeRangePicker, FormattedDate) and useFormatters render in the active BU zone + user locale.
-  // Switching BU or the user's locale updates this and re-renders consumers — including the micro-app
-  // remotes, since the package + react are MF-shared singletons. `locale` comes from the auth-status
-  // user payload (mirrors core-web's user.locale); null ⇒ components fall back to the device locale.
+  // Feed the active BU's timezone + currency and the user's locale to FormatProvider so BU-aware date/time components render correctly; null locale falls back to the device locale.
   const buMap = useMemo(() => new Map(businessUnits.map((bu) => [bu.id, bu])), [businessUnits]);
   const activeBu = selectedBuId ? (buMap.get(selectedBuId) ?? null) : null;
   const userLocale = authState?.user?.locale ?? null;

@@ -22,8 +22,7 @@ export const DynamicFeatureNavigator = () => {
           name: feature.route.routePrefix,
           component: RemoteScreen,
           params: { remoteName, remoteEntry, moduleName },
-          // Icon names arrive as plain strings from the API; cast to the strict TabIcon unions since
-          // the values are validated at write time in the cloud admin and trusted at runtime.
+          // Icon names arrive as plain strings from the API; cast to TabIcon since they're validated at write time and trusted at runtime.
           icon: {
             sfSymbol: feature.sfSymbol,
             materialSymbol: feature.materialSymbol,
@@ -56,8 +55,6 @@ export const DynamicFeatureNavigator = () => {
     );
   }
 
-  // No BU key here. BottomNavigation rebuilds its own Tab.Navigator when the route set changes
-  // (its internal route-keyed navigatorKey), and routes flow reactively from the lifted
-  // PermissionProvider. A redundant outer remount churned react-native-screens and blanked tabs.
+  // No BU key here — BottomNavigation rebuilds its own Tab.Navigator on route-set change; a redundant outer remount churned react-native-screens and blanked tabs.
   return <BottomNavigation routes={routes} />;
 };

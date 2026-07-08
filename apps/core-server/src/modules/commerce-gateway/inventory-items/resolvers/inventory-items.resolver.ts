@@ -17,9 +17,7 @@ export class InventoryItemsResolver {
 
   constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
 
-  // Keyset/cursor Relay connection for the mobile infinite feed (GraphQL-only — no REST route).
-  // Relay args (first/after) + filters/search/sort drive the keyset query; the client merges pages
-  // via relayStylePagination. Returns the connection forwarded from commerce-service.
+  // Keyset/cursor Relay connection for the mobile infinite feed forwarded from commerce-service.
   @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => InventoryItemConnection, { name: 'inventoryItems' })
   async inventoryItems(
@@ -76,9 +74,7 @@ export class InventoryItemsResolver {
     return this.inventoryItemsGatewayService.delete(id);
   }
 
-  // GraphQL options query for the Inventory Item Select dropdown. Thin forward to the existing gateway
-  // `.select(params, excludeOnSupplierId)` — note the second positional arg the gateway signature takes,
-  // so `excludeOnSupplierId` is passed separately (not merged into input). buId flows via NATS context.
+  // GraphQL options query for the Inventory Item Select dropdown, forwarded to the gateway `.select()`.
   @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   @Query(() => SelectOptions, { name: 'inventoryItemsOptions' })
   async inventoryItemsOptions(

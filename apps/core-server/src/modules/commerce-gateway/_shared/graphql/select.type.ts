@@ -1,10 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { GraphQLJSON } from './json.scalar';
 
-// Shared GraphQL types for Select dropdown option queries (`<entity>Options`). Mirrors api-sdk
-// SelectQueryResult / SelectQueryOption and is defined ONCE, reused by every entity's options resolver.
-// TS field types keep the source union (value/id/groupId can be number) while the GraphQL field is String —
-// graphql-js coerces on serialize, so a gateway `SelectQueryResult` is structurally assignable as-is.
 @ObjectType()
 export class SelectOption {
   @Field(() => String)

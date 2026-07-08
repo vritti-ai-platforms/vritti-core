@@ -48,8 +48,7 @@ export function useCreateInventoryItemLocation(
     mutationFn: (data) => createInventoryItemLocation(inventoryItemId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
-      // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
-      // so any add/edit/delete here mutates what the Stocks tab sees.
+      // inventory_stock_levels joins inventory_item_locations for reorderLevel, so this mutates the Stocks tab.
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
@@ -66,8 +65,7 @@ export function useUpdateInventoryItemLocation(
       updateInventoryItemLocation(inventoryItemId, locationConfigId, { reorderLevel }),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
-      // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
-      // so any add/edit/delete here mutates what the Stocks tab sees.
+      // inventory_stock_levels joins inventory_item_locations for reorderLevel, so this mutates the Stocks tab.
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
@@ -83,8 +81,7 @@ export function useDeleteInventoryItemLocation(
     mutationFn: (locationConfigId) => deleteInventoryItemLocation(inventoryItemId, locationConfigId),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
-      // The inventory_stock_levels view joins inventory_item_locations for reorderLevel,
-      // so any add/edit/delete here mutates what the Stocks tab sees.
+      // inventory_stock_levels joins inventory_item_locations for reorderLevel, so this mutates the Stocks tab.
       queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_STOCKS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },

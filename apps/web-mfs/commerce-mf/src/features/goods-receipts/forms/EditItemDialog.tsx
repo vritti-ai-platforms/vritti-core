@@ -29,8 +29,7 @@ const EditItemForm = ({
   onCancel: () => void;
 }) => {
   const buCurrencyCode = useBUCurrency() ?? 'INR';
-  // PO remaining (ordered − received) caps the ordered (paid) qty for PO-linked items; for a draft it
-  // excludes this receipt, so it's the correct editable ceiling. Null (un-linked) → uncapped.
+  // PO remaining (ordered − received) caps the ordered qty for PO-linked items; null (un-linked) → uncapped.
   const maxQuantity = item.poRemainingQuantity ?? undefined;
   const form = useForm<UpdateGoodsReceiptItemFormData>({
     resolver: zodResolver(

@@ -14,8 +14,6 @@ export const FULFILMENT_TYPE_OPTIONS: { value: FulfilmentType; label: string; de
   { value: 'COMPOSITE', label: 'Composite', description: 'Made from a recipe / bill of materials' },
 ];
 
-// The create flow persists only the offering header — options, variants, inventory links,
-// BOM, and pricing are managed afterward on the offering detail page's tabs.
 export const createOfferingSchema = z.object({
   catalogId: z.string().optional(),
   fulfilmentType: z.enum(['STOCK', 'SERVICE', 'COMPOSITE']),

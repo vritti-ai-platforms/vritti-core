@@ -13,7 +13,6 @@ import type {
   StockAdjustmentType,
 } from '@/schemas/stock-adjustments';
 
-// Header
 export interface CreateStockAdjustmentPayload {
   inventoryItemId: string;
   type: StockAdjustmentType;
@@ -26,7 +25,6 @@ export interface UpdateStockAdjustmentPayload {
   unitCost?: { currency: string; value: string };
 }
 
-// Lots
 export interface AddStockAdjustmentLotPayload {
   lotNumber: string;
   manufacturingDate?: string | null;
@@ -39,11 +37,10 @@ export interface UpdateStockAdjustmentLotPayload {
   expiryDate?: string | null;
 }
 
-// Lines
 export interface AddStockAdjustmentLinePayload {
-  stockAdjustmentLotId?: string | null; // OPENING_STOCK + tracking=lot/item
-  locationId?: string | null; // OPENING_STOCK
-  quantId?: string | null; // deduct/CORRECTION
+  stockAdjustmentLotId?: string | null;
+  locationId?: string | null;
+  quantId?: string | null;
   uomId: string;
   uomQty: number;
 }
@@ -56,7 +53,6 @@ export interface UpdateStockAdjustmentLinePayload {
   uomQty?: number;
 }
 
-// Line items (serials)
 export interface AddStockAdjustmentLineItemPayload {
   serialNumber: string;
 }

@@ -2,8 +2,7 @@ import { DangerZoneSkeleton } from '@vritti/quantum-ui/DangerZone';
 import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
 import { TabsSkeleton } from '@vritti/quantum-ui/Tabs';
 
-// Mirrors GoodsReceiptDetailPage on the Overview-tab landing state:
-//   PageHeader → Tabs (2) → DangerZone (when draft).
+// Mirrors GoodsReceiptDetailPage Overview-tab landing state: PageHeader → Tabs (2) → DangerZone.
 export const GoodsReceiptDetailPageSkeleton = () => (
   <div className="flex flex-col gap-6">
     <PageHeaderSkeleton showDescription showActions />

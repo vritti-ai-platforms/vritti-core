@@ -7,8 +7,6 @@ export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY';
 export type OrderChannel = 'ONLINE' | 'WALK_IN';
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
 
-// Money fields below are bigint minor units serialized as strings — feed straight into
-// formatCurrency() / minorToMajor(). For arithmetic, parse with BigInt(...).
 export interface OrderItemModifierData {
   id: string;
   name: string;

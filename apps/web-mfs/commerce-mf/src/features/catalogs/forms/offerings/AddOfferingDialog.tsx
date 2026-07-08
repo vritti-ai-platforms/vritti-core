@@ -22,8 +22,6 @@ import { type CreateOfferingFormData, createOfferingSchema, type FulfilmentType 
 import type { CreateOfferingDefaultVariant, CreateOfferingPayload } from '@/services/offerings.service';
 import { VariantComponentsField } from '../../components/offerings/VariantComponentsField';
 
-// UI-level kind. Maps to fulfilment_type; "Stocked with variants" differs only in input flow
-// (no inventory pick here — combos are mapped per-variant later on the Variations tab).
 type OfferingKind = 'STOCK_SINGLE' | 'STOCK_VARIANTS' | 'SERVICE' | 'COMPOSITE';
 
 const KIND_OPTIONS: { value: OfferingKind; label: string; description: string; icon: LucideIcon }[] = [

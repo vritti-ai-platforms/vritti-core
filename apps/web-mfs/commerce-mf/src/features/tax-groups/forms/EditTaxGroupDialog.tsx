@@ -38,8 +38,7 @@ export const EditTaxGroupDialog: React.FC<EditTaxGroupDialogProps> = ({ group, o
   const watchedRates = useWatch({ control: form.control, name: 'taxRates' });
   const combinedRate = (watchedRates ?? []).reduce((sum, rate) => sum + Number(rate?.rate || 0), 0);
 
-  // Reorder the rate rows by drag; persist live values in the new order (rate sortOrder is
-  // derived from position on save).
+  // Reorder the rate rows by drag, persisting live values in the new order.
   const handleReorder = (reordered: typeof rateFields.fields) => {
     const values = form.getValues('taxRates');
     const order = rateFields.fields.map((f) => f.id);

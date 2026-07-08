@@ -208,8 +208,7 @@ export function getPurchaseOrderGoodsReceiptsTable(poId: string): Promise<GoodsR
     .then((r) => r.data);
 }
 
-// Fetches the unit price for an inventory item from a supplier's pricelist.
-// Backend returns CurrencyAmountDto: { currency: string, value: string (major units) } | null.
+// Fetches the unit price for an inventory item from a supplier's pricelist. Backend returns CurrencyAmountDto { currency, value (major units) } | null.
 export function getSupplierItemPrice(
   supplierId: string,
   inventoryItemId: string,

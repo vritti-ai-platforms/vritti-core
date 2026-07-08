@@ -8,9 +8,6 @@ import { UserPermissionsService } from '@/modules/domain/user-permissions/servic
 import { getRequest } from '@/utils/request-context';
 import { REQUIRE_PERMISSION_KEY } from '../decorators/require-permission.decorator';
 
-// Enforces @RequirePermission at the API. Runs as a global interceptor (not a guard) so it is
-// guaranteed to execute AFTER every guard — including VrittiAuthGuard, which populates sessionInfo.
-// No-ops on routes without @RequirePermission.
 @Injectable()
 export class PermissionInterceptor implements NestInterceptor {
   private readonly logger = new Logger(PermissionInterceptor.name);
@@ -44,8 +41,7 @@ export class PermissionInterceptor implements NestInterceptor {
     // Platform bucket follows the session type: a MOBILE session enforces the mobile feature set, all else web
     const bucket: PlatformBucket = sessionType === SessionTypeValues.MOBILE ? 'mobile' : 'web';
 
-    // Resolution reads RLS-protected tables (business_units, etc.); establish the org context so
-    // the org_isolation policy sees app.org_id — user HTTP routes don't otherwise stash one.
+    // Resolution reads RLS-protected tables; establish the org context so org_isolation sees app.org_id
     const enabled = await this.primaryDb.runWithRlsContext({ orgId }, () =>
       this.userPermissionsService.resolveEnabledPermissions(userId, buId, bucket),
     );

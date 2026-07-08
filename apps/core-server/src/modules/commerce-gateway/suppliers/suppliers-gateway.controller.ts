@@ -135,8 +135,7 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.addItem(supplierId, dto);
   }
 
-  // Bulk-sets the free-goods scheme on multiple supplier items. Declared before :itemId so the
-  // static "scheme" segment is not captured as an item id.
+  // Bulk-sets the free-goods scheme on multiple supplier items; declared before :itemId so "scheme" is not captured as an item id
   @Patch(':id/items/scheme')
   bulkSetItemScheme(
     @Param('id') supplierId: string,
@@ -146,8 +145,7 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.bulkSetItemScheme(supplierId, dto);
   }
 
-  // Bulk-marks supplier items as preferred. Declared before :itemId so the static "preferred"
-  // segment is not captured as an item id.
+  // Bulk-marks supplier items as preferred; declared before :itemId so "preferred" is not captured as an item id
   @Patch(':id/items/preferred')
   bulkSetItemPreferred(
     @Param('id') supplierId: string,

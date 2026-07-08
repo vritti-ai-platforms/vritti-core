@@ -3,10 +3,6 @@ import { useMutation } from '@apollo/client/react';
 import { useCallback, useRef } from 'react';
 import { getToastAdapter } from '../config/toast';
 
-// Toast copy for a GraphQL mutation. The axios interceptor auto-fires loading/success/error
-// toasts for REST mutations; Apollo bypasses that interceptor, so this wrapper reproduces the
-// same behaviour through the SAME registered ToastAdapter (see config/toast.ts). All three
-// messages are opt-in — omit one to skip that toast.
 export interface GqlMutationToast {
   loadingMessage?: string;
   successMessage?: string;
@@ -18,17 +14,12 @@ export type UseGqlMutationOptions<TData, TVariables extends OperationVariables> 
   TVariables
 > & { toast?: GqlMutationToast };
 
-// Thin wrapper around Apollo's useMutation that fires loading/success/error toasts through the
-// app's shared toast adapter, mirroring the axios interceptor. Returns the standard
-// `[mutate, result]` tuple — callers use it exactly like useMutation. Toast copy is passed via
-// `toast`; any `onCompleted`/`onError` you also pass still run (the toast fires first). The
-// loading toast is upgraded in place to the success/error toast (same id) so it never stacks.
+// Thin wrapper around Apollo's useMutation that fires loading/success/error toasts through the app's shared toast adapter.
 export function useGqlMutation<TData = unknown, TVariables extends OperationVariables = OperationVariables>(
   mutation: DocumentNode | TypedDocumentNode<TData, TVariables>,
   options?: UseGqlMutationOptions<TData, TVariables>,
 ) {
   const { toast, onCompleted, onError, ...rest } = options ?? {};
-  // Holds the in-flight loading toast id so the resolved success/error toast replaces it.
   const loadingToastId = useRef<string | undefined>(undefined);
 
   const [mutate, result] = useMutation<TData, TVariables>(mutation, {

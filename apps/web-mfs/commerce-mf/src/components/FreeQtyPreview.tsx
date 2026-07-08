@@ -6,8 +6,7 @@ interface FreeQtyPreviewProps {
   uomSymbol?: string | null;
 }
 
-// Read-only preview of the free quantity derived from the scheme. The persisted free_qty is always
-// computed server-side; this disabled field only mirrors it as the ordered qty / scheme inputs change.
+// Read-only preview of the scheme-derived free quantity; the persisted value is computed server-side.
 export const FreeQtyPreview = ({ value, uomSymbol }: FreeQtyPreviewProps) => {
   const fmt = useFormatters();
   const display = `${fmt.number(value).primary}${uomSymbol ? ` ${uomSymbol}` : ''}`;

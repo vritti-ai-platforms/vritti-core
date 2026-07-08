@@ -51,23 +51,18 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
   const [supplierCurrencyCode, setSupplierCurrencyCode] = useState<string | null>(null);
   const [poSelection, setPoSelection] = useState<PoSelection | null>(null);
 
-  // Reset PO + currency captures when supplier changes (the PO field gets disabled until a
-  // supplier is picked anyway, but we also wipe stale state from the previous supplier).
+  // Reset PO + currency captures when supplier changes, wiping stale state from the previous supplier.
   useEffect(() => {
     form.setValue('purchaseOrderId', '');
     setPoSelection(null);
   }, [form]);
 
-  // Compute exchange-rate UX once we know supplier/PO context:
-  //   - sameCurrency → field hidden; server resolves rate = 1.
-  //   - PO FIXED     → field shown read-only with the locked rate; submit omits it (server reads PO).
-  //   - else         → field shown editable, required (VARIABLE PO or un-linked GR with foreign supplier).
+  // Exchange-rate UX by context: sameCurrency hides the field, FIXED PO shows it read-only, else editable+required.
   const sameCurrency = !!supplierCurrencyCode && supplierCurrencyCode === buCurrencyCode;
   const showRateField = !!supplierCurrencyCode && !sameCurrency;
   const fixedFromPo = !!poSelection && poSelection.exchangeRateType === 'FIXED';
 
-  // When a FIXED-rate PO is picked, mirror its rate into the form field so the user sees it; the
-  // field is read-only and the submit ignores it (server takes the rate from the PO row itself).
+  // When a FIXED-rate PO is picked, mirror its rate into the read-only field for display; submit ignores it.
   useEffect(() => {
     if (fixedFromPo && poSelection) {
       form.setValue('exchangeRate', poSelection.exchangeRate, { shouldValidate: false });
@@ -109,8 +104,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
         purchaseOrderId: data.purchaseOrderId || undefined,
         receivedDate: data.receivedDate,
         notes: data.notes,
-        // Only send the user-supplied rate when applicable. Hidden + FIXED-from-PO cases let the
-        // server resolve it (1 or PO rate respectively).
+        // Only send the user-supplied rate when applicable; hidden + FIXED-from-PO let the server resolve it.
         exchangeRate: showRateField && !fixedFromPo ? data.exchangeRate : undefined,
       })}
     >

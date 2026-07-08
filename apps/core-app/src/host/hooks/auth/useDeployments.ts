@@ -9,9 +9,7 @@ interface UseDeploymentsResult {
   refetch: () => void;
 }
 
-// Plain data hook for deployment discovery. Deployment discovery uses fetch (no Apollo/axios,
-// no tenant base URL yet), so this is a self-contained useState/useEffect wrapper rather than
-// a TanStack or Apollo hook.
+// Plain data hook for deployment discovery — uses fetch (no tenant base URL yet), so it's a self-contained useState/useEffect wrapper.
 export function useDeployments(): UseDeploymentsResult {
   const [data, setData] = useState<Deployment[]>([]);
   const [isLoading, setIsLoading] = useState(true);

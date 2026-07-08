@@ -40,8 +40,7 @@ interface LinesTableProps {
   onSelectLine?: (lineId: string | null) => void;
 }
 
-// One DataTable for lines, scoped either by item (when an item is selected and tracking='quantity')
-// or by lot (when a lot is selected). Same columns; the data hook is the only difference.
+// One DataTable for lines, scoped either by item or by lot; same columns, only the data hook differs.
 export const LinesTable = ({
   goodsReceiptId,
   scope,
@@ -137,8 +136,7 @@ export const LinesTable = ({
             } satisfies ColumnDef<GoodsReceiptLineData>,
           ]
         : []),
-      // Serial / lot_serial lines drill into their serials (View). Quantity / lot lines are leaves,
-      // edited and removed in place.
+      // Serial / lot_serial lines drill into their serials (View); quantity / lot lines edit in place.
       ...((isSerial && onSelectLine) || (!isSerial && isDraft)
         ? [
             {

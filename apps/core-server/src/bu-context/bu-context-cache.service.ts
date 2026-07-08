@@ -11,8 +11,6 @@ interface BuContext {
   buDescendantIds: string[];
 }
 
-// Caches per-BU resolved context (timezone, currency, hierarchy ids), backed by the api-sdk CacheService
-// (LRU in-memory today; swap the module's driver to 'redis' when core-server scales horizontally).
 @Injectable()
 export class BuContextCacheService {
   constructor(private readonly cache: CacheService) {}

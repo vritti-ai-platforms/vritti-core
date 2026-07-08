@@ -11,8 +11,6 @@ export class UserSession {
   @Field(() => String, { nullable: true })
   ipAddress?: string | null;
 
-  // ISO 8601 string (session DTO serializes Date → toISOString); String, not the DateTime
-  // scalar, since GraphQLISODateTime.serialize only accepts Date objects, not strings.
   @Field(() => String)
   lastActive: string;
 

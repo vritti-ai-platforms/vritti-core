@@ -7,10 +7,6 @@ import { SelectOptions } from '../../_shared/graphql/select.type';
 import type { SupplierItemsSelectQueryDto } from '../dto/request/supplier-items-select-query.dto';
 import { SupplierItemsGatewayService } from '../services/supplier-items-gateway.service';
 
-// GraphQL options query for the Supplier Item Select dropdown. Thin forward to the existing gateway
-// `.select()` (which NATS-forwards to commerce-service). The service takes ONE merged DTO, so the shared
-// `input` and the entity params (supplierId, excludeOnPurchaseOrderId, excludeOnGoodsReceiptId) are merged
-// before forwarding.
 @Resolver()
 export class SupplierItemsResolver {
   private readonly logger = new Logger(SupplierItemsResolver.name);

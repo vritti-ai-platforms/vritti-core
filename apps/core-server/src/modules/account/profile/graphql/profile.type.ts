@@ -26,8 +26,6 @@ export class Profile {
   @Field(() => String)
   timezone: string;
 
-  // ISO 8601 string (ProfileDto serializes Date → toISOString); String, not the DateTime
-  // scalar, since GraphQLISODateTime.serialize only accepts Date objects, not strings.
   @Field(() => String)
   createdAt: string;
 

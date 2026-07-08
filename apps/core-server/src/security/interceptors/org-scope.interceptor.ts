@@ -3,9 +3,6 @@ import { BadRequestException, PrimaryDatabaseService } from '@vritti/api-sdk';
 import type { FastifyRequest } from 'fastify';
 import { from, type Observable } from 'rxjs';
 
-// Stashes { orgId } from the `x-org-id` header in AsyncLocalStorage so RLS policies on
-// tenant-scoped tables can scope to the calling org. Each downstream query is auto-wrapped
-// in BEGIN; SET LOCAL app.org_id; <query>; COMMIT; by RlsAwarePool. Pair with CloudSignatureGuard.
 @Injectable()
 export class OrgScopeInterceptor implements NestInterceptor {
   constructor(private readonly db: PrimaryDatabaseService) {}

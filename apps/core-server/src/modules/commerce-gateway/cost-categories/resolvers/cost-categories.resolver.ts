@@ -6,9 +6,6 @@ import { SelectOptionsInput } from '../../_shared/graphql/select.input';
 import { SelectOptions } from '../../_shared/graphql/select.type';
 import { CostCategoriesGatewayService } from '../services/cost-categories-gateway.service';
 
-// GraphQL options query for the Cost Category Select dropdown. Thin forward to the existing gateway `.select()`
-// (which NATS-forwards to commerce-service). The gateway `.select()` takes a plain SelectOptionsQueryDto,
-// so the shared input is forwarded as-is with a localized cast.
 @Resolver()
 export class CostCategoriesResolver {
   private readonly logger = new Logger(CostCategoriesResolver.name);
