@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import { CreateBusinessUnitInternalDto } from '../dto/request/create-business-unit-internal.dto';
 import { SetBuLocksInternalDto } from '../dto/request/set-bu-locks-internal.dto';

@@ -1,14 +1,9 @@
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  ConflictException,
-  type CreateResponseDto,
-  NotFoundException,
-  PrimaryDatabaseService,
-  SuccessResponseDto,
-} from '@vritti/api-sdk';
 import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
+import { type CreateResponseDto, PrimaryDatabaseService, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { Role } from '@/db/schema';
 import { validateGrantDependencies } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';

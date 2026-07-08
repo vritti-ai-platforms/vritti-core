@@ -7,20 +7,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RouterModule } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
-import {
-  AuthConfigModule,
-  createGraphqlFormatError,
-  DatabaseModule,
-  type DatabaseModuleOptions,
-  DataTableModule,
-  getCorrelationContext,
-  LoggerModule,
-  RootModule,
-  type TokenExpiryString,
-  UnauthorizedException,
-} from '@vritti/api-sdk';
+import { AuthConfigModule, type TokenExpiryString } from '@vritti/api-sdk/auth';
+import { DataTableModule } from '@vritti/api-sdk/data-table';
+import { DatabaseModule, type DatabaseModuleOptions } from '@vritti/api-sdk/database';
 import { EmailModule } from '@vritti/api-sdk/email';
+import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
+import { createGraphqlFormatError } from '@vritti/api-sdk/filters';
+import { getCorrelationContext, LoggerModule } from '@vritti/api-sdk/logger';
 import { NatsClientModule } from '@vritti/api-sdk/nats';
+import { RootModule } from '@vritti/api-sdk/root';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { BuContextModule } from '@/bu-context/bu-context.module';
 import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
@@ -31,7 +26,6 @@ import { SecurityModule } from '@/security/security.module';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
-import { SelectApiModule } from './modules/select-api/select-api.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { BusinessUnitApiModule } from './modules/core-api/business-unit/business-unit.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
@@ -46,6 +40,7 @@ import { UserDomainModule } from './modules/domain/user/user.module';
 import { UserPermissionsDomainModule } from './modules/domain/user-permissions/user-permissions.module';
 import { UserRoleDomainModule } from './modules/domain/user-role/user-role.module';
 import { VerificationDomainModule } from './modules/domain/verification/verification.module';
+import { SelectApiModule } from './modules/select-api/select-api.module';
 
 @Module({
   imports: [

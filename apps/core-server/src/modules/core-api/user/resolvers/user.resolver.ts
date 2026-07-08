@@ -1,7 +1,8 @@
 import { UserService } from '@domain/user/services/user.service';
 import { Logger } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession, type SelectOptionsQueryDto } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
+import type { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import { SelectOptionsInput } from '../../../commerce-gateway/_shared/graphql/select.input';
 import { SelectOptions } from '../../../commerce-gateway/_shared/graphql/select.type';

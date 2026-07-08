@@ -14,14 +14,13 @@ import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositori
 import { StockAdjustmentsService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
   type CreateResponseDto,
-  NotFoundException,
   PrimaryDatabaseService,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import {
   CostSourceTypeValues,

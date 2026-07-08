@@ -5,12 +5,8 @@ import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/p
 import { PurchaseOrdersService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { SuppliersRepository } from '@domain/suppliers/repositories/suppliers.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  BadRequestException,
-  type CreateResponseDto,
-  NotFoundException,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { ChangePurchaseOrderExchangeRateDto } from '@/modules/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '@/modules/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';

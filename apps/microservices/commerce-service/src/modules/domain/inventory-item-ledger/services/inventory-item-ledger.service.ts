@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk';
+import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api-sdk/database';
 import { and } from '@vritti/api-sdk/drizzle-orm';
 import type { InventoryItemLedgerEntry, NewInventoryItemLedgerEntry } from '@/db/schema';
 import { inventoryItemLedger, inventoryItems } from '@/db/schema';

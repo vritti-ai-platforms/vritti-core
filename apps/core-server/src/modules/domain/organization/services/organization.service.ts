@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ForbiddenException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
 import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';

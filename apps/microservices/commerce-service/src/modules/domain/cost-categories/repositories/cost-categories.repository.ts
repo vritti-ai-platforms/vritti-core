@@ -4,7 +4,7 @@ import {
   PrimaryBaseRepository,
   PrimaryDatabaseService,
   type SelectQueryResult,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { type CostCategory, type CostCategoryKind, costCategories } from '@/db/schema';
 

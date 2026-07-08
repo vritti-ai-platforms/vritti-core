@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
 import { ProvisionRolesInternalDto } from '../dto/request/provision-roles-internal.dto';
 import { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';

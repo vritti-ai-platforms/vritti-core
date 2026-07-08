@@ -2,126 +2,74 @@
   "version": "8",
   "dialect": "postgres",
   "id": "3a969452-c194-4c20-a101-cf3835e227ba",
-  "prevIds": [
-    "d2aaa04a-af3c-4b3a-9612-688d26c14277"
-  ],
+  "prevIds": ["d2aaa04a-af3c-4b3a-9612-688d26c14277"],
   "ddl": [
     {
       "name": "vritti_core",
       "entityType": "schemas"
     },
     {
-      "values": [
-        "DRAFT",
-        "IN_PROGRESS",
-        "COMPLETED",
-        "CANCELLED"
-      ],
+      "values": ["DRAFT", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
       "name": "conversion_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "ITEM",
-        "FREIGHT",
-        "DUTY",
-        "INSURANCE",
-        "SERVICE",
-        "OTHER"
-      ],
+      "values": ["ITEM", "FREIGHT", "DUTY", "INSURANCE", "SERVICE", "OTHER"],
       "name": "cost_category_kind",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "by_value",
-        "by_quantity",
-        "equal"
-      ],
+      "values": ["by_value", "by_quantity", "equal"],
       "name": "cost_distribution_method",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "goods_receipt",
-        "stock_adjustment",
-        "stock_transfer",
-        "manual_adjustment"
-      ],
+      "values": ["goods_receipt", "stock_adjustment", "stock_transfer", "manual_adjustment"],
       "name": "cost_source_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "DRAFT",
-        "ISSUED",
-        "PARTIALLY_APPLIED",
-        "FULLY_APPLIED"
-      ],
+      "values": ["DRAFT", "ISSUED", "PARTIALLY_APPLIED", "FULLY_APPLIED"],
       "name": "credit_note_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "PAYABLE",
-        "RECEIVABLE"
-      ],
+      "values": ["PAYABLE", "RECEIVABLE"],
       "name": "credit_note_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "FIXED",
-        "VARIABLE"
-      ],
+      "values": ["FIXED", "VARIABLE"],
       "name": "exchange_rate_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "text",
-        "number",
-        "boolean",
-        "select"
-      ],
+      "values": ["text", "number", "boolean", "select"],
       "name": "field_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "STOCK",
-        "SERVICE",
-        "COMPOSITE"
-      ],
+      "values": ["STOCK", "SERVICE", "COMPOSITE"],
       "name": "fulfilment_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "DRAFT",
-        "PUBLISHED"
-      ],
+      "values": ["DRAFT", "PUBLISHED"],
       "name": "goods_receipt_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "GOODS_RECEIPT",
-        "STOCK_ADJUSTMENT",
-        "CONVERSION",
-        "STOCK_TRANSFER",
-        "ORDER"
-      ],
+      "values": ["GOODS_RECEIPT", "STOCK_ADJUSTMENT", "CONVERSION", "STOCK_TRANSFER", "ORDER"],
       "name": "inventory_item_ledger_reference_type",
       "entityType": "enums",
       "schema": "vritti_core"
@@ -144,152 +92,85 @@
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "RAW_MATERIAL",
-        "SEMI_FINISHED",
-        "FINISHED_GOOD",
-        "PACKAGING",
-        "CONSUMABLE"
-      ],
+      "values": ["RAW_MATERIAL", "SEMI_FINISHED", "FINISHED_GOOD", "PACKAGING", "CONSUMABLE"],
       "name": "inventory_item_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "none",
-        "fifo",
-        "fefo"
-      ],
+      "values": ["none", "fifo", "fefo"],
       "name": "inventory_pick_strategy",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "quantity",
-        "lot",
-        "lot_serial",
-        "serial"
-      ],
+      "values": ["quantity", "lot", "lot_serial", "serial"],
       "name": "inventory_tracking",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "SUPPLIER",
-        "CUSTOMER",
-        "AGGREGATOR"
-      ],
+      "values": ["SUPPLIER", "CUSTOMER", "AGGREGATOR"],
       "name": "invoice_party_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "DRAFT",
-        "ISSUED",
-        "PARTIALLY_PAID",
-        "PAID",
-        "OVERDUE",
-        "VOID"
-      ],
+      "values": ["DRAFT", "ISSUED", "PARTIALLY_PAID", "PAID", "OVERDUE", "VOID"],
       "name": "invoice_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "PAYABLE",
-        "RECEIVABLE"
-      ],
+      "values": ["PAYABLE", "RECEIVABLE"],
       "name": "invoice_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "STORAGE",
-        "RESERVED_STORAGE",
-        "ZONE"
-      ],
+      "values": ["STORAGE", "RESERVED_STORAGE", "ZONE"],
       "name": "location_role",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "SINGLE",
-        "MULTI"
-      ],
+      "values": ["SINGLE", "MULTI"],
       "name": "modifier_selection_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "PENDING",
-        "PREPARING",
-        "READY",
-        "SERVED",
-        "CANCELLED"
-      ],
+      "values": ["PENDING", "PREPARING", "READY", "SERVED", "CANCELLED"],
       "name": "order_item_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "ONLINE",
-        "WALK_IN"
-      ],
+      "values": ["ONLINE", "WALK_IN"],
       "name": "order_source",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "PENDING",
-        "ACCEPTED",
-        "PREPARING",
-        "READY",
-        "COMPLETED",
-        "CANCELLED"
-      ],
+      "values": ["PENDING", "ACCEPTED", "PREPARING", "READY", "COMPLETED", "CANCELLED"],
       "name": "order_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "DINE_IN",
-        "TAKEAWAY",
-        "DELIVERY"
-      ],
+      "values": ["DINE_IN", "TAKEAWAY", "DELIVERY"],
       "name": "order_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "CASH",
-        "CARD",
-        "UPI",
-        "BANK_TRANSFER",
-        "WALLET",
-        "ONLINE"
-      ],
+      "values": ["CASH", "CARD", "UPI", "BANK_TRANSFER", "WALLET", "ONLINE"],
       "name": "payment_method",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "COMPLETED",
-        "FAILED",
-        "REFUNDED"
-      ],
+      "values": ["COMPLETED", "FAILED", "REFUNDED"],
       "name": "payment_status",
       "entityType": "enums",
       "schema": "vritti_core"
@@ -312,77 +193,43 @@
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "IN_STORE",
-        "ONLINE",
-        "ZOMATO",
-        "SWIGGY",
-        "OTHER"
-      ],
+      "values": ["IN_STORE", "ONLINE", "ZOMATO", "SWIGGY", "OTHER"],
       "name": "sales_channel_kind",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "AVAILABLE",
-        "RESERVED",
-        "CONSUMED"
-      ],
+      "values": ["AVAILABLE", "RESERVED", "CONSUMED"],
       "name": "quant_item_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "DRAFT",
-        "PUBLISHED"
-      ],
+      "values": ["DRAFT", "PUBLISHED"],
       "name": "stock_adjustment_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "WASTE",
-        "DAMAGE",
-        "THEFT",
-        "EXPIRED",
-        "CORRECTION",
-        "OPENING_STOCK"
-      ],
+      "values": ["WASTE", "DAMAGE", "THEFT", "EXPIRED", "CORRECTION", "OPENING_STOCK"],
       "name": "stock_adjustment_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "REQUESTED",
-        "IN_TRANSIT",
-        "RECEIVED",
-        "CANCELLED"
-      ],
+      "values": ["REQUESTED", "IN_TRANSIT", "RECEIVED", "CANCELLED"],
       "name": "stock_transfer_status",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "GST",
-        "VAT",
-        "EIN",
-        "SALES_TAX",
-        "OTHER"
-      ],
+      "values": ["GST", "VAT", "EIN", "SALES_TAX", "OTHER"],
       "name": "tax_id_type",
       "entityType": "enums",
       "schema": "vritti_core"
     },
     {
-      "values": [
-        "inclusive",
-        "exclusive"
-      ],
+      "values": ["inclusive", "exclusive"],
       "name": "tax_rate_type",
       "entityType": "enums",
       "schema": "vritti_core"
@@ -11525,14 +11372,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_id"
-      ],
+      "columns": ["catalog_id"],
       "schemaTo": "vritti_core",
       "tableTo": "catalogs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_channels_catalog_id_catalogs_id_fkey",
@@ -11542,14 +11385,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "channel_id"
-      ],
+      "columns": ["channel_id"],
       "schemaTo": "vritti_core",
       "tableTo": "sales_channels",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "catalog_channels_channel_id_sales_channels_id_fkey",
@@ -11559,14 +11398,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "credit_note_id"
-      ],
+      "columns": ["credit_note_id"],
       "schemaTo": "vritti_core",
       "tableTo": "credit_notes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "credit_note_applications_credit_note_id_credit_notes_id_fkey",
@@ -11576,14 +11411,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "invoice_id"
-      ],
+      "columns": ["invoice_id"],
       "schemaTo": "vritti_core",
       "tableTo": "invoices",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "credit_note_applications_invoice_id_invoices_id_fkey",
@@ -11593,14 +11424,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_id"
-      ],
+      "columns": ["goods_receipt_id"],
       "schemaTo": "vritti_core",
       "tableTo": "goods_receipts",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_items_goods_receipt_id_goods_receipts_id_fkey",
@@ -11610,14 +11437,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipt_items_inventory_item_id_inventory_items_id_fkey",
@@ -11627,14 +11450,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "vritti_core",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipt_items_uom_id_uom_id_fkey",
@@ -11644,14 +11463,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_line_id"
-      ],
+      "columns": ["goods_receipt_line_id"],
       "schemaTo": "vritti_core",
       "tableTo": "goods_receipt_lines",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_line_items_xPce4mspmdCq_fkey",
@@ -11661,14 +11476,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_item_id"
-      ],
+      "columns": ["goods_receipt_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "goods_receipt_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_lines_LCQNKaQNEtiW_fkey",
@@ -11678,14 +11489,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_lot_id"
-      ],
+      "columns": ["goods_receipt_lot_id"],
       "schemaTo": "vritti_core",
       "tableTo": "goods_receipt_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_lines_V70jEkCkMhay_fkey",
@@ -11695,14 +11502,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "vritti_core",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipt_lines_location_id_locations_id_fkey",
@@ -11712,14 +11515,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_quant_id"
-      ],
+      "columns": ["resolved_quant_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "goods_receipt_lines_bDwzM4gXMdkg_fkey",
@@ -11729,14 +11528,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "goods_receipt_item_id"
-      ],
+      "columns": ["goods_receipt_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "goods_receipt_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "goods_receipt_lots_CLiJ36meIGXj_fkey",
@@ -11746,14 +11541,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_lot_id"
-      ],
+      "columns": ["resolved_lot_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "goods_receipt_lots_resolved_lot_id_inventory_item_lots_id_fkey",
@@ -11763,14 +11554,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "vritti_core",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipts_supplier_id_suppliers_id_fkey",
@@ -11780,14 +11567,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "purchase_order_id"
-      ],
+      "columns": ["purchase_order_id"],
       "schemaTo": "vritti_core",
       "tableTo": "purchase_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "goods_receipts_purchase_order_id_purchase_orders_id_fkey",
@@ -11797,14 +11580,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "category_id"
-      ],
+      "columns": ["category_id"],
       "schemaTo": "vritti_core",
       "tableTo": "cost_categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_costs_category_id_cost_categories_id_fkey",
@@ -11814,14 +11593,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_ledger_inventory_item_id_inventory_items_id_fkey",
@@ -11831,14 +11606,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_locations_a712NwWdDuJg_fkey",
@@ -11848,14 +11619,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "vritti_core",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_locations_location_id_locations_id_fkey",
@@ -11865,14 +11632,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_lots_inventory_item_id_inventory_items_id_fkey",
@@ -11882,14 +11645,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "quant_id"
-      ],
+      "columns": ["quant_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_quant_costs_c3KpiPKUQ4N1_fkey",
@@ -11899,14 +11658,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "cost_id"
-      ],
+      "columns": ["cost_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_costs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_quant_costs_cost_id_inventory_item_costs_id_fkey",
@@ -11916,14 +11671,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_quants_inventory_item_id_inventory_items_id_fkey",
@@ -11933,14 +11684,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "vritti_core",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_item_quants_location_id_locations_id_fkey",
@@ -11950,14 +11697,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "lot_id"
-      ],
+      "columns": ["lot_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_quants_lot_id_inventory_item_lots_id_fkey",
@@ -11967,14 +11710,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "vritti_core",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_quants_supplier_id_suppliers_id_fkey",
@@ -11984,14 +11723,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_quant_id"
-      ],
+      "columns": ["inventory_item_quant_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "inventory_item_serials_s63VhASWzVvD_fkey",
@@ -12001,14 +11736,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_serials_OfOoSAD2LK8t_fkey",
@@ -12018,14 +11749,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "inventory_item_uom_conversions_rzKG09lM3ksH_fkey",
@@ -12035,14 +11762,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "vritti_core",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "inventory_item_uom_conversions_uom_id_uom_id_fkey",
@@ -12052,14 +11775,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "category_id"
-      ],
+      "columns": ["category_id"],
       "schemaTo": "vritti_core",
       "tableTo": "categories",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_items_category_id_categories_id_fkey",
@@ -12069,14 +11788,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "vritti_core",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_items_uom_id_uom_id_fkey",
@@ -12086,14 +11801,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "purchase_tax_group_id"
-      ],
+      "columns": ["purchase_tax_group_id"],
       "schemaTo": "vritti_core",
       "tableTo": "tax_groups",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inventory_items_purchase_tax_group_id_tax_groups_id_fkey",
@@ -12103,14 +11814,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "invoice_id"
-      ],
+      "columns": ["invoice_id"],
       "schemaTo": "vritti_core",
       "tableTo": "invoices",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "invoice_items_invoice_id_invoices_id_fkey",
@@ -12120,14 +11827,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "item_id"
-      ],
+      "columns": ["item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "offerings",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "item_field_values_item_id_offerings_id_fkey",
@@ -12137,14 +11840,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "field_definition_id"
-      ],
+      "columns": ["field_definition_id"],
       "schemaTo": "vritti_core",
       "tableTo": "item_field_definitions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "item_field_values_V0gaE4dkunFk_fkey",
@@ -12154,14 +11853,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_id"
-      ],
+      "columns": ["catalog_id"],
       "schemaTo": "vritti_core",
       "tableTo": "catalogs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "modifier_groups_catalog_id_catalogs_id_fkey",
@@ -12171,14 +11866,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_id"
-      ],
+      "columns": ["offering_id"],
       "schemaTo": "vritti_core",
       "tableTo": "offerings",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_options_offering_id_offerings_id_fkey",
@@ -12188,14 +11879,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variant_option_id"
-      ],
+      "columns": ["variant_option_id"],
       "schemaTo": "vritti_core",
       "tableTo": "variant_options",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "offering_options_variant_option_id_variant_options_id_fkey",
@@ -12205,14 +11892,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_variant_id"
-      ],
+      "columns": ["offering_variant_id"],
       "schemaTo": "vritti_core",
       "tableTo": "offering_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offering_variant_components_jN35xDMsfNj6_fkey",
@@ -12222,14 +11905,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "offering_variant_components_B1iN9sSqzSRm_fkey",
@@ -12239,14 +11918,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variant_option_value_id"
-      ],
+      "columns": ["variant_option_value_id"],
       "schemaTo": "vritti_core",
       "tableTo": "variant_option_values",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "offering_variant_option_values_KYe3VBYNJOni_fkey",
@@ -12256,14 +11931,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_id"
-      ],
+      "columns": ["catalog_id"],
       "schemaTo": "vritti_core",
       "tableTo": "catalogs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "offerings_catalog_id_catalogs_id_fkey",
@@ -12273,14 +11944,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "order_item_id"
-      ],
+      "columns": ["order_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "order_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "order_item_modifiers_order_item_id_order_items_id_fkey",
@@ -12290,14 +11957,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "order_id"
-      ],
+      "columns": ["order_id"],
       "schemaTo": "vritti_core",
       "tableTo": "orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "order_items_order_id_orders_id_fkey",
@@ -12307,14 +11970,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_id"
-      ],
+      "columns": ["offering_id"],
       "schemaTo": "vritti_core",
       "tableTo": "offerings",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "order_items_offering_id_offerings_id_fkey",
@@ -12324,14 +11983,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "offering_variant_id"
-      ],
+      "columns": ["offering_variant_id"],
       "schemaTo": "vritti_core",
       "tableTo": "offering_variants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "order_items_offering_variant_id_offering_variants_id_fkey",
@@ -12341,14 +11996,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "channel_id"
-      ],
+      "columns": ["channel_id"],
       "schemaTo": "vritti_core",
       "tableTo": "sales_channels",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "orders_channel_id_sales_channels_id_fkey",
@@ -12358,14 +12009,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "customer_id"
-      ],
+      "columns": ["customer_id"],
       "schemaTo": "vritti_core",
       "tableTo": "customers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "orders_customer_id_customers_id_fkey",
@@ -12375,14 +12022,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "invoice_id"
-      ],
+      "columns": ["invoice_id"],
       "schemaTo": "vritti_core",
       "tableTo": "invoices",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "payments_invoice_id_invoices_id_fkey",
@@ -12392,14 +12035,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "vritti_core",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "pos_terminals_location_id_locations_id_fkey",
@@ -12409,14 +12048,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_id"
-      ],
+      "columns": ["catalog_id"],
       "schemaTo": "vritti_core",
       "tableTo": "catalogs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "pos_terminals_catalog_id_catalogs_id_fkey",
@@ -12426,14 +12061,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "purchase_order_id"
-      ],
+      "columns": ["purchase_order_id"],
       "schemaTo": "vritti_core",
       "tableTo": "purchase_orders",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "purchase_order_items_purchase_order_id_purchase_orders_id_fkey",
@@ -12443,14 +12074,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "purchase_order_items_inventory_item_id_inventory_items_id_fkey",
@@ -12460,14 +12087,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "vritti_core",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "purchase_order_items_uom_id_uom_id_fkey",
@@ -12477,14 +12100,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "vritti_core",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "purchase_orders_supplier_id_suppliers_id_fkey",
@@ -12494,14 +12113,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_line_id"
-      ],
+      "columns": ["stock_adjustment_line_id"],
       "schemaTo": "vritti_core",
       "tableTo": "stock_adjustment_lines",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_line_items_BAKtyY4jjSIv_fkey",
@@ -12511,14 +12126,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_id"
-      ],
+      "columns": ["stock_adjustment_id"],
       "schemaTo": "vritti_core",
       "tableTo": "stock_adjustments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_lines_V8pV4VOOh3IT_fkey",
@@ -12528,14 +12139,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_lot_id"
-      ],
+      "columns": ["stock_adjustment_lot_id"],
       "schemaTo": "vritti_core",
       "tableTo": "stock_adjustment_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_lines_DEs4DyxRxJef_fkey",
@@ -12545,14 +12152,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "location_id"
-      ],
+      "columns": ["location_id"],
       "schemaTo": "vritti_core",
       "tableTo": "locations",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stock_adjustment_lines_location_id_locations_id_fkey",
@@ -12562,14 +12165,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "quant_id"
-      ],
+      "columns": ["quant_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "stock_adjustment_lines_quant_id_inventory_item_quants_id_fkey",
@@ -12579,14 +12178,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "vritti_core",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stock_adjustment_lines_uom_id_uom_id_fkey",
@@ -12596,14 +12191,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_quant_id"
-      ],
+      "columns": ["resolved_quant_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_quants",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "stock_adjustment_lines_0KyHHNwJ6NwT_fkey",
@@ -12613,14 +12204,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "stock_adjustment_id"
-      ],
+      "columns": ["stock_adjustment_id"],
       "schemaTo": "vritti_core",
       "tableTo": "stock_adjustments",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "stock_adjustment_lots_QCXPZmh9zfIK_fkey",
@@ -12630,14 +12217,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "resolved_lot_id"
-      ],
+      "columns": ["resolved_lot_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_item_lots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "stock_adjustment_lots_2xbHGAUPqlLg_fkey",
@@ -12647,14 +12230,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "stock_adjustments_inventory_item_id_inventory_items_id_fkey",
@@ -12664,14 +12243,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "stock_transfers_inventory_item_id_inventory_items_id_fkey",
@@ -12681,14 +12256,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "supplier_id"
-      ],
+      "columns": ["supplier_id"],
       "schemaTo": "vritti_core",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "supplier_contacts_supplier_id_suppliers_id_fkey",
@@ -12698,14 +12269,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "inventory_item_id"
-      ],
+      "columns": ["inventory_item_id"],
       "schemaTo": "vritti_core",
       "tableTo": "inventory_items",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "supplier_items_inventory_item_id_inventory_items_id_fkey",
@@ -12715,14 +12282,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "uom_id"
-      ],
+      "columns": ["uom_id"],
       "schemaTo": "vritti_core",
       "tableTo": "uom",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "supplier_items_uom_id_uom_id_fkey",
@@ -12732,16 +12295,10 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "supplier_id",
-        "currency_code"
-      ],
+      "columns": ["supplier_id", "currency_code"],
       "schemaTo": "vritti_core",
       "tableTo": "suppliers",
-      "columnsTo": [
-        "id",
-        "currency_code"
-      ],
+      "columnsTo": ["id", "currency_code"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "fk_supplier_items_supplier_currency",
@@ -12751,14 +12308,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "tax_group_id"
-      ],
+      "columns": ["tax_group_id"],
       "schemaTo": "vritti_core",
       "tableTo": "tax_groups",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "tax_rates_tax_group_id_tax_groups_id_fkey",
@@ -12768,14 +12321,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "dimension_id"
-      ],
+      "columns": ["dimension_id"],
       "schemaTo": "vritti_core",
       "tableTo": "uom_dimensions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "uom_dimension_id_uom_dimensions_id_fkey",
@@ -12785,14 +12334,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "variant_option_id"
-      ],
+      "columns": ["variant_option_id"],
       "schemaTo": "vritti_core",
       "tableTo": "variant_options",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "variant_option_values_variant_option_id_variant_options_id_fkey",
@@ -12802,14 +12347,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": [
-        "catalog_id"
-      ],
+      "columns": ["catalog_id"],
       "schemaTo": "vritti_core",
       "tableTo": "catalogs",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "variant_options_catalog_id_catalogs_id_fkey",
@@ -12818,10 +12359,7 @@
       "table": "variant_options"
     },
     {
-      "columns": [
-        "quant_id",
-        "cost_id"
-      ],
+      "columns": ["quant_id", "cost_id"],
       "nameExplicit": true,
       "name": "pk_inventory_item_quant_costs",
       "entityType": "pks",
@@ -12829,10 +12367,7 @@
       "table": "inventory_item_quant_costs"
     },
     {
-      "columns": [
-        "offering_id",
-        "group_id"
-      ],
+      "columns": ["offering_id", "group_id"],
       "nameExplicit": false,
       "name": "offering_modifier_groups_pkey",
       "entityType": "pks",
@@ -12840,10 +12375,7 @@
       "table": "offering_modifier_groups"
     },
     {
-      "columns": [
-        "offering_id",
-        "variant_option_id"
-      ],
+      "columns": ["offering_id", "variant_option_id"],
       "nameExplicit": false,
       "name": "offering_options_pkey",
       "entityType": "pks",
@@ -12851,10 +12383,7 @@
       "table": "offering_options"
     },
     {
-      "columns": [
-        "offering_variant_id",
-        "inventory_item_id"
-      ],
+      "columns": ["offering_variant_id", "inventory_item_id"],
       "nameExplicit": false,
       "name": "offering_variant_components_pkey",
       "entityType": "pks",
@@ -12862,10 +12391,7 @@
       "table": "offering_variant_components"
     },
     {
-      "columns": [
-        "offering_variant_id",
-        "variant_option_value_id"
-      ],
+      "columns": ["offering_variant_id", "variant_option_value_id"],
       "nameExplicit": false,
       "name": "offering_variant_option_values_pkey",
       "entityType": "pks",
@@ -12873,9 +12399,7 @@
       "table": "offering_variant_option_values"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalog_channels_pkey",
       "schema": "vritti_core",
@@ -12883,9 +12407,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "catalogs_pkey",
       "schema": "vritti_core",
@@ -12893,9 +12415,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "categories_pkey",
       "schema": "vritti_core",
@@ -12903,9 +12423,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "cost_categories_pkey",
       "schema": "vritti_core",
@@ -12913,9 +12431,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "credit_note_applications_pkey",
       "schema": "vritti_core",
@@ -12923,9 +12439,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "credit_notes_pkey",
       "schema": "vritti_core",
@@ -12933,9 +12447,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "customers_pkey",
       "schema": "vritti_core",
@@ -12943,9 +12455,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_items_pkey",
       "schema": "vritti_core",
@@ -12953,9 +12463,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_line_items_pkey",
       "schema": "vritti_core",
@@ -12963,9 +12471,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_lines_pkey",
       "schema": "vritti_core",
@@ -12973,9 +12479,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipt_lots_pkey",
       "schema": "vritti_core",
@@ -12983,9 +12487,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "goods_receipts_pkey",
       "schema": "vritti_core",
@@ -12993,9 +12495,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_costs_pkey",
       "schema": "vritti_core",
@@ -13003,9 +12503,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_ledger_pkey",
       "schema": "vritti_core",
@@ -13013,9 +12511,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_locations_pkey",
       "schema": "vritti_core",
@@ -13023,9 +12519,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_lots_pkey",
       "schema": "vritti_core",
@@ -13033,9 +12527,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_quants_pkey",
       "schema": "vritti_core",
@@ -13043,9 +12535,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_serials_pkey",
       "schema": "vritti_core",
@@ -13053,9 +12543,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_item_uom_conversions_pkey",
       "schema": "vritti_core",
@@ -13063,9 +12551,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "inventory_items_pkey",
       "schema": "vritti_core",
@@ -13073,9 +12559,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "invoice_items_pkey",
       "schema": "vritti_core",
@@ -13083,9 +12567,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "invoices_pkey",
       "schema": "vritti_core",
@@ -13093,9 +12575,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "item_field_definitions_pkey",
       "schema": "vritti_core",
@@ -13103,9 +12583,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "item_field_values_pkey",
       "schema": "vritti_core",
@@ -13113,9 +12591,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "locations_pkey",
       "schema": "vritti_core",
@@ -13123,9 +12599,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "modifier_groups_pkey",
       "schema": "vritti_core",
@@ -13133,9 +12607,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "modifier_options_pkey",
       "schema": "vritti_core",
@@ -13143,9 +12615,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offering_variants_pkey",
       "schema": "vritti_core",
@@ -13153,9 +12623,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "offerings_pkey",
       "schema": "vritti_core",
@@ -13163,9 +12631,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "order_item_modifiers_pkey",
       "schema": "vritti_core",
@@ -13173,9 +12639,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "order_items_pkey",
       "schema": "vritti_core",
@@ -13183,9 +12647,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "orders_pkey",
       "schema": "vritti_core",
@@ -13193,9 +12655,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "payments_pkey",
       "schema": "vritti_core",
@@ -13203,9 +12663,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "pos_terminals_pkey",
       "schema": "vritti_core",
@@ -13213,9 +12671,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "purchase_order_items_pkey",
       "schema": "vritti_core",
@@ -13223,9 +12679,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "purchase_orders_pkey",
       "schema": "vritti_core",
@@ -13233,9 +12687,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sales_channels_pkey",
       "schema": "vritti_core",
@@ -13243,9 +12695,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustment_line_items_pkey",
       "schema": "vritti_core",
@@ -13253,9 +12703,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustment_lines_pkey",
       "schema": "vritti_core",
@@ -13263,9 +12711,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustment_lots_pkey",
       "schema": "vritti_core",
@@ -13273,9 +12719,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_adjustments_pkey",
       "schema": "vritti_core",
@@ -13283,9 +12727,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stock_transfers_pkey",
       "schema": "vritti_core",
@@ -13293,9 +12735,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "supplier_contacts_pkey",
       "schema": "vritti_core",
@@ -13303,9 +12743,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "supplier_items_pkey",
       "schema": "vritti_core",
@@ -13313,9 +12751,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "suppliers_pkey",
       "schema": "vritti_core",
@@ -13323,9 +12759,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_groups_pkey",
       "schema": "vritti_core",
@@ -13333,9 +12767,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "tax_rates_pkey",
       "schema": "vritti_core",
@@ -13343,9 +12775,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "uom_pkey",
       "schema": "vritti_core",
@@ -13353,9 +12783,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "uom_dimensions_pkey",
       "schema": "vritti_core",
@@ -13363,9 +12791,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "variant_option_values_pkey",
       "schema": "vritti_core",
@@ -13373,9 +12799,7 @@
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "variant_options_pkey",
       "schema": "vritti_core",
@@ -13384,10 +12808,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "business_unit_id",
-        "channel_id"
-      ],
+      "columns": ["business_unit_id", "channel_id"],
       "nullsNotDistinct": false,
       "name": "uq_catalog_channels_bu_channel",
       "entityType": "uniques",
@@ -13396,10 +12817,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "parent_id",
-        "path_label"
-      ],
+      "columns": ["parent_id", "path_label"],
       "nullsNotDistinct": false,
       "name": "uq_categories_parent_path_label",
       "entityType": "uniques",
@@ -13408,10 +12826,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_cost_categories_org_code",
       "entityType": "uniques",
@@ -13420,10 +12835,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "business_unit_id",
-        "credit_note_number"
-      ],
+      "columns": ["business_unit_id", "credit_note_number"],
       "nullsNotDistinct": false,
       "name": "uq_credit_notes_bu_number",
       "entityType": "uniques",
@@ -13432,11 +12844,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_id",
-        "inventory_item_id",
-        "uom_id"
-      ],
+      "columns": ["goods_receipt_id", "inventory_item_id", "uom_id"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipt_items_gr_item_uom",
       "entityType": "uniques",
@@ -13445,10 +12853,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_line_id",
-        "serial_number"
-      ],
+      "columns": ["goods_receipt_line_id", "serial_number"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipt_line_items_line_serial",
       "entityType": "uniques",
@@ -13457,11 +12862,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_item_id",
-        "goods_receipt_lot_id",
-        "location_id"
-      ],
+      "columns": ["goods_receipt_item_id", "goods_receipt_lot_id", "location_id"],
       "nullsNotDistinct": true,
       "name": "uq_goods_receipt_lines_item_lot_location",
       "entityType": "uniques",
@@ -13470,10 +12871,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "goods_receipt_item_id",
-        "lot_number"
-      ],
+      "columns": ["goods_receipt_item_id", "lot_number"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipt_lots_item_lot",
       "entityType": "uniques",
@@ -13482,10 +12880,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "gr_number"
-      ],
+      "columns": ["organization_id", "gr_number"],
       "nullsNotDistinct": false,
       "name": "uq_goods_receipts_org_gr_number",
       "entityType": "uniques",
@@ -13494,10 +12889,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "inventory_item_id",
-        "location_id"
-      ],
+      "columns": ["inventory_item_id", "location_id"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_locations",
       "entityType": "uniques",
@@ -13506,11 +12898,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "inventory_item_id",
-        "lot_number"
-      ],
+      "columns": ["organization_id", "inventory_item_id", "lot_number"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_lots_org_item_number",
       "entityType": "uniques",
@@ -13519,11 +12907,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "inventory_item_id",
-        "serial_number"
-      ],
+      "columns": ["organization_id", "inventory_item_id", "serial_number"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_item_serials_serial",
       "entityType": "uniques",
@@ -13532,10 +12916,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "business_unit_id",
-        "code"
-      ],
+      "columns": ["business_unit_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_inventory_items_bu_code",
       "entityType": "uniques",
@@ -13544,10 +12925,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "business_unit_id",
-        "invoice_number"
-      ],
+      "columns": ["business_unit_id", "invoice_number"],
       "nullsNotDistinct": false,
       "name": "uq_invoices_bu_number",
       "entityType": "uniques",
@@ -13556,11 +12934,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "business_unit_id",
-        "parent_id",
-        "code"
-      ],
+      "columns": ["business_unit_id", "parent_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_locations_bu_parent_code",
       "entityType": "uniques",
@@ -13569,10 +12943,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "catalog_id",
-        "name"
-      ],
+      "columns": ["catalog_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_modifier_groups_catalog_name",
       "entityType": "uniques",
@@ -13581,10 +12952,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "group_id",
-        "name"
-      ],
+      "columns": ["group_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_modifier_options_group_name",
       "entityType": "uniques",
@@ -13593,10 +12961,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "offering_id",
-        "sku"
-      ],
+      "columns": ["offering_id", "sku"],
       "nullsNotDistinct": false,
       "name": "uq_offering_variants_offering_sku",
       "entityType": "uniques",
@@ -13605,10 +12970,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "order_number"
-      ],
+      "columns": ["organization_id", "order_number"],
       "nullsNotDistinct": false,
       "name": "uq_orders_org_number",
       "entityType": "uniques",
@@ -13617,10 +12979,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "business_unit_id",
-        "code"
-      ],
+      "columns": ["business_unit_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_pos_terminals_bu_code",
       "entityType": "uniques",
@@ -13629,11 +12988,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "purchase_order_id",
-        "inventory_item_id",
-        "uom_id"
-      ],
+      "columns": ["purchase_order_id", "inventory_item_id", "uom_id"],
       "nullsNotDistinct": false,
       "name": "uq_purchase_order_items_po_item_uom",
       "entityType": "uniques",
@@ -13642,10 +12997,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "po_number"
-      ],
+      "columns": ["organization_id", "po_number"],
       "nullsNotDistinct": false,
       "name": "uq_purchase_orders_org_po_number",
       "entityType": "uniques",
@@ -13654,10 +13006,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_sales_channels_org_code",
       "entityType": "uniques",
@@ -13666,10 +13015,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "stock_adjustment_line_id",
-        "serial_number"
-      ],
+      "columns": ["stock_adjustment_line_id", "serial_number"],
       "nullsNotDistinct": false,
       "name": "uq_stock_adjustment_line_items_line_serial",
       "entityType": "uniques",
@@ -13678,10 +13024,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "stock_adjustment_id",
-        "lot_number"
-      ],
+      "columns": ["stock_adjustment_id", "lot_number"],
       "nullsNotDistinct": false,
       "name": "uq_stock_adjustment_lots_adj_lot",
       "entityType": "uniques",
@@ -13690,10 +13033,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "organization_id",
-        "code"
-      ],
+      "columns": ["organization_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_stock_adjustments_org_code",
       "entityType": "uniques",
@@ -13702,10 +13042,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "id",
-        "currency_code"
-      ],
+      "columns": ["id", "currency_code"],
       "nullsNotDistinct": false,
       "name": "uq_suppliers_id_currency",
       "entityType": "uniques",
@@ -13714,10 +13051,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "business_unit_id",
-        "code"
-      ],
+      "columns": ["business_unit_id", "code"],
       "nullsNotDistinct": false,
       "name": "uq_uom_dimensions_bu_code",
       "entityType": "uniques",
@@ -13726,10 +13060,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "variant_option_id",
-        "value"
-      ],
+      "columns": ["variant_option_id", "value"],
       "nullsNotDistinct": false,
       "name": "uq_variant_option_values_option_value",
       "entityType": "uniques",
@@ -13738,10 +13069,7 @@
     },
     {
       "nameExplicit": true,
-      "columns": [
-        "catalog_id",
-        "name"
-      ],
+      "columns": ["catalog_id", "name"],
       "nullsNotDistinct": false,
       "name": "uq_variant_options_catalog_name",
       "entityType": "uniques",
@@ -13858,9 +13186,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -13871,9 +13197,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -13884,9 +13208,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -13897,9 +13219,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -13910,9 +13230,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -13923,9 +13241,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -13936,9 +13252,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -13949,9 +13263,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -13962,9 +13274,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -13975,9 +13285,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -13988,9 +13296,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14001,9 +13307,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14014,9 +13318,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14027,9 +13329,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14040,9 +13340,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14053,9 +13351,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14066,9 +13362,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14079,9 +13373,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14092,9 +13384,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14105,9 +13395,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14118,9 +13406,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14131,9 +13417,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14144,9 +13428,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14157,9 +13439,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14170,9 +13450,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14183,9 +13461,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14196,9 +13472,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "\"vritti_core\".\"document_counters\".\"organization_id\" = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": "\"vritti_core\".\"document_counters\".\"organization_id\" = (select current_setting('app.org_id', true)::uuid)",
       "name": "org_isolation",
@@ -14209,9 +13483,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14222,9 +13494,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14235,9 +13505,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14248,9 +13516,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14261,9 +13527,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14274,9 +13538,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14287,9 +13549,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14300,9 +13560,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14313,9 +13571,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14326,9 +13582,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14339,9 +13593,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14352,9 +13604,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14365,9 +13615,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14378,9 +13626,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14391,9 +13637,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14404,9 +13648,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14417,9 +13659,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14430,9 +13670,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14443,9 +13681,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14456,9 +13692,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14469,9 +13703,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14482,9 +13714,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14495,9 +13725,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14508,9 +13736,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14521,9 +13747,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14534,9 +13758,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14547,9 +13769,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14560,9 +13780,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14573,9 +13791,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14586,9 +13802,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14599,9 +13813,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14612,9 +13824,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14625,9 +13835,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14638,9 +13846,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14651,9 +13857,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14664,9 +13868,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14677,9 +13879,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14690,9 +13890,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14703,9 +13901,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14716,9 +13912,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14729,9 +13923,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14742,9 +13934,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14755,9 +13945,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14768,9 +13956,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14781,9 +13967,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14794,9 +13978,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14807,9 +13989,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14820,9 +14000,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14833,9 +14011,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14846,9 +14022,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14859,9 +14033,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14872,9 +14044,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14885,9 +14055,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14898,9 +14066,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14911,9 +14077,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14924,9 +14088,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -14937,9 +14099,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -14950,9 +14110,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -14963,9 +14121,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -14976,9 +14132,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -14989,9 +14143,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15002,9 +14154,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15015,9 +14165,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15028,9 +14176,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15041,9 +14187,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15054,9 +14198,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15067,9 +14209,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15080,9 +14220,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15093,9 +14231,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15106,9 +14242,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15119,9 +14253,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15132,9 +14264,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15145,9 +14275,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15158,9 +14286,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15171,9 +14297,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15184,9 +14308,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15197,9 +14319,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15210,9 +14330,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15223,9 +14341,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15236,9 +14352,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15249,9 +14363,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15262,9 +14374,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15275,9 +14385,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15288,9 +14396,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15301,9 +14407,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15314,9 +14418,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15327,9 +14429,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15340,9 +14440,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15353,9 +14451,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15366,9 +14462,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15379,9 +14473,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15392,9 +14484,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15405,9 +14495,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15418,9 +14506,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15431,9 +14517,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15444,9 +14528,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15457,9 +14539,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15470,9 +14550,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15483,9 +14561,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15496,9 +14572,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15509,9 +14583,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15522,9 +14594,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15535,9 +14605,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15548,9 +14616,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15561,9 +14627,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15574,9 +14638,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15587,9 +14649,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15600,9 +14660,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15613,9 +14671,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15626,9 +14682,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15639,9 +14693,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15652,9 +14704,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15665,9 +14715,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15678,9 +14726,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15691,9 +14737,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15704,9 +14748,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15717,9 +14759,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15730,9 +14770,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15743,9 +14781,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15756,9 +14792,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15769,9 +14803,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15782,9 +14814,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15795,9 +14825,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15808,9 +14836,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15821,9 +14847,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15834,9 +14858,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15847,9 +14869,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15860,9 +14880,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15873,9 +14891,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15886,9 +14902,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15899,9 +14913,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15912,9 +14924,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15925,9 +14935,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -15938,9 +14946,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -15951,9 +14957,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -15964,9 +14968,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -15977,9 +14979,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -15990,9 +14990,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -16003,9 +15001,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -16016,9 +15012,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -16029,9 +15023,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -16042,9 +15034,7 @@
     {
       "as": "PERMISSIVE",
       "for": "SELECT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])",
       "withCheck": null,
       "name": "bu_ancestor_read",
@@ -16055,9 +15045,7 @@
     {
       "as": "PERMISSIVE",
       "for": "INSERT",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": null,
       "withCheck": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "name": "bu_write",
@@ -16068,9 +15056,7 @@
     {
       "as": "PERMISSIVE",
       "for": "UPDATE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_update",
@@ -16081,9 +15067,7 @@
     {
       "as": "PERMISSIVE",
       "for": "DELETE",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "business_unit_id = (select current_setting('app.bu_id', true)::uuid)",
       "withCheck": null,
       "name": "bu_delete",
@@ -16094,9 +15078,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",
@@ -16107,9 +15089,7 @@
     {
       "as": "PERMISSIVE",
       "for": "ALL",
-      "roles": [
-        "public"
-      ],
+      "roles": ["public"],
       "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
       "withCheck": null,
       "name": "org_isolation",

@@ -28,7 +28,10 @@ export class LocationDto {
     dto.code = entity.code;
     dto.parentId = entity.parentId ?? null;
     // Parent name from the human-readable breadcrumb ("A › B › Self") — the second-to-last segment.
-    const breadcrumb = (entity.pathBreadcrumb ?? '').split('›').map((s) => s.trim()).filter(Boolean);
+    const breadcrumb = (entity.pathBreadcrumb ?? '')
+      .split('›')
+      .map((s) => s.trim())
+      .filter(Boolean);
     dto.parentName = entity.parentId && breadcrumb.length > 1 ? breadcrumb[breadcrumb.length - 2] : null;
     dto.path = entity.path;
     dto.sortOrder = entity.sortOrder;

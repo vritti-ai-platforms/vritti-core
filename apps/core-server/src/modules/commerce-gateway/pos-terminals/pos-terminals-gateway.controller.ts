@@ -13,14 +13,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import {
   type CreateResponseDto,
-  RequireSession,
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiCreate,

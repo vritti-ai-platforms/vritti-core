@@ -1,7 +1,8 @@
 import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { RoleRepository } from '@domain/organization/repositories/role.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { AssignmentType, UserRoleAssignment } from '@/db/schema';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';

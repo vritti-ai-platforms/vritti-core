@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ChangePasswordDto } from '../dto/request/change-password.dto';
 import { SessionResponseDto } from '../dto/response/session-response.dto';
 
@@ -9,7 +9,8 @@ export function ApiChangePassword() {
     ApiBearerAuth(),
     ApiOperation({
       summary: 'Change password',
-      description: 'Verifies the current password and replaces it with a new one. Rejects if the new password is identical to the current one.',
+      description:
+        'Verifies the current password and replaces it with a new one. Rejects if the new password is identical to the current one.',
     }),
     ApiBody({ type: ChangePasswordDto }),
     ApiResponse({ status: 200, description: 'Password changed successfully.', type: SuccessResponseDto }),
@@ -23,7 +24,8 @@ export function ApiGetSessions() {
     ApiBearerAuth(),
     ApiOperation({
       summary: 'List active sessions',
-      description: 'Returns all active sessions for the authenticated user. The current session is flagged with isCurrent: true.',
+      description:
+        'Returns all active sessions for the authenticated user. The current session is flagged with isCurrent: true.',
     }),
     ApiResponse({ status: 200, description: 'Session list returned.', type: [SessionResponseDto] }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
@@ -50,7 +52,8 @@ export function ApiRevokeAllSessions() {
     ApiBearerAuth(),
     ApiOperation({
       summary: 'Revoke all other sessions',
-      description: 'Deletes all sessions for the user except the current one. Pushes a logout event to all affected sessions via SSE.',
+      description:
+        'Deletes all sessions for the user except the current one. Pushes a logout event to all affected sessions via SSE.',
     }),
     ApiResponse({ status: 200, description: 'All other sessions revoked.', type: SuccessResponseDto }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),

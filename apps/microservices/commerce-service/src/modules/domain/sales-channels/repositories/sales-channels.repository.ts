@@ -4,7 +4,7 @@ import {
   PrimaryBaseRepository,
   PrimaryDatabaseService,
   type SelectQueryResult,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { catalogChannels, orders, type SalesChannel, salesChannels } from '@/db/schema';
 

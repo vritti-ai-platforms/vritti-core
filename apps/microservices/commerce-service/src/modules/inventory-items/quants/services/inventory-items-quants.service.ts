@@ -2,7 +2,7 @@ import type { InventoryItemQuantDto } from '@domain/inventory-item-quants/dto/en
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk/database';
 
 // Top-level service for inventory-item per-quant table reads. Asserts parent-item
 // existence before delegating to the quants domain service.

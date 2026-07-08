@@ -8,7 +8,7 @@ import type {
   SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import type { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from './dto/request/update-tax-group.dto';
 

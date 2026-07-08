@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
 import { SessionDomainModule } from '@domain/session/session.module';
 import { UserDomainModule } from '@domain/user/user.module';
+import { Module } from '@nestjs/common';
 import { ProfileController } from './profile/controllers/profile.controller';
 import { ProfileResolver } from './profile/resolvers/profile.resolver';
 import { ProfileService } from './profile/services/profile.service';

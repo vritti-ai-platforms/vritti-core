@@ -7,12 +7,16 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   invoiceId: string;
 
-  @ApiProperty({ description: 'Payment amount', example: 5000.00 })
+  @ApiProperty({ description: 'Payment amount', example: 5000.0 })
   @IsNumber()
   @Min(0.01)
   amount: number;
 
-  @ApiProperty({ description: 'Payment method', enum: ['CASH', 'CARD', 'UPI', 'BANK_TRANSFER', 'WALLET', 'ONLINE'], example: 'BANK_TRANSFER' })
+  @ApiProperty({
+    description: 'Payment method',
+    enum: ['CASH', 'CARD', 'UPI', 'BANK_TRANSFER', 'WALLET', 'ONLINE'],
+    example: 'BANK_TRANSFER',
+  })
   @IsString()
   @IsNotEmpty()
   method: string;

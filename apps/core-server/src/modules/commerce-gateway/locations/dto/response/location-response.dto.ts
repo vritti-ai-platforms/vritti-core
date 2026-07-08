@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { LocationRoleValues, type LocationRole } from '../../constants/location-role.constants';
+import { type LocationRole, LocationRoleValues } from '../../constants/location-role.constants';
 
 export class LocationResponseDto {
   @ApiProperty({ description: 'Location ID' })

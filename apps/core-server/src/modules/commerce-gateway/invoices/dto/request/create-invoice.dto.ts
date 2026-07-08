@@ -1,6 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 export class CreateInvoiceItemDto {
   @ApiProperty({ description: 'Line item description', example: 'Basmati Rice 25kg' })
@@ -14,12 +24,12 @@ export class CreateInvoiceItemDto {
   @Min(0)
   quantity: number;
 
-  @ApiProperty({ description: 'Unit price', example: 1200.00 })
+  @ApiProperty({ description: 'Unit price', example: 1200.0 })
   @IsNumber()
   @Min(0)
   unitPrice: number;
 
-  @ApiPropertyOptional({ description: 'Tax amount for this item', example: 216.00 })
+  @ApiPropertyOptional({ description: 'Tax amount for this item', example: 216.0 })
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -70,7 +80,7 @@ export class CreateInvoiceDto {
   @IsUUID()
   referenceId?: string;
 
-  @ApiPropertyOptional({ description: 'Discount amount', example: 500.00 })
+  @ApiPropertyOptional({ description: 'Discount amount', example: 500.0 })
   @IsOptional()
   @IsNumber()
   @Min(0)

@@ -4,13 +4,9 @@ import { UserService } from '@domain/user/services/user.service';
 import { UserPermissionsService } from '@domain/user-permissions/services/user-permissions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  BadRequestException,
-  PrimaryDatabaseService,
-  TokenService,
-  TokenType,
-  UnauthorizedException,
-} from '@vritti/api-sdk';
+import { TokenService, TokenType } from '@vritti/api-sdk/auth';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { BadRequestException, UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import * as argon2 from 'argon2';
 import { type SessionType, SessionTypeValues, UserStatusValues } from '@/db/schema';
 import { AcceptInviteDto } from '../dto/request/accept-invite.dto';

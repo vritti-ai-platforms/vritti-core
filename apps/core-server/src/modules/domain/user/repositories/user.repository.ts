@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type NewUser, type User, users } from '@/db/schema';
 
@@ -17,7 +17,9 @@ export class UserRepository extends PrimaryBaseRepository<typeof users> {
   }
 
   // Finds all users with the given email across all organizations, including organization data
-  async findAllByEmailWithOrg(email: string): Promise<(User & { organization: { id: string; name: string; subdomain: string; logoUrl: string | null } })[]> {
+  async findAllByEmailWithOrg(
+    email: string,
+  ): Promise<(User & { organization: { id: string; name: string; subdomain: string; logoUrl: string | null } })[]> {
     return this.model.findMany({
       where: { email },
       with: { organization: true },
@@ -73,10 +75,7 @@ export class UserRepository extends PrimaryBaseRepository<typeof users> {
     offset: number;
   }): Promise<{ rows: User[]; total: number }> {
     const [countResult, rows] = await Promise.all([
-      this.db
-        .select({ count: sql<number>`count(*)` })
-        .from(users)
-        .where(params.where),
+      this.db.select({ count: sql<number>`count(*)` }).from(users).where(params.where),
       this.db
         .select()
         .from(users)

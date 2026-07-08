@@ -2,7 +2,12 @@ import type { CustomerDto } from '@domain/customers/dto/entity/customer.dto';
 import { CustomersService } from '@domain/customers/services/customers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type {
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+  TableViewState,
+} from '@vritti/api-sdk/database';
 import type { CreateCustomerDto } from './dto/request/create-customer.dto';
 import type { UpdateCustomerDto } from './dto/request/update-customer.dto';
 

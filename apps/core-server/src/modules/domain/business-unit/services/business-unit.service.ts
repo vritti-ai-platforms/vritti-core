@@ -1,8 +1,9 @@
 import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
 import { type BuFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import type { BuMetadata, BuType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';

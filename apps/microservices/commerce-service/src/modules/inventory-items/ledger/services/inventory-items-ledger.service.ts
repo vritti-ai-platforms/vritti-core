@@ -2,7 +2,7 @@ import type { InventoryItemLedgerDto } from '@domain/inventory-item-ledger/dto/e
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk/database';
 
 @Injectable()
 export class InventoryItemsLedgerService {

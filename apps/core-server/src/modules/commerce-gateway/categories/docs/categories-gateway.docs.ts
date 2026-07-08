@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CreateCategoryDto } from '../dto/request/create-category.dto';
 import { UpdateCategoryDto } from '../dto/request/update-category.dto';
 import { CategoryItemTableResponseDto } from '../dto/response/category-item-table-response.dto';
@@ -10,7 +10,8 @@ export function ApiCreateCategory() {
   return applyDecorators(
     ApiOperation({
       summary: 'Create a category',
-      description: 'Creates a new category for the business unit. organizationId is resolved from the authenticated user.',
+      description:
+        'Creates a new category for the business unit. organizationId is resolved from the authenticated user.',
     }),
     ApiBody({ type: CreateCategoryDto }),
     ApiResponse({ status: 201, description: 'Category created successfully.', type: CategoryResponseDto }),
@@ -23,10 +24,15 @@ export function ApiGetCategoryItemsTable() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get inventory items for a leaf category',
-      description: 'Returns paginated inventory items linked to a CATEGORY-role (leaf) category, using Redis table state.',
+      description:
+        'Returns paginated inventory items linked to a CATEGORY-role (leaf) category, using Redis table state.',
     }),
     ApiParam({ name: 'id', description: 'Category ID' }),
-    ApiResponse({ status: 200, description: 'Category items retrieved successfully.', type: CategoryItemTableResponseDto }),
+    ApiResponse({
+      status: 200,
+      description: 'Category items retrieved successfully.',
+      type: CategoryItemTableResponseDto,
+    }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

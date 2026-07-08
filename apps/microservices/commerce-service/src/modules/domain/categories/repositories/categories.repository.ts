@@ -4,7 +4,7 @@ import {
   PrimaryBaseRepository,
   PrimaryDatabaseService,
   type SelectQueryResult,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import { categories, inventoryItems, offerings } from '@/db/schema';
 
@@ -26,9 +26,7 @@ export class CategoriesRepository extends PrimaryBaseRepository<typeof categorie
   }
 
   // Returns hierarchy rows ordered in tree order using a recursive CTE
-  async findHierarchyRows(
-    search?: string,
-  ): Promise<
+  async findHierarchyRows(search?: string): Promise<
     Array<{
       id: string;
       parentId: string | null;

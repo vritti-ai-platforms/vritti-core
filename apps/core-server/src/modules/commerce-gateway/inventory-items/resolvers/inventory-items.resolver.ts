@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItem } from '../graphql/inventory-item.type';
 import { CreateInventoryItemInput, UpdateInventoryItemInput } from '../graphql/inventory-item-mutation.input';

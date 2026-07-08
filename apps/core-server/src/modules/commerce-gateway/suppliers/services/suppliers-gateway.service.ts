@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
@@ -40,7 +41,6 @@ export class SuppliersGatewayService {
 
     return { result, count, state, activeViewId };
   }
-
 
   // Creates a new supplier
   async create(dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierResponseDto>> {

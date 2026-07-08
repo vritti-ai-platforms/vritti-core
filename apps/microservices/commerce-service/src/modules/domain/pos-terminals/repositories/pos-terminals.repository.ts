@@ -4,7 +4,7 @@ import {
   PrimaryBaseRepository,
   PrimaryDatabaseService,
   type SelectQueryResult,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { locations, type PosTerminal, posTerminals } from '@/db/schema';
 

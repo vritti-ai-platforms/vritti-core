@@ -7,7 +7,7 @@ export class ApplyCreditNoteDto {
   @IsNotEmpty()
   invoiceId: string;
 
-  @ApiProperty({ description: 'Amount to apply', example: 1000.00 })
+  @ApiProperty({ description: 'Amount to apply', example: 1000.0 })
   @IsNumber()
   @Min(0.01)
   amount: number;

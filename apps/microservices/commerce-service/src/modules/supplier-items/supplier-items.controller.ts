@@ -1,7 +1,7 @@
 import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
 
 @Controller()
 export class SupplierItemsController {

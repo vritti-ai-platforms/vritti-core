@@ -16,7 +16,11 @@ export function ApiCategoriesSelect() {
       description: 'Returns paginated category options for the select component, scoped to the session business unit.',
     }),
     ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'role', description: 'Category role to list (GROUP or CATEGORY; default CATEGORY)', required: false }),
+    ApiQuery({
+      name: 'role',
+      description: 'Category role to list (GROUP or CATEGORY; default CATEGORY)',
+      required: false,
+    }),
     ApiQuery({ name: 'status', description: 'active | inactive (default active)', required: false }),
     ApiResponse({ status: 200, description: 'Category select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
@@ -79,7 +83,11 @@ export function ApiInventoryItemQuantsSelect() {
       description: 'Returns paginated batch (quant) options for the select component, scoped to an inventory item.',
     }),
     ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'inventoryItemId', description: 'Inventory item whose batches populate the select', required: true }),
+    ApiQuery({
+      name: 'inventoryItemId',
+      description: 'Inventory item whose batches populate the select',
+      required: true,
+    }),
     ApiResponse({ status: 200, description: 'Inventory item batch select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
@@ -122,14 +130,22 @@ export function ApiLocationsSelect() {
       description: 'Returns paginated storage location options for the select component.',
     }),
     ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'locationRoles', description: 'Comma-separated location roles to filter options by', required: false }),
+    ApiQuery({
+      name: 'locationRoles',
+      description: 'Comma-separated location roles to filter options by',
+      required: false,
+    }),
     ApiQuery({ name: 'inventoryItemId', description: 'Optional inventory item context', required: false }),
     ApiQuery({
       name: 'excludeUsedOnGoodsReceiptItemId',
       description: 'Hide locations already used by lines on this goods receipt item',
       required: false,
     }),
-    ApiQuery({ name: 'goodsReceiptLotId', description: 'Lot scope for excludeUsedOnGoodsReceiptItemId', required: false }),
+    ApiQuery({
+      name: 'goodsReceiptLotId',
+      description: 'Lot scope for excludeUsedOnGoodsReceiptItemId',
+      required: false,
+    }),
     ApiResponse({ status: 200, description: 'Storage location select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
@@ -154,7 +170,11 @@ export function ApiPurchaseOrderItemsSelect() {
       description: 'Returns paginated PO line options for the goods receipt AddItem selector.',
     }),
     ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'purchaseOrderId', description: 'Purchase order whose lines populate the select', required: true }),
+    ApiQuery({
+      name: 'purchaseOrderId',
+      description: 'Purchase order whose lines populate the select',
+      required: true,
+    }),
     ApiQuery({
       name: 'excludeOnGoodsReceiptId',
       description: 'Exclude PO lines whose (inventoryItemId, uomId) is already on this goods receipt',
@@ -245,12 +265,28 @@ export function ApiUomSelect() {
       description: 'Returns paginated UOM options for select dropdowns.',
     }),
     ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'derivedOnly', description: 'When true, only derived units (non-base) are returned', required: false }),
+    ApiQuery({
+      name: 'derivedOnly',
+      description: 'When true, only derived units (non-base) are returned',
+      required: false,
+    }),
     ApiQuery({ name: 'baseOnly', description: 'When true, only base units are returned', required: false }),
     ApiQuery({ name: 'dimensionId', description: 'Filter to UOMs sharing the given dimension', required: false }),
-    ApiQuery({ name: 'inventoryItemId', description: 'Restrict to UOMs the given inventory item can transact in', required: false }),
-    ApiQuery({ name: 'supplierId', description: 'Restrict to UOMs the supplier offers for this item', required: false }),
-    ApiQuery({ name: 'purchaseOrderId', description: 'Exclude UOMs already on this purchase order for the item', required: false }),
+    ApiQuery({
+      name: 'inventoryItemId',
+      description: 'Restrict to UOMs the given inventory item can transact in',
+      required: false,
+    }),
+    ApiQuery({
+      name: 'supplierId',
+      description: 'Restrict to UOMs the supplier offers for this item',
+      required: false,
+    }),
+    ApiQuery({
+      name: 'purchaseOrderId',
+      description: 'Exclude UOMs already on this purchase order for the item',
+      required: false,
+    }),
     ApiResponse({ status: 200, description: 'UOM select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );

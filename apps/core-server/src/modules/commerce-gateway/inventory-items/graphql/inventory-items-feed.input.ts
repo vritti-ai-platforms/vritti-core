@@ -1,5 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
-import type { FilterCondition, FilterOperator, SearchState, SortCondition } from '@vritti/api-sdk';
+import type { FilterCondition, FilterOperator, SearchState, SortCondition } from '@vritti/api-sdk/database';
 import { IsArray, IsIn, IsString } from 'class-validator';
 
 const FILTER_OPERATORS: FilterOperator[] = [

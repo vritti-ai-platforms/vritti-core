@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { BadRequestException, NotFoundException } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type ConversionPair, UomConversionsRepository, type UomRow } from '../repositories/uom-conversions.repository';
 
 const QTY_DP = 3;

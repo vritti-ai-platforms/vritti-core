@@ -2,7 +2,7 @@ import { SupplierItemsService } from '@domain/supplier-items/services/supplier-i
 import type { InventoryItemSupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk/database';
 
 @Controller()
 export class InventoryItemsSupplierItemsController {

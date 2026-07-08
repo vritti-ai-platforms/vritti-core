@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
 import { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
 import { TaxGroupResponseDto } from '../dto/response/tax-group-response.dto';

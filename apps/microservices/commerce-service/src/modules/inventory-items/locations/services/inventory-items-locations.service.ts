@@ -2,7 +2,7 @@ import type { InventoryItemLocationDto } from '@domain/inventory-item-locations/
 import { InventoryItemLocationsService } from '@domain/inventory-item-locations/services/inventory-item-locations.service';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 
 // Top-level service for inventory-item locations endpoints. All reads/writes
 // go through here so we can assert parent-item existence before delegating

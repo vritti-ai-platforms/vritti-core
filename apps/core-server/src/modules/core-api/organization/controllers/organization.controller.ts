@@ -1,7 +1,8 @@
 import { OrganizationService } from '@domain/organization/services/organization.service';
 import { Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
+import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { ApiCreateOrganization, ApiReceiveEntitlement } from '../docs/organization.docs';
 import { OrganizationDto } from '../dto/entity/organization.dto';

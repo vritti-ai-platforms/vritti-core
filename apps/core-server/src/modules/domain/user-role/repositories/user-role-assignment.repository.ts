@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
 import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { businessUnits, roles, type UserRoleAssignment, userRoleAssignments, users } from '@/db/schema';
 

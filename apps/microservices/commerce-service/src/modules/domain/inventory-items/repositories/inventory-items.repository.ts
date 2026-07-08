@@ -4,7 +4,7 @@ import {
   PrimaryBaseRepository,
   PrimaryDatabaseService,
   type SelectQueryResult,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
@@ -164,9 +164,7 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
   }
 
   // Returns a single inventory item with UOM symbol and category name via LEFT JOINs
-  async findByIdWithUomAndCategory(
-    id: string,
-  ): Promise<
+  async findByIdWithUomAndCategory(id: string): Promise<
     | (typeof inventoryItems.$inferSelect & {
         uomSymbol: string | null;
         categoryName: string | null;
@@ -198,7 +196,9 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         updatedAt: inventoryItems.updatedAt,
         uomSymbol: uom.symbol,
         categoryName: categories.name,
-        purchaseTaxGroupName: sql<string | null>`(SELECT tg.name FROM ${taxGroups} tg WHERE tg.id = ${inventoryItems.purchaseTaxGroupId})`,
+        purchaseTaxGroupName: sql<
+          string | null
+        >`(SELECT tg.name FROM ${taxGroups} tg WHERE tg.id = ${inventoryItems.purchaseTaxGroupId})`,
         mrpUomSymbol: sql<string | null>`(SELECT u2.symbol FROM ${uom} u2 WHERE u2.id = ${inventoryItems.mrpUomId})`,
       })
       .from(inventoryItems)

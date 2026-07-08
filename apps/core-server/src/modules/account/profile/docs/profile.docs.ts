@@ -6,7 +6,8 @@ export function ApiGetProfile() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get user profile',
-      description: 'Returns the authenticated user profile information. Profile changes must be requested through the admin.',
+      description:
+        'Returns the authenticated user profile information. Profile changes must be requested through the admin.',
     }),
     ApiResponse({ status: 200, description: 'Profile retrieved successfully', type: ProfileDto }),
     ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing authentication' }),

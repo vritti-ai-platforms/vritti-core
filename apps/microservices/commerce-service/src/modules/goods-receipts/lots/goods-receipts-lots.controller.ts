@@ -2,8 +2,8 @@ import type { GoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/entity/g
 import { GoodsReceiptLotsService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
 
 @Controller()
 export class GoodsReceiptsLotsController {

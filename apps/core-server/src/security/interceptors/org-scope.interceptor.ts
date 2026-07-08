@@ -1,5 +1,6 @@
 import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
-import { BadRequestException, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import type { FastifyRequest } from 'fastify';
 import { from, type Observable } from 'rxjs';
 

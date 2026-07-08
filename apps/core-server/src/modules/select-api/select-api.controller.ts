@@ -1,9 +1,9 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
+import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SessionTypeValues } from '@/db/schema';
-import { CategoriesSelectQueryDto } from './dto/categories-select-query.dto';
 import {
   ApiCatalogsSelect,
   ApiCategoriesSelect,
@@ -24,6 +24,7 @@ import {
   ApiUomDimensionsSelect,
   ApiUomSelect,
 } from './docs/select-api.docs';
+import { CategoriesSelectQueryDto } from './dto/categories-select-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/locations-select-query.dto';
 import { LotsSelectQueryDto } from './dto/lots-select-query.dto';

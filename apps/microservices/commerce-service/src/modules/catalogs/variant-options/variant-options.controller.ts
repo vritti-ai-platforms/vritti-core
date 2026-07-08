@@ -2,7 +2,7 @@ import type { VariantOptionDto } from '@domain/variant-options/dto/entity/varian
 import { VariantOptionsService } from '@domain/variant-options/services/variant-options.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { CreateVariantOptionDto } from '../dto/request/create-variant-option.dto';
 import type { UpdateVariantOptionDto } from '../dto/request/update-variant-option.dto';
 

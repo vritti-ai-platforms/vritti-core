@@ -8,7 +8,7 @@ import type {
   SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import type { CreateSalesChannelDto } from './dto/request/create-sales-channel.dto';
 import type { UpdateSalesChannelDto } from './dto/request/update-sales-channel.dto';
 

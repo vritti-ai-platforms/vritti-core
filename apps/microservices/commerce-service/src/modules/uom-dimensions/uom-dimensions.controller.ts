@@ -7,7 +7,7 @@ import {
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { RpcBuId } from '@vritti/api-sdk/nats';
 import type { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';

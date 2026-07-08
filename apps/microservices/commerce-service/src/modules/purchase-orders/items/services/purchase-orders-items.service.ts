@@ -9,14 +9,12 @@ import { SupplierItemsRepository } from '@domain/supplier-items/repositories/sup
 import { UomConversionsService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
   type CreateResponseDto,
-  NotFoundException,
   PrimaryDatabaseService,
   type SuccessResponseDto,
   type TableViewState,
-  ValidationException,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
+import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
 

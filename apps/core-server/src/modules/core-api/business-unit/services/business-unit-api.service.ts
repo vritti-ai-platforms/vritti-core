@@ -1,7 +1,7 @@
 import { BusinessUnitService } from '@domain/business-unit/services/business-unit.service';
 import { UserRoleService } from '@domain/user-role/services/user-role.service';
 import { Injectable } from '@nestjs/common';
-import type { SuccessResponseDto } from '@vritti/api-sdk';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { UserRoleAssignment } from '@/db/schema';
 import type { BusinessUnitDto } from '../dto/entity/business-unit.dto';
 import type { CreateBusinessUnitInternalDto } from '../dto/request/create-business-unit-internal.dto';

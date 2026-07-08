@@ -1,6 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { UserId } from '@vritti/api-sdk';
+import { UserId } from '@vritti/api-sdk/auth';
 import type { BuSelectResponseDto } from '../dto/response/bu-select-response.dto';
 import { UserPermissionsApiService } from '../services/user-permissions-api.service';
 

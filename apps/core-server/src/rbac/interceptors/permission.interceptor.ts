@@ -1,7 +1,8 @@
 import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ForbiddenException, PrimaryDatabaseService } from '@vritti/api-sdk';
 import type { PlatformBucket } from '@vritti/api-sdk/catalog-resolver';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import { ForbiddenException } from '@vritti/api-sdk/exceptions';
 import type { Observable } from 'rxjs';
 import { SessionTypeValues } from '@/db/schema';
 import { UserPermissionsService } from '@/modules/domain/user-permissions/services/user-permissions.service';

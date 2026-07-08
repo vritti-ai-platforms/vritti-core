@@ -1,6 +1,6 @@
 import { type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UnauthorizedException } from '@vritti/api-sdk';
+import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import { verifySignedRequest } from '@vritti/api-sdk/signing';
 import type { FastifyRequest } from 'fastify';
 

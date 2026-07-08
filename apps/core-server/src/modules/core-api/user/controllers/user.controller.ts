@@ -13,14 +13,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  Public,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  SkipCsrf,
-  SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { Public, RequireSession, SkipCsrf } from '@vritti/api-sdk/auth';
+import { SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { MobileLookupDto } from '../../auth/root/dto/request/mobile-lookup.dto';

@@ -8,13 +8,9 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import {
-  BadRequestException,
-  CorrelationIdMiddleware,
-  HttpLoggerInterceptor,
-  LoggerService,
-  TransportAwareExceptionFilter,
-} from '@vritti/api-sdk';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import { TransportAwareExceptionFilter } from '@vritti/api-sdk/filters';
+import { CorrelationIdMiddleware, HttpLoggerInterceptor, LoggerService } from '@vritti/api-sdk/logger';
 import type { ValidationError } from 'class-validator';
 import fastifyRawBody from 'fastify-raw-body';
 import { AppModule } from './app.module';

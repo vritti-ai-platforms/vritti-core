@@ -3,7 +3,6 @@ import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { OrganizationRepository } from '@domain/organization/repositories/organization.repository';
 import { UserRoleAssignmentRepository } from '@domain/user-role/repositories/user-role-assignment.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import { NotFoundException } from '@vritti/api-sdk';
 import {
   type ClientPlatform,
   composeRoleGrants,
@@ -14,6 +13,7 @@ import {
   resolveUserFeatures,
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { BuType } from '@/db/schema';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 

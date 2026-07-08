@@ -9,8 +9,8 @@ import type {
   SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
-import { NotFoundException } from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { LocationRoleValues } from '@/db/schema';
 import type { CreatePosTerminalDto } from './dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from './dto/request/update-pos-terminal.dto';

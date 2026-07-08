@@ -10,7 +10,7 @@ import type {
   SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import type { CreateLocationDto } from './dto/request/create-location.dto';
 import type { ReorderLocationsDto } from './dto/request/reorder-locations.dto';
 import type { UpdateLocationDto } from './dto/request/update-location.dto';

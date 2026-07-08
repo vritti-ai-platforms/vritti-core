@@ -4,20 +4,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
-  BadRequestException,
-  ConflictException,
   type FieldMap,
   type FilterCondition,
   FilterProcessor,
-  NotFoundException,
   type SearchState,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SortCondition,
   SuccessResponseDto,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { EmailService } from '@vritti/api-sdk/email';
+import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { UserDto } from '../dto/entity/user.dto';

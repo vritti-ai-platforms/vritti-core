@@ -1,7 +1,7 @@
 import { PurchaseOrderItemsService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
 
 @Controller()
 export class PurchaseOrderItemsController {

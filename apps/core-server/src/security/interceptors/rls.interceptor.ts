@@ -1,5 +1,6 @@
 import { type CallHandler, type ExecutionContext, Injectable, type NestInterceptor } from '@nestjs/common';
-import { getRequestFromContext, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { getRequestFromContext } from '@vritti/api-sdk/context';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { from, type Observable } from 'rxjs';
 
 @Injectable()

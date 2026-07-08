@@ -1,4 +1,3 @@
-import { BadRequestException } from '@vritti/api-sdk';
 import {
   type BuFeatureLocks,
   buildDependsMap,
@@ -9,6 +8,7 @@ import {
   type PlatformDenyCodes,
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 
 // Rejects role grants that enable a dependent permission without its prerequisite (per feature, per platform)
 export function validateGrantDependencies(features: FeatureUnlocks, snapshot: VersionSnapshot): void {

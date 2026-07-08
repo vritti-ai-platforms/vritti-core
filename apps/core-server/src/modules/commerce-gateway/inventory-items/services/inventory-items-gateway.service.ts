@@ -1,17 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  type FilterCondition,
-  type SearchState,
-  type SortCondition,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  FilterCondition,
+  SearchState,
+  SortCondition,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
+import type { InventoryItemLedgerResponseDto } from '../dto/response/inventory-item-ledger-response.dto';
+import type { InventoryItemLedgerTableResponseDto } from '../dto/response/inventory-item-ledger-table-response.dto';
 import type { InventoryItemLocationResponseDto } from '../dto/response/inventory-item-location-response.dto';
 import type { InventoryItemLocationTableResponseDto } from '../dto/response/inventory-item-location-table-response.dto';
 import type { InventoryItemLotResponseDto } from '../dto/response/inventory-item-lot-response.dto';
@@ -26,8 +28,6 @@ import type {
 } from '../dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '../dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '../dto/response/inventory-item-uom-conversion-response.dto';
-import type { InventoryItemLedgerResponseDto } from '../dto/response/inventory-item-ledger-response.dto';
-import type { InventoryItemLedgerTableResponseDto } from '../dto/response/inventory-item-ledger-table-response.dto';
 
 @Injectable()
 export class InventoryItemsGatewayService {
@@ -155,7 +155,10 @@ export class InventoryItemsGatewayService {
   }
 
   // Returns paginated item-location configs for an inventory item
-  async findItemLocationsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLocationTableResponseDto> {
+  async findItemLocationsForTable(
+    inventoryItemId: string,
+    userId: string,
+  ): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log('inventoryItems.locationsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,

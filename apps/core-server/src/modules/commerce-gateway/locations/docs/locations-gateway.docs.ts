@@ -7,10 +7,14 @@ export function ApiGetLocationItemsTable() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get a location stocked-items table',
-      description: 'Returns the location\'s items grouped across non-zero quants, with totals and batch counts.',
+      description: "Returns the location's items grouped across non-zero quants, with totals and batch counts.",
     }),
     ApiParam({ name: 'locationId', description: 'Storage location ID' }),
-    ApiResponse({ status: 200, description: 'Location items retrieved successfully.', type: LocationItemTableResponseDto }),
+    ApiResponse({
+      status: 200,
+      description: 'Location items retrieved successfully.',
+      type: LocationItemTableResponseDto,
+    }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }
@@ -23,7 +27,11 @@ export function ApiGetLocationItemQuants() {
     }),
     ApiParam({ name: 'locationId', description: 'Storage location ID' }),
     ApiParam({ name: 'itemId', description: 'Inventory item ID' }),
-    ApiResponse({ status: 200, description: 'Item quants retrieved successfully.', type: [LocationItemQuantResponseDto] }),
+    ApiResponse({
+      status: 200,
+      description: 'Item quants retrieved successfully.',
+      type: [LocationItemQuantResponseDto],
+    }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

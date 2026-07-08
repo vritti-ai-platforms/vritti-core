@@ -31,7 +31,11 @@ export class SupplierResponseDto {
   @ApiPropertyOptional({ description: 'Supplier tax ID', nullable: true })
   taxId: string | null;
 
-  @ApiPropertyOptional({ description: 'Tax ID type', nullable: true, enum: ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'] })
+  @ApiPropertyOptional({
+    description: 'Tax ID type',
+    nullable: true,
+    enum: ['GST', 'VAT', 'EIN', 'SALES_TAX', 'OTHER'],
+  })
   taxIdType: string | null;
 
   @ApiPropertyOptional({ description: 'Payment terms', nullable: true })

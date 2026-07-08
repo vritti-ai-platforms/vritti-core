@@ -3,7 +3,7 @@ import { CreditNotesService } from '@domain/credit-notes/services/credit-notes.s
 import { InvoicesRepository } from '@domain/invoices/repositories/invoices.repository';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { NotFoundException } from '@vritti/api-sdk';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { InvoiceStatusValues } from '@/db/schema';
 import type { ApplyCreditNoteDto } from './dto/request/apply-credit-note.dto';
 import type { CreateCreditNoteDto } from './dto/request/create-credit-note.dto';

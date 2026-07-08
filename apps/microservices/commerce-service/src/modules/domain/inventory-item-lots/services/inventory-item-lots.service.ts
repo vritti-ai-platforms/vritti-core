@@ -1,11 +1,11 @@
-import { Injectable, } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   type FieldMap,
   FilterProcessor,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { type InventoryItemLot, inventoryItemLots } from '@/db/schema';
 import { InventoryItemLotDto } from '../dto/entity/inventory-item-lot.dto';
@@ -13,7 +13,6 @@ import { InventoryItemLotsRepository } from '../repositories/inventory-item-lots
 
 @Injectable()
 export class InventoryItemLotsService {
-
   private static readonly LOTS_FIELD_MAP: FieldMap = {
     lotNumber: { column: inventoryItemLots.lotNumber, type: 'string' },
     expiryDate: { column: inventoryItemLots.expiryDate, type: 'string' },

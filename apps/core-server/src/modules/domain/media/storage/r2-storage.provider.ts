@@ -3,7 +3,7 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } fro
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NotFoundException } from '@vritti/api-sdk';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { StorageProvider, UploadParams } from './storage-provider.interface';
 
 @Injectable()

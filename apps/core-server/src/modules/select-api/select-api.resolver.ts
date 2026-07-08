@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SessionTypeValues } from '@/db/schema';
 import { SelectOptionsInput } from '../commerce-gateway/_shared/graphql/select.input';
@@ -61,7 +61,10 @@ export class SelectApiResolver {
     @Args('excludeOnSupplierId', { type: () => ID, nullable: true }) excludeOnSupplierId?: string,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY inventoryItemsOptions');
-    return this.nats.send<SelectOptions>('commerce', 'inventoryItems.select', { ...(input ?? {}), excludeOnSupplierId });
+    return this.nats.send<SelectOptions>('commerce', 'inventoryItems.select', {
+      ...(input ?? {}),
+      excludeOnSupplierId,
+    });
   }
 
   @Query(() => SelectOptions, { name: 'inventoryItemLotsOptions' })

@@ -1,12 +1,11 @@
-import { Injectable, } from '@nestjs/common';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import { Injectable } from '@nestjs/common';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
 import { eq, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItemSerials, SerialStatusValues } from '@/db/schema';
 import { InventoryItemSerialsRepository } from '../repositories/inventory-item-serials.repository';
 
 @Injectable()
 export class InventoryItemSerialsService {
-
   constructor(private readonly repository: InventoryItemSerialsRepository) {}
 
   // Returns paginated AVAILABLE serials, optionally filtered to a specific inventory quant

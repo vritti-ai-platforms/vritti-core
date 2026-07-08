@@ -14,7 +14,9 @@ export class AddGoodsReceiptLineDto {
   @IsUUID()
   locationId: string;
 
-  @ApiProperty({ description: 'Quantity received for this line. For tracking=serial, pass 0 — quantity grows as serials are added.' })
+  @ApiProperty({
+    description: 'Quantity received for this line. For tracking=serial, pass 0 — quantity grows as serials are added.',
+  })
   @IsNumber()
   @Min(0)
   quantity: number;

@@ -2,19 +2,13 @@ import { createHash, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException, NotFoundException } from '@vritti/api-sdk';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { Media } from '@/db/schema';
 import { MediaStatusValues } from '@/db/schema';
 import { MediaRepository } from '../repositories/media.repository';
 import { StorageFactory } from '../storage/storage.factory';
 
-const DEFAULT_ALLOWED_MIME_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'image/svg+xml',
-];
+const DEFAULT_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
 
 interface FilePayload {
   buffer: Buffer;

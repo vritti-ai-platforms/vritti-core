@@ -29,7 +29,7 @@ export class CreateCreditNoteDto {
   @MaxLength(50)
   creditNoteNumber: string;
 
-  @ApiProperty({ description: 'Credit note amount', example: 2500.00 })
+  @ApiProperty({ description: 'Credit note amount', example: 2500.0 })
   @IsNumber()
   @Min(0.01)
   amount: number;

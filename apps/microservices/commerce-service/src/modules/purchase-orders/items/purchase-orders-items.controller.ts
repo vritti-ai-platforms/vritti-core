@@ -2,7 +2,7 @@ import type { PurchaseOrderItemDto } from '@domain/purchase-order-items/dto/enti
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
 import { PurchaseOrdersItemsService } from './services/purchase-orders-items.service';

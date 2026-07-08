@@ -1,16 +1,15 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
-  ConflictException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  NotFoundException,
   PrimaryDatabaseService,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
+import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import { type Category, type CategoryRole, CategoryRoleValues, categories } from '@/db/schema';
 import type { CategoriesSelectQueryDto } from '@/modules/categories/dto/request/categories-select-query.dto';

@@ -4,12 +4,12 @@ import type { CategoryTreeDto } from '@domain/categories/dto/entity/category-tre
 import { CategoriesService } from '@domain/categories/services/categories.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import {
-  type CreateResponseDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  type TableViewState,
-} from '@vritti/api-sdk';
+import type {
+  CreateResponseDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+  TableViewState,
+} from '@vritti/api-sdk/database';
 import type { CategoriesSelectQueryDto } from '../dto/request/categories-select-query.dto';
 import type { CreateCategoryDto } from '../dto/request/create-category.dto';
 import type { ReorderCategoriesDto } from '../dto/request/reorder-categories.dto';

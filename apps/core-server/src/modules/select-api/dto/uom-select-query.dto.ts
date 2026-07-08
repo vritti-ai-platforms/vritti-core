@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { SelectOptionsQueryDto } from '@vritti/api-sdk';
+import { SelectOptionsQueryDto } from '@vritti/api-sdk/database';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 

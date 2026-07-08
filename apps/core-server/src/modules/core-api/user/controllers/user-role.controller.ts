@@ -13,7 +13,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
+import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { UserRoleAssignment } from '@/db/schema';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';

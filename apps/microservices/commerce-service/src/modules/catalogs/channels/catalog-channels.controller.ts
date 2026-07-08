@@ -2,7 +2,7 @@ import type { CatalogChannelDto } from '@domain/catalog-channels/dto/entity/cata
 import { CatalogChannelsService } from '@domain/catalog-channels/services/catalog-channels.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto } from '@vritti/api-sdk';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 
 @Controller()
 export class CatalogChannelsController {

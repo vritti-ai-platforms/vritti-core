@@ -8,7 +8,7 @@ import type {
   SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import type { ChangeSupplierCurrencyDto } from './dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from './dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from './dto/request/update-supplier.dto';
