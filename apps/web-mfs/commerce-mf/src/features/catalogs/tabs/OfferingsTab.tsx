@@ -75,7 +75,7 @@ export const OfferingsTab: React.FC<OfferingsTabProps> = ({ catalog }) => {
             placeholder="All types"
             options={FULFILMENT_TYPE_OPTIONS}
           />,
-          <CategoryFilter key="categoryId" params={{ buId: catalog.businessUnitId }} />,
+          <CategoryFilter key="categoryId" />,
         ]}
         toolbarActions={{
           actions: (
@@ -105,7 +105,6 @@ export const OfferingsTab: React.FC<OfferingsTabProps> = ({ catalog }) => {
         content={(close) => (
           <AddOfferingDialog
             catalogId={catalogId}
-            businessUnitId={catalog.businessUnitId}
             currencyCode={catalog.currencyCode}
             onSuccess={close}
             onCancel={close}

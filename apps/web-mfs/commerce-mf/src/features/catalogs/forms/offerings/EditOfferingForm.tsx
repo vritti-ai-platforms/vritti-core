@@ -58,7 +58,7 @@ export const EditOfferingForm: React.FC<EditOfferingFormProps> = ({ catalogId, o
       <TextField name="name" label="Name" placeholder="Offering name" />
 
       <div className="grid grid-cols-2 gap-4">
-        <CategorySelector name="categoryId" params={{ buId: offering.businessUnitId, status: 'active' }} clearable />
+        <CategorySelector name="categoryId" clearable />
         <TaxGroupSelector name="salesTaxGroupId" label="Sales Tax Group" placeholder="Select tax group" />
       </div>
 

@@ -1,11 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateUomDto } from '../dto/request/create-uom.dto';
 import type { UpdateUomDto } from '../dto/request/update-uom.dto';
@@ -20,14 +14,6 @@ export class UomGatewayService {
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
   ) {}
-
-  // Returns paginated UOM options for select dropdowns
-  async select(
-    params: SelectOptionsQueryDto & { derivedOnly?: boolean; baseOnly?: boolean; dimensionId?: string },
-  ): Promise<SelectQueryResult> {
-    this.logger.log('uom.select');
-    return this.nats.send('commerce', 'uom.select', params);
-  }
 
   // Returns paginated UOMs for the data table, scoped to a dimension
   async findForTable(userId: string, dimensionId: string): Promise<UomTableResponseDto> {

@@ -102,13 +102,6 @@ export class CatalogsGatewayController {
     return this.service.findForTable(userId);
   }
 
-  // Returns catalog select options
-  @Get('select')
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/catalogs/select');
-    return this.service.select(query);
-  }
-
   // Creates a catalog
   @Post()
   @HttpCode(HttpStatus.CREATED)

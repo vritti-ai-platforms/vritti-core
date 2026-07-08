@@ -13,19 +13,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { CATEGORIES } from '@vritti/commerce-permissions/categories';
+import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import {
   ApiCreateCategory,
   ApiDeleteCategory,
-  ApiGetCategoriesSelect,
   ApiGetCategory,
   ApiGetCategoryItemsTable,
   ApiUpdateCategory,
@@ -43,6 +37,7 @@ import { CategoriesGatewayService } from './services/categories-gateway.service'
 @ApiTags('Commerce - Categories')
 @ApiBearerAuth()
 @RequireSession(SessionTypeValues.WEB)
+@RequireFeature(CATEGORIES.featureCode)
 @Controller('categories')
 export class CategoriesGatewayController {
   private readonly logger = new Logger(CategoriesGatewayController.name);
@@ -58,6 +53,7 @@ export class CategoriesGatewayController {
 
   // Returns categories as a tree hierarchy for TreeView
   @Get('tree')
+  @RequirePermission(CATEGORIES.view)
   async findTree(@Query('search') search?: string): Promise<CategoryTreeResponseDto[]> {
     this.logger.log('GET /commerce-api/categories/tree');
     return this.categoriesGatewayService.findTree(search);
@@ -65,6 +61,7 @@ export class CategoriesGatewayController {
 
   // Returns paginated child categories for a given parent category
   @Get(':parentId/children/table')
+  @RequirePermission(CATEGORIES.view)
   childrenTable(
     @Param('parentId', new ParseUUIDPipe()) parentId: string,
     @UserId() userId: string,
@@ -75,6 +72,7 @@ export class CategoriesGatewayController {
 
   // Returns paginated inventory items for a leaf category
   @Get(':id/items/table')
+  @RequirePermission(CATEGORIES.inventoryItems.view)
   @ApiGetCategoryItemsTable()
   itemsTable(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -84,16 +82,9 @@ export class CategoriesGatewayController {
     return this.categoriesGatewayService.findItemsForTable(userId, id);
   }
 
-  // Returns paginated category options for the select component
-  @Get('select')
-  @ApiGetCategoriesSelect()
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
-  async select(@Query() query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
-    return this.categoriesGatewayService.select(query);
-  }
-
   // Reorders siblings under a parent category
   @Post('reorder')
+  @RequirePermission(CATEGORIES.edit)
   reorder(@Body() dto: ReorderCategoriesDto): Promise<SuccessResponseDto> {
     this.logger.log('POST /commerce-api/categories/reorder');
     return this.categoriesGatewayService.reorder(dto);
@@ -102,6 +93,7 @@ export class CategoriesGatewayController {
   // Creates a new category
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(CATEGORIES.add)
   @ApiCreateCategory()
   async create(@Body() dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
     return this.categoriesGatewayService.create(dto);
@@ -109,6 +101,7 @@ export class CategoriesGatewayController {
 
   // Returns a single category by ID
   @Get(':id')
+  @RequirePermission(CATEGORIES.view)
   @ApiGetCategory()
   async findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CategoryResponseDto> {
     return this.categoriesGatewayService.findById(id);
@@ -116,6 +109,7 @@ export class CategoriesGatewayController {
 
   // Updates a category by ID
   @Patch(':id')
+  @RequirePermission(CATEGORIES.edit)
   @ApiUpdateCategory()
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -126,6 +120,7 @@ export class CategoriesGatewayController {
 
   // Deletes a category by ID
   @Delete(':id')
+  @RequirePermission(CATEGORIES.delete)
   @ApiDeleteCategory()
   async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     return this.categoriesGatewayService.delete(id);

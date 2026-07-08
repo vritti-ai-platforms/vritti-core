@@ -1,11 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
 import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
@@ -47,11 +41,6 @@ export class SuppliersGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns paginated supplier options for select dropdowns
-  async select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('suppliers.select');
-    return this.nats.send('commerce', 'suppliers.select', params);
-  }
 
   // Creates a new supplier
   async create(dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierResponseDto>> {

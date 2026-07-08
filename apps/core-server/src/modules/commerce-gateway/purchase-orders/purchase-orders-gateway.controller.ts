@@ -9,18 +9,11 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   Req,
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
@@ -28,7 +21,6 @@ import { AddPurchaseOrderItemDto } from './dto/request/add-purchase-order-item.d
 import { ChangePurchaseOrderExchangeRateDto } from './dto/request/change-purchase-order-exchange-rate.dto';
 import { ChangePurchaseOrderSupplierDto } from './dto/request/change-purchase-order-supplier.dto';
 import { CreatePurchaseOrderDto } from './dto/request/create-purchase-order.dto';
-import { PurchaseOrderSelectQueryDto } from './dto/request/purchase-order-select-query.dto';
 import { SendPurchaseOrderEmailDto } from './dto/request/send-purchase-order-email.dto';
 import { UpdatePurchaseOrderItemDto } from './dto/request/update-purchase-order-item.dto';
 import { UpdatePurchaseOrderNotesDto } from './dto/request/update-purchase-order-notes.dto';
@@ -51,14 +43,6 @@ export class PurchaseOrdersGatewayController {
   getTable(@UserId() userId: string): Promise<PurchaseOrderTableResponseDto> {
     this.logger.log('GET /commerce-api/purchase-orders/table');
     return this.service.findForTable(userId);
-  }
-
-  // Returns purchase order options for select dropdowns
-  @Get('select')
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
-  select(@Query() query: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/purchase-orders/select');
-    return this.service.select(query);
   }
 
   // Creates a new purchase order

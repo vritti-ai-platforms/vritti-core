@@ -61,6 +61,16 @@ export class UserPermissionsService {
     return enabled;
   }
 
+  // Resolves the set of feature codes whose switch is on (present ∧ not plan/BU-locked) for a user at a BU
+  async resolveAvailableFeatures(userId: string, buId: string, bucket: PlatformBucket = 'web'): Promise<Set<string>> {
+    const { features } = await this.getPermissions(userId, buId, '', bucket === 'web' ? 'web' : 'android');
+    const available = new Set<string>();
+    for (const feature of features) {
+      if (!feature.locked) available.add(feature.code);
+    }
+    return available;
+  }
+
   // Returns distinct business units where the user has role assignments
   async getAssignedBusinessUnits(userId: string, orgId: string): Promise<AssignedBU[]> {
     const assignments = await this.userRoleAssignmentRepository.findByUser(userId);

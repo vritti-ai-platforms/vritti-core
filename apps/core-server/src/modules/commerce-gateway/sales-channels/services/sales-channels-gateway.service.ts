@@ -1,11 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateSalesChannelDto } from '../dto/request/create-sales-channel.dto';
 import type { UpdateSalesChannelDto } from '../dto/request/update-sales-channel.dto';
@@ -33,12 +27,6 @@ export class SalesChannelsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns sales channel options for select dropdowns
-  select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('salesChannels.select');
-    return this.nats.send('commerce', 'salesChannels.select', params);
   }
 
   // Creates a new sales channel

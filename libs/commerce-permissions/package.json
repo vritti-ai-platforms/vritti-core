@@ -6,6 +6,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./categories": { "types": "./dist/categories.d.ts", "default": "./dist/categories.js" },
     "./uom": { "types": "./dist/uom.d.ts", "default": "./dist/uom.js" },
     "./tax-groups": { "types": "./dist/tax-groups.d.ts", "default": "./dist/tax-groups.js" }
   },

@@ -59,12 +59,6 @@ export class CatalogsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns catalog options for select dropdowns
-  select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('catalogs.select');
-    return this.nats.send('commerce', 'catalogs.select', params);
-  }
-
   // Creates a new catalog, snapshotting the active BU's currency
   async create(dto: CreateCatalogDto, buId: string): Promise<CreateResponseDto<CatalogResponseDto>> {
     const bu = await this.businessUnitService.findById(buId);

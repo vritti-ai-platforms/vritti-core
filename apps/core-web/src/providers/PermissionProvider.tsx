@@ -36,11 +36,22 @@ const DENY: PermissionGateResult = Object.freeze({
   reason: null,
   unlockPlans: [],
   available: false,
+  featureName: null,
 });
 
 // Builds a granted result, deriving `available` (granted && !locked) so it's always consistent
-function grant(locked: boolean, reason: PermissionGateResult['reason'], unlockPlans: string[]): PermissionGateResult {
-  return { granted: true, locked, reason, unlockPlans, available: !locked };
+function grant(
+  locked: boolean,
+  reason: PermissionGateResult['reason'],
+  unlockPlans: string[],
+  featureName: string,
+): PermissionGateResult {
+  return { granted: true, locked, reason, unlockPlans, available: !locked, featureName };
+}
+
+// Denied but the feature is known — carries its name so messages can stay feature-specific
+function deny(featureName: string): PermissionGateResult {
+  return { granted: false, locked: false, reason: null, unlockPlans: [], available: false, featureName };
 }
 
 // Resolves a "feature.permission" code against the selected BU's resolved features
@@ -51,12 +62,12 @@ function buildGate(features: PermissionFeature[]): PermissionGateFn {
     const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
     const feature = features.find((f) => f.code === featureCode);
     if (!feature) return DENY;
-    if (!permissionCode) return grant(feature.locked, feature.lockReason, feature.unlockPlans);
-    if (!feature.permissions.includes(permissionCode)) return DENY;
-    if (feature.locked) return grant(true, feature.lockReason, feature.unlockPlans);
+    if (!permissionCode) return grant(feature.locked, feature.lockReason, feature.unlockPlans, feature.name);
+    if (!feature.permissions.includes(permissionCode)) return deny(feature.name);
+    if (feature.locked) return grant(true, feature.lockReason, feature.unlockPlans, feature.name);
     const permissionLock = feature.lockedPermissions.find((p) => p.code === permissionCode);
-    if (permissionLock) return grant(true, permissionLock.reason, permissionLock.unlockPlans);
-    return grant(false, null, []);
+    if (permissionLock) return grant(true, permissionLock.reason, permissionLock.unlockPlans, feature.name);
+    return grant(false, null, [], feature.name);
   };
 }
 

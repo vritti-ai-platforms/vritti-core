@@ -1,5 +1,7 @@
+import { CATEGORIES } from '@vritti/commerce-permissions/categories';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
+import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import { SearchBar } from '@vritti/quantum-ui/SearchBar';
 import type { TreeReorderPayload } from '@vritti/quantum-ui/TreeView';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
@@ -18,7 +20,8 @@ export const CategoryTreePanel: React.FC<CategoryTreePanelProps> = ({ selectedId
   const [searchQuery, setSearchQuery] = useState('');
   const { data: treeData = [], isLoading } = useCategoryTree(searchQuery);
   const reorderMutation = useReorderCategories();
-  const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
+  const { available: canReorder } = usePermission(CATEGORIES.edit);
+  const dragEnabled = canReorder && searchQuery.trim().length === 0 && !reorderMutation.isPending;
 
   const handleReorder = useCallback(
     (payload: TreeReorderPayload) => {

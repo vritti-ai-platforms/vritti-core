@@ -1,13 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { SessionTypeValues } from '@/db/schema';
 import { RequirePermission } from '@/rbac/decorators';
@@ -16,7 +9,6 @@ import {
   ApiDeleteTaxGroup,
   ApiFindForTableTaxGroups,
   ApiGetTaxGroup,
-  ApiSelectTaxGroups,
   ApiUpdateTaxGroup,
 } from './docs/tax-groups-gateway.docs';
 import { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
@@ -37,13 +29,6 @@ export class TaxGroupsGatewayController {
   @ApiFindForTableTaxGroups()
   findForTable(@UserId() userId: string): Promise<TaxGroupTableResponseDto> {
     return this.taxGroupsGatewayService.findForTable(userId);
-  }
-
-  // Returns tax groups as dropdown options
-  @Get('select')
-  @ApiSelectTaxGroups()
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.taxGroupsGatewayService.select(query);
   }
 
   // Creates a new tax group

@@ -5,7 +5,6 @@ import {
   BadRequestException,
   type CreateResponseDto,
   DataTableStateService,
-  type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
@@ -17,7 +16,6 @@ import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-
 import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
-import type { PurchaseOrderSelectQueryDto } from '../dto/request/purchase-order-select-query.dto';
 import type { SendPurchaseOrderEmailDto } from '../dto/request/send-purchase-order-email.dto';
 import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
 import type { UpdatePurchaseOrderNotesDto } from '../dto/request/update-purchase-order-notes.dto';
@@ -73,12 +71,6 @@ export class PurchaseOrdersGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns purchase order options for select dropdowns
-  async select(params: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('purchaseOrders.select');
-    return this.nats.send('commerce', 'purchaseOrders.select', params);
   }
 
   // Creates a new purchase order

@@ -1,11 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
@@ -31,12 +25,6 @@ export class TaxGroupsGatewayService {
       state,
     );
     return { result, count, state, activeViewId };
-  }
-
-  // Returns tax groups as dropdown options
-  async select(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('taxGroups.select');
-    return this.nats.send('commerce', 'taxGroups.select', query);
   }
 
   // Creates a new tax group

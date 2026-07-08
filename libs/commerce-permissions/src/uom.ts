@@ -1,5 +1,6 @@
 // UOM permission codes — MUST match the cloud catalog's authored codes exactly.
 export const UOM = {
+  featureCode: 'uom',
   view: 'uom.view',
   add: 'uom.add',
   edit: 'uom.edit',

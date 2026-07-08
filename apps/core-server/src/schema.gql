@@ -28,29 +28,6 @@ type UserSession {
   isCurrent: Boolean!
 }
 
-type SelectOption {
-  value: String!
-  label: String!
-  description: String
-  groupId: String
-  additionals: JSON
-}
-
-"""Arbitrary JSON value (used for Select option `additionals`)."""
-scalar JSON
-
-type SelectGroup {
-  id: String!
-  name: String!
-}
-
-type SelectOptions {
-  options: [SelectOption!]!
-  groups: [SelectGroup!]
-  hasMore: Boolean!
-  totalCount: Int
-}
-
 type InventoryItem {
   id: ID!
   name: String!
@@ -110,27 +87,36 @@ type MobileTokens {
   expiresIn: Int!
 }
 
+type SelectOption {
+  value: String!
+  label: String!
+  description: String
+  groupId: String
+  additionals: JSON
+}
+
+"""Arbitrary JSON value (used for Select option `additionals`)."""
+scalar JSON
+
+type SelectGroup {
+  id: String!
+  name: String!
+}
+
+type SelectOptions {
+  options: [SelectOption!]!
+  groups: [SelectGroup!]
+  hasMore: Boolean!
+  totalCount: Int
+}
+
 type Query {
   organizationsByEmail(email: String!): [LookupOrganization!]!
   usersOptions(input: SelectOptionsInput): SelectOptions!
   profile: Profile!
   sessions: [UserSession!]!
-  categoriesOptions(input: SelectOptionsInput): SelectOptions!
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
   inventoryItem(id: ID!): InventoryItem!
-  inventoryItemsOptions(input: SelectOptionsInput, excludeOnSupplierId: ID): SelectOptions!
-  costCategoriesOptions(input: SelectOptionsInput): SelectOptions!
-  customersOptions(input: SelectOptionsInput): SelectOptions!
-  inventoryItemLotsOptions(input: SelectOptionsInput, inventoryItemId: ID): SelectOptions!
-  inventoryItemQuantsOptions(input: SelectOptionsInput, inventoryItemId: ID): SelectOptions!
-  inventoryItemSerialsOptions(input: SelectOptionsInput, quantId: ID): SelectOptions!
-  locationsOptions(input: SelectOptionsInput, locationRoles: String, inventoryItemId: ID, excludeUsedOnGoodsReceiptItemId: ID, goodsReceiptLotId: ID): SelectOptions!
-  purchaseOrderItemsOptions(purchaseOrderId: String!, excludeOnGoodsReceiptId: String, input: SelectOptionsInput): SelectOptions!
-  purchaseOrdersOptions(input: SelectOptionsInput, status: String, supplierId: ID): SelectOptions!
-  supplierItemsOptions(supplierId: String, excludeOnPurchaseOrderId: String, excludeOnGoodsReceiptId: String, input: SelectOptionsInput): SelectOptions!
-  suppliersOptions(input: SelectOptionsInput): SelectOptions!
-  taxGroupsOptions(input: SelectOptionsInput): SelectOptions!
-  uomOptions(input: SelectOptionsInput, dimensionId: ID, baseOnly: Boolean, derivedOnly: Boolean): SelectOptions!
 }
 
 input SelectOptionsInput {

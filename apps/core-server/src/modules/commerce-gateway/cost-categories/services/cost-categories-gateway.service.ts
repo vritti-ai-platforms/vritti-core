@@ -1,11 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateCostCategoryDto } from '../dto/request/create-cost-category.dto';
 import type { UpdateCostCategoryDto } from '../dto/request/update-cost-category.dto';
@@ -35,11 +29,6 @@ export class CostCategoriesGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  async select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('costCategories.select');
-    return this.nats.send('commerce', 'costCategories.select', params);
   }
 
   async create(dto: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryResponseDto>> {

@@ -13,17 +13,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { ApiGetLocationItemQuants, ApiGetLocationItemsTable } from './docs/locations-gateway.docs';
 import { CreateLocationDto } from './dto/request/create-location.dto';
-import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
 import { ReorderLocationsDto } from './dto/request/reorder-locations.dto';
 import { UpdateLocationDto } from './dto/request/update-location.dto';
 import type { LocationChildrenTableResponseDto } from './dto/response/location-children-table-response.dto';
@@ -65,14 +58,6 @@ export class LocationsGatewayController {
   ): Promise<LocationChildrenTableResponseDto> {
     this.logger.log(`GET /commerce-api/locations/${parentId}/children/table`);
     return this.locationsGatewayService.findChildrenForTable(userId, parentId);
-  }
-
-  // Returns paginated location options for select dropdowns
-  @Get('select')
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
-  select(@Query() query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/locations/select');
-    return this.locationsGatewayService.select(query);
   }
 
   // Reorders siblings under a parent location

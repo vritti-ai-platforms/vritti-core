@@ -1,9 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession, type SelectOptionsQueryDto } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
-import { SelectOptionsInput } from '../../_shared/graphql/select.input';
-import { SelectOptions } from '../../_shared/graphql/select.type';
 import { InventoryItem } from '../graphql/inventory-item.type';
 import { CreateInventoryItemInput, UpdateInventoryItemInput } from '../graphql/inventory-item-mutation.input';
 import { FeedFilterInput, FeedSearchInput, FeedSortInput } from '../graphql/inventory-items-feed.input';
@@ -72,16 +70,5 @@ export class InventoryItemsResolver {
   async deleteInventoryItem(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteInventoryItem');
     return this.inventoryItemsGatewayService.delete(id);
-  }
-
-  // GraphQL options query for the Inventory Item Select dropdown, forwarded to the gateway `.select()`.
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
-  @Query(() => SelectOptions, { name: 'inventoryItemsOptions' })
-  async inventoryItemsOptions(
-    @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
-    @Args('excludeOnSupplierId', { type: () => ID, nullable: true }) excludeOnSupplierId?: string,
-  ): Promise<SelectOptions> {
-    this.logger.log('QUERY inventoryItemsOptions');
-    return this.inventoryItemsGatewayService.select((input ?? {}) as SelectOptionsQueryDto, excludeOnSupplierId);
   }
 }

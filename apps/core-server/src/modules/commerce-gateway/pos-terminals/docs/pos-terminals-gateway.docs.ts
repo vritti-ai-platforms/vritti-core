@@ -21,22 +21,6 @@ export function ApiTable() {
   );
 }
 
-export function ApiSelect() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Get POS terminal select options',
-      description: 'Returns paginated POS terminal options for select dropdowns.',
-    }),
-    ApiQuery({ name: 'search', description: 'Search term to filter by name or code', required: false }),
-    ApiQuery({ name: 'limit', description: 'Maximum number of results', required: false }),
-    ApiQuery({ name: 'offset', description: 'Number of results to skip', required: false }),
-    ApiQuery({ name: 'values', description: 'Comma-separated IDs to fetch specific options', required: false }),
-    ApiQuery({ name: 'excludeIds', description: 'Comma-separated IDs to exclude', required: false }),
-    ApiResponse({ status: 200, description: 'POS terminal select options retrieved successfully.' }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
 export function ApiSelectLocations() {
   return applyDecorators(
     ApiOperation({

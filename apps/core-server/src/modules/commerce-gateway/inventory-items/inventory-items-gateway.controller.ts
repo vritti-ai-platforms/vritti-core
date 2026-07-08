@@ -1,17 +1,10 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { type CreateResponseDto, RequireSession, type SuccessResponseDto, UserId } from '@vritti/api-sdk';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
 import { CreateInventoryItemLocationDto } from './dto/request/create-inventory-item-location.dto';
 import { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
-import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { UpdateInventoryItemLocationDto } from './dto/request/update-inventory-item-location.dto';
 import { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
@@ -39,20 +32,6 @@ export class InventoryItemsGatewayController {
   getTable(@UserId() userId: string): Promise<InventoryItemTableResponseDto> {
     this.logger.log('GET /commerce-api/inventory-items/table');
     return this.service.findForTable(userId);
-  }
-
-  // Returns paginated inventory item options (optionally excluding those fully linked to a supplier)
-  @Get('select')
-  @ApiQuery({
-    name: 'excludeOnSupplierId',
-    required: false,
-    type: String,
-    description: 'Exclude items that have all UOMs already linked to this supplier',
-  })
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
-  select(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/inventory-items/select');
-    return this.service.select(query, query.excludeOnSupplierId);
   }
 
   // Creates a new inventory item

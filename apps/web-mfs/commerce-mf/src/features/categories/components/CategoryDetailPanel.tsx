@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { CATEGORIES } from '@vritti/commerce-permissions/categories';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -150,6 +151,7 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
               size="sm"
               onClick={editDialog.open}
               startAdornment={<Pencil className="size-3.5" />}
+              permission={CATEGORIES.edit}
             >
               Edit
             </Button>
@@ -160,6 +162,7 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
               disabled={!category.canDelete || deleteMutation.isPending}
               isLoading={deleteMutation.isPending}
               startAdornment={<Trash2 className="size-3.5" />}
+              permission={CATEGORIES.delete}
             >
               Delete
             </Button>
@@ -199,9 +202,15 @@ const CategoryDetailContent: React.FC<CategoryDetailContentProps> = ({ category,
             table={table}
             mode="compact"
             isLoading={isChildrenLoading}
+            permission={CATEGORIES.view}
             toolbarActions={{
               actions: (
-                <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
+                <Button
+                  size="sm"
+                  startAdornment={<Plus className="size-4" />}
+                  onClick={addChildDialog.open}
+                  permission={CATEGORIES.add}
+                >
                   Add Child Category
                 </Button>
               ),
@@ -306,6 +315,7 @@ const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId 
         table={table}
         mode="compact"
         isLoading={isLoading}
+        permission={CATEGORIES.inventoryItems.view}
         emptyStateConfig={{
           icon: Boxes,
           title: 'No items in this category',

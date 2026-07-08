@@ -31,6 +31,7 @@ import { SecurityModule } from '@/security/security.module';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
+import { SelectApiModule } from './modules/select-api/select-api.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
 import { BusinessUnitApiModule } from './modules/core-api/business-unit/business-unit.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
@@ -252,6 +253,9 @@ import { VerificationDomainModule } from './modules/domain/verification/verifica
     // Forwards requests to commerce-service via NATS
     CommerceGatewayModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
+    // Cross-feature select/picker endpoints (not feature-gated)
+    SelectApiModule,
+    RouterModule.register([{ path: 'commerce-api', module: SelectApiModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),
   ],
 })

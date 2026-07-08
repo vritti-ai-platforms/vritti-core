@@ -17,17 +17,6 @@ export function ApiFindForTableTaxGroups() {
   );
 }
 
-export function ApiSelectTaxGroups() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'List tax groups as dropdown options',
-      description: 'Returns tax groups formatted as select options (id → name), searchable and paginated.',
-    }),
-    ApiResponse({ status: 200, description: 'Tax group options retrieved successfully.' }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
 export function ApiCreateTaxGroup() {
   return applyDecorators(
     ApiOperation({

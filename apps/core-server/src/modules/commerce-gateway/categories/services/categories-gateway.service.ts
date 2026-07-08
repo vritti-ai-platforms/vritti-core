@@ -1,11 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, DataTableStateService, type SuccessResponseDto } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateCategoryDto } from '../dto/request/create-category.dto';
 import type { ReorderCategoriesDto } from '../dto/request/reorder-categories.dto';
@@ -25,12 +19,6 @@ export class CategoriesGatewayService {
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
   ) {}
-
-  // Returns paginated category options for the select component
-  async select(query: SelectOptionsQueryDto & { buId: string }): Promise<SelectQueryResult> {
-    this.logger.log('categories.select');
-    return this.nats.send('commerce', 'categories.select', query);
-  }
 
   // Returns total category count
   async count(): Promise<CategoryCountResponseDto> {

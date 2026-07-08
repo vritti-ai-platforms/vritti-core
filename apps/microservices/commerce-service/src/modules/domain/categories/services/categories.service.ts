@@ -6,7 +6,6 @@ import {
   FilterProcessor,
   NotFoundException,
   PrimaryDatabaseService,
-  type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
@@ -14,6 +13,7 @@ import {
 import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import _ from '@vritti/api-sdk/lodash';
 import { type Category, type CategoryRole, CategoryRoleValues, categories } from '@/db/schema';
+import type { CategoriesSelectQueryDto } from '@/modules/categories/dto/request/categories-select-query.dto';
 import type { CreateCategoryDto } from '@/modules/categories/dto/request/create-category.dto';
 import type { UpdateCategoryDto } from '@/modules/categories/dto/request/update-category.dto';
 import { CategoryDto } from '../dto/entity/category.dto';
@@ -46,8 +46,8 @@ export class CategoriesService {
     }
   }
 
-  // Returns paginated leaf-only category options for the select component (RLS scopes results)
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+  // Returns paginated category options for the select component (role- and status-filtered; RLS scopes results)
+  findForSelect(query: CategoriesSelectQueryDto): Promise<SelectQueryResult> {
     return this.categoriesRepository.findForSelect({
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
@@ -61,7 +61,10 @@ export class CategoriesService {
       excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
-      conditions: [eq(categories.categoryRole, CategoryRoleValues.CATEGORY)],
+      conditions: [
+        eq(categories.categoryRole, query.role ?? CategoryRoleValues.CATEGORY),
+        eq(categories.isActive, (query.status ?? 'active') === 'active'),
+      ],
     });
   }
 

@@ -26,7 +26,6 @@ import {
   ApiCreate,
   ApiDelete,
   ApiFindById,
-  ApiSelect,
   ApiSelectLocations,
   ApiTable,
   ApiUpdate,
@@ -52,15 +51,6 @@ export class PosTerminalsGatewayController {
   table(@UserId() userId: string): Promise<PosTerminalTableResponseDto> {
     this.logger.log('GET /commerce-api/pos-terminals/table');
     return this.posTerminalsGatewayService.findForTable(userId);
-  }
-
-  // Returns paginated POS terminal options for select dropdowns
-  @Get('select')
-  @ApiSelect()
-  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/pos-terminals/select');
-    return this.posTerminalsGatewayService.select(query);
   }
 
   // Returns POS-role storage location options for select dropdowns
