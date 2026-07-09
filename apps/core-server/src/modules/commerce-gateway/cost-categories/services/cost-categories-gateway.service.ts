@@ -42,6 +42,12 @@ export class CostCategoriesGatewayService {
     return this.nats.send('commerce', 'costCategories.select', params);
   }
 
+  // Returns all cost categories (with canDelete) for the mobile plain list
+  async list(search?: string): Promise<CostCategoryResponseDto[]> {
+    this.logger.log('costCategories.list');
+    return this.nats.send('commerce', 'costCategories.list', { search });
+  }
+
   async create(dto: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryResponseDto>> {
     this.logger.log(`costCategories.create — code: ${dto.code}, kind: ${dto.kind}`);
     return this.nats.send('commerce', 'costCategories.create', dto);

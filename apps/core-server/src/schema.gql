@@ -307,6 +307,31 @@ type MobileTokens {
   expiresIn: Int!
 }
 
+type TaxRate {
+  id: ID!
+  name: String!
+  rate: Float!
+  sortOrder: Int!
+}
+
+type CostCategory {
+  id: ID!
+  code: String!
+  name: String!
+  kind: String!
+  isActive: Boolean!
+  isSystem: Boolean!
+  canDelete: Boolean!
+}
+
+type TaxGroup {
+  id: ID!
+  name: String!
+  isActive: Boolean!
+  canDelete: Boolean!
+  taxRates: [TaxRate!]!
+}
+
 type Query {
   organizationsByEmail(email: String!): [LookupOrganization!]!
   usersOptions(input: SelectOptionsInput): SelectOptions!
@@ -323,6 +348,7 @@ type Query {
   inventoryItemLedger(inventoryItemId: ID!, first: Int, after: String): InventoryItemLedgerConnection!
   inventoryItemsOptions(input: SelectOptionsInput, excludeOnSupplierId: ID): SelectOptions!
   costCategoriesOptions(input: SelectOptionsInput): SelectOptions!
+  costCategories(search: String): [CostCategory!]!
   customersOptions(input: SelectOptionsInput): SelectOptions!
   inventoryItemLotsOptions(input: SelectOptionsInput, inventoryItemId: ID): SelectOptions!
   inventoryItemQuantsOptions(input: SelectOptionsInput, inventoryItemId: ID): SelectOptions!
@@ -333,6 +359,7 @@ type Query {
   supplierItemsOptions(supplierId: String, excludeOnPurchaseOrderId: String, excludeOnGoodsReceiptId: String, input: SelectOptionsInput): SelectOptions!
   suppliersOptions(input: SelectOptionsInput): SelectOptions!
   taxGroupsOptions(input: SelectOptionsInput): SelectOptions!
+  taxGroups(search: String): [TaxGroup!]!
   uomOptions(input: SelectOptionsInput, dimensionId: ID, baseOnly: Boolean, derivedOnly: Boolean): SelectOptions!
   uomDimensions(search: String): [UomDimension!]!
   uomDimension(id: ID!): UomDimension!
@@ -393,6 +420,12 @@ type Mutation {
   createInventoryItemLocation(inventoryItemId: ID!, input: CreateInventoryItemLocationInput!): InventoryItemLocation!
   updateInventoryItemLocation(id: ID!, input: UpdateInventoryItemLocationInput!): MutationResult!
   deleteInventoryItemLocation(id: ID!): MutationResult!
+  createTaxGroup(input: CreateTaxGroupInput!): TaxGroup!
+  updateTaxGroup(id: ID!, input: UpdateTaxGroupInput!): TaxGroup!
+  deleteTaxGroup(id: ID!): MutationResult!
+  createCostCategory(input: CreateCostCategoryInput!): CostCategory!
+  updateCostCategory(id: ID!, input: UpdateCostCategoryInput!): CostCategory!
+  deleteCostCategory(id: ID!): MutationResult!
 }
 
 input MobileLoginInput {
@@ -458,6 +491,33 @@ input UpdateUomDimensionInput {
   code: String
   name: String
   description: String
+}
+
+input TaxRateInput {
+  name: String!
+  rate: Float!
+}
+
+input CreateTaxGroupInput {
+  name: String!
+  taxRates: [TaxRateInput!]!
+}
+
+input UpdateTaxGroupInput {
+  name: String
+  taxRates: [TaxRateInput!]
+  isActive: Boolean
+}
+
+input CreateCostCategoryInput {
+  code: String!
+  name: String!
+  kind: String!
+}
+
+input UpdateCostCategoryInput {
+  name: String
+  isActive: Boolean
 }
 
 input CreateUomInput {

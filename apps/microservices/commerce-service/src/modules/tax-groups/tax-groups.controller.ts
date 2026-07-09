@@ -25,6 +25,13 @@ export class TaxGroupsController {
     return this.taxGroupsService.findForTable(state);
   }
 
+  // Returns all tax groups (base + rates) for the mobile plain list
+  @MessagePattern({ cmd: 'taxGroups.list' })
+  async list(@Payload() data: { search?: string }): Promise<TaxGroupDto[]> {
+    this.logger.log('taxGroups.list');
+    return this.taxGroupsService.list(data?.search);
+  }
+
   // Returns tax groups as dropdown options
   @MessagePattern({ cmd: 'taxGroups.select' })
   async select(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {

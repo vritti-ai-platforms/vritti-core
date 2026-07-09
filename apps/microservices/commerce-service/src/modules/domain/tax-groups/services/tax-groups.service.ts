@@ -9,7 +9,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, asc } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { taxGroups } from '@/db/schema';
 import type { CreateTaxGroupDto } from '@/modules/tax-groups/dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from '@/modules/tax-groups/dto/request/update-tax-group.dto';
@@ -54,6 +54,23 @@ export class TaxGroupsService {
       result: groups.map((g) => TaxGroupDto.from(g, ratesByGroup.get(g.id) ?? [], !referenced.has(g.id))),
       count,
     };
+  }
+
+  // Returns all tax groups (with rates + canDelete) for the mobile plain list — base groups first by name.
+  // Bounded set (a BU has a handful of tax groups), so no pagination. Batches rates + references like the table.
+  async list(search?: string): Promise<TaxGroupDto[]> {
+    const { result: groups } = await this.taxGroupsRepository.findAllForTable({
+      where: search ? ilike(taxGroups.name, `%${search}%`) : undefined,
+      orderBy: [asc(taxGroups.name)],
+      limit: 500,
+      offset: 0,
+    });
+    const ids = groups.map((g) => g.id);
+    const [ratesByGroup, referenced] = await Promise.all([
+      this.taxGroupsRepository.findRatesByGroupIds(ids),
+      this.taxGroupsRepository.findReferencedIds(ids),
+    ]);
+    return groups.map((g) => TaxGroupDto.from(g, ratesByGroup.get(g.id) ?? [], !referenced.has(g.id)));
   }
 
   // Returns tax groups as dropdown options (id → name), searchable + paginated

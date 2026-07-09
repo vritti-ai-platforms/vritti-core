@@ -30,6 +30,12 @@ export class CostCategoriesController {
     return this.service.findForSelect(data);
   }
 
+  @MessagePattern({ cmd: 'costCategories.list' })
+  async list(@Payload() data: { search?: string }): Promise<CostCategoryDto[]> {
+    this.logger.log('costCategories.list');
+    return this.service.list(data?.search);
+  }
+
   @MessagePattern({ cmd: 'costCategories.create' })
   async create(@Payload() dto: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryDto>> {
     this.logger.log(`costCategories.create — code: ${dto.code}, kind: ${dto.kind}`);

@@ -33,6 +33,12 @@ export class TaxGroupsGatewayService {
     return { result, count, state, activeViewId };
   }
 
+  // Returns all tax groups (base + rates) for the mobile plain list
+  async list(search?: string): Promise<TaxGroupResponseDto[]> {
+    this.logger.log('taxGroups.list');
+    return this.nats.send('commerce', 'taxGroups.list', { search });
+  }
+
   // Returns tax groups as dropdown options
   async select(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('taxGroups.select');

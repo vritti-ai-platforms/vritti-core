@@ -10,7 +10,7 @@ import {
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk';
-import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, ilike, or } from '@vritti/api-sdk/drizzle-orm';
 import { type CostCategory, type CostCategoryKind, CostCategoryKindValues, costCategories } from '@/db/schema';
 import { CostCategoryDto } from '../dto/entity/cost-category.dto';
 import { CostCategoriesRepository } from '../repositories/cost-categories.repository';
@@ -57,6 +57,22 @@ export class CostCategoriesService {
     const refCounts = await Promise.all(rows.map((row) => this.repository.countReferences(row.id)));
     const dtos = rows.map((row, i) => CostCategoryDto.from(row, refCounts[i].costRows === 0 && !row.isSystem));
     return { result: dtos, count };
+  }
+
+  // Returns all cost categories (with canDelete) for the mobile plain list — by name, searchable on
+  // name + code. Bounded set (org-scoped taxonomy), so no pagination.
+  async list(search?: string): Promise<CostCategoryDto[]> {
+    const where = search
+      ? or(ilike(costCategories.name, `%${search}%`), ilike(costCategories.code, `%${search}%`))
+      : undefined;
+    const { result: rows } = await this.repository.findAllAndCount({
+      where,
+      orderBy: [asc(costCategories.name)],
+      limit: 500,
+      offset: 0,
+    });
+    const refCounts = await Promise.all(rows.map((row) => this.repository.countReferences(row.id)));
+    return rows.map((row, i) => CostCategoryDto.from(row, refCounts[i].costRows === 0 && !row.isSystem));
   }
 
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
