@@ -66,7 +66,10 @@ export class InvoiceResponseDto {
   @ApiProperty({ description: 'Remaining balance in minor units (bigint serialized as string)' })
   balance: string;
 
-  @ApiProperty({ description: 'Invoice status', enum: ['DRAFT', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'VOID'] })
+  @ApiProperty({
+    description: 'Invoice status',
+    enum: ['DRAFT', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'VOID'],
+  })
   status: string;
 
   @ApiPropertyOptional({ description: 'Payment terms', nullable: true })

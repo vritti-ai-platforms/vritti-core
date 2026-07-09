@@ -1,4 +1,4 @@
-import { IsDateTime } from '@vritti/api-sdk';
+import { IsDateTime } from '@vritti/api-sdk/decorators';
 import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { ExchangeRateTypeValues } from '@/db/schema';
 

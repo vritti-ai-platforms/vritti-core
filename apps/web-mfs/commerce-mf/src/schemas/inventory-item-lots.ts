@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 
 export type InventoryItemLotStatus = 'FRESH' | 'EXPIRING_SOON' | 'EXPIRED';
 

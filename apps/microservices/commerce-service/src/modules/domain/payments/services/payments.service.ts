@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BadRequestException } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { InvoiceStatusValues, type PaymentMethod, type PaymentStatus } from '@/db/schema';
 import type { CreatePaymentDto } from '@/modules/payments/dto/request/create-payment.dto';
 import { PaymentDto } from '../dto/entity/payment.dto';

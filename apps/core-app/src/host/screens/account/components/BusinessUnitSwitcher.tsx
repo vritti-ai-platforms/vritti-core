@@ -7,10 +7,7 @@ import { useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { usePermissionContext } from '../../../providers/PermissionProvider';
 
-// Lets the user switch the active business unit. The selection is persisted (MMKV) and
-// drives the x-bu-id request header + BU-scoped data. A single-BU user sees the current
-// BU read-only (PermissionProvider already auto-selects it); the switcher sheet only
-// opens when there's more than one.
+// Lets the user switch the active business unit; the switcher sheet only opens when there's more than one.
 export const BusinessUnitSwitcher = () => {
   const { businessUnits, selectedBuId, selectBu } = usePermissionContext();
   const sheetRef = useRef<BottomSheetRef>(null);

@@ -14,9 +14,7 @@ interface MobileLoginVariables {
 
 type UseLoginOptions = Omit<UseGqlMutationOptions<MobileLoginData, MobileLoginVariables>, 'mutation'>;
 
-// Authenticates over GraphQL and, on success, hands the returned tokens to the package's
-// session bootstrap — stores the refresh token in the Keychain and schedules the proactive
-// refresh timer — exactly as the previous axios path did.
+// Authenticates over GraphQL and, on success, hands the returned tokens to the package's session bootstrap.
 export function useLogin(options?: UseLoginOptions) {
   return useGqlMutation<MobileLoginData, MobileLoginVariables>(MOBILE_LOGIN, {
     ...options,

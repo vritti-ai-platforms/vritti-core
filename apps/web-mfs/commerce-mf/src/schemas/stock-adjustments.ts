@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { InventoryTracking } from './inventory-items';
 
@@ -58,17 +58,14 @@ export interface StockAdjustmentLineData {
   id: string;
   stockAdjustmentId: string;
 
-  // Register intent (OPENING_STOCK)
   stockAdjustmentLotId: string | null;
   locationId: string | null;
   locationName: string | null;
   locationPath: string | null;
-  // Lot info (denormalized from stock_adjustment_lots — for display)
   lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
 
-  // Change intent (deduct/CORRECTION)
   quantId: string | null;
   quantLotNumber: string | null;
   quantLocationId: string | null;
@@ -176,7 +173,6 @@ export const addStockAdjustmentLotSchema = z
   });
 export type AddStockAdjustmentLotFormData = z.infer<typeof addStockAdjustmentLotSchema>;
 
-// OPENING_STOCK lines (register intent)
 export const addOpeningStockLineSchema = z.object({
   stockAdjustmentLotId: z.string().optional(), // null for tracking='quantity'
   locationId: z.string().min(1, 'Location is required'),
@@ -185,8 +181,7 @@ export const addOpeningStockLineSchema = z.object({
 });
 export type AddOpeningStockLineFormData = z.infer<typeof addOpeningStockLineSchema>;
 
-// Deduct/CORRECTION lines (change intent). Factory because validation depends on
-// adjustment type (CORRECTION allows negative/zero) and the source quant's available qty (maxQty).
+// Deduct/CORRECTION lines (change intent). Factory because validation depends on adjustment type (CORRECTION allows negative/zero) and the source quant's available qty (maxQty).
 export function buildAddChangeLineSchema(opts: { isCorrection: boolean; maxQty?: number }) {
   return z.object({
     quantId: z.string().min(1, 'Quant is required'),

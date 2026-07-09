@@ -1,7 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
-  ConflictException,
   type CreateResponseDto,
   CursorCodec,
   type FieldMap,
@@ -11,22 +9,26 @@ import {
   KeysetProcessor,
   keysetSignature,
   MAX_PAGE_SIZE,
-  NotFoundException,
   type SearchState,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SortCondition,
   type SuccessResponseDto,
   type TableViewState,
+} from '@vritti/api-sdk/database';
+import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
   ValidationException,
-} from "@vritti/api-sdk";
-import { and, asc, desc, eq } from "@vritti/api-sdk/drizzle-orm";
-import { type CurrencyCode, majorToMinor } from "@vritti/api-sdk/money";
-import { inventoryItems } from "@/db/schema";
-import type { CreateInventoryItemDto } from "@/modules/inventory-items/root/dto/request/create-inventory-item.dto";
-import type { UpdateInventoryItemDto } from "@/modules/inventory-items/root/dto/request/update-inventory-item.dto";
-import { InventoryItemDto } from "../dto/entity/inventory-item.dto";
-import { InventoryItemsRepository } from "../repositories/inventory-items.repository";
+} from '@vritti/api-sdk/exceptions';
+import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
+import { inventoryItems } from '@/db/schema';
+import type { CreateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/create-inventory-item.dto';
+import type { UpdateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/update-inventory-item.dto';
+import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
+import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
 
 interface InventoryItemsFeedQuery {
   filters?: FilterCondition[];
@@ -41,14 +43,14 @@ export class InventoryItemsService {
   private readonly logger = new Logger(InventoryItemsService.name);
 
   private static readonly SEARCH_FIELD_MAP: FieldMap = {
-    name: { column: inventoryItems.name, type: "string" },
-    code: { column: inventoryItems.code, type: "string" },
+    name: { column: inventoryItems.name, type: 'string' },
+    code: { column: inventoryItems.code, type: 'string' },
   };
   private static readonly FILTER_FIELD_MAP: FieldMap = {
-    type: { column: inventoryItems.type, type: "string" },
-    tracking: { column: inventoryItems.tracking, type: "string" },
-    categoryId: { column: inventoryItems.categoryId, type: "string" },
-    uomId: { column: inventoryItems.uomId, type: "string" },
+    type: { column: inventoryItems.type, type: 'string' },
+    tracking: { column: inventoryItems.tracking, type: 'string' },
+    categoryId: { column: inventoryItems.categoryId, type: 'string' },
+    uomId: { column: inventoryItems.uomId, type: 'string' },
   };
 
   constructor(private readonly repository: InventoryItemsRepository) {}
@@ -58,14 +60,8 @@ export class InventoryItemsService {
     state: TableViewState,
     buCurrencyCode?: string,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(
-      state.filters,
-      InventoryItemsService.FILTER_FIELD_MAP,
-    );
-    const searchWhere = FilterProcessor.buildSearch(
-      state.search,
-      InventoryItemsService.SEARCH_FIELD_MAP,
-    );
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
     const where = and(filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
       ...InventoryItemsService.SEARCH_FIELD_MAP,
@@ -80,15 +76,7 @@ export class InventoryItemsService {
       offset,
     });
 
-    const dtos = rows.map((row) =>
-      InventoryItemDto.from(
-        row,
-        row.uomSymbol,
-        true,
-        row.categoryName,
-        buCurrencyCode,
-      ),
-    );
+    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, buCurrencyCode));
 
     return { result: dtos, count };
   }
@@ -99,19 +87,9 @@ export class InventoryItemsService {
     state: TableViewState,
     buCurrencyCode?: string,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(
-      state.filters,
-      InventoryItemsService.FILTER_FIELD_MAP,
-    );
-    const searchWhere = FilterProcessor.buildSearch(
-      state.search,
-      InventoryItemsService.SEARCH_FIELD_MAP,
-    );
-    const where = and(
-      eq(inventoryItems.categoryId, categoryId),
-      filterWhere,
-      searchWhere,
-    );
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
+    const where = and(eq(inventoryItems.categoryId, categoryId), filterWhere, searchWhere);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
       ...InventoryItemsService.SEARCH_FIELD_MAP,
       ...InventoryItemsService.FILTER_FIELD_MAP,
@@ -126,34 +104,18 @@ export class InventoryItemsService {
     });
 
     return {
-      result: rows.map((row) =>
-        InventoryItemDto.from(
-          row,
-          row.uomSymbol,
-          true,
-          row.categoryName,
-          buCurrencyCode,
-        ),
-      ),
+      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, buCurrencyCode)),
       count,
     };
   }
 
   // Returns a keyset/cursor Relay connection of inventory items for infinite feeds (mobile / GraphQL).
-  async findForFeed(
-    query: InventoryItemsFeedQuery,
-  ): Promise<{
+  async findForFeed(query: InventoryItemsFeedQuery): Promise<{
     edges: { cursor: string; node: InventoryItemDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
-    const filterWhere = FilterProcessor.buildWhere(
-      query.filters,
-      InventoryItemsService.FILTER_FIELD_MAP,
-    );
-    const searchWhere = FilterProcessor.buildSearch(
-      query.search,
-      InventoryItemsService.SEARCH_FIELD_MAP,
-    );
+    const filterWhere = FilterProcessor.buildWhere(query.filters, InventoryItemsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(query.search, InventoryItemsService.SEARCH_FIELD_MAP);
     const baseWhere = and(filterWhere, searchWhere);
 
     // Resolve the requested sort to concrete columns; default to createdAt desc when none given,
@@ -163,30 +125,23 @@ export class InventoryItemsService {
       ...InventoryItemsService.SEARCH_FIELD_MAP,
       ...InventoryItemsService.FILTER_FIELD_MAP,
     };
-    const sortEntries: (KeysetOrderBy & { key: string })[] = (
-      query.sort ?? []
-    ).flatMap((s) => {
+    const sortEntries: (KeysetOrderBy & { key: string })[] = (query.sort ?? []).flatMap((s) => {
       const def = fieldMap[s.field];
-      if (!def || !("column" in def)) return [];
+      if (!def || !('column' in def)) return [];
       return [{ column: def.column, direction: s.direction, key: s.field }];
     });
     const orderByEntries: (KeysetOrderBy & { key: string })[] =
       sortEntries.length > 0
-        ? [
-            ...sortEntries,
-            { column: inventoryItems.id, direction: "asc", key: "id" },
-          ]
+        ? [...sortEntries, { column: inventoryItems.id, direction: 'asc', key: 'id' }]
         : [
             {
               column: inventoryItems.createdAt,
-              direction: "desc",
-              key: "createdAt",
+              direction: 'desc',
+              key: 'createdAt',
             },
-            { column: inventoryItems.id, direction: "asc", key: "id" },
+            { column: inventoryItems.id, direction: 'asc', key: 'id' },
           ];
-    const orderBy = orderByEntries.map((e) =>
-      e.direction === "asc" ? asc(e.column) : desc(e.column),
-    );
+    const orderBy = orderByEntries.map((e) => (e.direction === 'asc' ? asc(e.column) : desc(e.column)));
     // Bind the cursor to this exact sort so a cursor minted under one sort is rejected (400) if the
     // client changes `sort` mid-pagination, rather than silently applying boundary values to the wrong
     // columns. The feed's sort is user-controlled, so this binding matters here (unlike the fixed feeds).
@@ -195,10 +150,7 @@ export class InventoryItemsService {
     // When a cursor is present, restrict to rows strictly after the boundary row. decode throws
     // InvalidCursorException (400) on a malformed/forged cursor or a sort mismatch.
     const cursorWhere = query.cursor
-      ? KeysetProcessor.buildAfter(
-          orderByEntries,
-          CursorCodec.decode(query.cursor, signature),
-        )
+      ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(query.cursor, signature))
       : undefined;
     const where = and(baseWhere, cursorWhere);
 
@@ -212,10 +164,7 @@ export class InventoryItemsService {
 
     // One opaque keyset cursor per row (Relay edge cursor); values read by JS accessor key.
     const edges = rows.map((row) => ({
-      cursor: CursorCodec.encode(
-        orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
-        signature,
-      ),
+      cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]), signature),
       node: InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName),
     }));
 
@@ -228,14 +177,11 @@ export class InventoryItemsService {
     };
   }
 
-  findForSelect(
-    query: SelectOptionsQueryDto,
-    options?: { excludeOnSupplierId?: string },
-  ): Promise<SelectQueryResult> {
+  findForSelect(query: SelectOptionsQueryDto, options?: { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
     return this.repository.findForSelect(
       {
-        value: query.valueKey || "id",
-        label: query.labelKey || "name",
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
         groupIdKey: query.groupIdKey,
@@ -244,8 +190,8 @@ export class InventoryItemsService {
         offset: query.offset,
         values: query.values,
         excludeIds: query.excludeIds,
-        orderByKey: query.orderByKey || "name",
-        orderDirection: query.orderDirection || "asc",
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
       },
       options,
     );
@@ -255,42 +201,39 @@ export class InventoryItemsService {
     data: CreateInventoryItemDto,
   ): Promise<{ uomId: string; primaryUomQty: number; uomQty: number } | null> {
     if (!data.hasMrp || !data.mrpUomId) return null;
-    const derivable = (
-      await this.repository.findUomFamilyIds(data.uomId)
-    ).includes(data.mrpUomId);
+    const derivable = (await this.repository.findUomFamilyIds(data.uomId)).includes(data.mrpUomId);
     if (derivable) return null;
     if (data.mrpUomId === data.uomId) {
       throw new ValidationException({
-        detail: "MRP unit cannot equal the primary unit.",
+        detail: 'MRP unit cannot equal the primary unit.',
         errors: [
           {
-            field: "mrpUomId",
-            message: "Pick a unit different from the primary unit.",
+            field: 'mrpUomId',
+            message: 'Pick a unit different from the primary unit.',
           },
         ],
       });
     }
     if (!data.mrpUomConversion) {
       throw new ValidationException({
-        detail:
-          "MRP unit can't be derived from the primary unit — provide its conversion.",
+        detail: "MRP unit can't be derived from the primary unit — provide its conversion.",
         errors: [
           {
-            field: "mrpUomConversion",
-            message: "Provide how many primary units one MRP unit holds.",
+            field: 'mrpUomConversion',
+            message: 'Provide how many primary units one MRP unit holds.',
           },
         ],
       });
     }
     const uomInfo = await this.repository.findUomBaseUnitId(data.mrpUomId);
-    if (!uomInfo) throw new NotFoundException("MRP unit not found.");
+    if (!uomInfo) throw new NotFoundException('MRP unit not found.');
     if (uomInfo.baseUnitId != null) {
       throw new ValidationException({
-        detail: "A conversion can only be defined for a base unit.",
+        detail: 'A conversion can only be defined for a base unit.',
         errors: [
           {
-            field: "mrpUomId",
-            message: "This unit is derived; pick a base unit.",
+            field: 'mrpUomId',
+            message: 'This unit is derived; pick a base unit.',
           },
         ],
       });
@@ -302,10 +245,7 @@ export class InventoryItemsService {
     };
   }
 
-  async create(
-    data: CreateInventoryItemDto,
-    buCurrencyCode?: string,
-  ): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(data: CreateInventoryItemDto, buCurrencyCode?: string): Promise<CreateResponseDto<InventoryItemDto>> {
     const bridgeConversion = await this.resolveMrpBridge(data);
     const entity = await this.repository.create({
       name: data.name,
@@ -322,11 +262,7 @@ export class InventoryItemsService {
       mrpUomId: data.hasMrp ? (data.mrpUomId ?? null) : null,
       defaultMrp:
         data.hasMrp && data.defaultMrp
-          ? majorToMinor(
-              data.defaultMrp.value,
-              data.defaultMrp.currency as CurrencyCode,
-              "defaultMrp",
-            )
+          ? majorToMinor(data.defaultMrp.value, data.defaultMrp.currency as CurrencyCode, 'defaultMrp')
           : null,
     });
     if (bridgeConversion) {
@@ -340,81 +276,52 @@ export class InventoryItemsService {
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.code}) created successfully.`,
-      data: InventoryItemDto.from(
-        entity,
-        uomSymbol,
-        true,
-        categoryName,
-        buCurrencyCode,
-      ),
+      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, buCurrencyCode),
     };
   }
 
   // Returns a single inventory item with UOM symbol and canDelete
-  async findById(
-    id: string,
-    buCurrencyCode?: string,
-  ): Promise<InventoryItemDto> {
+  async findById(id: string, buCurrencyCode?: string): Promise<InventoryItemDto> {
     const entity = await this.repository.findByIdWithUomAndCategory(id);
-    if (!entity) throw new NotFoundException("Inventory item not found.");
+    if (!entity) throw new NotFoundException('Inventory item not found.');
     const referencedIds = await this.repository.findReferencedIds([id]);
-    return InventoryItemDto.from(
-      entity,
-      entity.uomSymbol,
-      !referencedIds.has(id),
-      entity.categoryName,
-      buCurrencyCode,
-    );
+    return InventoryItemDto.from(entity, entity.uomSymbol, !referencedIds.has(id), entity.categoryName, buCurrencyCode);
   }
 
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
-  async findAllowedUomIds(
-    inventoryItemId: string,
-  ): Promise<{ name: string; allowedUomIds: string[] }> {
+  async findAllowedUomIds(inventoryItemId: string): Promise<{ name: string; allowedUomIds: string[] }> {
     const entity = await this.repository.findById(inventoryItemId);
-    if (!entity) throw new NotFoundException("Inventory item not found.");
-    const allowedUomIds =
-      await this.repository.findAllowedUomIds(inventoryItemId);
+    if (!entity) throw new NotFoundException('Inventory item not found.');
+    const allowedUomIds = await this.repository.findAllowedUomIds(inventoryItemId);
     return { name: entity.name, allowedUomIds };
   }
 
   // Updates an inventory item. Tracking is set at creation and cannot be changed.
-  async update(
-    id: string,
-    data: UpdateInventoryItemDto,
-  ): Promise<SuccessResponseDto> {
+  async update(id: string, data: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException("Inventory item not found.");
+    if (!existing) throw new NotFoundException('Inventory item not found.');
 
     if (data.uomId && data.uomId !== existing.uomId) {
       const refs = await this.repository.countReferences(id);
-      if (
-        refs.purchaseOrderItems > 0 ||
-        refs.stockAdjustments > 0 ||
-        refs.stockTransfers > 0
-      ) {
+      if (refs.purchaseOrderItems > 0 || refs.stockAdjustments > 0 || refs.stockTransfers > 0) {
         throw new BadRequestException({
-          label: "UOM Locked",
-          detail:
-            "Primary UOM cannot be changed after the item has transaction history.",
+          label: 'UOM Locked',
+          detail: 'Primary UOM cannot be changed after the item has transaction history.',
         });
       }
     }
 
-    if (data.description !== undefined)
-      data.description = data.description || null;
+    if (data.description !== undefined) data.description = data.description || null;
     const { defaultMrp, mrpUomId, hasMrp, ...rest } = data;
     if (hasMrp !== false && mrpUomId) {
       const allowed = await this.repository.findAllowedUomIds(id);
       if (!allowed.includes(mrpUomId)) {
         throw new ValidationException({
-          detail:
-            "MRP unit must be the item's primary unit or one of its conversions.",
+          detail: "MRP unit must be the item's primary unit or one of its conversions.",
           errors: [
             {
-              field: "mrpUomId",
-              message:
-                "Add a conversion for this unit, or pick an existing one.",
+              field: 'mrpUomId',
+              message: 'Add a conversion for this unit, or pick an existing one.',
             },
           ],
         });
@@ -430,19 +337,13 @@ export class InventoryItemsService {
             ...(defaultMrp !== undefined
               ? {
                   defaultMrp: defaultMrp
-                    ? majorToMinor(
-                        defaultMrp.value,
-                        defaultMrp.currency as CurrencyCode,
-                        "defaultMrp",
-                      )
+                    ? majorToMinor(defaultMrp.value, defaultMrp.currency as CurrencyCode, 'defaultMrp')
                     : null,
                 }
               : {}),
           }),
     });
-    this.logger.log(
-      `Updated inventory item: ${updated.name} (${updated.code})`,
-    );
+    this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);
     return {
       success: true,
       message: `Inventory item "${updated.name}" updated successfully.`,
@@ -452,21 +353,19 @@ export class InventoryItemsService {
   // Deletes an inventory item; throws ConflictException if referenced
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException("Inventory item not found.");
+    if (!existing) throw new NotFoundException('Inventory item not found.');
 
     const refs = await this.repository.countReferences(id);
     const refLabels: [number, string][] = [
-      [refs.stockAdjustments, "stock adjustment"],
-      [refs.stockTransfers, "stock transfer"],
-      [refs.purchaseOrderItems, "purchase order item"],
+      [refs.stockAdjustments, 'stock adjustment'],
+      [refs.stockTransfers, 'stock transfer'],
+      [refs.purchaseOrderItems, 'purchase order item'],
     ];
-    const parts = refLabels
-      .filter(([n]) => n > 0)
-      .map(([n, label]) => `${n} ${label}${n > 1 ? "s" : ""}`);
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}${n > 1 ? 's' : ''}`);
     if (parts.length > 0) {
       throw new ConflictException({
-        label: "Inventory Item In Use",
-        detail: `Cannot delete "${existing.name}" — it is referenced by ${parts.join(", ")}. Remove those references first.`,
+        label: 'Inventory Item In Use',
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
       });
     }
 

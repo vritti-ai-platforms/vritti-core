@@ -1,13 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq } from '@vritti/api-sdk/drizzle-orm';
-import {
-  type UserRoleAssignment,
-  businessUnits,
-  roles,
-  userRoleAssignments,
-  users,
-} from '@/db/schema';
+import { businessUnits, roles, type UserRoleAssignment, userRoleAssignments, users } from '@/db/schema';
 
 @Injectable()
 export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof userRoleAssignments> {
@@ -16,9 +11,7 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
   }
 
   // Finds all role assignments for a user with role and business unit names
-  async findByUser(userId: string): Promise<
-    (UserRoleAssignment & { roleName: string; businessUnitName: string })[]
-  > {
+  async findByUser(userId: string): Promise<(UserRoleAssignment & { roleName: string; businessUnitName: string })[]> {
     const rows = await this.db
       .select({
         id: userRoleAssignments.id,
@@ -42,9 +35,9 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
   }
 
   // Finds all role assignments for a business unit with user and role names
-  async findByBusinessUnit(buId: string): Promise<
-    (UserRoleAssignment & { userName: string; userEmail: string; roleName: string })[]
-  > {
+  async findByBusinessUnit(
+    buId: string,
+  ): Promise<(UserRoleAssignment & { userName: string; userEmail: string; roleName: string })[]> {
     const rows = await this.db
       .select({
         id: userRoleAssignments.id,
@@ -68,30 +61,26 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
     return rows as (UserRoleAssignment & { userName: string; userEmail: string; roleName: string })[];
   }
 
-  // Finds all role assignments for a user at a specific BU, returning each role's features
+  // Finds all role assignments for a user at a specific BU, returning each role's grants + inheritance fields
   async findByUserAndBU(
     userId: string,
     buId: string,
-  ): Promise<{ features: Record<string, string[]> }[]> {
-    const rows = await this.db
+  ): Promise<{ features: FeatureUnlocks; code: string; revoked: RevokedGrants | null }[]> {
+    return this.db
       .select({
         features: roles.features,
+        code: roles.code,
+        revoked: roles.revoked,
       })
       .from(userRoleAssignments)
       .innerJoin(roles, eq(roles.id, userRoleAssignments.roleId))
       .where(and(eq(userRoleAssignments.userId, userId), eq(userRoleAssignments.businessUnitId, buId)));
-
-    return rows as unknown as { features: Record<string, string[]> }[];
   }
 
-  // Finds a specific assignment for duplicate check
-  async findByUserAndRoleAndBU(
-    userId: string,
-    roleId: string,
-    buId: string,
-  ): Promise<UserRoleAssignment | undefined> {
+  // Finds the user's single assignment within a business unit (one role per user per BU)
+  async findAssignmentByUserAndBU(userId: string, buId: string): Promise<UserRoleAssignment | undefined> {
     return this.model.findFirst({
-      where: { userId, roleId, businessUnitId: buId },
+      where: { userId, businessUnitId: buId },
     });
   }
 }

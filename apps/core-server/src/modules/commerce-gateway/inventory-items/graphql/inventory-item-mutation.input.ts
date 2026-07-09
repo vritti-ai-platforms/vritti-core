@@ -1,9 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 
-// Mirror the gateway DTOs (create-/update-inventory-item.dto.ts) so the resolver forwards an input
-// straight to gateway.create/update. MRP/currency fields (mrpUomId, defaultMrp, mrpUomConversion) are
-// optional in the DTOs and omitted here for now — TODO(mrp) once the mobile form covers MRP.
 const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 const ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'];
 const TRACKING_TYPES = ['quantity', 'lot', 'lot_serial', 'serial'];
@@ -108,7 +105,6 @@ export class UpdateInventoryItemInput {
   @IsEnum(PICK_STRATEGIES)
   pickStrategy?: 'none' | 'fifo' | 'fefo';
 
-  // Required by the gateway DTO even on update.
   @Field(() => String)
   @IsUUID()
   purchaseTaxGroupId: string;

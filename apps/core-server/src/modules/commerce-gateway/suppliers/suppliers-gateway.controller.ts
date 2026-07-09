@@ -1,14 +1,8 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  type CurrencyAmountDto,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { type CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { SessionTypeValues } from '@/db/schema';
 import { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
 import { BulkSetSupplierItemPreferredDto } from './dto/request/bulk-set-supplier-item-preferred.dto';
@@ -29,7 +23,7 @@ import { SuppliersGatewayService } from './services/suppliers-gateway.service';
 
 @ApiTags('Commerce - Suppliers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('suppliers')
 export class SuppliersGatewayController {
   private readonly logger = new Logger(SuppliersGatewayController.name);
@@ -41,14 +35,6 @@ export class SuppliersGatewayController {
   getSupplierTable(@UserId() userId: string): Promise<SupplierTableResponseDto> {
     this.logger.log('GET /commerce-api/suppliers/table');
     return this.suppliersGatewayService.findForTable(userId);
-  }
-
-  // Returns paginated supplier options for select dropdowns
-  @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/suppliers/select');
-    return this.suppliersGatewayService.select(query);
   }
 
   // Creates a new supplier
@@ -135,8 +121,7 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.addItem(supplierId, dto);
   }
 
-  // Bulk-sets the free-goods scheme on multiple supplier items. Declared before :itemId so the
-  // static "scheme" segment is not captured as an item id.
+  // Bulk-sets the free-goods scheme on multiple supplier items; declared before :itemId so "scheme" is not captured as an item id
   @Patch(':id/items/scheme')
   bulkSetItemScheme(
     @Param('id') supplierId: string,
@@ -146,8 +131,7 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.bulkSetItemScheme(supplierId, dto);
   }
 
-  // Bulk-marks supplier items as preferred. Declared before :itemId so the static "preferred"
-  // segment is not captured as an item id.
+  // Bulk-marks supplier items as preferred; declared before :itemId so "preferred" is not captured as an item id
   @Patch(':id/items/preferred')
   bulkSetItemPreferred(
     @Param('id') supplierId: string,

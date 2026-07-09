@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConflictException, type SuccessResponseDto } from '@vritti/api-sdk';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ConflictException } from '@vritti/api-sdk/exceptions';
 import { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
 import { CatalogChannelsRepository } from '../repositories/catalog-channels.repository';
 

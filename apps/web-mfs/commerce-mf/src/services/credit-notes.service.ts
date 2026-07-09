@@ -1,5 +1,5 @@
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { CreditNoteData, CreditNoteDetail } from '@/schemas/credit-notes';
 
 export interface CreateCreditNotePayload {

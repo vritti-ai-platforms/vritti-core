@@ -1,4 +1,4 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { FulfilmentType, Offering, OfferingVariant, VariantOption, VariantOptionValue } from '@/db/schema';
 
 export class OfferingOptionValueDto {

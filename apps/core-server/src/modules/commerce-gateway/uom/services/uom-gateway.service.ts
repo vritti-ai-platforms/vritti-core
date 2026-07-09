@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
   SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateUomDto } from '../dto/request/create-uom.dto';
 import type { UpdateUomDto } from '../dto/request/update-uom.dto';

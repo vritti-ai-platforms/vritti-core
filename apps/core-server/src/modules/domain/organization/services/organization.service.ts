@@ -1,16 +1,34 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
+import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
+import { verifyDocument } from '@vritti/api-sdk/signing';
+import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import type { OrgSize } from '@/db/schema';
+import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { OrganizationDto } from '../dto/entity/organization.dto';
-import { CreateOrganizationWebhookDto } from '../dto/request/create-organization-webhook.dto';
-import type { UpdateOrganizationWebhookDto } from '../dto/request/update-organization-webhook.dto';
+import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
+import type { UpdateOrganizationInternalDto } from '../dto/request/update-organization-internal.dto';
 import { OrganizationRepository } from '../repositories/organization.repository';
 
 @Injectable()
 export class OrganizationService {
   private readonly logger = new Logger(OrganizationService.name);
+  private readonly licensePublicKey: string;
+  private readonly deploymentId: string | undefined;
+  private warnedUnboundDeployment = false;
 
-  constructor(private readonly organizationRepository: OrganizationRepository) {}
+  constructor(
+    private readonly organizationRepository: OrganizationRepository,
+    private readonly buContextCache: BuContextCacheService,
+    private readonly eventEmitter: EventEmitter2,
+    configService: ConfigService,
+  ) {
+    this.licensePublicKey = configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');
+    this.deploymentId = configService.get<string>('DEPLOYMENT_ID');
+  }
 
   // Finds an organization by ID, returns DTO or null
   async getById(id: string): Promise<OrganizationDto | null> {
@@ -24,8 +42,8 @@ export class OrganizationService {
     return org ? OrganizationDto.from(org) : null;
   }
 
-  // Creates an organization from a cloud-server webhook payload
-  async createFromWebhook(dto: CreateOrganizationWebhookDto): Promise<OrganizationDto> {
+  // Creates an organization from a cloud-server internal request payload
+  async createFromCloud(dto: CreateOrganizationInternalDto): Promise<OrganizationDto> {
     const org = await this.organizationRepository.create({
       name: dto.name,
       subdomain: dto.subdomain,
@@ -34,13 +52,13 @@ export class OrganizationService {
       logoUrl: dto.logoUrl,
     });
 
-    this.logger.log(`Created organization from webhook: ${org.subdomain} (${org.id})`);
+    this.logger.log(`Created organization from cloud: ${org.subdomain} (${org.id})`);
 
     return OrganizationDto.from(org);
   }
 
-  // Updates an organization from a cloud-server webhook payload
-  async updateFromWebhook(id: string, dto: UpdateOrganizationWebhookDto): Promise<SuccessResponseDto> {
+  // Updates an organization from a cloud-server internal request payload
+  async updateFromCloud(id: string, dto: UpdateOrganizationInternalDto): Promise<SuccessResponseDto> {
     const org = await this.organizationRepository.findById(id);
     if (!org) throw new NotFoundException('Organization not found.');
 
@@ -51,18 +69,73 @@ export class OrganizationService {
       updatedAt: new Date(),
     });
 
-    this.logger.log(`Updated organization from webhook: ${org.subdomain} (${id})`);
+    this.logger.log(`Updated organization from cloud: ${org.subdomain} (${id})`);
     return { success: true, message: 'Organization updated successfully.' };
   }
 
-  // Deletes an organization from a cloud-server webhook
-  async deleteFromWebhook(id: string): Promise<SuccessResponseDto> {
+  // Receives a signed entitlement from cloud: verify, replay-guard, store, refresh the org's live BUs
+  async receiveEntitlement(orgId: string, doc: SignedDocument<OrgEntitlement>): Promise<SuccessResponseDto> {
+    const org = await this.organizationRepository.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found.');
+
+    if (!verifyDocument(doc, this.licensePublicKey)) {
+      throw new ForbiddenException('Invalid entitlement signature.');
+    }
+
+    if (doc.payload.orgId !== orgId) {
+      throw new ForbiddenException('Entitlement is bound to a different organization.');
+    }
+
+    this.checkDeploymentBinding(doc.payload.deploymentId);
+
+    // issuedAt monotonicity — ignore replays of an entitlement we already superseded
+    if (org.entitlement && new Date(org.entitlement.payload.issuedAt) >= new Date(doc.payload.issuedAt)) {
+      this.logger.log(`Ignored stale entitlement for org ${orgId} (issuedAt ${doc.payload.issuedAt})`);
+      return { success: true, message: 'Entitlement already up to date.' };
+    }
+
+    await this.organizationRepository.update(orgId, {
+      entitlement: doc,
+      planCode: doc.payload.planCode,
+      businessCode: doc.payload.businessCode,
+      updatedAt: new Date(),
+    });
+
+    // Next getPermissions read resolves with the new plan; push fresh auth-state to the org's live BUs
+    const buIds = await this.organizationRepository.findBusinessUnitIds(orgId);
+    for (const buId of buIds) {
+      await this.buContextCache.invalidate(buId);
+      this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(buId));
+    }
+
+    this.logger.log(
+      `Stored entitlement for org ${orgId}: plan ${doc.payload.planCode}, business ${doc.payload.businessCode}`,
+    );
+    return { success: true, message: 'Entitlement updated successfully.' };
+  }
+
+  // Rejects entitlements bound to a different deployment; skips binding (with a one-time warning) when unset
+  private checkDeploymentBinding(payloadDeploymentId: string): void {
+    if (!this.deploymentId) {
+      if (!this.warnedUnboundDeployment) {
+        this.logger.warn('DEPLOYMENT_ID is not set — skipping entitlement deployment binding check');
+        this.warnedUnboundDeployment = true;
+      }
+      return;
+    }
+    if (this.deploymentId !== payloadDeploymentId) {
+      throw new ForbiddenException('Entitlement is bound to a different deployment.');
+    }
+  }
+
+  // Deletes an organization from a cloud-server internal request
+  async deleteFromCloud(id: string): Promise<SuccessResponseDto> {
     const org = await this.organizationRepository.findById(id);
     if (!org) throw new NotFoundException('Organization not found.');
 
     await this.organizationRepository.delete(id);
 
-    this.logger.log(`Deleted organization from webhook: ${org.subdomain} (${id})`);
+    this.logger.log(`Deleted organization from cloud: ${org.subdomain} (${id})`);
     return { success: true, message: 'Organization deleted successfully.' };
   }
 }

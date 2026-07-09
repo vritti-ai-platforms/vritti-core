@@ -1,6 +1,13 @@
 import { Body, Controller, HttpCode, HttpStatus, Logger, Post, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CookieName, type CookieSerializeOptions, Public, RefreshCookieOptions, RequireSession, UserId } from '@vritti/api-sdk';
+import {
+  CookieName,
+  type CookieSerializeOptions,
+  Public,
+  RefreshCookieOptions,
+  RequireSession,
+  UserId,
+} from '@vritti/api-sdk/auth';
 import type { FastifyReply } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';

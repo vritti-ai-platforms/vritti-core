@@ -6,7 +6,7 @@ import type { ModifierOptionDto } from '@domain/modifier-groups/dto/entity/modif
 import { ModifierGroupsService } from '@domain/modifier-groups/services/modifier-groups.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
 import type { CreateModifierOptionDto } from '../dto/request/create-modifier-option.dto';
 import type { UpdateModifierGroupDto } from '../dto/request/update-modifier-group.dto';

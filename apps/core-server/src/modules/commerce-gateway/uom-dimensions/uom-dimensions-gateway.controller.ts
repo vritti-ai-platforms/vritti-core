@@ -1,13 +1,10 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { UOM } from '@vritti/commerce-permissions/uom';
 import { SessionTypeValues } from '@/db/schema';
+import { RequirePermission } from '@/rbac/decorators';
 import { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
 import { UomDimensionsQueryDto } from './dto/request/uom-dimensions-query.dto';
 import { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
@@ -17,7 +14,7 @@ import { UomDimensionsGatewayService } from './services/uom-dimensions-gateway.s
 
 @ApiTags('Commerce › UOM Dimensions')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('uom-dimensions')
 export class UomDimensionsGatewayController {
   private readonly logger = new Logger(UomDimensionsGatewayController.name);
@@ -26,17 +23,10 @@ export class UomDimensionsGatewayController {
 
   // Returns dimensions, optionally filtered by search
   @Get()
+  @RequirePermission(UOM.dim.view)
   list(@Query() query: UomDimensionsQueryDto): Promise<UomDimensionResponseDto[]> {
     this.logger.log('GET /commerce-api/uom-dimensions');
     return this.service.list(query.search);
-  }
-
-  // Returns paginated dimension options for select dropdowns
-  @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/uom-dimensions/select');
-    return this.service.findForSelect(query);
   }
 
   // Returns total UOM dimension count
@@ -56,6 +46,7 @@ export class UomDimensionsGatewayController {
   // Creates a new dimension
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(UOM.dim.add)
   create(@Body() dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
     this.logger.log('POST /commerce-api/uom-dimensions');
     return this.service.create(dto);
@@ -63,6 +54,7 @@ export class UomDimensionsGatewayController {
 
   // Updates a dimension by ID
   @Patch(':id')
+  @RequirePermission(UOM.dim.edit)
   update(@Param('id') id: string, @Body() dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/uom-dimensions/${id}`);
     return this.service.update(id, dto);
@@ -70,6 +62,7 @@ export class UomDimensionsGatewayController {
 
   // Deletes a dimension by ID
   @Delete(':id')
+  @RequirePermission(UOM.dim.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/uom-dimensions/${id}`);
     return this.service.delete(id);

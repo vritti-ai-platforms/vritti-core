@@ -1,5 +1,5 @@
-import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
+import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { CostCategoriesTableResponse, CostCategoryData, CostCategoryKind } from '@/schemas/cost-categories';
 
 export interface CreateCostCategoryPayload {
@@ -26,9 +26,7 @@ export function getCostCategory(id: string): Promise<CostCategoryData> {
 }
 
 export function createCostCategory(data: CreateCostCategoryPayload): Promise<CostCategoryData> {
-  return axios
-    .post<CreateResponse<CostCategoryData>>('commerce-api/cost-categories', data)
-    .then((r) => r.data.data);
+  return axios.post<CreateResponse<CostCategoryData>>('commerce-api/cost-categories', data).then((r) => r.data.data);
 }
 
 export function updateCostCategory({

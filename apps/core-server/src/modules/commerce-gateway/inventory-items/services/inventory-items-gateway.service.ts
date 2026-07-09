@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  type FilterCondition,
-  type SearchState,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SortCondition,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  FilterCondition,
+  SearchState,
+  SortCondition,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
@@ -70,12 +68,6 @@ export class InventoryItemsGatewayService {
   }> {
     this.logger.log('inventoryItems.feed');
     return this.nats.send('commerce', 'inventoryItems.feed', query);
-  }
-
-  // Returns paginated inventory item options (with optional excludeOnSupplierId)
-  async select(params: SelectOptionsQueryDto, excludeOnSupplierId?: string): Promise<SelectQueryResult> {
-    this.logger.log('inventoryItems.select');
-    return this.nats.send('commerce', 'inventoryItems.select', { ...params, excludeOnSupplierId });
   }
 
   // Creates a new inventory item

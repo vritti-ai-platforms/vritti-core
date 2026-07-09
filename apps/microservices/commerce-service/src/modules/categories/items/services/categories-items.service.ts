@@ -1,7 +1,7 @@
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk/database';
 
 @Injectable()
 export class CategoriesItemsService {

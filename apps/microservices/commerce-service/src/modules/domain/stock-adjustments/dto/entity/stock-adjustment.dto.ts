@@ -1,4 +1,4 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { InventoryTracking, StockAdjustment, StockAdjustmentStatus, StockAdjustmentType } from '@/db/schema';
 
 export class StockAdjustmentDto {

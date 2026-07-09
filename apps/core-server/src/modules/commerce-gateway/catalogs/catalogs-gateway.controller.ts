@@ -13,16 +13,15 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import {
   type CreateResponseDto,
-  RequireSession,
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
-import { BuId } from '@/common/decorators';
+} from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
+import { BuId } from '@/security/decorators';
 import {
   ApiAssignCatalogChannel,
   ApiCloneCatalog,
@@ -87,7 +86,7 @@ import { CatalogsGatewayService } from './services/catalogs-gateway.service';
 
 @ApiTags('Commerce - Catalogs')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('catalogs')
 export class CatalogsGatewayController {
   private readonly logger = new Logger(CatalogsGatewayController.name);
@@ -100,13 +99,6 @@ export class CatalogsGatewayController {
   getTable(@UserId() userId: string): Promise<CatalogTableResponseDto> {
     this.logger.log('GET /commerce-api/catalogs/table');
     return this.service.findForTable(userId);
-  }
-
-  // Returns catalog select options
-  @Get('select')
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/catalogs/select');
-    return this.service.select(query);
   }
 
   // Creates a catalog

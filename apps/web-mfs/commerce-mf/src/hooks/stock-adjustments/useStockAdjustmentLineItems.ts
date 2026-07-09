@@ -4,8 +4,7 @@ import type { StockAdjustmentLineItemData, StockAdjustmentLineItemsTableResponse
 import { getStockAdjustmentLineItemsTable } from '@/services/stock-adjustments.service';
 import { STOCK_ADJUSTMENT_LINE_ITEMS_KEY } from './keys';
 
-// Returns serial entries under a single line. Backed by the existing table endpoint
-// (no separate non-table endpoint exists) — we strip pagination and just return the rows.
+// Returns serial entries under a single line, stripping pagination from the table endpoint.
 export function useStockAdjustmentLineItems(
   adjustmentId: string | null,
   lineId: string | null,

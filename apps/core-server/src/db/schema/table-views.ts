@@ -1,4 +1,4 @@
-import { dataTableViewsColumns, dataTableViewsIndexes } from '@vritti/api-sdk';
+import { dataTableViewsColumns, dataTableViewsIndexes } from '@vritti/api-sdk/data-table';
 import { uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { users } from './users';
@@ -7,7 +7,9 @@ export const tableViews = coreSchema.table(
   'table_views',
   {
     ...dataTableViewsColumns(),
-    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
   },
   dataTableViewsIndexes,
 );

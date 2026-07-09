@@ -4,7 +4,7 @@ import {
   PrimaryBaseRepository,
   PrimaryDatabaseService,
   type SelectQueryResult,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { eq, inArray } from '@vritti/api-sdk/drizzle-orm';
 import {
   type ModifierGroup,

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 // Per-lot row for the inventory item Lots tab — one row per inventory_item_lots row, with stock totals aggregated across quants.
 export class InventoryItemLotResponseDto {

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Headers, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import type { SuccessResponseDto } from '@vritti/api-sdk';
-import { RequireSession, UserId } from '@vritti/api-sdk';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import { ApiChangePassword, ApiGetSessions, ApiRevokeAllSessions, ApiRevokeSession } from '../docs/security.docs';
 import { ChangePasswordDto } from '../dto/request/change-password.dto';
@@ -10,7 +10,7 @@ import { SecurityService } from '../services/security.service';
 
 @ApiTags('Account - Security')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+@RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
 @Controller('security')
 export class SecurityController {
   private readonly logger = new Logger(SecurityController.name);

@@ -35,15 +35,11 @@ const toOptionalNumber = (raw: unknown): number | undefined => {
 interface AddItemDialogContext {
   goodsReceiptId: string;
   supplierId: string;
-  // Supplier (transaction) currency — GR-item prices are entered in this, not the BU currency.
   supplierCurrencyCode: string;
   poId?: string | null;
 }
 
-// Two flows, kept side-by-side instead of a single mega-form, because the picker name, mutation
-// hook, and zod schema all differ between them. Sharing only the visual chrome (quantity + price +
-// rejected qty + buttons) is cheaper than collapsing the divergent identity into one schema.
-
+// Two flows kept side-by-side because the picker, mutation hook, and zod schema all differ.
 const SupplierItemForm = ({
   goodsReceiptId,
   supplierId,
@@ -56,8 +52,7 @@ const SupplierItemForm = ({
 }) => {
   // `allowDecimal` drives the quantity/rejected inputs — a UOM property of the picked row, not form state.
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
-  // Schema depends on the selected row's allowDecimal, known only after select — keep the resolver
-  // pointed at the latest build via a ref so the dynamic integer rule applies without a remount.
+  // Schema depends on the selected row's allowDecimal; a ref keeps the resolver on the latest build without a remount.
   const schema = useMemo(() => buildAddGoodsReceiptItemFromSupplierItemSchema({ allowDecimal }), [allowDecimal]);
   const schemaRef = useRef(schema);
   schemaRef.current = schema;

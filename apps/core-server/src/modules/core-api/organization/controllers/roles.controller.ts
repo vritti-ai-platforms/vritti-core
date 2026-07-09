@@ -1,3 +1,4 @@
+import { RoleService } from '@domain/organization/services/role.service';
 import {
   Body,
   Controller,
@@ -14,29 +15,29 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { type SuccessResponseDto, Public, SkipCsrf } from '@vritti/api-sdk';
+import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { Role } from '@/db/schema';
-import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
-import { WebhookSessionInterceptor } from '@/common/interceptors/webhook-session.interceptor';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
+import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import {
-  ApiCreateRoleWebhook,
-  ApiDeleteRoleWebhook,
-  ApiListRolesWebhook,
-  ApiProvisionRolesWebhook,
-  ApiRolesForBuWebhook,
-  ApiUpdateRoleWebhook,
+  ApiCreateRole,
+  ApiDeleteRole,
+  ApiListRoles,
+  ApiProvisionRoles,
+  ApiRolesForBu,
+  ApiUpdateRole,
 } from '../docs/roles.docs';
-import { CreateRoleWebhookDto } from '../dto/request/create-role-webhook.dto';
-import { ProvisionRolesWebhookDto } from '../dto/request/provision-roles-webhook.dto';
-import { UpdateRoleWebhookDto } from '../dto/request/update-role-webhook.dto';
-import { RoleService } from '@domain/organization/services/role.service';
+import { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
+import { ProvisionRolesInternalDto } from '../dto/request/provision-roles-internal.dto';
+import { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
 
 @ApiTags('Organization Roles')
-@Controller('organizations/webhook/roles')
+@Controller('organizations/internal/roles')
 @Public()
 @SkipCsrf()
-@UseGuards(WebhookSecretGuard)
-@UseInterceptors(WebhookSessionInterceptor)
+@UseGuards(CloudSignatureGuard)
+@UseInterceptors(OrgScopeInterceptor)
 export class RolesController {
   private readonly logger = new Logger(RolesController.name);
 
@@ -45,51 +46,51 @@ export class RolesController {
   // Bulk provisions roles and their feature mappings for an organization
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiProvisionRolesWebhook()
-  async provision(@Body() dto: ProvisionRolesWebhookDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /api/organizations/webhook/roles — orgId: ${dto.orgId}`);
+  @ApiProvisionRoles()
+  async provision(@Body() dto: ProvisionRolesInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /api/organizations/internal/roles — orgId: ${dto.orgId}`);
     return this.roleService.provision(dto.orgId, dto.roles);
   }
 
   // Lists all roles for an organization
   @Get()
-  @ApiListRolesWebhook()
+  @ApiListRoles()
   async list(@Query('orgId') orgId: string): Promise<Role[]> {
-    this.logger.log(`GET /api/organizations/webhook/roles?orgId=${orgId}`);
+    this.logger.log(`GET /api/organizations/internal/roles?orgId=${orgId}`);
     return this.roleService.findByOrg(orgId);
   }
 
   // Returns all roles for the given business unit's organization
   @Get('for-bu')
-  @ApiRolesForBuWebhook()
+  @ApiRolesForBu()
   async findForBu(@Query('buId') buId: string): Promise<Role[]> {
-    this.logger.log(`GET /api/organizations/webhook/roles/for-bu?buId=${buId}`);
+    this.logger.log(`GET /api/organizations/internal/roles/for-bu?buId=${buId}`);
     return this.roleService.findForBU(buId);
   }
 
   // Creates a single role with features
   @Post('create')
   @HttpCode(HttpStatus.CREATED)
-  @ApiCreateRoleWebhook()
-  async create(@Body() dto: CreateRoleWebhookDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /api/organizations/webhook/roles/create — "${dto.name}" for org ${dto.orgId}`);
+  @ApiCreateRole()
+  async create(@Body() dto: CreateRoleInternalDto): Promise<CreateResponseDto<Role>> {
+    this.logger.log(`POST /api/organizations/internal/roles/create — "${dto.name}" for org ${dto.orgId}`);
     return this.roleService.create(dto.orgId, dto);
   }
 
   // Updates an existing role's metadata and features
   @Patch(':id')
-  @ApiUpdateRoleWebhook()
-  async update(@Param('id') id: string, @Body() dto: UpdateRoleWebhookDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /api/organizations/webhook/roles/${id}`);
+  @ApiUpdateRole()
+  async update(@Param('id') id: string, @Body() dto: UpdateRoleInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /api/organizations/internal/roles/${id}`);
     return this.roleService.update(id, dto);
   }
 
   // Deletes a role and its associated data
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiDeleteRoleWebhook()
+  @ApiDeleteRole()
   async remove(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /api/organizations/webhook/roles/${id}`);
+    this.logger.log(`DELETE /api/organizations/internal/roles/${id}`);
     return this.roleService.remove(id);
   }
 }

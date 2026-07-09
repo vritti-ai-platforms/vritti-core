@@ -3,7 +3,7 @@ import type { PaymentDto } from '@domain/payments/dto/entity/payment.dto';
 import { PaymentsService } from '@domain/payments/services/payments.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { NotFoundException } from '@vritti/api-sdk';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { InvoiceStatusValues } from '@/db/schema';
 import type { CreatePaymentDto } from './dto/request/create-payment.dto';
 

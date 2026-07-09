@@ -2,7 +2,7 @@ import type { GoodsReceiptLineDto } from '@domain/goods-receipt-lines/dto/entity
 import { GoodsReceiptLinesService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { GoodsReceiptsLinesService } from './services/goods-receipts-lines.service';
 
 @Controller()

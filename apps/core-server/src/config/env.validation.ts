@@ -1,5 +1,17 @@
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsBoolean, IsEmail, IsEnum, IsNumber, IsOptional, IsString, Max, Min, MinLength, validateSync } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MinLength,
+  validateSync,
+} from 'class-validator';
 
 enum Environment {
   Development = 'development',
@@ -118,13 +130,22 @@ class EnvironmentVariables {
   @Min(1)
   OTP_MAX_ATTEMPTS: number;
 
-  // Webhook
+  // Cloud deployment public key (Ed25519, base64 spki DER) — verifies signed internal API requests and licenses
   @IsString()
-  NEXUS_WEBHOOK_SECRET: string;
+  CLOUD_PUBLIC_KEY: string;
+
+  @IsString()
+  @IsOptional()
+  DEPLOYMENT_ID?: string;
 
   // Redis
   @IsString()
   REDIS_URL: string;
+
+  // Cache
+  @IsOptional()
+  @IsIn(['lru', 'redis'])
+  CACHE_DRIVER?: 'lru' | 'redis';
 
   // Domains
   @IsString()

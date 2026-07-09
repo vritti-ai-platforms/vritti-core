@@ -12,8 +12,6 @@ import type { AuthStatusResponse } from '../../types/auth-status';
 import { useAuthStatusStream } from './useAuthStatusStream';
 
 export type AuthSessionPhase = 'bootstrapping' | 'signedOut' | 'awaitingStatus' | 'authenticated';
-// How the current authenticated session was reached: a fresh login (show the BU picker) vs a
-// session restored on app relaunch (skip the picker; restore the last-used BU).
 export type AuthSessionOrigin = 'login' | 'restore' | null;
 
 function isAuthenticatedResponse(
@@ -64,8 +62,7 @@ export function useAuthSessionController() {
           ...mobileAxiosConfig,
           onSessionExpired: resetSignedOutState,
         });
-        // Dev: API_BASE_URL is the single API host — pin it over any stored deployment/tenant URL so
-        // GraphQL, REST, token-refresh and SSE all target it. No-op in prod (devRawCoreBaseUrl undefined).
+        // Dev: pin API_BASE_URL over any stored deployment/tenant URL so all traffic targets it (no-op in prod).
         if (config.api.devRawCoreBaseUrl) {
           await setMobileBaseURL(config.api.devRawCoreBaseUrl);
         }
@@ -76,8 +73,7 @@ export function useAuthSessionController() {
         setAuthState(null);
         setHasTenantBaseURL(!!storedBaseURL);
         if (restored && !!storedBaseURL) {
-          // Reached by restoring stored tokens on app relaunch — not a fresh login, so the
-          // BU picker is skipped and the last-used BU is restored.
+          // Restored from stored tokens on relaunch — not a fresh login, so skip the picker and restore the last-used BU.
           setSessionOrigin('restore');
           setPhase('awaitingStatus');
         } else {

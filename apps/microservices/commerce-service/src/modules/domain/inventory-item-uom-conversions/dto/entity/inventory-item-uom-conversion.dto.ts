@@ -22,11 +22,7 @@ export class InventoryItemUomConversionDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(
-    row: ConversionRow,
-    currentBuId: string,
-    isUsedBySupplierItem = false,
-  ): InventoryItemUomConversionDto {
+  static from(row: ConversionRow, currentBuId: string, isUsedBySupplierItem = false): InventoryItemUomConversionDto {
     const dto = new InventoryItemUomConversionDto();
     dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;

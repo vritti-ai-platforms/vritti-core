@@ -1,8 +1,5 @@
 import '../../global.css';
-// Runs AFTER MF async boundary — shared modules are safe to import here.
-// The host doesn't render Select, but Module Federation only PROVIDES a shared module the
-// provider actually imports. This side-effect import puts Select in the host bundle so
-// micro-apps that consume it (import: false) can resolve it. Mirrors App.tsx → BottomSheet.
+// Side-effect import puts Select in the host bundle so consuming micro-apps (import: false) can resolve it.
 import '@vritti/quantum-ui-native/Select';
 // Same rule for react-native-pager-view: the host renders no ScreenHeader tabs itself, but micro-apps'
 // tabbed screens consume the host-provided share (import: false). Without this import the share getter is
@@ -17,9 +14,6 @@ import { ALL_REMOTES } from './config/remotes.config';
 enableScreens();
 
 // Register the Keychain storage adapter + base axios config eagerly, before any screen renders.
-// Session restore (initializeMobileSession) later refines the base URL/tokens — this is idempotent.
-// Without it, the first storage write (e.g. setMobileBaseURL on deployment select) throws
-// "Mobile axios storage is not configured" because the adapter was only set inside a React effect.
 configureMobileAxios(mobileAxiosConfig);
 
 registerRemotes(

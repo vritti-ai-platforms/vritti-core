@@ -18,9 +18,7 @@ export function useRevokeSession(options?: UseRevokeSessionOptions) {
       loadingMessage: 'Revoking session...',
       successMessage: 'Session revoked successfully',
     },
-    // Evict the revoked session from the cached `sessions` list so the screen updates without
-    // a refetch. Apollo normalizes UserSession by sessionId, so remove the matching cache object
-    // and prune the dangling reference from the `sessions` query field.
+    // Evict the revoked session from the cached `sessions` list so the screen updates without a refetch.
     update: (cache, _result, { variables }) => {
       const sessionId = variables?.sessionId;
       if (!sessionId) return;

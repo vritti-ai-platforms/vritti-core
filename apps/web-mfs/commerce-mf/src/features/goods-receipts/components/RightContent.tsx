@@ -13,8 +13,7 @@ interface RightContentProps {
   onSelectionChange: (selection: TreeSelection | null) => void;
 }
 
-// Dispatches the GR breakdown detail column to a per-kind panel. Each panel owns its own
-// PageContentDetails (entity fetch + loading skeleton + content); this component just routes.
+// Dispatches the GR breakdown detail column to a per-kind panel; each panel owns its own fetch/skeleton.
 export const RightContent = ({ goodsReceiptId, isDraft, selection, onSelectionChange }: RightContentProps) => {
   switch (selection?.kind) {
     case 'item':

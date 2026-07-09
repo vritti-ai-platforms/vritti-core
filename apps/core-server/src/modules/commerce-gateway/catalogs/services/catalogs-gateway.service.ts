@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { BusinessUnitService } from '@/modules/domain/business-unit/services/business-unit.service';
 import type { AssignCatalogChannelDto } from '../dto/request/assign-catalog-channel.dto';
@@ -57,12 +57,6 @@ export class CatalogsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns catalog options for select dropdowns
-  select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('catalogs.select');
-    return this.nats.send('commerce', 'catalogs.select', params);
   }
 
   // Creates a new catalog, snapshotting the active BU's currency

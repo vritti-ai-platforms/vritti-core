@@ -1,13 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateSalesChannelDto } from './dto/request/create-sales-channel.dto';
 import { UpdateSalesChannelDto } from './dto/request/update-sales-channel.dto';
@@ -17,7 +11,7 @@ import { SalesChannelsGatewayService } from './services/sales-channels-gateway.s
 
 @ApiTags('Commerce - Sales Channels')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('sales-channels')
 export class SalesChannelsGatewayController {
   private readonly logger = new Logger(SalesChannelsGatewayController.name);
@@ -28,12 +22,6 @@ export class SalesChannelsGatewayController {
   getTable(@UserId() userId: string): Promise<SalesChannelTableResponseDto> {
     this.logger.log('GET /commerce-api/sales-channels/table');
     return this.service.findForTable(userId);
-  }
-
-  @Get('select')
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/sales-channels/select');
-    return this.service.select(query);
   }
 
   @Post()

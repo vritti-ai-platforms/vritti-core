@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemLedgerConnection } from '../graphql/inventory-item-ledger.type';
 import { InventoryItemsGatewayService } from '../services/inventory-items-gateway.service';
@@ -13,7 +13,7 @@ export class InventoryItemLedgerResolver {
 
   constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => InventoryItemLedgerConnection, { name: 'inventoryItemLedger' })
   async inventoryItemLedger(
     @Args('inventoryItemId', { type: () => ID }) inventoryItemId: string,

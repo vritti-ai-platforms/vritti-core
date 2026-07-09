@@ -1,12 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { BadRequestException } from '@vritti/api-sdk';
-import { EmailService } from '@vritti/api-sdk/email';
-import * as argon2 from 'argon2';
-import { SessionTypeValues } from '@/db/schema';
 import { SessionService } from '@domain/session/services/session.service';
 import { UserService } from '@domain/user/services/user.service';
 import { VerificationRepository } from '@domain/verification/repositories/verification.repository';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { EmailService } from '@vritti/api-sdk/email';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import * as argon2 from 'argon2';
+import { SessionTypeValues } from '@/db/schema';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
 import { ForgotPasswordResponseDto } from '../dto/response/forgot-password-response.dto';
 import { ResetPasswordResponseDto } from '../dto/response/reset-password-response.dto';
@@ -182,7 +182,10 @@ export class PasswordResetService {
   }
 
   // Validates verified OTP window, resets password, and creates a new NEXUS session
-  async resetPassword(newPassword: string, userId: string): Promise<ResetPasswordResponseDto & { refreshToken: string }> {
+  async resetPassword(
+    newPassword: string,
+    userId: string,
+  ): Promise<ResetPasswordResponseDto & { refreshToken: string }> {
     const verification = await this.verificationRepository.findByUserId(userId);
 
     if (!verification?.isVerified || !verification.verifiedAt) {
@@ -212,7 +215,7 @@ export class PasswordResetService {
 
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       userId,
-      SessionTypeValues.NEXUS,
+      SessionTypeValues.WEB,
       {},
     );
 

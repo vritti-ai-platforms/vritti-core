@@ -4,7 +4,7 @@ import type { StockAdjustmentTreeNode } from '@domain/stock-adjustment-lots/dto/
 import { StockAdjustmentLotsService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { StockAdjustmentsLotsService } from './services/stock-adjustments-lots.service';
 
 @Controller()

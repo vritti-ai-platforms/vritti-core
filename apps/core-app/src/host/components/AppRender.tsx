@@ -10,24 +10,16 @@ import { authenticatedRoutes, authRoutes } from '../routes';
 import { BusinessUnitSelectionScreen } from '../screens/business-unit/BusinessUnitSelectionScreen';
 import { StartupSplashScreen } from './StartupSplashScreen';
 
-// Single-screen stack for the post-login BU picker. It must run inside a NavigationContainer
-// so ScreenContainer's scroll-restore (which reads the navigation object) works; it also gives
-// the picker a native "Select business unit" header.
 const businessUnitSelectionRoutes: ReadonlyArray<PushScreenConfig<'SelectBusinessUnit'>> = [
   { name: 'SelectBusinessUnit', component: BusinessUnitSelectionScreen, title: 'Select business unit' },
 ];
 
-// Gate between auth and the feature nav: wait for the BUs, then ask which BU to use when there's
-// more than one (PermissionProvider auto-selects a lone BU). Both branches render a navigator
-// inside the NavigationContainer (React Navigation's conditional-navigator pattern) so every
-// screen has a navigation object.
+// Gate between auth and feature nav: waits for BUs, then asks which BU to use when there's more than one.
 const AuthenticatedGate = ({ navTheme }: { navTheme: Theme }) => {
   const { selectedBuId, businessUnits, isLoadingBUs } = usePermissionContext();
   const { sessionOrigin } = useAuthSessionSnapshot();
 
-  // Show the splash while BUs resolve, and during the brief restore gap where selectedBuId is
-  // null but we're about to auto-select the last-used BU (sessionOrigin !== 'login') — so a
-  // reload goes splash → features with no BU-picker flash. The picker shows only on fresh login.
+  // Show splash while BUs resolve and during the restore gap before auto-selecting the last-used BU.
   if (isLoadingBUs || businessUnits.length === 0 || (!selectedBuId && sessionOrigin !== 'login')) {
     return <StartupSplashScreen statusText="Loading your workspace" />;
   }

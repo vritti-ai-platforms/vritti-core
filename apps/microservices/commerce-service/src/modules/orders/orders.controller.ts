@@ -2,7 +2,7 @@ import type { OrderDetailDto, OrderDto } from '@domain/orders/dto/entity/order.d
 import { OrdersService } from '@domain/orders/services/orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk/database';
 import type { CreateOrderDto } from './dto/request/create-order.dto';
 import type { UpdateOrderStatusDto } from './dto/request/update-order-status.dto';
 

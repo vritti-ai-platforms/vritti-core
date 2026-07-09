@@ -24,8 +24,7 @@ export const DynamicFeatureNavigator = () => {
           name: feature.route.routePrefix,
           component: RemoteScreen,
           params: { remoteName, remoteEntry, moduleName },
-          // Icon names arrive as plain strings from the API; cast to the strict TabIcon unions since
-          // the values are validated at write time in the cloud admin and trusted at runtime.
+          // Icon names arrive as plain strings from the API; cast to TabIcon since they're validated at write time and trusted at runtime.
           icon: {
             sfSymbol: feature.sfSymbol,
             materialSymbol: feature.materialSymbol,

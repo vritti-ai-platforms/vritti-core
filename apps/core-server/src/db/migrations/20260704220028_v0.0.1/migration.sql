@@ -1,0 +1,1 @@
+ALTER TYPE "vritti_core"."session_type" RENAME VALUE 'NEXUS' TO 'WEB';

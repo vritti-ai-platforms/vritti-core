@@ -1,5 +1,5 @@
-import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
+import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   StockAdjustmentData,
   StockAdjustmentLineData,
@@ -13,7 +13,6 @@ import type {
   StockAdjustmentType,
 } from '@/schemas/stock-adjustments';
 
-// Header
 export interface CreateStockAdjustmentPayload {
   inventoryItemId: string;
   type: StockAdjustmentType;
@@ -26,7 +25,6 @@ export interface UpdateStockAdjustmentPayload {
   unitCost?: { currency: string; value: string };
 }
 
-// Lots
 export interface AddStockAdjustmentLotPayload {
   lotNumber: string;
   manufacturingDate?: string | null;
@@ -39,11 +37,10 @@ export interface UpdateStockAdjustmentLotPayload {
   expiryDate?: string | null;
 }
 
-// Lines
 export interface AddStockAdjustmentLinePayload {
-  stockAdjustmentLotId?: string | null; // OPENING_STOCK + tracking=lot/item
-  locationId?: string | null; // OPENING_STOCK
-  quantId?: string | null; // deduct/CORRECTION
+  stockAdjustmentLotId?: string | null;
+  locationId?: string | null;
+  quantId?: string | null;
   uomId: string;
   uomQty: number;
 }
@@ -56,7 +53,6 @@ export interface UpdateStockAdjustmentLinePayload {
   uomQty?: number;
 }
 
-// Line items (serials)
 export interface AddStockAdjustmentLineItemPayload {
   serialNumber: string;
 }
@@ -226,7 +222,10 @@ export function addStockAdjustmentLineItem(
   data: AddStockAdjustmentLineItemPayload,
 ): Promise<CreateResponse<StockAdjustmentLineItemData>> {
   return axios
-    .post<CreateResponse<StockAdjustmentLineItemData>>(`commerce-api/stock-adjustments/${id}/lines/${lineId}/items`, data)
+    .post<CreateResponse<StockAdjustmentLineItemData>>(
+      `commerce-api/stock-adjustments/${id}/lines/${lineId}/items`,
+      data,
+    )
     .then((r) => r.data);
 }
 

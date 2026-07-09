@@ -15,8 +15,7 @@ export function useRevokeAllSessions(options?: UseRevokeAllSessionsOptions) {
       loadingMessage: 'Signing out all devices...',
       successMessage: 'Signed out from all other devices',
     },
-    // Revoking all sessions drops every session except the current one. Refetch `sessions` so
-    // the cached list reflects the single surviving session rather than guessing which to evict.
+    // Refetch `sessions` so the cached list reflects the single surviving session.
     refetchQueries: [{ query: SESSIONS_QUERY }],
     ...options,
   });

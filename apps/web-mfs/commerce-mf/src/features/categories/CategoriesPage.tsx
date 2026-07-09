@@ -1,9 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { CATEGORIES } from '@vritti/commerce-permissions/categories';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { PermissionGate } from '@vritti/quantum-ui/PermissionGate';
 import { FolderTree, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { CATEGORIES_KEY, useCategoryCount } from '@/hooks/categories';
@@ -22,15 +24,17 @@ export const CategoriesPage = () => {
         title="Categories"
         description={`${categoryCount.count} total categories`}
         actions={
-          <Button onClick={formDialog.open} startAdornment={<Plus className="size-4" />}>
+          <Button onClick={formDialog.open} startAdornment={<Plus className="size-4" />} permission={CATEGORIES.add}>
             Add Category
           </Button>
         }
       />
 
       <PageContent>
-        <CategoryTreePanel selectedId={selectedId} onSelect={setSelectedId} />
-        <CategoryDetailPanel categoryId={selectedId} onSelectCategory={setSelectedId} />
+        <PermissionGate permission={CATEGORIES.view}>
+          <CategoryTreePanel selectedId={selectedId} onSelect={setSelectedId} />
+          <CategoryDetailPanel categoryId={selectedId} onSelectCategory={setSelectedId} />
+        </PermissionGate>
       </PageContent>
 
       <Dialog

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import {
   CreateInventoryItemLocationInput,
@@ -18,7 +18,7 @@ export class InventoryItemLocationsResolver {
 
   constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => InventoryItemLocationConnection, { name: 'inventoryItemLocations' })
   async inventoryItemLocations(
     @Args('inventoryItemId', { type: () => ID }) inventoryItemId: string,
@@ -30,7 +30,7 @@ export class InventoryItemLocationsResolver {
   }
 
   // Returns the created entity so the client prepends it into the cached feed (no refetch).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => InventoryItemLocation, { name: 'createInventoryItemLocation' })
   async createInventoryItemLocation(
     @Args('inventoryItemId', { type: () => ID }) inventoryItemId: string,
@@ -42,7 +42,7 @@ export class InventoryItemLocationsResolver {
   }
 
   // Update changes only reorderLevel; returns success — the client patches the cached entity by id.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'updateInventoryItemLocation' })
   async updateInventoryItemLocation(
     @Args('id', { type: () => ID }) id: string,
@@ -53,7 +53,7 @@ export class InventoryItemLocationsResolver {
   }
 
   // Deletes a config; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteInventoryItemLocation' })
   async deleteInventoryItemLocation(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteInventoryItemLocation');

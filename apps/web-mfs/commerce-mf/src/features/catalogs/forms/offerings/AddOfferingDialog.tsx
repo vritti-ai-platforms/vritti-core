@@ -22,8 +22,6 @@ import { type CreateOfferingFormData, createOfferingSchema, type FulfilmentType 
 import type { CreateOfferingDefaultVariant, CreateOfferingPayload } from '@/services/offerings.service';
 import { VariantComponentsField } from '../../components/offerings/VariantComponentsField';
 
-// UI-level kind. Maps to fulfilment_type; "Stocked with variants" differs only in input flow
-// (no inventory pick here — combos are mapped per-variant later on the Variations tab).
 type OfferingKind = 'STOCK_SINGLE' | 'STOCK_VARIANTS' | 'SERVICE' | 'COMPOSITE';
 
 const KIND_OPTIONS: { value: OfferingKind; label: string; description: string; icon: LucideIcon }[] = [
@@ -41,7 +39,6 @@ function kindToFulfilment(kind: OfferingKind): FulfilmentType {
 
 interface AddOfferingDialogProps {
   catalogId: string;
-  businessUnitId: string;
   currencyCode: string;
   onSuccess: () => void;
   onCancel: () => void;
@@ -49,7 +46,6 @@ interface AddOfferingDialogProps {
 
 export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
   catalogId,
-  businessUnitId,
   currencyCode,
   onSuccess,
   onCancel,
@@ -178,7 +174,7 @@ export const AddOfferingDialog: React.FC<AddOfferingDialogProps> = ({
         />
 
         <div className="grid grid-cols-2 gap-4">
-          <CategorySelector name="categoryId" params={{ buId: businessUnitId, status: 'active' }} clearable />
+          <CategorySelector name="categoryId" clearable />
           <TaxGroupSelector name="salesTaxGroupId" label="Sales Tax Group" placeholder="Select tax group" />
         </div>
 

@@ -1,12 +1,10 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export type InvoiceType = 'PAYABLE' | 'RECEIVABLE';
 export type InvoicePartyType = 'SUPPLIER' | 'CUSTOMER' | 'AGGREGATOR';
 export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'VOID';
 
-// Money fields below are bigint minor units serialized as strings — feed straight into
-// formatCurrency() / minorToMajor(). For arithmetic, parse with BigInt(...).
 export interface InvoiceItemData {
   id: string;
   description: string;

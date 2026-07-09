@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, Min } from 'class-validator';
-import { LocationRoleValues, type LocationRole } from '../../constants/location-role.constants';
+import { type LocationRole, LocationRoleValues } from '../../constants/location-role.constants';
 
 export class UpdateLocationDto {
   @ApiPropertyOptional({ description: 'Updated location name' })

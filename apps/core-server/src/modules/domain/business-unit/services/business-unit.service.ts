@@ -1,13 +1,17 @@
+import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { BadRequestException, NotFoundException, SuccessResponseDto } from '@vritti/api-sdk';
-import { BuContextCacheService } from '@/common/services/bu-context-cache.service';
+import { type BuFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import type { BuMetadata, BuType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { normalizeLockCascade } from '@/rbac/permission-dependencies';
+import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { BusinessUnitDto } from '../dto/entity/business-unit.dto';
-import type { CreateBusinessUnitWebhookDto } from '../dto/request/create-business-unit-webhook.dto';
-import type { ReplaceBuSnapshotWebhookDto } from '../dto/request/replace-bu-snapshot-webhook.dto';
-import type { UpdateBusinessUnitWebhookDto } from '../dto/request/update-business-unit-webhook.dto';
+import type { CreateBusinessUnitInternalDto } from '../dto/request/create-business-unit-internal.dto';
+import type { UpdateBusinessUnitInternalDto } from '../dto/request/update-business-unit-internal.dto';
 import { BusinessUnitRepository } from '../repositories/business-unit.repository';
 
 // Builds an ltree path by appending a lowercase code to the parent path
@@ -23,11 +27,13 @@ export class BusinessUnitService {
   constructor(
     private readonly businessUnitRepository: BusinessUnitRepository,
     private readonly buContextCache: BuContextCacheService,
+    private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly catalogService: CatalogService,
   ) {}
 
   // Creates a business unit, computes depth/path from parent, and updates path with new ID
-  async create(orgId: string, dto: CreateBusinessUnitWebhookDto): Promise<BusinessUnitDto> {
+  async create(orgId: string, dto: CreateBusinessUnitInternalDto): Promise<BusinessUnitDto> {
     let depth = 0;
     let parentPath: string | null = null;
 
@@ -83,7 +89,7 @@ export class BusinessUnitService {
   }
 
   // Updates a business unit's fields
-  async update(id: string, dto: UpdateBusinessUnitWebhookDto): Promise<SuccessResponseDto> {
+  async update(id: string, dto: UpdateBusinessUnitInternalDto): Promise<SuccessResponseDto> {
     const bu = await this.businessUnitRepository.findById(id);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
@@ -98,7 +104,7 @@ export class BusinessUnitService {
       updatedAt: new Date(),
     });
 
-    this.buContextCache.invalidate(id);
+    await this.buContextCache.invalidate(id);
 
     // Re-push fresh auth-state to live SSE connections of users in this BU (timezone/currency changed)
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
@@ -107,24 +113,29 @@ export class BusinessUnitService {
     return { success: true, message: 'Business unit updated successfully.' };
   }
 
-  // Replaces the business unit's snapshot (feature catalog). Apps are DERIVED from it — an app is assigned
-  // when it owns at least one usable (non-locked) feature.
-  async replaceSnapshot(id: string, dto: ReplaceBuSnapshotWebhookDto): Promise<SuccessResponseDto> {
+  // Replaces the business unit's feature lock deny-list (null = inherit the full plan)
+  async setFeatureLocks(id: string, featureLocks: BuFeatureLocks | null): Promise<SuccessResponseDto> {
     const bu = await this.businessUnitRepository.findById(id);
     if (!bu) throw new NotFoundException('Business unit not found.');
 
-    const featureCatalog = dto.featureCatalog ?? [];
-    const appCodes = [...new Set(featureCatalog.filter((f) => !f.locked).map((f) => f.appCode))];
+    // Locking a prerequisite must also lock its dependents — expand the deny-list before persisting
+    let expanded = featureLocks;
+    if (featureLocks) {
+      const snapshot = await this.catalogService.getActiveSnapshot();
+      if (snapshot) expanded = normalizeLockCascade(featureLocks, snapshot);
+    }
 
-    await this.businessUnitRepository.update(id, { appCodes, featureCatalog, updatedAt: new Date() });
+    await this.businessUnitRepository.update(id, { featureLocks: expanded, updatedAt: new Date() });
 
-    this.buContextCache.invalidate(id);
+    await this.buContextCache.invalidate(id);
+    await this.permissionSetCache.invalidateByBu(id);
     // Push the refreshed feature set to live SSE connections of users in this BU
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(id));
+
     this.logger.log(
-      `Replaced snapshot for business unit ${id}: ${featureCatalog.length} feature(s), [${appCodes.join(', ')}]`,
+      `Set feature locks for business unit ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
     );
-    return { success: true, message: 'Business unit snapshot updated successfully.' };
+    return { success: true, message: 'Business unit feature locks updated successfully.' };
   }
 
   // Deletes a business unit after checking it has no children
@@ -142,7 +153,7 @@ export class BusinessUnitService {
 
     await this.businessUnitRepository.delete(id);
 
-    this.buContextCache.invalidate(id);
+    await this.buContextCache.invalidate(id);
     this.logger.log(`Deleted business unit "${bu.name}" (${id})`);
     return { success: true, message: 'Business unit deleted successfully.' };
   }

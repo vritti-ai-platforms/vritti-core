@@ -2,7 +2,7 @@ import type { StockTransferDto } from '@domain/stock-transfers/dto/entity/stock-
 import { StockTransfersService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk/database';
 import type { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
 import { StockTransfersRootService } from './services/stock-transfers-root.service';

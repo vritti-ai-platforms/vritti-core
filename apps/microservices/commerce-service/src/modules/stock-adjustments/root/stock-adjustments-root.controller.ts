@@ -1,7 +1,7 @@
 import type { StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type CreateResponseDto, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type { StockAdjustmentType } from '@/db/schema';
 import { StockAdjustmentsRootService } from './services/stock-adjustments-root.service';
@@ -22,10 +22,7 @@ export class StockAdjustmentsRootController {
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.findById' })
-  findById(
-    @Payload() data: { id: string },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
-  ): Promise<StockAdjustmentDto> {
+  findById(@Payload() data: { id: string }, @RpcBuCurrencyCode() buCurrencyCode: string): Promise<StockAdjustmentDto> {
     this.logger.log(`stockAdjustments.findById — id: ${data.id}`);
     return this.service.findById(data.id, buCurrencyCode);
   }

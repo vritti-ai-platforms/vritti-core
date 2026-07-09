@@ -1,5 +1,5 @@
-import { IsCurrencyCode } from '@vritti/api-sdk';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsCurrencyCode } from '@vritti/api-sdk/money';
 import { IsNumber, IsOptional, IsPositive } from 'class-validator';
 
 export class ChangeSupplierCurrencyDto {

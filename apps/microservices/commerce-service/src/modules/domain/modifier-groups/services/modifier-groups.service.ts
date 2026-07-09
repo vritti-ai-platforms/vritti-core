@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NotFoundException, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { ModifierGroup } from '@/db/schema';
 import type { CreateModifierGroupDto } from '@/modules/catalogs/dto/request/create-modifier-group.dto';
 import type { CreateModifierOptionDto } from '@/modules/catalogs/dto/request/create-modifier-option.dto';

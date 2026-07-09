@@ -38,13 +38,13 @@ export const EditUomDimensionDialog: React.FC<EditUomDimensionDialogProps> = ({ 
       transformSubmit={(data) => ({
         id: dimension.id,
         data: {
-          code: data.code?.toUpperCase(),
+          code: data.code,
           name: data.name,
           description: data.description?.trim() ? data.description : undefined,
         },
       })}
     >
-      <TextField name="code" label="Code" placeholder="e.g. WEIGHT" />
+      <TextField name="code" label="Code" placeholder="e.g. weight" />
       <TextField name="name" label="Name" placeholder="e.g. Weight" />
       <TextArea name="description" label="Description" placeholder="Optional description" />
       <DialogActions>

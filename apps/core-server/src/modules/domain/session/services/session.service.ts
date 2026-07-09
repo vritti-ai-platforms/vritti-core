@@ -1,11 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  hashToken,
-  TokenService,
-  TokenType,
-  UnauthorizedException,
-} from '@vritti/api-sdk';
+import { hashToken, TokenService, TokenType } from '@vritti/api-sdk/auth';
+import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import { type Session, type SessionType } from '@/db/schema';
 import { SessionRepository } from '../repositories/session.repository';
 
@@ -63,7 +59,12 @@ export class SessionService {
     expiresIn: number;
   }> {
     const session = await this.validateRefreshToken(refreshToken);
-    const sessionInfo = { userId: session.userId, sessionId: session.id, sessionType: session.type, ...(session.metadata as Record<string, unknown>) };
+    const sessionInfo = {
+      userId: session.userId,
+      sessionId: session.id,
+      sessionType: session.type,
+      ...(session.metadata as Record<string, unknown>),
+    };
     const newRefreshToken = this.tokenService.generateRefreshToken(sessionInfo);
     const newAccessToken = this.tokenService.generateAccessToken(sessionInfo, newRefreshToken);
     const expiresAt = this.tokenService.getExpiryTime(TokenType.REFRESH);
@@ -91,7 +92,12 @@ export class SessionService {
     sessionId: string;
   }> {
     const session = await this.validateRefreshToken(refreshToken);
-    const sessionInfo = { userId: session.userId, sessionId: session.id, sessionType: session.type, ...(session.metadata as Record<string, unknown>) };
+    const sessionInfo = {
+      userId: session.userId,
+      sessionId: session.id,
+      sessionType: session.type,
+      ...(session.metadata as Record<string, unknown>),
+    };
     const newAccessToken = this.tokenService.generateAccessToken(sessionInfo, refreshToken as string);
 
     await this.sessionRepository.updateAccessTokenHash(session.id, hashToken(newAccessToken));
@@ -100,7 +106,13 @@ export class SessionService {
 
     this.logger.log(`Generated access token for user: ${session.userId}`);
 
-    return { accessToken: newAccessToken, expiresIn, userId: session.userId, sessionType: session.type, sessionId: session.id };
+    return {
+      accessToken: newAccessToken,
+      expiresIn,
+      userId: session.userId,
+      sessionType: session.type,
+      sessionId: session.id,
+    };
   }
 
   // Validates refresh token and returns the active non-expired session

@@ -8,7 +8,7 @@ import type {
   SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import type { CreateCostCategoryDto } from './dto/request/create-cost-category.dto';
 import type { UpdateCostCategoryDto } from './dto/request/update-cost-category.dto';
 

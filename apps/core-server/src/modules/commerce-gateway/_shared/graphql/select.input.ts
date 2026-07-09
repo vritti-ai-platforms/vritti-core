@@ -1,12 +1,6 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
-// GraphQL input mirroring api-sdk SelectOptionsQueryDto — structurally forwarded to each gateway `.select()`
-// (so resolvers stay one-line). `values`/`excludeIds` are CSV strings (matching the DTO); the client joins
-// arrays before sending. Entity-specific extras (e.g. inventoryItemId, supplierId) are separate @Args.
-//
-// class-validator decorators are REQUIRED: the global ValidationPipe runs with `whitelist` +
-// `forbidNonWhitelisted`, so any field lacking a validation decorator is rejected as "should not exist".
 @InputType()
 export class SelectOptionsInput {
   @IsOptional()

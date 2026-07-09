@@ -1,4 +1,4 @@
-import { IsDateTime } from '@vritti/api-sdk';
+import { IsDateTime } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsArray, IsNumber, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested } from 'class-validator';
 import { CreateInvoiceItemDto } from './create-invoice.dto';

@@ -1,5 +1,5 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -53,8 +53,7 @@ const ItemDetailContent = ({
   // How much of the total received quantity is still undistributed — the cap for adding/editing lines.
   const remainingToDistribute = Math.max(item.totalQty - item.acceptedQuantity, 0);
 
-  // Quantity/serial items are received directly into location lines; lot/lot_serial items break down
-  // into lots first.
+  // Quantity/serial items receive directly into location lines; lot/lot_serial items break into lots first.
   const usesLines = tracking === InventoryTrackingValues.QUANTITY || tracking === InventoryTrackingValues.SERIAL;
 
   const handleRemoveItem = async () => {
@@ -125,25 +124,27 @@ interface ItemHeaderProps {
 
 const ItemHeader = ({ item, uomSymbol, isDraft, onEdit, onRemove, isRemovePending }: ItemHeaderProps) => (
   <div className="space-y-6">
-    <div className="flex items-start justify-between gap-4">
-      <h3 className="text-xl font-semibold">{item.inventoryItemName}</h3>
-      {isDraft && (
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" startAdornment={<Pencil className="size-3.5" />} onClick={onEdit}>
-            Edit Item
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            startAdornment={<Trash2 className="size-3.5" />}
-            onClick={onRemove}
-            isLoading={isRemovePending}
-          >
-            Remove Item
-          </Button>
-        </div>
-      )}
-    </div>
+    <DetailHeader
+      title={item.inventoryItemName}
+      actions={
+        isDraft ? (
+          <>
+            <Button size="sm" variant="outline" startAdornment={<Pencil className="size-3.5" />} onClick={onEdit}>
+              Edit Item
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              startAdornment={<Trash2 className="size-3.5" />}
+              onClick={onRemove}
+              isLoading={isRemovePending}
+            >
+              Remove Item
+            </Button>
+          </>
+        ) : undefined
+      }
+    />
     <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
       <DetailSection wrap>
         <DetailField

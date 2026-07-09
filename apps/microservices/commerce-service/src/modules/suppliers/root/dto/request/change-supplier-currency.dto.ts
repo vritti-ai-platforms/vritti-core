@@ -1,4 +1,4 @@
-import { IsCurrencyCode } from '@vritti/api-sdk';
+import { IsCurrencyCode } from '@vritti/api-sdk/money';
 import { IsNumber, IsOptional, IsPositive } from 'class-validator';
 
 export class ChangeSupplierCurrencyDto {

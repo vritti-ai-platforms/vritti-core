@@ -1,20 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  type CurrencyCode,
-  DataTableStateService,
-  majorToMinor,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { AddChangeStockAdjustmentLineDto } from '../dto/request/add-change-stock-adjustment-line.dto';
 import type { AddOpeningStockAdjustmentLineDto } from '../dto/request/add-opening-stock-adjustment-line.dto';
 import type { AddStockAdjustmentLineItemDto } from '../dto/request/add-stock-adjustment-line-item.dto';
 import type { AddStockAdjustmentLotDto } from '../dto/request/add-stock-adjustment-lot.dto';
 import type { CreateStockAdjustmentDto } from '../dto/request/create-stock-adjustment.dto';
-import type { UpdateStockAdjustmentDto } from '../dto/request/update-stock-adjustment.dto';
 import type { UpdateChangeStockAdjustmentLineDto } from '../dto/request/update-change-stock-adjustment-line.dto';
 import type { UpdateOpeningStockAdjustmentLineDto } from '../dto/request/update-opening-stock-adjustment-line.dto';
+import type { UpdateStockAdjustmentDto } from '../dto/request/update-stock-adjustment.dto';
 import type { UpdateStockAdjustmentLineItemDto } from '../dto/request/update-stock-adjustment-line-item.dto';
 import type { UpdateStockAdjustmentLotDto } from '../dto/request/update-stock-adjustment-lot.dto';
 import type { StockAdjustmentLineItemResponseDto } from '../dto/response/stock-adjustment-line-item-response.dto';

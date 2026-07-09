@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
+import { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { AssignCatalogChannelDto } from '../dto/request/assign-catalog-channel.dto';
 import { CreateCatalogDto } from '../dto/request/create-catalog.dto';
 import { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';

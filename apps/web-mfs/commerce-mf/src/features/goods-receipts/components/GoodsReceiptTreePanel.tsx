@@ -52,12 +52,12 @@ const TreeRow = ({ item, isLeaf }: TreeRenderItemParams) => {
       <Typography variant="body2" className="flex-1 truncate">
         {node.name}
       </Typography>
-      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+      <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
         {node.kind}
       </span>
       <Badge
         variant="secondary"
-        className={`shrink-0 text-[10px] rounded-full px-1.5 py-0.5 leading-none ${
+        className={`shrink-0 text-xs rounded-full px-1.5 py-0.5 leading-none ${
           node.balanced ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
         }`}
       >

@@ -17,8 +17,9 @@ import { InventoryItemCostsRepository } from '@domain/inventory-item-quants/repo
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemsRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
 import { Injectable } from '@nestjs/common';
-import { BadRequestException, NotFoundException, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { allocateByWeight } from '@/common/allocate';
 import {
   CostDistributionMethodValues,

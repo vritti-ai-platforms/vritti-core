@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { SuccessResponseDto } from '@vritti/api-sdk';
+import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
 import { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
 import { TaxGroupResponseDto } from '../dto/response/tax-group-response.dto';
@@ -13,17 +13,6 @@ export function ApiFindForTableTaxGroups() {
       description: 'Returns a paginated page of tax groups using the user’s saved filter/sort/pagination state.',
     }),
     ApiResponse({ status: 200, description: 'Tax groups retrieved successfully.', type: TaxGroupTableResponseDto }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
-export function ApiSelectTaxGroups() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'List tax groups as dropdown options',
-      description: 'Returns tax groups formatted as select options (id → name), searchable and paginated.',
-    }),
-    ApiResponse({ status: 200, description: 'Tax group options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

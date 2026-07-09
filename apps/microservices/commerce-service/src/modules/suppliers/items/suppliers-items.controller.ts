@@ -2,7 +2,8 @@ import { SupplierItemsService } from '@domain/supplier-items/services/supplier-i
 import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, CurrencyAmountDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { AddSupplierItemDto } from './dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from './dto/request/update-supplier-item.dto';
 import { SuppliersItemsService } from './services/suppliers-items.service';

@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { UserPermissionsService } from '@domain/user-permissions/services/user-permissions.service';
 import { UserService } from '@domain/user/services/user.service';
+import { UserPermissionsService } from '@domain/user-permissions/services/user-permissions.service';
+import { Injectable } from '@nestjs/common';
 import type { BuSelectResponseDto } from '../dto/response/bu-select-response.dto';
 
 @Injectable()

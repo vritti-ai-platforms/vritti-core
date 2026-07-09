@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export const GoodsReceiptStatus = {
@@ -23,8 +23,7 @@ export const createGoodsReceiptSchema = z.object({
   purchaseOrderId: z.string().optional(),
   receivedDate: z.string({ error: 'Received date is required' }).min(1, 'Received date is required'),
   notes: z.string().optional(),
-  // Required only when supplier currency != BU currency AND the rate isn't inherited from a FIXED PO.
-  // Dialog gates visibility; server enforces presence with a clear error if missing.
+  // Required only when supplier currency != BU currency and not inherited from a FIXED PO.
   exchangeRate: z.number().positive('Exchange rate must be greater than 0').optional(),
 });
 export type CreateGoodsReceiptFormData = z.infer<typeof createGoodsReceiptSchema>;
@@ -77,16 +76,12 @@ export interface GoodsReceiptItemData {
   inventoryItemUomSymbol: string;
   inventoryItemAllowDecimal: boolean;
   inventoryItemHasMrp: boolean;
-  // ordered (paid) quantity for this item
   orderedQty: number;
-  // derived bonus quantity from the scheme
   freeQty: number;
-  // total received = orderedQty + freeQty; item is balanced when distributed equals this
   totalQty: number;
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   hasScheme: boolean;
-  // distributed so far — sum(lines.quantity); item is balanced when this equals totalQty
   acceptedQuantity: number;
   rejectedQuantity: number;
   lotsCount: number;
@@ -159,7 +154,6 @@ export interface GoodsReceiptLineData {
   locationId: string;
   locationName: string | null;
   locationPath: string | null;
-  // denormalized lot info (display only):
   lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
@@ -197,14 +191,9 @@ export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineI
 
 const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
 
-// GR Add-item has two source-specific shapes; the dialog picks the one matching whether the GR has a
-// linked PO. The server resolves the row identity (supplier_items.id / purchase_order_items.id) into
-// (inventoryItemId, uomId) and persists on the GR row. The unit-price is pre-filled by the picker
-// from the row's stored price; user may edit. Optional — when absent the publish-time auto-associate
-// skips this item and the user can post the SUPPLIER_PRICE manually via Add Cost.
+// GR add-item has two source shapes (supplier-item vs PO-item); server resolves row identity to (inventoryItemId, uomId); unit-price pre-filled and editable, optional.
 
-// The operator-declared item quantity is required; integer unless the UOM allows decimals, and
-// (when PO-linked) capped by the PO line's remaining quantity. Built per mount like the line schema.
+// Operator-declared item quantity: required, integer unless UOM allows decimals, capped by PO remaining when PO-linked.
 function buildOrderedQtyField(options: { allowDecimal: boolean; min?: number; max?: number }) {
   return zodNumericField({
     required: 'Ordered quantity is required',
@@ -217,15 +206,12 @@ function buildOrderedQtyField(options: { allowDecimal: boolean; min?: number; ma
   });
 }
 
-// Free-goods scheme inputs (buy + free ratio). free_qty itself is derived server-side; the
-// form only captures the editable ratio and shows a computed preview.
 const schemeShape = {
   schemeBuyQty: zodNumericField({ integer: true, positive: true }).optional(),
   schemeFreeQty: zodNumericField({ integer: true, positive: true }).optional(),
   hasScheme: z.boolean(),
 };
 
-// When a scheme is enabled, the buy/free ratio is required.
 const enforceSchemeRatio = (
   data: { hasScheme: boolean; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
   ctx: z.RefinementCtx,
@@ -296,10 +282,7 @@ export const addGoodsReceiptLotSchema = z
   });
 export type AddGoodsReceiptLotFormData = z.infer<typeof addGoodsReceiptLotSchema>;
 
-// Quantity rules depend on the GR-item UOM's allowDecimal flag, (when PO is linked) the PO
-// remaining quantity, and — for serial-tracked edit flows — the current serial count (so the user
-// can't shrink the line below the serials already attached). Build the schema per form mount so
-// zod enforces the same caps the input does.
+// Quantity rules depend on UOM allowDecimal, PO remaining (when linked), and current serial count; built per form mount.
 export function buildAddGoodsReceiptLineSchema(options: { allowDecimal: boolean; min?: number; max?: number }) {
   return z.object({
     goodsReceiptLotId: z.string().optional(),

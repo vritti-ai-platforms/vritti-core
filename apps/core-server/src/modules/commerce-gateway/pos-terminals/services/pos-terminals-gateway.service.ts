@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  type CreateResponseDto,
-  DataTableStateService,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type {
+  CreateResponseDto,
+  SelectOptionsQueryDto,
+  SelectQueryResult,
+  SuccessResponseDto,
+} from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreatePosTerminalDto } from '../dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from '../dto/request/update-pos-terminal.dto';
@@ -33,12 +33,6 @@ export class PosTerminalsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns POS terminal options for select dropdowns
-  select(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('posTerminals.select');
-    return this.nats.send('commerce', 'posTerminals.select', query);
   }
 
   // Returns POS-role storage location options for select dropdowns

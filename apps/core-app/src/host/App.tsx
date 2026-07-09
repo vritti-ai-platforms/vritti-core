@@ -13,8 +13,7 @@ import { preferencesStorage } from './config/storage';
 import { AuthProvider } from './providers/AuthProvider';
 
 export default function App() {
-  // Suspend (on the host's <Suspense> in index.tsx) until the persisted Apollo snapshot has been
-  // restored, so cache-first / cache-only reads see persisted data on the very first render.
+  // Suspend until the persisted Apollo snapshot is restored so first-render cache reads see persisted data.
   use(apolloReady);
 
   return (

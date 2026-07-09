@@ -1,16 +1,23 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
-  type CreateResponseDto,
-  RequireSession,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import { ApiGetLocationItemQuants, ApiGetLocationItemsTable } from './docs/locations-gateway.docs';
 import { CreateLocationDto } from './dto/request/create-location.dto';
-import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
 import { ReorderLocationsDto } from './dto/request/reorder-locations.dto';
 import { UpdateLocationDto } from './dto/request/update-location.dto';
 import type { LocationChildrenTableResponseDto } from './dto/response/location-children-table-response.dto';
@@ -23,7 +30,7 @@ import { LocationsGatewayService } from './services/locations-gateway.service';
 
 @ApiTags('Commerce - Storage Locations')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('locations')
 export class LocationsGatewayController {
   private readonly logger = new Logger(LocationsGatewayController.name);
@@ -52,14 +59,6 @@ export class LocationsGatewayController {
   ): Promise<LocationChildrenTableResponseDto> {
     this.logger.log(`GET /commerce-api/locations/${parentId}/children/table`);
     return this.locationsGatewayService.findChildrenForTable(userId, parentId);
-  }
-
-  // Returns paginated location options for select dropdowns
-  @Get('select')
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
-  select(@Query() query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/locations/select');
-    return this.locationsGatewayService.select(query);
   }
 
   // Reorders siblings under a parent location

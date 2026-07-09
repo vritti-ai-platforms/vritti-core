@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataTableStateService } from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateStockTransferDto } from '../dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from '../dto/request/update-stock-transfer-status.dto';
@@ -18,7 +18,10 @@ export class StockTransfersGatewayService {
   // Returns paginated, filtered, and sorted stock transfers for the data table
   async findForTable(userId: string): Promise<StockTransferTableResponseDto> {
     this.logger.log('stockTransfers.table');
-    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-stock-transfers');
+    const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
+      userId,
+      'commerce-stock-transfers',
+    );
 
     const { result, count } = await this.nats.send<{ result: StockTransferResponseDto[]; count: number }>(
       'commerce',

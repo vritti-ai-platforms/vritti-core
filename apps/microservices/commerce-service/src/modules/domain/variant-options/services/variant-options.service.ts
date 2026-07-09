@@ -1,11 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  ConflictException,
-  NotFoundException,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateVariantOptionDto } from '@/modules/catalogs/dto/request/create-variant-option.dto';
 import type { UpdateVariantOptionDto } from '@/modules/catalogs/dto/request/update-variant-option.dto';
 import { VariantOptionDto } from '../dto/entity/variant-option.dto';

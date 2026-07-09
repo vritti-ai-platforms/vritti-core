@@ -1,7 +1,7 @@
 import type { InventoryItemLedgerDto } from '@domain/inventory-item-ledger/dto/entity/inventory-item-ledger.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { TableViewState } from '@vritti/api-sdk';
+import type { TableViewState } from '@vritti/api-sdk/database';
 import { InventoryItemsLedgerService } from './services/inventory-items-ledger.service';
 
 @Controller()

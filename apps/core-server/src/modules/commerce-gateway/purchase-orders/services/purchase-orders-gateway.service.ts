@@ -1,13 +1,9 @@
 import { BrevoClient, BrevoError, BrevoTimeoutError } from '@getbrevo/brevo';
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  BadRequestException,
-  type CreateResponseDto,
-  DataTableStateService,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-response.dto';
@@ -17,7 +13,6 @@ import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-
 import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
-import type { PurchaseOrderSelectQueryDto } from '../dto/request/purchase-order-select-query.dto';
 import type { SendPurchaseOrderEmailDto } from '../dto/request/send-purchase-order-email.dto';
 import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
 import type { UpdatePurchaseOrderNotesDto } from '../dto/request/update-purchase-order-notes.dto';
@@ -73,12 +68,6 @@ export class PurchaseOrdersGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns purchase order options for select dropdowns
-  async select(params: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('purchaseOrders.select');
-    return this.nats.send('commerce', 'purchaseOrders.select', params);
   }
 
   // Creates a new purchase order

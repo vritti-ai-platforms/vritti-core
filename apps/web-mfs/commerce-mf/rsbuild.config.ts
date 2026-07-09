@@ -22,12 +22,18 @@ const quantumUIShared = isLocalQuantumUI
       '@vritti/quantum-ui/theme': { singleton: true, resolve: `${quantumUI}/lib/theme` },
       '@vritti/quantum-ui/context': { singleton: true, resolve: `${quantumUI}/lib/context` },
       '@vritti/quantum-ui/hooks': { singleton: true, resolve: `${quantumUI}/lib/hooks` },
+      // The permission gate context must be the host's instance, or gated Buttons in the remote see no provider
+      '@vritti/quantum-ui/PermissionGate': {
+        singleton: true,
+        resolve: `${quantumUI}/lib/components/PermissionGate`,
+      },
     }
   : {
       '@vritti/quantum-ui': { singleton: true },
       '@vritti/quantum-ui/theme': { singleton: true },
       '@vritti/quantum-ui/context': { singleton: true },
       '@vritti/quantum-ui/hooks': { singleton: true },
+      '@vritti/quantum-ui/PermissionGate': { singleton: true },
     };
 
 const useHttps = process.env.USE_HTTPS === 'true';

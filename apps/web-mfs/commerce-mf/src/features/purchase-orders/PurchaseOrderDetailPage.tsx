@@ -10,8 +10,6 @@ import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
 import { LineItemsTab } from './tabs/LineItemsTab';
 import { OverviewTab } from './tabs/OverviewTab';
 
-// Matches the backend's PurchaseOrderItemsService.EDITABLE_STATUSES. Per-line constraints
-// (no decrease below received qty, no delete on received lines) are enforced in LineItemsTab.
 const EDITABLE_PO_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED'];
 
 export const PurchaseOrderDetailPage = () => {

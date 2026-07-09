@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import {
-  BadRequestException,
-  type CreateResponseDto,
-  NotFoundException,
-  PrimaryDatabaseService,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, PrimaryDatabaseService, type SuccessResponseDto } from '@vritti/api-sdk/database';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { SupplierContactDto } from '../dto/entity/supplier-contact.dto';
 import { SupplierContactsRepository } from '../repositories/supplier-contacts.repository';
 

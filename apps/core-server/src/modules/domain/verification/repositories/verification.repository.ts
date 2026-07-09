@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
 import { type NewVerification, type Verification, verifications } from '@/db/schema';
 

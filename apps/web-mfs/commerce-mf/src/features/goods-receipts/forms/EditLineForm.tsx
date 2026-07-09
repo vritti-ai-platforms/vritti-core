@@ -40,14 +40,12 @@ export const EditLineForm = ({
   onCancel,
 }: EditLineFormProps) => {
   const isSerial = tracking === InventoryTrackingValues.SERIAL || tracking === InventoryTrackingValues.LOT_SERIAL;
-  // For Edit, the line's own current quantity is part of the PO usage; the effective max for the
-  // editor is `poRemaining + line.quantity` so the user can hold steady or shift quantity around.
+  // The line's own quantity counts toward PO usage, so the editor's effective max is `poRemaining + line.quantity`.
   const effectiveMax = useMemo(() => {
     if (poRemainingQuantity == null) return undefined;
     return poRemainingQuantity + (line.quantity ?? 0);
   }, [poRemainingQuantity, line.quantity]);
-  // For serial-tracked lines, quantity can never drop below the count of serials already attached —
-  // otherwise the line would be in a state count > quantity with no valid path to balanced.
+  // Serial-tracked lines can't drop quantity below the count of serials already attached.
   const minQty = isSerial ? line.lineItemsCount : undefined;
   const schema = useMemo(
     () => buildAddGoodsReceiptLineSchema({ allowDecimal, min: minQty, max: effectiveMax }),

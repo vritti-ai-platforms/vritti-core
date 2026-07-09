@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
 import {
   IsArray,

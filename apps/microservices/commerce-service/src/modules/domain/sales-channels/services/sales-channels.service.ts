@@ -1,16 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  ConflictException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type SalesChannel, type SalesChannelKind, salesChannels } from '@/db/schema';
 import { SalesChannelDto } from '../dto/entity/sales-channel.dto';
 import { SalesChannelsRepository } from '../repositories/sales-channels.repository';

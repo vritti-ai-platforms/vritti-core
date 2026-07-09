@@ -1,7 +1,7 @@
 import { InventoryItemSerialsService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/database';
 
 @Controller()
 export class InventoryItemsSerialsController {

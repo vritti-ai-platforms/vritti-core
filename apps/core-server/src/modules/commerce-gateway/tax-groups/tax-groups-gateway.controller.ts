@@ -1,20 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { SessionTypeValues } from '@/db/schema';
+import { RequirePermission } from '@/rbac/decorators';
 import {
   ApiCreateTaxGroup,
   ApiDeleteTaxGroup,
   ApiFindForTableTaxGroups,
   ApiGetTaxGroup,
-  ApiSelectTaxGroups,
   ApiUpdateTaxGroup,
 } from './docs/tax-groups-gateway.docs';
 import { CreateTaxGroupDto } from './dto/request/create-tax-group.dto';
@@ -25,7 +20,7 @@ import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 
 @ApiTags('Commerce - Tax Groups')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('tax-groups')
 export class TaxGroupsGatewayController {
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
@@ -37,16 +32,10 @@ export class TaxGroupsGatewayController {
     return this.taxGroupsGatewayService.findForTable(userId);
   }
 
-  // Returns tax groups as dropdown options
-  @Get('select')
-  @ApiSelectTaxGroups()
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.taxGroupsGatewayService.select(query);
-  }
-
   // Creates a new tax group
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(TAX_GROUPS.add)
   @ApiCreateTaxGroup()
   async create(@Body() dto: CreateTaxGroupDto): Promise<CreateResponseDto<TaxGroupResponseDto>> {
     return this.taxGroupsGatewayService.create(dto);
@@ -61,6 +50,7 @@ export class TaxGroupsGatewayController {
 
   // Updates a tax group by ID
   @Patch(':id')
+  @RequirePermission(TAX_GROUPS.edit)
   @ApiUpdateTaxGroup()
   async update(@Param('id') id: string, @Body() dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
     return this.taxGroupsGatewayService.update(id, dto);
@@ -68,6 +58,7 @@ export class TaxGroupsGatewayController {
 
   // Deletes a tax group by ID
   @Delete(':id')
+  @RequirePermission(TAX_GROUPS.delete)
   @ApiDeleteTaxGroup()
   async delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     return this.taxGroupsGatewayService.delete(id);

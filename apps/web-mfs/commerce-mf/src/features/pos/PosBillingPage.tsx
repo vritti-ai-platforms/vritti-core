@@ -159,11 +159,11 @@ export const PosBillingPage = () => {
       items: cart.map((line) => ({
         offeringVariantId: line.offeringVariantId,
         quantity: line.quantity,
+        // Server re-derives each modifier's authoritative price from the catalog — client sends identity only
         modifiers: line.modifiers.map((modifier) => ({
           modifierGroupId: modifier.modifierGroupId,
           modifierOptionId: modifier.modifierOptionId,
           name: modifier.name,
-          additionalPrice: Number(minorToMajor(modifier.additionalPrice, line.unitPrice.currency)),
         })),
       })),
     });
@@ -210,7 +210,7 @@ export const PosBillingPage = () => {
               <Typography variant="subtitle1" className="truncate tracking-tight">
                 {terminal.name}
               </Typography>
-              <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-emerald-500">
+              <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-500">
                 <span className="size-1.5 rounded-full bg-emerald-500" />
                 Open
               </span>
@@ -243,7 +243,7 @@ export const PosBillingPage = () => {
 
       <div className="flex min-h-0 flex-1">
         <nav className="flex w-52 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border bg-card/40 p-3">
-          <div className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Categories
           </div>
           {categories.map((category) => {
@@ -274,7 +274,7 @@ export const PosBillingPage = () => {
                 </span>
                 <span
                   className={cn(
-                    'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium tabular-nums',
+                    'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums',
                     isActive ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
                   )}
                 >

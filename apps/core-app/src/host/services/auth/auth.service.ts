@@ -1,8 +1,3 @@
-// Auth network calls moved to GraphQL (Apollo): see hooks/auth/useLogin, useLogout,
-// useLookupOrganizations and the colocated gql documents in hooks/auth/graphql.ts.
-// These TypeScript types remain the shared contract consumed by the auth hooks and
-// the auth flow screens/providers; they mirror the GraphQL schema's mobile auth shapes.
-
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;

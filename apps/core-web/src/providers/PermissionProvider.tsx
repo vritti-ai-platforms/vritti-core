@@ -1,7 +1,13 @@
-import type { AssignedBU, PermissionFeature } from '@services/permissions.service';
-import { parseSlug } from '@vritti/quantum-ui/slug';
+import type { AssignedBU } from '@services/permissions.service';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
+import {
+  type PermissionGateFn,
+  PermissionGateProvider,
+  type PermissionGateResult,
+} from '@vritti/quantum-ui/PermissionGate';
+import { parseSlug } from '@vritti/quantum-ui/slug';
 import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
+import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
@@ -23,6 +29,47 @@ const PermissionContext = createContext<PermissionContextValue>({
   isLoadingBUs: false,
   isLoadingPermissions: false,
 });
+
+const DENY: PermissionGateResult = Object.freeze({
+  granted: false,
+  locked: false,
+  reason: null,
+  unlockPlans: [],
+  available: false,
+  featureName: null,
+});
+
+// Builds a granted result, deriving `available` (granted && !locked) so it's always consistent
+function grant(
+  locked: boolean,
+  reason: PermissionGateResult['reason'],
+  unlockPlans: string[],
+  featureName: string,
+): PermissionGateResult {
+  return { granted: true, locked, reason, unlockPlans, available: !locked, featureName };
+}
+
+// Denied but the feature is known — carries its name so messages can stay feature-specific
+function deny(featureName: string): PermissionGateResult {
+  return { granted: false, locked: false, reason: null, unlockPlans: [], available: false, featureName };
+}
+
+// Resolves a "feature.permission" code against the selected BU's resolved features
+function buildGate(features: PermissionFeature[]): PermissionGateFn {
+  return (code) => {
+    const dotIndex = code.indexOf('.');
+    const featureCode = dotIndex === -1 ? code : code.slice(0, dotIndex);
+    const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
+    const feature = features.find((f) => f.code === featureCode);
+    if (!feature) return DENY;
+    if (!permissionCode) return grant(feature.locked, feature.lockReason, feature.unlockPlans, feature.name);
+    if (!feature.permissions.includes(permissionCode)) return deny(feature.name);
+    if (feature.locked) return grant(true, feature.lockReason, feature.unlockPlans, feature.name);
+    const permissionLock = feature.lockedPermissions.find((p) => p.code === permissionCode);
+    if (permissionLock) return grant(true, permissionLock.reason, permissionLock.unlockPlans, feature.name);
+    return grant(false, null, [], feature.name);
+  };
+}
 
 // Extracts buId from URL path like /bu-Name~uuid/products
 function extractBuIdFromPath(pathname: string): string | null {
@@ -67,11 +114,24 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   const contextValue = useMemo<PermissionContextValue>(
-    () => ({ businessUnits, selectedBuId, selectBu, features, isLoadingBUs: isLoading, isLoadingPermissions: isLoading }),
+    () => ({
+      businessUnits,
+      selectedBuId,
+      selectBu,
+      features,
+      isLoadingBUs: isLoading,
+      isLoadingPermissions: isLoading,
+    }),
     [businessUnits, selectedBuId, selectBu, features, isLoading],
   );
 
-  return <PermissionContext.Provider value={contextValue}>{children}</PermissionContext.Provider>;
+  const gate = useMemo(() => buildGate(features), [features]);
+
+  return (
+    <PermissionContext.Provider value={contextValue}>
+      <PermissionGateProvider value={gate}>{children}</PermissionGateProvider>
+    </PermissionContext.Provider>
+  );
 };
 
 // Hook to access BU + permission state — must be used within PermissionProvider

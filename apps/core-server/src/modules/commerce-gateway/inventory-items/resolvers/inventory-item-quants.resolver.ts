@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemQuantConnection } from '../graphql/inventory-item-quant.type';
 import { InventoryItemsGatewayService } from '../services/inventory-items-gateway.service';
@@ -13,7 +13,7 @@ export class InventoryItemQuantsFeedResolver {
 
   constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => InventoryItemQuantConnection, { name: 'inventoryItemQuants' })
   async inventoryItemQuants(
     @Args('inventoryItemId', { type: () => ID }) inventoryItemId: string,

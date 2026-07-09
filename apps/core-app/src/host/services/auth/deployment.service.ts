@@ -9,10 +9,7 @@ interface ParsedApiBaseURL {
   port: string;
 }
 
-// Deployment discovery runs against the cloud catalog, before any tenant/deployment is
-// selected — so it bypasses both Apollo (no base URL yet) and the authed axios instance.
-// It uses the global fetch against the same cloud base URL the axios path used, and returns
-// the same mapped Deployment[] shape.
+// Discovers deployments from the cloud catalog via global fetch, before any tenant/deployment is selected.
 export function getDeployments(): Promise<Deployment[]> {
   const url = `${config.api.deploymentsBaseUrl.replace(/\/$/, '')}/${DEPLOYMENTS_ENDPOINT}`;
 

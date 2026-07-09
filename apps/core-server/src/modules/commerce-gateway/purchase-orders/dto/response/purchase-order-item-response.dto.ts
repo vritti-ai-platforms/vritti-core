@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CurrencyAmountDto } from '@vritti/api-sdk';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export class PurchaseOrderItemResponseDto {
   @ApiProperty({ description: 'Purchase order item ID' })

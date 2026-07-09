@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { MutationResult } from '../../inventory-items/graphql/mutation-result.type';
 import { UomDimension } from '../graphql/uom-dimension.type';
@@ -16,7 +16,7 @@ export class UomDimensionsResolver {
 
   constructor(private readonly uomDimensionsGatewayService: UomDimensionsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => [UomDimension], { name: 'uomDimensions' })
   async uomDimensions(
     @Args('search', { type: () => String, nullable: true }) search?: string,
@@ -26,7 +26,7 @@ export class UomDimensionsResolver {
   }
 
   // Single dimension by id — the by-id read redirect + the (later) detail screen read from here.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => UomDimension, { name: 'uomDimension' })
   async uomDimension(@Args('id', { type: () => ID }) id: string): Promise<UomDimension> {
     this.logger.log('QUERY uomDimension');
@@ -34,7 +34,7 @@ export class UomDimensionsResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => UomDimension, { name: 'createUomDimension' })
   async createUomDimension(@Args('input') input: CreateUomDimensionInput): Promise<UomDimension> {
     this.logger.log('MUTATION createUomDimension');
@@ -43,7 +43,7 @@ export class UomDimensionsResolver {
   }
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => UomDimension, { name: 'updateUomDimension' })
   async updateUomDimension(
     @Args('id', { type: () => ID }) id: string,
@@ -55,7 +55,7 @@ export class UomDimensionsResolver {
   }
 
   // Deletes a dimension; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteUomDimension' })
   async deleteUomDimension(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteUomDimension');

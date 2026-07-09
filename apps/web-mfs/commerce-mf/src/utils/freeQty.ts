@@ -1,5 +1,4 @@
-// Display-only mirror of the backend computeFreeQty. The persisted free_qty is always derived
-// server-side; this only previews it in the form as the ordered qty / scheme inputs change.
+// Display-only mirror of backend computeFreeQty; previews the derived free_qty in the form.
 export function computeFreeQty(
   orderedQty: number | null | undefined,
   buyQty: number | null | undefined,

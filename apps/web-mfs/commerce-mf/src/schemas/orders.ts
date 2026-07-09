@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
 const zOptionalNonNegativeNumber = z.number().nonnegative().optional().catch(undefined);
@@ -7,8 +7,6 @@ export type OrderType = 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY';
 export type OrderChannel = 'ONLINE' | 'WALK_IN';
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'COMPLETED' | 'CANCELLED';
 
-// Money fields below are bigint minor units serialized as strings — feed straight into
-// formatCurrency() / minorToMajor(). For arithmetic, parse with BigInt(...).
 export interface OrderItemModifierData {
   id: string;
   name: string;
@@ -66,7 +64,6 @@ const orderItemModifierSchema = z.object({
   modifierGroupId: z.string().min(1),
   modifierOptionId: z.string().min(1),
   name: z.string().min(1),
-  additionalPrice: z.number(),
 });
 
 const orderItemSchema = z.object({

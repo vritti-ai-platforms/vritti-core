@@ -1,13 +1,7 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  type CreateResponseDto,
-  RequireSession,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateCostCategoryDto } from './dto/request/create-cost-category.dto';
 import { UpdateCostCategoryDto } from './dto/request/update-cost-category.dto';
@@ -17,7 +11,7 @@ import { CostCategoriesGatewayService } from './services/cost-categories-gateway
 
 @ApiTags('Commerce - Cost Categories')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('cost-categories')
 export class CostCategoriesGatewayController {
   private readonly logger = new Logger(CostCategoriesGatewayController.name);
@@ -28,12 +22,6 @@ export class CostCategoriesGatewayController {
   getTable(@UserId() userId: string): Promise<CostCategoryTableResponseDto> {
     this.logger.log('GET /commerce-api/cost-categories/table');
     return this.service.findForTable(userId);
-  }
-
-  @Get('select')
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/cost-categories/select');
-    return this.service.select(query);
   }
 
   @Post()

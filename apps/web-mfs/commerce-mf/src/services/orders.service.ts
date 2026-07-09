@@ -1,5 +1,5 @@
-import type { SuccessResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
+import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { OrderData, OrderDetail, OrderStatus, OrdersTableResponse } from '@/schemas/orders';
 
 export interface CreateOrderPayload {
@@ -18,7 +18,7 @@ export interface CreateOrderPayload {
     offeringVariantId: string;
     quantity: number;
     notes?: string;
-    modifiers?: { modifierGroupId: string; modifierOptionId: string; name: string; additionalPrice: number }[];
+    modifiers?: { modifierGroupId: string; modifierOptionId: string; name: string }[];
   }[];
 }
 

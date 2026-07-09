@@ -1,16 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { LocationRoleValues, locations, posTerminals } from '@/db/schema';
 import type { CreatePosTerminalDto } from '@/modules/pos-terminals/dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from '@/modules/pos-terminals/dto/request/update-pos-terminal.dto';

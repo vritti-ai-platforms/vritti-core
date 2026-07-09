@@ -25,7 +25,7 @@ import {
   RefreshTokenCookie,
   SkipCsrf,
   UserId,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/auth';
 import type { FastifyReply } from 'fastify';
 import { concat, merge, NEVER, type Observable, of } from 'rxjs';
 import { SessionTypeValues } from '@/db/schema';

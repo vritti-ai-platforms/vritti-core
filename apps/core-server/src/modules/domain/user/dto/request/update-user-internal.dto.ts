@@ -1,0 +1,33 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { UserStatusValues } from '@/db/schema';
+
+export class UpdateUserInternalDto {
+  @ApiPropertyOptional({ example: 'jane@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ example: 'Jane Smith' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  fullName?: string;
+
+  @ApiPropertyOptional({ enum: ['PENDING', 'ACTIVE', 'SUSPENDED'] })
+  @IsOptional()
+  @IsEnum(UserStatusValues)
+  status?: string;
+
+  @ApiPropertyOptional({ example: 'en-US' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  locale?: string;
+
+  @ApiPropertyOptional({ example: 'America/New_York' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  timezone?: string;
+}

@@ -1,4 +1,4 @@
-import { type CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { type CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,

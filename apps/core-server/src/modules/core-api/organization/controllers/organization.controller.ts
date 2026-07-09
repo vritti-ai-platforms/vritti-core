@@ -1,12 +1,14 @@
 import { OrganizationService } from '@domain/organization/services/organization.service';
 import { Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Public, SkipCsrf, type SuccessResponseDto } from '@vritti/api-sdk';
-import { WebhookSecretGuard } from '@/common/guards/webhook-secret.guard';
-import { ApiCreateOrganizationWebhook } from '../docs/organization.docs';
+import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
+import { ApiCreateOrganization, ApiReceiveEntitlement } from '../docs/organization.docs';
 import { OrganizationDto } from '../dto/entity/organization.dto';
-import { CreateOrganizationWebhookDto } from '../dto/request/create-organization-webhook.dto';
-import { UpdateOrganizationWebhookDto } from '../dto/request/update-organization-webhook.dto';
+import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
+import { ReceiveEntitlementInternalDto } from '../dto/request/receive-entitlement-internal.dto';
+import { UpdateOrganizationInternalDto } from '../dto/request/update-organization-internal.dto';
 
 @ApiTags('Organizations')
 @Controller('organizations')
@@ -16,37 +18,51 @@ export class OrganizationController {
 
   constructor(private readonly organizationService: OrganizationService) {}
 
-  // Receives organization creation from cloud-server via webhook
-  @Post('webhook')
+  // Receives organization creation from cloud-server via the internal API
+  @Post('internal')
   @Public()
-  @UseGuards(WebhookSecretGuard)
+  @UseGuards(CloudSignatureGuard)
   @HttpCode(HttpStatus.CREATED)
-  @ApiCreateOrganizationWebhook()
-  async createFromWebhook(@Body() dto: CreateOrganizationWebhookDto): Promise<OrganizationDto> {
-    this.logger.log('POST /api/organizations/webhook');
-    return this.organizationService.createFromWebhook(dto);
+  @ApiCreateOrganization()
+  async createFromCloud(@Body() dto: CreateOrganizationInternalDto): Promise<OrganizationDto> {
+    this.logger.log('POST /api/organizations/internal');
+    return this.organizationService.createFromCloud(dto);
   }
 
-  // Receives organization update from cloud-server via webhook
-  @Patch('webhook/:id')
+  // Receives organization update from cloud-server via the internal API
+  @Patch('internal/:id')
   @Public()
-  @UseGuards(WebhookSecretGuard)
+  @UseGuards(CloudSignatureGuard)
   @HttpCode(HttpStatus.OK)
-  async updateFromWebhook(
+  async updateFromCloud(
     @Param('id') id: string,
-    @Body() dto: UpdateOrganizationWebhookDto,
+    @Body() dto: UpdateOrganizationInternalDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /organizations/webhook/${id}`);
-    return this.organizationService.updateFromWebhook(id, dto);
+    this.logger.log(`PATCH /organizations/internal/${id}`);
+    return this.organizationService.updateFromCloud(id, dto);
   }
 
-  // Receives organization deletion from cloud-server via webhook
-  @Delete('webhook/:id')
+  // Receives the organization's signed plan entitlement from cloud-server via the internal API
+  @Patch('internal/:orgId/entitlement')
   @Public()
-  @UseGuards(WebhookSecretGuard)
+  @UseGuards(CloudSignatureGuard)
   @HttpCode(HttpStatus.OK)
-  async deleteFromWebhook(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /api/organizations/webhook/${id}`);
-    return this.organizationService.deleteFromWebhook(id);
+  @ApiReceiveEntitlement()
+  async receiveEntitlement(
+    @Param('orgId') orgId: string,
+    @Body() dto: ReceiveEntitlementInternalDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /organizations/internal/${orgId}/entitlement`);
+    return this.organizationService.receiveEntitlement(orgId, dto);
+  }
+
+  // Receives organization deletion from cloud-server via the internal API
+  @Delete('internal/:id')
+  @Public()
+  @UseGuards(CloudSignatureGuard)
+  @HttpCode(HttpStatus.OK)
+  async deleteFromCloud(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /api/organizations/internal/${id}`);
+    return this.organizationService.deleteFromCloud(id);
   }
 }

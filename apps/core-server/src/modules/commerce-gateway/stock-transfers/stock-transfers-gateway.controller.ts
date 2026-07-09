@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { CreateStockTransferDto } from './dto/request/create-stock-transfer.dto';
 import { UpdateStockTransferStatusDto } from './dto/request/update-stock-transfer-status.dto';
@@ -10,10 +10,9 @@ import { StockTransfersGatewayService } from './services/stock-transfers-gateway
 
 @ApiTags('Commerce - Stock Transfers')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('stock-transfers')
 export class StockTransfersGatewayController {
-
   constructor(private readonly service: StockTransfersGatewayService) {}
 
   // Returns paginated stock transfers for the data table with server-stored state

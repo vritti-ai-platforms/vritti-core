@@ -1,4 +1,4 @@
-import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/api-response';
+import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z } from '@vritti/quantum-ui/zod';
 
 export const catalogFormSchema = z.object({

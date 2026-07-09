@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export const ExchangeRateTypeEnum = z.enum(['FIXED', 'VARIABLE']);
@@ -119,7 +119,6 @@ export interface GoodsReceiptData {
 
 export type PurchaseOrderDetail = PurchaseOrderData;
 
-// Free-goods scheme inputs (buy + free ratio). free_qty is derived server-side from uomQty.
 const poSchemeShape = {
   schemeBuyQty: zodNumericField({ integer: true, positive: true }).optional(),
   schemeFreeQty: zodNumericField({ integer: true, positive: true }).optional(),
@@ -151,8 +150,7 @@ export const addPurchaseOrderItemSchema = z
 
 export type AddPurchaseOrderItemFormData = z.infer<typeof addPurchaseOrderItemSchema>;
 
-// Pass `minQty` when the line has already been received against — the form will then block
-// reducing the ordered qty below what's been received. Defaults to no minimum.
+// Pass `minQty` when the line has already been received against — blocks reducing ordered qty below received. Defaults to no minimum.
 export function buildUpdatePurchaseOrderItemSchema(options: { minQty?: number } = {}) {
   const { minQty } = options;
   return z

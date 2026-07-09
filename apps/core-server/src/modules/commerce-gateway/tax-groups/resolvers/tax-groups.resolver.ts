@@ -1,36 +1,22 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession, type SelectOptionsQueryDto } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { SelectOptionsInput } from '../../_shared/graphql/select.input';
-import { SelectOptions } from '../../_shared/graphql/select.type';
 import { MutationResult } from '../../inventory-items/graphql/mutation-result.type';
 import { TaxGroup } from '../graphql/tax-group.type';
 import { CreateTaxGroupInput, UpdateTaxGroupInput } from '../graphql/tax-group-mutation.input';
 import { TaxGroupsGatewayService } from '../services/tax-groups-gateway.service';
 
-// Tax groups for the mobile Tax Groups screen. Thin GraphQL forwards to the existing gateway service (which
-// NATS-forwards to commerce-service). The list is small/bounded, so it's a plain array (no Relay connection).
-// buId flows via NATS context from @RequireSession.
+// Tax groups for the mobile Tax Groups screen: plain list + CRUD. Thin forwards to the gateway service.
+// Select-options (`taxGroupsOptions`) now live in the shared SelectApiModule. buId flows via NATS context.
 @Resolver()
 export class TaxGroupsResolver {
   private readonly logger = new Logger(TaxGroupsResolver.name);
 
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
 
-  // Options query for the Tax Group Select dropdown. The gateway `.select()` takes a plain
-  // SelectOptionsQueryDto, so the shared input is forwarded as-is with a localized cast.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
-  @Query(() => SelectOptions, { name: 'taxGroupsOptions' })
-  async taxGroupsOptions(
-    @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
-  ): Promise<SelectOptions> {
-    this.logger.log('QUERY taxGroupsOptions');
-    return this.taxGroupsGatewayService.select((input ?? {}) as SelectOptionsQueryDto);
-  }
-
   // All tax groups (with rates + canDelete) — the mobile Tax Groups list. Small/bounded, so a plain array.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => [TaxGroup], { name: 'taxGroups' })
   async taxGroups(@Args('search', { type: () => String, nullable: true }) search?: string): Promise<TaxGroup[]> {
     this.logger.log('QUERY taxGroups');
@@ -38,7 +24,7 @@ export class TaxGroupsResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => TaxGroup, { name: 'createTaxGroup' })
   async createTaxGroup(@Args('input') input: CreateTaxGroupInput): Promise<TaxGroup> {
     this.logger.log('MUTATION createTaxGroup');
@@ -47,7 +33,7 @@ export class TaxGroupsResolver {
   }
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => TaxGroup, { name: 'updateTaxGroup' })
   async updateTaxGroup(
     @Args('id', { type: () => ID }) id: string,
@@ -59,7 +45,7 @@ export class TaxGroupsResolver {
   }
 
   // Deletes a tax group; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteTaxGroup' })
   async deleteTaxGroup(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteTaxGroup');

@@ -6,7 +6,7 @@ import {
   type KeysetOrderBy,
   KeysetProcessor,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import type { InventoryItemLedgerEntry, NewInventoryItemLedgerEntry } from '@/db/schema';
 import { inventoryItemLedger, inventoryItems } from '@/db/schema';

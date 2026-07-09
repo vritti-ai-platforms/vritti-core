@@ -1,5 +1,5 @@
-import type { CreateResponse, SuccessResponse, TableResponse } from '@vritti/quantum-ui/api-response';
 import axios from '@vritti/quantum-ui/axios';
+import type { CreateResponse, SuccessResponse, TableResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   CategoryCountData,
   CategoryData,
@@ -29,9 +29,7 @@ export function getCategoryChildrenTable(parentId: string): Promise<TableRespons
 }
 
 export function getCategoryItemsTable(categoryId: string): Promise<CategoryItemsTableResponse> {
-  return axios
-    .get<CategoryItemsTableResponse>(`commerce-api/categories/${categoryId}/items/table`)
-    .then((r) => r.data);
+  return axios.get<CategoryItemsTableResponse>(`commerce-api/categories/${categoryId}/items/table`).then((r) => r.data);
 }
 
 export function getCategoryById(id: string): Promise<CategoryData> {

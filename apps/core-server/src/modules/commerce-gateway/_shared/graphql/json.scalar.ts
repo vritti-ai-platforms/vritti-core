@@ -1,9 +1,6 @@
 import { GraphQLScalarType, Kind, type ValueNode } from 'graphql';
 
-// Minimal JSON scalar for Select option `additionals` (an arbitrary string → primitive map). It is
-// output-only today (additionals is never a GraphQL input), so `serialize` is the load-bearing path;
-// the parse paths are implemented for completeness. Defined as a GraphQLScalarType instance and used via
-// `@Field(() => GraphQLJSON)` — NestJS code-first registers it from the field reference (no provider).
+// Minimal JSON scalar for Select option `additionals` — output-only, so `serialize` is the load-bearing path
 function parseAst(ast: ValueNode): unknown {
   switch (ast.kind) {
     case Kind.STRING:

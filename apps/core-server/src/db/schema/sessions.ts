@@ -8,7 +8,7 @@ export const sessions = coreSchema.table('sessions', {
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  type: sessionTypeEnum('type').notNull().default('NEXUS'),
+  type: sessionTypeEnum('type').notNull().default('WEB'),
   accessTokenHash: text('access_token_hash').notNull(),
   refreshTokenHash: text('refresh_token_hash').notNull(),
   ipAddress: varchar('ip_address', { length: 45 }),

@@ -1,4 +1,4 @@
-import { IsCurrencyCode } from '@vritti/api-sdk';
+import { IsCurrencyCode } from '@vritti/api-sdk/money';
 import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateCatalogDto {

@@ -1,10 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  DataTableStateService,
-  SelectOptionsQueryDto,
-  type SelectQueryResult,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { DataTableStateService } from '@vritti/api-sdk/data-table';
+import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateCustomerDto } from '../dto/request/create-customer.dto';
 import type { UpdateCustomerDto } from '../dto/request/update-customer.dto';
@@ -32,12 +28,6 @@ export class CustomersGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns paginated customer options for select dropdowns
-  async select(params: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('customers.select');
-    return this.nats.send('commerce', 'customers.select', params);
   }
 
   // Creates a new customer

@@ -1,6 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  NumberCell,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
@@ -33,8 +40,7 @@ interface LinesTableProps {
   onSelectLine?: (lineId: string | null) => void;
 }
 
-// One DataTable for lines, scoped either by item (when an item is selected and tracking='quantity')
-// or by lot (when a lot is selected). Same columns; the data hook is the only difference.
+// One DataTable for lines, scoped either by item or by lot; same columns, only the data hook differs.
 export const LinesTable = ({
   goodsReceiptId,
   scope,
@@ -130,8 +136,7 @@ export const LinesTable = ({
             } satisfies ColumnDef<GoodsReceiptLineData>,
           ]
         : []),
-      // Serial / lot_serial lines drill into their serials (View). Quantity / lot lines are leaves,
-      // edited and removed in place.
+      // Serial / lot_serial lines drill into their serials (View); quantity / lot lines edit in place.
       ...((isSerial && onSelectLine) || (!isSerial && isDraft)
         ? [
             {

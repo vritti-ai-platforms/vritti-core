@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type CreateResponseDto, SelectOptionsQueryDto, type SelectQueryResult, type SuccessResponseDto } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateUomDimensionDto } from '../dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from '../dto/request/update-uom-dimension.dto';
@@ -22,12 +22,6 @@ export class UomDimensionsGatewayService {
   async list(search?: string): Promise<UomDimensionResponseDto[]> {
     this.logger.log('uom-dimensions.list');
     return this.nats.send('commerce', 'uom-dimensions.list', { search });
-  }
-
-  // Returns paginated dimension options for select dropdowns
-  async findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('uom-dimensions.select');
-    return this.nats.send('commerce', 'uom-dimensions.select', query);
   }
 
   // Returns a dimension by ID

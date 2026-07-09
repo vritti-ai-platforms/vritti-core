@@ -6,7 +6,7 @@ import type { OfferingDetailDto, OfferingVariantDto } from '@domain/offerings/dt
 import { OfferingsService } from '@domain/offerings/services/offerings.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk';
+import type { SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
 import type { CreateVariantDto } from '../dto/request/create-variant.dto';
 import type { SaveItemModifiersDto } from '../dto/request/save-item-modifiers.dto';

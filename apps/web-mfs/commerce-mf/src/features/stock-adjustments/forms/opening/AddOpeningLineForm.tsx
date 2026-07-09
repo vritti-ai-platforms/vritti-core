@@ -36,8 +36,7 @@ export const AddOpeningLineForm = ({
 }: AddOpeningLineFormProps) => {
   const isItem = tracking === 'serial' || tracking === 'lot_serial';
   const [allowDecimal, setAllowDecimal] = useState(true);
-  // Serial-tracked items are restricted to the primary UOM at the BE; the selector is not shown
-  // and we submit the primary UOM ID directly.
+  // Serial-tracked items are restricted to the primary UOM at the BE; we submit it directly.
 
   const form = useForm<AddOpeningStockLineFormData>({
     resolver: zodResolver(addOpeningStockLineSchema),

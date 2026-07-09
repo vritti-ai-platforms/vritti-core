@@ -4,12 +4,8 @@ import type { SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import { SuppliersRepository } from '@domain/suppliers/repositories/suppliers.repository';
 import { SuppliersService } from '@domain/suppliers/services/suppliers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  BadRequestException,
-  type CreateResponseDto,
-  PrimaryDatabaseService,
-  type SuccessResponseDto,
-} from '@vritti/api-sdk';
+import { type CreateResponseDto, PrimaryDatabaseService, type SuccessResponseDto } from '@vritti/api-sdk/database';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 

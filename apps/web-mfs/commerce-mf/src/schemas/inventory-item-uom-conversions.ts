@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
 export interface InventoryItemUomConversionData {
@@ -9,9 +9,7 @@ export interface InventoryItemUomConversionData {
   uomSymbol: string;
   primaryUomQty: number;
   uomQty: number;
-  // Derived: 1 UOM unit = toPrimaryConversionFactor primary units.
   toPrimaryConversionFactor: number;
-  // Derived: 1 primary unit = toUomConversionFactor UOM units.
   toUomConversionFactor: number;
   canEdit: boolean;
   canDelete: boolean;

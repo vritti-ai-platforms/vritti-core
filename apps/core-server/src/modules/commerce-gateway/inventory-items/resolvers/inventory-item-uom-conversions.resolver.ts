@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { InventoryItemUomConversion } from '../graphql/inventory-item-uom-conversion.type';
 import {
@@ -19,7 +19,7 @@ export class InventoryItemUomConversionsResolver {
 
   constructor(private readonly inventoryItemsGatewayService: InventoryItemsGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => [InventoryItemUomConversion], { name: 'inventoryItemUomConversions' })
   async inventoryItemUomConversions(
     @Args('inventoryItemId', { type: () => ID }) inventoryItemId: string,
@@ -29,7 +29,7 @@ export class InventoryItemUomConversionsResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => InventoryItemUomConversion, { name: 'createInventoryItemUomConversion' })
   async createInventoryItemUomConversion(
     @Args('inventoryItemId', { type: () => ID }) inventoryItemId: string,
@@ -42,7 +42,7 @@ export class InventoryItemUomConversionsResolver {
 
   // Update changes only the ratio (primaryUomQty/uomQty); returns success — the client patches the cached
   // entity (qty + derived factors are computable client-side), no refetch.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'updateInventoryItemUomConversion' })
   async updateInventoryItemUomConversion(
     @Args('id', { type: () => ID }) id: string,
@@ -53,7 +53,7 @@ export class InventoryItemUomConversionsResolver {
   }
 
   // Deletes a conversion; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteInventoryItemUomConversion' })
   async deleteInventoryItemUomConversion(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteInventoryItemUomConversion');

@@ -24,13 +24,8 @@ export const userRoleAssignments = coreSchema.table(
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
-  (table) => [
-    uniqueIndex('user_role_assignments_user_role_bu_unique').on(
-      table.userId,
-      table.roleId,
-      table.businessUnitId,
-    ),
-  ],
+  // One role per user per business unit — a user holds a single role within a given BU
+  (table) => [uniqueIndex('user_role_assignments_user_bu_unique').on(table.userId, table.businessUnitId)],
 );
 
 export type UserRoleAssignment = typeof userRoleAssignments.$inferSelect;

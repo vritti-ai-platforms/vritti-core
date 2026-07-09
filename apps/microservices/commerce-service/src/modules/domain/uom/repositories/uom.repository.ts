@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { aliasedTable, and, eq, ilike, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { inventoryItems, inventoryItemUomConversions, supplierItems, type Uom, uom } from '@/db/schema';
 

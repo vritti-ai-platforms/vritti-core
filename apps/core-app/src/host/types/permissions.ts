@@ -3,9 +3,16 @@ export interface AssignedBU {
   name: string;
   code: string | null;
   type: string;
-  // Sent by the server (auth-status SSE) — drive BU-scoped date/currency formatting.
   timezone: string;
   currencyCode: string;
+}
+
+export type LockReason = 'PLAN' | 'BU';
+
+export interface LockedPermission {
+  code: string;
+  reason: LockReason | null;
+  unlockPlans: string[];
 }
 
 export interface PermissionFeature {
@@ -15,12 +22,15 @@ export interface PermissionFeature {
   sfSymbol: string;
   materialSymbol: string;
   permissions: string[];
+  locked: boolean;
+  lockReason: LockReason | null;
+  unlockPlans: string[];
+  lockedPermissions: LockedPermission[];
   route: {
     remoteEntry: string;
     exposedModule: string;
     routePrefix: string;
   };
-  // App grouping (sent by the SSE) — drives app tabs + the per-app feature side menu
   appCode: string;
   appName: string;
   appIcon: string | null;

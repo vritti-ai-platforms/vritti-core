@@ -13,20 +13,18 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import {
   type CreateResponseDto,
-  RequireSession,
   SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
-  UserId,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
 import {
   ApiCreate,
   ApiDelete,
   ApiFindById,
-  ApiSelect,
   ApiSelectLocations,
   ApiTable,
   ApiUpdate,
@@ -39,7 +37,7 @@ import { PosTerminalsGatewayService } from './services/pos-terminals-gateway.ser
 
 @ApiTags('Commerce - POS Terminals')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('pos-terminals')
 export class PosTerminalsGatewayController {
   private readonly logger = new Logger(PosTerminalsGatewayController.name);
@@ -54,19 +52,10 @@ export class PosTerminalsGatewayController {
     return this.posTerminalsGatewayService.findForTable(userId);
   }
 
-  // Returns paginated POS terminal options for select dropdowns
-  @Get('select')
-  @ApiSelect()
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
-  select(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/pos-terminals/select');
-    return this.posTerminalsGatewayService.select(query);
-  }
-
   // Returns POS-role storage location options for select dropdowns
   @Get('locations/select')
   @ApiSelectLocations()
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   selectLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/pos-terminals/locations/select');
     return this.posTerminalsGatewayService.selectPosLocations(query);

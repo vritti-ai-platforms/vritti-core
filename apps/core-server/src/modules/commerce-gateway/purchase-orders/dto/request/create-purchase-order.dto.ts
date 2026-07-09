@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateTime } from '@vritti/api-sdk';
+import { IsDateTime } from '@vritti/api-sdk/decorators';
 import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class CreatePurchaseOrderDto {

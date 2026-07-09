@@ -16,7 +16,9 @@ export class UomDimensionResponseDto {
   @ApiPropertyOptional({ description: 'Whether this dimension is editable by the current BU' })
   canEdit?: boolean;
 
-  @ApiPropertyOptional({ description: 'Whether this dimension can be deleted (only set on detail/create/update responses)' })
+  @ApiPropertyOptional({
+    description: 'Whether this dimension can be deleted (only set on detail/create/update responses)',
+  })
   canDelete?: boolean;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })

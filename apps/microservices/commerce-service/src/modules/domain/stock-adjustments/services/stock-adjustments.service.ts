@@ -1,14 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
-  BadRequestException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  NotFoundException,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItems, StockAdjustmentStatusValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsRepository } from '../repositories/stock-adjustments.repository';

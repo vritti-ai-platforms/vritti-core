@@ -1,5 +1,5 @@
-import { CurrencyAmountDto } from '@vritti/api-sdk';
 import Decimal from '@vritti/api-sdk/decimal';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { GrItemQuantCostRow } from '../../repositories/inventory-item-quants.repository';
 
 export class GoodsReceiptItemQuantRowDto {

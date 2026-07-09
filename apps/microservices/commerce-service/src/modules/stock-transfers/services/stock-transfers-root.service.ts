@@ -3,7 +3,7 @@ import { InventoryItemQuantsRepository } from '@domain/inventory-item-quants/rep
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { StockTransfersService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { BadRequestException } from '@vritti/api-sdk';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import {
   InventoryItemLedgerReferenceTypeValues,
   InventoryItemLedgerTypeValues,

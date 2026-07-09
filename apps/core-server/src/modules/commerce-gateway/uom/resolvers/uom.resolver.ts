@@ -1,45 +1,26 @@
 import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { RequireSession, type SelectOptionsQueryDto } from '@vritti/api-sdk';
+import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { SelectOptionsInput } from '../../_shared/graphql/select.input';
-import { SelectOptions } from '../../_shared/graphql/select.type';
 import { MutationResult } from '../../inventory-items/graphql/mutation-result.type';
 import { Uom } from '../graphql/uom.type';
 import { UomConnection } from '../graphql/uom-feed.type';
 import { CreateUomInput, UpdateUomInput } from '../graphql/uom-mutation.input';
 import { UomGatewayService } from '../services/uom-gateway.service';
 
-// GraphQL options query for the UOM Select dropdown. Thin forward to the existing gateway `.select()`
-// (which NATS-forwards to commerce-service). Entity params (dimensionId / baseOnly / derivedOnly) are
-// merged into the same params object the service signature expects; buId flows via the NATS request context.
+// UOM GraphQL for the mobile UOM screens: the keyset units feed + by-id read + CRUD. Thin forwards to the
+// gateway service (which NATS-forwards to commerce-service). Select-options (`uomOptions`) now live in the
+// shared SelectApiModule. buId flows via NATS context from @RequireSession.
 @Resolver()
 export class UomResolver {
   private readonly logger = new Logger(UomResolver.name);
 
   constructor(private readonly uomGatewayService: UomGatewayService) {}
 
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
-  @Query(() => SelectOptions, { name: 'uomOptions' })
-  async uomOptions(
-    @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
-    @Args('dimensionId', { type: () => ID, nullable: true }) dimensionId?: string,
-    @Args('baseOnly', { type: () => Boolean, nullable: true }) baseOnly?: boolean,
-    @Args('derivedOnly', { type: () => Boolean, nullable: true }) derivedOnly?: boolean,
-  ): Promise<SelectOptions> {
-    this.logger.log('QUERY uomOptions');
-    return this.uomGatewayService.select({
-      ...((input ?? {}) as SelectOptionsQueryDto),
-      dimensionId,
-      baseOnly,
-      derivedOnly,
-    });
-  }
-
   // Keyset/cursor Relay connection of a dimension's units (base + derived) for the mobile infinite feed.
   // Relay args (first/after) map to limit/cursor; the client merges pages via relayStylePagination. The
   // fixed sort (base units first, then name) is applied server-side.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => UomConnection, { name: 'uomsFeed' })
   async uomsFeed(
     @Args('dimensionId', { type: () => ID }) dimensionId: string,
@@ -55,7 +36,7 @@ export class UomResolver {
   }
 
   // Single unit by id — post-update re-fetch + a by-id read source.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Query(() => Uom, { name: 'uom' })
   async uom(@Args('id', { type: () => ID }) id: string): Promise<Uom> {
     this.logger.log('QUERY uom');
@@ -63,7 +44,7 @@ export class UomResolver {
   }
 
   // Returns the created entity so the client inserts it into the cached list (no refetch).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => Uom, { name: 'createUom' })
   async createUom(@Args('input') input: CreateUomInput): Promise<Uom> {
     this.logger.log('MUTATION createUom');
@@ -72,7 +53,7 @@ export class UomResolver {
   }
 
   // Re-reads + returns the entity so Apollo auto-merges by id (the gateway update returns only success).
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => Uom, { name: 'updateUom' })
   async updateUom(@Args('id', { type: () => ID }) id: string, @Args('input') input: UpdateUomInput): Promise<Uom> {
     this.logger.log('MUTATION updateUom');
@@ -81,7 +62,7 @@ export class UomResolver {
   }
 
   // Deletes a unit; the client evicts it from the cache by the id it already holds.
-  @RequireSession(SessionTypeValues.NEXUS, SessionTypeValues.MOBILE)
+  @RequireSession(SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'deleteUom' })
   async deleteUom(@Args('id', { type: () => ID }) id: string): Promise<MutationResult> {
     this.logger.log('MUTATION deleteUom');

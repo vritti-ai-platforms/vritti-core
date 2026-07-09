@@ -1,6 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { type ColumnDef, CurrencyCell, DataTable, NumberCell, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  CurrencyCell,
+  DataTable,
+  NumberCell,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Truck } from 'lucide-react';
 import type React from 'react';

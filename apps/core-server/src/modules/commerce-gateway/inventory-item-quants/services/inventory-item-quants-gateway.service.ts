@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { InventoryBatchResponseDto } from '../dto/response/inventory-batch-response.dto';
 
@@ -13,10 +12,5 @@ export class InventoryItemQuantsGatewayService {
   async findById(id: string): Promise<InventoryBatchResponseDto> {
     this.logger.log(`inventoryItems.findQuantById — id: ${id}`);
     return this.nats.send('commerce', 'inventoryItems.findQuantById', { id });
-  }
-
-  async select(query: SelectOptionsQueryDto & { inventoryItemId: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItems.selectQuants — inventoryItemId: ${query.inventoryItemId}`);
-    return this.nats.send('commerce', 'inventoryItems.selectQuants', query);
   }
 }

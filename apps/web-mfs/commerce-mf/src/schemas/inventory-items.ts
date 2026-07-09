@@ -1,4 +1,4 @@
-import type { TableResponse } from '@vritti/quantum-ui/api-response';
+import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 const INVENTORY_ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] as const;
@@ -117,8 +117,6 @@ export interface InventoryItemData {
   updatedAt: string;
 }
 
-// Per-location stock aggregate for an inventory item — sourced from inventory_item_quants.
-// `reorderLevel` is null when the location has stock but no inventory_item_locations row.
 export interface InventoryItemStockData {
   locationId: string;
   locationName: string | null;

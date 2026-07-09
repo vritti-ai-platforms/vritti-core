@@ -11,10 +11,7 @@ import './index.css';
 // Configure quantum-ui BEFORE rendering to ensure proper session recovery
 configureQuantumUI(quantumUIConfig);
 
-/**
- * Register all remote micro-frontends at startup
- * This allows the host to dynamically load routes from all remotes
- */
+// Register all remote micro-frontends at startup so the host can load routes from them
 registerRemotes(
   ALL_REMOTES.map((remote) => ({
     name: remote.name,

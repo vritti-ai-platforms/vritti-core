@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
+    "@vritti/commerce-permissions": "workspace:*",
     "@as-integrations/fastify": "^3.1.0",
     "@aws-sdk/client-s3": "^3.1023.0",
     "@aws-sdk/s3-request-presigner": "^3.1023.0",
@@ -57,7 +58,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-fastify": "^11.1.6",
     "@nestjs/swagger": "^11.2.5",
-    "@vritti/api-sdk": "^0.2.10",
+    "@vritti/api-sdk": "^0.3.3",
     "argon2": "^0.41.1",
     "axios": "^1.13.2",
     "class-transformer": "^0.5.1",
@@ -114,6 +115,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    }
   }
 }

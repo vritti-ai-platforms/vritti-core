@@ -2,7 +2,7 @@ import type { SupplierContactDto } from '@domain/supplier-contacts/dto/entity/su
 import { SupplierContactsService } from '@domain/supplier-contacts/services/supplier-contacts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { CreateSupplierContactDto } from './dto/request/create-supplier-contact.dto';
 import type { UpdateSupplierContactDto } from './dto/request/update-supplier-contact.dto';
 

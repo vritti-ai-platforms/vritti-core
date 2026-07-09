@@ -10,8 +10,7 @@ interface MobileLogoutData {
 
 type UseLogoutOptions = Omit<UseGqlMutationOptions<MobileLogoutData, Record<string, never>>, 'mutation'>;
 
-// Logs out over GraphQL, then tears down the session: clears the Keychain tokens, notifies the
-// host (mirrors the axios path), and resets Apollo's store so no tenant-scoped cache survives.
+// Logs out over GraphQL, then tears down the session: clears Keychain tokens, notifies the host, and resets Apollo's store.
 export function useLogout(options?: UseLogoutOptions) {
   return useGqlMutation<MobileLogoutData, Record<string, never>>(MOBILE_LOGOUT, {
     ...options,

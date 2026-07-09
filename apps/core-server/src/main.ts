@@ -8,20 +8,14 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import {
-  BadRequestException,
-  CorrelationIdMiddleware,
-  HttpLoggerInterceptor,
-  LoggerService,
-  TransportAwareExceptionFilter,
-} from '@vritti/api-sdk';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import { TransportAwareExceptionFilter } from '@vritti/api-sdk/filters';
+import { CorrelationIdMiddleware, HttpLoggerInterceptor, LoggerService } from '@vritti/api-sdk/logger';
 import type { ValidationError } from 'class-validator';
 import fastifyRawBody from 'fastify-raw-body';
 import { AppModule } from './app.module';
 
-// ============================================================================
 // Environment Configuration
-// ============================================================================
 
 const ENV = {
   nodeEnv: process.env.NODE_ENV,
@@ -36,12 +30,8 @@ const ENV = {
 const protocol = ENV.useHttps ? 'https' : 'http';
 const baseUrl = `${protocol}://${ENV.host}:${ENV.port}`;
 
-// ============================================================================
 // CORS Configuration
-// ============================================================================
 
-// In production, set CORS_ORIGINS (comma-separated). Falls back to local dev origins when unset.
-// Note: for wildcard tenants (*.dev.vrittiai.com) prefer same-origin calls; a static list can't match every subdomain.
 const CORS_ORIGINS = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
   : [
@@ -59,12 +49,8 @@ const CORS_CONFIG = {
   origin: CORS_ORIGINS,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Webhook-Secret'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
 };
-
-// ============================================================================
-// Configuration Functions
-// ============================================================================
 
 // Create Swagger/OpenAPI configuration
 function createSwaggerConfig() {
@@ -86,16 +72,10 @@ function createSwaggerConfig() {
     .build();
 }
 
-// ============================================================================
-// Bootstrap Function
-// ============================================================================
-
 async function bootstrap() {
   // Configure API SDK settings
 
-  // Determine logger configuration
-  // When using default provider, let NestJS use its built-in logger to avoid circular reference
-  // When using Winston, we need to use LoggerService
+  // Determine logger configuration — default provider uses NestJS built-in to avoid circular reference; Winston uses LoggerService
   const useBuiltInLogger = ENV.logProvider === 'default';
   const loggerOptions = useBuiltInLogger
     ? {}
@@ -123,8 +103,7 @@ async function bootstrap() {
   // Get services from DI container
   const configService = app.get(ConfigService);
 
-  // Only replace logger when using Winston provider
-  // Default provider would create circular reference if we call app.useLogger()
+  // Only replace logger when using Winston provider (default provider would create circular reference via app.useLogger())
   if (!useBuiltInLogger) {
     const appLogger = app.get(LoggerService);
     app.useLogger(appLogger);
@@ -142,8 +121,7 @@ async function bootstrap() {
     },
   });
 
-  // Register raw body plugin for webhook signature validation
-  // global: true ensures rawBody is available for all routes (needed for webhooks)
+  // Register raw body plugin for request signature validation (global: true makes rawBody available for all signed internal API routes)
   await app.register(fastifyRawBody, {
     field: 'rawBody',
     global: true,
@@ -165,8 +143,7 @@ async function bootstrap() {
     },
   });
 
-  // Register global exception filter for RFC 7807 Problem Details format
-  // (HTTP only; GraphQL errors fall through to Apollo's formatter)
+  // Register global exception filter for RFC 7807 Problem Details format (HTTP only; GraphQL errors fall through to Apollo's formatter)
   app.useGlobalFilters(new TransportAwareExceptionFilter());
 
   // Register correlation ID middleware for request tracking using Fastify hooks

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { AccessToken, ClientIp, Public, RequireSession, UserAgent } from '@vritti/api-sdk';
+import { AccessToken, ClientIp, Public, RequireSession, UserAgent } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { LookupOrganization } from '../graphql/lookup-organization.type';
 import { MessageResponse } from '../graphql/message-response.type';

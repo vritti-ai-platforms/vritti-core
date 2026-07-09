@@ -9,7 +9,6 @@ export interface CartLineModifier {
   modifierGroupId: string;
   modifierOptionId: string;
   name: string;
-  // minor-unit string
   additionalPrice: string;
 }
 

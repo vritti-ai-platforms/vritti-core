@@ -10,7 +10,7 @@ import {
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
-import { DetailField, DetailSection } from '@vritti/quantum-ui/DetailField';
+import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
@@ -153,36 +153,40 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <Typography variant="h3">{location.name}</Typography>
-          <Badge variant={location.isActive ? 'success' : 'destructive'}>
-            {location.isActive ? 'Active' : 'Inactive'}
-          </Badge>
-          <Badge variant="outline">{LocationRoleLabels[location.locationRole]}</Badge>
-          <Badge variant="outline">{location.code}</Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={editDialog.open}
-            startAdornment={<Pencil className="size-3.5" />}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDelete}
-            disabled={!location.canDelete || deleteMutation.isPending}
-            isLoading={deleteMutation.isPending}
-            startAdornment={<Trash2 className="size-3.5" />}
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
+      <DetailHeader
+        title={location.name}
+        badges={
+          <>
+            <Badge variant={location.isActive ? 'success' : 'destructive'}>
+              {location.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+            <Badge variant="outline">{LocationRoleLabels[location.locationRole]}</Badge>
+            <Badge variant="outline">{location.code}</Badge>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={editDialog.open}
+              startAdornment={<Pencil className="size-3.5" />}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={!location.canDelete || deleteMutation.isPending}
+              isLoading={deleteMutation.isPending}
+              startAdornment={<Trash2 className="size-3.5" />}
+            >
+              Delete
+            </Button>
+          </>
+        }
+      />
 
       <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
         <DetailSection wrap>
@@ -327,10 +331,7 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
                 description: 'Stock batches and landed cost.',
                 className: 'max-w-3xl',
                 content: () => (
-                  <LocationItemQuantsDialogContent
-                    locationId={locationId}
-                    itemId={row.original.inventoryItemId}
-                  />
+                  <LocationItemQuantsDialogContent locationId={locationId} itemId={row.original.inventoryItemId} />
                 ),
               },
             },

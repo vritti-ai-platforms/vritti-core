@@ -1,8 +1,11 @@
+import { UOM } from '@vritti/commerce-permissions/uom';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { Empty } from '@vritti/quantum-ui/Empty';
 import { useDialog } from '@vritti/quantum-ui/hooks';
-import { PageContent } from '@vritti/quantum-ui/PageContent';
+import { PageContent, PageContentPanel } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Layers, Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -22,14 +25,28 @@ export const UomPage = () => {
         title="Units of Measure"
         description={pluralize('dimension', dimensionCount.count, true)}
         actions={
-          <Button onClick={addDimensionDialog.open} startAdornment={<Plus className="size-4" />}>
+          <Button
+            onClick={addDimensionDialog.open}
+            startAdornment={<Plus className="size-4" />}
+            permission={UOM.dim.add}
+          >
             Add Dimension
           </Button>
         }
       />
 
       <PageContent>
-        <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
+        <PermissionGate
+          permission={UOM.dim.view}
+          fallback={({ reason, title, tip }) => (
+            <PageContentPanel
+              isEmpty
+              emptyState={<Empty icon={<PermissionLockIcon reason={reason} />} title={title} description={tip} />}
+            />
+          )}
+        >
+          <UomDimensionsPanel selectedId={selectedDimensionId} onSelect={setSelectedDimensionId} />
+        </PermissionGate>
         <UomDimensionDetailPanel dimensionId={selectedDimensionId} onDeleted={() => setSelectedDimensionId(null)} />
       </PageContent>
 

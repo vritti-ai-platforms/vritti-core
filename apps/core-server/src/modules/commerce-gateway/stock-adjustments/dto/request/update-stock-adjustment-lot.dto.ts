@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpdateStockAdjustmentLotDto {
@@ -20,7 +20,11 @@ export class UpdateStockAdjustmentLotDto {
   @IsNotEmpty()
   expiryDate?: string;
 
-  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Printed MRP per primary unit (BU currency)', nullable: true })
+  @ApiPropertyOptional({
+    type: CurrencyAmountDto,
+    description: 'Printed MRP per primary unit (BU currency)',
+    nullable: true,
+  })
   @IsOptional()
   @IsCurrency()
   mrp?: CurrencyAmountDto | null;

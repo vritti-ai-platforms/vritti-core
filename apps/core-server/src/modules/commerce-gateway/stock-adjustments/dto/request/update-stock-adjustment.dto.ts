@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateStockAdjustmentDto {

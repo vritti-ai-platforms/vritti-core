@@ -2,7 +2,7 @@ import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/
 import { StockAdjustmentLinesService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type CreateResponseDto, type SuccessResponseDto, type TableViewState } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { StockAdjustmentsLinesService } from './services/stock-adjustments-lines.service';
 
 @Controller()

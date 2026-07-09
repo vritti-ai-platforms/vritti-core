@@ -3,13 +3,13 @@ import {
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, asc, ilike } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { taxGroups } from '@/db/schema';
 import type { CreateTaxGroupDto } from '@/modules/tax-groups/dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from '@/modules/tax-groups/dto/request/update-tax-group.dto';

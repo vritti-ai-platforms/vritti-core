@@ -2,7 +2,6 @@ import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/invent
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type {
   CreateResponseDto,
   FilterCondition,
@@ -12,7 +11,8 @@ import type {
   SortCondition,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
+import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
 import { InventoryItemsRootService } from './services/inventory-items-root.service';
@@ -70,7 +70,10 @@ export class InventoryItemsRootController {
   }
 
   @MessagePattern({ cmd: 'inventoryItems.findById' })
-  async findById(@Payload() data: { id: string }, @RpcBuCurrencyCode() buCurrencyCode: string): Promise<InventoryItemDto> {
+  async findById(
+    @Payload() data: { id: string },
+    @RpcBuCurrencyCode() buCurrencyCode: string,
+  ): Promise<InventoryItemDto> {
     this.logger.log(`inventoryItems.findById — id: ${data.id}`);
     return this.service.findById(data.id, buCurrencyCode);
   }

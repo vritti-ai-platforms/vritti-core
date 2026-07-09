@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk';
+import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsNumber, IsOptional, IsPositive, IsUUID, Min } from 'class-validator';
 
 export class AddGoodsReceiptItemFromSupplierItemDto {
@@ -80,7 +80,11 @@ export class AddGoodsReceiptItemFromPurchaseOrderItemDto {
   @IsCurrency()
   unitPrice?: CurrencyAmountDto;
 
-  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Printed MRP per primary unit (BU currency)', nullable: true })
+  @ApiPropertyOptional({
+    type: CurrencyAmountDto,
+    description: 'Printed MRP per primary unit (BU currency)',
+    nullable: true,
+  })
   @IsOptional()
   @IsCurrency()
   mrp?: CurrencyAmountDto | null;

@@ -1,3 +1,2 @@
-// Commerce MF — loaded as a remote by core-web
-// Individual features are exposed via module federation
+// Commerce MF — loaded as a remote by core-web; features exposed via module federation
 export {};

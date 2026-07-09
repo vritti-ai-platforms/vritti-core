@@ -5,10 +5,7 @@ import { View } from 'react-native';
 import { getSelectedBusinessUnitId } from '../../config/storage';
 import { usePermissionContext } from '../../providers/PermissionProvider';
 
-// Post-login gate (rendered by AppRender, not a nav route): asks which business unit to use
-// when the user has more than one. PermissionProvider auto-selects a lone BU, so this never
-// shows for single-BU users. The last-used BU (persisted) is pre-highlighted for one-tap
-// continue; tapping any card selects it and enters the app.
+// Post-login gate that asks which business unit to use when the user has more than one, pre-highlighting the last-used BU.
 export const BusinessUnitSelectionScreen = () => {
   const { businessUnits, selectBu } = usePermissionContext();
   const lastUsedBuId = getSelectedBusinessUnitId();

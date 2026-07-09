@@ -1,4 +1,4 @@
-import type { CurrencyAmountDto } from '@vritti/api-sdk';
+import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export interface PurchaseOrderEmailItem {
   inventoryItemId: string;

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type BusinessUnit, businessUnits } from '@/db/schema';
 
@@ -24,9 +24,7 @@ export class BusinessUnitRepository extends PrimaryBaseRepository<typeof busines
     });
   }
 
-  // Finds all descendants of a business unit using ltree descendant-of operator.
-  // RLS scopes the query to the current org via app.org_id; results are ordered so the queried
-  // root comes first (depth ASC), then descendants by depth + sort order.
+  // Finds all descendants of a business unit using ltree descendant-of operator (RLS-scoped to current org)
   async findSubtree(path: string): Promise<BusinessUnit[]> {
     const rows = await this.db
       .select()

@@ -4,13 +4,13 @@ import {
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  NotFoundException,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type Catalog, catalogs } from '@/db/schema';
 import type { CreateCatalogDto } from '@/modules/catalogs/dto/request/create-catalog.dto';
 import type { UpdateCatalogDto } from '@/modules/catalogs/dto/request/update-catalog.dto';

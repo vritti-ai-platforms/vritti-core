@@ -1,17 +1,16 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import {
-  ConflictException,
   type CreateResponseDto,
   type FieldMap,
   FilterProcessor,
-  NotFoundException,
   PrimaryDatabaseService,
   type SelectOptionsQueryDto,
   type SelectQueryResult,
   type SuccessResponseDto,
   type TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, ne, notInArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type LocationRole, LocationRoleValues, locations } from '@/db/schema';
 import type { CreateLocationDto } from '@/modules/locations/dto/request/create-location.dto';
 import type { UpdateLocationDto } from '@/modules/locations/dto/request/update-location.dto';

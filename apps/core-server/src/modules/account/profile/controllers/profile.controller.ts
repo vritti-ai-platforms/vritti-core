@@ -1,6 +1,6 @@
 import { Controller, Get, Logger } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RequireSession, UserId } from '@vritti/api-sdk';
+import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { ApiGetProfile } from '../docs/profile.docs';
 import { ProfileDto } from '../dto/entity/profile.dto';
@@ -8,7 +8,7 @@ import { ProfileService } from '../services/profile.service';
 
 @ApiTags('Account - Profile')
 @ApiBearerAuth()
-@RequireSession(SessionTypeValues.NEXUS)
+@RequireSession(SessionTypeValues.WEB)
 @Controller('profile')
 export class ProfileController {
   private readonly logger = new Logger(ProfileController.name);

@@ -8,7 +8,7 @@ import type {
   SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
-} from '@vritti/api-sdk';
+} from '@vritti/api-sdk/database';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
 import type { UpdateCatalogDto } from '../dto/request/update-catalog.dto';
 

@@ -1,3 +1,4 @@
+import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
 import { boolean, jsonb, text, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 
 import { coreSchema } from './core-schema';
@@ -12,13 +13,9 @@ export const roles = coreSchema.table(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
-    sourceRoleId: uuid('source_role_id'),
-    isLocked: boolean('is_locked').notNull().default(false),
-    // featureCode → { app: appCode, granted permission codes per platform } — the role's grants, app stamped
-    features: jsonb('features')
-      .$type<Record<string, { app?: string; web?: string[]; mobile?: string[] }>>()
-      .notNull()
-      .default({}),
+    code: varchar('code', { length: 255 }).notNull(),
+    features: jsonb('features').$type<FeatureUnlocks>().notNull().default({}),
+    revoked: jsonb('revoked').$type<RevokedGrants>(),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

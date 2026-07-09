@@ -2,7 +2,7 @@ import { CategoriesService } from '@domain/categories/services/categories.servic
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Injectable, Logger } from '@nestjs/common';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk';
+import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 

@@ -1,7 +1,7 @@
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { useMemo } from 'react';
 import { Navigate, type RouteObject, useLocation, useRoutes } from 'react-router-dom';
-import { resolveCommerceRemoteEntry } from '../config/remotes.config';
+import { Upsell } from '../components/Upsell';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteRoutes } from './RemoteRoutes';
 
@@ -12,15 +12,19 @@ export const DynamicFeatureRoutes = () => {
   const routes = useMemo<RouteObject[]>(() => {
     if (!selectedBuId || features.length === 0) return [];
 
+    // Plan-locked features render an upsell instead of mounting the remote; others mount the micro-app
     return features.map((feature) => {
       const routePrefix = feature.route.routePrefix.replace(/^\//, '');
+      const planLocked = feature.locked && feature.lockReason === 'PLAN';
       return {
         path: `${routePrefix}/*`,
-        element: (
+        element: planLocked ? (
+          <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} upsell={feature.upsell} />
+        ) : (
           <RemoteRoutes
             key={feature.code}
             remoteName="commerce"
-            remoteEntry={resolveCommerceRemoteEntry(feature.route.remoteEntry)}
+            remoteEntry={feature.route.remoteEntry}
             moduleName={feature.route.exposedModule}
           />
         ),

@@ -14,7 +14,9 @@ export class CreateCustomerDto {
   @IsNotEmpty()
   @MinLength(7)
   @MaxLength(32)
-  @Matches(/^[+0-9()\-\s]+$/, { message: 'Phone must contain only digits, spaces, parentheses, dashes, or a leading +.' })
+  @Matches(/^[+0-9()\-\s]+$/, {
+    message: 'Phone must contain only digits, spaces, parentheses, dashes, or a leading +.',
+  })
   phone: string;
 
   @ApiPropertyOptional({ description: 'Customer email address', example: 'jane@example.com' })

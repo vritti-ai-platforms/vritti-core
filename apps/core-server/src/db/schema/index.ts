@@ -9,6 +9,7 @@ export * from './users';
 export * from './sessions';
 export * from './verifications';
 export * from './organizations';
+export * from './catalogs';
 export * from './table-views';
 export * from './business-unit';
 export * from './role';

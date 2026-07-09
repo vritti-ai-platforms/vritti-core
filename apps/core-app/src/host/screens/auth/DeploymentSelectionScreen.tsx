@@ -36,8 +36,7 @@ export const DeploymentSelectionScreen = () => {
 
   async function handleConnect() {
     if (!selectedDeployment) return;
-    // Point the API base URL (BASE_URL_KEY) at the chosen deployment so the pre-login
-    // organizationsByEmail GraphQL resolves against it; LoginScreen later refines it with the org subdomain.
+    // Point the API base URL at the chosen deployment so pre-login organizationsByEmail resolves against it.
     await setMobileBaseURL(selectedDeployment.url);
     setDeployment(selectedDeployment.url);
     console.log('Selected deployment:', selectedDeployment);

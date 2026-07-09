@@ -23,9 +23,7 @@ interface LotsTableProps {
   onSelectLot: (lotId: string) => void;
 }
 
-// Lots under a lot-tracked item. Reuses the lots list endpoint, adapted into DataTable server-state
-// shape so we get the shared skeleton, empty state, and row interactions. Clicking a row (or the View
-// action) drills into the lot, selecting it in the tree. Add is gated to draft receipts.
+// Lots under a lot-tracked item, adapting the lots list endpoint into DataTable server-state shape.
 export const LotsTable = ({ goodsReceiptId, itemId, hasMrp, isDraft, uomSymbol, onSelectLot }: LotsTableProps) => {
   const addLotDialog = useDialog();
 

@@ -2,7 +2,7 @@ import type { InventoryItemQuantDto } from '@domain/inventory-item-quants/dto/en
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk';
+import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk/database';
 import { InventoryItemsQuantsService } from './services/inventory-items-quants.service';
 
 @Controller()

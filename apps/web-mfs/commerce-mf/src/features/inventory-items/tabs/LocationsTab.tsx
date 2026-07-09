@@ -1,6 +1,13 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
-import { type ColumnDef, DataTable, NumberCell, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import {
+  type ColumnDef,
+  DataTable,
+  NumberCell,
+  RowActions,
+  StringCell,
+  useDataTable,
+} from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { MapPin, Package, Pencil, Plus, Trash2 } from 'lucide-react';

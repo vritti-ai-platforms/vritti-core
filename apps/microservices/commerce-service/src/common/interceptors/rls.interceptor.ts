@@ -1,6 +1,6 @@
 import { type CallHandler, type ExecutionContext, Injectable, Logger, type NestInterceptor } from '@nestjs/common';
 import { NatsContext } from '@nestjs/microservices';
-import { PrimaryDatabaseService } from '@vritti/api-sdk';
+import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { type NatsHeaders, parseNatsHeaders } from '@vritti/api-sdk/nats';
 import { from, type Observable } from 'rxjs';
 

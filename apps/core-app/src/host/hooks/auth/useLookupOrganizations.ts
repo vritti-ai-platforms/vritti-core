@@ -10,9 +10,7 @@ interface OrganizationsByEmailVariables {
   email: string;
 }
 
-// Looks up organizations for an email against the already-selected deployment (Apollo's
-// authLink resolves the tenant base URL per request). Lazy so the auth flow triggers it
-// imperatively on form submit, mirroring the previous mutateAsync call site.
+// Looks up organizations for an email against the already-selected deployment; lazy so the auth flow triggers it on form submit.
 export function useLookupOrganizations() {
   return useLazyQuery<OrganizationsByEmailData, OrganizationsByEmailVariables>(ORGANIZATIONS_BY_EMAIL, {
     fetchPolicy: 'network-only',
