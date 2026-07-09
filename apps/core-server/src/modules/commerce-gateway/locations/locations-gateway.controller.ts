@@ -15,7 +15,9 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { LOCATIONS } from '@vritti/commerce-permissions/locations';
 import { SessionTypeValues } from '@/db/schema';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { ApiGetLocationItemQuants, ApiGetLocationItemsTable } from './docs/locations-gateway.docs';
 import { CreateLocationDto } from './dto/request/create-location.dto';
 import { ReorderLocationsDto } from './dto/request/reorder-locations.dto';
@@ -31,6 +33,7 @@ import { LocationsGatewayService } from './services/locations-gateway.service';
 @ApiTags('Commerce - Storage Locations')
 @ApiBearerAuth()
 @RequireSession(SessionTypeValues.WEB)
+@RequireFeature(LOCATIONS.featureCode)
 @Controller('locations')
 export class LocationsGatewayController {
   private readonly logger = new Logger(LocationsGatewayController.name);
@@ -46,6 +49,7 @@ export class LocationsGatewayController {
 
   // Returns storage locations as a tree hierarchy for TreeView
   @Get('tree')
+  @RequirePermission(LOCATIONS.view)
   findTree(@Query('search') search?: string): Promise<LocationTreeResponseDto[]> {
     this.logger.log('GET /commerce-api/locations/tree');
     return this.locationsGatewayService.findTree(search);
@@ -53,6 +57,7 @@ export class LocationsGatewayController {
 
   // Returns paginated child locations for a given parent location
   @Get(':parentId/children/table')
+  @RequirePermission(LOCATIONS.view)
   childrenTable(
     @Param('parentId', new ParseUUIDPipe()) parentId: string,
     @UserId() userId: string,
@@ -63,6 +68,7 @@ export class LocationsGatewayController {
 
   // Reorders siblings under a parent location
   @Post('reorder')
+  @RequirePermission(LOCATIONS.edit)
   reorder(@Body() dto: ReorderLocationsDto): Promise<SuccessResponseDto> {
     this.logger.log('POST /commerce-api/locations/reorder');
     return this.locationsGatewayService.reorder(dto);
@@ -70,6 +76,7 @@ export class LocationsGatewayController {
 
   // Returns a location's stocked items (grouped, non-zero) as a data table
   @Get(':locationId/items/table')
+  @RequirePermission(LOCATIONS.quants.view)
   @ApiGetLocationItemsTable()
   getItemsTable(
     @Param('locationId', new ParseUUIDPipe()) locationId: string,
@@ -81,6 +88,7 @@ export class LocationsGatewayController {
 
   // Returns the per-quant breakdown for a single item within a location
   @Get(':locationId/items/:itemId/quants')
+  @RequirePermission(LOCATIONS.quants.view)
   @ApiGetLocationItemQuants()
   getItemQuants(
     @Param('locationId', new ParseUUIDPipe()) locationId: string,
@@ -92,6 +100,7 @@ export class LocationsGatewayController {
 
   // Returns a single storage location by ID
   @Get(':id')
+  @RequirePermission(LOCATIONS.view)
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<LocationResponseDto> {
     this.logger.log(`GET /commerce-api/locations/${id}`);
     return this.locationsGatewayService.findById(id);
@@ -100,6 +109,7 @@ export class LocationsGatewayController {
   // Creates a new storage location
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LOCATIONS.add)
   async create(@Body() dto: CreateLocationDto): Promise<CreateResponseDto<LocationResponseDto>> {
     this.logger.log('POST /commerce-api/locations');
     return this.locationsGatewayService.create(dto);
@@ -107,6 +117,7 @@ export class LocationsGatewayController {
 
   // Updates an storage location by ID
   @Patch(':id')
+  @RequirePermission(LOCATIONS.edit)
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateLocationDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/locations/${id}`);
     return this.locationsGatewayService.update(id, dto);
@@ -114,6 +125,7 @@ export class LocationsGatewayController {
 
   // Deletes an storage location by ID
   @Delete(':id')
+  @RequirePermission(LOCATIONS.delete)
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/locations/${id}`);
     return this.locationsGatewayService.delete(id);

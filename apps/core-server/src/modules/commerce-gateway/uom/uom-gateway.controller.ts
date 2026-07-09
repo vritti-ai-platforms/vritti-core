@@ -4,7 +4,7 @@ import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { UOM } from '@vritti/commerce-permissions/uom';
 import { SessionTypeValues } from '@/db/schema';
-import { RequirePermission } from '@/rbac/decorators';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { CreateUomDto } from './dto/request/create-uom.dto';
 import { UpdateUomDto } from './dto/request/update-uom.dto';
 import type { UomResponseDto } from './dto/response/uom-response.dto';
@@ -14,6 +14,7 @@ import { UomGatewayService } from './services/uom-gateway.service';
 @ApiTags('Commerce - Units of Measure')
 @ApiBearerAuth()
 @RequireSession(SessionTypeValues.WEB)
+@RequireFeature(UOM.featureCode)
 @Controller('uom')
 export class UomGatewayController {
   private readonly logger = new Logger(UomGatewayController.name);

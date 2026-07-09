@@ -4,7 +4,7 @@ import { RequireSession } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { UOM } from '@vritti/commerce-permissions/uom';
 import { SessionTypeValues } from '@/db/schema';
-import { RequirePermission } from '@/rbac/decorators';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
 import { UomDimensionsQueryDto } from './dto/request/uom-dimensions-query.dto';
 import { UpdateUomDimensionDto } from './dto/request/update-uom-dimension.dto';
@@ -15,6 +15,7 @@ import { UomDimensionsGatewayService } from './services/uom-dimensions-gateway.s
 @ApiTags('Commerce › UOM Dimensions')
 @ApiBearerAuth()
 @RequireSession(SessionTypeValues.WEB)
+@RequireFeature(UOM.featureCode)
 @Controller('uom-dimensions')
 export class UomDimensionsGatewayController {
   private readonly logger = new Logger(UomDimensionsGatewayController.name);
@@ -38,6 +39,7 @@ export class UomDimensionsGatewayController {
 
   // Returns a dimension by ID
   @Get(':id')
+  @RequirePermission(UOM.dim.view)
   findById(@Param('id') id: string): Promise<UomDimensionResponseDto> {
     this.logger.log(`GET /commerce-api/uom-dimensions/${id}`);
     return this.service.findById(id);

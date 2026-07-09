@@ -4,7 +4,7 @@ import { RequireSession, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { SessionTypeValues } from '@/db/schema';
-import { RequirePermission } from '@/rbac/decorators';
+import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import {
   ApiCreateTaxGroup,
   ApiDeleteTaxGroup,
@@ -21,12 +21,14 @@ import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 @ApiTags('Commerce - Tax Groups')
 @ApiBearerAuth()
 @RequireSession(SessionTypeValues.WEB)
+@RequireFeature(TAX_GROUPS.featureCode)
 @Controller('tax-groups')
 export class TaxGroupsGatewayController {
   constructor(private readonly taxGroupsGatewayService: TaxGroupsGatewayService) {}
 
   // Returns a paginated page of tax groups for the data table
   @Get('table')
+  @RequirePermission(TAX_GROUPS.view)
   @ApiFindForTableTaxGroups()
   findForTable(@UserId() userId: string): Promise<TaxGroupTableResponseDto> {
     return this.taxGroupsGatewayService.findForTable(userId);
@@ -43,6 +45,7 @@ export class TaxGroupsGatewayController {
 
   // Returns a single tax group by ID
   @Get(':id')
+  @RequirePermission(TAX_GROUPS.view)
   @ApiGetTaxGroup()
   async findById(@Param('id') id: string): Promise<TaxGroupResponseDto> {
     return this.taxGroupsGatewayService.findById(id);

@@ -3,9 +3,9 @@ import type { StockAdjustmentLineItemDto } from '@domain/stock-adjustment-line-i
 import { StockAdjustmentLineItemsService } from '@domain/stock-adjustment-line-items/services/stock-adjustment-line-items.service';
 import { StockAdjustmentLinesRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentsRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { BadRequestException, ValidationException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { SerialStatusValues, StockAdjustmentTypeValues } from '@/db/schema';
 
 @Injectable()

@@ -41,9 +41,6 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
 
   const updateMutation = useUpdateLocation({ onSuccess });
 
-  // A ZONE location cannot have a parent; lock the selector and force null on submit.
-  const isZone = form.watch('locationRole') === 'ZONE';
-
   return (
     <Form
       form={form}
@@ -54,7 +51,7 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
         data: {
           name: data.name,
           code: data.code,
-          parentId: data.locationRole === 'ZONE' ? null : data.parentId || null,
+          parentId: data.parentId || null,
           sortOrder: data.sortOrder,
           locationRole: data.locationRole,
           isActive: data.isActive,
@@ -72,8 +69,8 @@ export const EditLocationDialog: React.FC<EditLocationDialogProps> = ({ location
             name="parentId"
             label="Parent Location"
             placeholder="None (root location)"
-            clearable={!isZone}
-            disabled={isZone}
+            clearable
+            params={{ locationRoles: LocationRoleValues.ZONE }}
           />
         </div>
       </FormSection>

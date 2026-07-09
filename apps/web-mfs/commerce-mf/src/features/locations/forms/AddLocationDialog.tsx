@@ -7,7 +7,6 @@ import { LocationSelector } from '@vritti/quantum-ui/selects/location';
 import { UserSelector } from '@vritti/quantum-ui/selects/user';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCreateLocation } from '@/hooks/locations';
 import {
@@ -45,14 +44,6 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
     },
   });
 
-  // A ZONE location cannot have a parent; clear and lock the selector when the role is ZONE.
-  const isZone = form.watch('locationRole') === 'ZONE';
-  useEffect(() => {
-    if (isZone) {
-      form.setValue('parentId', null);
-    }
-  }, [isZone, form]);
-
   const createMutation = useCreateLocation({ onSuccess });
 
   return (
@@ -67,7 +58,8 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
             label="Parent Location"
             placeholder="None (root location)"
             clearable={!isParentLocked}
-            disabled={isParentLocked || isZone}
+            disabled={isParentLocked}
+            params={{ locationRoles: LocationRoleValues.ZONE }}
           />
         </div>
       </FormSection>

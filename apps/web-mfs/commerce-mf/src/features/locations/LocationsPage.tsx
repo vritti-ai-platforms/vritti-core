@@ -1,9 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { LOCATIONS } from '@vritti/commerce-permissions/locations';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContent } from '@vritti/quantum-ui/PageContent';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { PermissionGate } from '@vritti/quantum-ui/PermissionGate';
 import { MapPin, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { LOCATIONS_KEY, useLocationCount } from '@/hooks/locations';
@@ -22,15 +24,17 @@ export const LocationsPage = () => {
         title="Locations"
         description={`${locationCount.count} total locations`}
         actions={
-          <Button onClick={formDialog.open} startAdornment={<Plus className="size-4" />}>
+          <Button onClick={formDialog.open} startAdornment={<Plus className="size-4" />} permission={LOCATIONS.add}>
             Add Location
           </Button>
         }
       />
 
       <PageContent>
-        <LocationTreePanel selectedId={selectedId} onSelect={setSelectedId} />
-        <LocationDetailPanel selectedId={selectedId} onSelectLocation={setSelectedId} />
+        <PermissionGate permission={LOCATIONS.view}>
+          <LocationTreePanel selectedId={selectedId} onSelect={setSelectedId} />
+          <LocationDetailPanel selectedId={selectedId} onSelectLocation={setSelectedId} />
+        </PermissionGate>
       </PageContent>
 
       <Dialog

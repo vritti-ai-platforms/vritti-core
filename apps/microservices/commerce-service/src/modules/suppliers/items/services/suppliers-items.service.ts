@@ -1,8 +1,9 @@
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { SupplierItemsService } from '@domain/supplier-items/services/supplier-items.service';
 import type { SupplierItemDto } from '@domain/suppliers/dto/entity/supplier.dto';
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { AddSupplierItemDto } from '../dto/request/add-supplier-item.dto';
 import type { UpdateSupplierItemDto } from '../dto/request/update-supplier-item.dto';
 

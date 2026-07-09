@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { LOCATIONS } from '@vritti/commerce-permissions/locations';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
@@ -171,6 +172,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
               size="sm"
               onClick={editDialog.open}
               startAdornment={<Pencil className="size-3.5" />}
+              permission={LOCATIONS.edit}
             >
               Edit
             </Button>
@@ -181,6 +183,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
               disabled={!location.canDelete || deleteMutation.isPending}
               isLoading={deleteMutation.isPending}
               startAdornment={<Trash2 className="size-3.5" />}
+              permission={LOCATIONS.delete}
             >
               Delete
             </Button>
@@ -230,6 +233,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
                   onClick={addChildDialog.open}
                   disabled={!canAddChild}
                   title={!canAddChild ? 'Only ZONE locations can have child locations.' : undefined}
+                  permission={LOCATIONS.add}
                 >
                   Add Child Location
                 </Button>
@@ -365,6 +369,7 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
         table={table}
         mode="compact"
         isLoading={isLoading}
+        permission={LOCATIONS.quants.view}
         emptyStateConfig={{
           icon: Boxes,
           title: 'No stock in this location',

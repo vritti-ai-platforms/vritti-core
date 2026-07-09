@@ -1,5 +1,7 @@
+import { LOCATIONS } from '@vritti/commerce-permissions/locations';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
+import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import { SearchBar } from '@vritti/quantum-ui/SearchBar';
 import type { TreeReorderPayload } from '@vritti/quantum-ui/TreeView';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
@@ -18,7 +20,8 @@ export const LocationTreePanel: React.FC<LocationTreePanelProps> = ({ selectedId
   const [searchQuery, setSearchQuery] = useState('');
   const { data: treeData = [], isLoading } = useLocationTree(searchQuery);
   const reorderMutation = useReorderLocations();
-  const dragEnabled = searchQuery.trim().length === 0 && !reorderMutation.isPending;
+  const { available: canReorder } = usePermission(LOCATIONS.edit);
+  const dragEnabled = canReorder && searchQuery.trim().length === 0 && !reorderMutation.isPending;
 
   const handleReorder = useCallback(
     (payload: TreeReorderPayload) => {
