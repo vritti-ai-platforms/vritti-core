@@ -97,6 +97,32 @@ src/hooks/inventory-items/
 └── useDeleteInventoryItem.ts     # one hook
 ```
 
+## List loading — pass `loading` straight to `FlashList isLoading`
+
+A `screenScroll` list screen wires the query's `loading` **directly** to `<FlashList isLoading={…}>`. Do NOT
+gate it on `data.length === 0` (`loading && networkStatus === NetworkStatus.loading && items.length === 0`).
+
+```tsx
+// WRONG — skips the skeleton whenever cached data is present
+const isInitialLoading = loading && networkStatus === NetworkStatus.loading && items.length === 0;
+<FlashList screenScroll isLoading={isInitialLoading} data={items} … />
+
+// CORRECT — loading straight through
+const { data, previousData, loading } = useThings(search);
+const items = (data ?? previousData)?.things ?? [];
+<FlashList screenScroll isLoading={loading} data={items} … />
+```
+
+WHY: with `cache-and-network` + `notifyOnNetworkStatusChange`, `loading` is true whenever a fetch is in flight —
+first load, a cached re-mount's revalidation, and a search refetch — so `<FlashList>` shows its skeleton on each.
+That skeleton pass is **deliberate**: it lets the transparent `<ScreenHeader>` register its content inset BEFORE
+the real list lays out. The old `… && items.length === 0` guard skipped the skeleton when cached data existed, so
+on a cached re-entry the real list rendered on the first pass and seated UNDER the header (first card clipped
+beneath the search bar) — the bug on "More"-menu list screens on second entry. A relay feed via
+`useApolloInfiniteQuery` already returns `isLoading` this way (`networkStatus === loading`, no data guard), so it
+was immune; plain-query list screens must match it. Trading a brief skeleton on refetch for correct header
+seating is intended.
+
 ## Enum caveat
 
 Server `InventoryItem.type`/`tracking`/`pickStrategy` are GraphQL `String` (mirroring the DTOs), so the

@@ -1,9 +1,7 @@
-import type { BottomSheetRef } from "@vritti/quantum-ui-native/BottomSheet";
 import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
 import { Fab } from "@vritti/quantum-ui-native/Fab";
 import { FlashList } from "@vritti/quantum-ui-native/FlashList";
-import { useConfirm } from "@vritti/quantum-ui-native/hooks";
-import { useRef, useState } from "react";
+import { useConfirm, useCreateEditSheet } from "@vritti/quantum-ui-native/hooks";
 import { View } from "react-native";
 import {
   useDeleteUomConversion,
@@ -25,17 +23,8 @@ export function UomConversionsTab({ item }: { item: InventoryItem }) {
   const [deleteConversion] = useDeleteUomConversion();
   const confirm = useConfirm();
 
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const [editing, setEditing] = useState<UomConversion | null>(null);
+  const { sheetRef, editing, openCreate, openEdit } = useCreateEditSheet<UomConversion>();
 
-  const openCreate = () => {
-    setEditing(null);
-    sheetRef.current?.present();
-  };
-  const openEdit = (conversion: UomConversion) => {
-    setEditing(conversion);
-    sheetRef.current?.present();
-  };
   const handleDelete = async (conversion: UomConversion) => {
     const confirmed = await confirm({
       title: "Delete conversion?",

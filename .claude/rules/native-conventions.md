@@ -199,3 +199,47 @@ const form = useForm<MyValues>({ resolver: zodResolver(mySchema) });
   <Button isLoading={isPending} onPress={form.handleSubmit(handleSubmit)}><Text>Submit</Text></Button>
 </Form>
 ```
+
+## Create/edit sheets — `useCreateEditSheet` + `ScreenHeader createLabel`
+
+> WHY: A list/detail screen with a create/edit BottomSheet used to hand-roll `useRef<BottomSheetRef>` + an
+> `editing` state + `openCreate`/`openEdit`, plus (for the header `+`) a per-feature React context bridging the
+> header button to the screen body. That block was copy-pasted across every feature. `useCreateEditSheet` owns
+> the sheet state; `ScreenHeader createLabel` owns the `+` button; a per-route registry bridges them — no context.
+
+Use the hook (from `@vritti/quantum-ui-native/hooks`) for the sheet state, and never re-create a per-feature
+`CreateContext`/`CreateProvider`/`CreateButton`.
+
+```tsx
+// WRONG — hand-rolled block + per-feature context + inline header CreateButton
+const sheetRef = useRef<BottomSheetRef>(null);
+const [editing, setEditing] = useState<Thing | null>(null);
+const openCreate = () => { setEditing(null); sheetRef.current?.present(); };
+const openEdit = (t: Thing) => { setEditing(t); sheetRef.current?.present(); };
+const { setCreateHandler } = useThingCreate();
+useEffect(() => { setCreateHandler(openCreate); return () => setCreateHandler(null); }, [openCreate, setCreateHandler]);
+
+// CORRECT
+import { useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
+const { sheetRef, editing, openCreate, openEdit } = useCreateEditSheet<Thing>({ registerCreateAction: true });
+```
+
+- **Header `+` create** (list screens): pass `{ registerCreateAction: true }` and put `createLabel="Add thing"`
+  on the `<ScreenHeader>` (like `searchable`). The header renders the `+` and fires the registered `openCreate` —
+  do NOT pass a custom `rightActions={<CreateButton/>}` for create, and do NOT build a `<Feature>CreateContext`.
+
+  ```tsx
+  // navigator header (index.tsx)
+  header: () => <ScreenHeader title="Things" searchable createLabel="Add thing" />
+  ```
+
+- **Fab-triggered create** (detail tabs / detail screens): call `useCreateEditSheet<Thing>()` with **no**
+  `registerCreateAction`, and wire the Fab yourself: `<Fab onPress={openCreate}>`. (Omitting the flag keeps the
+  per-route create-action registry untouched, so several sheets on one route never collide.)
+
+- The FormSheet is a `forwardRef<BottomSheetRef, { editing: T | null }>` that self-seeds on `onPresent`; render it
+  `<ThingFormSheet ref={sheetRef} editing={editing} />` and wire cards' edit to `onEdit={openEdit}`.
+
+- **Not** for view-only or fixed-subject sheets. A detail/view sheet (`<QuantDetailSheet quant={…}>`) or an
+  edit-only sheet whose subject is fixed (`editing={theCurrentThing}` constant, opened from a header menu) keeps a
+  bare `useRef<BottomSheetRef>` + `.present()` — the hook is the create/edit state machine, not a generic ref.

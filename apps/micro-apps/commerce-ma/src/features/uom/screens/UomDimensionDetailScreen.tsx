@@ -4,11 +4,11 @@ import type { BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { Fab } from '@vritti/quantum-ui-native/Fab';
 import { FlashList } from '@vritti/quantum-ui-native/FlashList';
-import { useConfirm } from '@vritti/quantum-ui-native/hooks';
+import { useConfirm, useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { Text } from '@vritti/quantum-ui-native/Text';
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef } from 'react';
 import { RefreshControl, View } from 'react-native';
 import { UOM_DIMENSION_QUERY } from '../../../graphql/uom-dimensions';
 import { useDeleteUom, useUomsFeed } from '../../../hooks/uom';
@@ -85,17 +85,8 @@ export function UomDimensionDetail({
 
   // Unit-level actions (FAB + per-card edit/delete).
   const [deleteUom] = useDeleteUom();
-  const unitSheetRef = useRef<BottomSheetRef>(null);
-  const [editingUnit, setEditingUnit] = useState<Uom | null>(null);
+  const unitSheet = useCreateEditSheet<Uom>();
 
-  const openCreateUnit = () => {
-    setEditingUnit(null);
-    unitSheetRef.current?.present();
-  };
-  const openEditUnit = (unit: Uom) => {
-    setEditingUnit(unit);
-    unitSheetRef.current?.present();
-  };
   const handleDeleteUnit = async (unit: Uom) => {
     const confirmed = await confirm({
       title: `Delete ${unit.name}?`,
@@ -144,15 +135,15 @@ export function UomDimensionDetail({
         contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
         ItemSeparatorComponent={() => <View className="h-3" />}
         emptyText={feed.isError ? "Couldn't load units." : 'No units yet. Tap + to add one.'}
-        renderItem={({ item }) => <UomUnitCard unit={item} onEdit={openEditUnit} onDelete={handleDeleteUnit} />}
+        renderItem={({ item }) => <UomUnitCard unit={item} onEdit={unitSheet.openEdit} onDelete={handleDeleteUnit} />}
       />
 
-      <Fab onPress={openCreateUnit} accessibilityLabel="Add unit">
+      <Fab onPress={unitSheet.openCreate} accessibilityLabel="Add unit">
         <DynamicIcon icon={PLUS_ICON} size={24} />
       </Fab>
 
       <UomDimensionFormSheet ref={dimensionSheetRef} editing={dimension} />
-      <UomUnitFormSheet ref={unitSheetRef} dimensionId={dimension.id} editing={editingUnit} />
+      <UomUnitFormSheet ref={unitSheet.sheetRef} dimensionId={dimension.id} editing={unitSheet.editing} />
     </View>
   );
 }

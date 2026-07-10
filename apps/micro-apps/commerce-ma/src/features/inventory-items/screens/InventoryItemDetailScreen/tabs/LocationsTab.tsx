@@ -1,10 +1,8 @@
-import type { BottomSheetRef } from "@vritti/quantum-ui-native/BottomSheet";
 import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
 import { Fab } from "@vritti/quantum-ui-native/Fab";
 import { FlashList } from "@vritti/quantum-ui-native/FlashList";
-import { useConfirm } from "@vritti/quantum-ui-native/hooks";
+import { useConfirm, useCreateEditSheet } from "@vritti/quantum-ui-native/hooks";
 import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { useRef, useState } from "react";
 import { RefreshControl, View } from "react-native";
 import {
   useDeleteItemLocation,
@@ -24,17 +22,8 @@ export function LocationsTab({ item }: { item: InventoryItem }) {
   const [deleteLocation] = useDeleteItemLocation();
   const confirm = useConfirm();
 
-  const sheetRef = useRef<BottomSheetRef>(null);
-  const [editing, setEditing] = useState<ItemLocation | null>(null);
+  const { sheetRef, editing, openCreate, openEdit } = useCreateEditSheet<ItemLocation>();
 
-  const openCreate = () => {
-    setEditing(null);
-    sheetRef.current?.present();
-  };
-  const openEdit = (location: ItemLocation) => {
-    setEditing(location);
-    sheetRef.current?.present();
-  };
   const handleDelete = async (location: ItemLocation) => {
     const confirmed = await confirm({
       title: "Remove location?",

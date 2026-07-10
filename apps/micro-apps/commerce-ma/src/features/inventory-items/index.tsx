@@ -5,7 +5,6 @@ import {
 import { ScreenHeader } from "@vritti/quantum-ui-native/ScreenHeader";
 // Side-effect: registers this feature's Apollo cache policies at module eval (before any screen queries).
 import "./cache";
-import { CreateButton } from "./components/CreateButton";
 import { InventoryItemCreate } from "./screens/InventoryItemCreateScreen";
 import {
   InventoryItemDetail,
@@ -25,7 +24,7 @@ const screens: ReadonlyArray<PushScreenConfig<InventoryRoute>> = [
         subtitle="Browse and manage your stock items"
         searchable
         searchPlaceholder="Search by name or code"
-        rightActions={<CreateButton />}
+        createLabel="Create item"
       />
     ),
   },
