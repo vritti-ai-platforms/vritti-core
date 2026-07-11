@@ -1,7 +1,7 @@
 import { UserService } from '@domain/user/services/user.service';
 import { UserPermissionsService } from '@domain/user-permissions/services/user-permissions.service';
 import { Injectable } from '@nestjs/common';
-import type { BuSelectResponseDto } from '../dto/response/bu-select-response.dto';
+import type { SiteSelectResponseDto } from '../dto/response/site-select-response.dto';
 
 @Injectable()
 export class UserPermissionsApiService {
@@ -10,15 +10,15 @@ export class UserPermissionsApiService {
     private readonly userPermissionsService: UserPermissionsService,
   ) {}
 
-  // Returns assigned BUs in select dropdown format
-  async getBusinessUnitsSelect(userId: string): Promise<BuSelectResponseDto> {
+  // Returns assigned sites in select dropdown format
+  async getSitesSelect(userId: string): Promise<SiteSelectResponseDto> {
     const user = await this.userService.findByIdOrThrow(userId);
-    const bus = await this.userPermissionsService.getAssignedBusinessUnits(userId, user.organizationId);
+    const assignedSites = await this.userPermissionsService.getAssignedSites(userId, user.organizationId);
     return {
-      options: bus.map((bu) => ({
-        value: bu.id,
-        label: bu.name,
-        description: bu.type,
+      options: assignedSites.map((site) => ({
+        value: site.id,
+        label: site.name,
+        description: site.type,
       })),
       hasMore: false,
     };

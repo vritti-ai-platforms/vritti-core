@@ -22,7 +22,7 @@ export class UpdateGoodsReceiptLotDto {
 
   @ApiPropertyOptional({
     type: CurrencyAmountDto,
-    description: 'Printed MRP per primary unit (BU currency)',
+    description: 'Printed MRP per primary unit (site currency)',
     nullable: true,
   })
   @IsOptional()

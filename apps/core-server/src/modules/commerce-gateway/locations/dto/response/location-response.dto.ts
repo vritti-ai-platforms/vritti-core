@@ -8,8 +8,8 @@ export class LocationResponseDto {
   @ApiProperty({ description: 'Organization ID' })
   organizationId: string;
 
-  @ApiProperty({ description: 'Business unit ID' })
-  businessUnitId: string;
+  @ApiProperty({ description: 'Site ID' })
+  siteId: string;
 
   @ApiProperty({ description: 'Location name', example: 'Walk-in Fridge' })
   name: string;

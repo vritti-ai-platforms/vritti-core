@@ -31,7 +31,7 @@ export class GoodsReceiptItemDto {
   metadata: Record<string, unknown>;
   createdAt: string;
 
-  static from(row: GoodsReceiptItemWithRefs, buCurrencyCode?: string): GoodsReceiptItemDto {
+  static from(row: GoodsReceiptItemWithRefs, siteCurrencyCode?: string): GoodsReceiptItemDto {
     const dto = new GoodsReceiptItemDto();
     dto.id = row.id;
     dto.goodsReceiptId = row.goodsReceiptId;

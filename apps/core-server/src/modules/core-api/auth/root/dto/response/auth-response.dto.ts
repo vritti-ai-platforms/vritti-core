@@ -1,5 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AssignedBuResponseDto } from '../../../../user-permissions/dto/response/assigned-bu-response.dto';
+import { AssignedLegalEntityResponseDto } from '../../../../user-permissions/dto/response/assigned-legal-entity-response.dto';
+import { AssignedRoleResponseDto } from '../../../../user-permissions/dto/response/assigned-role-response.dto';
+import { AssignedSiteGroupResponseDto } from '../../../../user-permissions/dto/response/assigned-site-group-response.dto';
+import { AssignedSiteResponseDto } from '../../../../user-permissions/dto/response/assigned-site-response.dto';
 import { PermissionFeatureDto } from '../../../../user-permissions/dto/response/permissions-response.dto';
 
 export class AuthUserDto {
@@ -29,7 +32,13 @@ export class AuthResponseDto {
   @ApiPropertyOptional() sessionId?: string;
   @ApiPropertyOptional({ type: AuthUserDto }) user?: AuthUserDto;
   @ApiPropertyOptional({ type: AuthOrgDto }) org?: AuthOrgDto;
-  @ApiPropertyOptional({ type: [AssignedBuResponseDto] }) businessUnits?: AssignedBuResponseDto[];
+  @ApiPropertyOptional({ type: [AssignedSiteResponseDto] }) sites?: AssignedSiteResponseDto[];
+  @ApiPropertyOptional({ type: [AssignedLegalEntityResponseDto] })
+  legalEntities?: AssignedLegalEntityResponseDto[];
+  @ApiPropertyOptional({ type: [AssignedSiteGroupResponseDto] })
+  siteGroups?: AssignedSiteGroupResponseDto[];
+  @ApiPropertyOptional({ type: [AssignedRoleResponseDto] })
+  assignments?: AssignedRoleResponseDto[];
   @ApiPropertyOptional({
     type: 'object',
     additionalProperties: {
@@ -37,7 +46,25 @@ export class AuthResponseDto {
       items: { $ref: '#/components/schemas/PermissionFeatureDto' },
     },
   })
-  featuresByBuId?: Record<string, PermissionFeatureDto[]>;
+  featuresBySiteId?: Record<string, PermissionFeatureDto[]>;
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: {
+      type: 'array',
+      items: { $ref: '#/components/schemas/PermissionFeatureDto' },
+    },
+  })
+  featuresByGroupId?: Record<string, PermissionFeatureDto[]>;
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: {
+      type: 'array',
+      items: { $ref: '#/components/schemas/PermissionFeatureDto' },
+    },
+  })
+  featuresByLeId?: Record<string, PermissionFeatureDto[]>;
+  @ApiPropertyOptional({ type: [PermissionFeatureDto] })
+  orgFeatures?: PermissionFeatureDto[];
 
   constructor(partial: Partial<AuthResponseDto>) {
     Object.assign(this, partial);

@@ -13,9 +13,9 @@ export class CategoriesItemsService {
   async findItemsForTable(
     categoryId: string,
     state: TableViewState,
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
     this.logger.log(`categories.itemsTable — categoryId: ${categoryId}`);
-    return this.inventoryItemsService.findForTableByCategory(categoryId, state, buCurrencyCode);
+    return this.inventoryItemsService.findForTableByCategory(categoryId, state, siteCurrencyCode);
   }
 }

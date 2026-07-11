@@ -13,7 +13,6 @@ jest.mock('@/modules/domain/user-permissions/services/user-permissions.service',
   UserPermissionsService: class {},
 }));
 
-// biome-ignore lint/style/useImportType: PermissionInterceptor is instantiated below, not just referenced as a type
 import { PermissionInterceptor } from './permission.interceptor';
 
 // biome-ignore lint/suspicious/noExplicitAny: test doubles for Nest primitives
@@ -41,7 +40,7 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/commerce-api/categories/count',
-      sessionInfo: { userId: 'u1', buId: 'b1', organizationId: 'o1', sessionType: 'WEB' },
+      sessionInfo: { userId: 'u1', siteId: 'b1', organizationId: 'o1', sessionType: 'WEB' },
     });
   });
 
@@ -58,7 +57,7 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['categories', 'uom']));
     const res = await interceptor.intercept(context(), next as Any);
     expect(res).toBe(NEXT);
-    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', 'b1', 'web');
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'SITE', id: 'b1' }, 'web');
     expect(next.handle).toHaveBeenCalledTimes(1);
   });
 
@@ -99,17 +98,91 @@ describe('PermissionInterceptor — @RequireFeature / @SkipFeature enforcement',
     mockGetRequest.mockReturnValue({
       method: 'GET',
       url: '/commerce-api/categories/count',
-      sessionInfo: { userId: 'u1', buId: 'b1', organizationId: 'o1', sessionType: 'MOBILE' },
+      sessionInfo: { userId: 'u1', siteId: 'b1', organizationId: 'o1', sessionType: 'MOBILE' },
     });
     userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['categories']));
     await interceptor.intercept(context(), next as Any);
-    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', 'b1', 'mobile');
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'SITE', id: 'b1' }, 'mobile');
   });
 
   it('denies (403) when the session context is incomplete', async () => {
     reflectorReturns[REQUIRE_FEATURE_KEY] = 'categories';
-    mockGetRequest.mockReturnValue({ method: 'GET', url: '/x', sessionInfo: { buId: 'b1', organizationId: 'o1' } });
+    mockGetRequest.mockReturnValue({ method: 'GET', url: '/x', sessionInfo: { siteId: 'b1' } });
     await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
     expect(userPermissions.resolveAvailableFeatures).not.toHaveBeenCalled();
+  });
+
+  it('resolves a SITE_GROUP context when only x-sg-id was supplied', async () => {
+    reflectorReturns[REQUIRE_PERMISSION_KEY] = 'categories.add';
+    mockGetRequest.mockReturnValue({
+      method: 'GET',
+      url: '/x',
+      sessionInfo: { userId: 'u1', siteGroupId: 'g1', organizationId: 'o1', sessionType: 'WEB' },
+    });
+    userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['categories.add']));
+    const res = await interceptor.intercept(context(), next as Any);
+    expect(res).toBe(NEXT);
+    expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith(
+      'u1',
+      { scope: 'SITE_GROUP', id: 'g1' },
+      'web',
+    );
+  });
+
+  it('resolves an LE context when only x-le-id was supplied', async () => {
+    reflectorReturns[REQUIRE_FEATURE_KEY] = 'ledger';
+    mockGetRequest.mockReturnValue({
+      method: 'GET',
+      url: '/x',
+      sessionInfo: { userId: 'u1', legalEntityId: 'le1', organizationId: 'o1', sessionType: 'WEB' },
+    });
+    userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['ledger']));
+    const res = await interceptor.intercept(context(), next as Any);
+    expect(res).toBe(NEXT);
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'LE', id: 'le1' }, 'web');
+  });
+
+  it('falls back to the ORG context when no workspace header was supplied', async () => {
+    reflectorReturns[REQUIRE_FEATURE_KEY] = 'dashboard';
+    mockGetRequest.mockReturnValue({
+      method: 'GET',
+      url: '/x',
+      sessionInfo: { userId: 'u1', organizationId: 'o1', sessionType: 'WEB' },
+    });
+    userPermissions.resolveAvailableFeatures.mockResolvedValue(new Set(['dashboard']));
+    const res = await interceptor.intercept(context(), next as Any);
+    expect(res).toBe(NEXT);
+    expect(userPermissions.resolveAvailableFeatures).toHaveBeenCalledWith('u1', { scope: 'ORG', id: 'o1' }, 'web');
+  });
+
+  it('prefers SITE over broader contexts when several ids are present', async () => {
+    reflectorReturns[REQUIRE_PERMISSION_KEY] = 'categories.add';
+    mockGetRequest.mockReturnValue({
+      method: 'GET',
+      url: '/x',
+      sessionInfo: {
+        userId: 'u1',
+        siteId: 'b1',
+        siteGroupId: 'g1',
+        legalEntityId: 'le1',
+        organizationId: 'o1',
+        sessionType: 'WEB',
+      },
+    });
+    userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['categories.add']));
+    await interceptor.intercept(context(), next as Any);
+    expect(userPermissions.resolveEnabledPermissions).toHaveBeenCalledWith('u1', { scope: 'SITE', id: 'b1' }, 'web');
+  });
+
+  it('denies (403) when the required permission is missing in an ORG context', async () => {
+    reflectorReturns[REQUIRE_PERMISSION_KEY] = 'dashboard.edit';
+    mockGetRequest.mockReturnValue({
+      method: 'GET',
+      url: '/x',
+      sessionInfo: { userId: 'u1', organizationId: 'o1', sessionType: 'WEB' },
+    });
+    userPermissions.resolveEnabledPermissions.mockResolvedValue(new Set(['dashboard.view']));
+    await expect(interceptor.intercept(context(), next as Any)).rejects.toBeInstanceOf(ForbiddenException);
+    expect(next.handle).not.toHaveBeenCalled();
   });
 });

@@ -28,7 +28,7 @@ export class UomResponseDto {
   @ApiProperty({ description: 'Count of this UOM in the ratio. 1 Box = 12 Each → uomQty=1.', example: 1 })
   uomQty: number;
 
-  @ApiProperty({ description: 'Whether this UOM is editable by the current BU' })
+  @ApiProperty({ description: 'Whether this UOM is editable by the current site' })
   canEdit: boolean;
 
   @ApiProperty({ description: 'Whether this UOM can be deleted' })

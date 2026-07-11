@@ -7,15 +7,15 @@ export class CreateStockTransferDto {
   @IsNotEmpty()
   inventoryItemId: string;
 
-  @ApiProperty({ description: 'Source business unit ID' })
+  @ApiProperty({ description: 'Source site ID' })
   @IsUUID()
   @IsNotEmpty()
-  fromBuId: string;
+  fromSiteId: string;
 
-  @ApiProperty({ description: 'Destination business unit ID' })
+  @ApiProperty({ description: 'Destination site ID' })
   @IsUUID()
   @IsNotEmpty()
-  toBuId: string;
+  toSiteId: string;
 
   @ApiProperty({ description: 'Source inventory location ID' })
   @IsUUID()

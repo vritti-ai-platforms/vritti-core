@@ -38,7 +38,7 @@ export class UomService {
   // Returns paginated UOMs for the data table, scoped to a dimension; joined with base unit symbol
   async findForTable(
     state: TableViewState & { dimensionId: string },
-    currentBuId: string,
+    currentSiteId: string,
   ): Promise<{ result: UomDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, UomService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, UomService.FIELD_MAP);
@@ -56,7 +56,7 @@ export class UomService {
 
     const referencedIds = await this.uomRepository.findReferencedIds(rows.map((r) => r.id));
     return {
-      result: rows.map((row) => UomDto.from(row, currentBuId, !referencedIds.has(row.id), row.baseUnitSymbol)),
+      result: rows.map((row) => UomDto.from(row, currentSiteId, !referencedIds.has(row.id), row.baseUnitSymbol)),
       count,
     };
   }
@@ -160,7 +160,7 @@ export class UomService {
     if (!baseUnit) throw new BadRequestException('The specified base unit does not exist.');
   }
 
-  // Creates a new UOM; newly created row belongs to the current BU so canEdit is always true
+  // Creates a new UOM; newly created row belongs to the current site so canEdit is always true
   async create(data: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId);
 
@@ -186,16 +186,16 @@ export class UomService {
     return {
       success: true,
       message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
-      // pass entity.businessUnitId so canEdit resolves to true for a freshly created row
-      data: UomDto.from(entity, entity.businessUnitId),
+      // pass entity.siteId so canEdit resolves to true for a freshly created row
+      data: UomDto.from(entity, entity.siteId),
     };
   }
 
   // Finds a UOM by ID or throws NotFoundException
-  async findById(id: string, currentBuId: string): Promise<UomDto> {
+  async findById(id: string, currentSiteId: string): Promise<UomDto> {
     const entity = await this.uomRepository.findById(id);
     if (!entity) throw new NotFoundException('Unit of measure not found.');
-    return UomDto.from(entity, currentBuId);
+    return UomDto.from(entity, currentSiteId);
   }
 
   // Updates a UOM

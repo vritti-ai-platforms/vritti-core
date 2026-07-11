@@ -14,7 +14,7 @@ export class StockAdjustmentLineItemsRepository extends PrimaryBaseRepository<ty
       .select({
         id: stockAdjustmentLineItems.id,
         organizationId: stockAdjustmentLineItems.organizationId,
-        businessUnitId: stockAdjustmentLineItems.businessUnitId,
+        siteId: stockAdjustmentLineItems.siteId,
         stockAdjustmentLineId: stockAdjustmentLineItems.stockAdjustmentLineId,
         serialNumber: stockAdjustmentLineItems.serialNumber,
         createdAt: stockAdjustmentLineItems.createdAt,

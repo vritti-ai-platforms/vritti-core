@@ -11,7 +11,7 @@ export class LocationItemQuantDto {
   quantValue: CurrencyAmountDto | null;
 
   // Maps a per-quant breakdown row. availableQuantity = quantity − reserved; unitCost and quantValue
-  // are BU minor-unit columns wrapped in CurrencyAmountDto, null when no cost currency is known.
+  // are site-currency minor-unit columns wrapped in CurrencyAmountDto, null when no cost currency is known.
   static from(row: LocationItemQuantRow): LocationItemQuantDto {
     const dto = new LocationItemQuantDto();
     dto.quantId = row.quantId;

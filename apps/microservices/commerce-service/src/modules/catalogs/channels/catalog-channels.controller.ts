@@ -17,13 +17,11 @@ export class CatalogChannelsController {
     return this.service.listByCatalog(data.catalogId);
   }
 
-  // Assigns a (BU, channel) pair to a catalog
+  // Assigns a (site, channel) pair to a catalog
   @MessagePattern({ cmd: 'catalogs.channels.assign' })
-  async assign(
-    @Payload() data: { catalogId: string; businessUnitId: string; channelId: string },
-  ): Promise<CatalogChannelDto> {
+  async assign(@Payload() data: { catalogId: string; siteId: string; channelId: string }): Promise<CatalogChannelDto> {
     this.logger.log(
-      `catalogs.channels.assign — catalogId: ${data.catalogId}, businessUnitId: ${data.businessUnitId}, channelId: ${data.channelId}`,
+      `catalogs.channels.assign — catalogId: ${data.catalogId}, siteId: ${data.siteId}, channelId: ${data.channelId}`,
     );
     return this.service.assign(data);
   }

@@ -32,7 +32,7 @@ export class UserRoleController {
 
   constructor(private readonly userRoleService: UserRoleService) {}
 
-  // Assigns a role to a user within a business unit
+  // Assigns a role to a user within a site
   @Post(':id/roles')
   @HttpCode(HttpStatus.CREATED)
   @ApiAssignRole()
@@ -44,9 +44,7 @@ export class UserRoleController {
   // Lists all role assignments for a user
   @Get(':id/roles')
   @ApiListUserRoles()
-  async listRoles(
-    @Param('id') id: string,
-  ): Promise<(UserRoleAssignment & { roleName: string; businessUnitName: string })[]> {
+  async listRoles(@Param('id') id: string): Promise<(UserRoleAssignment & { roleName: string })[]> {
     this.logger.log(`GET /api/users/internal/${id}/roles`);
     return this.userRoleService.findRoleAssignments(id);
   }

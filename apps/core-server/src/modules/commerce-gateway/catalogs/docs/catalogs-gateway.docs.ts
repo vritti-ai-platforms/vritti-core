@@ -108,14 +108,14 @@ export function ApiAssignCatalogChannel() {
   return applyDecorators(
     ApiOperation({
       summary: 'Assign a channel to a catalog',
-      description: 'Maps a (business unit, channel) pair to the catalog. Each pair maps to exactly one catalog.',
+      description: 'Maps a (sites, channel) pair to the catalog. Each pair maps to exactly one catalog.',
     }),
     ApiParam({ name: 'id', description: 'Catalog ID' }),
     ApiBody({ type: AssignCatalogChannelDto }),
     ApiResponse({ status: 201, description: 'Channel assigned successfully.', type: CatalogChannelResponseDto }),
     ApiResponse({ status: 400, description: 'Invalid input data.' }),
     ApiResponse({ status: 404, description: 'Catalog not found.' }),
-    ApiResponse({ status: 409, description: 'This business unit + channel is already mapped to a catalog.' }),
+    ApiResponse({ status: 409, description: 'This sites + channel is already mapped to a catalog.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

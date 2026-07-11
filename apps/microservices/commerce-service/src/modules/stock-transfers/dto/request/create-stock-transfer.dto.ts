@@ -7,11 +7,11 @@ export class CreateStockTransferDto {
 
   @IsUUID()
   @IsNotEmpty()
-  fromBuId: string;
+  fromSiteId: string;
 
   @IsUUID()
   @IsNotEmpty()
-  toBuId: string;
+  toSiteId: string;
 
   @IsUUID()
   fromLocationId: string;

@@ -13,7 +13,7 @@ export class UomDimensionResponseDto {
   @ApiPropertyOptional({ description: 'Optional description', nullable: true })
   description: string | null;
 
-  @ApiPropertyOptional({ description: 'Whether this dimension is editable by the current BU' })
+  @ApiPropertyOptional({ description: 'Whether this dimension is editable by the current site' })
   canEdit?: boolean;
 
   @ApiPropertyOptional({

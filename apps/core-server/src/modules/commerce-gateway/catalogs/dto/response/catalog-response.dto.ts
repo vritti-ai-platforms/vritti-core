@@ -4,13 +4,13 @@ export class CatalogResponseDto {
   @ApiProperty({ description: 'Catalog ID' })
   id: string;
 
-  @ApiProperty({ description: 'Business unit ID' })
-  businessUnitId: string;
+  @ApiProperty({ description: 'Site ID' })
+  siteId: string;
 
   @ApiProperty({ description: 'Catalog name' })
   name: string;
 
-  @ApiProperty({ description: 'ISO 4217 currency code (snapshot of the BU currency at creation)' })
+  @ApiProperty({ description: 'ISO 4217 currency code (snapshot of the site currency at creation)' })
   currencyCode: string;
 
   @ApiProperty({ description: 'Whether catalog prices are tax-inclusive' })
@@ -19,7 +19,7 @@ export class CatalogResponseDto {
   @ApiProperty({ description: 'Whether the catalog is active' })
   isActive: boolean;
 
-  @ApiProperty({ description: 'Number of (business unit, channel) pairs this catalog is assigned to' })
+  @ApiProperty({ description: 'Number of (sites, channel) pairs this catalog is assigned to' })
   channelCount: number;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })

@@ -7,8 +7,8 @@ export class CatalogChannelResponseDto {
   @ApiProperty({ description: 'Catalog ID' })
   catalogId: string;
 
-  @ApiProperty({ description: 'Business unit ID this assignment applies to' })
-  businessUnitId: string;
+  @ApiProperty({ description: 'Site ID this assignment applies to' })
+  siteId: string;
 
   @ApiProperty({ description: 'Sales channel ID' })
   channelId: string;

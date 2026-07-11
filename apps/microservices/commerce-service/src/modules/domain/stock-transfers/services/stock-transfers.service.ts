@@ -40,14 +40,14 @@ export class StockTransfersService {
   async create(data: CreateStockTransferDto): Promise<StockTransferDto> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
-      fromBuId: data.fromBuId,
-      toBuId: data.toBuId,
+      fromSiteId: data.fromSiteId,
+      toSiteId: data.toSiteId,
       quantity: data.quantity,
       requestedBy: data.requestedBy ?? null,
       notes: data.notes ?? null,
     });
 
-    this.logger.log(`Created stock transfer: ${entity.id} (from: ${data.fromBuId}, to: ${data.toBuId})`);
+    this.logger.log(`Created stock transfer: ${entity.id} (from: ${data.fromSiteId}, to: ${data.toSiteId})`);
     return StockTransferDto.from(entity);
   }
 

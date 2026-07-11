@@ -7,29 +7,29 @@ import { AuthFlowProvider } from '../providers/AuthFlowProvider';
 import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';
 import { PermissionProvider, usePermissionContext } from '../providers/PermissionProvider';
 import { authenticatedRoutes, authRoutes } from '../routes';
-import { BusinessUnitSelectionScreen } from '../screens/business-unit/BusinessUnitSelectionScreen';
+import { SiteSelectionScreen } from '../screens/site/SiteSelectionScreen';
 import { StartupSplashScreen } from './StartupSplashScreen';
 
-const businessUnitSelectionRoutes: ReadonlyArray<PushScreenConfig<'SelectBusinessUnit'>> = [
-  { name: 'SelectBusinessUnit', component: BusinessUnitSelectionScreen, title: 'Select business unit' },
+const siteSelectionRoutes: ReadonlyArray<PushScreenConfig<'SelectSite'>> = [
+  { name: 'SelectSite', component: SiteSelectionScreen, title: 'Select site' },
 ];
 
-// Gate between auth and feature nav: waits for BUs, then asks which BU to use when there's more than one.
+// Gate between auth and feature nav: waits for sites, then asks which site to use when there's more than one.
 const AuthenticatedGate = ({ navTheme }: { navTheme: Theme }) => {
-  const { selectedBuId, businessUnits, isLoadingBUs } = usePermissionContext();
+  const { selectedSiteId, sites, isLoadingSites } = usePermissionContext();
   const { sessionOrigin } = useAuthSessionSnapshot();
 
-  // Show splash while BUs resolve and during the restore gap before auto-selecting the last-used BU.
-  if (isLoadingBUs || businessUnits.length === 0 || (!selectedBuId && sessionOrigin !== 'login')) {
+  // Show splash while sites resolve and during the restore gap before auto-selecting the last-used site.
+  if (isLoadingSites || sites.length === 0 || (!selectedSiteId && sessionOrigin !== 'login')) {
     return <StartupSplashScreen statusText="Loading your workspace" />;
   }
 
   return (
     <NavigationContainer theme={navTheme}>
-      {selectedBuId ? (
+      {selectedSiteId ? (
         <PushNavigator initialRoute="HomeTabs" screens={authenticatedRoutes} />
       ) : (
-        <PushNavigator initialRoute="SelectBusinessUnit" screens={businessUnitSelectionRoutes} />
+        <PushNavigator initialRoute="SelectSite" screens={siteSelectionRoutes} />
       )}
     </NavigationContainer>
   );

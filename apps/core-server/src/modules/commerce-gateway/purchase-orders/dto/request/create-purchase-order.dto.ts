@@ -36,7 +36,7 @@ export class CreatePurchaseOrderDto {
   exchangeRateType?: 'FIXED' | 'VARIABLE';
 
   @ApiPropertyOptional({
-    description: 'FX exchange rate from supplier currency to BU currency. Required when FIXED + cross-currency.',
+    description: 'FX exchange rate from supplier currency to site currency. Required when FIXED + cross-currency.',
     example: 83.5,
   })
   @IsOptional()

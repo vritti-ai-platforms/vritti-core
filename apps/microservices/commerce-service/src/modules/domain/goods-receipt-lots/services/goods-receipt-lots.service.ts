@@ -20,17 +20,17 @@ export class GoodsReceiptLotsService {
     private readonly inventoryItemLotsService: InventoryItemLotsService,
   ) {}
 
-  async listByItem(goodsReceiptId: string, itemId: string, buCurrencyCode?: string): Promise<GoodsReceiptLotDto[]> {
+  async listByItem(goodsReceiptId: string, itemId: string, siteCurrencyCode?: string): Promise<GoodsReceiptLotDto[]> {
     await this.ensureItem(goodsReceiptId, itemId);
     const rows = await this.repository.findByItemId(itemId);
-    return rows.map((row) => GoodsReceiptLotDto.from(row, buCurrencyCode));
+    return rows.map((row) => GoodsReceiptLotDto.from(row, siteCurrencyCode));
   }
 
   async addLot(
     goodsReceiptId: string,
     itemId: string,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     const { receipt, item } = await this.ensureItem(goodsReceiptId, itemId);
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
@@ -83,7 +83,7 @@ export class GoodsReceiptLotsService {
     return {
       success: true,
       message: `Lot "${lotNumber}" added successfully.`,
-      data: GoodsReceiptLotDto.from(refreshed, buCurrencyCode),
+      data: GoodsReceiptLotDto.from(refreshed, siteCurrencyCode),
     };
   }
 
@@ -92,7 +92,7 @@ export class GoodsReceiptLotsService {
     itemId: string,
     lotId: string,
     data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string; mrp?: bigint | null },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<GoodsReceiptLotDto> {
     const { receipt, item } = await this.ensureItem(goodsReceiptId, itemId);
     if (receipt.status !== GoodsReceiptStatusValues.DRAFT) {
@@ -133,7 +133,7 @@ export class GoodsReceiptLotsService {
 
     const refreshed = (await this.repository.findByItemId(itemId)).find((r) => r.id === lotId);
     if (!refreshed) throw new NotFoundException('Lot not found after update.');
-    return GoodsReceiptLotDto.from(refreshed, buCurrencyCode);
+    return GoodsReceiptLotDto.from(refreshed, siteCurrencyCode);
   }
 
   async removeLot(goodsReceiptId: string, itemId: string, lotId: string): Promise<SuccessResponseDto> {

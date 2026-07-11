@@ -7,7 +7,7 @@ import { InventoryItemQuantsService } from '@domain/inventory-item-quants/servic
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 
 @Controller()
 export class GoodsReceiptsItemsController {
@@ -27,10 +27,10 @@ export class GoodsReceiptsItemsController {
   @MessagePattern({ cmd: 'goodsReceipts.itemById' })
   itemById(
     @Payload() data: { goodsReceiptId: string; itemId: string },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<GoodsReceiptItemDto> {
     this.logger.log(`goodsReceipts.itemById — item: ${data.itemId}`);
-    return this.itemsService.findById(data.goodsReceiptId, data.itemId, buCurrencyCode);
+    return this.itemsService.findById(data.goodsReceiptId, data.itemId, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.inventoryItemIds' })
@@ -42,10 +42,10 @@ export class GoodsReceiptsItemsController {
   @MessagePattern({ cmd: 'goodsReceipts.itemsTable' })
   itemsTable(
     @Payload() data: { goodsReceiptId: string } & TableViewState,
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     this.logger.log('goodsReceipts.itemsTable');
-    return this.itemsService.findForTable(data.goodsReceiptId, data, buCurrencyCode);
+    return this.itemsService.findForTable(data.goodsReceiptId, data, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.itemsCost' })
@@ -75,7 +75,7 @@ export class GoodsReceiptsItemsController {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromSupplierItem — supplierItem: ${data.supplierItemId}`);
     return this.itemsService.addItemFromSupplierItem(
@@ -90,7 +90,7 @@ export class GoodsReceiptsItemsController {
         schemeFreeQty: data.schemeFreeQty,
         hasScheme: data.hasScheme,
       },
-      buCurrencyCode,
+      siteCurrencyCode,
     );
   }
 
@@ -108,7 +108,7 @@ export class GoodsReceiptsItemsController {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     this.logger.log(`goodsReceipts.addItemFromPurchaseOrderItem — poItem: ${data.purchaseOrderItemId}`);
     return this.itemsService.addItemFromPurchaseOrderItem(
@@ -123,7 +123,7 @@ export class GoodsReceiptsItemsController {
         schemeFreeQty: data.schemeFreeQty,
         hasScheme: data.hasScheme,
       },
-      buCurrencyCode,
+      siteCurrencyCode,
     );
   }
 

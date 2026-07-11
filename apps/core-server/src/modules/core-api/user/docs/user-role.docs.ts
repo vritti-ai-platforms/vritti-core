@@ -8,7 +8,7 @@ export function ApiAssignRole() {
     ApiOperation({
       summary: 'Assign role to user',
       description:
-        'Assigns an organization role to a user within a specific business unit. Validates the role and business unit exist, and checks for duplicate assignments.',
+        'Assigns an organization role to a user within a specific sites. Validates the role and sites exist, and checks for duplicate assignments.',
     }),
     ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
     ApiHeader({
@@ -19,7 +19,7 @@ export function ApiAssignRole() {
     ApiParam({ name: 'id', description: 'User ID' }),
     ApiBody({ type: AssignRoleInternalDto }),
     ApiResponse({ status: 201, description: 'Role assigned successfully.', type: SuccessResponseDto }),
-    ApiResponse({ status: 404, description: 'Role or business unit not found.' }),
+    ApiResponse({ status: 404, description: 'Role or sites not found.' }),
     ApiResponse({ status: 409, description: 'Duplicate role assignment.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
@@ -29,7 +29,7 @@ export function ApiListUserRoles() {
   return applyDecorators(
     ApiOperation({
       summary: 'List user role assignments',
-      description: 'Returns all role assignments for a user, including role and business unit names via joins.',
+      description: 'Returns all role assignments for a user, including role and sites names via joins.',
     }),
     ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
     ApiHeader({

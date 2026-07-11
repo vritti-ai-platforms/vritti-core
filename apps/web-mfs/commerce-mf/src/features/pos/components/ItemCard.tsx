@@ -1,4 +1,4 @@
-import { cn } from '@vritti/quantum-ui';
+import { cn } from '@vritti/quantum-ui/cn';
 import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Plus, SlidersHorizontal } from 'lucide-react';

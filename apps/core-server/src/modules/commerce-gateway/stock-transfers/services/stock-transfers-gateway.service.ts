@@ -34,7 +34,7 @@ export class StockTransfersGatewayService {
 
   // Creates a new stock transfer
   async create(dto: CreateStockTransferDto): Promise<StockTransferResponseDto> {
-    this.logger.log(`stockTransfers.create — from: ${dto.fromBuId}, to: ${dto.toBuId}`);
+    this.logger.log(`stockTransfers.create — from: ${dto.fromSiteId}, to: ${dto.toSiteId}`);
     return this.nats.send('commerce', 'stockTransfers.create', dto);
   }
 

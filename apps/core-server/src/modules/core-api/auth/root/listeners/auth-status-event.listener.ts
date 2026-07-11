@@ -3,8 +3,10 @@ import { Injectable, Logger, type MessageEvent } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import {
   AUTH_STATUS_EVENTS,
-  type BuUpdatedEvent,
+  type LegalEntityUpdatedEvent,
   type SessionRevokedEvent,
+  type SiteGroupUpdatedEvent,
+  type SiteUpdatedEvent,
   type UserUpdatedEvent,
 } from '../events/auth-status.events';
 import { AuthService } from '../services/auth.service';
@@ -46,14 +48,34 @@ export class AuthStatusEventListener {
     await this.rePushToUser(event.userId);
   }
 
-  // Rebuilds and re-pushes fresh auth-state to all users assigned to the updated business unit
-  @OnEvent(AUTH_STATUS_EVENTS.BU_UPDATED)
-  async handleBuUpdated(event: BuUpdatedEvent) {
-    this.logger.log(`Handling BU_UPDATED for business unit ${event.buId}`);
+  // Rebuilds and re-pushes fresh auth-state to all users assigned to the updated site
+  @OnEvent(AUTH_STATUS_EVENTS.SITE_UPDATED)
+  async handleSiteUpdated(event: SiteUpdatedEvent) {
+    this.logger.log(`Handling SITE_UPDATED for sites ${event.siteId}`);
 
-    const assignments = await this.userRoleService.findByBusinessUnit(event.buId);
+    const assignments = await this.userRoleService.findBySite(event.siteId);
     const userIds = [...new Set(assignments.map((a) => a.userId))];
 
+    for (const userId of userIds) {
+      await this.rePushToUser(userId);
+    }
+  }
+
+  // Rebuilds and re-pushes fresh auth-state to the org's assigned users when a legal entity changes
+  @OnEvent(AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED)
+  async handleLegalEntityUpdated(event: LegalEntityUpdatedEvent) {
+    this.logger.log(`Handling LEGAL_ENTITY_UPDATED for legal entity ${event.legalEntityId}`);
+    const userIds = await this.userRoleService.findUserIdsForLegalEntityOrg(event.legalEntityId);
+    for (const userId of userIds) {
+      await this.rePushToUser(userId);
+    }
+  }
+
+  // Rebuilds and re-pushes fresh auth-state to the org's assigned users when a site group changes
+  @OnEvent(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED)
+  async handleSiteGroupUpdated(event: SiteGroupUpdatedEvent) {
+    this.logger.log(`Handling SITE_GROUP_UPDATED for site group ${event.siteGroupId}`);
+    const userIds = await this.userRoleService.findUserIdsForSiteGroupOrg(event.siteGroupId);
     for (const userId of userIds) {
       await this.rePushToUser(userId);
     }

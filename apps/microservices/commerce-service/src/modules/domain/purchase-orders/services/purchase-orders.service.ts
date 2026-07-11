@@ -122,13 +122,13 @@ export class PurchaseOrdersService {
     };
   }
 
-  // Creates a new PO. App-layer resolves the supplier and BU currency snapshots.
+  // Creates a new PO. App-layer resolves the supplier and site currency snapshots.
   async create(
     data: CreatePurchaseOrderDto,
     supplierCurrencyCode: string,
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    const isSameCurrency = supplierCurrencyCode === buCurrencyCode;
+    const isSameCurrency = supplierCurrencyCode === siteCurrencyCode;
     const requestedType = data.exchangeRateType ?? ExchangeRateTypeValues.FIXED;
     const exchangeRateType = isSameCurrency ? ExchangeRateTypeValues.FIXED : requestedType;
 
@@ -138,7 +138,7 @@ export class PurchaseOrdersService {
     } else if (exchangeRateType === ExchangeRateTypeValues.FIXED) {
       if (data.exchangeRate == null || data.exchangeRate <= 0) {
         throw new ValidationException({
-          detail: `Exchange rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from business unit currency (${buCurrencyCode}) and rate type is FIXED.`,
+          detail: `Exchange rate is required and must be greater than 0 when supplier currency (${supplierCurrencyCode}) differs from site currency (${siteCurrencyCode}) and rate type is FIXED.`,
           errors: [{ field: 'exchangeRate', message: 'Exchange rate must be greater than 0.' }],
         });
       }
@@ -249,7 +249,7 @@ export class PurchaseOrdersService {
     id: string,
     data: { exchangeRateType: ExchangeRateType; exchangeRate?: number | null },
     supplierCurrencyCode: string,
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Purchase order not found.');
@@ -265,10 +265,10 @@ export class PurchaseOrdersService {
       });
     }
 
-    if (supplierCurrencyCode === buCurrencyCode) {
+    if (supplierCurrencyCode === siteCurrencyCode) {
       throw new BadRequestException({
         label: 'Cannot Change Exchange Rate',
-        detail: 'Rate is fixed at 1 when supplier currency matches business unit currency.',
+        detail: 'Rate is fixed at 1 when supplier currency matches site currency.',
       });
     }
 

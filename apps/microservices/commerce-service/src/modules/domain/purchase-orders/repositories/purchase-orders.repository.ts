@@ -25,7 +25,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
       .select({
         id: purchaseOrders.id,
         organizationId: purchaseOrders.organizationId,
-        businessUnitId: purchaseOrders.businessUnitId,
+        siteId: purchaseOrders.siteId,
         supplierId: purchaseOrders.supplierId,
         poNumber: purchaseOrders.poNumber,
         status: purchaseOrders.status,
@@ -58,7 +58,7 @@ export class PurchaseOrdersRepository extends PrimaryBaseRepository<typeof purch
       select: {
         id: purchaseOrders.id,
         organizationId: purchaseOrders.organizationId,
-        businessUnitId: purchaseOrders.businessUnitId,
+        siteId: purchaseOrders.siteId,
         supplierId: purchaseOrders.supplierId,
         poNumber: purchaseOrders.poNumber,
         status: purchaseOrders.status,

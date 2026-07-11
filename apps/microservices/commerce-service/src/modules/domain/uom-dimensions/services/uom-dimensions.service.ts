@@ -27,9 +27,9 @@ export class UomDimensionsService {
   }
 
   // Returns all dimensions, optionally filtered by name or code
-  async list(search: string | undefined, currentBuId: string): Promise<UomDimensionDto[]> {
+  async list(search?: string): Promise<UomDimensionDto[]> {
     const rows = await this.repository.findAllOrSearch(search);
-    return rows.map((r) => UomDimensionDto.from(r, currentBuId));
+    return rows.map((r) => UomDimensionDto.from(r));
   }
 
   // Returns paginated dimension options for the select component
@@ -51,15 +51,15 @@ export class UomDimensionsService {
   }
 
   // Finds a dimension by ID or throws NotFoundException
-  async findById(id: string, currentBuId: string): Promise<UomDimensionDto> {
+  async findById(id: string): Promise<UomDimensionDto> {
     const entity = await this.repository.findById(id);
     if (!entity) throw new NotFoundException('UOM dimension not found.');
     const refs = await this.repository.countReferences(id);
-    return UomDimensionDto.from(entity, currentBuId, refs.inventoryItems === 0 && refs.supplierItems === 0);
+    return UomDimensionDto.from(entity, refs.inventoryItems === 0 && refs.supplierItems === 0);
   }
 
   // Creates a new UOM dimension
-  async create(data: CreateUomDimensionDto, currentBuId: string): Promise<CreateResponseDto<UomDimensionDto>> {
+  async create(data: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionDto>> {
     const existing = await this.repository.findByCode(data.code);
     if (existing)
       throw new ConflictException({
@@ -76,7 +76,7 @@ export class UomDimensionsService {
     return {
       success: true,
       message: `Dimension "${entity.name}" created successfully.`,
-      data: UomDimensionDto.from(entity, currentBuId, true),
+      data: UomDimensionDto.from(entity, true),
     };
   }
 

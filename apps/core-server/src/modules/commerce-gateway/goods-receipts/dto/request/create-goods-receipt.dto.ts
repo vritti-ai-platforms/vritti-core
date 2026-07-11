@@ -23,7 +23,7 @@ export class CreateGoodsReceiptDto {
 
   @ApiPropertyOptional({
     description:
-      'Supplier→BU exchange rate. Required when the supplier currency differs from the BU currency AND the rate cannot be inherited from a FIXED-rate purchase order. Ignored when supplier currency == BU currency or when inherited from a FIXED PO.',
+      'Supplier→site exchange rate. Required when the supplier currency differs from the site currency AND the rate cannot be inherited from a FIXED-rate purchase order. Ignored when supplier currency == site currency or when inherited from a FIXED PO.',
   })
   @IsOptional()
   @IsNumber()

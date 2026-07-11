@@ -73,8 +73,8 @@ export class OfferingDetailResponseDto {
   @ApiProperty({ description: 'Offering ID' })
   id: string;
 
-  @ApiProperty({ description: 'Business unit ID' })
-  businessUnitId: string;
+  @ApiProperty({ description: 'Site ID' })
+  siteId: string;
 
   @ApiPropertyOptional({ description: 'Category ID', nullable: true })
   categoryId: string | null;

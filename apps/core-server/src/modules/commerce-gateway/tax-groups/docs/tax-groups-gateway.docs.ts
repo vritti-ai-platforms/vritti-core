@@ -21,8 +21,7 @@ export function ApiCreateTaxGroup() {
   return applyDecorators(
     ApiOperation({
       summary: 'Create a tax group',
-      description:
-        'Creates a new tax group for the business unit. organizationId is resolved from the authenticated user.',
+      description: 'Creates a new tax group for the sites. organizationId is resolved from the authenticated user.',
     }),
     ApiBody({ type: CreateTaxGroupDto }),
     ApiResponse({ status: 201, description: 'Tax group created successfully.', type: TaxGroupResponseDto }),

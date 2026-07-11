@@ -44,7 +44,7 @@ export type CreateLocationResponse = CreateResponse<LocationData>;
 export interface LocationData {
   id: string;
   organizationId: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   code: string;
   parentId: string | null;

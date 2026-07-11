@@ -10,11 +10,11 @@ export class StockTransferResponseDto {
   @ApiPropertyOptional({ description: 'Inventory item name', nullable: true })
   inventoryItemName: string | null;
 
-  @ApiProperty({ description: 'Source business unit ID' })
-  fromBuId: string;
+  @ApiProperty({ description: 'Source site ID' })
+  fromSiteId: string;
 
-  @ApiProperty({ description: 'Destination business unit ID' })
-  toBuId: string;
+  @ApiProperty({ description: 'Destination site ID' })
+  toSiteId: string;
 
   @ApiProperty({ description: 'Transfer quantity' })
   quantity: number;

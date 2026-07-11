@@ -7,8 +7,8 @@ export class PosTerminalResponseDto {
   @ApiProperty({ description: 'Organization ID' })
   organizationId: string;
 
-  @ApiProperty({ description: 'Business unit ID' })
-  businessUnitId: string;
+  @ApiProperty({ description: 'Site ID' })
+  siteId: string;
 
   @ApiProperty({ description: 'Terminal name', example: 'Counter 1' })
   name: string;

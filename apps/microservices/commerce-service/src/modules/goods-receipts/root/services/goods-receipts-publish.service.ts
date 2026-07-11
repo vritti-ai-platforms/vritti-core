@@ -72,7 +72,7 @@ export class GoodsReceiptsPublishService {
     private readonly inventoryItemsRepository: InventoryItemsRepository,
   ) {}
 
-  async publish(id: string, buCurrencyCode: string): Promise<GoodsReceiptDto> {
+  async publish(id: string, siteCurrencyCode: string): Promise<GoodsReceiptDto> {
     const goodsReceipt = await this.goodsReceiptsRepository.findByIdWithRefs(id);
     if (!goodsReceipt) {
       throw new NotFoundException({ label: 'Goods Receipt Not Found', detail: 'Goods receipt not found.' });
@@ -105,7 +105,7 @@ export class GoodsReceiptsPublishService {
 
     await this.database.runInTransaction(async () => {
       for (const grItem of grItems) {
-        await this.publishItem(goodsReceipt, grItem, buCurrencyCode);
+        await this.publishItem(goodsReceipt, grItem, siteCurrencyCode);
       }
       if (goodsReceipt.purchaseOrderId) await this.finalizePoStatus(goodsReceipt.purchaseOrderId);
       await this.goodsReceiptsRepository.updateStatus(id, GoodsReceiptStatusValues.PUBLISHED, new Date());
@@ -118,7 +118,7 @@ export class GoodsReceiptsPublishService {
   private async publishItem(
     goodsReceipt: GoodsReceiptWithRefs,
     grItem: PublishItem,
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
   ): Promise<void> {
     const grLines = await this.grLinesRepository.findByItemId(grItem.id);
     const inventoryLotByGrLot = await this.resolveLots(grItem, grLines);
@@ -132,7 +132,7 @@ export class GoodsReceiptsPublishService {
         grItem,
         grLine,
         inventoryLotByGrLot,
-        buCurrencyCode,
+        siteCurrencyCode,
       );
       qtyByQuant.set(quantId, (qtyByQuant.get(quantId) ?? 0) + quantity);
       lastMrp = grLine.lotMrp ?? lastMrp;
@@ -142,7 +142,7 @@ export class GoodsReceiptsPublishService {
       await this.inventoryItemsRepository.update(grItem.inventoryItemId, { defaultMrp: lastMrp });
     }
 
-    await this.allocateItemCost(goodsReceipt, grItem, qtyByQuant, buCurrencyCode);
+    await this.allocateItemCost(goodsReceipt, grItem, qtyByQuant, siteCurrencyCode);
 
     // Only the paid (ordered) qty reconciles against the PO; free qty is bonus stock, not ordered.
     await this.reconcilePoItem(goodsReceipt, grItem, grItem.orderedQty);
@@ -154,7 +154,7 @@ export class GoodsReceiptsPublishService {
     goodsReceipt: GoodsReceiptWithRefs,
     grItem: PublishItem,
     qtyByQuant: Map<string, number>,
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
   ): Promise<void> {
     const quants = [...qtyByQuant.entries()].map(([quantId, qty]) => ({ quantId, qty }));
     if (quants.length === 0) return;
@@ -178,7 +178,7 @@ export class GoodsReceiptsPublishService {
       const costId = await this.costsRepository.insertCost({
         categoryId,
         totalAmount: total,
-        currencyCode: buCurrencyCode,
+        currencyCode: siteCurrencyCode,
         sourceType: CostSourceTypeValues.GOODS_RECEIPT,
         sourceId: goodsReceipt.id,
         distributionMethod: CostDistributionMethodValues.BY_QUANTITY,
@@ -222,12 +222,12 @@ export class GoodsReceiptsPublishService {
     grItem: PublishItem,
     grLine: GoodsReceiptLineWithRefs,
     inventoryLotByGrLot: Map<string, string>,
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
   ): Promise<{ quantId: string; quantity: number }> {
     // Snapshotted in the item's primary UOM at line add/edit — read it as-is.
     const primaryUomQuantity = grLine.primaryUomQty;
 
-    // Effective landed unit cost in BU minor units. The amount paid (price × exchange rate × ordered
+    // Effective landed unit cost in site-currency minor units. The amount paid (price × exchange rate × ordered
     // qty) is spread across the TOTAL received qty (ordered + free), so free goods pull the per-unit
     // cost down without ever reaching 0 (ordered_qty > 0 is guaranteed at item add).
     const unitCost = BigInt(
@@ -252,7 +252,7 @@ export class GoodsReceiptsPublishService {
       lotId: grLine.goodsReceiptLotId ? (inventoryLotByGrLot.get(grLine.goodsReceiptLotId) ?? null) : null,
       lot: grLine.goodsReceiptLotId ? toLotInfo(grLine) : undefined,
       serialNumbers: serials,
-      costCurrency: buCurrencyCode,
+      costCurrency: siteCurrencyCode,
       sourceType: CostSourceTypeValues.GOODS_RECEIPT,
       sourceId: goodsReceipt.id,
       skipCostBaseline: true,

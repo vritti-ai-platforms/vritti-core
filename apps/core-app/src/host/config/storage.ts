@@ -6,12 +6,12 @@ export const { instance: apolloCacheStore } = createPreferences('vritti.apollo-c
 
 export const { instance: offlineQueueStore } = createPreferences('vritti.offline-queue');
 
-const SELECTED_BU_KEY = 'selectedBuId';
+const SELECTED_SITE_KEY = 'selectedSiteId';
 
-export function getSelectedBusinessUnitId(): string | null {
-  return preferences.getString(SELECTED_BU_KEY) ?? null;
+export function getSelectedSiteId(): string | null {
+  return preferences.getString(SELECTED_SITE_KEY) ?? null;
 }
 
-export function setSelectedBusinessUnitId(buId: string): void {
-  preferences.set(SELECTED_BU_KEY, buId);
+export function setSelectedSiteId(siteId: string): void {
+  preferences.set(SELECTED_SITE_KEY, siteId);
 }

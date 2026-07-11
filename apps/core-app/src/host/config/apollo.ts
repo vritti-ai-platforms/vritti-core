@@ -4,17 +4,17 @@ import { clearTokens, getOnSessionExpired, getStoredMobileBaseURL, getToken } fr
 import { Platform } from 'react-native';
 import { ErrorCode } from '../types/error-code';
 import { netInfoConnectivity } from './connectivity';
-import { apolloCacheStore, getSelectedBusinessUnitId, offlineQueueStore } from './storage';
+import { apolloCacheStore, getSelectedSiteId, offlineQueueStore } from './storage';
 
 const created = createApolloClient({
   getToken,
   resolveBaseURL: getStoredMobileBaseURL,
   // Tenant + platform headers mirror the axios interceptor; Authorization is added from the token.
   buildHeaders: () => {
-    const businessUnitId = getSelectedBusinessUnitId();
+    const siteId = getSelectedSiteId();
     return {
       'X-Platform': Platform.OS,
-      ...(businessUnitId ? { 'x-bu-id': businessUnitId } : {}),
+      ...(siteId ? { 'x-site-id': siteId } : {}),
     };
   },
   // On UNAUTHENTICATED, clear the session and notify the host (mirrors the axios 401 path).
@@ -29,8 +29,8 @@ const created = createApolloClient({
   offline: {
     mmkv: offlineQueueStore,
     captureContext: (): Record<string, string> => {
-      const businessUnitId = getSelectedBusinessUnitId();
-      return businessUnitId ? { 'x-bu-id': businessUnitId } : {};
+      const siteId = getSelectedSiteId();
+      return siteId ? { 'x-site-id': siteId } : {};
     },
   },
 });

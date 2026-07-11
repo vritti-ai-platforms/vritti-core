@@ -1327,7 +1327,7 @@
     },
     "/users/internal/{id}/roles": {
       "post": {
-        "description": "Assigns an organization role to a user within a specific business unit. Validates the role and business unit exist, and checks for duplicate assignments.",
+        "description": "Assigns an organization role to a user within a specific sites. Validates the role and sites exist, and checks for duplicate assignments.",
         "operationId": "UserRoleController_assignRole",
         "parameters": [
           {
@@ -1383,7 +1383,7 @@
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Role or business unit not found."
+            "description": "Role or sites not found."
           },
           "409": {
             "description": "Duplicate role assignment."
@@ -1395,7 +1395,7 @@
         ]
       },
       "get": {
-        "description": "Returns all role assignments for a user, including role and business unit names via joins.",
+        "description": "Returns all role assignments for a user, including role and sites names via joins.",
         "operationId": "UserRoleController_listRoles",
         "parameters": [
           {
@@ -1564,6 +1564,128 @@
         ]
       }
     },
+    "/organizations/internal/locks": {
+      "get": {
+        "description": "Returns the stored organization feature lock deny-list (null = inherit the full plan). Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "OrganizationController_getLocks",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Target organization ID (signed)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feature locks returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureLocksResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Organization not found."
+          }
+        },
+        "summary": "Get organization feature locks",
+        "tags": [
+          "Organizations"
+        ]
+      },
+      "put": {
+        "description": "Replaces the organization feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "OrganizationController_setLocks",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Target organization ID (signed)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFeatureLocksInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feature locks updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Organization not found."
+          }
+        },
+        "summary": "Replace organization feature locks",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
     "/organizations/internal/{id}": {
       "patch": {
         "operationId": "OrganizationController_updateFromCloud",
@@ -1688,6 +1810,44 @@
         ]
       }
     },
+    "/organizations/internal/role-assignments": {
+      "get": {
+        "description": "Returns all role assignments with no site, site group, or legal entity target — org-wide assignments — with user and role names. Org resolved from the signed x-org-id header.",
+        "operationId": "RoleAssignmentsController_listOrgWide",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role assignments retrieved successfully."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List org-wide role assignments",
+        "tags": [
+          "Organization Role Assignments"
+        ]
+      }
+    },
     "/organizations/internal/roles": {
       "post": {
         "description": "Receives bulk role provisioning from cloud-server. Creates roles rows with features stored as a jsonb array. Requires Ed25519 signature headers (x-timestamp, x-signature).",
@@ -1791,16 +1951,16 @@
         ]
       }
     },
-    "/organizations/internal/roles/for-bu": {
+    "/organizations/internal/roles/for-site": {
       "get": {
-        "description": "Returns every role in the business unit's organization.",
-        "operationId": "RolesController_findForBu",
+        "description": "Returns every role in the site's organization.",
+        "operationId": "RolesController_findForSite",
         "parameters": [
           {
-            "name": "buId",
+            "name": "siteId",
             "required": true,
             "in": "query",
-            "description": "Business unit ID",
+            "description": "Site ID",
             "schema": {
               "type": "string"
             }
@@ -1832,10 +1992,69 @@
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Business unit not found."
+            "description": "Site not found."
           }
         },
-        "summary": "List all roles for a business unit",
+        "summary": "List all roles for a site",
+        "tags": [
+          "Organization Roles"
+        ]
+      }
+    },
+    "/organizations/internal/roles/for-target": {
+      "get": {
+        "description": "Returns the org's roles whose template scope matches the target type, plus SITE-scoped templates and custom roles. Org resolved from the signed x-org-id header.",
+        "operationId": "RolesController_findForTarget",
+        "parameters": [
+          {
+            "name": "targetType",
+            "required": true,
+            "in": "query",
+            "description": "Target type: ORG, LE, SITE_GROUP, or SITE",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetId",
+            "required": false,
+            "in": "query",
+            "description": "Target ID (required for SITE targets)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Roles retrieved successfully."
+          },
+          "400": {
+            "description": "Invalid target type."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List roles assignable at a target",
         "tags": [
           "Organization Roles"
         ]
@@ -2024,10 +2243,67 @@
         ]
       }
     },
-    "/business-units/internal": {
+    "/structure/internal": {
+      "get": {
+        "description": "Returns the organization with its legal entities, tax registrations, and sites as a single aggregate. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "StructureController_getStructure",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-org-id",
+            "in": "header",
+            "description": "Organization ID scoping the request",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Organization structure retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StructureResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Organization not found."
+          }
+        },
+        "summary": "Get organization structure",
+        "tags": [
+          "Structure"
+        ]
+      }
+    },
+    "/legal-entities/internal": {
       "post": {
-        "description": "Creates a new business unit for an organization. Computes depth and materialized path from the parent. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "BusinessUnitController_create",
+        "description": "Creates a new legal entity for an organization. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "LegalEntityController_create",
         "parameters": [
           {
             "name": "x-timestamp",
@@ -2053,18 +2329,518 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateBusinessUnitInternalDto"
+                "$ref": "#/components/schemas/CreateLegalEntityInternalDto"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Business unit created successfully.",
+            "description": "Legal entity created successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BusinessUnitDto"
+                  "$ref": "#/components/schemas/LegalEntityDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or parent legal entity."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "409": {
+            "description": "Legal entity code already exists in the organization."
+          }
+        },
+        "summary": "Create legal entity",
+        "tags": [
+          "Legal Entities"
+        ]
+      }
+    },
+    "/legal-entities/internal/{id}": {
+      "patch": {
+        "description": "Updates a legal entity name, code, country, currency, tax regime, fiscal year start, parent, or active status.",
+        "operationId": "LegalEntityController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLegalEntityInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Legal entity updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or parent legal entity."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Legal entity not found."
+          },
+          "409": {
+            "description": "Legal entity code already exists in the organization."
+          }
+        },
+        "summary": "Update legal entity",
+        "tags": [
+          "Legal Entities"
+        ]
+      },
+      "delete": {
+        "description": "Deletes a legal entity. Fails if any sites are linked to it or if it has child legal entities.",
+        "operationId": "LegalEntityController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Legal entity deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Legal entity not found."
+          },
+          "409": {
+            "description": "Legal entity is linked to sites or has child legal entities."
+          }
+        },
+        "summary": "Delete legal entity",
+        "tags": [
+          "Legal Entities"
+        ]
+      }
+    },
+    "/legal-entities/internal/{id}/role-assignments": {
+      "get": {
+        "description": "Returns all role assignments directly targeting a legal entity with user and role names.",
+        "operationId": "LegalEntityController_listRoleAssignments",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role assignments retrieved successfully."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List legal entity role assignments",
+        "tags": [
+          "Legal Entities"
+        ]
+      }
+    },
+    "/legal-entities/internal/{id}/locks": {
+      "get": {
+        "description": "Returns the stored legal entity feature lock deny-list (null = inherit the full plan). Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "LegalEntityController_getLocks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feature locks returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureLocksResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Legal entity not found."
+          }
+        },
+        "summary": "Get legal entity feature locks",
+        "tags": [
+          "Legal Entities"
+        ]
+      },
+      "put": {
+        "description": "Replaces the legal entity feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "LegalEntityController_setLocks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFeatureLocksInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feature locks updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Legal entity not found."
+          }
+        },
+        "summary": "Replace legal entity feature locks",
+        "tags": [
+          "Legal Entities"
+        ]
+      }
+    },
+    "/legal-entities/internal/{id}/registrations": {
+      "post": {
+        "description": "Adds a tax registration (GSTIN, TRN, VAT number) to a legal entity. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "LegalEntityController_addRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeTaxRegistrationInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tax registration added successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeTaxRegistrationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Legal entity not found."
+          },
+          "409": {
+            "description": "Tax number already registered on the legal entity."
+          }
+        },
+        "summary": "Add tax registration",
+        "tags": [
+          "Legal Entities"
+        ]
+      }
+    },
+    "/legal-entities/internal/{id}/registrations/{regId}": {
+      "delete": {
+        "description": "Deletes a tax registration from a legal entity. Fails if any sites are linked to it.",
+        "operationId": "LegalEntityController_removeRegistration",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Legal entity ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "regId",
+            "required": true,
+            "in": "path",
+            "description": "Tax registration ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tax registration deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Legal entity or tax registration not found."
+          },
+          "409": {
+            "description": "Tax registration is linked to sites."
+          }
+        },
+        "summary": "Delete tax registration",
+        "tags": [
+          "Legal Entities"
+        ]
+      }
+    },
+    "/sites/internal": {
+      "post": {
+        "description": "Creates a new site for an organization. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "SiteController_create",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSiteInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Site created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteDto"
                 }
               }
             }
@@ -2074,19 +2850,16 @@
           },
           "401": {
             "description": "Invalid or missing request signature."
-          },
-          "404": {
-            "description": "Parent business unit not found."
           }
         },
-        "summary": "Create business unit",
+        "summary": "Create site",
         "tags": [
-          "Business Units"
+          "Sites"
         ]
       },
       "get": {
-        "description": "Returns a flat list of all business units for an organization, ordered by depth and sort order. Client builds the tree from parentId.",
-        "operationId": "BusinessUnitController_list",
+        "description": "Returns a flat list of all sites for an organization, ordered by sort order.",
+        "operationId": "SiteController_list",
         "parameters": [
           {
             "name": "orgId",
@@ -2118,13 +2891,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Business units retrieved successfully.",
+            "description": "Sites retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BusinessUnitDto"
+                    "$ref": "#/components/schemas/SiteDto"
                   }
                 }
               }
@@ -2134,22 +2907,22 @@
             "description": "Invalid or missing request signature."
           }
         },
-        "summary": "List business units",
+        "summary": "List sites",
         "tags": [
-          "Business Units"
+          "Sites"
         ]
       }
     },
-    "/business-units/internal/{id}": {
+    "/sites/internal/{id}": {
       "get": {
-        "description": "Returns a business unit and all its descendants using materialized path prefix matching.",
-        "operationId": "BusinessUnitController_getById",
+        "description": "Returns a single site by ID.",
+        "operationId": "SiteController_getById",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Business unit ID",
+            "description": "Site ID",
             "schema": {
               "type": "string"
             }
@@ -2175,14 +2948,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Business unit subtree retrieved successfully.",
+            "description": "Site retrieved successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/BusinessUnitDto"
-                  }
+                  "$ref": "#/components/schemas/SiteDto"
                 }
               }
             }
@@ -2191,23 +2961,23 @@
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Business unit not found."
+            "description": "Site not found."
           }
         },
-        "summary": "Get business unit with subtree",
+        "summary": "Get site",
         "tags": [
-          "Business Units"
+          "Sites"
         ]
       },
       "patch": {
-        "description": "Updates a business unit name, code, type, timezone, metadata, or active status.",
-        "operationId": "BusinessUnitController_update",
+        "description": "Updates a site name, code, type, group, timezone, metadata, links, or active status.",
+        "operationId": "SiteController_update",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Business unit ID",
+            "description": "Site ID",
             "schema": {
               "type": "string"
             }
@@ -2236,14 +3006,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateBusinessUnitInternalDto"
+                "$ref": "#/components/schemas/UpdateSiteInternalDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Business unit updated successfully.",
+            "description": "Site updated successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2256,23 +3026,23 @@
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Business unit not found."
+            "description": "Site not found."
           }
         },
-        "summary": "Update business unit",
+        "summary": "Update site",
         "tags": [
-          "Business Units"
+          "Sites"
         ]
       },
       "delete": {
-        "description": "Deletes a business unit. Fails if the unit has child business units — they must be removed or reassigned first.",
-        "operationId": "BusinessUnitController_remove",
+        "description": "Deletes a site.",
+        "operationId": "SiteController_remove",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Business unit ID",
+            "description": "Site ID",
             "schema": {
               "type": "string"
             }
@@ -2298,7 +3068,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Business unit deleted successfully.",
+            "description": "Site deleted successfully.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2307,25 +3077,22 @@
               }
             }
           },
-          "400": {
-            "description": "Business unit has children."
-          },
           "401": {
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Business unit not found."
+            "description": "Site not found."
           }
         },
-        "summary": "Delete business unit",
+        "summary": "Delete site",
         "tags": [
-          "Business Units"
+          "Sites"
         ]
       }
     },
-    "/business-units/internal/{id}/role-assignments": {
+    "/sites/internal/{id}/role-assignments": {
       "get": {
-        "operationId": "BusinessUnitController_listRoleAssignments",
+        "operationId": "SiteController_listRoleAssignments",
         "parameters": [
           {
             "name": "id",
@@ -2342,20 +3109,20 @@
           }
         },
         "tags": [
-          "Business Units"
+          "Sites"
         ]
       }
     },
-    "/business-units/internal/{id}/locks": {
+    "/sites/internal/{id}/locks": {
       "put": {
-        "description": "Replaces the business unit feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires Ed25519 signature headers (x-timestamp, x-signature).",
-        "operationId": "BusinessUnitController_setLocks",
+        "description": "Replaces the site feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "SiteController_setLocks",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
-            "description": "Business unit ID",
+            "description": "Site ID",
             "schema": {
               "type": "string"
             }
@@ -2384,7 +3151,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SetBuLocksInternalDto"
+                "$ref": "#/components/schemas/SetFeatureLocksInternalDto"
               }
             }
           }
@@ -2404,12 +3171,480 @@
             "description": "Invalid or missing request signature."
           },
           "404": {
-            "description": "Business unit not found."
+            "description": "Site not found."
           }
         },
-        "summary": "Replace business unit feature locks",
+        "summary": "Replace site feature locks",
         "tags": [
-          "Business Units"
+          "Sites"
+        ]
+      }
+    },
+    "/site-groups/internal": {
+      "post": {
+        "description": "Creates a new site group for an organization. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "SiteGroupController_create",
+        "parameters": [
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSiteGroupInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Site group created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteGroupDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data or validation error."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "409": {
+            "description": "Duplicate site group code."
+          }
+        },
+        "summary": "Create site group",
+        "tags": [
+          "Site Groups"
+        ]
+      },
+      "get": {
+        "description": "Returns a flat list of all site groups for an organization. Client builds the tree from parentId.",
+        "operationId": "SiteGroupController_list",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "query",
+            "description": "Organization ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Site groups retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SiteGroupDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List site groups",
+        "tags": [
+          "Site Groups"
+        ]
+      }
+    },
+    "/site-groups/internal/{id}": {
+      "get": {
+        "description": "Returns a single site group by ID.",
+        "operationId": "SiteGroupController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Site group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Site group retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteGroupDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Site group not found."
+          }
+        },
+        "summary": "Get site group",
+        "tags": [
+          "Site Groups"
+        ]
+      },
+      "patch": {
+        "description": "Updates a site group name, code, parent, or active status. Parent changes are cycle-checked.",
+        "operationId": "SiteGroupController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Site group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteGroupInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Site group updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parent (missing, foreign, or cycle)."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Site group not found."
+          }
+        },
+        "summary": "Update site group",
+        "tags": [
+          "Site Groups"
+        ]
+      },
+      "delete": {
+        "description": "Deletes a site group. Fails if the group has child groups or member sites.",
+        "operationId": "SiteGroupController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Site group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Site group deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Site group not found."
+          },
+          "409": {
+            "description": "Site group has child groups or member sites."
+          }
+        },
+        "summary": "Delete site group",
+        "tags": [
+          "Site Groups"
+        ]
+      }
+    },
+    "/site-groups/internal/{id}/role-assignments": {
+      "get": {
+        "description": "Returns all role assignments directly targeting a site group with user and role names.",
+        "operationId": "SiteGroupController_listRoleAssignments",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Site group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role assignments retrieved successfully."
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          }
+        },
+        "summary": "List site group role assignments",
+        "tags": [
+          "Site Groups"
+        ]
+      }
+    },
+    "/site-groups/internal/{id}/locks": {
+      "get": {
+        "description": "Returns the stored site group feature lock deny-list (null = inherit the full plan). Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "SiteGroupController_getLocks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Site group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feature locks returned successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureLocksResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Site group not found."
+          }
+        },
+        "summary": "Get site group feature locks",
+        "tags": [
+          "Site Groups"
+        ]
+      },
+      "put": {
+        "description": "Replaces the site group feature lock deny-list (restriction within the plan ceiling; out-of-plan locks are inert). Null inherits the full plan. Requires Ed25519 signature headers (x-timestamp, x-signature).",
+        "operationId": "SiteGroupController_setLocks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Site group ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-timestamp",
+            "in": "header",
+            "description": "Unix seconds when the request was signed",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-signature",
+            "in": "header",
+            "description": "Ed25519 signature of the canonical request (base64)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetFeatureLocksInternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feature locks updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing request signature."
+          },
+          "404": {
+            "description": "Site group not found."
+          }
+        },
+        "summary": "Replace site group feature locks",
+        "tags": [
+          "Site Groups"
         ]
       }
     },
@@ -2471,9 +3706,9 @@
         ]
       }
     },
-    "/user-permissions/business-units/select": {
+    "/user-permissions/sites/select": {
       "get": {
-        "operationId": "UserPermissionsController_getBusinessUnitsSelect",
+        "operationId": "UserPermissionsController_getSitesSelect",
         "parameters": [],
         "responses": {
           "200": {
@@ -2839,7 +4074,7 @@
     },
     "/commerce-api/categories": {
       "post": {
-        "description": "Creates a new category for the business unit. organizationId is resolved from the authenticated user.",
+        "description": "Creates a new category for the sites. organizationId is resolved from the authenticated user.",
         "operationId": "CategoriesGatewayController_create",
         "parameters": [],
         "requestBody": {
@@ -5892,7 +7127,7 @@
         ]
       },
       "post": {
-        "description": "Maps a (business unit, channel) pair to the catalog. Each pair maps to exactly one catalog.",
+        "description": "Maps a (sites, channel) pair to the catalog. Each pair maps to exactly one catalog.",
         "operationId": "CatalogsGatewayController_assignChannel",
         "parameters": [
           {
@@ -5936,7 +7171,7 @@
             "description": "Catalog not found."
           },
           "409": {
-            "description": "This business unit + channel is already mapped to a catalog."
+            "description": "This sites + channel is already mapped to a catalog."
           }
         },
         "security": [
@@ -8141,7 +9376,7 @@
     },
     "/commerce-api/pos-terminals": {
       "post": {
-        "description": "Creates a new POS terminal for the business unit. organizationId is resolved from the authenticated user.",
+        "description": "Creates a new POS terminal for the sites. organizationId is resolved from the authenticated user.",
         "operationId": "PosTerminalsGatewayController_create",
         "parameters": [],
         "requestBody": {
@@ -10439,7 +11674,7 @@
     },
     "/commerce-api/tax-groups": {
       "post": {
-        "description": "Creates a new tax group for the business unit. organizationId is resolved from the authenticated user.",
+        "description": "Creates a new tax group for the sites. organizationId is resolved from the authenticated user.",
         "operationId": "TaxGroupsGatewayController_create",
         "parameters": [],
         "requestBody": {
@@ -10904,7 +12139,7 @@
     },
     "/commerce-api/select-api/categories": {
       "get": {
-        "description": "Returns paginated category options for the select component, scoped to the session business unit.",
+        "description": "Returns paginated category options for the select component, scoped to the session site.",
         "operationId": "SelectApiController_selectCategories",
         "parameters": [
           {
@@ -11073,7 +12308,7 @@
     },
     "/commerce-api/select-api/catalogs": {
       "get": {
-        "description": "Returns paginated catalog options for the select component, scoped to the session business unit.",
+        "description": "Returns paginated catalog options for the select component, scoped to the session site.",
         "operationId": "SelectApiController_selectCatalogs",
         "parameters": [
           {
@@ -14072,7 +15307,7 @@
           "subdomain"
         ]
       },
-      "AssignedBuResponseDto": {
+      "AssignedSiteResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -14081,16 +15316,16 @@
           },
           "name": {
             "type": "string",
-            "example": "US East Region"
+            "example": "Mysore Outlet"
           },
           "code": {
             "type": "object",
-            "example": "US-EAST",
+            "example": "mysore-01",
             "nullable": true
           },
           "type": {
             "type": "string",
-            "example": "REGION"
+            "example": "OUTLET"
           },
           "timezone": {
             "type": "string",
@@ -14099,6 +15334,16 @@
           "currencyCode": {
             "type": "string",
             "example": "USD"
+          },
+          "legalEntityId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          },
+          "groupId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
           }
         },
         "required": [
@@ -14107,6 +15352,266 @@
           "type",
           "timezone",
           "currencyCode"
+        ]
+      },
+      "AssignedLegalEntityResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "name": {
+            "type": "string",
+            "example": "RK Pharmacy Pvt Ltd"
+          },
+          "code": {
+            "type": "string",
+            "example": "rk-pharmacy"
+          },
+          "country": {
+            "type": "string",
+            "example": "IN"
+          },
+          "currencyCode": {
+            "type": "string",
+            "example": "INR"
+          },
+          "taxRegime": {
+            "type": "string",
+            "example": "GST"
+          },
+          "parentId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code",
+          "country",
+          "currencyCode",
+          "taxRegime"
+        ]
+      },
+      "AssignedSiteGroupResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "name": {
+            "type": "string",
+            "example": "South Zone"
+          },
+          "code": {
+            "type": "string",
+            "example": "south-zone"
+          },
+          "parentId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "code"
+        ]
+      },
+      "AssignedRoleResponseDto": {
+        "type": "object",
+        "properties": {
+          "roleCode": {
+            "type": "string",
+            "example": "store-manager"
+          },
+          "roleName": {
+            "type": "string",
+            "example": "Store Manager"
+          },
+          "targetType": {
+            "type": "string",
+            "example": "SITE",
+            "enum": [
+              "SITE",
+              "SITE_GROUP",
+              "LE",
+              "ORG"
+            ]
+          },
+          "targetId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          }
+        },
+        "required": [
+          "roleCode",
+          "roleName",
+          "targetType"
+        ]
+      },
+      "LockedPermissionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "delete"
+          },
+          "reason": {
+            "type": "string",
+            "example": "PLAN",
+            "enum": [
+              "PLAN",
+              "SITE"
+            ],
+            "nullable": true
+          },
+          "unlockPlans": {
+            "example": [
+              "pro"
+            ],
+            "description": "Plan codes that would unlock this permission",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "reason",
+          "unlockPlans"
+        ]
+      },
+      "PermissionRouteDto": {
+        "type": "object",
+        "properties": {
+          "remoteEntry": {
+            "type": "string"
+          },
+          "exposedModule": {
+            "type": "string"
+          },
+          "routePrefix": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "remoteEntry",
+          "exposedModule",
+          "routePrefix"
+        ]
+      },
+      "PermissionFeatureDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "inventory"
+          },
+          "name": {
+            "type": "string",
+            "example": "Inventory"
+          },
+          "lucideIcon": {
+            "type": "object",
+            "example": "box",
+            "nullable": true
+          },
+          "sfSymbol": {
+            "type": "string",
+            "example": "cart.fill",
+            "description": "iOS SF Symbol"
+          },
+          "materialSymbol": {
+            "type": "string",
+            "example": "shopping_cart",
+            "description": "Android Material Symbol"
+          },
+          "permissions": {
+            "example": [
+              "VIEW",
+              "CREATE",
+              "EDIT"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "locked": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whole feature locked by plan/site"
+          },
+          "lockReason": {
+            "type": "string",
+            "example": "PLAN",
+            "enum": [
+              "PLAN",
+              "SITE"
+            ],
+            "nullable": true
+          },
+          "unlockPlans": {
+            "example": [
+              "pro"
+            ],
+            "description": "Plan codes that would unlock this feature",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lockedPermissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LockedPermissionDto"
+            }
+          },
+          "route": {
+            "$ref": "#/components/schemas/PermissionRouteDto"
+          },
+          "appCode": {
+            "type": "string",
+            "example": "commerce"
+          },
+          "appName": {
+            "type": "string",
+            "example": "Commerce"
+          },
+          "appIcon": {
+            "type": "object",
+            "example": "shopping-cart",
+            "nullable": true
+          },
+          "appSortOrder": {
+            "type": "number",
+            "example": 10
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "lucideIcon",
+          "sfSymbol",
+          "materialSymbol",
+          "permissions",
+          "locked",
+          "lockReason",
+          "unlockPlans",
+          "lockedPermissions",
+          "route",
+          "appCode",
+          "appName",
+          "appIcon",
+          "appSortOrder"
         ]
       },
       "AuthResponseDto": {
@@ -14133,19 +15638,61 @@
           "org": {
             "$ref": "#/components/schemas/AuthOrgDto"
           },
-          "businessUnits": {
+          "sites": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AssignedBuResponseDto"
+              "$ref": "#/components/schemas/AssignedSiteResponseDto"
             }
           },
-          "featuresByBuId": {
+          "legalEntities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignedLegalEntityResponseDto"
+            }
+          },
+          "siteGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignedSiteGroupResponseDto"
+            }
+          },
+          "assignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssignedRoleResponseDto"
+            }
+          },
+          "featuresBySiteId": {
             "type": "object",
             "additionalProperties": {
               "type": "array",
               "items": {
                 "$ref": "#/components/schemas/PermissionFeatureDto"
               }
+            }
+          },
+          "featuresByGroupId": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PermissionFeatureDto"
+              }
+            }
+          },
+          "featuresByLeId": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/PermissionFeatureDto"
+              }
+            }
+          },
+          "orgFeatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionFeatureDto"
             }
           }
         }
@@ -14644,9 +16191,19 @@
             "description": "Role ID",
             "example": "uuid-here"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID",
+            "description": "Target site ID (at most one target; all omitted = org-wide)",
+            "example": "uuid-here"
+          },
+          "siteGroupId": {
+            "type": "string",
+            "description": "Target site group ID (covers member sites incl. future ones)",
+            "example": "uuid-here"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "description": "Target legal entity ID (covers all the entity's sites)",
             "example": "uuid-here"
           },
           "assignmentType": {
@@ -14660,8 +16217,7 @@
           }
         },
         "required": [
-          "roleId",
-          "businessUnitId"
+          "roleId"
         ]
       },
       "CreateOrganizationInternalDto": {
@@ -14783,6 +16339,34 @@
           "createdAt"
         ]
       },
+      "FeatureLocksResponseDto": {
+        "type": "object",
+        "properties": {
+          "featureLocks": {
+            "type": "object",
+            "description": "The stored feature lock deny-list (featureCode -> { web?, mobile? }); null = inherit the full plan",
+            "additionalProperties": true,
+            "nullable": true
+          }
+        },
+        "required": [
+          "featureLocks"
+        ]
+      },
+      "SetFeatureLocksInternalDto": {
+        "type": "object",
+        "properties": {
+          "featureLocks": {
+            "type": "object",
+            "description": "Per-feature lock deny-list (featureCode -> { web?, mobile? }; platform null locks the whole feature); null = inherit the full plan",
+            "additionalProperties": true,
+            "nullable": true
+          }
+        },
+        "required": [
+          "featureLocks"
+        ]
+      },
       "UpdateOrganizationInternalDto": {
         "type": "object",
         "properties": {
@@ -14839,6 +16423,16 @@
           "code": {
             "type": "string",
             "example": "cashier"
+          },
+          "scope": {
+            "type": "string",
+            "example": "SITE",
+            "description": "Template scope from the snapshot (not persisted)"
+          },
+          "siteType": {
+            "type": "string",
+            "example": "OUTLET",
+            "description": "Site type the template targets (not persisted)"
           },
           "features": {
             "type": "object",
@@ -14962,75 +16556,29 @@
           }
         }
       },
-      "CreateBusinessUnitInternalDto": {
+      "StructureOrganizationDto": {
         "type": "object",
         "properties": {
-          "orgId": {
+          "id": {
             "type": "string",
-            "description": "Organization ID",
-            "example": "uuid-here"
-          },
-          "parentId": {
-            "type": "string",
-            "description": "Parent business unit ID",
             "example": "uuid-here"
           },
           "name": {
             "type": "string",
-            "description": "Business unit name",
-            "example": "US East Region"
+            "example": "Acme Corp"
           },
           "code": {
             "type": "string",
-            "description": "Business unit code",
-            "example": "us-east"
-          },
-          "type": {
-            "type": "string",
-            "description": "Business unit type",
-            "enum": [
-              "ORGANIZATION",
-              "REGION",
-              "FRANCHISEE",
-              "BRANCH",
-              "TEAM",
-              "DEPARTMENT",
-              "CUSTOM"
-            ],
-            "example": "REGION"
-          },
-          "description": {
-            "type": "string",
-            "description": "Business unit description"
-          },
-          "timezone": {
-            "type": "string",
-            "description": "Business unit timezone",
-            "example": "Asia/Kolkata"
-          },
-          "currencyCode": {
-            "type": "string",
-            "description": "Business unit currency (ISO 4217)",
-            "example": "INR"
-          },
-          "metadata": {
-            "type": "object",
-            "description": "Business unit metadata (address, city, state, country, phone, etc.)",
-            "example": {
-              "city": "New York"
-            }
+            "example": "acme-corp"
           }
         },
         "required": [
-          "orgId",
+          "id",
           "name",
-          "code",
-          "type",
-          "timezone",
-          "currencyCode"
+          "code"
         ]
       },
-      "BusinessUnitDto": {
+      "LegalEntityDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -15041,39 +16589,198 @@
             "type": "string",
             "example": "uuid-here"
           },
+          "code": {
+            "type": "string",
+            "example": "acme-india"
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme Pharma Pvt Ltd"
+          },
+          "country": {
+            "type": "string",
+            "example": "IN"
+          },
+          "currencyCode": {
+            "type": "string",
+            "example": "INR"
+          },
+          "taxRegime": {
+            "type": "string",
+            "enum": [
+              "GST",
+              "VAT",
+              "SALES_TAX",
+              "NONE"
+            ],
+            "example": "GST"
+          },
+          "taxId": {
+            "type": "object",
+            "example": "AAACA1234F",
+            "nullable": true
+          },
+          "fiscalYearStart": {
+            "type": "number",
+            "example": 4
+          },
           "parentId": {
             "type": "object",
             "example": "uuid-here",
             "nullable": true
           },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "code",
+          "name",
+          "country",
+          "currencyCode",
+          "taxRegime",
+          "fiscalYearStart",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "LeTaxRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "organizationId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "taxNumber": {
+            "type": "string",
+            "example": "29AAACA1234F1Z5"
+          },
+          "region": {
+            "type": "object",
+            "example": "Karnataka",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "legalEntityId",
+          "taxNumber",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SiteGroupDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "organizationId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
           "name": {
             "type": "string",
-            "example": "US East Region"
+            "example": "South Zone"
+          },
+          "code": {
+            "type": "string",
+            "example": "south-zone"
+          },
+          "parentId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "name",
+          "code",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SiteDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "organizationId": {
+            "type": "string",
+            "example": "uuid-here"
+          },
+          "name": {
+            "type": "string",
+            "example": "Mysore Outlet"
           },
           "code": {
             "type": "object",
-            "example": "US-EAST",
+            "example": "mysore",
             "nullable": true
           },
           "type": {
             "type": "string",
             "enum": [
-              "ORGANIZATION",
-              "REGION",
-              "FRANCHISEE",
-              "BRANCH",
-              "TEAM",
-              "DEPARTMENT",
-              "CUSTOM"
+              "OUTLET",
+              "WAREHOUSE",
+              "PRODUCTION"
             ]
           },
-          "depth": {
-            "type": "number",
-            "example": 0
-          },
-          "path": {
+          "groupId": {
             "type": "object",
-            "example": "a1b2c3d4_e5f6_7890_abcd_ef1234567890.f1e2d3c4_b5a6_0987_dcba_fe9876543210",
+            "example": "uuid-here",
             "nullable": true
           },
           "isActive": {
@@ -15088,9 +16795,15 @@
             "type": "string",
             "example": "Asia/Kolkata"
           },
-          "currencyCode": {
-            "type": "string",
-            "example": "INR"
+          "legalEntityId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
+          },
+          "registrationId": {
+            "type": "object",
+            "example": "uuid-here",
+            "nullable": true
           },
           "metadata": {
             "type": "object",
@@ -15110,70 +16823,354 @@
           "organizationId",
           "name",
           "type",
-          "depth",
           "isActive",
           "sortOrder",
           "timezone",
-          "currencyCode",
           "createdAt",
           "updatedAt"
         ]
       },
-      "SetBuLocksInternalDto": {
+      "StructureResponseDto": {
         "type": "object",
         "properties": {
-          "featureLocks": {
-            "type": "object",
-            "description": "Per-feature lock deny-list (featureCode -> { web?, mobile? }; platform null locks the whole feature); null = inherit the full plan",
-            "additionalProperties": true,
-            "nullable": true
+          "organization": {
+            "$ref": "#/components/schemas/StructureOrganizationDto"
+          },
+          "legalEntities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LegalEntityDto"
+            }
+          },
+          "taxRegistrations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeTaxRegistrationDto"
+            }
+          },
+          "siteGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteGroupDto"
+            }
+          },
+          "sites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteDto"
+            }
           }
         },
         "required": [
-          "featureLocks"
+          "organization",
+          "legalEntities",
+          "taxRegistrations",
+          "siteGroups",
+          "sites"
         ]
       },
-      "UpdateBusinessUnitInternalDto": {
+      "CreateLegalEntityInternalDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Organization ID",
+            "example": "uuid-here"
+          },
+          "code": {
+            "type": "string",
+            "description": "Legal entity code (unique per organization)",
+            "example": "acme-india"
+          },
+          "name": {
+            "type": "string",
+            "description": "Legal entity name",
+            "example": "Acme Pharma Pvt Ltd"
+          },
+          "country": {
+            "type": "string",
+            "description": "Country (ISO 3166-1 alpha-2)",
+            "example": "IN"
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "Base currency (ISO 4217)",
+            "example": "INR"
+          },
+          "taxRegime": {
+            "type": "string",
+            "description": "Tax regime",
+            "enum": [
+              "GST",
+              "VAT",
+              "SALES_TAX",
+              "NONE"
+            ],
+            "example": "GST"
+          },
+          "taxId": {
+            "type": "string",
+            "description": "Entity-level tax identifier (PAN, CR number)",
+            "example": "AAACA1234F"
+          },
+          "fiscalYearStart": {
+            "type": "number",
+            "description": "Fiscal year start month (1-12)",
+            "example": 4
+          },
+          "parentId": {
+            "type": "string",
+            "description": "Parent legal entity ID (subsidiary)",
+            "example": "uuid-here"
+          }
+        },
+        "required": [
+          "orgId",
+          "code",
+          "name",
+          "country",
+          "currencyCode",
+          "taxRegime"
+        ]
+      },
+      "UpdateLegalEntityInternalDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "acme-india"
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme Pharma Pvt Ltd"
+          },
+          "country": {
+            "type": "string",
+            "description": "Country (ISO 3166-1 alpha-2)",
+            "example": "IN"
+          },
+          "currencyCode": {
+            "type": "string",
+            "description": "Base currency (ISO 4217)",
+            "example": "INR"
+          },
+          "taxRegime": {
+            "type": "string",
+            "enum": [
+              "GST",
+              "VAT",
+              "SALES_TAX",
+              "NONE"
+            ],
+            "example": "GST"
+          },
+          "taxId": {
+            "type": "string",
+            "example": "AAACA1234F"
+          },
+          "fiscalYearStart": {
+            "type": "number",
+            "description": "Fiscal year start month (1-12)",
+            "example": 4
+          },
+          "parentId": {
+            "type": "string",
+            "description": "Parent legal entity ID (subsidiary)",
+            "example": "uuid-here"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateLeTaxRegistrationInternalDto": {
+        "type": "object",
+        "properties": {
+          "taxNumber": {
+            "type": "string",
+            "description": "Tax registration number (GSTIN, TRN, VAT number)",
+            "example": "29AAACA1234F1Z5"
+          },
+          "region": {
+            "type": "string",
+            "description": "Registration region (state or country)",
+            "example": "Karnataka"
+          }
+        },
+        "required": [
+          "taxNumber"
+        ]
+      },
+      "CreateSiteInternalDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Organization ID",
+            "example": "uuid-here"
+          },
+          "name": {
+            "type": "string",
+            "description": "Site name",
+            "example": "Mysore Outlet"
+          },
+          "code": {
+            "type": "string",
+            "description": "Site code",
+            "example": "mysore"
+          },
+          "type": {
+            "type": "string",
+            "description": "Site type",
+            "enum": [
+              "OUTLET",
+              "WAREHOUSE",
+              "PRODUCTION"
+            ],
+            "example": "OUTLET"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "Site group ID",
+            "example": "uuid-here"
+          },
+          "description": {
+            "type": "string",
+            "description": "Site description"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Site timezone",
+            "example": "Asia/Kolkata"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "description": "Owning legal entity ID",
+            "example": "uuid-here"
+          },
+          "registrationId": {
+            "type": "string",
+            "description": "Tax registration ID (must belong to the site's legal entity)",
+            "example": "uuid-here"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Site metadata (address, city, state, country, phone, etc.)",
+            "example": {
+              "city": "Mysore"
+            }
+          }
+        },
+        "required": [
+          "orgId",
+          "name",
+          "code",
+          "type",
+          "timezone"
+        ]
+      },
+      "UpdateSiteInternalDto": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "example": "US East Region"
+            "example": "Mysore Outlet"
           },
           "code": {
             "type": "string",
-            "example": "US-EAST"
+            "example": "mysore"
           },
           "type": {
             "type": "string",
             "enum": [
-              "ORGANIZATION",
-              "REGION",
-              "FRANCHISEE",
-              "BRANCH",
-              "TEAM",
-              "DEPARTMENT",
-              "CUSTOM"
+              "OUTLET",
+              "WAREHOUSE",
+              "PRODUCTION"
             ]
+          },
+          "groupId": {
+            "type": "object",
+            "description": "Site group ID; null detaches the site from its group",
+            "example": "uuid-here",
+            "nullable": true
           },
           "description": {
             "type": "string",
-            "description": "Business unit description"
+            "description": "Site description"
           },
           "timezone": {
             "type": "string",
             "example": "Asia/Kolkata"
           },
-          "currencyCode": {
+          "legalEntityId": {
             "type": "string",
-            "example": "INR",
-            "description": "Business unit currency (ISO 4217)"
+            "description": "Owning legal entity ID",
+            "example": "uuid-here"
+          },
+          "registrationId": {
+            "type": "string",
+            "description": "Tax registration ID (must belong to the site's legal entity)",
+            "example": "uuid-here"
           },
           "metadata": {
             "type": "object",
             "example": {
-              "city": "New York"
+              "city": "Mysore"
             }
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateSiteGroupInternalDto": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "string",
+            "description": "Organization ID",
+            "example": "uuid-here"
+          },
+          "name": {
+            "type": "string",
+            "description": "Site group name",
+            "example": "South Zone"
+          },
+          "code": {
+            "type": "string",
+            "description": "Site group code (unique per organization)",
+            "example": "south-zone"
+          },
+          "parentId": {
+            "type": "string",
+            "description": "Parent site group ID",
+            "example": "uuid-here"
+          }
+        },
+        "required": [
+          "orgId",
+          "name",
+          "code"
+        ]
+      },
+      "UpdateSiteGroupInternalDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "South Zone"
+          },
+          "code": {
+            "type": "string",
+            "example": "south-zone"
+          },
+          "parentId": {
+            "type": "object",
+            "description": "Parent site group ID; null makes the group a root",
+            "example": "uuid-here",
+            "nullable": true
           },
           "isActive": {
             "type": "boolean",
@@ -15454,9 +17451,9 @@
             "type": "string",
             "description": "Category ID"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID"
+            "description": "Site ID"
           },
           "categoryRole": {
             "type": "string",
@@ -15509,7 +17506,7 @@
         },
         "required": [
           "id",
-          "businessUnitId",
+          "siteId",
           "categoryRole",
           "name",
           "sortOrder",
@@ -15763,7 +17760,7 @@
           },
           "exchangeRate": {
             "type": "number",
-            "description": "Supplier→BU exchange rate. Required when the supplier currency differs from the BU currency AND the rate cannot be inherited from a FIXED-rate purchase order. Ignored when supplier currency == BU currency or when inherited from a FIXED PO."
+            "description": "Supplier→site exchange rate. Required when the supplier currency differs from the site currency AND the rate cannot be inherited from a FIXED-rate purchase order. Ignored when supplier currency == site currency or when inherited from a FIXED PO."
           }
         },
         "required": [
@@ -15852,7 +17849,7 @@
             ]
           },
           "mrp": {
-            "description": "Printed MRP per primary unit (BU currency)",
+            "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
             "allOf": [
               {
@@ -15927,7 +17924,7 @@
             "description": "Expiry date (required)"
           },
           "mrp": {
-            "description": "Printed MRP per primary unit (BU currency)",
+            "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
             "allOf": [
               {
@@ -15958,7 +17955,7 @@
             "description": "Expiry date (cannot be cleared once set)"
           },
           "mrp": {
-            "description": "Printed MRP per primary unit (BU currency)",
+            "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
             "allOf": [
               {
@@ -16113,7 +18110,7 @@
             "description": "UOM the MRP is quoted in (the pack); required when hasMrp."
           },
           "defaultMrp": {
-            "description": "Default MRP (BU currency)",
+            "description": "Default MRP (site currency)",
             "nullable": true,
             "allOf": [
               {
@@ -16274,7 +18271,7 @@
             "description": "UOM the MRP is quoted in (the pack); required when hasMrp."
           },
           "defaultMrp": {
-            "description": "Default MRP (BU currency)",
+            "description": "Default MRP (site currency)",
             "nullable": true,
             "allOf": [
               {
@@ -16715,9 +18712,9 @@
             "type": "string",
             "description": "Catalog ID"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID"
+            "description": "Site ID"
           },
           "name": {
             "type": "string",
@@ -16725,7 +18722,7 @@
           },
           "currencyCode": {
             "type": "string",
-            "description": "ISO 4217 currency code (snapshot of the BU currency at creation)"
+            "description": "ISO 4217 currency code (snapshot of the site currency at creation)"
           },
           "taxInclusive": {
             "type": "boolean",
@@ -16737,7 +18734,7 @@
           },
           "channelCount": {
             "type": "number",
-            "description": "Number of (business unit, channel) pairs this catalog is assigned to"
+            "description": "Number of (sites, channel) pairs this catalog is assigned to"
           },
           "createdAt": {
             "type": "string",
@@ -16750,7 +18747,7 @@
         },
         "required": [
           "id",
-          "businessUnitId",
+          "siteId",
           "name",
           "currencyCode",
           "taxInclusive",
@@ -16872,9 +18869,9 @@
             "type": "string",
             "description": "Catalog ID"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID this assignment applies to"
+            "description": "Site ID this assignment applies to"
           },
           "channelId": {
             "type": "string",
@@ -16892,7 +18889,7 @@
         "required": [
           "id",
           "catalogId",
-          "businessUnitId",
+          "siteId",
           "channelId",
           "channelName",
           "channelKind"
@@ -16901,9 +18898,9 @@
       "AssignCatalogChannelDto": {
         "type": "object",
         "properties": {
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID to map (must be the active business unit)"
+            "description": "Site ID to map (must be the active site)"
           },
           "channelId": {
             "type": "string",
@@ -16911,7 +18908,7 @@
           }
         },
         "required": [
-          "businessUnitId",
+          "siteId",
           "channelId"
         ]
       },
@@ -16922,9 +18919,9 @@
             "type": "string",
             "description": "Offering ID"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID"
+            "description": "Site ID"
           },
           "categoryId": {
             "type": "object",
@@ -16986,7 +18983,7 @@
         },
         "required": [
           "id",
-          "businessUnitId",
+          "siteId",
           "fulfilmentType",
           "name",
           "currencyCode",
@@ -17287,9 +19284,9 @@
             "type": "string",
             "description": "Offering ID"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID"
+            "description": "Site ID"
           },
           "categoryId": {
             "type": "object",
@@ -17366,7 +19363,7 @@
         },
         "required": [
           "id",
-          "businessUnitId",
+          "siteId",
           "fulfilmentType",
           "name",
           "currencyCode",
@@ -17761,9 +19758,9 @@
             "type": "string",
             "description": "Modifier group ID"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID"
+            "description": "Site ID"
           },
           "name": {
             "type": "string",
@@ -17807,7 +19804,7 @@
         },
         "required": [
           "id",
-          "businessUnitId",
+          "siteId",
           "name",
           "selectionType",
           "minSelections",
@@ -18166,9 +20163,9 @@
             "type": "string",
             "description": "Organization ID"
           },
-          "businessUnitId": {
+          "siteId": {
             "type": "string",
-            "description": "Business unit ID"
+            "description": "Site ID"
           },
           "name": {
             "type": "string",
@@ -18220,7 +20217,7 @@
         "required": [
           "id",
           "organizationId",
-          "businessUnitId",
+          "siteId",
           "name",
           "code",
           "locationId",
@@ -18408,7 +20405,7 @@
           },
           "exchangeRate": {
             "type": "object",
-            "description": "FX exchange rate from supplier currency to BU currency. Required when FIXED + cross-currency.",
+            "description": "FX exchange rate from supplier currency to site currency. Required when FIXED + cross-currency.",
             "example": 83.5
           }
         },
@@ -18525,7 +20522,7 @@
           },
           "exchangeRate": {
             "type": "object",
-            "description": "Exchange rate from supplier currency to BU currency. Required when FIXED.",
+            "description": "Exchange rate from supplier currency to site currency. Required when FIXED.",
             "example": 83.5
           }
         },
@@ -18558,7 +20555,7 @@
             "description": "Expiry date (required)"
           },
           "mrp": {
-            "description": "Printed MRP per primary unit (BU currency)",
+            "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
             "allOf": [
               {
@@ -18588,7 +20585,7 @@
             "description": "Expiry date (cannot be cleared once set)"
           },
           "mrp": {
-            "description": "Printed MRP per primary unit (BU currency)",
+            "description": "Printed MRP per primary unit (site currency)",
             "nullable": true,
             "allOf": [
               {
@@ -18615,7 +20612,7 @@
             "description": "Reason for adjustment"
           },
           "unitCost": {
-            "description": "Opening-stock unit cost (BU currency, per primary UOM). Required for OPENING_STOCK.",
+            "description": "Opening-stock unit cost (site currency, per primary UOM). Required for OPENING_STOCK.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -18637,7 +20634,7 @@
             "description": "Reason for adjustment"
           },
           "unitCost": {
-            "description": "Opening-stock unit cost (BU currency, per primary UOM).",
+            "description": "Opening-stock unit cost (site currency, per primary UOM).",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
@@ -18786,13 +20783,13 @@
             "type": "string",
             "description": "Inventory item ID"
           },
-          "fromBuId": {
+          "fromSiteId": {
             "type": "string",
-            "description": "Source business unit ID"
+            "description": "Source site ID"
           },
-          "toBuId": {
+          "toSiteId": {
             "type": "string",
-            "description": "Destination business unit ID"
+            "description": "Destination site ID"
           },
           "fromLocationId": {
             "type": "string",
@@ -18818,8 +20815,8 @@
         },
         "required": [
           "inventoryItemId",
-          "fromBuId",
-          "toBuId",
+          "fromSiteId",
+          "toSiteId",
           "fromLocationId",
           "toLocationId",
           "quantity"

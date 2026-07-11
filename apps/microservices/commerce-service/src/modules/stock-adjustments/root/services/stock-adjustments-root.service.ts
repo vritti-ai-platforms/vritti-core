@@ -55,12 +55,12 @@ export class StockAdjustmentsRootService {
     private readonly adjustmentsService: StockAdjustmentsService,
   ) {}
 
-  table(state: TableViewState, buCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    return this.adjustmentsService.findForTable(state, buCurrencyCode);
+  table(state: TableViewState, siteCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+    return this.adjustmentsService.findForTable(state, siteCurrencyCode);
   }
 
-  findById(id: string, buCurrencyCode?: string): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.findById(id, buCurrencyCode);
+  findById(id: string, siteCurrencyCode?: string): Promise<StockAdjustmentDto> {
+    return this.adjustmentsService.findById(id, siteCurrencyCode);
   }
 
   create(data: {
@@ -79,12 +79,12 @@ export class StockAdjustmentsRootService {
   update(
     id: string,
     data: { reason?: string; unitCost?: bigint | null },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.updateAdjustment(id, data, buCurrencyCode);
+    return this.adjustmentsService.updateAdjustment(id, data, siteCurrencyCode);
   }
 
-  async publish(id: string, buCurrencyCode: string): Promise<StockAdjustmentDto> {
+  async publish(id: string, siteCurrencyCode: string): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -159,7 +159,7 @@ export class StockAdjustmentsRootService {
             line,
             lineItems,
             resolvedLots,
-            buCurrencyCode,
+            siteCurrencyCode,
             unitCostMinor as bigint,
           );
         } else {
@@ -171,7 +171,7 @@ export class StockAdjustmentsRootService {
     });
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
-    return this.adjustmentsService.findById(id, buCurrencyCode);
+    return this.adjustmentsService.findById(id, siteCurrencyCode);
   }
 
   // OPENING_STOCK: line carries (locationId, lot draft FK if not 'quantity', quantity, [serials]).
@@ -183,7 +183,7 @@ export class StockAdjustmentsRootService {
     line: StockAdjustmentLineWithRefs,
     lineItems: StockAdjustmentLineItem[],
     lots: StockAdjustmentLot[],
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
     unitCost: bigint,
   ): Promise<void> {
     if (!line.locationId) {
@@ -197,7 +197,7 @@ export class StockAdjustmentsRootService {
 
     const costProvenance = {
       unitCost,
-      costCurrency: buCurrencyCode,
+      costCurrency: siteCurrencyCode,
       sourceType: CostSourceTypeValues.STOCK_ADJUSTMENT,
       sourceId: adjustmentId,
     };

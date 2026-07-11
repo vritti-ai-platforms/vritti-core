@@ -67,7 +67,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
       select: {
         id: stockAdjustmentLines.id,
         organizationId: stockAdjustmentLines.organizationId,
-        businessUnitId: stockAdjustmentLines.businessUnitId,
+        siteId: stockAdjustmentLines.siteId,
         stockAdjustmentId: stockAdjustmentLines.stockAdjustmentId,
         stockAdjustmentLotId: stockAdjustmentLines.stockAdjustmentLotId,
         locationId: stockAdjustmentLines.locationId,
@@ -227,7 +227,7 @@ export class StockAdjustmentLinesRepository extends PrimaryBaseRepository<typeof
       .select({
         id: stockAdjustmentLines.id,
         organizationId: stockAdjustmentLines.organizationId,
-        businessUnitId: stockAdjustmentLines.businessUnitId,
+        siteId: stockAdjustmentLines.siteId,
         stockAdjustmentId: stockAdjustmentLines.stockAdjustmentId,
         stockAdjustmentLotId: stockAdjustmentLines.stockAdjustmentLotId,
         locationId: stockAdjustmentLines.locationId,

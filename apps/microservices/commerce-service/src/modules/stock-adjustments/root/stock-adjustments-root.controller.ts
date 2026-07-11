@@ -2,7 +2,7 @@ import type { StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/st
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import type { StockAdjustmentType } from '@/db/schema';
 import { StockAdjustmentsRootService } from './services/stock-adjustments-root.service';
 
@@ -15,16 +15,19 @@ export class StockAdjustmentsRootController {
   @MessagePattern({ cmd: 'stockAdjustments.table' })
   table(
     @Payload() state: TableViewState,
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     this.logger.log('stockAdjustments.table');
-    return this.service.table(state, buCurrencyCode);
+    return this.service.table(state, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.findById' })
-  findById(@Payload() data: { id: string }, @RpcBuCurrencyCode() buCurrencyCode: string): Promise<StockAdjustmentDto> {
+  findById(
+    @Payload() data: { id: string },
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+  ): Promise<StockAdjustmentDto> {
     this.logger.log(`stockAdjustments.findById — id: ${data.id}`);
-    return this.service.findById(data.id, buCurrencyCode);
+    return this.service.findById(data.id, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.create' })
@@ -42,15 +45,18 @@ export class StockAdjustmentsRootController {
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.publish' })
-  publish(@Payload() data: { id: string }, @RpcBuCurrencyCode() buCurrencyCode: string): Promise<StockAdjustmentDto> {
-    this.logger.log(`stockAdjustments.publish — id: ${data.id}, bu currency: ${buCurrencyCode}`);
-    return this.service.publish(data.id, buCurrencyCode);
+  publish(
+    @Payload() data: { id: string },
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+  ): Promise<StockAdjustmentDto> {
+    this.logger.log(`stockAdjustments.publish — id: ${data.id}, site currency: ${siteCurrencyCode}`);
+    return this.service.publish(data.id, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'stockAdjustments.update' })
   update(
     @Payload() data: { id: string; reason?: string; unitCost?: string },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<StockAdjustmentDto> {
     this.logger.log(`stockAdjustments.update — id: ${data.id}`);
     return this.service.update(
@@ -59,7 +65,7 @@ export class StockAdjustmentsRootController {
         reason: data.reason,
         unitCost: data.unitCost !== undefined ? BigInt(data.unitCost) : undefined,
       },
-      buCurrencyCode,
+      siteCurrencyCode,
     );
   }
 

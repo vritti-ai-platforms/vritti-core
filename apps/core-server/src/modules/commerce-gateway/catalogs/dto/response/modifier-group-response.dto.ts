@@ -24,8 +24,8 @@ export class ModifierGroupResponseDto {
   @ApiProperty({ description: 'Modifier group ID' })
   id: string;
 
-  @ApiProperty({ description: 'Business unit ID' })
-  businessUnitId: string;
+  @ApiProperty({ description: 'Site ID' })
+  siteId: string;
 
   @ApiProperty({ description: 'Modifier group name' })
   name: string;

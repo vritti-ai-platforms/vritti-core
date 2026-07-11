@@ -24,7 +24,7 @@ export class StockTransfersController {
 
   @MessagePattern({ cmd: 'stockTransfers.create' })
   async create(@Payload() dto: CreateStockTransferDto): Promise<StockTransferDto> {
-    this.logger.log(`stockTransfers.create — from: ${dto.fromBuId}, to: ${dto.toBuId}`);
+    this.logger.log(`stockTransfers.create — from: ${dto.fromSiteId}, to: ${dto.toSiteId}`);
     return this.service.create(dto);
   }
 

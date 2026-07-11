@@ -29,7 +29,7 @@ export class InventoryItemDto {
     uomSymbol?: string | null,
     canDelete = true,
     categoryName?: string | null,
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): InventoryItemDto {
     const dto = new InventoryItemDto();
     dto.id = entity.id;
@@ -49,7 +49,8 @@ export class InventoryItemDto {
     dto.hsnCode = entity.hsnCode ?? null;
     dto.hasMrp = entity.hasMrp;
     dto.mrpUomId = entity.mrpUomId ?? null;
-    dto.defaultMrp = entity.hasMrp && buCurrencyCode ? CurrencyAmountDto.from(entity.defaultMrp, buCurrencyCode) : null;
+    dto.defaultMrp =
+      entity.hasMrp && siteCurrencyCode ? CurrencyAmountDto.from(entity.defaultMrp, siteCurrencyCode) : null;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

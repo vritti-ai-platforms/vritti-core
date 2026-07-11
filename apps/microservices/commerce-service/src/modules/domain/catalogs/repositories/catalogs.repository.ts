@@ -54,7 +54,7 @@ export class CatalogsRepository extends PrimaryBaseRepository<typeof catalogs> {
       const [newCatalog] = (await tx
         .insert(catalogs)
         .values({
-          businessUnitId: source.businessUnitId,
+          siteId: source.siteId,
           name: source.name,
           currencyCode: source.currencyCode,
           taxInclusive: source.taxInclusive,

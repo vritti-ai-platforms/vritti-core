@@ -19,7 +19,7 @@ export class InventoryItemLotDto {
       stockedQuantity?: string | number | null;
       reservedQuantity?: string | number | null;
     },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): InventoryItemLotDto {
     const dto = new InventoryItemLotDto();
     dto.id = row.id;
@@ -28,8 +28,8 @@ export class InventoryItemLotDto {
     dto.manufacturingDate = row.manufacturingDate ?? null;
     dto.expiryDate = row.expiryDate;
     dto.mrp =
-      row.mrp != null && buCurrencyCode
-        ? CurrencyAmountDto.from(BigInt(row.mrp as unknown as string), buCurrencyCode)
+      row.mrp != null && siteCurrencyCode
+        ? CurrencyAmountDto.from(BigInt(row.mrp as unknown as string), siteCurrencyCode)
         : null;
     dto.stockedQuantity = Number(row.stockedQuantity ?? 0);
     dto.reservedQuantity = Number(row.reservedQuantity ?? 0);

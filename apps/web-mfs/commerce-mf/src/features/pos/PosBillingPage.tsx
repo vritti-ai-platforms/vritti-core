@@ -1,4 +1,4 @@
-import { cn } from '@vritti/quantum-ui';
+import { cn } from '@vritti/quantum-ui/cn';
 import { Alert } from '@vritti/quantum-ui/Alert';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
@@ -302,7 +302,7 @@ export const PosBillingPage = () => {
               <Alert
                 variant="warning"
                 title="No catalog for this terminal"
-                description="This terminal's business unit and channel have no catalog yet. Create one to start billing."
+                description="This terminal's site and channel have no catalog yet. Create one to start billing."
               />
             ) : (
               <ItemsGrid items={filteredItems} isLoading={itemsLoading} onSelect={handleSelect} />

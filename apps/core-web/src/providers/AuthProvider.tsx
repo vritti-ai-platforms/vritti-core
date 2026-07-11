@@ -1,5 +1,5 @@
 import { useAuthStatusStream } from '@hooks/auth/useAuthStatusStream';
-import type { AssignedBU } from '@services/permissions.service';
+import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup } from '@services/permissions.service';
 import type { AuthOrg, User } from '@services/user.service';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearToken } from '@vritti/quantum-ui/axios';
@@ -11,8 +11,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo } from 'reac
 interface AuthContextValue {
   user: User | undefined;
   org: AuthOrg | undefined;
-  businessUnits: AssignedBU[];
-  featuresByBuId: Record<string, PermissionFeature[]>;
+  sites: AssignedSite[];
+  legalEntities: AssignedLegalEntity[];
+  siteGroups: AssignedSiteGroup[];
+  assignments: AssignedRole[];
+  featuresBySiteId: Record<string, PermissionFeature[]>;
+  featuresByGroupId: Record<string, PermissionFeature[]>;
+  featuresByLeId: Record<string, PermissionFeature[]>;
+  orgFeatures: PermissionFeature[];
   isLoading: boolean;
   isAuthenticated: boolean;
   isOrgNotFound: boolean;
@@ -22,8 +28,14 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: undefined,
   org: undefined,
-  businessUnits: [],
-  featuresByBuId: {},
+  sites: [],
+  legalEntities: [],
+  siteGroups: [],
+  assignments: [],
+  featuresBySiteId: {},
+  featuresByGroupId: {},
+  featuresByLeId: {},
+  orgFeatures: [],
   isLoading: true,
   isAuthenticated: false,
   isOrgNotFound: false,
@@ -44,8 +56,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = authResponse?.isAuthenticated ?? false;
   const user = authResponse?.user;
   const org = authResponse?.org;
-  const businessUnits = authResponse?.businessUnits ?? [];
-  const featuresByBuId = authResponse?.featuresByBuId ?? {};
+  const sites = authResponse?.sites ?? [];
+  const legalEntities = authResponse?.legalEntities ?? [];
+  const siteGroups = authResponse?.siteGroups ?? [];
+  const assignments = authResponse?.assignments ?? [];
+  const featuresBySiteId = authResponse?.featuresBySiteId ?? {};
+  const featuresByGroupId = authResponse?.featuresByGroupId ?? {};
+  const featuresByLeId = authResponse?.featuresByLeId ?? {};
+  const orgFeatures = authResponse?.orgFeatures ?? [];
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -64,8 +82,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isOrgNotFound = !isLoading && !org && hasSubdomain;
 
   const contextValue = useMemo<AuthContextValue>(
-    () => ({ user, org, businessUnits, featuresByBuId, isLoading, isAuthenticated, isOrgNotFound, logout }),
-    [user, org, businessUnits, featuresByBuId, isLoading, isAuthenticated, isOrgNotFound, logout],
+    () => ({
+      user,
+      org,
+      sites,
+      legalEntities,
+      siteGroups,
+      assignments,
+      featuresBySiteId,
+      featuresByGroupId,
+      featuresByLeId,
+      orgFeatures,
+      isLoading,
+      isAuthenticated,
+      isOrgNotFound,
+      logout,
+    }),
+    [
+      user,
+      org,
+      sites,
+      legalEntities,
+      siteGroups,
+      assignments,
+      featuresBySiteId,
+      featuresByGroupId,
+      featuresByLeId,
+      orgFeatures,
+      isLoading,
+      isAuthenticated,
+      isOrgNotFound,
+      logout,
+    ],
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

@@ -9,7 +9,7 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import { PurchaseOrderStatus } from '@/db/schema';
 import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
@@ -47,10 +47,10 @@ export class PurchaseOrdersRootController {
   @MessagePattern({ cmd: 'purchaseOrders.create' })
   create(
     @Payload() dto: CreatePurchaseOrderDto,
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}`);
-    return this.appService.create(dto, buCurrencyCode);
+    return this.appService.create(dto, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.updateNotes' })
@@ -69,11 +69,11 @@ export class PurchaseOrdersRootController {
   @MessagePattern({ cmd: 'purchaseOrders.changeExchangeRate' })
   changeExchangeRate(
     @Payload() data: { id: string } & ChangePurchaseOrderExchangeRateDto,
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`purchaseOrders.changeExchangeRate — id: ${data.id}, type: ${data.exchangeRateType}`);
     const { id, ...dto } = data;
-    return this.appService.changeExchangeRate(id, dto, buCurrencyCode);
+    return this.appService.changeExchangeRate(id, dto, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'purchaseOrders.closeShort' })

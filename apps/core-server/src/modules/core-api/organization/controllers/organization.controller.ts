@@ -1,10 +1,31 @@
 import { OrganizationService } from '@domain/organization/services/organization.service';
-import { Body, Controller, Delete, HttpCode, HttpStatus, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Patch,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
 import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { OrgIdHeader } from '@/security/decorators/org-id-header.decorator';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
-import { ApiCreateOrganization, ApiReceiveEntitlement } from '../docs/organization.docs';
+import { SetFeatureLocksInternalDto } from '../../structure/dto/request/set-feature-locks-internal.dto';
+import type { FeatureLocksResponseDto } from '../../structure/dto/response/feature-locks-response.dto';
+import {
+  ApiCreateOrganization,
+  ApiGetOrganizationLocks,
+  ApiReceiveEntitlement,
+  ApiSetOrganizationLocks,
+} from '../docs/organization.docs';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
 import { ReceiveEntitlementInternalDto } from '../dto/request/receive-entitlement-internal.dto';
@@ -27,6 +48,26 @@ export class OrganizationController {
   async createFromCloud(@Body() dto: CreateOrganizationInternalDto): Promise<OrganizationDto> {
     this.logger.log('POST /api/organizations/internal');
     return this.organizationService.createFromCloud(dto);
+  }
+
+  // Returns the organization's feature lock deny-list (org resolved from the signed x-org-id header)
+  @Get('internal/locks')
+  @Public()
+  @UseGuards(CloudSignatureGuard)
+  @ApiGetOrganizationLocks()
+  async getLocks(@OrgIdHeader() orgId: string): Promise<FeatureLocksResponseDto> {
+    this.logger.log(`GET /organizations/internal/locks — org ${orgId}`);
+    return { featureLocks: await this.organizationService.getFeatureLocks(orgId) };
+  }
+
+  // Replaces the organization's feature lock deny-list (org resolved from the signed x-org-id header)
+  @Put('internal/locks')
+  @Public()
+  @UseGuards(CloudSignatureGuard)
+  @ApiSetOrganizationLocks()
+  async setLocks(@OrgIdHeader() orgId: string, @Body() dto: SetFeatureLocksInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /organizations/internal/locks — org ${orgId}`);
+    return this.organizationService.setFeatureLocks(orgId, dto.featureLocks ?? null);
   }
 
   // Receives organization update from cloud-server via the internal API

@@ -12,8 +12,8 @@ export const stockTransfers = coreSchema.table(
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id),
-    fromBuId: uuid('from_bu_id').notNull(),
-    toBuId: uuid('to_bu_id').notNull(),
+    fromSiteId: uuid('from_site_id').notNull(),
+    toSiteId: uuid('to_site_id').notNull(),
     quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     status: stockTransferStatusEnum('status').notNull().default('REQUESTED'),
     requestedBy: uuid('requested_by'),
@@ -27,8 +27,8 @@ export const stockTransfers = coreSchema.table(
   },
   (table) => [
     index('idx_stock_transfers_item').on(table.inventoryItemId),
-    index('idx_stock_transfers_from_bu').on(table.fromBuId),
-    index('idx_stock_transfers_to_bu').on(table.toBuId),
+    index('idx_stock_transfers_from_site').on(table.fromSiteId),
+    index('idx_stock_transfers_to_site').on(table.toSiteId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,

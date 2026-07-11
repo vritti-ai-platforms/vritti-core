@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { eq } from '@vritti/api-sdk/drizzle-orm';
-import { businessUnits, type Organization, organizations } from '@/db/schema';
+import { type Organization, organizations, sites } from '@/db/schema';
 
 @Injectable()
 export class OrganizationRepository extends PrimaryBaseRepository<typeof organizations> {
@@ -14,12 +14,9 @@ export class OrganizationRepository extends PrimaryBaseRepository<typeof organiz
     return this.model.findFirst({ where: { subdomain } });
   }
 
-  // Returns the ids of all business units belonging to an organization
-  async findBusinessUnitIds(orgId: string): Promise<string[]> {
-    const rows = await this.db
-      .select({ id: businessUnits.id })
-      .from(businessUnits)
-      .where(eq(businessUnits.organizationId, orgId));
+  // Returns the ids of all sites belonging to an organization
+  async findSiteIds(orgId: string): Promise<string[]> {
+    const rows = await this.db.select({ id: sites.id }).from(sites).where(eq(sites.organizationId, orgId));
     return rows.map((r) => r.id);
   }
 }

@@ -23,11 +23,11 @@ export class PurchaseOrdersRootService {
     private readonly goodsReceiptsService: GoodsReceiptsService,
   ) {}
 
-  async create(dto: CreatePurchaseOrderDto, buCurrencyCode: string): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  async create(dto: CreatePurchaseOrderDto, siteCurrencyCode: string): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const supplier = await this.suppliersRepository.findById(dto.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
-    this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}, bu currency: ${buCurrencyCode}`);
-    return this.purchaseOrdersService.create(dto, supplier.currencyCode, buCurrencyCode);
+    this.logger.log(`purchaseOrders.create — supplier: ${dto.supplierId}, site currency: ${siteCurrencyCode}`);
+    return this.purchaseOrdersService.create(dto, supplier.currencyCode, siteCurrencyCode);
   }
 
   async findById(id: string): Promise<PurchaseOrderDto> {
@@ -56,7 +56,7 @@ export class PurchaseOrdersRootService {
   async changeExchangeRate(
     id: string,
     dto: ChangePurchaseOrderExchangeRateDto,
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     const po = await this.repository.findById(id);
     if (!po) throw new NotFoundException('Purchase order not found.');
@@ -67,7 +67,7 @@ export class PurchaseOrdersRootService {
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
     this.logger.log(`purchaseOrders.changeExchangeRate — id: ${id}, type: ${dto.exchangeRateType}`);
-    return this.purchaseOrdersService.changeExchangeRate(id, dto, supplier.currencyCode, buCurrencyCode);
+    return this.purchaseOrdersService.changeExchangeRate(id, dto, supplier.currencyCode, siteCurrencyCode);
   }
 
   private async assertNoGoodsReceipt(poId: string, label: string): Promise<void> {

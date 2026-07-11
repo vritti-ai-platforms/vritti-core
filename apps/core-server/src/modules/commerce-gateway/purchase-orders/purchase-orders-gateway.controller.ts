@@ -58,7 +58,7 @@ export class PurchaseOrdersGatewayController {
   @Get(':id/pdf')
   async downloadPdf(@Param('id') id: string, @Req() req: FastifyRequest, @Res() reply: FastifyReply): Promise<void> {
     this.logger.log(`GET /purchase-orders/${id}/pdf`);
-    const { buffer, filename } = await this.service.downloadPdf(id, req.sessionInfo?.buId ?? '');
+    const { buffer, filename } = await this.service.downloadPdf(id, req.sessionInfo?.siteId ?? '');
     void reply
       .header('Content-Type', 'application/pdf')
       .header('Content-Disposition', `inline; filename="${filename}"`)

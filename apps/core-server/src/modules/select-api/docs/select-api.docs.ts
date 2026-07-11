@@ -13,7 +13,7 @@ export function ApiCategoriesSelect() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get category select options',
-      description: 'Returns paginated category options for the select component, scoped to the session business unit.',
+      description: 'Returns paginated category options for the select component, scoped to the session site.',
     }),
     ...BASE_SELECT_QUERIES,
     ApiQuery({
@@ -31,7 +31,7 @@ export function ApiCatalogsSelect() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get catalog select options',
-      description: 'Returns paginated catalog options for the select component, scoped to the session business unit.',
+      description: 'Returns paginated catalog options for the select component, scoped to the session site.',
     }),
     ...BASE_SELECT_QUERIES,
     ApiResponse({ status: 200, description: 'Catalog select options retrieved successfully.' }),

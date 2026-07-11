@@ -11,7 +11,7 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import { RpcBuId } from '@vritti/api-sdk/nats';
+import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateUomDto } from './dto/request/create-uom.dto';
 import type { UpdateUomDto } from './dto/request/update-uom.dto';
 
@@ -28,10 +28,10 @@ export class UomController {
   @MessagePattern({ cmd: 'uom.table' })
   async table(
     @Payload() state: TableViewState & { dimensionId: string },
-    @RpcBuId() buId: string,
+    @RpcSiteId() siteId: string,
   ): Promise<{ result: UomDto[]; count: number }> {
     this.logger.log(`uom.table — dimensionId: ${state.dimensionId}`);
-    return this.uomService.findForTable(state, buId);
+    return this.uomService.findForTable(state, siteId);
   }
 
   // Returns paginated UOM options for the select component
@@ -60,27 +60,27 @@ export class UomController {
 
   // Creates a new UOM
   @MessagePattern({ cmd: 'uom.create' })
-  async create(@Payload() dto: CreateUomDto, @RpcBuId() buId: string): Promise<CreateResponseDto<UomDto>> {
+  async create(@Payload() dto: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
     this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
     // Validate dimension exists; throws NotFoundException when missing
-    await this.assertDimensionExists(dto.dimensionId, buId);
+    await this.assertDimensionExists(dto.dimensionId);
     return this.uomService.create(dto);
   }
 
   // Finds a UOM by ID
   @MessagePattern({ cmd: 'uom.findById' })
-  async findById(@Payload() data: { id: string }, @RpcBuId() buId: string): Promise<UomDto> {
+  async findById(@Payload() data: { id: string }, @RpcSiteId() siteId: string): Promise<UomDto> {
     this.logger.log(`uom.findById — id: ${data.id}`);
-    return this.uomService.findById(data.id, buId);
+    return this.uomService.findById(data.id, siteId);
   }
 
   // Updates a UOM by ID
   @MessagePattern({ cmd: 'uom.update' })
-  async update(@Payload() data: { id: string } & UpdateUomDto, @RpcBuId() buId: string): Promise<SuccessResponseDto> {
+  async update(@Payload() data: { id: string } & UpdateUomDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`uom.update — id: ${id}`);
     if (updateData.dimensionId) {
-      await this.assertDimensionExists(updateData.dimensionId, buId);
+      await this.assertDimensionExists(updateData.dimensionId);
     }
     return this.uomService.update(id, updateData);
   }
@@ -93,7 +93,7 @@ export class UomController {
   }
 
   // Cross-domain validation helper: ensures the referenced dimension exists
-  private async assertDimensionExists(dimensionId: string, buId: string): Promise<UomDimensionDto> {
-    return this.uomDimensionsService.findById(dimensionId, buId);
+  private async assertDimensionExists(dimensionId: string): Promise<UomDimensionDto> {
+    return this.uomDimensionsService.findById(dimensionId);
   }
 }

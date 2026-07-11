@@ -82,7 +82,7 @@ export class CatalogsService {
     });
 
     if (data.channelIds?.length) {
-      await this.catalogChannelsService.setChannels(entity.id, entity.businessUnitId, data.channelIds);
+      await this.catalogChannelsService.setChannels(entity.id, entity.siteId, data.channelIds);
     }
 
     this.logger.log(`Created catalog: ${entity.id}`);
@@ -116,7 +116,7 @@ export class CatalogsService {
     }
 
     if (data.channelIds !== undefined) {
-      await this.catalogChannelsService.setChannels(id, existing.businessUnitId, data.channelIds);
+      await this.catalogChannelsService.setChannels(id, existing.siteId, data.channelIds);
     }
 
     this.logger.log(`Updated catalog: ${id}`);

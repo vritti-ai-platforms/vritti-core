@@ -1,4 +1,4 @@
-export interface AssignedBU {
+export interface AssignedSite {
   id: string;
   name: string;
   code: string | null;
@@ -7,7 +7,7 @@ export interface AssignedBU {
   currencyCode: string;
 }
 
-export type LockReason = 'PLAN' | 'BU';
+export type LockReason = 'PLAN' | 'SITE';
 
 export interface LockedPermission {
   code: string;

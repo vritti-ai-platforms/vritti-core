@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BusinessUnitDomainModule } from '@/modules/domain/business-unit/business-unit.module';
+import { SiteDomainModule } from '@/modules/domain/site/site.module';
 import { UserDomainModule } from '@/modules/domain/user/user.module';
 import { CatalogsGatewayController } from './catalogs/catalogs-gateway.controller';
 import { CatalogsGatewayService } from './catalogs/services/catalogs-gateway.service';
@@ -46,7 +46,7 @@ import { UomDimensionsGatewayService } from './uom-dimensions/services/uom-dimen
 import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-gateway.controller';
 
 @Module({
-  imports: [BusinessUnitDomainModule, UserDomainModule],
+  imports: [SiteDomainModule, UserDomainModule],
   controllers: [
     CategoriesGatewayController,
     InventoryItemQuantsGatewayController,

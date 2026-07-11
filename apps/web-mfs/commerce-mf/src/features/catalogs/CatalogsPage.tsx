@@ -124,7 +124,7 @@ export const CatalogsPage = () => {
         emptyStateConfig={{
           icon: BookOpen,
           title: 'No catalogs yet',
-          description: 'Create a catalog to set prices and availability per business unit and channel.',
+          description: 'Create a catalog to set prices and availability per site and channel.',
           action: (
             <Button onClick={addDialog.open} startAdornment={<Plus className="size-4" />}>
               New Catalog

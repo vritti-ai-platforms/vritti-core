@@ -58,7 +58,7 @@ export class StockTransfersRootService {
       // Load the source lot to preserve its identity at the destination
       const sourceLot = await this.batchesService.loadLotByQuantId(data.fromBatchId);
       if (sourceLot) {
-        // findOrCreateLot ensures the lot exists for this item in the destination BU
+        // findOrCreateLot ensures the lot exists for this item in the destination site
         const lot = await this.lotsService.findOrCreateLot({
           inventoryItemId: transfer.inventoryItemId,
           lotNumber: sourceLot.lotNumber,

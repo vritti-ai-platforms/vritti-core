@@ -5,8 +5,8 @@ export class CategoryResponseDto {
   @ApiProperty({ description: 'Category ID' })
   id: string;
 
-  @ApiProperty({ description: 'Business unit ID' })
-  businessUnitId: string;
+  @ApiProperty({ description: 'Site ID' })
+  siteId: string;
 
   @ApiProperty({
     description: 'GROUP holds sub-categories; CATEGORY is a leaf that holds inventory items',

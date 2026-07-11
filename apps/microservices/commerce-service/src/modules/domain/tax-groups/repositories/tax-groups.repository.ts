@@ -9,7 +9,7 @@ export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups>
     super(database, taxGroups);
   }
 
-  // Returns a paginated page of tax groups + total count for the data table (RLS scopes to org + BU)
+  // Returns a paginated page of tax groups + total count for the data table (RLS scopes to org + site)
   async findAllForTable(options: {
     where?: SQL;
     orderBy?: SQL[];

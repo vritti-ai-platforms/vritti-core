@@ -85,11 +85,11 @@ export function ApiUpdateRole() {
   );
 }
 
-export function ApiRolesForBu() {
+export function ApiRolesForSite() {
   return applyDecorators(
     ApiOperation({
-      summary: 'List all roles for a business unit',
-      description: "Returns every role in the business unit's organization.",
+      summary: 'List all roles for a site',
+      description: "Returns every role in the site's organization.",
     }),
     ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
     ApiHeader({
@@ -97,9 +97,9 @@ export function ApiRolesForBu() {
       description: 'Ed25519 signature of the canonical request (base64)',
       required: true,
     }),
-    ApiQuery({ name: 'buId', description: 'Business unit ID', required: true }),
+    ApiQuery({ name: 'siteId', description: 'Site ID', required: true }),
     ApiResponse({ status: 200, description: 'Roles retrieved successfully.' }),
-    ApiResponse({ status: 404, description: 'Business unit not found.' }),
+    ApiResponse({ status: 404, description: 'Site not found.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
 }
@@ -119,6 +119,27 @@ export function ApiDeleteRole() {
     ApiParam({ name: 'id', description: 'Role ID' }),
     ApiResponse({ status: 200, description: 'Role deleted successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Role not found.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiRolesForTarget() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'List roles assignable at a target',
+      description:
+        "Returns the org's roles whose template scope matches the target type, plus SITE-scoped templates and custom roles. Org resolved from the signed x-org-id header.",
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiQuery({ name: 'targetType', description: 'Target type: ORG, LE, SITE_GROUP, or SITE', required: true }),
+    ApiQuery({ name: 'targetId', description: 'Target ID (required for SITE targets)', required: false }),
+    ApiResponse({ status: 200, description: 'Roles retrieved successfully.' }),
+    ApiResponse({ status: 400, description: 'Invalid target type.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
 }

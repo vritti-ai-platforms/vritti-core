@@ -51,7 +51,7 @@ export class OrdersRepository extends PrimaryBaseRepository<typeof orders> {
     return this.db.insert(orderItemModifiers).values(data).returning() as Promise<OrderItemModifier[]>;
   }
 
-  // Generates a sequential order number (RLS scopes the count to current BU)
+  // Generates a sequential order number (RLS scopes the count to current site)
   async generateOrderNumber(): Promise<string> {
     const nextNumber = await this.nextSequenceValue();
     return `ORD-${String(nextNumber).padStart(5, '0')}`;

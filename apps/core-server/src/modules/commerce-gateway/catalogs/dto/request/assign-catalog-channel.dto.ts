@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class AssignCatalogChannelDto {
-  @ApiProperty({ description: 'Business unit ID to map (must be the active business unit)' })
+  @ApiProperty({ description: 'Site ID to map (must be the active site)' })
   @IsUUID()
   @IsNotEmpty()
-  businessUnitId: string;
+  siteId: string;
 
   @ApiProperty({ description: 'Sales channel ID to assign' })
   @IsUUID()

@@ -5,7 +5,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
-import { RpcBuId } from '@vritti/api-sdk/nats';
+import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateInventoryItemUomConversionDto } from './dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemUomConversionDto } from './dto/request/update-inventory-item-uom-conversion.dto';
 
@@ -22,18 +22,18 @@ export class InventoryItemsUomConversionsController {
   @MessagePattern({ cmd: 'inventoryItems.uomConversionsTable' })
   async table(
     @Payload() data: { inventoryItemId: string } & TableViewState,
-    @RpcBuId() buId: string,
+    @RpcSiteId() siteId: string,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.uomConversionsTable — inventoryItemId: ${inventoryItemId}`);
-    return this.service.findForTable(inventoryItemId, state, buId);
+    return this.service.findForTable(inventoryItemId, state, siteId);
   }
 
   // Creates a per-item UOM conversion override
   @MessagePattern({ cmd: 'inventoryItems.addUomConversion' })
   async create(
     @Payload() data: { inventoryItemId: string } & CreateInventoryItemUomConversionDto,
-    @RpcBuId() buId: string,
+    @RpcSiteId() siteId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     const { inventoryItemId, ...dto } = data;
     this.logger.log(`inventoryItems.addUomConversion — inventoryItemId: ${inventoryItemId}, uomId: ${dto.uomId}`);
@@ -43,7 +43,7 @@ export class InventoryItemsUomConversionsController {
       inventoryItemId,
       dto,
       { baseUnitId: uomEntity.baseUnitId, name: uomEntity.name, symbol: uomEntity.symbol },
-      buId,
+      siteId,
     );
   }
 
@@ -51,11 +51,11 @@ export class InventoryItemsUomConversionsController {
   @MessagePattern({ cmd: 'inventoryItems.updateUomConversion' })
   async update(
     @Payload() data: { id: string } & UpdateInventoryItemUomConversionDto,
-    @RpcBuId() buId: string,
+    @RpcSiteId() siteId: string,
   ): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
     this.logger.log(`inventoryItems.updateUomConversion — id: ${id}`);
-    return this.service.update(id, dto, buId);
+    return this.service.update(id, dto, siteId);
   }
 
   // Deletes a UOM conversion override

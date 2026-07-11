@@ -3,7 +3,7 @@ import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/i
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk/database';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import { InventoryItemsLotsService } from './services/inventory-items-lots.service';
 
 @Controller()
@@ -19,10 +19,10 @@ export class InventoryItemsLotsController {
   @MessagePattern({ cmd: 'inventoryItems.lotsTable' })
   async lotsTable(
     @Payload() data: { inventoryItemId: string } & TableViewState,
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     this.logger.log(`inventoryItems.lotsTable — inventoryItemId: ${data.inventoryItemId}`);
-    return this.itemsLotsService.findForTable(data.inventoryItemId, data, buCurrencyCode);
+    return this.itemsLotsService.findForTable(data.inventoryItemId, data, siteCurrencyCode);
   }
 
   // Returns paginated lot options, optionally filtered to a specific inventory item

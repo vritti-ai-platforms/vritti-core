@@ -30,7 +30,7 @@ export class OfferingsService {
 
   constructor(private readonly offeringsRepository: OfferingsRepository) {}
 
-  // Returns paginated, filtered, and sorted offerings for a catalog (RLS scopes to org + BU ancestors)
+  // Returns paginated, filtered, and sorted offerings for a catalog (RLS scopes to org + site ancestors)
   async findForTable(catalogId: string, state: TableViewState): Promise<{ result: OfferingDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsService.FIELD_MAP);

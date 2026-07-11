@@ -21,7 +21,7 @@ import {
   type SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { SessionTypeValues } from '@/db/schema';
-import { BuId } from '@/security/decorators';
+import { SiteId } from '@/security/decorators';
 import {
   ApiAssignCatalogChannel,
   ApiCloneCatalog,
@@ -105,9 +105,9 @@ export class CatalogsGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreateCatalog()
-  create(@Body() dto: CreateCatalogDto, @BuId() buId: string): Promise<CreateResponseDto<CatalogResponseDto>> {
+  create(@Body() dto: CreateCatalogDto, @SiteId() siteId: string): Promise<CreateResponseDto<CatalogResponseDto>> {
     this.logger.log('POST /commerce-api/catalogs');
-    return this.service.create(dto, buId);
+    return this.service.create(dto, siteId);
   }
 
   // Returns a catalog by ID
@@ -151,7 +151,7 @@ export class CatalogsGatewayController {
     return this.service.listChannels(id);
   }
 
-  // Assigns a (business unit, channel) pair to a catalog
+  // Assigns a (sites, channel) pair to a catalog
   @Post(':id/channels')
   @HttpCode(HttpStatus.CREATED)
   @ApiAssignCatalogChannel()

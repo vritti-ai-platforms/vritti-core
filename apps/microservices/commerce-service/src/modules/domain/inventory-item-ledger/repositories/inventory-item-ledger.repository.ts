@@ -29,7 +29,7 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
       select: {
         id: inventoryItemLedger.id,
         organizationId: inventoryItemLedger.organizationId,
-        businessUnitId: inventoryItemLedger.businessUnitId,
+        siteId: inventoryItemLedger.siteId,
         inventoryItemId: inventoryItemLedger.inventoryItemId,
         type: inventoryItemLedger.type,
         quantity: inventoryItemLedger.quantity,

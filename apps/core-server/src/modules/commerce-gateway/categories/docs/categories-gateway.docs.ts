@@ -10,8 +10,7 @@ export function ApiCreateCategory() {
   return applyDecorators(
     ApiOperation({
       summary: 'Create a category',
-      description:
-        'Creates a new category for the business unit. organizationId is resolved from the authenticated user.',
+      description: 'Creates a new category for the sites. organizationId is resolved from the authenticated user.',
     }),
     ApiBody({ type: CreateCategoryDto }),
     ApiResponse({ status: 201, description: 'Category created successfully.', type: CategoryResponseDto }),

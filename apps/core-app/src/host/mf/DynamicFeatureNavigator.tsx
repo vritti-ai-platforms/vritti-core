@@ -9,7 +9,7 @@ import { RemoteHeader } from './RemoteHeader';
 import { RemoteScreen } from './RemoteScreen';
 
 export const DynamicFeatureNavigator = () => {
-  const { features, isLoadingBUs, isLoadingPermissions } = usePermissionContext();
+  const { features, isLoadingSites, isLoadingPermissions } = usePermissionContext();
 
   const routes = useMemo<RouteConfig[]>(
     () => [
@@ -47,7 +47,7 @@ export const DynamicFeatureNavigator = () => {
     [features],
   );
 
-  if (isLoadingBUs || isLoadingPermissions) {
+  if (isLoadingSites || isLoadingPermissions) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Spinner size="large" />

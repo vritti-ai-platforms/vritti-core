@@ -1,13 +1,16 @@
+import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
-import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import type { OrgSize } from '@/db/schema';
-import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { normalizeLocks } from '@/rbac/permission-dependencies';
+import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
 import { OrganizationDto } from '../dto/entity/organization.dto';
 import { CreateOrganizationInternalDto } from '../dto/request/create-organization-internal.dto';
 import type { UpdateOrganizationInternalDto } from '../dto/request/update-organization-internal.dto';
@@ -22,12 +25,38 @@ export class OrganizationService {
 
   constructor(
     private readonly organizationRepository: OrganizationRepository,
-    private readonly buContextCache: BuContextCacheService,
+    private readonly siteContextCache: SiteContextCacheService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly catalogService: CatalogService,
     configService: ConfigService,
   ) {
     this.licensePublicKey = configService.getOrThrow<string>('CLOUD_PUBLIC_KEY');
     this.deploymentId = configService.get<string>('DEPLOYMENT_ID');
+  }
+
+  // Returns the organization's stored feature lock deny-list (null = inherit the full plan)
+  async getFeatureLocks(orgId: string): Promise<FeatureLocks | null> {
+    const org = await this.organizationRepository.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found.');
+    return org.featureLocks ?? null;
+  }
+
+  // Replaces the organization's feature lock deny-list (null = inherit the full plan)
+  async setFeatureLocks(orgId: string, featureLocks: FeatureLocks | null): Promise<SuccessResponseDto> {
+    const org = await this.organizationRepository.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found.');
+
+    // Locking a prerequisite must also lock its dependents — expand the deny-list before persisting
+    const snapshot = featureLocks ? await this.catalogService.getActiveSnapshot() : null;
+    const expanded = normalizeLocks(featureLocks, snapshot);
+
+    await this.organizationRepository.update(orgId, { featureLocks: expanded, updatedAt: new Date() });
+    // Lock consumption lands with org-context feature resolution; invalidate caches here when it does
+
+    this.logger.log(
+      `Set feature locks for org ${orgId}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
+    );
+    return { success: true, message: 'Organization feature locks updated successfully.' };
   }
 
   // Finds an organization by ID, returns DTO or null
@@ -73,7 +102,7 @@ export class OrganizationService {
     return { success: true, message: 'Organization updated successfully.' };
   }
 
-  // Receives a signed entitlement from cloud: verify, replay-guard, store, refresh the org's live BUs
+  // Receives a signed entitlement from cloud: verify, replay-guard, store, refresh the org's live sites
   async receiveEntitlement(orgId: string, doc: SignedDocument<OrgEntitlement>): Promise<SuccessResponseDto> {
     const org = await this.organizationRepository.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found.');
@@ -101,11 +130,11 @@ export class OrganizationService {
       updatedAt: new Date(),
     });
 
-    // Next getPermissions read resolves with the new plan; push fresh auth-state to the org's live BUs
-    const buIds = await this.organizationRepository.findBusinessUnitIds(orgId);
-    for (const buId of buIds) {
-      await this.buContextCache.invalidate(buId);
-      this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(buId));
+    // Next getPermissions read resolves with the new plan; push fresh auth-state to the org's live sites
+    const siteIds = await this.organizationRepository.findSiteIds(orgId);
+    for (const siteId of siteIds) {
+      await this.siteContextCache.invalidate(siteId);
+      this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(siteId));
     }
 
     this.logger.log(

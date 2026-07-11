@@ -54,10 +54,14 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
           maxConnections: 20,
           applyRlsContext: async (client, ctx) => {
             const r = ctx as NatsHeaders;
-            await client.query(
-              "SELECT set_config('app.org_id', $1, true), set_config('app.bu_id', $2, true), set_config('app.bu_timezone', $3, true), set_config('app.bu_ancestor_ids', $4, true), set_config('app.bu_descendant_ids', $5, true)",
-              [r.orgId, r.buId, r.buTimezone, `{${r.buAncestorIds.join(',')}}`, `{${r.buDescendantIds.join(',')}}`],
-            );
+            if (r.siteId) {
+              await client.query(
+                "SELECT set_config('app.org_id', $1, true), set_config('app.site_id', $2, true), set_config('app.site_timezone', $3, true)",
+                [r.orgId, r.siteId, r.siteTimezone],
+              );
+            } else {
+              await client.query("SELECT set_config('app.org_id', $1, true)", [r.orgId]);
+            }
           },
         };
         return options;

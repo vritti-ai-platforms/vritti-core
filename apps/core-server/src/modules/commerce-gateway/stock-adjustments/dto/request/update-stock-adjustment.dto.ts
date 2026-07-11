@@ -10,7 +10,7 @@ export class UpdateStockAdjustmentDto {
 
   @ApiPropertyOptional({
     type: CurrencyAmountDto,
-    description: 'Opening-stock unit cost (BU currency, per primary UOM).',
+    description: 'Opening-stock unit cost (site currency, per primary UOM).',
   })
   @IsOptional()
   @IsCurrency()

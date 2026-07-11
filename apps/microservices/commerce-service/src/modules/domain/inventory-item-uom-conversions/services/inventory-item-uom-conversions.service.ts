@@ -35,7 +35,7 @@ export class InventoryItemUomConversionsService {
   async findForTable(
     inventoryItemId: string,
     state: TableViewState,
-    currentBuId: string,
+    currentSiteId: string,
   ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemUomConversionsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemUomConversionsService.FIELD_MAP);
@@ -53,7 +53,7 @@ export class InventoryItemUomConversionsService {
     const usedUomIds = new Set(await this.repository.findUomIdsUsedBySupplierItems(inventoryItemId));
 
     return {
-      result: result.map((row) => InventoryItemUomConversionDto.from(row, currentBuId, usedUomIds.has(row.uomId))),
+      result: result.map((row) => InventoryItemUomConversionDto.from(row, currentSiteId, usedUomIds.has(row.uomId))),
       count,
     };
   }
@@ -65,7 +65,7 @@ export class InventoryItemUomConversionsService {
     inventoryItemId: string,
     dto: { uomId: string } & ConversionPair,
     uomContext: { baseUnitId: string | null; name: string; symbol: string },
-    currentBuId: string,
+    currentSiteId: string,
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     if (uomContext.baseUnitId !== null) {
       throw new ValidationException({
@@ -108,13 +108,13 @@ export class InventoryItemUomConversionsService {
       message: 'UOM conversion created successfully.',
       data: InventoryItemUomConversionDto.from(
         { ...uomConversion, uomName: uomContext.name, uomSymbol: uomContext.symbol },
-        currentBuId,
+        currentSiteId,
       ),
     };
   }
 
   // Updates an existing UOM conversion's ratio
-  async update(id: string, dto: ConversionPair, _currentBuId: string): Promise<SuccessResponseDto> {
+  async update(id: string, dto: ConversionPair, _currentSiteId: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
 

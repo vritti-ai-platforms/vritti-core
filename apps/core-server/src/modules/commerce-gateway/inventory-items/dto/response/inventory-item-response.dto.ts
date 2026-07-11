@@ -52,7 +52,7 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ description: 'MRP UOM symbol', nullable: true })
   mrpUomSymbol: string | null;
 
-  @ApiPropertyOptional({ type: () => CurrencyAmountDto, description: 'Default MRP (BU currency)', nullable: true })
+  @ApiPropertyOptional({ type: () => CurrencyAmountDto, description: 'Default MRP (site currency)', nullable: true })
   defaultMrp: CurrencyAmountDto | null;
 
   @ApiProperty({ description: 'Whether this item can be deleted' })

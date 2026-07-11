@@ -7,7 +7,7 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
-import { BusinessUnitService } from '@/modules/domain/business-unit/services/business-unit.service';
+import { SiteService } from '@/modules/domain/site/services/site.service';
 import type { AssignCatalogChannelDto } from '../dto/request/assign-catalog-channel.dto';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
 import type { CreateModifierGroupDto } from '../dto/request/create-modifier-group.dto';
@@ -42,7 +42,7 @@ export class CatalogsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
-    private readonly businessUnitService: BusinessUnitService,
+    private readonly siteService: SiteService,
   ) {}
 
   // Returns paginated, filtered, and sorted catalogs for the data table
@@ -59,11 +59,12 @@ export class CatalogsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a new catalog, snapshotting the active BU's currency
-  async create(dto: CreateCatalogDto, buId: string): Promise<CreateResponseDto<CatalogResponseDto>> {
-    const bu = await this.businessUnitService.findById(buId);
-    this.logger.log(`catalogs.create — name: ${dto.name}, currency: ${bu.currencyCode}`);
-    return this.nats.send('commerce', 'catalogs.create', { ...dto, currencyCode: bu.currencyCode });
+  // Creates a new catalog, snapshotting the active site's currency
+  async create(dto: CreateCatalogDto, siteId: string): Promise<CreateResponseDto<CatalogResponseDto>> {
+    const site = await this.siteService.findById(siteId);
+    const currencyCode = (await this.siteService.getSiteCurrency(siteId)) ?? '';
+    this.logger.log(`catalogs.create — name: ${dto.name}, currency: ${currencyCode}`);
+    return this.nats.send('commerce', 'catalogs.create', { ...dto, currencyCode });
   }
 
   // Finds a catalog by ID
@@ -96,7 +97,7 @@ export class CatalogsGatewayService {
     return this.nats.send('commerce', 'catalogs.channels.list', { catalogId });
   }
 
-  // Assigns a (business unit, channel) pair to a catalog
+  // Assigns a (sites, channel) pair to a catalog
   assignChannel(catalogId: string, dto: AssignCatalogChannelDto): Promise<CatalogChannelResponseDto> {
     this.logger.log(`catalogs.channels.assign — catalogId: ${catalogId}, channelId: ${dto.channelId}`);
     return this.nats.send('commerce', 'catalogs.channels.assign', { catalogId, ...dto });

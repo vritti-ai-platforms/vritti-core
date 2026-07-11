@@ -21,7 +21,7 @@ export class VariantOptionsRepository extends PrimaryBaseRepository<typeof varia
     super(database, variantOptions);
   }
 
-  // Returns variant options for a catalog ordered by sortOrder (RLS scopes to org + BU)
+  // Returns variant options for a catalog ordered by sortOrder (RLS scopes to org + site)
   async findByCatalogId(catalogId: string): Promise<VariantOption[]> {
     return this.model.findMany({
       where: { catalogId },

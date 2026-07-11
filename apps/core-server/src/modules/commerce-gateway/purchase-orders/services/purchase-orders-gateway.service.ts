@@ -8,7 +8,7 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { GoodsReceiptResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTableResponseDto } from '@/modules/commerce-gateway/goods-receipts/dto/response/goods-receipt-table-response.dto';
-import { BusinessUnitService } from '@/modules/domain/business-unit/services/business-unit.service';
+import { SiteService } from '@/modules/domain/site/services/site.service';
 import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
 import type { ChangePurchaseOrderExchangeRateDto } from '../dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '../dto/request/change-purchase-order-supplier.dto';
@@ -38,7 +38,7 @@ export class PurchaseOrdersGatewayService {
     private readonly nats: NatsClientService,
     private readonly dataTableStateService: DataTableStateService,
     private readonly configService: ConfigService,
-    private readonly businessUnitService: BusinessUnitService,
+    private readonly siteService: SiteService,
   ) {
     const apiKey = this.configService.get<string>('BREVO_API_KEY');
     const senderEmail = this.configService.get<string>('SENDER_EMAIL');
@@ -237,14 +237,14 @@ export class PurchaseOrdersGatewayService {
   }
 
   // Generates and returns a PDF buffer + filename for streaming to the client
-  async downloadPdf(id: string, buId: string): Promise<{ buffer: Buffer; filename: string }> {
+  async downloadPdf(id: string, siteId: string): Promise<{ buffer: Buffer; filename: string }> {
     const [po, items] = await Promise.all([
       this.nats.send<PurchaseOrderResponseDto>('commerce', 'purchaseOrders.findById', { id }),
       this.nats.send<PurchaseOrderItemResponseDto[]>('commerce', 'purchaseOrders.items', { id }),
     ]);
-    const [supplier, bu] = await Promise.all([
+    const [supplier, site] = await Promise.all([
       this.nats.send<SupplierEmailData>('commerce', 'suppliers.findById', { id: po.supplierId }),
-      buId ? this.businessUnitService.findById(buId).catch(() => null) : Promise.resolve(null),
+      siteId ? this.siteService.findById(siteId).catch(() => null) : Promise.resolve(null),
     ]);
     const buffer = await this.buildPurchaseOrderPdf(
       {
@@ -257,7 +257,7 @@ export class PurchaseOrdersGatewayService {
         items,
       },
       supplier,
-      bu?.name ?? null,
+      site?.name ?? null,
     );
     const filename = `${(po.poNumber ?? 'purchase-order').replaceAll(/\s+/g, '-')}.pdf`;
     return { buffer, filename };
@@ -267,7 +267,7 @@ export class PurchaseOrdersGatewayService {
   private async buildPurchaseOrderPdf(
     po: PurchaseOrderEmailData,
     supplier: SupplierEmailData,
-    buName: string | null,
+    siteName: string | null,
   ): Promise<Buffer> {
     // Color constants
     const BLACK = rgb(0.067, 0.094, 0.153);
@@ -309,7 +309,7 @@ export class PurchaseOrdersGatewayService {
 
     // --- HEADER ---
     const headerY = 800;
-    const businessName = buName ?? 'Your Business';
+    const businessName = siteName ?? 'Your Business';
     page.drawText(businessName, { x: MARGIN, y: headerY, size: 22, font: boldFont, color: BLACK });
     const poLabel = 'PURCHASE ORDER';
     const poLabelWidth = boldFont.widthOfTextAtSize(poLabel, 20);

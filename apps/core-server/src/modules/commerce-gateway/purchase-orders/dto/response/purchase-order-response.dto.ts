@@ -24,7 +24,7 @@ export class PurchaseOrderResponseDto {
   currencyCode: string;
 
   @ApiPropertyOptional({
-    description: 'Exchange rate from supplier currency to BU currency. Null when type is VARIABLE.',
+    description: 'Exchange rate from supplier currency to site currency. Null when type is VARIABLE.',
     nullable: true,
     example: 83.5,
   })
@@ -42,7 +42,7 @@ export class PurchaseOrderResponseDto {
   @ApiPropertyOptional({ description: 'Expected-by date/time', nullable: true })
   expectedBy: string | null;
 
-  @ApiProperty({ description: 'IANA timezone the PO was raised under (origin BU zone)', example: 'Asia/Kolkata' })
+  @ApiProperty({ description: 'IANA timezone the PO was raised under (origin site zone)', example: 'Asia/Kolkata' })
   timezone: string;
 
   @ApiPropertyOptional({ description: 'Notes', nullable: true })

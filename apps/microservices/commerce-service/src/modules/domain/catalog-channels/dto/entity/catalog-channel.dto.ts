@@ -3,7 +3,7 @@ import type { SalesChannelKind } from '@/db/schema';
 export class CatalogChannelDto {
   id: string;
   catalogId: string;
-  businessUnitId: string;
+  siteId: string;
   channelId: string;
   channelName: string;
   channelKind: SalesChannelKind;
@@ -11,7 +11,7 @@ export class CatalogChannelDto {
   static from(row: {
     id: string;
     catalogId: string;
-    businessUnitId: string;
+    siteId: string;
     channelId: string;
     channelName: string;
     channelKind: SalesChannelKind;
@@ -19,7 +19,7 @@ export class CatalogChannelDto {
     const dto = new CatalogChannelDto();
     dto.id = row.id;
     dto.catalogId = row.catalogId;
-    dto.businessUnitId = row.businessUnitId;
+    dto.siteId = row.siteId;
     dto.channelId = row.channelId;
     dto.channelName = row.channelName;
     dto.channelKind = row.channelKind;

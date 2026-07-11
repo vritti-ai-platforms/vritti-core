@@ -4,7 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class InventoryItemQuantResponseDto {
   @ApiProperty() id: string;
   @ApiProperty() organizationId: string;
-  @ApiProperty() businessUnitId: string;
+  @ApiProperty() siteId: string;
   @ApiProperty() inventoryItemId: string;
   @ApiProperty() locationId: string;
   @ApiPropertyOptional({ nullable: true }) lotId: string | null;

@@ -4,8 +4,8 @@ import type { StockTransferData, StockTransferStatus, StockTransfersTableRespons
 
 export interface CreateStockTransferPayload {
   inventoryItemId: string;
-  fromBuId: string;
-  toBuId: string;
+  fromSiteId: string;
+  toSiteId: string;
   fromLocationId: string;
   toLocationId: string;
   quantity: number;

@@ -1,4 +1,4 @@
-import { cn } from '@vritti/quantum-ui';
+import { cn } from '@vritti/quantum-ui/cn';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';

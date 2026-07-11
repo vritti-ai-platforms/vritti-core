@@ -3,7 +3,7 @@ import { GoodsReceiptLotsService } from '@domain/goods-receipt-lots/services/goo
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 
 @Controller()
 export class GoodsReceiptsLotsController {
@@ -14,10 +14,10 @@ export class GoodsReceiptsLotsController {
   @MessagePattern({ cmd: 'goodsReceipts.lots' })
   lots(
     @Payload() data: { goodsReceiptId: string; itemId: string },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<GoodsReceiptLotDto[]> {
     this.logger.log(`goodsReceipts.lots — item: ${data.itemId}`);
-    return this.service.listByItem(data.goodsReceiptId, data.itemId, buCurrencyCode);
+    return this.service.listByItem(data.goodsReceiptId, data.itemId, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.addLot' })
@@ -31,7 +31,7 @@ export class GoodsReceiptsLotsController {
       expiryDate: string;
       mrp?: string | null;
     },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     this.logger.log(`goodsReceipts.addLot — item: ${data.itemId}`);
     return this.service.addLot(
@@ -43,7 +43,7 @@ export class GoodsReceiptsLotsController {
         expiryDate: data.expiryDate,
         mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
       },
-      buCurrencyCode,
+      siteCurrencyCode,
     );
   }
 
@@ -59,7 +59,7 @@ export class GoodsReceiptsLotsController {
       expiryDate?: string;
       mrp?: string | null;
     },
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<GoodsReceiptLotDto> {
     this.logger.log(`goodsReceipts.updateLot — lot: ${data.lotId}`);
     return this.service.updateLot(
@@ -72,7 +72,7 @@ export class GoodsReceiptsLotsController {
         expiryDate: data.expiryDate,
         mrp: data.mrp !== undefined ? (data.mrp === null ? null : BigInt(data.mrp)) : undefined,
       },
-      buCurrencyCode,
+      siteCurrencyCode,
     );
   }
 

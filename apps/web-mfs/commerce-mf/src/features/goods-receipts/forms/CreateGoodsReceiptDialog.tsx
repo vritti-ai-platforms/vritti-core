@@ -136,7 +136,7 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
           description={
             fixedFromPo
               ? 'Locked from the purchase order (FIXED rate).'
-              : 'Required — supplier currency differs from your business unit currency.'
+              : 'Required — supplier currency differs from your site currency.'
           }
         />
       )}

@@ -22,6 +22,48 @@
   }
 }
 /**
+ * Workspace selection page — serif display face, dotted canvas, staggered reveal
+ */
+.font-plex-serif {
+  font-family: "IBM Plex Serif", var(--font-serif), serif;
+}
+
+.workspace-canvas {
+  background-image:
+    radial-gradient(
+      38rem 16rem at 50% -4rem,
+      color-mix(in oklch, var(--color-primary) 5%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(color-mix(in oklch, var(--color-border) 85%, transparent) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    1.125rem 1.125rem;
+  background-repeat: no-repeat, repeat;
+}
+
+@keyframes ws-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ws-reveal {
+  animation: ws-up 0.5s cubic-bezier(0.22, 0.9, 0.35, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-reveal {
+    animation: none;
+  }
+}
+
+/**
  * @source - Tell Tailwind which files to scan for utility classes
  * Only app source is scanned. quantum-ui ships its own component utilities in
  * @vritti/quantum-ui/index.css (imported above), so scanning its dist is

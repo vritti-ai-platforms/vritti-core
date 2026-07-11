@@ -72,7 +72,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       select: {
         id: goodsReceiptLines.id,
         organizationId: goodsReceiptLines.organizationId,
-        businessUnitId: goodsReceiptLines.businessUnitId,
+        siteId: goodsReceiptLines.siteId,
         goodsReceiptItemId: goodsReceiptLines.goodsReceiptItemId,
         goodsReceiptLotId: goodsReceiptLines.goodsReceiptLotId,
         locationId: goodsReceiptLines.locationId,
@@ -228,7 +228,7 @@ export class GoodsReceiptLinesRepository extends PrimaryBaseRepository<typeof go
       .select({
         id: goodsReceiptLines.id,
         organizationId: goodsReceiptLines.organizationId,
-        businessUnitId: goodsReceiptLines.businessUnitId,
+        siteId: goodsReceiptLines.siteId,
         goodsReceiptItemId: goodsReceiptLines.goodsReceiptItemId,
         goodsReceiptLotId: goodsReceiptLines.goodsReceiptLotId,
         locationId: goodsReceiptLines.locationId,

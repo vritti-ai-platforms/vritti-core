@@ -12,7 +12,7 @@ export class LocationItemDto {
   batchCount: number;
 
   // Maps a grouped per-item row. availableQuantity = total − reserved; totalValue is the summed
-  // quant_value (BU minor units) wrapped in CurrencyAmountDto, null when no cost currency is known.
+  // quant_value (site-currency minor units) wrapped in CurrencyAmountDto, null when no cost currency is known.
   static from(row: LocationItemRow): LocationItemDto {
     const dto = new LocationItemDto();
     dto.inventoryItemId = row.inventoryItemId;

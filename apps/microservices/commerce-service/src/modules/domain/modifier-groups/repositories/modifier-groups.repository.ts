@@ -21,7 +21,7 @@ export class ModifierGroupsRepository extends PrimaryBaseRepository<typeof modif
     super(database, modifierGroups);
   }
 
-  // Returns modifier groups for a catalog ordered by sortOrder (RLS scopes to org + BU)
+  // Returns modifier groups for a catalog ordered by sortOrder (RLS scopes to org + site)
   async findByCatalogId(catalogId: string): Promise<ModifierGroup[]> {
     return this.model.findMany({
       where: { catalogId },

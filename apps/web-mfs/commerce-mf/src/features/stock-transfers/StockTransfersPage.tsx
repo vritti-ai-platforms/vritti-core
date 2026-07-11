@@ -48,12 +48,12 @@ export const StockTransfersPage = () => {
       {
         accessorKey: 'fromBuName',
         header: 'From',
-        cell: ({ row }) => row.original.fromBuName ?? row.original.fromBuId,
+        cell: ({ row }) => row.original.fromSiteName ?? row.original.fromSiteId,
       },
       {
         accessorKey: 'toBuName',
         header: 'To',
-        cell: ({ row }) => row.original.toBuName ?? row.original.toBuId,
+        cell: ({ row }) => row.original.toSiteName ?? row.original.toSiteId,
       },
       {
         accessorKey: 'quantity',
@@ -113,7 +113,7 @@ export const StockTransfersPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Stock Transfers" description="Transfer inventory between business units and locations" />
+      <PageHeader title="Stock Transfers" description="Transfer inventory between sites and locations" />
 
       <DataTable
         table={table}

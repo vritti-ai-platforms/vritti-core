@@ -51,7 +51,7 @@ export type UpdateOfferingFormData = z.infer<typeof updateOfferingSchema>;
 
 export interface OfferingData {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   categoryId: string | null;
   categoryName: string | null;
   fulfilmentType: FulfilmentType;
@@ -97,7 +97,7 @@ export interface OfferingVariant {
 
 export interface OfferingDetail {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   categoryId: string | null;
   categoryName: string | null;
   categoryPath: string | null;
@@ -189,7 +189,7 @@ export interface ModifierOptionData {
 
 export interface ModifierGroupData {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   selectionType: 'SINGLE' | 'MULTI';
   minSelections: number;

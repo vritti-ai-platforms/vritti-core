@@ -3,7 +3,7 @@ import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-rece
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
-import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
 import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.service';
 
@@ -19,10 +19,10 @@ export class GoodsReceiptsRootController {
   @MessagePattern({ cmd: 'goodsReceipts.create' })
   create(
     @Payload() dto: CreateGoodsReceiptDto,
-    @RpcBuCurrencyCode() buCurrencyCode: string,
+    @RpcSiteCurrencyCode() siteCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptDto>> {
     this.logger.log(`goodsReceipts.create — supplier: ${dto.supplierId}`);
-    return this.service.create(dto, buCurrencyCode);
+    return this.service.create(dto, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.table' })
@@ -38,9 +38,9 @@ export class GoodsReceiptsRootController {
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.publish' })
-  publish(@Payload() data: { id: string }, @RpcBuCurrencyCode() buCurrencyCode: string): Promise<GoodsReceiptDto> {
-    this.logger.log(`goodsReceipts.publish — bu currency: ${buCurrencyCode}`);
-    return this.publishService.publish(data.id, buCurrencyCode);
+  publish(@Payload() data: { id: string }, @RpcSiteCurrencyCode() siteCurrencyCode: string): Promise<GoodsReceiptDto> {
+    this.logger.log(`goodsReceipts.publish — site currency: ${siteCurrencyCode}`);
+    return this.publishService.publish(data.id, siteCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.linkPo' })

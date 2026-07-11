@@ -73,7 +73,7 @@ export class UpdateInventoryItemDto {
   @IsUUID()
   mrpUomId?: string;
 
-  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Default MRP (BU currency)', nullable: true })
+  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'Default MRP (site currency)', nullable: true })
   @IsOptional()
   @IsCurrency()
   defaultMrp?: CurrencyAmountDto | null;

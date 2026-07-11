@@ -9,12 +9,21 @@ export class RlsInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = getRequestFromContext(context);
-    const orgId = request?.sessionInfo?.organizationId;
+    const sessionInfo = request?.sessionInfo;
+    const orgId = sessionInfo?.organizationId;
 
     if (!orgId) {
       return next.handle();
     }
 
-    return from(this.db.runWithRlsContext({ orgId }, async () => next.handle().toPromise()));
+    // Pass the narrow workspace context through so scope-level RLS policies can see it
+    const rlsContext = {
+      orgId,
+      siteId: sessionInfo?.siteId,
+      siteGroupId: sessionInfo?.siteGroupId,
+      legalEntityId: sessionInfo?.legalEntityId,
+    };
+
+    return from(this.db.runWithRlsContext(rlsContext, async () => next.handle().toPromise()));
   }
 }

@@ -110,8 +110,8 @@ export const StockTransferDetailPage = () => {
         <CardContent className="grid grid-cols-2 gap-6">
           <DetailField label="Inventory Item" type="string" value={transfer.inventoryItemName} />
           <DetailField label="Quantity" type="number" value={transfer.quantity} />
-          <DetailField label="From" type="string" value={transfer.fromBuName ?? transfer.fromBuId} />
-          <DetailField label="To" type="string" value={transfer.toBuName ?? transfer.toBuId} />
+          <DetailField label="From" type="string" value={transfer.fromSiteName ?? transfer.fromSiteId} />
+          <DetailField label="To" type="string" value={transfer.toSiteName ?? transfer.toSiteId} />
           <DetailField label="Requested By" type="string" value={transfer.requestedBy} />
           <DetailField label="Received By" type="string" value={transfer.receivedBy} />
           <DetailField label="Created" type="dateTime" value={transfer.createdAt} />

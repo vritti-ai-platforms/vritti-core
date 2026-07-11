@@ -17,7 +17,7 @@ export class ModifierGroupsService {
 
   constructor(private readonly modifierGroupsRepository: ModifierGroupsRepository) {}
 
-  // Returns all modifier groups for a catalog (RLS scopes to org + BU ancestors)
+  // Returns all modifier groups for a catalog (RLS scopes to org + site ancestors)
   async list(catalogId: string): Promise<ModifierGroupDto[]> {
     const entities = await this.modifierGroupsRepository.findByCatalogId(catalogId);
     return entities.map(ModifierGroupDto.from);

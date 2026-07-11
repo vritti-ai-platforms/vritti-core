@@ -1,4 +1,4 @@
-import { cn } from '@vritti/quantum-ui';
+import { cn } from '@vritti/quantum-ui/cn';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';

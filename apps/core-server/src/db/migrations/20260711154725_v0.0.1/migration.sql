@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."sites" DROP COLUMN "currency_code";

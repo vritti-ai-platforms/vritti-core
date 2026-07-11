@@ -40,7 +40,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       .select({
         id: stockAdjustments.id,
         organizationId: stockAdjustments.organizationId,
-        businessUnitId: stockAdjustments.businessUnitId,
+        siteId: stockAdjustments.siteId,
         inventoryItemId: stockAdjustments.inventoryItemId,
         code: stockAdjustments.code,
         type: stockAdjustments.type,
@@ -71,7 +71,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       select: {
         id: stockAdjustments.id,
         organizationId: stockAdjustments.organizationId,
-        businessUnitId: stockAdjustments.businessUnitId,
+        siteId: stockAdjustments.siteId,
         inventoryItemId: stockAdjustments.inventoryItemId,
         code: stockAdjustments.code,
         type: stockAdjustments.type,
@@ -111,7 +111,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       .select({
         id: stockAdjustments.id,
         organizationId: stockAdjustments.organizationId,
-        businessUnitId: stockAdjustments.businessUnitId,
+        siteId: stockAdjustments.siteId,
         inventoryItemId: stockAdjustments.inventoryItemId,
         code: stockAdjustments.code,
         type: stockAdjustments.type,
@@ -149,7 +149,7 @@ export class StockAdjustmentsRepository extends PrimaryBaseRepository<typeof sto
       .groupBy(
         stockAdjustments.id,
         stockAdjustments.organizationId,
-        stockAdjustments.businessUnitId,
+        stockAdjustments.siteId,
         stockAdjustments.inventoryItemId,
         stockAdjustments.code,
         stockAdjustments.type,

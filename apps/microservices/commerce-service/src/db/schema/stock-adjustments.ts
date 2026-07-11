@@ -9,7 +9,7 @@ export const stockAdjustments = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
+    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'restrict' }),
@@ -25,28 +25,28 @@ export const stockAdjustments = coreSchema.table(
   },
   (table) => [
     unique('uq_stock_adjustments_org_code').on(table.organizationId, table.code),
-    index('idx_stock_adjustments_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_stock_adjustments_site').on(table.organizationId, table.siteId),
     index('idx_stock_adjustments_item').on(table.inventoryItemId),
     index('idx_stock_adjustments_status').on(table.status),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
     }),
-    pgPolicy('bu_ancestor_read', {
+    pgPolicy('site_read', {
       for: 'select',
-      using: sql`business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])`,
+      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
-    pgPolicy('bu_write', {
+    pgPolicy('site_write', {
       for: 'insert',
-      withCheck: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
+      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
-    pgPolicy('bu_update', {
+    pgPolicy('site_update', {
       for: 'update',
-      using: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
+      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
-    pgPolicy('bu_delete', {
+    pgPolicy('site_delete', {
       for: 'delete',
-      using: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
+      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
   ],
 );

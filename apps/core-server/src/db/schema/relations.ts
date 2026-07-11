@@ -40,23 +40,75 @@ export const relations = defineRelations(schema, (r) => ({
   // Organization relations
   organizations: {
     users: r.many.users(),
-    businessUnits: r.many.businessUnits(),
+    sites: r.many.sites(),
+    siteGroups: r.many.siteGroups(),
     roles: r.many.roles(),
+    legalEntities: r.many.legalEntities(),
   },
 
-  // Business unit relations
-  businessUnits: {
+  legalEntities: {
     organization: r.one.organizations({
-      from: r.businessUnits.organizationId,
+      from: r.legalEntities.organizationId,
       to: r.organizations.id,
     }),
-    parent: r.one.businessUnits({
-      from: r.businessUnits.parentId,
-      to: r.businessUnits.id,
-      alias: 'parent',
+    parent: r.one.legalEntities({
+      from: r.legalEntities.parentId,
+      to: r.legalEntities.id,
+      alias: 'leParent',
     }),
-    children: r.many.businessUnits({
-      alias: 'parent',
+    subsidiaries: r.many.legalEntities({
+      alias: 'leParent',
+    }),
+    taxRegistrations: r.many.leTaxRegistrations(),
+    sites: r.many.sites(),
+  },
+
+  leTaxRegistrations: {
+    organization: r.one.organizations({
+      from: r.leTaxRegistrations.organizationId,
+      to: r.organizations.id,
+    }),
+    legalEntity: r.one.legalEntities({
+      from: r.leTaxRegistrations.legalEntityId,
+      to: r.legalEntities.id,
+    }),
+    sites: r.many.sites(),
+  },
+
+  // Site group relations
+  siteGroups: {
+    organization: r.one.organizations({
+      from: r.siteGroups.organizationId,
+      to: r.organizations.id,
+    }),
+    parent: r.one.siteGroups({
+      from: r.siteGroups.parentId,
+      to: r.siteGroups.id,
+      alias: 'groupParent',
+    }),
+    children: r.many.siteGroups({
+      alias: 'groupParent',
+    }),
+    sites: r.many.sites(),
+  },
+
+  // Site relations
+  sites: {
+    organization: r.one.organizations({
+      from: r.sites.organizationId,
+      to: r.organizations.id,
+    }),
+    group: r.one.siteGroups({
+      from: r.sites.groupId,
+      to: r.siteGroups.id,
+    }),
+    legalEntity: r.one.legalEntities({
+      from: r.sites.legalEntityId,
+      to: r.legalEntities.id,
+    }),
+    registration: r.one.leTaxRegistrations({
+      from: r.sites.registrationId,
+      to: r.leTaxRegistrations.id,
     }),
   },
 
@@ -79,9 +131,17 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.userRoleAssignments.roleId,
       to: r.roles.id,
     }),
-    businessUnit: r.one.businessUnits({
-      from: r.userRoleAssignments.businessUnitId,
-      to: r.businessUnits.id,
+    site: r.one.sites({
+      from: r.userRoleAssignments.siteId,
+      to: r.sites.id,
+    }),
+    siteGroup: r.one.siteGroups({
+      from: r.userRoleAssignments.siteGroupId,
+      to: r.siteGroups.id,
+    }),
+    legalEntity: r.one.legalEntities({
+      from: r.userRoleAssignments.legalEntityId,
+      to: r.legalEntities.id,
     }),
   },
 }));

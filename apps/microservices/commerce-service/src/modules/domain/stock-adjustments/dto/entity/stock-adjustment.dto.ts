@@ -13,7 +13,7 @@ export class StockAdjustmentDto {
   totalQuantity: number; // derived from sum(lines.quantity)
   status: StockAdjustmentStatus;
   reason: string | null;
-  // Opening-stock unit cost (BU currency, per primary UOM). Null until set / for non-OPENING types.
+  // Opening-stock unit cost (site currency, per primary UOM). Null until set / for non-OPENING types.
   unitCost: CurrencyAmountDto | null;
   isPublishable: boolean;
   publishedAt: string | null;
@@ -28,7 +28,7 @@ export class StockAdjustmentDto {
       totalQuantity?: number | string | null;
       isPublishable?: boolean;
     },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): StockAdjustmentDto {
     const dto = new StockAdjustmentDto();
     dto.id = entity.id;
@@ -49,8 +49,8 @@ export class StockAdjustmentDto {
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
     dto.unitCost =
-      entity.unitCost != null && buCurrencyCode
-        ? CurrencyAmountDto.from(BigInt(entity.unitCost as unknown as string), buCurrencyCode)
+      entity.unitCost != null && siteCurrencyCode
+        ? CurrencyAmountDto.from(BigInt(entity.unitCost as unknown as string), siteCurrencyCode)
         : null;
     dto.isPublishable = Boolean(entity.isPublishable);
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;

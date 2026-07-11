@@ -2,7 +2,7 @@ import type { Catalog } from '@/db/schema';
 
 export class CatalogDto {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   currencyCode: string;
   taxInclusive: boolean;
@@ -14,7 +14,7 @@ export class CatalogDto {
   static from(entity: Catalog, channelCount = 0): CatalogDto {
     const dto = new CatalogDto();
     dto.id = entity.id;
-    dto.businessUnitId = entity.businessUnitId;
+    dto.siteId = entity.siteId;
     dto.name = entity.name;
     dto.currencyCode = entity.currencyCode;
     dto.taxInclusive = entity.taxInclusive;

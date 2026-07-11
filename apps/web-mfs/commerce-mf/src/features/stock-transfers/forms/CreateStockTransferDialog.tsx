@@ -21,8 +21,8 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
     resolver: zodResolver(createStockTransferSchema),
     defaultValues: {
       inventoryItemId: '',
-      fromBuId: '',
-      toBuId: '',
+      fromSiteId: '',
+      toSiteId: '',
       fromLocationId: undefined,
       toLocationId: undefined,
       quantity: 0,
@@ -40,8 +40,8 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
       onCancel={onCancel}
       transformSubmit={(data) => ({
         inventoryItemId: data.inventoryItemId,
-        fromBuId: data.fromBuId,
-        toBuId: data.toBuId,
+        fromSiteId: data.fromSiteId,
+        toSiteId: data.toSiteId,
         fromLocationId: data.fromLocationId,
         toLocationId: data.toLocationId,
         quantity: data.quantity,
@@ -49,9 +49,9 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
       })}
     >
       <InventoryItemSelector name="inventoryItemId" label="Inventory Item" placeholder="Select item" />
-      <TextField name="fromBuId" label="From Location (BU ID)" placeholder="Source business unit ID" />
+      <TextField name="fromSiteId" label="From Location (Site ID)" placeholder="Source site ID" />
       <LocationSelector name="fromLocationId" label="From Location" placeholder="Select source location" />
-      <TextField name="toBuId" label="To Location (BU ID)" placeholder="Destination business unit ID" />
+      <TextField name="toSiteId" label="To Location (Site ID)" placeholder="Destination site ID" />
       <LocationSelector name="toLocationId" label="To Location" placeholder="Select destination location" />
       <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 100" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />

@@ -3,7 +3,7 @@ import { ModifierOptionDto } from './modifier-option.dto';
 
 export class ModifierGroupDto {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   selectionType: ModifierSelectionType;
   minSelections: number;
@@ -16,7 +16,7 @@ export class ModifierGroupDto {
   static from(entity: ModifierGroup): ModifierGroupDto {
     const dto = new ModifierGroupDto();
     dto.id = entity.id;
-    dto.businessUnitId = entity.businessUnitId;
+    dto.siteId = entity.siteId;
     dto.name = entity.name;
     dto.selectionType = entity.selectionType;
     dto.minSelections = entity.minSelections;
@@ -30,7 +30,7 @@ export class ModifierGroupDto {
 
 export class ModifierGroupWithOptionsDto {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   selectionType: ModifierSelectionType;
   minSelections: number;
@@ -44,7 +44,7 @@ export class ModifierGroupWithOptionsDto {
   static from(entity: ModifierGroup, options: ModifierOption[]): ModifierGroupWithOptionsDto {
     const dto = new ModifierGroupWithOptionsDto();
     dto.id = entity.id;
-    dto.businessUnitId = entity.businessUnitId;
+    dto.siteId = entity.siteId;
     dto.name = entity.name;
     dto.selectionType = entity.selectionType;
     dto.minSelections = entity.minSelections;
