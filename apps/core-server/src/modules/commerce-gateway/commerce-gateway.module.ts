@@ -13,6 +13,7 @@ import { CreditNotesGatewayService } from './credit-notes/services/credit-notes-
 import { CustomersGatewayController } from './customers/customers-gateway.controller';
 import { CustomersGatewayService } from './customers/services/customers-gateway.service';
 import { GoodsReceiptsGatewayController } from './goods-receipts/goods-receipts-gateway.controller';
+import { GoodsReceiptsResolver } from './goods-receipts/resolvers/goods-receipts.resolver';
 import { GoodsReceiptsGatewayService } from './goods-receipts/services/goods-receipts-gateway.service';
 import { InventoryItemQuantsGatewayController } from './inventory-item-quants/inventory-item-quants-gateway.controller';
 import { InventoryItemQuantsGatewayService } from './inventory-item-quants/services/inventory-item-quants-gateway.service';
@@ -104,6 +105,7 @@ import { UomDimensionsGatewayController } from './uom-dimensions/uom-dimensions-
     UomDimensionsGatewayService,
     // Mobile GraphQL resolvers (MOBILE-only @RequireSession; thin forwards to the gateway services above)
     InventoryItemsResolver,
+    GoodsReceiptsResolver,
     InventoryItemLedgerResolver,
     InventoryItemLocationsResolver,
     InventoryItemQuantsFeedResolver,

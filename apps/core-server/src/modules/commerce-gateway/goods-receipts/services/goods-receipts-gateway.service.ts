@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataTableStateService } from '@vritti/api-sdk/data-table';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SearchState, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type {
@@ -55,6 +55,19 @@ export class GoodsReceiptsGatewayService {
 
   findById(id: string): Promise<GoodsReceiptResponseDto> {
     return this.nats.send('commerce', 'goodsReceipts.findById', { id });
+  }
+
+  // Keyset/cursor Relay connection for the mobile infinite feed. Thin NATS forward; maps first→limit, after→cursor.
+  findForFeed(query: { search?: SearchState | null; first?: number; after?: string }): Promise<{
+    edges: { cursor: string; node: GoodsReceiptResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log('goodsReceipts.feed');
+    return this.nats.send('commerce', 'goodsReceipts.feed', {
+      search: query.search ?? null,
+      limit: query.first ?? 20,
+      cursor: query.after,
+    });
   }
 
   findTree(goodsReceiptId: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {

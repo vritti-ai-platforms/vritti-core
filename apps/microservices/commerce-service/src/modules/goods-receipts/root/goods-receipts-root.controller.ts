@@ -2,7 +2,7 @@ import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-re
 import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SearchState, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
 import { RpcBuCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateGoodsReceiptDto } from '../dto/request/create-goods-receipt.dto';
 import { GoodsReceiptsPublishService } from './services/goods-receipts-publish.service';
@@ -29,6 +29,15 @@ export class GoodsReceiptsRootController {
   table(@Payload() state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
     this.logger.log('goodsReceipts.table');
     return this.service.findForTable(state);
+  }
+
+  @MessagePattern({ cmd: 'goodsReceipts.feed' })
+  feed(@Payload() query: { search?: SearchState | null; limit?: number; cursor?: string }): Promise<{
+    edges: { cursor: string; node: GoodsReceiptDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log('goodsReceipts.feed');
+    return this.service.findForFeed(query);
   }
 
   @MessagePattern({ cmd: 'goodsReceipts.findById' })

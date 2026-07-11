@@ -123,6 +123,33 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
     });
   }
 
+  // Returns up to limit+1 GR rows (keyset) joined with supplier + PO display fields, for the mobile feed.
+  // Same joins as findForTable but goes through findKeyset (limit+1 / hasMore) instead of offset count.
+  async findKeysetForFeed(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
+    rows: GoodsReceiptWithRefs[];
+    hasMore: boolean;
+  }> {
+    return this.findKeyset<GoodsReceiptWithRefs>({
+      select: {
+        ...goodsReceipts,
+        supplierName: suppliers.name,
+        supplierCurrencyCode: suppliers.currencyCode,
+        poNumber: purchaseOrders.poNumber,
+        poOrderDate: purchaseOrders.orderDate,
+        poExpectedBy: purchaseOrders.expectedBy,
+        poTotalAmount: purchaseOrders.totalAmount,
+        poCurrencyCode: purchaseOrders.currencyCode,
+      },
+      leftJoins: [
+        { table: suppliers, on: eq(goodsReceipts.supplierId, suppliers.id) },
+        { table: purchaseOrders, on: eq(goodsReceipts.purchaseOrderId, purchaseOrders.id) },
+      ],
+      where: options.where,
+      orderBy: options.orderBy,
+      limit: options.limit,
+    });
+  }
+
   async findSupplierById(id: string): Promise<Supplier | null> {
     const [row] = await this.db.select().from(suppliers).where(eq(suppliers.id, id)).limit(1);
     return row ?? null;

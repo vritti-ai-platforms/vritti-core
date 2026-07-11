@@ -14,7 +14,7 @@ export class GoodsReceiptPoDto {
   expectedBy: string | null;
 
   @ApiProperty()
-  totalAmount: { currency: string; value: number };
+  totalAmount: { currency: string; value: string };
 }
 
 export class GoodsReceiptResponseDto {

@@ -2,12 +2,18 @@ import { PurchaseOrdersRepository } from '@domain/purchase-orders/repositories/p
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
+  CursorCodec,
   type FieldMap,
   FilterProcessor,
+  type KeysetOrderBy,
+  KeysetProcessor,
+  keysetSignature,
+  MAX_PAGE_SIZE,
+  type SearchState,
   type SuccessResponseDto,
   type TableViewState,
 } from '@vritti/api-sdk/database';
-import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import {
   ExchangeRateTypeValues,
@@ -111,6 +117,48 @@ export class GoodsReceiptsService {
 
   hasGoodsReceiptForPo(poId: string): Promise<boolean> {
     return this.repository.existsByPoId(poId);
+  }
+
+  // Returns a keyset/cursor Relay connection of goods receipts for the mobile infinite feed. Fixed sort
+  // (createdAt desc + id asc tiebreak); search spans grNumber/supplierName/poNumber via the SEARCH_FIELD_MAP.
+  async findForFeed(query: { search?: SearchState | null; limit?: number; cursor?: string }): Promise<{
+    edges: { cursor: string; node: GoodsReceiptDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    const searchWhere = FilterProcessor.buildSearch(query.search, GoodsReceiptsService.SEARCH_FIELD_MAP);
+
+    const orderByEntries: (KeysetOrderBy & { key: string })[] = [
+      { column: goodsReceipts.createdAt, direction: 'desc', key: 'createdAt' },
+      { column: goodsReceipts.id, direction: 'asc', key: 'id' },
+    ];
+    const orderBy = orderByEntries.map((e) => (e.direction === 'asc' ? asc(e.column) : desc(e.column)));
+    const signature = keysetSignature(orderByEntries);
+    const cursorWhere = query.cursor
+      ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(query.cursor, signature))
+      : undefined;
+    const where = and(searchWhere, cursorWhere);
+
+    const limit = Math.min(query.limit ?? 20, MAX_PAGE_SIZE);
+    const { rows, hasMore } = await this.repository.findKeysetForFeed({ where: where || undefined, orderBy, limit });
+
+    const edges = rows.map((row) => ({
+      cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]), signature),
+      node: GoodsReceiptDto.from(row, {
+        supplierName: row.supplierName,
+        supplierCurrencyCode: row.supplierCurrencyCode,
+        poId: row.purchaseOrderId ?? null,
+        poNumber: row.poNumber,
+        poOrderDate: row.poOrderDate ?? null,
+        poExpectedBy: row.poExpectedBy ?? null,
+        poTotalAmount: row.poTotalAmount ?? null,
+        poCurrencyCode: row.poCurrencyCode ?? null,
+      }),
+    }));
+
+    return {
+      edges,
+      pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
+    };
   }
 
   async findForTable(state: TableViewState): Promise<{ result: GoodsReceiptDto[]; count: number }> {

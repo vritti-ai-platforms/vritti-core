@@ -28,6 +28,221 @@ type UserSession {
   isCurrent: Boolean!
 }
 
+type MutationResult {
+  success: Boolean!
+  message: String!
+}
+
+type CostCategory {
+  id: ID!
+  code: String!
+  name: String!
+  kind: String!
+  isActive: Boolean!
+  isSystem: Boolean!
+  canDelete: Boolean!
+}
+
+type GoodsReceiptMoney {
+  currency: String!
+  value: String!
+}
+
+type GoodsReceiptPo {
+  id: ID!
+  poNumber: String!
+  orderDate: String!
+  expectedBy: String
+  totalAmount: GoodsReceiptMoney!
+}
+
+type GoodsReceipt {
+  id: ID!
+  grNumber: String!
+  supplierId: String!
+  supplierName: String!
+  supplierCurrencyCode: String!
+  status: String!
+  po: GoodsReceiptPo
+  receivedDate: String!
+  notes: String
+  exchangeRate: Float!
+  publishedAt: String
+  createdAt: String!
+}
+
+type GoodsReceiptPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type GoodsReceiptEdge {
+  cursor: String!
+  node: GoodsReceipt!
+}
+
+type GoodsReceiptConnection {
+  edges: [GoodsReceiptEdge!]!
+  pageInfo: GoodsReceiptPageInfo!
+}
+
+type InventoryItemLedgerEntry {
+  id: ID!
+  type: String!
+  quantity: Float!
+  balanceAfter: Float
+  referenceType: String
+  referenceId: ID
+  notes: String
+  createdAt: String!
+}
+
+type InventoryItemLedgerPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemLedgerEdge {
+  cursor: String!
+  node: InventoryItemLedgerEntry!
+}
+
+type InventoryItemLedgerConnection {
+  edges: [InventoryItemLedgerEdge!]!
+  pageInfo: InventoryItemLedgerPageInfo!
+}
+
+type InventoryItemLocation {
+  id: ID!
+  inventoryItemId: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  reorderLevel: Float!
+}
+
+type InventoryItemLocationPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemLocationEdge {
+  cursor: String!
+  node: InventoryItemLocation!
+}
+
+type InventoryItemLocationConnection {
+  edges: [InventoryItemLocationEdge!]!
+  pageInfo: InventoryItemLocationPageInfo!
+}
+
+type InventoryItemQuant {
+  id: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  lotId: ID
+  lotNumber: String
+  quantity: Float!
+  reservedQuantity: Float!
+  availableQuantity: Float!
+  manufacturingDate: String
+  expiryDate: String
+  createdAt: String!
+}
+
+type InventoryItemQuantPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemQuantEdge {
+  cursor: String!
+  node: InventoryItemQuant!
+}
+
+type InventoryItemQuantConnection {
+  edges: [InventoryItemQuantEdge!]!
+  pageInfo: InventoryItemQuantPageInfo!
+}
+
+type InventoryItemStockLevel {
+  id: ID!
+  locationId: ID!
+  locationName: String
+  locationPath: String
+  stockedQuantity: Float!
+  reservedQuantity: Float!
+  availableQuantity: Float!
+  reorderLevel: Float
+}
+
+type InventoryItemStockLevelPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemStockLevelEdge {
+  cursor: String!
+  node: InventoryItemStockLevel!
+}
+
+type InventoryItemStockLevelConnection {
+  edges: [InventoryItemStockLevelEdge!]!
+  pageInfo: InventoryItemStockLevelPageInfo!
+}
+
+type SupplierUnitPrice {
+  currency: String!
+  value: String!
+}
+
+type InventoryItemSupplier {
+  id: ID!
+  supplierId: ID!
+  supplierName: String
+  supplierCode: String
+  supplierItemCode: String
+  unitPrice: SupplierUnitPrice
+  uomId: ID!
+  uomSymbol: String!
+  minOrderQuantity: Float
+  leadTimeDays: Int
+  isPreferred: Boolean!
+  isActive: Boolean!
+}
+
+type InventoryItemSupplierPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type InventoryItemSupplierEdge {
+  cursor: String!
+  node: InventoryItemSupplier!
+}
+
+type InventoryItemSupplierConnection {
+  edges: [InventoryItemSupplierEdge!]!
+  pageInfo: InventoryItemSupplierPageInfo!
+}
+
+type InventoryItemUomConversion {
+  id: ID!
+  inventoryItemId: ID!
+  uomId: ID!
+  uomName: String!
+  uomSymbol: String!
+  primaryUomQty: Int!
+  uomQty: Int!
+  toPrimaryConversionFactor: Float!
+  toUomConversionFactor: Float!
+  canEdit: Boolean!
+  canDelete: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
 type InventoryItem {
   id: ID!
   name: String!
@@ -62,9 +277,59 @@ type InventoryItemConnection {
   pageInfo: InventoryItemPageInfo!
 }
 
-type MutationResult {
-  success: Boolean!
-  message: String!
+type TaxRate {
+  id: ID!
+  name: String!
+  rate: Float!
+  sortOrder: Int!
+}
+
+type TaxGroup {
+  id: ID!
+  name: String!
+  isActive: Boolean!
+  canDelete: Boolean!
+  taxRates: [TaxRate!]!
+}
+
+type Uom {
+  id: ID!
+  dimensionId: ID!
+  name: String!
+  symbol: String!
+  baseUnitId: ID
+  baseUnitSymbol: String
+  baseUomQty: Int!
+  uomQty: Int!
+  canEdit: Boolean!
+  canDelete: Boolean!
+  createdAt: String!
+}
+
+type UomPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type UomEdge {
+  cursor: String!
+  node: Uom!
+}
+
+type UomConnection {
+  edges: [UomEdge!]!
+  pageInfo: UomPageInfo!
+}
+
+type UomDimension {
+  id: ID!
+  code: String!
+  name: String!
+  description: String
+  canEdit: Boolean
+  canDelete: Boolean
+  createdAt: String!
+  updatedAt: String!
 }
 
 type LookupOrganization {
@@ -117,6 +382,20 @@ type Query {
   sessions: [UserSession!]!
   inventoryItems(first: Int, after: String, filters: [FeedFilterInput!], search: FeedSearchInput, sort: [FeedSortInput!]): InventoryItemConnection!
   inventoryItem(id: ID!): InventoryItem!
+  goodsReceiptsFeed(first: Int, after: String, search: FeedSearchInput): GoodsReceiptConnection!
+  goodsReceipt(id: ID!): GoodsReceipt!
+  inventoryItemLedger(inventoryItemId: ID!, first: Int, after: String): InventoryItemLedgerConnection!
+  inventoryItemLocations(inventoryItemId: ID!, first: Int, after: String): InventoryItemLocationConnection!
+  inventoryItemQuants(inventoryItemId: ID!, first: Int, after: String): InventoryItemQuantConnection!
+  inventoryItemStockLevels(inventoryItemId: ID!, first: Int, after: String): InventoryItemStockLevelConnection!
+  inventoryItemSuppliers(inventoryItemId: ID!, first: Int, after: String): InventoryItemSupplierConnection!
+  inventoryItemUomConversions(inventoryItemId: ID!): [InventoryItemUomConversion!]!
+  uomsFeed(dimensionId: ID!, first: Int, after: String): UomConnection!
+  uom(id: ID!): Uom!
+  uomDimensions(search: String): [UomDimension!]!
+  uomDimension(id: ID!): UomDimension!
+  taxGroups(search: String): [TaxGroup!]!
+  costCategories(search: String): [CostCategory!]!
 }
 
 input SelectOptionsInput {
@@ -160,6 +439,24 @@ type Mutation {
   createInventoryItem(input: CreateInventoryItemInput!): InventoryItem!
   updateInventoryItem(id: ID!, input: UpdateInventoryItemInput!): InventoryItem!
   deleteInventoryItem(id: ID!): MutationResult!
+  createInventoryItemLocation(inventoryItemId: ID!, input: CreateInventoryItemLocationInput!): InventoryItemLocation!
+  updateInventoryItemLocation(id: ID!, input: UpdateInventoryItemLocationInput!): MutationResult!
+  deleteInventoryItemLocation(id: ID!): MutationResult!
+  createInventoryItemUomConversion(inventoryItemId: ID!, input: CreateInventoryItemUomConversionInput!): InventoryItemUomConversion!
+  updateInventoryItemUomConversion(id: ID!, input: UpdateInventoryItemUomConversionInput!): MutationResult!
+  deleteInventoryItemUomConversion(id: ID!): MutationResult!
+  createUom(input: CreateUomInput!): Uom!
+  updateUom(id: ID!, input: UpdateUomInput!): Uom!
+  deleteUom(id: ID!): MutationResult!
+  createUomDimension(input: CreateUomDimensionInput!): UomDimension!
+  updateUomDimension(id: ID!, input: UpdateUomDimensionInput!): UomDimension!
+  deleteUomDimension(id: ID!): MutationResult!
+  createTaxGroup(input: CreateTaxGroupInput!): TaxGroup!
+  updateTaxGroup(id: ID!, input: UpdateTaxGroupInput!): TaxGroup!
+  deleteTaxGroup(id: ID!): MutationResult!
+  createCostCategory(input: CreateCostCategoryInput!): CostCategory!
+  updateCostCategory(id: ID!, input: UpdateCostCategoryInput!): CostCategory!
+  deleteCostCategory(id: ID!): MutationResult!
 }
 
 input MobileLoginInput {
@@ -202,4 +499,83 @@ input UpdateInventoryItemInput {
   purchaseTaxGroupId: String!
   hsnCode: String
   hasMrp: Boolean
+}
+
+input CreateInventoryItemLocationInput {
+  locationId: ID!
+  reorderLevel: Float!
+}
+
+input UpdateInventoryItemLocationInput {
+  reorderLevel: Float!
+}
+
+input CreateInventoryItemUomConversionInput {
+  uomId: String!
+  primaryUomQty: Int!
+  uomQty: Int!
+}
+
+input UpdateInventoryItemUomConversionInput {
+  primaryUomQty: Int!
+  uomQty: Int!
+}
+
+input CreateUomInput {
+  dimensionId: ID!
+  name: String!
+  symbol: String!
+  baseUnitId: ID
+  baseUomQty: Int
+  uomQty: Int
+  allowDecimal: Boolean
+}
+
+input UpdateUomInput {
+  dimensionId: ID
+  name: String
+  symbol: String
+  baseUnitId: ID
+  baseUomQty: Int
+  uomQty: Int
+  allowDecimal: Boolean
+}
+
+input CreateUomDimensionInput {
+  code: String!
+  name: String!
+  description: String
+}
+
+input UpdateUomDimensionInput {
+  code: String
+  name: String
+  description: String
+}
+
+input CreateTaxGroupInput {
+  name: String!
+  taxRates: [TaxRateInput!]!
+}
+
+input TaxRateInput {
+  name: String!
+  rate: Float!
+}
+
+input UpdateTaxGroupInput {
+  name: String
+  taxRates: [TaxRateInput!]
+  isActive: Boolean
+}
+
+input CreateCostCategoryInput {
+  code: String!
+  name: String!
+  kind: String!
+}
+
+input UpdateCostCategoryInput {
+  name: String
+  isActive: Boolean
 }
