@@ -29,7 +29,6 @@ export class SiteDto {
   @ApiProperty({ example: 'Asia/Kolkata' })
   timezone: string;
 
-
   @ApiPropertyOptional({ example: 'uuid-here', nullable: true })
   legalEntityId: string | null;
 

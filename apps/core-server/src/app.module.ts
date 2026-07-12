@@ -1,6 +1,4 @@
-import { isIP } from 'node:net';
 import { join } from 'node:path';
-import { SiteRepository } from '@domain/site/repositories/site.repository';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -22,7 +20,7 @@ import { relations } from '@/db/schema';
 import { RbacModule } from '@/rbac/rbac.module';
 import { SecurityModule } from '@/security/security.module';
 import { SiteContextModule } from '@/site-context/site-context.module';
-import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
+import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
@@ -144,7 +142,6 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
           csrfExemptTransports: ['graphql'],
           onAuthenticated: (requestService, sessionInfo) => {
             const hostname = requestService.getHostname();
-            const allowRawIpHostRouting = config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false);
 
             const readHeader = (name: string): string | undefined => {
               const value = requestService.getHeader(name);
@@ -167,18 +164,13 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
               if (legalEntityId) sessionInfo.legalEntityId = legalEntityId;
             };
 
-            if (allowRawIpHostRouting && isIP(hostname)) {
-              applyContextHeaders();
-              return;
-            }
-
             const requestSubdomain = hostname.split('.')[0];
             if (!requestSubdomain) {
               throw new UnauthorizedException('Invalid request host');
             }
 
             if (sessionInfo.subdomain !== requestSubdomain) {
-              throw new UnauthorizedException('Subdomain mismatch — token does not belong to this organization');
+              throw new UnauthorizedException('Invalid request host');
             }
 
             sessionInfo.subdomain = requestSubdomain;
@@ -214,39 +206,40 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
     UserRoleDomainModule,
     UserPermissionsDomainModule,
 
-    // NATS client (gateway mode) — resolves site context from sessionInfo
+    // NATS client (gateway mode) — resolves the workspace context from sessionInfo (site context derives its LE)
     NatsClientModule.forRoot({
-      imports: [SiteDomainModule],
-      inject: [ConfigService, SiteRepository, SiteContextCacheService],
-      useFactory: (config: ConfigService, siteRepo: SiteRepository, siteContextCache: SiteContextCacheService) => ({
+      imports: [SiteContextModule],
+      inject: [ConfigService, SiteContextResolverService],
+      useFactory: (config: ConfigService, siteContextResolver: SiteContextResolverService) => ({
         natsUrl: config.get<string>('NATS_URL'),
         services: [{ name: 'commerce' }],
         contextResolver: async (sessionInfo) => {
-          const siteId = sessionInfo.siteId ?? '';
-          const orgId = sessionInfo.organizationId ?? '';
+          const orgId = sessionInfo.organizationId;
+          const userId = sessionInfo.userId;
 
-          const cached = await siteContextCache.get(siteId);
-          if (cached) {
+          // A site workspace carries the full site context and derives its legal entity
+          if (sessionInfo.siteId) {
+            const siteContext = await siteContextResolver.resolve(sessionInfo.siteId);
             return {
               orgId,
-              userId: sessionInfo.userId,
-              siteId,
-              siteTimezone: cached.siteTimezone,
-              siteCurrencyCode: cached.siteCurrencyCode,
+              userId,
+              siteId: sessionInfo.siteId,
+              legalEntityId: siteContext.legalEntityId,
+              siteGroupId: '',
+              siteTimezone: siteContext.siteTimezone,
+              siteCurrencyCode: siteContext.siteCurrencyCode,
             };
           }
 
-          const site = siteId ? await siteRepo.findById(siteId) : null;
-          const siteTimezone = site?.timezone ?? 'UTC';
-          const siteCurrencyCode = site ? ((await siteRepo.findLeCurrencyBySiteId(site.id)) ?? '') : '';
-
-          await siteContextCache.set(siteId, { siteTimezone, siteCurrencyCode });
+          // Group / LE / org workspaces pass their own context through; empty values are omitted from the headers
           return {
             orgId,
-            userId: sessionInfo.userId,
-            siteId,
-            siteTimezone,
-            siteCurrencyCode,
+            userId,
+            siteId: '',
+            legalEntityId: sessionInfo.legalEntityId ?? '',
+            siteGroupId: sessionInfo.siteGroupId ?? '',
+            siteTimezone: '',
+            siteCurrencyCode: '',
           };
         },
       }),

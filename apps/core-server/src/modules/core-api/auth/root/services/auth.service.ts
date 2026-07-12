@@ -266,7 +266,6 @@ export class AuthService {
     refreshToken: string | undefined,
     subdomain?: string,
     bearerAccessToken?: string,
-    allowRawIpOrgResolution = false,
     platform: 'web' | 'ios' | 'android' = 'web',
   ): Promise<AuthResponseDto> {
     // Resolve org regardless of auth state
@@ -282,16 +281,8 @@ export class AuthService {
         const decoded = this.tokenService.validateAccessToken(bearerAccessToken);
         const session = await this.sessionService.validateAccessTokenSession(bearerAccessToken);
         const user = await this.userService.findById(decoded.userId);
-        const sessionMetadata = (session.metadata ?? {}) as Record<string, unknown>;
 
-        const resolvedOrg =
-          org ??
-          (allowRawIpOrgResolution
-            ? await this.resolveOrganizationFromSessionContext(
-                sessionMetadata,
-                decoded as unknown as Record<string, unknown>,
-              )
-            : null);
+        const resolvedOrg = org;
         const resolvedOrgData = resolvedOrg
           ? {
               id: resolvedOrg.id,
@@ -468,29 +459,6 @@ export class AuthService {
       featuresByLeId,
       orgFeatures,
     });
-  }
-
-  private async resolveOrganizationFromSessionContext(
-    sessionMetadata: Record<string, unknown>,
-    decodedToken: Record<string, unknown>,
-  ) {
-    const organizationId =
-      this.getStringValue(sessionMetadata.organizationId) ?? this.getStringValue(decodedToken.organizationId);
-    if (organizationId) {
-      return this.organizationService.getById(organizationId);
-    }
-
-    const organizationSubdomain =
-      this.getStringValue(sessionMetadata.subdomain) ?? this.getStringValue(decodedToken.subdomain);
-    if (organizationSubdomain) {
-      return this.organizationService.getBySubdomain(organizationSubdomain);
-    }
-
-    return null;
-  }
-
-  private getStringValue(value: unknown): string | undefined {
-    return typeof value === 'string' && value.trim() ? value : undefined;
   }
 
   // Rotates both tokens and returns new access token — sets new refresh cookie in controller

@@ -1,11 +1,14 @@
+import { SiteDomainModule } from '@domain/site/site.module';
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CacheModule } from '@vritti/api-sdk/cache';
 import { SiteContextCacheService } from './site-context-cache.service';
+import { SiteContextResolverService } from './site-context-resolver.service';
 
 @Global()
 @Module({
   imports: [
+    SiteDomainModule,
     // Driver from validated config: lru = in-memory per-instance (default); redis = shared across instances
     CacheModule.forRootAsync({
       inject: [ConfigService],
@@ -15,7 +18,7 @@ import { SiteContextCacheService } from './site-context-cache.service';
       }),
     }),
   ],
-  providers: [SiteContextCacheService],
-  exports: [SiteContextCacheService],
+  providers: [SiteContextCacheService, SiteContextResolverService],
+  exports: [SiteContextCacheService, SiteContextResolverService],
 })
 export class SiteContextModule {}

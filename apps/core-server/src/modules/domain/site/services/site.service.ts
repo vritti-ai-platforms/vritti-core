@@ -49,7 +49,7 @@ export class SiteService {
       type: dto.type as SiteType,
       groupId: dto.groupId ?? null,
       timezone: dto.timezone,
-      legalEntityId: dto.legalEntityId ?? null,
+      legalEntityId: legalEntity.id,
       registrationId: dto.registrationId ?? null,
       metadata: dto.metadata as SiteMetadata,
     });

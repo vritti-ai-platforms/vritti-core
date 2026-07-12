@@ -115,27 +115,8 @@ export const TopBar = () => {
               />
             </>
           ) : (
-            <div className="flex items-center gap-3 px-2">
-              {org ? (
-                <>
-                  {org.logoUrl ? (
-                    <img src={org.logoUrl} alt={org.name} className="h-9 w-auto object-contain" />
-                  ) : (
-                    <div className="flex items-center justify-center size-9 rounded-lg bg-primary/10">
-                      <Building2 className="size-4 text-primary" />
-                    </div>
-                  )}
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold leading-tight">{org.name}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-muted-foreground">Powered by</span>
-                      <img src={logoImg} alt="Vritti Core" className="h-2.5 w-auto" />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <img src={logoImg} alt="Vritti Core" className="h-8" />
-              )}
+            <div className="flex items-center px-2">
+              <img src={logoImg} alt="Vritti Core" className="h-8" />
             </div>
           )}
         </div>

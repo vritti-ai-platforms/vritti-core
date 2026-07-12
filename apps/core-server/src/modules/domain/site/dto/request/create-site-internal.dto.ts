@@ -39,7 +39,6 @@ export class CreateSiteInternalDto {
   @IsNotEmpty()
   timezone: string;
 
-
   @ApiPropertyOptional({ description: 'Owning legal entity ID', example: 'uuid-here' })
   @IsOptional()
   @IsUUID()

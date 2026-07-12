@@ -3,7 +3,7 @@ import { AppLayout } from '../components/layouts/AppLayout';
 import { SiteLayout } from '../components/layouts/SiteLayout';
 import { ProfilePage } from '../pages/account/profile/ProfilePage';
 import { SecurityPage } from '../pages/account/security/SecurityPage';
-import { SiteSelectionPage } from '../pages/SiteSelectionPage';
+import { WorkspaceSelectionPage } from '../pages/WorkspaceSelectionPage';
 import { DynamicFeatureRoutes } from '../utils/DynamicFeatureRoutes';
 
 // Routes available when the user IS authenticated
@@ -14,7 +14,7 @@ export const authenticatedRoutes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <SiteSelectionPage />,
+        element: <WorkspaceSelectionPage />,
       },
       {
         path: 'account/profile',

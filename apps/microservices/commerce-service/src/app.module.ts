@@ -54,14 +54,24 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
           maxConnections: 20,
           applyRlsContext: async (client, ctx) => {
             const r = ctx as NatsHeaders;
+            // Only set the GUCs the workspace context carries — unset GUCs read as NULL in policies instead of failing uuid casts
+            const parts = ["set_config('app.org_id', $1, true)"];
+            const values: string[] = [r.orgId];
             if (r.siteId) {
-              await client.query(
-                "SELECT set_config('app.org_id', $1, true), set_config('app.site_id', $2, true), set_config('app.site_timezone', $3, true)",
-                [r.orgId, r.siteId, r.siteTimezone],
-              );
-            } else {
-              await client.query("SELECT set_config('app.org_id', $1, true)", [r.orgId]);
+              parts.push(`set_config('app.site_id', $${values.length + 1}, true)`);
+              values.push(r.siteId);
+              parts.push(`set_config('app.site_timezone', $${values.length + 1}, true)`);
+              values.push(r.siteTimezone);
             }
+            if (r.legalEntityId) {
+              parts.push(`set_config('app.le_id', $${values.length + 1}, true)`);
+              values.push(r.legalEntityId);
+            }
+            if (r.siteGroupId) {
+              parts.push(`set_config('app.site_group_id', $${values.length + 1}, true)`);
+              values.push(r.siteGroupId);
+            }
+            await client.query(`SELECT ${parts.join(', ')}`, values);
           },
         };
         return options;

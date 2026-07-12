@@ -89,4 +89,21 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
       .limit(1);
     return rows[0]?.currencyCode ?? null;
   }
+
+  // Resolves a site's workspace context (timezone + owning LE + LE currency) in one query
+  async findWorkspaceContextById(
+    siteId: string,
+  ): Promise<{ timezone: string; legalEntityId: string; currencyCode: string } | undefined> {
+    const rows = await this.db
+      .select({
+        timezone: sites.timezone,
+        legalEntityId: sites.legalEntityId,
+        currencyCode: legalEntities.currencyCode,
+      })
+      .from(sites)
+      .innerJoin(legalEntities, eq(legalEntities.id, sites.legalEntityId))
+      .where(eq(sites.id, siteId))
+      .limit(1);
+    return rows[0];
+  }
 }

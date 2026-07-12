@@ -18,7 +18,7 @@ export class SessionService {
   async createSession(
     userId: string,
     sessionType: SessionType,
-    metadata?: Record<string, unknown>,
+    metadata: { organizationId: string; subdomain: string } & Record<string, unknown>,
     ipAddress?: string,
     userAgent?: string,
   ): Promise<{
@@ -39,7 +39,7 @@ export class SessionService {
       type: sessionType,
       accessTokenHash: hashToken(accessToken),
       refreshTokenHash: hashToken(refreshToken),
-      metadata: metadata ?? {},
+      metadata,
       ipAddress,
       userAgent,
       expiresAt,
@@ -63,7 +63,7 @@ export class SessionService {
       userId: session.userId,
       sessionId: session.id,
       sessionType: session.type,
-      ...(session.metadata as Record<string, unknown>),
+      ...(session.metadata as { organizationId: string; subdomain: string } & Record<string, unknown>),
     };
     const newRefreshToken = this.tokenService.generateRefreshToken(sessionInfo);
     const newAccessToken = this.tokenService.generateAccessToken(sessionInfo, newRefreshToken);
@@ -96,7 +96,7 @@ export class SessionService {
       userId: session.userId,
       sessionId: session.id,
       sessionType: session.type,
-      ...(session.metadata as Record<string, unknown>),
+      ...(session.metadata as { organizationId: string; subdomain: string } & Record<string, unknown>),
     };
     const newAccessToken = this.tokenService.generateAccessToken(sessionInfo, refreshToken as string);
 

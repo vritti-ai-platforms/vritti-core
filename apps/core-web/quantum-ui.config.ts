@@ -4,7 +4,7 @@ import { parseSlug } from '@vritti/quantum-ui/slug';
 import { getBusinessUnitTimeZone, getUserTimeZone } from '@vritti/quantum-ui/timezone';
 
 const WORKSPACE_HEADERS = [
-  { prefix: 'bu-', header: 'x-site-id' },
+  { prefix: 'site-', header: 'x-site-id' },
   { prefix: 'sg-', header: 'x-sg-id' },
   { prefix: 'le-', header: 'x-le-id' },
   { prefix: 'org-', header: 'x-org-id' },
@@ -12,7 +12,7 @@ const WORKSPACE_HEADERS = [
 
 const getWorkspaceSegment = () => window.location.pathname.split('/').filter(Boolean)[0] ?? null;
 
-// Resolves the active workspace entity id from the URL (bu-/sg-/le-/org- slugs)
+// Resolves the active workspace entity id from the URL (site-/sg-/le-/org- slugs)
 const getActiveWorkspaceId = () => {
   const segment = getWorkspaceSegment();
   if (!segment) return null;
@@ -52,7 +52,7 @@ export default defineConfig({
       Accept: 'application/json',
     },
     onRequest: (config) => {
-      // Exactly one context header per request: bu- → x-site-id, sg- → x-sg-id, le- → x-le-id, org- → x-org-id
+      // Exactly one context header per request: site- → x-site-id, sg- → x-sg-id, le- → x-le-id, org- → x-org-id
       const segment = getWorkspaceSegment();
       if (!segment) return;
 

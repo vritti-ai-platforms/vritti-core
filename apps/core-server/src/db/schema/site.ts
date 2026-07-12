@@ -36,7 +36,9 @@ export const sites = coreSchema.table(
     // Per-feature lock deny-list within the plan; null = inherit the full plan
     featureLocks: jsonb('feature_locks').$type<SiteFeatureLocks>(),
     timezone: varchar('timezone', { length: 50 }).notNull(),
-    legalEntityId: uuid('legal_entity_id').references(() => legalEntities.id, { onDelete: 'restrict' }),
+    legalEntityId: uuid('legal_entity_id')
+      .notNull()
+      .references(() => legalEntities.id, { onDelete: 'restrict' }),
     registrationId: uuid('registration_id').references(() => leTaxRegistrations.id, { onDelete: 'restrict' }),
     pickStrategy: pickStrategyEnum('pick_strategy').notNull().default('FEFO'),
     metadata: jsonb('metadata').$type<SiteMetadata>(),

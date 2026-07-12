@@ -8,7 +8,6 @@ import type {
 import { workspacePath } from '@utils/workspace';
 import { cn } from '@vritti/quantum-ui/cn';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
-import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Building2, ChevronRight, Factory, Landmark, type LucideIcon, Network, Store, Warehouse } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -199,7 +198,7 @@ const RoleChip = ({ roleName }: { roleName: string }) => (
   <Chip className="border-primary/25 bg-primary/10 font-semibold text-primary">{roleName}</Chip>
 );
 
-export const SiteSelectionPage = () => {
+export const WorkspaceSelectionPage = () => {
   const { sites, legalEntities, siteGroups, assignments, isLoadingSites, selectSite, selectWorkspace } =
     usePermissionContext();
   const { user, org } = useAuth();
@@ -209,7 +208,7 @@ export const SiteSelectionPage = () => {
   const openSite = useCallback(
     (site: AssignedSite) => {
       selectSite(site.id);
-      navigate(`/bu-${buildSlug(site.name, site.id)}`, { replace: true });
+      navigate(workspacePath('site', site.name, site.id), { replace: true });
     },
     [selectSite, navigate],
   );
