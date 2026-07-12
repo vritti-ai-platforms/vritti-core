@@ -43,6 +43,61 @@ type CostCategory {
   canDelete: Boolean!
 }
 
+type TaxRate {
+  id: ID!
+  name: String!
+  rate: Float!
+  sortOrder: Int!
+}
+
+type TaxGroup {
+  id: ID!
+  name: String!
+  isActive: Boolean!
+  canDelete: Boolean!
+  taxRates: [TaxRate!]!
+}
+
+type Uom {
+  id: ID!
+  dimensionId: ID!
+  name: String!
+  symbol: String!
+  baseUnitId: ID
+  baseUnitSymbol: String
+  baseUomQty: Int!
+  uomQty: Int!
+  canEdit: Boolean!
+  canDelete: Boolean!
+  createdAt: String!
+}
+
+type UomPageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type UomEdge {
+  cursor: String!
+  node: Uom!
+}
+
+type UomConnection {
+  edges: [UomEdge!]!
+  pageInfo: UomPageInfo!
+}
+
+type UomDimension {
+  id: ID!
+  code: String!
+  name: String!
+  description: String
+  canEdit: Boolean
+  canDelete: Boolean
+  createdAt: String!
+  updatedAt: String!
+}
+
 type GoodsReceiptMoney {
   currency: String!
   value: String!
@@ -275,61 +330,6 @@ type InventoryItemEdge {
 type InventoryItemConnection {
   edges: [InventoryItemEdge!]!
   pageInfo: InventoryItemPageInfo!
-}
-
-type TaxRate {
-  id: ID!
-  name: String!
-  rate: Float!
-  sortOrder: Int!
-}
-
-type TaxGroup {
-  id: ID!
-  name: String!
-  isActive: Boolean!
-  canDelete: Boolean!
-  taxRates: [TaxRate!]!
-}
-
-type Uom {
-  id: ID!
-  dimensionId: ID!
-  name: String!
-  symbol: String!
-  baseUnitId: ID
-  baseUnitSymbol: String
-  baseUomQty: Int!
-  uomQty: Int!
-  canEdit: Boolean!
-  canDelete: Boolean!
-  createdAt: String!
-}
-
-type UomPageInfo {
-  hasNextPage: Boolean!
-  endCursor: String
-}
-
-type UomEdge {
-  cursor: String!
-  node: Uom!
-}
-
-type UomConnection {
-  edges: [UomEdge!]!
-  pageInfo: UomPageInfo!
-}
-
-type UomDimension {
-  id: ID!
-  code: String!
-  name: String!
-  description: String
-  canEdit: Boolean
-  canDelete: Boolean
-  createdAt: String!
-  updatedAt: String!
 }
 
 type LookupOrganization {
