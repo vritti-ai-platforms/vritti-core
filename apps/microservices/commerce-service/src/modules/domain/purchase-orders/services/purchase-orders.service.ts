@@ -18,7 +18,7 @@ import {
   purchaseOrders,
   suppliers,
 } from '@/db/schema';
-import type { CreatePurchaseOrderDto } from '@/modules/purchase-orders/dto/request/create-purchase-order.dto';
+import type { CreatePurchaseOrderDto } from '@/modules/site/purchase-orders/dto/request/create-purchase-order.dto';
 import { PurchaseOrderDto } from '../dto/entity/purchase-order.dto';
 import { PurchaseOrdersRepository } from '../repositories/purchase-orders.repository';
 

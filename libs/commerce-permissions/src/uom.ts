@@ -1,14 +1,15 @@
 // UOM permission codes — MUST match the cloud catalog's authored codes exactly.
-export const UOM = {
+// One object per workspace scope the feature is exposed in; codes are scope.feature.permission.
+export const ORG_UOM = {
   featureCode: 'uom',
-  view: 'uom.view',
-  add: 'uom.add',
-  edit: 'uom.edit',
-  delete: 'uom.delete',
+  view: 'org.uom.view',
+  add: 'org.uom.add',
+  edit: 'org.uom.edit',
+  delete: 'org.uom.delete',
   dim: {
-    view: 'uom.dim.view',
-    add: 'uom.dim.add',
-    edit: 'uom.dim.edit',
-    delete: 'uom.dim.delete',
+    view: 'org.uom.dim.view',
+    add: 'org.uom.dim.add',
+    edit: 'org.uom.dim.edit',
+    delete: 'org.uom.dim.delete',
   },
 } as const;

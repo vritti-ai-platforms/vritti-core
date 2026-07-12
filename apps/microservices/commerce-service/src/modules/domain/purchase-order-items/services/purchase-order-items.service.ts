@@ -16,8 +16,8 @@ import { type PurchaseOrderStatus, PurchaseOrderStatusValues, purchaseOrderItems
 
 export type FreeScheme = { buyQty: number | null; freeQty: number | null; hasScheme: boolean };
 
-import type { AddPurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/add-purchase-order-item.dto';
-import type { UpdatePurchaseOrderItemDto } from '@/modules/purchase-orders/dto/request/update-purchase-order-item.dto';
+import type { AddPurchaseOrderItemDto } from '@/modules/site/purchase-orders/dto/request/add-purchase-order-item.dto';
+import type { UpdatePurchaseOrderItemDto } from '@/modules/site/purchase-orders/dto/request/update-purchase-order-item.dto';
 import { PurchaseOrderItemDto } from '../dto/entity/purchase-order-item.dto';
 import { PurchaseOrderItemsRepository } from '../repositories/purchase-order-items.repository';
 

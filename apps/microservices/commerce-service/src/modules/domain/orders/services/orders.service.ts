@@ -4,8 +4,8 @@ import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type OrderSource, type OrderStatus, OrderStatusValues, type OrderType, orders } from '@/db/schema';
-import type { CreateOrderDto, CreateOrderItemDto } from '@/modules/orders/dto/request/create-order.dto';
-import type { UpdateOrderStatusDto } from '@/modules/orders/dto/request/update-order-status.dto';
+import type { CreateOrderDto, CreateOrderItemDto } from '@/modules/site/orders/dto/request/create-order.dto';
+import type { UpdateOrderStatusDto } from '@/modules/site/orders/dto/request/update-order-status.dto';
 import { OrderDetailDto, OrderDto, OrderItemDto, OrderItemModifierDto } from '../dto/entity/order.dto';
 import { OrdersRepository } from '../repositories/orders.repository';
 

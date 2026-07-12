@@ -11,8 +11,8 @@ import {
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { LocationRoleValues, locations, posTerminals } from '@/db/schema';
-import type { CreatePosTerminalDto } from '@/modules/pos-terminals/dto/request/create-pos-terminal.dto';
-import type { UpdatePosTerminalDto } from '@/modules/pos-terminals/dto/request/update-pos-terminal.dto';
+import type { CreatePosTerminalDto } from '@/modules/site/pos-terminals/dto/request/create-pos-terminal.dto';
+import type { UpdatePosTerminalDto } from '@/modules/site/pos-terminals/dto/request/update-pos-terminal.dto';
 import { PosTerminalDto } from '../dto/entity/pos-terminal.dto';
 import { PosTerminalsRepository } from '../repositories/pos-terminals.repository';
 

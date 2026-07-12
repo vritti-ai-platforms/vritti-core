@@ -3,8 +3,8 @@ import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type StockTransferStatus, StockTransferStatusValues, stockTransfers } from '@/db/schema';
-import type { CreateStockTransferDto } from '@/modules/stock-transfers/dto/request/create-stock-transfer.dto';
-import type { UpdateStockTransferStatusDto } from '@/modules/stock-transfers/dto/request/update-stock-transfer-status.dto';
+import type { CreateStockTransferDto } from '@/modules/site/stock-transfers/dto/request/create-stock-transfer.dto';
+import type { UpdateStockTransferStatusDto } from '@/modules/site/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransferDto } from '../dto/entity/stock-transfer.dto';
 import { StockTransfersRepository } from '../repositories/stock-transfers.repository';
 

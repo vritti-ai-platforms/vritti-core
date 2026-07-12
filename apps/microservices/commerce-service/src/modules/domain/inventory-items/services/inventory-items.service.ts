@@ -23,8 +23,8 @@ import {
 } from '@vritti/api-sdk/exceptions';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { inventoryItems } from '@/db/schema';
-import type { CreateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/update-inventory-item.dto';
+import type { CreateInventoryItemDto } from '@/modules/site/inventory-items/root/dto/request/create-inventory-item.dto';
+import type { UpdateInventoryItemDto } from '@/modules/site/inventory-items/root/dto/request/update-inventory-item.dto';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
 

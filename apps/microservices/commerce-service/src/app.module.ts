@@ -6,29 +6,29 @@ import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
-import { CatalogsModule } from './modules/catalogs/catalogs.module';
-import { CategoriesModule } from './modules/categories/categories.module';
-import { CostCategoriesModule } from './modules/cost-categories/cost-categories.module';
-import { CreditNotesModule } from './modules/credit-notes/credit-notes.module';
-import { CustomersModule } from './modules/customers/customers.module';
-import { GoodsReceiptsModule } from './modules/goods-receipts/goods-receipts.module';
-import { InventoryItemsModule } from './modules/inventory-items/inventory-items.module';
-import { InvoicesModule } from './modules/invoices/invoices.module';
-import { LocationsModule } from './modules/locations/locations.module';
-import { LocationQuantsModule } from './modules/locations/quants/location-quants.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { PaymentsModule } from './modules/payments/payments.module';
-import { PosTerminalsModule } from './modules/pos-terminals/pos-terminals.module';
-import { PurchaseOrderItemsModule } from './modules/purchase-order-items/purchase-order-items.module';
-import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
-import { SalesChannelsModule } from './modules/sales-channels/sales-channels.module';
-import { StockAdjustmentsModule } from './modules/stock-adjustments/stock-adjustments.module';
-import { StockTransfersModule } from './modules/stock-transfers/stock-transfers.module';
-import { SupplierItemsModule } from './modules/supplier-items/supplier-items.module';
-import { SuppliersModule } from './modules/suppliers/suppliers.module';
-import { TaxGroupsModule } from './modules/tax-groups/tax-groups.module';
-import { UomModule } from './modules/uom/uom.module';
-import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.module';
+import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
+import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
+import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
+import { OrgSalesChannelsModule } from './modules/organization/sales-channels/sales-channels.module';
+import { OrgUomModule } from './modules/organization/uom/uom.module';
+import { OrgUomDimensionsModule } from './modules/organization/uom-dimensions/uom-dimensions.module';
+import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
+import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
+import { SiteCustomersModule } from './modules/site/customers/customers.module';
+import { SiteGoodsReceiptsModule } from './modules/site/goods-receipts/goods-receipts.module';
+import { SiteInventoryItemsModule } from './modules/site/inventory-items/inventory-items.module';
+import { SiteInvoicesModule } from './modules/site/invoices/invoices.module';
+import { SiteLocationsModule } from './modules/site/locations/locations.module';
+import { SiteLocationQuantsModule } from './modules/site/locations/quants/location-quants.module';
+import { SiteOrdersModule } from './modules/site/orders/orders.module';
+import { SitePaymentsModule } from './modules/site/payments/payments.module';
+import { SitePosTerminalsModule } from './modules/site/pos-terminals/pos-terminals.module';
+import { SitePurchaseOrderItemsModule } from './modules/site/purchase-order-items/purchase-order-items.module';
+import { SitePurchaseOrdersModule } from './modules/site/purchase-orders/purchase-orders.module';
+import { SiteStockAdjustmentsModule } from './modules/site/stock-adjustments/stock-adjustments.module';
+import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-transfers.module';
+import { SiteSupplierItemsModule } from './modules/site/supplier-items/supplier-items.module';
+import { SiteSuppliersModule } from './modules/site/suppliers/suppliers.module';
 
 @Module({
   imports: [
@@ -77,29 +77,29 @@ import { UomDimensionsModule } from './modules/uom-dimensions/uom-dimensions.mod
         return options;
       },
     }),
-    CategoriesModule,
-    CostCategoriesModule,
-    SalesChannelsModule,
-    CatalogsModule,
-    TaxGroupsModule,
-    UomDimensionsModule,
-    UomModule,
-    InventoryItemsModule,
-    SuppliersModule,
-    SupplierItemsModule,
-    PurchaseOrdersModule,
-    PurchaseOrderItemsModule,
-    GoodsReceiptsModule,
-    LocationsModule,
-    LocationQuantsModule,
-    StockAdjustmentsModule,
-    StockTransfersModule,
-    InvoicesModule,
-    PaymentsModule,
-    PosTerminalsModule,
-    CreditNotesModule,
-    CustomersModule,
-    OrdersModule,
+    OrgCategoriesModule,
+    OrgSalesChannelsModule,
+    OrgUomDimensionsModule,
+    OrgUomModule,
+    LeCostCategoriesModule,
+    LeTaxGroupsModule,
+    SiteCatalogsModule,
+    SiteInventoryItemsModule,
+    SiteSuppliersModule,
+    SiteSupplierItemsModule,
+    SitePurchaseOrdersModule,
+    SitePurchaseOrderItemsModule,
+    SiteGoodsReceiptsModule,
+    SiteLocationsModule,
+    SiteLocationQuantsModule,
+    SiteStockAdjustmentsModule,
+    SiteStockTransfersModule,
+    SiteInvoicesModule,
+    SitePaymentsModule,
+    SitePosTerminalsModule,
+    SiteCreditNotesModule,
+    SiteCustomersModule,
+    SiteOrdersModule,
   ],
   providers: [
     {

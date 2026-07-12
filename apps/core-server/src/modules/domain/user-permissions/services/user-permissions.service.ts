@@ -64,6 +64,14 @@ export interface AssignedStructure {
   assignments: AssignedRole[];
 }
 
+// Maps a workspace scope to its permission-code prefix (identity is scope.feature.permission)
+const SCOPE_CODE_PREFIX: Record<ScopeType, string> = {
+  ORG: 'org',
+  LE: 'le',
+  SITE_GROUP: 'site-group',
+  SITE: 'site',
+};
+
 export interface PermissionContext {
   scope: ScopeType;
   id: string;
@@ -93,12 +101,15 @@ export class UserPermissionsService {
     // getPermissionsForContext collapses ClientPlatform → bucket internally; 'android' stands in for the mobile bucket
     const { features } = await this.getPermissionsForContext(userId, ctx, bucket === 'web' ? 'web' : 'android');
 
+    // Permission identity is scope.feature.permission — the enabled set carries the context's scope
+    // prefix so it matches the frontend/@RequirePermission codes (e.g. `org.uom.view`).
+    const scopePrefix = SCOPE_CODE_PREFIX[ctx.scope];
     const enabled = new Set<string>();
     for (const feature of features) {
       if (feature.locked) continue;
       const locked = new Set(feature.lockedPermissions.map((p) => p.code));
       for (const perm of feature.permissions) {
-        if (!locked.has(perm)) enabled.add(`${feature.code}.${perm}`);
+        if (!locked.has(perm)) enabled.add(`${scopePrefix}.${feature.code}.${perm}`);
       }
     }
 

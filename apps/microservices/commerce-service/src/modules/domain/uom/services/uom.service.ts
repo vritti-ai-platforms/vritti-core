@@ -11,8 +11,8 @@ import {
 import { and, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItemUomConversions, purchaseOrderItems, supplierItems, uom, uomDimensions } from '@/db/schema';
-import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
-import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
+import type { CreateUomDto } from '@/modules/organization/uom/dto/request/create-uom.dto';
+import type { UpdateUomDto } from '@/modules/organization/uom/dto/request/update-uom.dto';
 import { UomDto } from '../dto/entity/uom.dto';
 import { UomRepository } from '../repositories/uom.repository';
 

@@ -1,5 +1,5 @@
 import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup } from '@services/permissions.service';
-import { type ActiveWorkspace, extractWorkspaceFromPath } from '@utils/workspace';
+import { type ActiveWorkspace, extractWorkspaceFromPath, type WorkspaceKind } from '@utils/workspace';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
 import {
   type PermissionGateFn,
@@ -67,9 +67,26 @@ function deny(featureName: string): PermissionGateResult {
   return { granted: false, locked: false, reason: null, unlockPlans: [], available: false, featureName };
 }
 
-// Resolves a "feature.permission" code against the active workspace's resolved features
-function buildGate(features: PermissionFeature[]): PermissionGateFn {
-  return (code) => {
+// The workspace scope is part of the permission identity (scope.feature.permission). Each workspace
+// resolves exactly one scope, so a code must carry THIS workspace's scope prefix — a code prefixed
+// with a different scope (le.uom.view checked in an org workspace) must NOT match. Codes with no
+// scope prefix are treated as legacy/unscoped for the transition.
+const KIND_SCOPE_PREFIX: Record<WorkspaceKind, string> = {
+  site: 'site.',
+  group: 'site-group.',
+  le: 'le.',
+  org: 'org.',
+};
+
+const SCOPE_PREFIXES = Object.values(KIND_SCOPE_PREFIX);
+
+// Resolves a "[scope.]feature.permission" code against the active workspace's resolved features
+function buildGate(features: PermissionFeature[], workspaceScopePrefix: string | null): PermissionGateFn {
+  return (rawCode) => {
+    const carriedScope = SCOPE_PREFIXES.find((p) => rawCode.startsWith(p));
+    // A code carrying a scope other than this workspace's belongs to a different scope — deny it.
+    if (carriedScope && carriedScope !== workspaceScopePrefix) return DENY;
+    const code = carriedScope ? rawCode.slice(carriedScope.length) : rawCode;
     const dotIndex = code.indexOf('.');
     const featureCode = dotIndex === -1 ? code : code.slice(0, dotIndex);
     const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
@@ -176,7 +193,10 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ],
   );
 
-  const gate = useMemo(() => buildGate(features), [features]);
+  const gate = useMemo(
+    () => buildGate(features, workspace ? KIND_SCOPE_PREFIX[workspace.kind] : null),
+    [features, workspace],
+  );
 
   return (
     <PermissionContext.Provider value={contextValue}>

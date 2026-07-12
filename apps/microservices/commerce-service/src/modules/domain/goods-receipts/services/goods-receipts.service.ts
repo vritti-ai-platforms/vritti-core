@@ -16,7 +16,7 @@ import {
   purchaseOrders,
   suppliers,
 } from '@/db/schema';
-import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
+import type { CreateGoodsReceiptDto } from '@/modules/site/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';

@@ -8,8 +8,8 @@ import {
   type InvoicePartyType,
   InvoiceStatusValues,
 } from '@/db/schema';
-import type { ApplyCreditNoteDto } from '@/modules/credit-notes/dto/request/apply-credit-note.dto';
-import type { CreateCreditNoteDto } from '@/modules/credit-notes/dto/request/create-credit-note.dto';
+import type { ApplyCreditNoteDto } from '@/modules/site/credit-notes/dto/request/apply-credit-note.dto';
+import type { CreateCreditNoteDto } from '@/modules/site/credit-notes/dto/request/create-credit-note.dto';
 import { CreditNoteApplicationDto, CreditNoteDetailDto, CreditNoteDto } from '../dto/entity/credit-note.dto';
 import { CreditNotesRepository } from '../repositories/credit-notes.repository';
 
