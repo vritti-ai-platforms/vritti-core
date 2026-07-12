@@ -8,7 +8,11 @@ import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exception
 import type { OrgEntitlement, SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
 import type { OrgSize } from '@/db/schema';
-import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import {
+  AUTH_STATUS_EVENTS,
+  OrgUpdatedEvent,
+  SiteUpdatedEvent,
+} from '@/modules/core-api/auth/root/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
 import { OrganizationDto } from '../dto/entity/organization.dto';
@@ -51,11 +55,12 @@ export class OrganizationService {
     const expanded = normalizeLocks(featureLocks, snapshot);
 
     await this.organizationRepository.update(orgId, { featureLocks: expanded, updatedAt: new Date() });
-    // Lock consumption lands with org-context feature resolution; invalidate caches here when it does
 
     this.logger.log(
       `Set feature locks for org ${orgId}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
     );
+    // Push the refreshed org-scope feature set to live SSE connections of the org's users
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.ORG_UPDATED, new OrgUpdatedEvent(orgId));
     return { success: true, message: 'Organization feature locks updated successfully.' };
   }
 

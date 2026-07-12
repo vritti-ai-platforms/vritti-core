@@ -4,6 +4,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   AUTH_STATUS_EVENTS,
   type LegalEntityUpdatedEvent,
+  type OrgUpdatedEvent,
   type SessionRevokedEvent,
   type SiteGroupUpdatedEvent,
   type SiteUpdatedEvent,
@@ -65,17 +66,26 @@ export class AuthStatusEventListener {
   @OnEvent(AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED)
   async handleLegalEntityUpdated(event: LegalEntityUpdatedEvent) {
     this.logger.log(`Handling LEGAL_ENTITY_UPDATED for legal entity ${event.legalEntityId}`);
-    const userIds = await this.userRoleService.findUserIdsForLegalEntityOrg(event.legalEntityId);
-    for (const userId of userIds) {
-      await this.rePushToUser(userId);
-    }
+    await this.rePushToOrg(event.orgId);
   }
 
   // Rebuilds and re-pushes fresh auth-state to the org's assigned users when a site group changes
   @OnEvent(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED)
   async handleSiteGroupUpdated(event: SiteGroupUpdatedEvent) {
     this.logger.log(`Handling SITE_GROUP_UPDATED for site group ${event.siteGroupId}`);
-    const userIds = await this.userRoleService.findUserIdsForSiteGroupOrg(event.siteGroupId);
+    await this.rePushToOrg(event.orgId);
+  }
+
+  // Rebuilds and re-pushes fresh auth-state to the org's assigned users when the org itself changes (e.g. feature locks)
+  @OnEvent(AUTH_STATUS_EVENTS.ORG_UPDATED)
+  async handleOrgUpdated(event: OrgUpdatedEvent) {
+    this.logger.log(`Handling ORG_UPDATED for org ${event.orgId}`);
+    await this.rePushToOrg(event.orgId);
+  }
+
+  // Re-pushes fresh auth-state to every user holding an assignment in the org
+  private async rePushToOrg(orgId: string) {
+    const userIds = await this.userRoleService.findUserIdsForOrg(orgId);
     for (const userId of userIds) {
       await this.rePushToUser(userId);
     }

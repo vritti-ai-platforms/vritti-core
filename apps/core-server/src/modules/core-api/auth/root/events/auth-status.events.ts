@@ -4,6 +4,7 @@ export const AUTH_STATUS_EVENTS = {
   SITE_UPDATED: 'auth-status.site-updated',
   LEGAL_ENTITY_UPDATED: 'auth-status.legal-entity-updated',
   SITE_GROUP_UPDATED: 'auth-status.site-group-updated',
+  ORG_UPDATED: 'auth-status.org-updated',
 };
 
 export class SessionRevokedEvent {
@@ -22,9 +23,19 @@ export class SiteUpdatedEvent {
 }
 
 export class LegalEntityUpdatedEvent {
-  constructor(public readonly legalEntityId: string) {}
+  constructor(
+    public readonly legalEntityId: string,
+    public readonly orgId: string,
+  ) {}
 }
 
 export class SiteGroupUpdatedEvent {
-  constructor(public readonly siteGroupId: string) {}
+  constructor(
+    public readonly siteGroupId: string,
+    public readonly orgId: string,
+  ) {}
+}
+
+export class OrgUpdatedEvent {
+  constructor(public readonly orgId: string) {}
 }

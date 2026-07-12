@@ -5,8 +5,8 @@ import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { TaxRegime } from '@/db/schema';
-import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { LeTaxRegistrationDto } from '../dto/entity/le-tax-registration.dto';
 import { LegalEntityDto } from '../dto/entity/legal-entity.dto';
 import type { CreateLeTaxRegistrationInternalDto } from '../dto/request/create-le-tax-registration-internal.dto';
@@ -48,7 +48,10 @@ export class LegalEntityService {
     this.logger.log(
       `Set feature locks for legal entity ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
     );
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED, new LegalEntityUpdatedEvent(id));
+    this.eventEmitter.emit(
+      AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED,
+      new LegalEntityUpdatedEvent(id, legalEntity.organizationId),
+    );
     return { success: true, message: 'Legal entity feature locks updated successfully.' };
   }
 
@@ -127,7 +130,10 @@ export class LegalEntityService {
     });
 
     this.logger.log(`Updated legal entity ${id}`);
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED, new LegalEntityUpdatedEvent(id));
+    this.eventEmitter.emit(
+      AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED,
+      new LegalEntityUpdatedEvent(id, legalEntity.organizationId),
+    );
     return { success: true, message: 'Legal entity updated successfully.' };
   }
 
@@ -166,7 +172,10 @@ export class LegalEntityService {
     await this.legalEntityRepository.delete(id);
 
     this.logger.log(`Deleted legal entity "${legalEntity.name}" (${id})`);
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED, new LegalEntityUpdatedEvent(id));
+    this.eventEmitter.emit(
+      AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED,
+      new LegalEntityUpdatedEvent(id, legalEntity.organizationId),
+    );
     return { success: true, message: 'Legal entity deleted successfully.' };
   }
 

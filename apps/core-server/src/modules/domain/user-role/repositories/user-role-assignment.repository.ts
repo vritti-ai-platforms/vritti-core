@@ -161,25 +161,14 @@ export class UserRoleAssignmentRepository extends PrimaryBaseRepository<typeof u
       .limit(1);
     return rows[0] as UserRoleAssignment | undefined;
   }
-  // Finds user ids holding any assignment in a legal entity's organization for SSE re-push fan-out
-  async findUserIdsByLegalEntityOrg(legalEntityId: string): Promise<string[]> {
+  // Finds user ids holding any assignment in an organization for SSE re-push fan-out — joins only
+  // non-RLS tables (roles, user_role_assignments) so it works in the RLS-less event-listener context
+  async findUserIdsByOrg(orgId: string): Promise<string[]> {
     const rows = await this.db
       .selectDistinct({ userId: userRoleAssignments.userId })
       .from(userRoleAssignments)
       .innerJoin(roles, eq(roles.id, userRoleAssignments.roleId))
-      .innerJoin(legalEntities, eq(legalEntities.organizationId, roles.organizationId))
-      .where(eq(legalEntities.id, legalEntityId));
-    return rows.map((r) => r.userId);
-  }
-
-  // Finds user ids holding any assignment in a site group's organization for SSE re-push fan-out
-  async findUserIdsBySiteGroupOrg(siteGroupId: string): Promise<string[]> {
-    const rows = await this.db
-      .selectDistinct({ userId: userRoleAssignments.userId })
-      .from(userRoleAssignments)
-      .innerJoin(roles, eq(roles.id, userRoleAssignments.roleId))
-      .innerJoin(siteGroups, eq(siteGroups.organizationId, roles.organizationId))
-      .where(eq(siteGroups.id, siteGroupId));
+      .where(eq(roles.organizationId, orgId));
     return rows.map((r) => r.userId);
   }
 }

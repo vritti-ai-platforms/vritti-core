@@ -124,14 +124,9 @@ export class UserRoleService {
     return this.userRoleAssignmentRepository.findOrgWide(orgId);
   }
 
-  // Returns user ids to re-push when a legal entity changes
-  async findUserIdsForLegalEntityOrg(legalEntityId: string): Promise<string[]> {
-    return this.userRoleAssignmentRepository.findUserIdsByLegalEntityOrg(legalEntityId);
-  }
-
-  // Returns user ids to re-push when a site group changes
-  async findUserIdsForSiteGroupOrg(siteGroupId: string): Promise<string[]> {
-    return this.userRoleAssignmentRepository.findUserIdsBySiteGroupOrg(siteGroupId);
+  // Returns user ids to re-push when an org-scoped entity (org, legal entity, or site group) changes
+  async findUserIdsForOrg(orgId: string): Promise<string[]> {
+    return this.userRoleAssignmentRepository.findUserIdsByOrg(orgId);
   }
 
   // Removes a role assignment by ID

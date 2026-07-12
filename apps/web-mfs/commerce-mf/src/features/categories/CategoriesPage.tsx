@@ -22,7 +22,7 @@ export const CategoriesPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Categories"
-        description={`${categoryCount.count} total categories`}
+        description={categoryCount ? `${categoryCount.count} total categories` : undefined}
         actions={
           <Button onClick={formDialog.open} startAdornment={<Plus className="size-4" />} permission={CATEGORIES.add}>
             Add Category

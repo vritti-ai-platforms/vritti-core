@@ -4,8 +4,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { AUTH_STATUS_EVENTS, SiteGroupUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { SiteGroupDto } from '../dto/entity/site-group.dto';
 import type { CreateSiteGroupInternalDto } from '../dto/request/create-site-group-internal.dto';
 import type { UpdateSiteGroupInternalDto } from '../dto/request/update-site-group-internal.dto';
@@ -43,7 +43,7 @@ export class SiteGroupService {
     this.logger.log(
       `Set feature locks for site group ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
     );
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id));
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, group.organizationId));
     return { success: true, message: 'Site group feature locks updated successfully.' };
   }
 
@@ -112,7 +112,7 @@ export class SiteGroupService {
     });
 
     this.logger.log(`Updated site group ${id}`);
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id));
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, group.organizationId));
     return { success: true, message: 'Site group updated successfully.' };
   }
 
@@ -140,7 +140,7 @@ export class SiteGroupService {
     await this.siteGroupRepository.delete(id);
 
     this.logger.log(`Deleted site group "${group.name}" (${id})`);
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id));
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, group.organizationId));
     return { success: true, message: 'Site group deleted successfully.' };
   }
 

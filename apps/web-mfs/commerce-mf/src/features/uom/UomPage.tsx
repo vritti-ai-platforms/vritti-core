@@ -23,7 +23,7 @@ export const UomPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Units of Measure"
-        description={pluralize('dimension', dimensionCount.count, true)}
+        description={dimensionCount ? pluralize('dimension', dimensionCount.count, true) : undefined}
         actions={
           <Button
             onClick={addDimensionDialog.open}
