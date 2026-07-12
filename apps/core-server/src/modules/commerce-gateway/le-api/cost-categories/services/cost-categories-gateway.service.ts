@@ -22,7 +22,7 @@ export class CostCategoriesGatewayService {
   ) {}
 
   async findForTable(userId: string): Promise<CostCategoryTableResponseDto> {
-    this.logger.log('costCategories.table');
+    this.logger.log('le.costCategories.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       'commerce-cost-categories',
@@ -30,7 +30,7 @@ export class CostCategoriesGatewayService {
 
     const { result, count } = await this.nats.send<{ result: CostCategoryResponseDto[]; count: number }>(
       'commerce',
-      'costCategories.table',
+      'le.costCategories.table',
       state,
     );
 

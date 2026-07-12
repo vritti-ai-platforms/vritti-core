@@ -17,12 +17,12 @@ export class InvoicesGatewayService {
 
   // Returns paginated, filtered, and sorted invoices for the data table
   async findForTable(userId: string): Promise<InvoiceTableResponseDto> {
-    this.logger.log('invoices.table');
+    this.logger.log('site.invoices.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-invoices');
 
     const { result, count } = await this.nats.send<{ result: InvoiceResponseDto[]; count: number }>(
       'commerce',
-      'invoices.table',
+      'site.invoices.table',
       state,
     );
 

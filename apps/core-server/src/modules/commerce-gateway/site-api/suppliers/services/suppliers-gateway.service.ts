@@ -30,12 +30,12 @@ export class SuppliersGatewayService {
 
   // Returns paginated, filtered, and sorted suppliers for the data table
   async findForTable(userId: string): Promise<SupplierTableResponseDto> {
-    this.logger.log('suppliers.table');
+    this.logger.log('site.suppliers.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-suppliers');
 
     const { result, count } = await this.nats.send<{ result: SupplierResponseDto[]; count: number }>(
       'commerce',
-      'suppliers.table',
+      'site.suppliers.table',
       state,
     );
 
@@ -56,7 +56,7 @@ export class SuppliersGatewayService {
 
   // Returns linked supplier items for the table
   async findItemsTable(supplierId: string, userId: string): Promise<SupplierItemTableResponseDto> {
-    this.logger.log('suppliers.itemsTable');
+    this.logger.log('site.suppliers.itemsTable');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       `commerce-supplier-${supplierId}-items`,
@@ -64,7 +64,7 @@ export class SuppliersGatewayService {
 
     const { result, count } = await this.nats.send<{ result: SupplierItemResponseDto[]; count: number }>(
       'commerce',
-      'suppliers.itemsTable',
+      'site.suppliers.itemsTable',
       { supplierId, ...state },
     );
 

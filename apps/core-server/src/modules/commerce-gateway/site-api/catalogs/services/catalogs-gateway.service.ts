@@ -47,12 +47,12 @@ export class CatalogsGatewayService {
 
   // Returns paginated, filtered, and sorted catalogs for the data table
   async findForTable(userId: string): Promise<CatalogTableResponseDto> {
-    this.logger.log('catalogs.table');
+    this.logger.log('site.catalogs.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-catalogs');
 
     const { result, count } = await this.nats.send<{ result: CatalogResponseDto[]; count: number }>(
       'commerce',
-      'catalogs.table',
+      'site.catalogs.table',
       state,
     );
 
@@ -116,7 +116,7 @@ export class CatalogsGatewayService {
 
     const { result, count } = await this.nats.send<{ result: OfferingResponseDto[]; count: number }>(
       'commerce',
-      'catalogs.offerings.table',
+      'site.catalogs.offerings.table',
       { catalogId, state },
     );
 

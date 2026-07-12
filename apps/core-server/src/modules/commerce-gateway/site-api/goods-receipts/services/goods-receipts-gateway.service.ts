@@ -47,7 +47,7 @@ export class GoodsReceiptsGatewayService {
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-goods-receipts');
     const { result, count } = await this.nats.send<{ result: GoodsReceiptResponseDto[]; count: number }>(
       'commerce',
-      'goodsReceipts.table',
+      'site.goodsReceipts.table',
       state,
     );
     return { result, count, state, activeViewId };
@@ -118,7 +118,7 @@ export class GoodsReceiptsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: GoodsReceiptItemResponseDto[]; count: number }>(
       'commerce',
-      'goodsReceipts.itemsTable',
+      'site.goodsReceipts.itemsTable',
       { goodsReceiptId, ...state },
     );
     return { result, count, state, activeViewId };
@@ -231,7 +231,7 @@ export class GoodsReceiptsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: GoodsReceiptLineResponseDto[]; count: number }>(
       'commerce',
-      'goodsReceipts.linesTable',
+      'site.goodsReceipts.linesTable',
       { goodsReceiptId, itemId, ...state },
     );
     return { result, count, state, activeViewId };
@@ -249,7 +249,7 @@ export class GoodsReceiptsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: GoodsReceiptLineResponseDto[]; count: number }>(
       'commerce',
-      'goodsReceipts.linesByLotTable',
+      'site.goodsReceipts.linesByLotTable',
       { goodsReceiptId, itemId, lotId, ...state },
     );
     return { result, count, state, activeViewId };
@@ -294,7 +294,7 @@ export class GoodsReceiptsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: GoodsReceiptLineItemResponseDto[]; count: number }>(
       'commerce',
-      'goodsReceipts.lineItemsTable',
+      'site.goodsReceipts.lineItemsTable',
       { goodsReceiptId, itemId, lineId, ...state },
     );
     return { result, count, state, activeViewId };

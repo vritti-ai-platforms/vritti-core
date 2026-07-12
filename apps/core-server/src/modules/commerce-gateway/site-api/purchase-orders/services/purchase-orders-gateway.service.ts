@@ -55,7 +55,7 @@ export class PurchaseOrdersGatewayService {
 
   // Returns paginated purchase orders for the data table
   async findForTable(userId: string): Promise<PurchaseOrderTableResponseDto> {
-    this.logger.log('purchaseOrders.table');
+    this.logger.log('site.purchaseOrders.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       'commerce-purchase-orders',
@@ -63,7 +63,7 @@ export class PurchaseOrdersGatewayService {
 
     const { result, count } = await this.nats.send<{ result: PurchaseOrderResponseDto[]; count: number }>(
       'commerce',
-      'purchaseOrders.table',
+      'site.purchaseOrders.table',
       state,
     );
 
@@ -97,7 +97,7 @@ export class PurchaseOrdersGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: PurchaseOrderItemResponseDto[]; count: number }>(
       'commerce',
-      'purchaseOrders.itemsTable',
+      'site.purchaseOrders.itemsTable',
       { id, ...state },
     );
     return { result, count, state, activeViewId };
@@ -111,7 +111,7 @@ export class PurchaseOrdersGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: GoodsReceiptResponseDto[]; count: number }>(
       'commerce',
-      'purchaseOrders.goodsReceipts',
+      'site.purchaseOrders.goodsReceipts',
       { purchaseOrderId: id, ...state },
     );
     return { result, count, state, activeViewId };

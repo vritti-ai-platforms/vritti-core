@@ -40,7 +40,7 @@ export class CategoriesGatewayService {
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, slug);
     const { result, count } = await this.nats.send<{ result: CategoryResponseDto[]; count: number }>(
       'commerce',
-      'categories.childrenTable',
+      'org.categories.childrenTable',
       { parentId, ...state },
     );
 
@@ -56,7 +56,7 @@ export class CategoriesGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: CategoryItemResponseDto[]; count: number }>(
       'commerce',
-      'categories.itemsTable',
+      'org.categories.itemsTable',
       { categoryId, ...state },
     );
 

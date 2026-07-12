@@ -17,7 +17,7 @@ export class StockTransfersGatewayService {
 
   // Returns paginated, filtered, and sorted stock transfers for the data table
   async findForTable(userId: string): Promise<StockTransferTableResponseDto> {
-    this.logger.log('stockTransfers.table');
+    this.logger.log('site.stockTransfers.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       'commerce-stock-transfers',
@@ -25,7 +25,7 @@ export class StockTransfersGatewayService {
 
     const { result, count } = await this.nats.send<{ result: StockTransferResponseDto[]; count: number }>(
       'commerce',
-      'stockTransfers.table',
+      'site.stockTransfers.table',
       state,
     );
 

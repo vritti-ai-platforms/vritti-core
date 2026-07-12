@@ -17,12 +17,12 @@ export class OrdersGatewayService {
 
   // Returns paginated, filtered, and sorted orders for the data table
   async findForTable(userId: string): Promise<OrderTableResponseDto> {
-    this.logger.log('orders.table');
+    this.logger.log('site.orders.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, 'commerce-orders');
 
     const { result, count } = await this.nats.send<{ result: OrderResponseDto[]; count: number }>(
       'commerce',
-      'orders.table',
+      'site.orders.table',
       state,
     );
 

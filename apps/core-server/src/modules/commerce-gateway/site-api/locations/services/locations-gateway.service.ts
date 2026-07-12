@@ -41,7 +41,7 @@ export class LocationsGatewayService {
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(userId, slug);
     const { result, count } = await this.nats.send<{ result: LocationResponseDto[]; count: number }>(
       'commerce',
-      'locations.childrenTable',
+      'site.locations.childrenTable',
       { parentId, ...state },
     );
     return { result, count, state, activeViewId };
@@ -56,7 +56,7 @@ export class LocationsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: LocationItemResponseDto[]; count: number }>(
       'commerce',
-      'locations.itemsTable',
+      'site.locations.itemsTable',
       { locationId, ...state },
     );
     return { result, count, state, activeViewId };

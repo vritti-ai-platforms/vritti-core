@@ -33,7 +33,7 @@ export class StockAdjustmentsGatewayService {
   ) {}
 
   async findForTable(userId: string): Promise<StockAdjustmentTableResponseDto> {
-    this.logger.log('stockAdjustments.table');
+    this.logger.log('site.stockAdjustments.table');
     const { state, activeViewId } = await this.dataTableStateService.getCurrentState(
       userId,
       'commerce-stock-adjustments',
@@ -41,7 +41,7 @@ export class StockAdjustmentsGatewayService {
 
     const { result, count } = await this.nats.send<{ result: StockAdjustmentResponseDto[]; count: number }>(
       'commerce',
-      'stockAdjustments.table',
+      'site.stockAdjustments.table',
       state,
     );
 
@@ -71,7 +71,7 @@ export class StockAdjustmentsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: StockAdjustmentLineResponseDto[]; count: number }>(
       'commerce',
-      'stockAdjustments.linesTable',
+      'site.stockAdjustments.linesTable',
       { adjustmentId, ...state },
     );
     return { result, count, state, activeViewId };
@@ -89,7 +89,7 @@ export class StockAdjustmentsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: StockAdjustmentLineResponseDto[]; count: number }>(
       'commerce',
-      'stockAdjustments.linesByLotTable',
+      'site.stockAdjustments.linesByLotTable',
       { adjustmentId, lotId, ...state },
     );
     return { result, count, state, activeViewId };
@@ -213,7 +213,7 @@ export class StockAdjustmentsGatewayService {
     );
     const { result, count } = await this.nats.send<{ result: StockAdjustmentLineItemResponseDto[]; count: number }>(
       'commerce',
-      'stockAdjustments.lineItemsTable',
+      'site.stockAdjustments.lineItemsTable',
       { adjustmentId, lineId, ...state },
     );
     return { result, count, state, activeViewId };
