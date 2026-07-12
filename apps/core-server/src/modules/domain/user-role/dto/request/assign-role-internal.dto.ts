@@ -7,9 +7,26 @@ export class AssignRoleInternalDto {
   @IsUUID()
   roleId: string;
 
-  @ApiProperty({ description: 'Business unit ID', example: 'uuid-here' })
+  @ApiPropertyOptional({
+    description: 'Target site ID (at most one target; all omitted = org-wide)',
+    example: 'uuid-here',
+  })
+  @IsOptional()
   @IsUUID()
-  businessUnitId: string;
+  siteId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Target site group ID (covers member sites incl. future ones)',
+    example: 'uuid-here',
+  })
+  @IsOptional()
+  @IsUUID()
+  siteGroupId?: string;
+
+  @ApiPropertyOptional({ description: "Target legal entity ID (covers all the entity's sites)", example: 'uuid-here' })
+  @IsOptional()
+  @IsUUID()
+  legalEntityId?: string;
 
   @ApiPropertyOptional({
     description: 'Assignment type',

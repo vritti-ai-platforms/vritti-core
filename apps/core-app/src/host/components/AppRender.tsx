@@ -7,29 +7,29 @@ import { AuthFlowProvider } from '../providers/AuthFlowProvider';
 import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';
 import { PermissionProvider, usePermissionContext } from '../providers/PermissionProvider';
 import { authenticatedRoutes, authRoutes } from '../routes';
-import { BusinessUnitSelectionScreen } from '../screens/business-unit/BusinessUnitSelectionScreen';
+import { WorkspaceSelectionScreen } from '../screens/workspace/WorkspaceSelectionScreen';
 import { StartupSplashScreen } from './StartupSplashScreen';
 
-const businessUnitSelectionRoutes: ReadonlyArray<PushScreenConfig<'SelectBusinessUnit'>> = [
-  { name: 'SelectBusinessUnit', component: BusinessUnitSelectionScreen, title: 'Select business unit' },
+const workspaceSelectionRoutes: ReadonlyArray<PushScreenConfig<'SelectWorkspace'>> = [
+  { name: 'SelectWorkspace', component: WorkspaceSelectionScreen, title: 'Select workspace' },
 ];
 
-// Gate between auth and feature nav: waits for BUs, then asks which BU to use when there's more than one.
+// Gate between auth and feature nav: waits for assignments, then asks which workspace to use.
 const AuthenticatedGate = ({ navTheme }: { navTheme: Theme }) => {
-  const { selectedBuId, businessUnits, isLoadingBUs } = usePermissionContext();
+  const { workspace, isLoadingSites } = usePermissionContext();
   const { sessionOrigin } = useAuthSessionSnapshot();
 
-  // Show splash while BUs resolve and during the restore gap before auto-selecting the last-used BU.
-  if (isLoadingBUs || businessUnits.length === 0 || (!selectedBuId && sessionOrigin !== 'login')) {
+  // Show splash while assignments resolve and during the restore gap before auto-selecting the last-used workspace.
+  if (isLoadingSites || (!workspace && sessionOrigin !== 'login')) {
     return <StartupSplashScreen statusText="Loading your workspace" />;
   }
 
   return (
     <NavigationContainer theme={navTheme}>
-      {selectedBuId ? (
+      {workspace ? (
         <PushNavigator initialRoute="HomeTabs" screens={authenticatedRoutes} />
       ) : (
-        <PushNavigator initialRoute="SelectBusinessUnit" screens={businessUnitSelectionRoutes} />
+        <PushNavigator initialRoute="SelectWorkspace" screens={workspaceSelectionRoutes} />
       )}
     </NavigationContainer>
   );

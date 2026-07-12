@@ -12,7 +12,7 @@ import {
 import { coreSchema } from './core-schema';
 import { costCategoryKindEnum } from './enums';
 
-// Org-scoped (no business_unit_id) — categories live at the organization level so all BUs in the
+// Org-scoped (no site_id) — categories live at the organization level so all BUs in the
 // org pick from the same list. The `kind` enum is fixed for cross-customer reporting rollups;
 // `code` and `name` are configurable per org. `isSystem=true` rows are seeded on org creation and
 // can be deactivated but not hard-deleted (FK from inventory_item_costs uses ON DELETE RESTRICT).

@@ -28,7 +28,7 @@ export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerm
       select: {
         id: posTerminals.id,
         organizationId: posTerminals.organizationId,
-        businessUnitId: posTerminals.businessUnitId,
+        siteId: posTerminals.siteId,
         name: posTerminals.name,
         code: posTerminals.code,
         locationId: posTerminals.locationId,
@@ -56,7 +56,7 @@ export class PosTerminalsRepository extends PrimaryBaseRepository<typeof posTerm
       .select({
         id: posTerminals.id,
         organizationId: posTerminals.organizationId,
-        businessUnitId: posTerminals.businessUnitId,
+        siteId: posTerminals.siteId,
         name: posTerminals.name,
         code: posTerminals.code,
         locationId: posTerminals.locationId,

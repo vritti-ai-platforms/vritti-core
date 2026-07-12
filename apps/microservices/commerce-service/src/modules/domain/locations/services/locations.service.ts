@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   type CreateResponseDto,
   type FieldMap,
@@ -10,10 +10,10 @@ import {
   type TableViewState,
 } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, ne, notInArray, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type LocationRole, LocationRoleValues, locations } from '@/db/schema';
-import type { CreateLocationDto } from '@/modules/locations/dto/request/create-location.dto';
-import type { UpdateLocationDto } from '@/modules/locations/dto/request/update-location.dto';
+import type { CreateLocationDto } from '@/modules/site/locations/dto/request/create-location.dto';
+import type { UpdateLocationDto } from '@/modules/site/locations/dto/request/update-location.dto';
 import { LocationDto } from '../dto/entity/location.dto';
 import type { LocationCountDto } from '../dto/entity/location-count.dto';
 import type { LocationTreeDto } from '../dto/entity/location-tree.dto';
@@ -235,7 +235,11 @@ export class LocationsService {
     }
 
     if (parentRole !== null && parentRole !== LocationRoleValues.ZONE) {
-      throw new BadRequestException('Only ZONE locations can have child locations.');
+      throw new BadRequestException({
+        label: 'Invalid Parent',
+        detail: 'Only Zone locations can contain other locations. Pick a Zone as the parent.',
+        errors: [{ field: 'parentId', message: 'Parent must be a Zone' }],
+      });
     }
 
     const created = await this.database.runInTransaction(async () => {

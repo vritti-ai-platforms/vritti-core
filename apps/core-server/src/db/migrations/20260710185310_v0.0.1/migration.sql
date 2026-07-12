@@ -1,0 +1,1 @@
+ALTER TYPE "vritti_core"."bu_type" RENAME VALUE 'REGION' TO 'OUTLET_GROUP';

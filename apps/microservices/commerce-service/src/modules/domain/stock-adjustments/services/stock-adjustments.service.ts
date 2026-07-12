@@ -31,7 +31,7 @@ export class StockAdjustmentsService {
   // Returns paginated stock adjustments for the data table
   async findForTable(
     state: TableViewState,
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentsService.SEARCH_FIELD_MAP);
@@ -48,13 +48,13 @@ export class StockAdjustmentsService {
       offset,
     });
 
-    return { result: rows.map((r) => StockAdjustmentDto.from(r, buCurrencyCode)), count };
+    return { result: rows.map((r) => StockAdjustmentDto.from(r, siteCurrencyCode)), count };
   }
 
-  async findById(id: string, buCurrencyCode?: string): Promise<StockAdjustmentDto> {
+  async findById(id: string, siteCurrencyCode?: string): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findById(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(adjustment, buCurrencyCode);
+    return StockAdjustmentDto.from(adjustment, siteCurrencyCode);
   }
 
   async ensureExists(id: string): Promise<void> {
@@ -101,7 +101,7 @@ export class StockAdjustmentsService {
   async updateAdjustment(
     id: string,
     data: { reason?: string; unitCost?: bigint | null },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
@@ -115,6 +115,6 @@ export class StockAdjustmentsService {
     });
     const updated = await this.repository.findById(id);
     if (!updated) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(updated, buCurrencyCode);
+    return StockAdjustmentDto.from(updated, siteCurrencyCode);
   }
 }

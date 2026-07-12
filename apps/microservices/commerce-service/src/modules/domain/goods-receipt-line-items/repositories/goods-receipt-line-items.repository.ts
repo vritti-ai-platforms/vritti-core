@@ -29,7 +29,7 @@ export class GoodsReceiptLineItemsRepository extends PrimaryBaseRepository<typeo
       .select({
         id: goodsReceiptLineItems.id,
         organizationId: goodsReceiptLineItems.organizationId,
-        businessUnitId: goodsReceiptLineItems.businessUnitId,
+        siteId: goodsReceiptLineItems.siteId,
         goodsReceiptLineId: goodsReceiptLineItems.goodsReceiptLineId,
         serialNumber: goodsReceiptLineItems.serialNumber,
         metadata: goodsReceiptLineItems.metadata,

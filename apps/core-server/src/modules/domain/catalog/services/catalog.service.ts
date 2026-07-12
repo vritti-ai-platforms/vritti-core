@@ -6,9 +6,9 @@ import type { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CatalogLicense, hashSnapshot, type SignedDocument } from '@vritti/api-sdk/license';
 import { verifyDocument } from '@vritti/api-sdk/signing';
-import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
-import { AUTH_STATUS_EVENTS, BuUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
+import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
+import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
 import { CatalogRepository } from '../repositories/catalog.repository';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class CatalogService {
 
   constructor(
     private readonly catalogRepository: CatalogRepository,
-    private readonly buContextCache: BuContextCacheService,
+    private readonly siteContextCache: SiteContextCacheService,
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly eventEmitter: EventEmitter2,
     configService: ConfigService,
@@ -60,7 +60,7 @@ export class CatalogService {
     const pruned = await this.catalogRepository.pruneKeep(5);
     if (pruned > 0) this.logger.log(`Pruned ${pruned} inactive catalog row(s)`);
 
-    await this.refreshAllBusinessUnits();
+    await this.refreshAllSites();
 
     this.logger.log(`Activated catalog version ${doc.payload.version} (hash ${doc.payload.hash.slice(0, 12)}…)`);
     return { success: true, message: `Catalog version "${doc.payload.version}" activated successfully.` };
@@ -92,7 +92,7 @@ export class CatalogService {
     await this.catalogRepository.activate(row.id);
     this.snapshotCache = null;
 
-    await this.refreshAllBusinessUnits();
+    await this.refreshAllSites();
 
     this.logger.warn(`Rolled back to catalog version ${row.version} (${row.id})`);
     return { success: true, message: `Rolled back to catalog version "${row.version}".` };
@@ -112,13 +112,13 @@ export class CatalogService {
     }
   }
 
-  // Drops the whole BU context cache and re-pushes auth-state to live SSE clients of every BU
-  private async refreshAllBusinessUnits(): Promise<void> {
-    await this.buContextCache.invalidateAll();
+  // Drops the whole site context cache and re-pushes auth-state to live SSE clients of every site
+  private async refreshAllSites(): Promise<void> {
+    await this.siteContextCache.invalidateAll();
     await this.permissionSetCache.invalidateAll();
-    const buIds = await this.catalogRepository.findAllBusinessUnitIds();
-    for (const buId of buIds) {
-      this.eventEmitter.emit(AUTH_STATUS_EVENTS.BU_UPDATED, new BuUpdatedEvent(buId));
+    const siteIds = await this.catalogRepository.findAllSiteIds();
+    for (const siteId of siteIds) {
+      this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(siteId));
     }
   }
 }

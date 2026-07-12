@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."sites" ALTER COLUMN "legal_entity_id" SET NOT NULL;

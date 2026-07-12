@@ -11,7 +11,7 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
     super(database, uom);
   }
 
-  // Returns the UOM matching a symbol within the current BU (RLS enforces scope)
+  // Returns the UOM matching a symbol within the current org (RLS enforces scope)
   async findBySymbol(symbol: string): Promise<Uom | undefined> {
     return this.model.findFirst({ where: { symbol } });
   }
@@ -51,7 +51,6 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
       select: {
         id: uom.id,
         organizationId: uom.organizationId,
-        businessUnitId: uom.businessUnitId,
         dimensionId: uom.dimensionId,
         name: uom.name,
         symbol: uom.symbol,
@@ -84,7 +83,6 @@ export class UomRepository extends PrimaryBaseRepository<typeof uom> {
       select: {
         id: uom.id,
         organizationId: uom.organizationId,
-        businessUnitId: uom.businessUnitId,
         dimensionId: uom.dimensionId,
         name: uom.name,
         symbol: uom.symbol,

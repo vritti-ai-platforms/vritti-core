@@ -4,10 +4,16 @@ import { and, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { type FulfilmentType, FulfilmentTypeValues, offerings, type VariantOptionValue } from '@/db/schema';
-import type { CreateOfferingDto, DefaultVariantInput } from '@/modules/catalogs/dto/request/create-offering.dto';
-import type { CreateVariantDto, VariantComponentInput } from '@/modules/catalogs/dto/request/create-variant.dto';
-import type { UpdateOfferingDto } from '@/modules/catalogs/dto/request/update-offering.dto';
-import type { UpdateVariantDto } from '@/modules/catalogs/dto/request/update-variant.dto';
+import type {
+  CreateOfferingDto,
+  DefaultVariantInput,
+} from '@/modules/site/catalogs/dto/request/create-offering.dto';
+import type {
+  CreateVariantDto,
+  VariantComponentInput,
+} from '@/modules/site/catalogs/dto/request/create-variant.dto';
+import type { UpdateOfferingDto } from '@/modules/site/catalogs/dto/request/update-offering.dto';
+import type { UpdateVariantDto } from '@/modules/site/catalogs/dto/request/update-variant.dto';
 import { OfferingDto } from '../dto/entity/offering.dto';
 import {
   OfferingDetailDto,
@@ -30,7 +36,7 @@ export class OfferingsService {
 
   constructor(private readonly offeringsRepository: OfferingsRepository) {}
 
-  // Returns paginated, filtered, and sorted offerings for a catalog (RLS scopes to org + BU ancestors)
+  // Returns paginated, filtered, and sorted offerings for a catalog (RLS scopes to org + site ancestors)
   async findForTable(catalogId: string, state: TableViewState): Promise<{ result: OfferingDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsService.FIELD_MAP);

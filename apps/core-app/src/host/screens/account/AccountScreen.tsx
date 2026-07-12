@@ -12,7 +12,7 @@ import { useRef } from 'react';
 import { Alert as NativeAlert, View } from 'react-native';
 import { useAuth } from '../../providers/AuthProvider';
 import type { HostAppRoute } from '../../routes';
-import { BusinessUnitSwitcher } from './components/BusinessUnitSwitcher';
+import { SiteSwitcher } from './components/SiteSwitcher';
 import { getInitials } from './utils';
 
 type ThemePreferenceValue = 'system' | 'light' | 'dark';
@@ -70,7 +70,7 @@ export const AccountScreen = () => {
         description="Manage your profile, security settings, theme preference, and session access from one place."
       />
 
-      <BusinessUnitSwitcher />
+      <SiteSwitcher />
 
       <View className="gap-3">
         <SectionHeader title="Account" />

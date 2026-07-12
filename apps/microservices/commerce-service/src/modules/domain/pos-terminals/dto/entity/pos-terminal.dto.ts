@@ -3,7 +3,7 @@ import type { PosTerminal } from '@/db/schema';
 export class PosTerminalDto {
   id: string;
   organizationId: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   code: string;
   locationId: string;
@@ -19,7 +19,7 @@ export class PosTerminalDto {
     const dto = new PosTerminalDto();
     dto.id = entity.id;
     dto.organizationId = entity.organizationId;
-    dto.businessUnitId = entity.businessUnitId;
+    dto.siteId = entity.siteId;
     dto.name = entity.name;
     dto.code = entity.code;
     dto.locationId = entity.locationId;

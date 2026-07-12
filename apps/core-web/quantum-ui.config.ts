@@ -3,11 +3,24 @@ import { getBusinessUnitCurrency, getUserCurrency } from '@vritti/quantum-ui/cur
 import { parseSlug } from '@vritti/quantum-ui/slug';
 import { getBusinessUnitTimeZone, getUserTimeZone } from '@vritti/quantum-ui/timezone';
 
-const getActiveBusinessUnitId = () => {
-  const buSegment = window.location.pathname.split('/').find((segment) => segment.startsWith('bu-'));
-  if (!buSegment) return null;
+const WORKSPACE_HEADERS = [
+  { prefix: 'site-', header: 'x-site-id' },
+  { prefix: 'sg-', header: 'x-sg-id' },
+  { prefix: 'le-', header: 'x-le-id' },
+  { prefix: 'org-', header: 'x-org-id' },
+] as const;
 
-  const parsed = parseSlug(buSegment.replace(/^bu-/, ''));
+const getWorkspaceSegment = () => window.location.pathname.split('/').filter(Boolean)[0] ?? null;
+
+// Resolves the active workspace entity id from the URL (site-/sg-/le-/org- slugs)
+const getActiveWorkspaceId = () => {
+  const segment = getWorkspaceSegment();
+  if (!segment) return null;
+
+  const match = WORKSPACE_HEADERS.find(({ prefix }) => segment.startsWith(prefix));
+  if (!match) return null;
+
+  const parsed = parseSlug(segment.slice(match.prefix.length));
   return parsed?.id ?? null;
 };
 
@@ -39,14 +52,15 @@ export default defineConfig({
       Accept: 'application/json',
     },
     onRequest: (config) => {
-      // Extract buId from URL path (e.g. /bu-hq~uuid/items → uuid)
-      const buSegment = window.location.pathname.split('/').find((s) => s.startsWith('bu-'));
-      if (buSegment) {
-        const parsed = parseSlug(buSegment.replace(/^bu-/, ''));
-        if (parsed?.id) {
-          config.headers['x-bu-id'] = parsed.id;
-        }
-      }
+      // Exactly one context header per request: site- → x-site-id, sg- → x-sg-id, le- → x-le-id, org- → x-org-id
+      const segment = getWorkspaceSegment();
+      if (!segment) return;
+
+      const match = WORKSPACE_HEADERS.find(({ prefix }) => segment.startsWith(prefix));
+      if (!match) return;
+
+      const parsed = parseSlug(segment.slice(match.prefix.length));
+      if (parsed?.id) config.headers[match.header] = parsed.id;
     },
   },
 
@@ -64,9 +78,9 @@ export default defineConfig({
 
   timeZone: {
     resolveTimeZone: () => {
-      const businessUnitId = getActiveBusinessUnitId();
-      if (businessUnitId) {
-        return getBusinessUnitTimeZone(businessUnitId) ?? getUserTimeZone();
+      const workspaceId = getActiveWorkspaceId();
+      if (workspaceId) {
+        return getBusinessUnitTimeZone(workspaceId) ?? getUserTimeZone();
       }
 
       return getUserTimeZone();
@@ -75,9 +89,9 @@ export default defineConfig({
 
   currency: {
     resolveCurrency: () => {
-      const businessUnitId = getActiveBusinessUnitId();
-      if (businessUnitId) {
-        return getBusinessUnitCurrency(businessUnitId) ?? getUserCurrency();
+      const workspaceId = getActiveWorkspaceId();
+      if (workspaceId) {
+        return getBusinessUnitCurrency(workspaceId) ?? getUserCurrency();
       }
 
       return getUserCurrency();

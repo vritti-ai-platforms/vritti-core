@@ -10,8 +10,8 @@ import {
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { customers } from '@/db/schema';
-import type { CreateCustomerDto } from '@/modules/customers/dto/request/create-customer.dto';
-import type { UpdateCustomerDto } from '@/modules/customers/dto/request/update-customer.dto';
+import type { CreateCustomerDto } from '@/modules/site/customers/dto/request/create-customer.dto';
+import type { UpdateCustomerDto } from '@/modules/site/customers/dto/request/update-customer.dto';
 import { CustomerDto } from '../dto/entity/customer.dto';
 import { CustomersRepository } from '../repositories/customers.repository';
 

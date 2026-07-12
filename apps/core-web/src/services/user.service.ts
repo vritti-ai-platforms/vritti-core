@@ -1,6 +1,6 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
-import type { AssignedBU } from './permissions.service';
+import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup } from './permissions.service';
 
 export interface User {
   id: string;
@@ -29,8 +29,14 @@ export interface AuthStatusResponse {
   accessToken?: string;
   expiresIn?: number;
   org?: AuthOrg;
-  businessUnits?: AssignedBU[];
-  featuresByBuId?: Record<string, PermissionFeature[]>;
+  sites?: AssignedSite[];
+  legalEntities?: AssignedLegalEntity[];
+  siteGroups?: AssignedSiteGroup[];
+  assignments?: AssignedRole[];
+  featuresBySiteId?: Record<string, PermissionFeature[]>;
+  featuresByGroupId?: Record<string, PermissionFeature[]>;
+  featuresByLeId?: Record<string, PermissionFeature[]>;
+  orgFeatures?: PermissionFeature[];
 }
 
 // Fetches the current user's authentication status

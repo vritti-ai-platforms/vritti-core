@@ -75,7 +75,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       select: {
         id: inventoryItemQuants.id,
         organizationId: inventoryItemQuants.organizationId,
-        businessUnitId: inventoryItemQuants.businessUnitId,
+        siteId: inventoryItemQuants.siteId,
         inventoryItemId: inventoryItemQuants.inventoryItemId,
         locationId: inventoryItemQuants.locationId,
         lotId: inventoryItemQuants.lotId,
@@ -114,7 +114,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       select: {
         id: inventoryItemQuants.id,
         organizationId: inventoryItemQuants.organizationId,
-        businessUnitId: inventoryItemQuants.businessUnitId,
+        siteId: inventoryItemQuants.siteId,
         inventoryItemId: inventoryItemQuants.inventoryItemId,
         locationId: inventoryItemQuants.locationId,
         lotId: inventoryItemQuants.lotId,
@@ -147,7 +147,7 @@ export class InventoryItemQuantsRepository extends PrimaryBaseRepository<typeof 
       .select({
         id: inventoryItemQuants.id,
         organizationId: inventoryItemQuants.organizationId,
-        businessUnitId: inventoryItemQuants.businessUnitId,
+        siteId: inventoryItemQuants.siteId,
         inventoryItemId: inventoryItemQuants.inventoryItemId,
         locationId: inventoryItemQuants.locationId,
         lotId: inventoryItemQuants.lotId,

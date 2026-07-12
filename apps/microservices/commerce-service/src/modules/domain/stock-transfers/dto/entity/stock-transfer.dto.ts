@@ -4,8 +4,8 @@ export class StockTransferDto {
   id: string;
   inventoryItemId: string;
   inventoryItemName: string;
-  fromBuId: string;
-  toBuId: string;
+  fromSiteId: string;
+  toSiteId: string;
   quantity: number;
   status: string;
   requestedBy: string | null;
@@ -19,8 +19,8 @@ export class StockTransferDto {
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = itemName ?? '';
-    dto.fromBuId = entity.fromBuId;
-    dto.toBuId = entity.toBuId;
+    dto.fromSiteId = entity.fromSiteId;
+    dto.toSiteId = entity.toSiteId;
     dto.quantity = entity.quantity;
     dto.status = entity.status;
     dto.requestedBy = entity.requestedBy ?? null;

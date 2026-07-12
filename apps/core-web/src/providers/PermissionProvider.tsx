@@ -1,11 +1,11 @@
-import type { AssignedBU } from '@services/permissions.service';
+import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup } from '@services/permissions.service';
+import { type ActiveWorkspace, extractWorkspaceFromPath, type WorkspaceKind } from '@utils/workspace';
 import { setBusinessUnitCurrency } from '@vritti/quantum-ui/currency';
 import {
   type PermissionGateFn,
   PermissionGateProvider,
   type PermissionGateResult,
 } from '@vritti/quantum-ui/PermissionGate';
-import { parseSlug } from '@vritti/quantum-ui/slug';
 import { setBusinessUnitTimeZone } from '@vritti/quantum-ui/timezone';
 import type { PermissionFeature } from '@vritti/quantum-ui/types/catalog-resolver';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -13,20 +13,33 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 
 interface PermissionContextValue {
-  businessUnits: AssignedBU[];
-  selectedBuId: string | null;
-  selectBu: (buId: string) => void;
+  sites: AssignedSite[];
+  legalEntities: AssignedLegalEntity[];
+  siteGroups: AssignedSiteGroup[];
+  assignments: AssignedRole[];
+  workspace: ActiveWorkspace | null;
+  selectWorkspace: (workspace: ActiveWorkspace) => void;
+  selectedSiteId: string | null;
+  selectSite: (siteId: string) => void;
   features: PermissionFeature[];
-  isLoadingBUs: boolean;
+  isLoadingSites: boolean;
   isLoadingPermissions: boolean;
 }
 
+export const LAST_SITE_STORAGE_KEY = 'vritti_last_site_id';
+export const LAST_WORKSPACE_STORAGE_KEY = 'vritti_last_workspace';
+
 const PermissionContext = createContext<PermissionContextValue>({
-  businessUnits: [],
-  selectedBuId: null,
-  selectBu: () => {},
+  sites: [],
+  legalEntities: [],
+  siteGroups: [],
+  assignments: [],
+  workspace: null,
+  selectWorkspace: () => {},
+  selectedSiteId: null,
+  selectSite: () => {},
   features: [],
-  isLoadingBUs: false,
+  isLoadingSites: false,
   isLoadingPermissions: false,
 });
 
@@ -54,9 +67,26 @@ function deny(featureName: string): PermissionGateResult {
   return { granted: false, locked: false, reason: null, unlockPlans: [], available: false, featureName };
 }
 
-// Resolves a "feature.permission" code against the selected BU's resolved features
-function buildGate(features: PermissionFeature[]): PermissionGateFn {
-  return (code) => {
+// The workspace scope is part of the permission identity (scope.feature.permission). Each workspace
+// resolves exactly one scope, so a code must carry THIS workspace's scope prefix — a code prefixed
+// with a different scope (le.uom.view checked in an org workspace) must NOT match. Codes with no
+// scope prefix are treated as legacy/unscoped for the transition.
+const KIND_SCOPE_PREFIX: Record<WorkspaceKind, string> = {
+  site: 'site.',
+  group: 'site-group.',
+  le: 'le.',
+  org: 'org.',
+};
+
+const SCOPE_PREFIXES = Object.values(KIND_SCOPE_PREFIX);
+
+// Resolves a "[scope.]feature.permission" code against the active workspace's resolved features
+function buildGate(features: PermissionFeature[], workspaceScopePrefix: string | null): PermissionGateFn {
+  return (rawCode) => {
+    const carriedScope = SCOPE_PREFIXES.find((p) => rawCode.startsWith(p));
+    // A code carrying a scope other than this workspace's belongs to a different scope — deny it.
+    if (carriedScope && carriedScope !== workspaceScopePrefix) return DENY;
+    const code = carriedScope ? rawCode.slice(carriedScope.length) : rawCode;
     const dotIndex = code.indexOf('.');
     const featureCode = dotIndex === -1 ? code : code.slice(0, dotIndex);
     const permissionCode = dotIndex === -1 ? null : code.slice(dotIndex + 1);
@@ -71,61 +101,102 @@ function buildGate(features: PermissionFeature[]): PermissionGateFn {
   };
 }
 
-// Extracts buId from URL path like /bu-Name~uuid/products
-function extractBuIdFromPath(pathname: string): string | null {
-  const segments = pathname.split('/').filter(Boolean);
-  const buSegment = segments.find((s) => s.startsWith('bu-'));
-  if (!buSegment) return null;
-  const parsed = parseSlug(buSegment.replace(/^bu-/, ''));
-  return parsed?.id ?? null;
-}
-
-// Provides BU selection and resolved permissions to the app
+// Provides workspace selection and resolved permissions to the app
 export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { org, businessUnits, featuresByBuId, isLoading } = useAuth();
+  const {
+    org,
+    sites,
+    legalEntities,
+    siteGroups,
+    assignments,
+    featuresBySiteId,
+    featuresByGroupId,
+    featuresByLeId,
+    orgFeatures,
+    isLoading,
+  } = useAuth();
   const location = useLocation();
 
-  // Derive buId from URL
-  const urlBuId = extractBuIdFromPath(location.pathname);
-  const [selectedBuId, setSelectedBuId] = useState<string | null>(urlBuId);
+  // Derive the active workspace from the URL
+  const urlWorkspace = useMemo(() => extractWorkspaceFromPath(location.pathname), [location.pathname]);
+  const [workspace, setWorkspace] = useState<ActiveWorkspace | null>(urlWorkspace);
 
-  // Sync with URL changes
+  // Sync with URL changes — clears when navigating back to workspace selection
   useEffect(() => {
-    if (urlBuId) setSelectedBuId(urlBuId);
-  }, [urlBuId]);
+    setWorkspace(urlWorkspace);
+  }, [urlWorkspace]);
 
-  // Store org ID in localStorage for commerce-mf to read
+  // Store org ID in localStorage for commerce-mf and the axios onRequest hook (/org → x-org-id) to read
   useEffect(() => {
     if (org?.id) localStorage.setItem('vritti_org_id', org.id);
   }, [org?.id]);
 
-  // BUs + features now arrive in the SSE auth-state payload (AuthProvider) — no separate fetch.
-  const features = selectedBuId ? (featuresByBuId[selectedBuId] ?? []) : [];
+  // Features arrive in the SSE auth-state payload (AuthProvider), keyed by workspace kind
+  const features = useMemo<PermissionFeature[]>(() => {
+    if (!workspace) return [];
+    if (workspace.kind === 'org') return orgFeatures;
+    if (!workspace.id) return [];
+    if (workspace.kind === 'site') return featuresBySiteId[workspace.id] ?? [];
+    if (workspace.kind === 'group') return featuresByGroupId[workspace.id] ?? [];
+    return featuresByLeId[workspace.id] ?? [];
+  }, [workspace, featuresBySiteId, featuresByGroupId, featuresByLeId, orgFeatures]);
 
   useEffect(() => {
-    for (const businessUnit of businessUnits) {
-      setBusinessUnitTimeZone(businessUnit.id, businessUnit.timezone);
-      setBusinessUnitCurrency(businessUnit.id, businessUnit.currencyCode);
+    for (const site of sites) {
+      setBusinessUnitTimeZone(site.id, site.timezone);
+      setBusinessUnitCurrency(site.id, site.currencyCode);
     }
-  }, [businessUnits]);
+  }, [sites]);
 
-  const selectBu = useCallback((buId: string) => {
-    setSelectedBuId(buId);
+  // LEs carry a currency but no timezone — their timezone falls back to the user's
+  useEffect(() => {
+    for (const le of legalEntities) {
+      setBusinessUnitCurrency(le.id, le.currencyCode);
+    }
+  }, [legalEntities]);
+
+  const selectWorkspace = useCallback((next: ActiveWorkspace) => {
+    setWorkspace(next);
+    localStorage.setItem(LAST_WORKSPACE_STORAGE_KEY, JSON.stringify(next));
+    if (next.kind === 'site' && next.id) localStorage.setItem(LAST_SITE_STORAGE_KEY, next.id);
   }, []);
+
+  const selectSite = useCallback((siteId: string) => selectWorkspace({ kind: 'site', id: siteId }), [selectWorkspace]);
+
+  const selectedSiteId = workspace?.kind === 'site' ? workspace.id : null;
 
   const contextValue = useMemo<PermissionContextValue>(
     () => ({
-      businessUnits,
-      selectedBuId,
-      selectBu,
+      sites,
+      legalEntities,
+      siteGroups,
+      assignments,
+      workspace,
+      selectWorkspace,
+      selectedSiteId,
+      selectSite,
       features,
-      isLoadingBUs: isLoading,
+      isLoadingSites: isLoading,
       isLoadingPermissions: isLoading,
     }),
-    [businessUnits, selectedBuId, selectBu, features, isLoading],
+    [
+      sites,
+      legalEntities,
+      siteGroups,
+      assignments,
+      workspace,
+      selectWorkspace,
+      selectedSiteId,
+      selectSite,
+      features,
+      isLoading,
+    ],
   );
 
-  const gate = useMemo(() => buildGate(features), [features]);
+  const gate = useMemo(
+    () => buildGate(features, workspace ? KIND_SCOPE_PREFIX[workspace.kind] : null),
+    [features, workspace],
+  );
 
   return (
     <PermissionContext.Provider value={contextValue}>
@@ -134,7 +205,7 @@ export const PermissionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
-// Hook to access BU + permission state — must be used within PermissionProvider
+// Hook to access workspace + permission state — must be used within PermissionProvider
 export function usePermissionContext(): PermissionContextValue {
   return useContext(PermissionContext);
 }

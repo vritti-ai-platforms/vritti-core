@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { desc, eq, inArray } from '@vritti/api-sdk/drizzle-orm';
-import { businessUnits, type Catalog, catalogs, type NewCatalog } from '@/db/schema';
+import { type Catalog, catalogs, type NewCatalog, sites } from '@/db/schema';
 
 @Injectable()
 export class CatalogRepository extends PrimaryBaseRepository<typeof catalogs> {
@@ -58,9 +58,9 @@ export class CatalogRepository extends PrimaryBaseRepository<typeof catalogs> {
     return stale.length;
   }
 
-  // Returns every business unit id across all organizations (internal cloud request runs without an RLS org context)
-  async findAllBusinessUnitIds(): Promise<string[]> {
-    const rows = await this.db.select({ id: businessUnits.id }).from(businessUnits);
+  // Returns every site id across all organizations (internal cloud request runs without an RLS org context)
+  async findAllSiteIds(): Promise<string[]> {
+    const rows = await this.db.select({ id: sites.id }).from(sites);
     return rows.map((r) => r.id);
   }
 }

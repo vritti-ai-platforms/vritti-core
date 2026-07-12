@@ -4,36 +4,29 @@ import { clearTokens, getOnSessionExpired, getStoredMobileBaseURL, getToken } fr
 import { Platform } from 'react-native';
 import { ErrorCode } from '../types/error-code';
 import { netInfoConnectivity } from './connectivity';
-import { getSelectedBusinessUnitId, offlineQueueStore } from './storage';
+import { apolloCacheStore, getActiveWorkspaceHeader, offlineQueueStore } from './storage';
 
 const created = createApolloClient({
   getToken,
   resolveBaseURL: getStoredMobileBaseURL,
   // Tenant + platform headers mirror the axios interceptor; Authorization is added from the token.
-  buildHeaders: () => {
-    const businessUnitId = getSelectedBusinessUnitId();
-    return {
-      'X-Platform': Platform.OS,
-      ...(businessUnitId ? { 'x-bu-id': businessUnitId } : {}),
-    };
-  },
+  // The active workspace resolves to exactly one context header (x-site-id / x-sg-id / x-le-id / x-org-id).
+  buildHeaders: () => ({
+    'X-Platform': Platform.OS,
+    ...getActiveWorkspaceHeader(),
+  }),
   // On UNAUTHENTICATED, clear the session and notify the host (mirrors the axios 401 path).
   onUnauthenticated: () => {
     void clearTokens().finally(() => getOnSessionExpired()?.());
   },
   unauthenticatedCode: ErrorCode.UNAUTHENTICATED,
-  // Ephemeral cache: no MMKV snapshot — every cold launch starts empty and fetches fresh.
-  // Pin cache-and-network explicitly: WITHOUT `persistence` the factory default silently flips to
-  // Apollo's cache-first, which would stop watch queries revalidating on mount within a session.
-  watchQueryFetchPolicy: 'cache-and-network',
+  // Non-secret MMKV snapshot so the last-fetched data renders instantly on relaunch.
+  persistence: { mmkv: apolloCacheStore },
   // NetInfo drives replay-on-reconnect; the offline queue persists opted-in writes across app kills.
   connectivity: netInfoConnectivity,
   offline: {
     mmkv: offlineQueueStore,
-    captureContext: (): Record<string, string> => {
-      const businessUnitId = getSelectedBusinessUnitId();
-      return businessUnitId ? { 'x-bu-id': businessUnitId } : {};
-    },
+    captureContext: (): Record<string, string> => getActiveWorkspaceHeader(),
   },
 });
 
@@ -41,8 +34,3 @@ export const apolloClient = created.client as unknown as ApolloClient;
 export const apolloReady = created.ready;
 export const purgeApolloCache = created.purge;
 export const purgeApolloPersisted = created.purgePersisted;
-// BU / tenant switch: re-restore the NEW BU's namespaced snapshot into the live cache for instant cold
-// data (a no-op on first visit to that BU). Paired with evictRegisteredConnections in PermissionProvider.
-export const restoreApolloCache = created.restore;
-// Lets the host observe how close the persisted snapshot is to the maxSize self-disable cliff.
-export const getApolloCacheSize = created.getCacheSize;

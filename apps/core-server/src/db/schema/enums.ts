@@ -35,28 +35,16 @@ export const OrgSizeValues = {
   s500plus: '500+' as const,
 };
 
-export const buTypeEnum = coreSchema.enum('bu_type', [
-  'ORGANIZATION',
-  'REGION',
-  'FRANCHISEE',
-  'BRANCH',
-  'TEAM',
-  'DEPARTMENT',
-  'CUSTOM',
-]);
+export const siteTypeEnum = coreSchema.enum('site_type', ['OUTLET', 'WAREHOUSE', 'PRODUCTION']);
 export const assignmentTypeEnum = coreSchema.enum('assignment_type', ['DIRECT', 'INHERITED']);
 
-export type BuType = (typeof buTypeEnum.enumValues)[number];
+export type SiteType = (typeof siteTypeEnum.enumValues)[number];
 export type AssignmentType = (typeof assignmentTypeEnum.enumValues)[number];
 
-export const BuTypeValues = {
-  ORGANIZATION: 'ORGANIZATION' as const,
-  REGION: 'REGION' as const,
-  FRANCHISEE: 'FRANCHISEE' as const,
-  BRANCH: 'BRANCH' as const,
-  TEAM: 'TEAM' as const,
-  DEPARTMENT: 'DEPARTMENT' as const,
-  CUSTOM: 'CUSTOM' as const,
+export const SiteTypeValues = {
+  OUTLET: 'OUTLET' as const,
+  WAREHOUSE: 'WAREHOUSE' as const,
+  PRODUCTION: 'PRODUCTION' as const,
 };
 
 export const AssignmentTypeValues = {
@@ -79,4 +67,13 @@ export const PickStrategyValues = {
   FEFO: 'FEFO' as const,
   FIFO: 'FIFO' as const,
   LIFO: 'LIFO' as const,
+};
+
+export const taxRegimeEnum = coreSchema.enum('tax_regime', ['GST', 'VAT', 'SALES_TAX', 'NONE']);
+export type TaxRegime = (typeof taxRegimeEnum.enumValues)[number];
+export const TaxRegimeValues = {
+  GST: 'GST' as const,
+  VAT: 'VAT' as const,
+  SALES_TAX: 'SALES_TAX' as const,
+  NONE: 'NONE' as const,
 };

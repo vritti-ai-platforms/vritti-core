@@ -16,8 +16,8 @@ import {
 import { and, asc, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { inventoryItemUomConversions, purchaseOrderItems, supplierItems, uom, uomDimensions } from '@/db/schema';
-import type { CreateUomDto } from '@/modules/uom/dto/request/create-uom.dto';
-import type { UpdateUomDto } from '@/modules/uom/dto/request/update-uom.dto';
+import type { CreateUomDto } from '@/modules/organization/uom/dto/request/create-uom.dto';
+import type { UpdateUomDto } from '@/modules/organization/uom/dto/request/update-uom.dto';
 import { UomDto } from '../dto/entity/uom.dto';
 import { UomRepository } from '../repositories/uom.repository';
 
@@ -41,10 +41,7 @@ export class UomService {
   constructor(private readonly uomRepository: UomRepository) {}
 
   // Returns paginated UOMs for the data table, scoped to a dimension; joined with base unit symbol
-  async findForTable(
-    state: TableViewState & { dimensionId: string },
-    currentBuId: string,
-  ): Promise<{ result: UomDto[]; count: number }> {
+  async findForTable(state: TableViewState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, UomService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, UomService.FIELD_MAP);
     const dimensionWhere = eq(uom.dimensionId, state.dimensionId);
@@ -61,19 +58,16 @@ export class UomService {
 
     const referencedIds = await this.uomRepository.findReferencedIds(rows.map((r) => r.id));
     return {
-      result: rows.map((row) => UomDto.from(row, currentBuId, !referencedIds.has(row.id), row.baseUnitSymbol)),
+      result: rows.map((row) => UomDto.from(row, !referencedIds.has(row.id), row.baseUnitSymbol)),
       count,
     };
   }
 
   // Keyset/cursor Relay connection of a dimension's units (base + derived) for the mobile infinite feed.
   // Fixed order: base units first (baseUnitId NULLS FIRST), then by name, with id as the unique tie-breaker
-  // (required for keyset correctness). Joins the base-unit symbol; buId scopes canEdit and the batch
-  // reference check gates canDelete.
-  async findForFeed(
-    query: { dimensionId: string; limit?: number; cursor?: string },
-    currentBuId: string,
-  ): Promise<{
+  // (required for keyset correctness). Joins the base-unit symbol; org-scoped so canEdit is always true
+  // and the batch reference check gates canDelete.
+  async findForFeed(query: { dimensionId: string; limit?: number; cursor?: string }): Promise<{
     edges: { cursor: string; node: UomDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
@@ -103,7 +97,7 @@ export class UomService {
         orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
         signature,
       ),
-      node: UomDto.from(row, currentBuId, !referencedIds.has(row.id), row.baseUnitSymbol),
+      node: UomDto.from(row, !referencedIds.has(row.id), row.baseUnitSymbol),
     }));
 
     return {
@@ -116,19 +110,19 @@ export class UomService {
   }
 
   // Returns base units, optionally filtered by search
-  async findBaseUnits(search: string | undefined, currentBuId: string): Promise<UomDto[]> {
+  async findBaseUnits(search: string | undefined): Promise<UomDto[]> {
     const entities = await this.uomRepository.findBaseUnits(search);
     const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
-    return entities.map((e) => UomDto.from(e, currentBuId, !referencedIds.has(e.id)));
+    return entities.map((e) => UomDto.from(e, !referencedIds.has(e.id)));
   }
 
   // Returns all derived units for a given base unit
-  async findDerivedUnits(baseUnitId: string, currentBuId: string): Promise<UomDto[]> {
+  async findDerivedUnits(baseUnitId: string): Promise<UomDto[]> {
     const baseUnit = await this.uomRepository.findById(baseUnitId);
     if (!baseUnit) throw new NotFoundException('Base unit not found.');
     const entities = await this.uomRepository.findDerivedUnits(baseUnitId);
     const referencedIds = await this.uomRepository.findReferencedIds(entities.map((e) => e.id));
-    return entities.map((e) => UomDto.from(e, currentBuId, !referencedIds.has(e.id)));
+    return entities.map((e) => UomDto.from(e, !referencedIds.has(e.id)));
   }
 
   // Returns paginated UOM options for select dropdowns. When `inventoryItemId` is set, the
@@ -230,7 +224,7 @@ export class UomService {
     if (!baseUnit) throw new BadRequestException('The specified base unit does not exist.');
   }
 
-  // Creates a new UOM; newly created row belongs to the current BU so canEdit is always true
+  // Creates a new UOM
   async create(data: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
     if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId);
 
@@ -256,17 +250,15 @@ export class UomService {
     return {
       success: true,
       message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
-      // Re-read a complete DTO (joins baseUnitSymbol; a fresh row has no references so canDelete=true).
-      // buId is the row's own BU, so canEdit resolves to true.
-      data: await this.toDto(entity.id, entity.businessUnitId),
+      data: UomDto.from(entity),
     };
   }
 
-  // Builds a COMPLETE UomDto by id — same primitives findForFeed uses, so canEdit/canDelete and
+  // Builds a COMPLETE UomDto by id — same primitives findForFeed uses, so canDelete and
   // baseUnitSymbol are computed identically on every read path (the by-id re-read after update/create).
-  // Without this, a bare UomDto.from(entity, buId) defaults canDelete=true and baseUnitSymbol=null, which
+  // Without this, a bare UomDto.from(entity) defaults canDelete=true and baseUnitSymbol=null, which
   // Apollo then auto-merges over the feed's correct values (delete button reappears; conversion shows "—").
-  private async toDto(id: string, currentBuId: string): Promise<UomDto> {
+  private async toDto(id: string): Promise<UomDto> {
     const { result } = await this.uomRepository.findForTableWithBase({
       where: eq(uom.id, id),
       orderBy: [asc(uom.name)],
@@ -276,12 +268,12 @@ export class UomService {
     const row = result[0];
     if (!row) throw new NotFoundException('Unit of measure not found.');
     const referenced = await this.uomRepository.findReferencedIds([id]);
-    return UomDto.from(row, currentBuId, !referenced.has(id), row.baseUnitSymbol);
+    return UomDto.from(row, !referenced.has(id), row.baseUnitSymbol);
   }
 
   // Finds a UOM by ID or throws NotFoundException
-  async findById(id: string, currentBuId: string): Promise<UomDto> {
-    return this.toDto(id, currentBuId);
+  async findById(id: string): Promise<UomDto> {
+    return this.toDto(id);
   }
 
   // Updates a UOM

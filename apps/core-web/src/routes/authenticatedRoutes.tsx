@@ -1,9 +1,9 @@
 import type { RouteObject } from 'react-router-dom';
 import { AppLayout } from '../components/layouts/AppLayout';
-import { BULayout } from '../components/layouts/BULayout';
+import { SiteLayout } from '../components/layouts/SiteLayout';
 import { ProfilePage } from '../pages/account/profile/ProfilePage';
 import { SecurityPage } from '../pages/account/security/SecurityPage';
-import { BUSelectionPage } from '../pages/BUSelectionPage';
+import { WorkspaceSelectionPage } from '../pages/WorkspaceSelectionPage';
 import { DynamicFeatureRoutes } from '../utils/DynamicFeatureRoutes';
 
 // Routes available when the user IS authenticated
@@ -14,7 +14,7 @@ export const authenticatedRoutes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <BUSelectionPage />,
+        element: <WorkspaceSelectionPage />,
       },
       {
         path: 'account/profile',
@@ -27,8 +27,8 @@ export const authenticatedRoutes: RouteObject[] = [
     ],
   },
   {
-    path: ':buSlug/*',
-    element: <BULayout />,
+    path: ':workspaceSlug/*',
+    element: <SiteLayout />,
     children: [
       {
         path: '*',

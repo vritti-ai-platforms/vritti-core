@@ -1,4 +1,3 @@
-import { isIP } from 'node:net';
 import {
   Body,
   Controller,
@@ -196,18 +195,11 @@ export class AuthController {
   ): Promise<Observable<MessageEvent>> {
     const baseDomain = this.config.getOrThrow<string>('BASE_DOMAIN');
     const subdomain = host.endsWith(`.${baseDomain}`) ? host.replace(`.${baseDomain}`, '') : undefined;
-    const allowRawIpOrgResolution = this.config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false) && isIP(host) > 0;
     const platform = normalizeClientPlatform(platformHeader);
 
     this.logger.log(`SSE /auth/status — subdomain: ${subdomain ?? 'none'}, platform: ${platform}`);
 
-    const authResponse = await this.authService.getStatus(
-      refreshToken,
-      subdomain,
-      accessToken,
-      allowRawIpOrgResolution,
-      platform,
-    );
+    const authResponse = await this.authService.getStatus(refreshToken, subdomain, accessToken, platform);
     const initial$ = of({ type: 'auth-state', data: JSON.stringify(authResponse) } as MessageEvent);
 
     // Not authenticated — send initial state and hold open to prevent rapid reconnect loop

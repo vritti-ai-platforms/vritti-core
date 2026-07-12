@@ -1,7 +1,10 @@
 export const AUTH_STATUS_EVENTS = {
   SESSION_REVOKED: 'auth-status.session-revoked',
   USER_UPDATED: 'auth-status.user-updated',
-  BU_UPDATED: 'auth-status.bu-updated',
+  SITE_UPDATED: 'auth-status.site-updated',
+  LEGAL_ENTITY_UPDATED: 'auth-status.legal-entity-updated',
+  SITE_GROUP_UPDATED: 'auth-status.site-group-updated',
+  ORG_UPDATED: 'auth-status.org-updated',
 };
 
 export class SessionRevokedEvent {
@@ -15,6 +18,24 @@ export class UserUpdatedEvent {
   constructor(public readonly userId: string) {}
 }
 
-export class BuUpdatedEvent {
-  constructor(public readonly buId: string) {}
+export class SiteUpdatedEvent {
+  constructor(public readonly siteId: string) {}
+}
+
+export class LegalEntityUpdatedEvent {
+  constructor(
+    public readonly legalEntityId: string,
+    public readonly orgId: string,
+  ) {}
+}
+
+export class SiteGroupUpdatedEvent {
+  constructor(
+    public readonly siteGroupId: string,
+    public readonly orgId: string,
+  ) {}
+}
+
+export class OrgUpdatedEvent {
+  constructor(public readonly orgId: string) {}
 }

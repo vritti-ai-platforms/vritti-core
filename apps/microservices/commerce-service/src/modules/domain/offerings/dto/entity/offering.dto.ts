@@ -2,7 +2,7 @@ import type { FulfilmentType, Offering } from '@/db/schema';
 
 export class OfferingDto {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   categoryId: string | null;
   categoryName: string | null;
   fulfilmentType: FulfilmentType;
@@ -25,7 +25,7 @@ export class OfferingDto {
   ): OfferingDto {
     const dto = new OfferingDto();
     dto.id = entity.id;
-    dto.businessUnitId = entity.businessUnitId;
+    dto.siteId = entity.siteId;
     dto.currencyCode = currencyCode;
     dto.categoryId = entity.categoryId ?? null;
     dto.categoryName = categoryName ?? null;

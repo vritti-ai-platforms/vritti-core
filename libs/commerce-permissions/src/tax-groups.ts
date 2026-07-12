@@ -1,8 +1,9 @@
 // Tax-group permission codes — MUST match the cloud catalog's authored codes exactly.
-export const TAX_GROUPS = {
+// One object per workspace scope the feature is exposed in; codes are scope.feature.permission.
+export const LE_TAX_GROUPS = {
   featureCode: 'tax-groups',
-  view: 'tax-groups.view',
-  add: 'tax-groups.add',
-  edit: 'tax-groups.edit',
-  delete: 'tax-groups.delete',
+  view: 'le.tax-groups.view',
+  add: 'le.tax-groups.add',
+  edit: 'le.tax-groups.edit',
+  delete: 'le.tax-groups.delete',
 } as const;

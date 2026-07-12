@@ -6,7 +6,7 @@ import { type CatalogChannel, catalogChannels, type SalesChannelKind, salesChann
 type CatalogChannelRow = {
   id: string;
   catalogId: string;
-  businessUnitId: string;
+  siteId: string;
   channelId: string;
   channelName: string;
   channelKind: SalesChannelKind;
@@ -24,7 +24,7 @@ export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof cata
       .select({
         id: catalogChannels.id,
         catalogId: catalogChannels.catalogId,
-        businessUnitId: catalogChannels.businessUnitId,
+        siteId: catalogChannels.siteId,
         channelId: catalogChannels.channelId,
         channelName: salesChannels.name,
         channelKind: salesChannels.kind,
@@ -35,9 +35,9 @@ export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof cata
       .orderBy(asc(salesChannels.name));
   }
 
-  // Inserts a catalog-channel assignment (RLS bu_write guards the BU)
+  // Inserts a catalog-channel assignment (RLS bu_write guards the site)
   // and returns it joined with the channel name and kind
-  async assign(data: { catalogId: string; businessUnitId: string; channelId: string }): Promise<CatalogChannelRow> {
+  async assign(data: { catalogId: string; siteId: string; channelId: string }): Promise<CatalogChannelRow> {
     const [inserted] = (await this.db.insert(catalogChannels).values(data).returning()) as CatalogChannel[];
     const [channel] = await this.db
       .select({ name: salesChannels.name, kind: salesChannels.kind })
@@ -46,7 +46,7 @@ export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof cata
     return {
       id: inserted.id,
       catalogId: inserted.catalogId,
-      businessUnitId: inserted.businessUnitId,
+      siteId: inserted.siteId,
       channelId: inserted.channelId,
       channelName: channel.name,
       channelKind: channel.kind,
@@ -72,9 +72,9 @@ export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof cata
     return new Map(rows.map((row) => [row.catalogId, Number(row.count)]));
   }
 
-  // Finds the assignment for a BU + channel pair (catalog discovery helper)
-  async findByBuAndChannel(businessUnitId: string, channelId: string): Promise<CatalogChannel | undefined> {
-    return this.model.findFirst({ where: { businessUnitId, channelId } });
+  // Finds the assignment for a site + channel pair (catalog discovery helper)
+  async findBySiteAndChannel(siteId: string, channelId: string): Promise<CatalogChannel | undefined> {
+    return this.model.findFirst({ where: { siteId, channelId } });
   }
 
   // Returns the raw channel-assignment rows for a catalog
@@ -82,12 +82,8 @@ export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof cata
     return this.model.findMany({ where: { catalogId } });
   }
 
-  // Returns names of channels already mapped to a different catalog for this BU
-  async findConflictingChannelNames(
-    businessUnitId: string,
-    channelIds: string[],
-    excludeCatalogId: string,
-  ): Promise<string[]> {
+  // Returns names of channels already mapped to a different catalog for this site
+  async findConflictingChannelNames(siteId: string, channelIds: string[], excludeCatalogId: string): Promise<string[]> {
     if (channelIds.length === 0) return [];
     const rows = await this.db
       .select({ name: salesChannels.name })
@@ -95,7 +91,7 @@ export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof cata
       .innerJoin(salesChannels, eq(catalogChannels.channelId, salesChannels.id))
       .where(
         and(
-          eq(catalogChannels.businessUnitId, businessUnitId),
+          eq(catalogChannels.siteId, siteId),
           inArray(catalogChannels.channelId, channelIds),
           ne(catalogChannels.catalogId, excludeCatalogId),
         ),
@@ -111,8 +107,8 @@ export class CatalogChannelsRepository extends PrimaryBaseRepository<typeof cata
       .where(and(eq(catalogChannels.catalogId, catalogId), inArray(catalogChannels.channelId, channelIds)));
   }
 
-  // Bulk-inserts channel assignments (RLS bu_write guards the BU)
-  async bulkInsert(rows: { catalogId: string; businessUnitId: string; channelId: string }[]): Promise<void> {
+  // Bulk-inserts channel assignments (RLS bu_write guards the site)
+  async bulkInsert(rows: { catalogId: string; siteId: string; channelId: string }[]): Promise<void> {
     if (rows.length === 0) return;
     await this.db.insert(catalogChannels).values(rows);
   }

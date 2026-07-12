@@ -25,7 +25,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
       select: {
         id: inventoryItemLocations.id,
         organizationId: inventoryItemLocations.organizationId,
-        businessUnitId: inventoryItemLocations.businessUnitId,
+        siteId: inventoryItemLocations.siteId,
         inventoryItemId: inventoryItemLocations.inventoryItemId,
         locationId: inventoryItemLocations.locationId,
         reorderLevel: inventoryItemLocations.reorderLevel,
@@ -52,7 +52,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
       select: {
         id: inventoryItemLocations.id,
         organizationId: inventoryItemLocations.organizationId,
-        businessUnitId: inventoryItemLocations.businessUnitId,
+        siteId: inventoryItemLocations.siteId,
         inventoryItemId: inventoryItemLocations.inventoryItemId,
         locationId: inventoryItemLocations.locationId,
         reorderLevel: inventoryItemLocations.reorderLevel,
@@ -76,7 +76,7 @@ export class InventoryItemLocationsRepository extends PrimaryBaseRepository<type
       .select({
         id: inventoryItemLocations.id,
         organizationId: inventoryItemLocations.organizationId,
-        businessUnitId: inventoryItemLocations.businessUnitId,
+        siteId: inventoryItemLocations.siteId,
         inventoryItemId: inventoryItemLocations.inventoryItemId,
         locationId: inventoryItemLocations.locationId,
         reorderLevel: inventoryItemLocations.reorderLevel,

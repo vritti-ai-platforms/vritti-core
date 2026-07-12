@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { asc, desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   type InventoryItemLedgerEntry,
   inventoryItemLedger,
@@ -29,7 +29,7 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
       select: {
         id: inventoryItemLedger.id,
         organizationId: inventoryItemLedger.organizationId,
-        businessUnitId: inventoryItemLedger.businessUnitId,
+        siteId: inventoryItemLedger.siteId,
         inventoryItemId: inventoryItemLedger.inventoryItemId,
         type: inventoryItemLedger.type,
         quantity: inventoryItemLedger.quantity,
@@ -57,7 +57,7 @@ export class InventoryItemLedgerRepository extends PrimaryBaseRepository<typeof 
       select: {
         id: inventoryItemLedger.id,
         organizationId: inventoryItemLedger.organizationId,
-        businessUnitId: inventoryItemLedger.businessUnitId,
+        siteId: inventoryItemLedger.siteId,
         inventoryItemId: inventoryItemLedger.inventoryItemId,
         type: inventoryItemLedger.type,
         quantity: inventoryItemLedger.quantity,

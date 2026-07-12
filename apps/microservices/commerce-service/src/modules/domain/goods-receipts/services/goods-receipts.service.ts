@@ -22,7 +22,7 @@ import {
   purchaseOrders,
   suppliers,
 } from '@/db/schema';
-import type { CreateGoodsReceiptDto } from '@/modules/goods-receipts/dto/request/create-goods-receipt.dto';
+import type { CreateGoodsReceiptDto } from '@/modules/site/goods-receipts/dto/request/create-goods-receipt.dto';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
 import { GoodsReceiptItemsRepository } from '../repositories/goods-receipt-items.repository';
 import { GoodsReceiptsRepository } from '../repositories/goods-receipts.repository';
@@ -45,7 +45,7 @@ export class GoodsReceiptsService {
     private readonly poRepository: PurchaseOrdersRepository,
   ) {}
 
-  async create(data: CreateGoodsReceiptDto, buCurrencyCode: string): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  async create(data: CreateGoodsReceiptDto, siteCurrencyCode: string): Promise<CreateResponseDto<GoodsReceiptDto>> {
     const supplier = await this.repository.findSupplierById(data.supplierId);
     if (!supplier) throw new NotFoundException('Supplier not found.');
 
@@ -55,7 +55,7 @@ export class GoodsReceiptsService {
       throw new BadRequestException('Purchase order does not belong to the provided supplier.');
     }
 
-    const exchangeRate = this.resolveExchangeRate(supplier.currencyCode, po, data.exchangeRate, buCurrencyCode);
+    const exchangeRate = this.resolveExchangeRate(supplier.currencyCode, po, data.exchangeRate, siteCurrencyCode);
 
     const entity = await this.repository.create({
       supplierId: data.supplierId,
@@ -295,14 +295,14 @@ export class GoodsReceiptsService {
     return { success: true, message: `Goods receipt "${gr.grNumber}" deleted successfully.` };
   }
 
-  // Resolves the supplier→BU exchange rate to snapshot on the new GR
+  // Resolves the supplier→site exchange rate to snapshot on the new GR
   private resolveExchangeRate(
     supplierCurrencyCode: string,
     po: Awaited<ReturnType<PurchaseOrdersRepository['findById']>> | null,
     userExchangeRate: number | undefined,
-    buCurrencyCode: string,
+    siteCurrencyCode: string,
   ): number {
-    if (supplierCurrencyCode === buCurrencyCode) return 1;
+    if (supplierCurrencyCode === siteCurrencyCode) return 1;
 
     if (po && po.exchangeRateType === ExchangeRateTypeValues.FIXED) {
       if (po.exchangeRate == null) {
@@ -314,8 +314,8 @@ export class GoodsReceiptsService {
     // VARIABLE PO or un-linked GR — caller must supply the rate.
     if (userExchangeRate == null || userExchangeRate <= 0) {
       throw new ValidationException({
-        detail: `Exchange rate is required (supplier currency ${supplierCurrencyCode} differs from business unit currency ${buCurrencyCode}).`,
-        errors: [{ field: 'exchangeRate', message: 'Required when supplier currency differs from BU currency.' }],
+        detail: `Exchange rate is required (supplier currency ${supplierCurrencyCode} differs from site currency ${siteCurrencyCode}).`,
+        errors: [{ field: 'exchangeRate', message: 'Required when supplier currency differs from site currency.' }],
       });
     }
     return userExchangeRate;

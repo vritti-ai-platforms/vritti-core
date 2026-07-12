@@ -9,7 +9,7 @@ export const inventoryItemLedger = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
+    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
@@ -22,7 +22,7 @@ export const inventoryItemLedger = coreSchema.table(
   },
   (table) => [
     index('idx_inventory_item_ledger_item').on(table.inventoryItemId),
-    index('idx_inventory_item_ledger_bu').on(table.businessUnitId),
+    index('idx_inventory_item_ledger_site').on(table.siteId),
     index('idx_inventory_item_ledger_ref').on(table.referenceType, table.referenceId),
     index('idx_inventory_item_ledger_created').on(table.inventoryItemId, table.createdAt),
   ],

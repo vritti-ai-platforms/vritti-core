@@ -26,7 +26,6 @@ export const categories = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    businessUnitId: uuid('business_unit_id').notNull().default(sql.raw("cast(current_setting('app.bu_id') as uuid)")),
     name: varchar('name', { length: 255 }).notNull(),
     image: varchar('image', { length: 255 }),
     parentId: uuid('parent_id'),
@@ -48,28 +47,12 @@ export const categories = coreSchema.table(
   },
   (table) => [
     unique('uq_categories_parent_path_label').on(table.parentId, table.pathLabel),
-    index('idx_categories_bu').on(table.organizationId, table.businessUnitId),
+    index('idx_categories_org').on(table.organizationId),
     index('idx_categories_parent').on(table.parentId),
     index('idx_categories_path').using('gist', table.path.asc()),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('bu_ancestor_read', {
-      for: 'select',
-      using: sql`business_unit_id = ANY((select current_setting('app.bu_ancestor_ids', true))::uuid[])`,
-    }),
-    pgPolicy('bu_write', {
-      for: 'insert',
-      withCheck: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
-    }),
-    pgPolicy('bu_update', {
-      for: 'update',
-      using: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
-    }),
-    pgPolicy('bu_delete', {
-      for: 'delete',
-      using: sql`business_unit_id = (select current_setting('app.bu_id', true)::uuid)`,
     }),
   ],
 );

@@ -4,11 +4,39 @@ export interface PermissionsResponse {
   features: PermissionFeature[];
 }
 
-export interface AssignedBU {
+export type SiteType = 'OUTLET' | 'WAREHOUSE' | 'PRODUCTION';
+
+export interface AssignedSite {
   id: string;
   name: string;
   code: string | null;
-  type: string;
+  type: SiteType;
   timezone: string;
   currencyCode: string;
+  legalEntityId: string | null;
+  groupId: string | null;
+}
+
+export interface AssignedLegalEntity {
+  id: string;
+  name: string;
+  code: string;
+  country: string;
+  currencyCode: string;
+  taxRegime: string;
+  parentId: string | null;
+}
+
+export interface AssignedSiteGroup {
+  id: string;
+  name: string;
+  code: string;
+  parentId: string | null;
+}
+
+export interface AssignedRole {
+  roleCode: string;
+  roleName: string;
+  targetType: 'SITE' | 'SITE_GROUP' | 'LE' | 'ORG';
+  targetId: string | null;
 }

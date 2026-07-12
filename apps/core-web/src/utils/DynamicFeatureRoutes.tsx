@@ -7,13 +7,13 @@ import { RemoteRoutes } from './RemoteRoutes';
 
 // Dynamically builds routes from resolved permission features and renders them
 export const DynamicFeatureRoutes = () => {
-  const { features, selectedBuId, isLoadingPermissions } = usePermissionContext();
+  const { features, workspace, isLoadingPermissions } = usePermissionContext();
 
   const routes = useMemo<RouteObject[]>(() => {
-    if (!selectedBuId || features.length === 0) return [];
+    if (!workspace || features.length === 0) return [];
 
     // Plan-locked features render an upsell instead of mounting the remote; others mount the micro-app
-    return features.map((feature) => {
+    const featureRoutes: RouteObject[] = features.map((feature) => {
       const routePrefix = feature.route.routePrefix.replace(/^\//, '');
       const planLocked = feature.locked && feature.lockReason === 'PLAN';
       return {
@@ -30,12 +30,18 @@ export const DynamicFeatureRoutes = () => {
         ),
       };
     });
-  }, [features, selectedBuId]);
+
+    // Workspace root lands on the first feature
+    const firstPrefix = features[0].route.routePrefix.replace(/^\//, '');
+    featureRoutes.push({ index: true, element: <Navigate to={firstPrefix} replace /> });
+
+    return featureRoutes;
+  }, [features, workspace]);
 
   const { pathname } = useLocation();
   const routeElement = useRoutes(routes, pathname);
 
-  if (!selectedBuId) {
+  if (!workspace) {
     return <Navigate to="/" replace />;
   }
 
@@ -50,9 +56,9 @@ export const DynamicFeatureRoutes = () => {
   if (features.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="text-sm font-medium">No features available</p>
+        <p className="text-sm font-medium">No features available in this workspace yet</p>
         <p className="text-xs text-muted-foreground mt-2">
-          You don't have any features assigned at this business unit.
+          Your role here doesn't include any features. Ask your administrator for access.
         </p>
       </div>
     );

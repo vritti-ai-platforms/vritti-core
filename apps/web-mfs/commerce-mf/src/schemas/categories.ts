@@ -41,7 +41,7 @@ export const categoryFormResolver = zodResolver(_categorySchema) as unknown as R
 
 export interface CategoryData {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   parentId: string | null;
   categoryRole: CategoryRole;

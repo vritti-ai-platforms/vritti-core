@@ -32,27 +32,66 @@ export class AuthService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // Resolves the user's BUs + per-BU features within an RLS context so org_isolation sees app.org_id
+  // Resolves the user's structure + per-scope features within an RLS context so org_isolation sees app.org_id
   private async resolvePermissionContext(
     userId: string,
     orgId: string,
     platform: 'web' | 'ios' | 'android',
   ): Promise<{
-    businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>>;
-    featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
+    sites: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['sites'];
+    legalEntities: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['legalEntities'];
+    siteGroups: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['siteGroups'];
+    assignments: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['assignments'];
+    featuresBySiteId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
+    featuresByGroupId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
+    featuresByLeId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>;
+    orgFeatures: Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features'];
   }> {
     return this.primaryDb.runWithRlsContext({ orgId }, async () => {
-      const businessUnits = await this.userPermissionsService.getAssignedBusinessUnits(userId, orgId);
-      const featuresByBuId = Object.fromEntries(
-        await Promise.all(
-          businessUnits.map(async (bu) => {
-            const { features } = await this.userPermissionsService.getPermissions(userId, bu.id, orgId, platform);
-            return [bu.id, features];
-          }),
-        ),
+      const { sites, legalEntities, siteGroups, assignments } = await this.userPermissionsService.getAssignedStructure(
+        userId,
+        orgId,
       );
-      return { businessUnits, featuresByBuId };
+      const [featuresBySiteId, featuresByGroupId, featuresByLeId, orgFeatures] = await Promise.all([
+        this.resolveFeaturesByNode(userId, sites, 'SITE', platform),
+        this.resolveFeaturesByNode(userId, siteGroups, 'SITE_GROUP', platform),
+        this.resolveFeaturesByNode(userId, legalEntities, 'LE', platform),
+        this.userPermissionsService
+          .getPermissionsForContext(userId, { scope: 'ORG', id: orgId }, platform)
+          .then((r) => r.features),
+      ]);
+      return {
+        sites,
+        legalEntities,
+        siteGroups,
+        assignments,
+        featuresBySiteId,
+        featuresByGroupId,
+        featuresByLeId,
+        orgFeatures,
+      };
     });
+  }
+
+  // Resolves scope-filtered features per node id for one workspace scope
+  private async resolveFeaturesByNode(
+    userId: string,
+    nodes: { id: string }[],
+    scope: 'SITE' | 'SITE_GROUP' | 'LE',
+    platform: 'web' | 'ios' | 'android',
+  ): Promise<Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']>> {
+    return Object.fromEntries(
+      await Promise.all(
+        nodes.map(async (node) => {
+          const { features } = await this.userPermissionsService.getPermissionsForContext(
+            userId,
+            { scope, id: node.id },
+            platform,
+          );
+          return [node.id, features];
+        }),
+      ),
+    );
   }
 
   // Looks up all organizations a user belongs to by email
@@ -227,7 +266,6 @@ export class AuthService {
     refreshToken: string | undefined,
     subdomain?: string,
     bearerAccessToken?: string,
-    allowRawIpOrgResolution = false,
     platform: 'web' | 'ios' | 'android' = 'web',
   ): Promise<AuthResponseDto> {
     // Resolve org regardless of auth state
@@ -243,16 +281,8 @@ export class AuthService {
         const decoded = this.tokenService.validateAccessToken(bearerAccessToken);
         const session = await this.sessionService.validateAccessTokenSession(bearerAccessToken);
         const user = await this.userService.findById(decoded.userId);
-        const sessionMetadata = (session.metadata ?? {}) as Record<string, unknown>;
 
-        const resolvedOrg =
-          org ??
-          (allowRawIpOrgResolution
-            ? await this.resolveOrganizationFromSessionContext(
-                sessionMetadata,
-                decoded as unknown as Record<string, unknown>,
-              )
-            : null);
+        const resolvedOrg = org;
         const resolvedOrgData = resolvedOrg
           ? {
               id: resolvedOrg.id,
@@ -262,17 +292,30 @@ export class AuthService {
             }
           : orgData;
 
-        let businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>> = [];
-        let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> =
-          {};
+        let sites: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['sites'] = [];
+        let legalEntities: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['legalEntities'] = [];
+        let siteGroups: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['siteGroups'] = [];
+        let assignments: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['assignments'] = [];
+        let featuresBySiteId: Record<
+          string,
+          Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']
+        > = {};
+        let featuresByGroupId: typeof featuresBySiteId = {};
+        let featuresByLeId: typeof featuresBySiteId = {};
+        let orgFeatures: Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features'] = [];
 
         if (resolvedOrg) {
           try {
-            ({ businessUnits, featuresByBuId } = await this.resolvePermissionContext(
-              decoded.userId,
-              resolvedOrg.id,
-              platform,
-            ));
+            ({
+              sites,
+              legalEntities,
+              siteGroups,
+              assignments,
+              featuresBySiteId,
+              featuresByGroupId,
+              featuresByLeId,
+              orgFeatures,
+            } = await this.resolvePermissionContext(decoded.userId, resolvedOrg.id, platform));
           } catch (error) {
             this.logger.error(
               `Failed to enrich auth status permissions for user ${decoded.userId} in org ${resolvedOrg.id}: ${error}`,
@@ -297,21 +340,42 @@ export class AuthService {
               }
             : undefined,
           org: resolvedOrgData,
-          businessUnits,
-          featuresByBuId,
+          sites,
+          legalEntities,
+          siteGroups,
+          assignments,
+          featuresBySiteId,
+          featuresByGroupId,
+          featuresByLeId,
+          orgFeatures,
         });
       }
 
       const { accessToken, expiresIn, userId, sessionId } = await this.sessionService.generateAccessToken(refreshToken);
       const user = await this.userService.findById(userId);
 
-      // Web connects via refresh cookie (no bearer header), so enrich BUs + features here too from the subdomain-resolved org
-      let businessUnits: Awaited<ReturnType<UserPermissionsService['getAssignedBusinessUnits']>> = [];
-      let featuresByBuId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> =
+      // Web connects via refresh cookie (no bearer header), so enrich sites + features here too from the subdomain-resolved org
+      let sites: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['sites'] = [];
+      let legalEntities: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['legalEntities'] = [];
+      let siteGroups: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['siteGroups'] = [];
+      let assignments: Awaited<ReturnType<UserPermissionsService['getAssignedStructure']>>['assignments'] = [];
+      let featuresBySiteId: Record<string, Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features']> =
         {};
+      let featuresByGroupId: typeof featuresBySiteId = {};
+      let featuresByLeId: typeof featuresBySiteId = {};
+      let orgFeatures: Awaited<ReturnType<UserPermissionsService['getPermissions']>>['features'] = [];
       if (org) {
         try {
-          ({ businessUnits, featuresByBuId } = await this.resolvePermissionContext(userId, org.id, platform));
+          ({
+            sites,
+            legalEntities,
+            siteGroups,
+            assignments,
+            featuresBySiteId,
+            featuresByGroupId,
+            featuresByLeId,
+            orgFeatures,
+          } = await this.resolvePermissionContext(userId, org.id, platform));
         } catch (error) {
           this.logger.error(`Failed to enrich auth status permissions for user ${userId} in org ${org.id}: ${error}`);
         }
@@ -336,8 +400,14 @@ export class AuthService {
             }
           : undefined,
         org: orgData,
-        businessUnits,
-        featuresByBuId,
+        sites,
+        legalEntities,
+        siteGroups,
+        assignments,
+        featuresBySiteId,
+        featuresByGroupId,
+        featuresByLeId,
+        orgFeatures,
       });
     } catch {
       return new AuthResponseDto({ isAuthenticated: false, org: orgData });
@@ -353,7 +423,16 @@ export class AuthService {
     const user = await this.userService.findById(userId);
     const org = await this.organizationService.getById(orgId);
     const orgData = org ? { id: org.id, name: org.name, subdomain: org.subdomain, logoUrl: org.logoUrl } : undefined;
-    const { businessUnits, featuresByBuId } = await this.resolvePermissionContext(userId, orgId, platform);
+    const {
+      sites,
+      legalEntities,
+      siteGroups,
+      assignments,
+      featuresBySiteId,
+      featuresByGroupId,
+      featuresByLeId,
+      orgFeatures,
+    } = await this.resolvePermissionContext(userId, orgId, platform);
 
     return new AuthResponseDto({
       isAuthenticated: true,
@@ -371,32 +450,15 @@ export class AuthService {
           }
         : undefined,
       org: orgData,
-      businessUnits,
-      featuresByBuId,
+      sites,
+      legalEntities,
+      siteGroups,
+      assignments,
+      featuresBySiteId,
+      featuresByGroupId,
+      featuresByLeId,
+      orgFeatures,
     });
-  }
-
-  private async resolveOrganizationFromSessionContext(
-    sessionMetadata: Record<string, unknown>,
-    decodedToken: Record<string, unknown>,
-  ) {
-    const organizationId =
-      this.getStringValue(sessionMetadata.organizationId) ?? this.getStringValue(decodedToken.organizationId);
-    if (organizationId) {
-      return this.organizationService.getById(organizationId);
-    }
-
-    const organizationSubdomain =
-      this.getStringValue(sessionMetadata.subdomain) ?? this.getStringValue(decodedToken.subdomain);
-    if (organizationSubdomain) {
-      return this.organizationService.getBySubdomain(organizationSubdomain);
-    }
-
-    return null;
-  }
-
-  private getStringValue(value: unknown): string | undefined {
-    return typeof value === 'string' && value.trim() ? value : undefined;
   }
 
   // Rotates both tokens and returns new access token — sets new refresh cookie in controller

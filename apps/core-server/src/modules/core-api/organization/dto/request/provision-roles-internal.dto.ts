@@ -19,6 +19,16 @@ export class RoleItemDto {
   @IsString()
   code?: string;
 
+  @ApiPropertyOptional({ example: 'SITE', description: 'Template scope from the snapshot (not persisted)' })
+  @IsOptional()
+  @IsString()
+  scope?: string;
+
+  @ApiPropertyOptional({ example: 'OUTLET', description: 'Site type the template targets (not persisted)' })
+  @IsOptional()
+  @IsString()
+  siteType?: string;
+
   @ApiProperty({ example: { products: ['VIEW', 'CREATE'] } })
   @Allow()
   @Transform(({ value }) => value, { toClassOnly: true })

@@ -13,7 +13,7 @@ export type CatalogFormData = z.infer<typeof catalogFormSchema>;
 export interface CatalogData {
   id: string;
   organizationId: string;
-  businessUnitId: string;
+  siteId: string;
   channelCount: number;
   name: string;
   currencyCode: string;
@@ -26,7 +26,7 @@ export interface CatalogData {
 export interface CatalogChannel {
   id: string;
   catalogId: string;
-  businessUnitId: string;
+  siteId: string;
   channelId: string;
   channelName: string;
   channelKind: string;

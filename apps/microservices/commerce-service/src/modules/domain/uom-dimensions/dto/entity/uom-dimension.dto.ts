@@ -10,14 +10,14 @@ export class UomDimensionDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(row: UomDimension, currentBuId: string, hasNoRefs?: boolean): UomDimensionDto {
+  static from(row: UomDimension, hasNoRefs?: boolean): UomDimensionDto {
     const dto = new UomDimensionDto();
     dto.id = row.id;
     dto.code = row.code;
     dto.name = row.name;
     dto.description = row.description;
-    dto.canEdit = row.businessUnitId === currentBuId;
-    if (hasNoRefs !== undefined) dto.canDelete = row.businessUnitId === currentBuId && hasNoRefs;
+    dto.canEdit = true;
+    if (hasNoRefs !== undefined) dto.canDelete = hasNoRefs;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

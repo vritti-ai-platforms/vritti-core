@@ -76,7 +76,7 @@ export class OfferingVariantDto {
 
 export class OfferingDetailDto {
   id: string;
-  businessUnitId: string;
+  siteId: string;
   categoryId: string | null;
   categoryName: string | null;
   categoryPath: string | null;
@@ -105,7 +105,7 @@ export class OfferingDetailDto {
   ): OfferingDetailDto {
     const dto = new OfferingDetailDto();
     dto.id = entity.id;
-    dto.businessUnitId = entity.businessUnitId;
+    dto.siteId = entity.siteId;
     dto.currencyCode = currencyCode;
     dto.categoryId = entity.categoryId ?? null;
     dto.categoryName = categoryName ?? null;

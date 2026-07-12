@@ -4,7 +4,7 @@ import { coreSchema } from './core-schema';
 import { costCategories } from './cost-categories';
 import { costDistributionMethodEnum, costSourceTypeEnum } from './enums';
 
-// Org-scoped cost header (no business_unit_id). One row per cost event to distribute across quants —
+// Org-scoped cost header (no site_id). One row per cost event to distribute across quants —
 // e.g. the supplier price on a goods receipt, or a freight/duty invoice. `total_amount` is the amount
 // to allocate; `unallocated_amount` tracks what is not yet pinned to quants. The per-quant slices live
 // in inventory_item_quant_costs and must sum to (total_amount − unallocated_amount).

@@ -37,13 +37,13 @@ export class OfferingsRepository extends PrimaryBaseRepository<typeof offerings>
     super(database, offerings);
   }
 
-  // Returns all offerings for a business unit with category name joined
-  async findByBuWithCategory(buId: string): Promise<(Offering & { categoryName: string | null })[]> {
+  // Returns all offerings for a site with category name joined
+  async findByBuWithCategory(siteId: string): Promise<(Offering & { categoryName: string | null })[]> {
     return this.db
       .select({
         id: offerings.id,
         organizationId: offerings.organizationId,
-        businessUnitId: offerings.businessUnitId,
+        siteId: offerings.siteId,
         catalogId: offerings.catalogId,
         categoryId: offerings.categoryId,
         fulfilmentType: offerings.fulfilmentType,
@@ -60,7 +60,7 @@ export class OfferingsRepository extends PrimaryBaseRepository<typeof offerings>
       })
       .from(offerings)
       .leftJoin(categories, eq(offerings.categoryId, categories.id))
-      .where(eq(offerings.businessUnitId, buId))
+      .where(eq(offerings.siteId, siteId))
       .orderBy(offerings.sortOrder);
   }
 
@@ -75,7 +75,7 @@ export class OfferingsRepository extends PrimaryBaseRepository<typeof offerings>
       select: {
         id: offerings.id,
         organizationId: offerings.organizationId,
-        businessUnitId: offerings.businessUnitId,
+        siteId: offerings.siteId,
         catalogId: offerings.catalogId,
         categoryId: offerings.categoryId,
         fulfilmentType: offerings.fulfilmentType,

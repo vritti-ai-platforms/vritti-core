@@ -44,7 +44,7 @@ export type CreateQuantParams = {
   tracking: InventoryTracking;
   // `quantity` is in the inventory item's PRIMARY UOM.
   quantity: number;
-  // Unit cost (BU minor units), set at creation and always > 0. Part of the cost-batch identity:
+  // Unit cost (site-currency minor units), set at creation and always > 0. Part of the cost-batch identity:
   // stock at the same (item, location, lot) but a different unit cost stays a separate quant.
   unitCost: bigint;
   // for tracking='lot' or 'lot_serial': lotId must be pre-resolved by the app-layer
@@ -431,7 +431,7 @@ export class InventoryItemQuantsService {
     return {
       id: quant.lotId as string,
       organizationId: '',
-      businessUnitId: '',
+      siteId: '',
       inventoryItemId: quant.inventoryItemId,
       lotNumber: quant.lotNumber,
       manufacturingDate: quant.manufacturingDate ?? null,

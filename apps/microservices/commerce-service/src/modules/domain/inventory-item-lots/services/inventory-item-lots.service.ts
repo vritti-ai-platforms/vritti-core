@@ -24,7 +24,7 @@ export class InventoryItemLotsService {
   async findLotsForTable(
     inventoryItemId: string,
     state: TableViewState,
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsService.LOTS_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLotsService.LOTS_FIELD_MAP);
@@ -39,7 +39,7 @@ export class InventoryItemLotsService {
       offset,
     });
 
-    return { result: result.map((row) => InventoryItemLotDto.from(row, buCurrencyCode)), count };
+    return { result: result.map((row) => InventoryItemLotDto.from(row, siteCurrencyCode)), count };
   }
 
   // Returns existing lot or creates a new one. Lot identity is (orgId, inventoryItemId, lotNumber).

@@ -252,7 +252,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       select: {
         id: goodsReceiptItems.id,
         organizationId: goodsReceiptItems.organizationId,
-        businessUnitId: goodsReceiptItems.businessUnitId,
+        siteId: goodsReceiptItems.siteId,
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
         orderedQty: goodsReceiptItems.orderedQty,
@@ -442,7 +442,7 @@ export class GoodsReceiptItemsRepository extends PrimaryBaseRepository<typeof go
       .select({
         id: goodsReceiptItems.id,
         organizationId: goodsReceiptItems.organizationId,
-        businessUnitId: goodsReceiptItems.businessUnitId,
+        siteId: goodsReceiptItems.siteId,
         goodsReceiptId: goodsReceiptItems.goodsReceiptId,
         inventoryItemId: goodsReceiptItems.inventoryItemId,
         uomId: goodsReceiptItems.uomId,

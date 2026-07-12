@@ -1,4 +1,10 @@
-import type { AssignedBU, PermissionFeature } from './permissions';
+import type {
+  AssignedLegalEntity,
+  AssignedRole,
+  AssignedSite,
+  AssignedSiteGroup,
+  PermissionFeature,
+} from './permissions';
 
 export interface AuthStatusUser {
   id: string;
@@ -24,6 +30,12 @@ export interface AuthStatusResponse {
   sessionId?: string;
   user?: AuthStatusUser;
   org?: AuthStatusOrg;
-  businessUnits?: AssignedBU[];
-  featuresByBuId?: Record<string, PermissionFeature[]>;
+  sites?: AssignedSite[];
+  legalEntities?: AssignedLegalEntity[];
+  siteGroups?: AssignedSiteGroup[];
+  assignments?: AssignedRole[];
+  featuresBySiteId?: Record<string, PermissionFeature[]>;
+  featuresByGroupId?: Record<string, PermissionFeature[]>;
+  featuresByLeId?: Record<string, PermissionFeature[]>;
+  orgFeatures?: PermissionFeature[];
 }

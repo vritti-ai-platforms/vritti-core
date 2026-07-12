@@ -1,10 +1,11 @@
+import { OrganizationService } from '@domain/organization/services/organization.service';
 import { SessionService } from '@domain/session/services/session.service';
 import { UserService } from '@domain/user/services/user.service';
 import { VerificationRepository } from '@domain/verification/repositories/verification.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from '@vritti/api-sdk/email';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import * as argon2 from 'argon2';
 import { SessionTypeValues } from '@/db/schema';
 import { MessageResponseDto } from '../../root/dto/response/message-response.dto';
@@ -23,6 +24,7 @@ export class PasswordResetService {
 
   constructor(
     private readonly userService: UserService,
+    private readonly organizationService: OrganizationService,
     private readonly sessionService: SessionService,
     private readonly verificationRepository: VerificationRepository,
     private readonly emailService: EmailService,
@@ -89,10 +91,12 @@ export class PasswordResetService {
       });
 
     // Create RESET session so subsequent endpoints can identify the user
+    const org = await this.organizationService.getById(user.organizationId);
+    if (!org) throw new NotFoundException('Organization not found.');
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       user.id,
       SessionTypeValues.RESET,
-      {},
+      { organizationId: org.id, subdomain: org.subdomain },
     );
 
     this.logger.log(`Created RESET session for user: ${user.id}`);
@@ -210,13 +214,16 @@ export class PasswordResetService {
     const passwordHash = await argon2.hash(newPassword);
     await this.userService.setPassword(userId, passwordHash);
 
-    // Invalidate all sessions for security, then create a fresh NEXUS session
+    // Invalidate all sessions for security, then create a fresh WEB session with full org context
     await this.sessionService.deleteAllUserSessions(userId);
 
+    const user = await this.userService.findByIdOrThrow(userId);
+    const org = await this.organizationService.getById(user.organizationId);
+    if (!org) throw new NotFoundException('Organization not found.');
     const { accessToken, refreshToken, expiresIn } = await this.sessionService.createSession(
       userId,
       SessionTypeValues.WEB,
-      {},
+      { organizationId: org.id, subdomain: org.subdomain },
     );
 
     this.logger.log(`Password reset completed for user: ${userId}`);

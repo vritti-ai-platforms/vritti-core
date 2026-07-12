@@ -18,7 +18,7 @@ export class GoodsReceiptItemQuantsDto {
   currencyCode: string | null;
   grandTotal: CurrencyAmountDto | null;
 
-  // Quants are valued in BU currency (cost_currency). totalCost = unit_cost × quantity, rounded
+  // Quants are valued in site currency (cost_currency). totalCost = unit_cost × quantity, rounded
   // once to minor units; grandTotal sums them.
   static from(rows: GrItemQuantCostRow[]): GoodsReceiptItemQuantsDto {
     const dto = new GoodsReceiptItemQuantsDto();

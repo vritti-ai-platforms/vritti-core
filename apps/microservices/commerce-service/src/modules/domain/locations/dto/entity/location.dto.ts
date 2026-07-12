@@ -3,7 +3,7 @@ import type { Location, LocationRole } from '@/db/schema';
 export class LocationDto {
   id: string;
   organizationId: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   code: string;
   parentId: string | null;
@@ -23,7 +23,7 @@ export class LocationDto {
     const dto = new LocationDto();
     dto.id = entity.id;
     dto.organizationId = entity.organizationId;
-    dto.businessUnitId = entity.businessUnitId;
+    dto.siteId = entity.siteId;
     dto.name = entity.name;
     dto.code = entity.code;
     dto.parentId = entity.parentId ?? null;

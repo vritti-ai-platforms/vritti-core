@@ -19,7 +19,7 @@ export class GoodsReceiptLotsRepository extends PrimaryBaseRepository<typeof goo
       .select({
         id: goodsReceiptLots.id,
         organizationId: goodsReceiptLots.organizationId,
-        businessUnitId: goodsReceiptLots.businessUnitId,
+        siteId: goodsReceiptLots.siteId,
         goodsReceiptItemId: goodsReceiptLots.goodsReceiptItemId,
         lotNumber: goodsReceiptLots.lotNumber,
         manufacturingDate: goodsReceiptLots.manufacturingDate,

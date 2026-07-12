@@ -1,11 +1,13 @@
 import {
-  type BuFeatureLocks,
   buildDependsMap,
   cascadeLocked,
   type FeatureUnlocks,
   filterGrantedByDeps,
   PLATFORMS,
   type PlatformDenyCodes,
+  type SiteFeatureLocks,
+  type SiteType,
+  type SnapshotRoleTemplate,
   type VersionSnapshot,
 } from '@vritti/api-sdk/catalog-resolver';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
@@ -43,9 +45,31 @@ export function validateGrantDependencies(features: FeatureUnlocks, snapshot: Ve
   }
 }
 
-// Expands a BU lock deny-list so locking a prerequisite also locks its dependents (per feature, per platform)
-export function normalizeLockCascade(featureLocks: BuFeatureLocks, snapshot: VersionSnapshot): BuFeatureLocks {
-  const result: BuFeatureLocks = {};
+// Returns whether a role template is assignable at a site of the given type; custom/non-SITE templates always apply
+export function templateAppliesAtSite(template: SnapshotRoleTemplate | undefined, siteType: SiteType): boolean {
+  if (!template || template.scope !== 'SITE' || !template.siteType) return true;
+  return template.siteType === siteType;
+}
+
+// Whether a role template may be OFFERED/ASSIGNED at a site — only SITE-scoped templates of the matching site type (custom roles always pass)
+export function templateAssignableAtSite(template: SnapshotRoleTemplate | undefined, siteType: SiteType): boolean {
+  if (!template) return true;
+  if (template.scope !== 'SITE') return false;
+  return !template.siteType || template.siteType === siteType;
+}
+
+// Expands a lock deny-list against the snapshot; passes null locks (inherit) or a missing snapshot through unchanged
+export function normalizeLocks(
+  featureLocks: SiteFeatureLocks | null,
+  snapshot: VersionSnapshot | null,
+): SiteFeatureLocks | null {
+  if (!featureLocks || !snapshot) return featureLocks;
+  return normalizeLockCascade(featureLocks, snapshot);
+}
+
+// Expands a site lock deny-list so locking a prerequisite also locks its dependents (per feature, per platform)
+export function normalizeLockCascade(featureLocks: SiteFeatureLocks, snapshot: VersionSnapshot): SiteFeatureLocks {
+  const result: SiteFeatureLocks = {};
 
   for (const [featureCode, platforms] of Object.entries(featureLocks)) {
     const permissions = snapshot.features[featureCode]?.permissions;

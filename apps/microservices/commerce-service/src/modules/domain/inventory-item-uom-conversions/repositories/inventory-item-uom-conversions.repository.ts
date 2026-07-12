@@ -18,7 +18,7 @@ function buildJoinedSelect() {
   return {
     id: inventoryItemUomConversions.id,
     organizationId: inventoryItemUomConversions.organizationId,
-    businessUnitId: inventoryItemUomConversions.businessUnitId,
+    siteId: inventoryItemUomConversions.siteId,
     inventoryItemId: inventoryItemUomConversions.inventoryItemId,
     uomId: inventoryItemUomConversions.uomId,
     primaryUomQty: inventoryItemUomConversions.primaryUomQty,

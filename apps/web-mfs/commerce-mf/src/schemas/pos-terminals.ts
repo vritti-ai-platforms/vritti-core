@@ -15,7 +15,7 @@ export type PosTerminalFormData = z.infer<typeof posTerminalFormSchema>;
 export interface PosTerminalData {
   id: string;
   organizationId: string;
-  businessUnitId: string;
+  siteId: string;
   name: string;
   code: string;
   locationId: string;

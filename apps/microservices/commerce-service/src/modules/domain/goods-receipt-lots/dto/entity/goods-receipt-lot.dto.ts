@@ -14,7 +14,7 @@ export class GoodsReceiptLotDto {
   metadata: Record<string, unknown>;
   createdAt: string;
 
-  static from(row: GoodsReceiptLotWithStats, buCurrencyCode?: string): GoodsReceiptLotDto {
+  static from(row: GoodsReceiptLotWithStats, siteCurrencyCode?: string): GoodsReceiptLotDto {
     const dto = new GoodsReceiptLotDto();
     dto.id = row.id;
     dto.goodsReceiptItemId = row.goodsReceiptItemId;
@@ -23,8 +23,8 @@ export class GoodsReceiptLotDto {
     dto.expiryDate = row.expiryDate ?? null;
     dto.resolvedLotId = row.resolvedLotId ?? null;
     dto.mrp =
-      buCurrencyCode && row.mrp != null
-        ? CurrencyAmountDto.from(BigInt(row.mrp as unknown as string), buCurrencyCode)
+      siteCurrencyCode && row.mrp != null
+        ? CurrencyAmountDto.from(BigInt(row.mrp as unknown as string), siteCurrencyCode)
         : null;
     dto.linesCount = row.linesCount;
     dto.totalQuantity = row.totalQuantity;

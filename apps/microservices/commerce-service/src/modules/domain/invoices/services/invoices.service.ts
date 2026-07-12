@@ -9,8 +9,11 @@ import {
   type InvoiceType,
   invoices,
 } from '@/db/schema';
-import type { CreateInvoiceDto, CreateInvoiceItemDto } from '@/modules/invoices/dto/request/create-invoice.dto';
-import type { UpdateInvoiceDto } from '@/modules/invoices/dto/request/update-invoice.dto';
+import type {
+  CreateInvoiceDto,
+  CreateInvoiceItemDto,
+} from '@/modules/site/invoices/dto/request/create-invoice.dto';
+import type { UpdateInvoiceDto } from '@/modules/site/invoices/dto/request/update-invoice.dto';
 import { InvoiceDetailDto, InvoiceDto, InvoiceItemDto } from '../dto/entity/invoice.dto';
 import { InvoicesRepository } from '../repositories/invoices.repository';
 

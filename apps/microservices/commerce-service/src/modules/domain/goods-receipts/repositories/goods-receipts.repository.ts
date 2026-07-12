@@ -54,7 +54,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       select: {
         id: goodsReceipts.id,
         organizationId: goodsReceipts.organizationId,
-        businessUnitId: goodsReceipts.businessUnitId,
+        siteId: goodsReceipts.siteId,
         supplierId: goodsReceipts.supplierId,
         grNumber: goodsReceipts.grNumber,
         status: goodsReceipts.status,
@@ -94,7 +94,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       select: {
         id: goodsReceipts.id,
         organizationId: goodsReceipts.organizationId,
-        businessUnitId: goodsReceipts.businessUnitId,
+        siteId: goodsReceipts.siteId,
         supplierId: goodsReceipts.supplierId,
         grNumber: goodsReceipts.grNumber,
         status: goodsReceipts.status,
@@ -160,7 +160,7 @@ export class GoodsReceiptsRepository extends PrimaryBaseRepository<typeof goodsR
       .select({
         id: goodsReceipts.id,
         organizationId: goodsReceipts.organizationId,
-        businessUnitId: goodsReceipts.businessUnitId,
+        siteId: goodsReceipts.siteId,
         supplierId: goodsReceipts.supplierId,
         grNumber: goodsReceipts.grNumber,
         status: goodsReceipts.status,

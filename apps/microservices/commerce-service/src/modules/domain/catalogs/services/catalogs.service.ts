@@ -12,8 +12,8 @@ import {
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type Catalog, catalogs } from '@/db/schema';
-import type { CreateCatalogDto } from '@/modules/catalogs/dto/request/create-catalog.dto';
-import type { UpdateCatalogDto } from '@/modules/catalogs/dto/request/update-catalog.dto';
+import type { CreateCatalogDto } from '@/modules/site/catalogs/dto/request/create-catalog.dto';
+import type { UpdateCatalogDto } from '@/modules/site/catalogs/dto/request/update-catalog.dto';
 import { CatalogDto } from '../dto/entity/catalog.dto';
 import { CatalogsRepository } from '../repositories/catalogs.repository';
 
@@ -82,7 +82,7 @@ export class CatalogsService {
     });
 
     if (data.channelIds?.length) {
-      await this.catalogChannelsService.setChannels(entity.id, entity.businessUnitId, data.channelIds);
+      await this.catalogChannelsService.setChannels(entity.id, entity.siteId, data.channelIds);
     }
 
     this.logger.log(`Created catalog: ${entity.id}`);
@@ -116,7 +116,7 @@ export class CatalogsService {
     }
 
     if (data.channelIds !== undefined) {
-      await this.catalogChannelsService.setChannels(id, existing.businessUnitId, data.channelIds);
+      await this.catalogChannelsService.setChannels(id, existing.siteId, data.channelIds);
     }
 
     this.logger.log(`Updated catalog: ${id}`);

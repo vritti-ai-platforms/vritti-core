@@ -5,7 +5,10 @@ import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { ForbiddenException } from '@vritti/api-sdk/exceptions';
 import type { Observable } from 'rxjs';
 import { SessionTypeValues } from '@/db/schema';
-import { UserPermissionsService } from '@/modules/domain/user-permissions/services/user-permissions.service';
+import {
+  type PermissionContext,
+  UserPermissionsService,
+} from '@/modules/domain/user-permissions/services/user-permissions.service';
 import { getRequest } from '@/utils/request-context';
 import { REQUIRE_FEATURE_KEY, SKIP_FEATURE_KEY } from '../decorators/require-feature.decorator';
 import { REQUIRE_PERMISSION_KEY } from '../decorators/require-permission.decorator';
@@ -35,14 +38,27 @@ export class PermissionInterceptor implements NestInterceptor {
     if (!requiredPermission && !requiredFeature) return next.handle();
 
     const userId = request.sessionInfo?.userId;
-    const buId = request.sessionInfo?.buId;
+    const siteId = request.sessionInfo?.siteId;
+    const siteGroupId = request.sessionInfo?.siteGroupId;
+    const legalEntityId = request.sessionInfo?.legalEntityId;
     const orgId = request.sessionInfo?.organizationId;
     const sessionType = request.sessionInfo?.sessionType;
-    this.logger.debug(`  session: userId=${userId} buId=${buId} orgId=${orgId} sessionType=${sessionType}`);
-    if (!userId || !buId || !orgId) {
-      this.logger.warn('  DENY — missing session context (userId/buId/orgId)');
+    this.logger.debug(
+      `  session: userId=${userId} siteId=${siteId} siteGroupId=${siteGroupId} legalEntityId=${legalEntityId} orgId=${orgId} sessionType=${sessionType}`,
+    );
+    if (!userId || !orgId) {
+      this.logger.warn('  DENY — missing session context (userId/orgId)');
       throw new ForbiddenException('You do not have permission to perform this action.');
     }
+
+    // Workspace context by precedence: SITE > SITE_GROUP > LE > ORG (no context header = org workspace)
+    const ctx: PermissionContext = siteId
+      ? { scope: 'SITE', id: siteId }
+      : siteGroupId
+        ? { scope: 'SITE_GROUP', id: siteGroupId }
+        : legalEntityId
+          ? { scope: 'LE', id: legalEntityId }
+          : { scope: 'ORG', id: orgId };
 
     // Platform bucket follows the session type: a MOBILE session enforces the mobile feature set, all else web
     const bucket: PlatformBucket = sessionType === SessionTypeValues.MOBILE ? 'mobile' : 'web';
@@ -50,7 +66,7 @@ export class PermissionInterceptor implements NestInterceptor {
     // A specific permission subsumes the feature switch — an enabled permission implies its feature is unlocked
     if (requiredPermission) {
       const enabled = await this.primaryDb.runWithRlsContext({ orgId }, () =>
-        this.userPermissionsService.resolveEnabledPermissions(userId, buId, bucket),
+        this.userPermissionsService.resolveEnabledPermissions(userId, ctx, bucket),
       );
       if (!enabled.has(requiredPermission)) {
         this.logger.warn(`  DENY ${requiredPermission} — not in enabled set`);
@@ -60,14 +76,14 @@ export class PermissionInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    // No specific permission (e.g. count) — gate on the feature switch being on for this user's BU
+    // No specific permission (e.g. count) — gate on the feature switch being on for this user's site
     if (requiredFeature) {
       const available = await this.primaryDb.runWithRlsContext({ orgId }, () =>
-        this.userPermissionsService.resolveAvailableFeatures(userId, buId, bucket),
+        this.userPermissionsService.resolveAvailableFeatures(userId, ctx, bucket),
       );
       if (!available.has(requiredFeature)) {
         this.logger.warn(`  DENY feature ${requiredFeature} — switch off / not available`);
-        throw new ForbiddenException('This feature is not available for your business unit.');
+        throw new ForbiddenException('This feature is not available for your sites.');
       }
       this.logger.debug(`  ALLOW feature ${requiredFeature}`);
     }

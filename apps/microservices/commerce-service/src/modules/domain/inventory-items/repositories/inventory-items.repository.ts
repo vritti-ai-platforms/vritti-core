@@ -177,7 +177,7 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
       .select({
         id: inventoryItems.id,
         organizationId: inventoryItems.organizationId,
-        businessUnitId: inventoryItems.businessUnitId,
+        siteId: inventoryItems.siteId,
         name: inventoryItems.name,
         code: inventoryItems.code,
         type: inventoryItems.type,

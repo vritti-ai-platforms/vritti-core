@@ -1,6 +1,4 @@
-import { isIP } from 'node:net';
 import { join } from 'node:path';
-import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -17,25 +15,27 @@ import { getCorrelationContext, LoggerModule } from '@vritti/api-sdk/logger';
 import { NatsClientModule } from '@vritti/api-sdk/nats';
 import { RootModule } from '@vritti/api-sdk/root';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { BuContextModule } from '@/bu-context/bu-context.module';
-import { BuContextCacheService } from '@/bu-context/bu-context-cache.service';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
 import { RbacModule } from '@/rbac/rbac.module';
 import { SecurityModule } from '@/security/security.module';
+import { SiteContextModule } from '@/site-context/site-context.module';
+import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 import { validate } from './config/env.validation';
 import { AccountModule } from './modules/account/account.module';
 import { CommerceGatewayModule } from './modules/commerce-gateway/commerce-gateway.module';
 import { AuthApiModule } from './modules/core-api/auth/auth.module';
-import { BusinessUnitApiModule } from './modules/core-api/business-unit/business-unit.module';
 import { CatalogApiModule } from './modules/core-api/catalog/catalog.module';
 import { OrganizationApiModule } from './modules/core-api/organization/organization.module';
+import { StructureApiModule } from './modules/core-api/structure/structure.module';
 import { UserApiModule } from './modules/core-api/user/user.module';
 import { UserPermissionsApiModule } from './modules/core-api/user-permissions/user-permissions.module';
-import { BusinessUnitDomainModule } from './modules/domain/business-unit/business-unit.module';
 import { CatalogDomainModule } from './modules/domain/catalog/catalog.module';
+import { LegalEntityDomainModule } from './modules/domain/legal-entity/legal-entity.module';
 import { OrganizationDomainModule } from './modules/domain/organization/organization.module';
 import { SessionDomainModule } from './modules/domain/session/session.module';
+import { SiteDomainModule } from './modules/domain/site/site.module';
+import { SiteGroupDomainModule } from './modules/domain/site-group/site-group.module';
 import { UserDomainModule } from './modules/domain/user/user.module';
 import { UserPermissionsDomainModule } from './modules/domain/user-permissions/user-permissions.module';
 import { UserRoleDomainModule } from './modules/domain/user-role/user-role.module';
@@ -110,8 +110,12 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
           drizzleRelations: relations,
           maxConnections: 10,
           applyRlsContext: async (client, ctx) => {
-            const r = ctx as { orgId: string };
-            await client.query("SELECT set_config('app.org_id', $1, true)", [r.orgId]);
+            // Narrow-context vars are empty when absent — RLS policies read them via nullif(..., '')
+            const r = ctx as { orgId?: string; siteId?: string; siteGroupId?: string; legalEntityId?: string };
+            await client.query(
+              "SELECT set_config('app.org_id', $1, true), set_config('app.site_id', $2, true), set_config('app.site_group_id', $3, true), set_config('app.le_id', $4, true)",
+              [r.orgId ?? '', r.siteId ?? '', r.siteGroupId ?? '', r.legalEntityId ?? ''],
+            );
           },
         };
         return options;
@@ -138,16 +142,27 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
           csrfExemptTransports: ['graphql'],
           onAuthenticated: (requestService, sessionInfo) => {
             const hostname = requestService.getHostname();
-            const allowRawIpHostRouting = config.get<boolean>('ALLOW_RAW_IP_HOST_ROUTING', false);
 
-            if (allowRawIpHostRouting && isIP(hostname)) {
-              const buHeader = requestService.getHeader('x-bu-id');
-              const buId = Array.isArray(buHeader) ? buHeader[0] : buHeader;
-              if (buId) {
-                sessionInfo.buId = buId;
-              }
-              return;
+            const readHeader = (name: string): string | undefined => {
+              const value = requestService.getHeader(name);
+              return Array.isArray(value) ? value[0] : value;
+            };
+
+            // x-org-id is a consistency check only — the org always derives from the session
+            const orgIdHeader = readHeader('x-org-id');
+            if (orgIdHeader && orgIdHeader !== sessionInfo.organizationId) {
+              throw new UnauthorizedException('Organization mismatch — header does not match this session');
             }
+
+            // Workspace context headers: SITE > SITE_GROUP > LE; none = ORG workspace
+            const applyContextHeaders = () => {
+              const siteId = readHeader('x-site-id');
+              if (siteId) sessionInfo.siteId = siteId;
+              const siteGroupId = readHeader('x-sg-id');
+              if (siteGroupId) sessionInfo.siteGroupId = siteGroupId;
+              const legalEntityId = readHeader('x-le-id');
+              if (legalEntityId) sessionInfo.legalEntityId = legalEntityId;
+            };
 
             const requestSubdomain = hostname.split('.')[0];
             if (!requestSubdomain) {
@@ -155,16 +170,12 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
             }
 
             if (sessionInfo.subdomain !== requestSubdomain) {
-              throw new UnauthorizedException('Subdomain mismatch — token does not belong to this organization');
+              throw new UnauthorizedException('Invalid request host');
             }
 
             sessionInfo.subdomain = requestSubdomain;
 
-            const buHeader = requestService.getHeader('x-bu-id');
-            const buId = Array.isArray(buHeader) ? buHeader[0] : buHeader;
-            if (buId) {
-              sessionInfo.buId = buId;
-            }
+            applyContextHeaders();
           },
         },
       }),
@@ -180,57 +191,55 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
     RbacModule,
     // Cloud-signature guard + org-scope/RLS interceptors (global)
     SecurityModule,
-    // Per-BU context cache (timezone, currency, hierarchy ids)
-    BuContextModule,
+    // Per-site context cache (timezone, currency, group chain)
+    SiteContextModule,
 
     // --- Domain modules (services + repositories only) ---
     SessionDomainModule,
     VerificationDomainModule,
-    BusinessUnitDomainModule,
+    LegalEntityDomainModule,
+    SiteDomainModule,
+    SiteGroupDomainModule,
     CatalogDomainModule,
     OrganizationDomainModule,
     UserDomainModule,
     UserRoleDomainModule,
     UserPermissionsDomainModule,
 
-    // NATS client (gateway mode) — resolves BU context from sessionInfo
+    // NATS client (gateway mode) — resolves the workspace context from sessionInfo (site context derives its LE)
     NatsClientModule.forRoot({
-      imports: [BusinessUnitDomainModule],
-      inject: [ConfigService, BusinessUnitRepository, BuContextCacheService],
-      useFactory: (config: ConfigService, buRepo: BusinessUnitRepository, buContextCache: BuContextCacheService) => ({
+      imports: [SiteContextModule],
+      inject: [ConfigService, SiteContextResolverService],
+      useFactory: (config: ConfigService, siteContextResolver: SiteContextResolverService) => ({
         natsUrl: config.get<string>('NATS_URL'),
         services: [{ name: 'commerce' }],
         contextResolver: async (sessionInfo) => {
-          const buId = sessionInfo.buId ?? '';
-          const orgId = sessionInfo.organizationId ?? '';
+          const orgId = sessionInfo.organizationId;
+          const userId = sessionInfo.userId;
 
-          const cached = await buContextCache.get(buId);
-          if (cached) {
-            return { orgId, userId: sessionInfo.userId, buId, ...cached };
+          // A site workspace carries the full site context and derives its legal entity
+          if (sessionInfo.siteId) {
+            const siteContext = await siteContextResolver.resolve(sessionInfo.siteId);
+            return {
+              orgId,
+              userId,
+              siteId: sessionInfo.siteId,
+              legalEntityId: siteContext.legalEntityId,
+              siteGroupId: '',
+              siteTimezone: siteContext.siteTimezone,
+              siteCurrencyCode: siteContext.siteCurrencyCode,
+            };
           }
 
-          const bu = buId ? await buRepo.findById(buId) : null;
-          const path = bu?.path ?? '';
-          const [buAncestorIds, buDescendantIds] = path
-            ? await Promise.all([buRepo.findAncestors(path), buRepo.findDescendants(path)])
-            : [[buId], [buId]];
-          const buTimezone = bu?.timezone ?? 'UTC';
-          const buCurrencyCode = bu?.currencyCode ?? '';
-
-          await buContextCache.set(buId, {
-            buTimezone,
-            buCurrencyCode,
-            buAncestorIds,
-            buDescendantIds,
-          });
+          // Group / LE / org workspaces pass their own context through; empty values are omitted from the headers
           return {
             orgId,
-            userId: sessionInfo.userId,
-            buId,
-            buTimezone,
-            buCurrencyCode,
-            buAncestorIds,
-            buDescendantIds,
+            userId,
+            siteId: '',
+            legalEntityId: sessionInfo.legalEntityId ?? '',
+            siteGroupId: sessionInfo.siteGroupId ?? '',
+            siteTimezone: '',
+            siteCurrencyCode: '',
           };
         },
       }),
@@ -240,7 +249,7 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
     AuthApiModule,
     UserApiModule,
     OrganizationApiModule,
-    BusinessUnitApiModule,
+    StructureApiModule,
     CatalogApiModule,
     UserPermissionsApiModule,
     // Profile and security management

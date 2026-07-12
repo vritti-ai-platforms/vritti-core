@@ -2,19 +2,49 @@ import { type CallHandler, type ExecutionContext, Injectable, type NestIntercept
 import { getRequestFromContext } from '@vritti/api-sdk/context';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { from, type Observable } from 'rxjs';
+import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 
 @Injectable()
 export class RlsInterceptor implements NestInterceptor {
-  constructor(private readonly db: PrimaryDatabaseService) {}
+  constructor(
+    private readonly db: PrimaryDatabaseService,
+    private readonly siteContextResolver: SiteContextResolverService,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const request = getRequestFromContext(context);
-    const orgId = request?.sessionInfo?.organizationId;
+    const sessionInfo = request?.sessionInfo;
+    const orgId = sessionInfo?.organizationId;
 
     if (!orgId) {
       return next.handle();
     }
 
-    return from(this.db.runWithRlsContext({ orgId }, async () => next.handle().toPromise()));
+    return from(this.executeWithRls(orgId, sessionInfo, next));
+  }
+
+  // Builds the workspace RLS context — a site workspace derives its legal entity so LE policies apply there too
+  private async executeWithRls(
+    orgId: string,
+    sessionInfo: { siteId?: string; siteGroupId?: string; legalEntityId?: string } | undefined,
+    next: CallHandler,
+  ): Promise<unknown> {
+    const siteId = sessionInfo?.siteId;
+    let legalEntityId = sessionInfo?.legalEntityId;
+
+    if (siteId && !legalEntityId) {
+      // The site lookup itself needs the org RLS context — without it the org-isolation policy hides the site
+      const siteContext = await this.db.runWithRlsContext({ orgId }, () => this.siteContextResolver.resolve(siteId));
+      legalEntityId = siteContext.legalEntityId || undefined;
+    }
+
+    const rlsContext = {
+      orgId,
+      siteId,
+      siteGroupId: sessionInfo?.siteGroupId,
+      legalEntityId,
+    };
+
+    return this.db.runWithRlsContext(rlsContext, async () => next.handle().toPromise());
   }
 }

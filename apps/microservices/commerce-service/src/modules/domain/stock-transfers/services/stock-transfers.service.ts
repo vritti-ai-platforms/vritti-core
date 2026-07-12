@@ -3,8 +3,8 @@ import { type FieldMap, FilterProcessor, type TableViewState } from '@vritti/api
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type StockTransferStatus, StockTransferStatusValues, stockTransfers } from '@/db/schema';
-import type { CreateStockTransferDto } from '@/modules/stock-transfers/dto/request/create-stock-transfer.dto';
-import type { UpdateStockTransferStatusDto } from '@/modules/stock-transfers/dto/request/update-stock-transfer-status.dto';
+import type { CreateStockTransferDto } from '@/modules/site/stock-transfers/dto/request/create-stock-transfer.dto';
+import type { UpdateStockTransferStatusDto } from '@/modules/site/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransferDto } from '../dto/entity/stock-transfer.dto';
 import { StockTransfersRepository } from '../repositories/stock-transfers.repository';
 
@@ -40,14 +40,14 @@ export class StockTransfersService {
   async create(data: CreateStockTransferDto): Promise<StockTransferDto> {
     const entity = await this.repository.create({
       inventoryItemId: data.inventoryItemId,
-      fromBuId: data.fromBuId,
-      toBuId: data.toBuId,
+      fromSiteId: data.fromSiteId,
+      toSiteId: data.toSiteId,
       quantity: data.quantity,
       requestedBy: data.requestedBy ?? null,
       notes: data.notes ?? null,
     });
 
-    this.logger.log(`Created stock transfer: ${entity.id} (from: ${data.fromBuId}, to: ${data.toBuId})`);
+    this.logger.log(`Created stock transfer: ${entity.id} (from: ${data.fromSiteId}, to: ${data.toSiteId})`);
     return StockTransferDto.from(entity);
   }
 

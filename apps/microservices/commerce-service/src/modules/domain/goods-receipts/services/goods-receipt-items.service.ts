@@ -73,7 +73,7 @@ export class GoodsReceiptItemsService {
   async findForTable(
     goodsReceiptId: string,
     state: TableViewState,
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<{ result: GoodsReceiptItemDto[]; count: number }> {
     await this.ensureReceiptExists(goodsReceiptId);
 
@@ -92,7 +92,7 @@ export class GoodsReceiptItemsService {
       offset,
     });
 
-    return { result: result.map((row) => GoodsReceiptItemDto.from(row, buCurrencyCode)), count };
+    return { result: result.map((row) => GoodsReceiptItemDto.from(row, siteCurrencyCode)), count };
   }
 
   async findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostDto> {
@@ -101,11 +101,11 @@ export class GoodsReceiptItemsService {
     return GoodsReceiptItemsCostDto.from(items);
   }
 
-  async findById(goodsReceiptId: string, itemId: string, buCurrencyCode?: string): Promise<GoodsReceiptItemDto> {
+  async findById(goodsReceiptId: string, itemId: string, siteCurrencyCode?: string): Promise<GoodsReceiptItemDto> {
     await this.ensureReceiptExists(goodsReceiptId);
     const row = await this.itemsRepository.findByReceiptIdAndItemIdWithRefs(goodsReceiptId, itemId);
     if (!row) throw new NotFoundException('Goods receipt item not found.');
-    return GoodsReceiptItemDto.from(row, buCurrencyCode);
+    return GoodsReceiptItemDto.from(row, siteCurrencyCode);
   }
 
   // Returns the unified GR tree: items as roots, lots/lines as descendants per item.tracking.
@@ -127,7 +127,7 @@ export class GoodsReceiptItemsService {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
 
@@ -159,7 +159,7 @@ export class GoodsReceiptItemsService {
         currencyCode: data.currencyCode,
         scheme,
       },
-      buCurrencyCode,
+      siteCurrencyCode,
     );
   }
 
@@ -176,7 +176,7 @@ export class GoodsReceiptItemsService {
       schemeFreeQty?: number;
       hasScheme?: boolean;
     },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     const receipt = await this.ensureEditableReceipt(goodsReceiptId);
 
@@ -221,7 +221,7 @@ export class GoodsReceiptItemsService {
         currencyCode: data.currencyCode,
         scheme,
       },
-      buCurrencyCode,
+      siteCurrencyCode,
     );
   }
 
@@ -237,7 +237,7 @@ export class GoodsReceiptItemsService {
       currencyCode?: string;
       scheme: FreeScheme;
     },
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<CreateResponseDto<GoodsReceiptItemDto>> {
     // Reject duplicate (DB also enforces unique constraint, but produce a clean error)
     const existing = await this.itemsRepository.findByReceiptInventoryItemAndUom(
@@ -285,7 +285,7 @@ export class GoodsReceiptItemsService {
     });
 
     this.logger.log(`Added item ${entity.id} to goods receipt ${receipt.id}`);
-    const dto = await this.findById(receipt.id, entity.id, buCurrencyCode);
+    const dto = await this.findById(receipt.id, entity.id, siteCurrencyCode);
     return {
       success: true,
       message: `Item added to goods receipt "${receipt.grNumber}".`,

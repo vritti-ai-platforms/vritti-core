@@ -25,8 +25,8 @@ import {
 } from '@vritti/api-sdk/exceptions';
 import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { inventoryItems } from '@/db/schema';
-import type { CreateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from '@/modules/inventory-items/root/dto/request/update-inventory-item.dto';
+import type { CreateInventoryItemDto } from '@/modules/site/inventory-items/root/dto/request/create-inventory-item.dto';
+import type { UpdateInventoryItemDto } from '@/modules/site/inventory-items/root/dto/request/update-inventory-item.dto';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
 
@@ -58,7 +58,7 @@ export class InventoryItemsService {
   // Returns paginated, filtered, and sorted inventory items for the data table
   async findForTable(
     state: TableViewState,
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
@@ -76,7 +76,7 @@ export class InventoryItemsService {
       offset,
     });
 
-    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, buCurrencyCode));
+    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, siteCurrencyCode));
 
     return { result: dtos, count };
   }
@@ -85,7 +85,7 @@ export class InventoryItemsService {
   async findForTableByCategory(
     categoryId: string,
     state: TableViewState,
-    buCurrencyCode?: string,
+    siteCurrencyCode?: string,
   ): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
@@ -104,7 +104,7 @@ export class InventoryItemsService {
     });
 
     return {
-      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, buCurrencyCode)),
+      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, siteCurrencyCode)),
       count,
     };
   }
@@ -245,7 +245,7 @@ export class InventoryItemsService {
     };
   }
 
-  async create(data: CreateInventoryItemDto, buCurrencyCode?: string): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(data: CreateInventoryItemDto, siteCurrencyCode?: string): Promise<CreateResponseDto<InventoryItemDto>> {
     const bridgeConversion = await this.resolveMrpBridge(data);
     const entity = await this.repository.create({
       name: data.name,
@@ -276,16 +276,22 @@ export class InventoryItemsService {
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.code}) created successfully.`,
-      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, buCurrencyCode),
+      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, siteCurrencyCode),
     };
   }
 
   // Returns a single inventory item with UOM symbol and canDelete
-  async findById(id: string, buCurrencyCode?: string): Promise<InventoryItemDto> {
+  async findById(id: string, siteCurrencyCode?: string): Promise<InventoryItemDto> {
     const entity = await this.repository.findByIdWithUomAndCategory(id);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     const referencedIds = await this.repository.findReferencedIds([id]);
-    return InventoryItemDto.from(entity, entity.uomSymbol, !referencedIds.has(id), entity.categoryName, buCurrencyCode);
+    return InventoryItemDto.from(
+      entity,
+      entity.uomSymbol,
+      !referencedIds.has(id),
+      entity.categoryName,
+      siteCurrencyCode,
+    );
   }
 
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family

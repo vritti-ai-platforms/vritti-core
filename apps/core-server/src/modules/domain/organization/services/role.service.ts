@@ -1,15 +1,16 @@
-import { BusinessUnitRepository } from '@domain/business-unit/repositories/business-unit.repository';
 import { CatalogService } from '@domain/catalog/services/catalog.service';
+import { SiteRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
-import type { FeatureUnlocks } from '@vritti/api-sdk/catalog-resolver';
+import type { FeatureUnlocks, ScopeType } from '@vritti/api-sdk/catalog-resolver';
 import { type CreateResponseDto, PrimaryDatabaseService, SuccessResponseDto } from '@vritti/api-sdk/database';
-import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { Role } from '@/db/schema';
-import { validateGrantDependencies } from '@/rbac/permission-dependencies';
+import { templateAssignableAtSite, validateGrantDependencies } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
 import type { RoleItemDto } from '../dto/request/provision-roles-internal.dto';
 import type { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
+import { OrganizationRepository } from '../repositories/organization.repository';
 import { RoleRepository } from '../repositories/role.repository';
 
 @Injectable()
@@ -19,7 +20,8 @@ export class RoleService {
   constructor(
     private readonly database: PrimaryDatabaseService,
     private readonly roleRepository: RoleRepository,
-    private readonly businessUnitRepository: BusinessUnitRepository,
+    private readonly organizationRepository: OrganizationRepository,
+    private readonly siteRepository: SiteRepository,
     private readonly permissionSetCache: PermissionSetCacheService,
     private readonly catalogService: CatalogService,
   ) {}
@@ -137,10 +139,49 @@ export class RoleService {
     return { success: true, message: 'Role deleted successfully.' };
   }
 
-  // Returns all roles for the business unit's organization (BUs no longer gate apps — no compatibility filtering)
-  async findForBU(buId: string): Promise<Role[]> {
-    const bu = await this.businessUnitRepository.findById(buId);
-    if (!bu) throw new NotFoundException('Business unit not found.');
-    return this.roleRepository.findByOrg(bu.organizationId);
+  // Returns the org's roles assignable at a site — SITE-scoped templates must target the site's type; custom/unknown roles always pass
+  async findForSite(siteId: string): Promise<Role[]> {
+    const site = await this.siteRepository.findById(siteId);
+    if (!site) throw new NotFoundException('Site not found.');
+    const roles = await this.roleRepository.findByOrg(site.organizationId);
+
+    const [snapshot, org] = await Promise.all([
+      this.catalogService.getActiveSnapshot(),
+      this.organizationRepository.findById(site.organizationId),
+    ]);
+    const templates = org?.businessCode ? snapshot?.businesses?.[org.businessCode]?.roleTemplates : undefined;
+    if (!templates) return roles;
+
+    return roles.filter((role) => templateAssignableAtSite(templates[role.code], site.type));
+  }
+
+  // Returns the org's roles assignable at a target — templates scoped to the target's type plus SITE-scoped templates (any site type); custom/unknown roles always pass
+  async findForTarget(orgId: string, targetType: string, targetId?: string): Promise<Role[]> {
+    const scopes: ScopeType[] = ['ORG', 'LE', 'SITE_GROUP', 'SITE'];
+    if (!scopes.includes(targetType as ScopeType)) {
+      throw new BadRequestException({
+        label: 'Invalid Target Type',
+        detail: 'targetType must be one of ORG, LE, SITE_GROUP, or SITE.',
+      });
+    }
+
+    // SITE targets keep the stricter site-type matching
+    if (targetType === 'SITE') {
+      if (!targetId) throw new BadRequestException('targetId is required for SITE targets.');
+      return this.findForSite(targetId);
+    }
+
+    const roles = await this.roleRepository.findByOrg(orgId);
+    const [snapshot, org] = await Promise.all([
+      this.catalogService.getActiveSnapshot(),
+      this.organizationRepository.findById(orgId),
+    ]);
+    const templates = org?.businessCode ? snapshot?.businesses?.[org.businessCode]?.roleTemplates : undefined;
+    if (!templates) return roles;
+
+    return roles.filter((role) => {
+      const template = templates[role.code];
+      return !template || template.scope === targetType || template.scope === 'SITE';
+    });
   }
 }

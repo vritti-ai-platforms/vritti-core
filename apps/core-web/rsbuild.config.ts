@@ -3,7 +3,6 @@ import { pluginModuleFederation } from '@module-federation/rsbuild-plugin';
 import { defineConfig, loadEnv } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 
-
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Load environment variables from .env files
@@ -37,6 +36,24 @@ export default defineConfig({
         append: false, // Insert at beginning of head, before other scripts
         // Inline script to set dark mode before first paint
         children: `(function(){var t=localStorage.getItem('theme'),d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(!t&&d))document.documentElement.classList.add('dark');})();`,
+      },
+      {
+        tag: 'link',
+        head: true,
+        attrs: { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      },
+      {
+        tag: 'link',
+        head: true,
+        attrs: { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
+      },
+      {
+        tag: 'link',
+        head: true,
+        attrs: {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&display=swap',
+        },
       },
     ],
   },

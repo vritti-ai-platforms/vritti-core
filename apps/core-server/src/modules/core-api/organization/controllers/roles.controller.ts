@@ -18,6 +18,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { Role } from '@/db/schema';
+import { OrgIdHeader } from '@/security/decorators/org-id-header.decorator';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
 import {
@@ -25,7 +26,8 @@ import {
   ApiDeleteRole,
   ApiListRoles,
   ApiProvisionRoles,
-  ApiRolesForBu,
+  ApiRolesForSite,
+  ApiRolesForTarget,
   ApiUpdateRole,
 } from '../docs/roles.docs';
 import { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
@@ -60,12 +62,24 @@ export class RolesController {
     return this.roleService.findByOrg(orgId);
   }
 
-  // Returns all roles for the given business unit's organization
-  @Get('for-bu')
-  @ApiRolesForBu()
-  async findForBu(@Query('buId') buId: string): Promise<Role[]> {
-    this.logger.log(`GET /api/organizations/internal/roles/for-bu?buId=${buId}`);
-    return this.roleService.findForBU(buId);
+  // Returns all roles for the given site's organization
+  @Get('for-site')
+  @ApiRolesForSite()
+  async findForSite(@Query('siteId') siteId: string): Promise<Role[]> {
+    this.logger.log(`GET /api/organizations/internal/roles/for-site?siteId=${siteId}`);
+    return this.roleService.findForSite(siteId);
+  }
+
+  // Returns the org's roles assignable at a target (ORG, LE, SITE_GROUP, or SITE)
+  @Get('for-target')
+  @ApiRolesForTarget()
+  async findForTarget(
+    @OrgIdHeader() orgId: string,
+    @Query('targetType') targetType: string,
+    @Query('targetId') targetId?: string,
+  ): Promise<Role[]> {
+    this.logger.log(`GET /organizations/internal/roles/for-target?targetType=${targetType} — org ${orgId}`);
+    return this.roleService.findForTarget(orgId, targetType, targetId);
   }
 
   // Creates a single role with features

@@ -11,8 +11,8 @@ import {
 import { and, asc, ilike } from '@vritti/api-sdk/drizzle-orm';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { taxGroups } from '@/db/schema';
-import type { CreateTaxGroupDto } from '@/modules/tax-groups/dto/request/create-tax-group.dto';
-import type { UpdateTaxGroupDto } from '@/modules/tax-groups/dto/request/update-tax-group.dto';
+import type { CreateTaxGroupDto } from '@/modules/legal-entity/tax-groups/dto/request/create-tax-group.dto';
+import type { UpdateTaxGroupDto } from '@/modules/legal-entity/tax-groups/dto/request/update-tax-group.dto';
 import { TaxGroupDto } from '../dto/entity/tax-group.dto';
 import { TaxGroupsRepository } from '../repositories/tax-groups.repository';
 
