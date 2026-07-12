@@ -11,7 +11,6 @@ import type {
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateUomDto } from './dto/request/create-uom.dto';
 import type { UpdateUomDto } from './dto/request/update-uom.dto';
 
@@ -28,10 +27,9 @@ export class UomController {
   @MessagePattern({ cmd: 'uom.table' })
   async table(
     @Payload() state: TableViewState & { dimensionId: string },
-    @RpcSiteId() siteId: string,
   ): Promise<{ result: UomDto[]; count: number }> {
     this.logger.log(`uom.table — dimensionId: ${state.dimensionId}`);
-    return this.uomService.findForTable(state, siteId);
+    return this.uomService.findForTable(state);
   }
 
   // Returns paginated UOM options for the select component
@@ -69,9 +67,9 @@ export class UomController {
 
   // Finds a UOM by ID
   @MessagePattern({ cmd: 'uom.findById' })
-  async findById(@Payload() data: { id: string }, @RpcSiteId() siteId: string): Promise<UomDto> {
+  async findById(@Payload() data: { id: string }): Promise<UomDto> {
     this.logger.log(`uom.findById — id: ${data.id}`);
-    return this.uomService.findById(data.id, siteId);
+    return this.uomService.findById(data.id);
   }
 
   // Updates a UOM by ID

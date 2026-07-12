@@ -18,7 +18,6 @@ export const uom = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     dimensionId: uuid('dimension_id')
       .notNull()
       .references(() => uomDimensions.id, { onDelete: 'restrict' }),
@@ -37,30 +36,14 @@ export const uom = coreSchema.table(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex('uq_uom_bu_symbol').on(table.siteId, table.symbol),
-    index('idx_uom_site').on(table.organizationId, table.siteId),
+    uniqueIndex('uq_uom_org_symbol').on(table.organizationId, table.symbol),
+    index('idx_uom_org').on(table.organizationId),
     index('idx_uom_dimension').on(table.dimensionId),
     check('chk_uom_base_uom_qty_positive', sql`${table.baseUomQty} > 0`),
     check('chk_uom_uom_qty_positive', sql`${table.uomQty} > 0`),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
   ],
 );

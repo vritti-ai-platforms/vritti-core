@@ -16766,9 +16766,8 @@
             "example": "Mysore Outlet"
           },
           "code": {
-            "type": "object",
-            "example": "mysore",
-            "nullable": true
+            "type": "string",
+            "example": "mysore"
           },
           "type": {
             "type": "string",
@@ -16796,9 +16795,8 @@
             "example": "Asia/Kolkata"
           },
           "legalEntityId": {
-            "type": "object",
-            "example": "uuid-here",
-            "nullable": true
+            "type": "string",
+            "example": "uuid-here"
           },
           "registrationId": {
             "type": "object",
@@ -16822,10 +16820,12 @@
           "id",
           "organizationId",
           "name",
+          "code",
           "type",
           "isActive",
           "sortOrder",
           "timezone",
+          "legalEntityId",
           "createdAt",
           "updatedAt"
         ]
@@ -17017,7 +17017,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Site code",
+            "description": "Site code (unique per organization)",
             "example": "mysore"
           },
           "type": {
@@ -17046,7 +17046,7 @@
           },
           "legalEntityId": {
             "type": "string",
-            "description": "Owning legal entity ID",
+            "description": "Owning legal entity ID — the site currency derives from it",
             "example": "uuid-here"
           },
           "registrationId": {
@@ -17067,7 +17067,8 @@
           "name",
           "code",
           "type",
-          "timezone"
+          "timezone",
+          "legalEntityId"
         ]
       },
       "UpdateSiteInternalDto": {
@@ -17105,7 +17106,7 @@
           },
           "legalEntityId": {
             "type": "string",
-            "description": "Owning legal entity ID",
+            "description": "Owning legal entity ID — can change but never clear",
             "example": "uuid-here"
           },
           "registrationId": {

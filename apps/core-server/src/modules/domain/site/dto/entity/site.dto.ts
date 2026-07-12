@@ -11,8 +11,8 @@ export class SiteDto {
   @ApiProperty({ example: 'Mysore Outlet' })
   name: string;
 
-  @ApiPropertyOptional({ example: 'mysore', nullable: true })
-  code: string | null;
+  @ApiProperty({ example: 'mysore' })
+  code: string;
 
   @ApiProperty({ enum: ['OUTLET', 'WAREHOUSE', 'PRODUCTION'] })
   type: SiteType;
@@ -29,8 +29,8 @@ export class SiteDto {
   @ApiProperty({ example: 'Asia/Kolkata' })
   timezone: string;
 
-  @ApiPropertyOptional({ example: 'uuid-here', nullable: true })
-  legalEntityId: string | null;
+  @ApiProperty({ example: 'uuid-here' })
+  legalEntityId: string;
 
   @ApiPropertyOptional({ example: 'uuid-here', nullable: true })
   registrationId: string | null;
@@ -50,13 +50,13 @@ export class SiteDto {
     dto.id = site.id;
     dto.organizationId = site.organizationId;
     dto.name = site.name;
-    dto.code = site.code ?? null;
+    dto.code = site.code;
     dto.type = site.type;
     dto.groupId = site.groupId ?? null;
     dto.isActive = site.isActive;
     dto.sortOrder = site.sortOrder;
     dto.timezone = site.timezone;
-    dto.legalEntityId = site.legalEntityId ?? null;
+    dto.legalEntityId = site.legalEntityId;
     dto.registrationId = site.registrationId ?? null;
     dto.metadata = site.metadata ?? null;
     dto.createdAt = site.createdAt.toISOString();

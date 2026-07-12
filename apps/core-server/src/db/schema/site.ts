@@ -1,6 +1,16 @@
 import type { SiteFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { boolean, index, integer, jsonb, pgPolicy, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgPolicy,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { pickStrategyEnum, siteTypeEnum } from './enums';
 import { leTaxRegistrations } from './le-tax-registration';
@@ -46,6 +56,7 @@ export const sites = coreSchema.table(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
+    uniqueIndex('sites_org_code_unique').on(table.organizationId, table.code),
     index('sites_organization_id_idx').on(table.organizationId),
     index('sites_group_id_idx').on(table.groupId),
     pgPolicy('org_isolation', {

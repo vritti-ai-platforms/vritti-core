@@ -3,7 +3,6 @@ import type { Category, CategoryRole } from '@/db/schema';
 export class CategoryDto {
   id: string;
   organizationId: string;
-  siteId: string;
   name: string;
   image: string | null;
   parentId: string | null;
@@ -22,7 +21,6 @@ export class CategoryDto {
     const dto = new CategoryDto();
     dto.id = entity.id;
     dto.organizationId = entity.organizationId;
-    dto.siteId = entity.siteId;
     dto.name = entity.name;
     dto.image = entity.image ?? null;
     dto.parentId = entity.parentId ?? null;

@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type SiteFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
-import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type LegalEntity, type SiteMetadata, type SiteType } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
@@ -28,28 +28,30 @@ export class SiteService {
 
   // Creates a site after validating its group, legal entity, and registration links
   async create(orgId: string, dto: CreateSiteInternalDto): Promise<SiteDto> {
-    if (dto.groupId) await this.validateGroup(orgId, dto.groupId);
-
-    const legalEntity = await this.validateEntityLinks(orgId, {
-      legalEntityId: dto.legalEntityId ?? null,
-      registrationId: dto.registrationId ?? null,
-    });
-
-    if (!legalEntity) {
-      throw new BadRequestException({
-        label: 'Missing Legal Entity',
-        detail: 'Link a legal entity — the site currency derives from it.',
+    const code = dto.code.toLowerCase();
+    const existing = await this.siteRepository.findByOrgAndCode(orgId, code);
+    if (existing) {
+      throw new ConflictException({
+        label: 'Duplicate Code',
+        detail: `A site with code "${code}" already exists in this organization.`,
       });
     }
+
+    if (dto.groupId) await this.validateGroup(orgId, dto.groupId);
+
+    await this.validateEntityLinks(orgId, {
+      legalEntityId: dto.legalEntityId,
+      registrationId: dto.registrationId ?? null,
+    });
 
     const site = await this.siteRepository.create({
       organizationId: orgId,
       name: dto.name,
-      code: dto.code.toLowerCase(),
+      code,
       type: dto.type as SiteType,
       groupId: dto.groupId ?? null,
       timezone: dto.timezone,
-      legalEntityId: legalEntity.id,
+      legalEntityId: dto.legalEntityId,
       registrationId: dto.registrationId ?? null,
       metadata: dto.metadata as SiteMetadata,
     });
@@ -76,6 +78,17 @@ export class SiteService {
     const site = await this.siteRepository.findById(id);
     if (!site) throw new NotFoundException('Site not found.');
 
+    const code = dto.code !== undefined ? dto.code.toLowerCase() : undefined;
+    if (code && code !== site.code) {
+      const existing = await this.siteRepository.findByOrgAndCode(site.organizationId, code);
+      if (existing) {
+        throw new ConflictException({
+          label: 'Duplicate Code',
+          detail: `A site with code "${code}" already exists in this organization.`,
+        });
+      }
+    }
+
     if (dto.groupId) await this.validateGroup(site.organizationId, dto.groupId);
 
     const effectiveLegalEntityId = dto.legalEntityId !== undefined ? dto.legalEntityId : site.legalEntityId;
@@ -99,7 +112,7 @@ export class SiteService {
 
     await this.siteRepository.update(id, {
       ...(dto.name && { name: dto.name }),
-      ...(dto.code !== undefined && { code: dto.code.toLowerCase() }),
+      ...(code !== undefined && { code }),
       ...(dto.type && { type: dto.type as SiteType }),
       ...(dto.groupId !== undefined && { groupId: dto.groupId }),
       ...(dto.timezone !== undefined && { timezone: dto.timezone }),

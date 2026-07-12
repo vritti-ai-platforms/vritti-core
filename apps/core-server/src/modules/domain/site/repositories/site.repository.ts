@@ -26,6 +26,13 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
     });
   }
 
+  // Finds a site by its organization-unique code for uniqueness checks
+  async findByOrgAndCode(orgId: string, code: string): Promise<Site | undefined> {
+    return this.model.findFirst({
+      where: { organizationId: orgId, code },
+    });
+  }
+
   // Finds a site group by ID for membership validation
   async findSiteGroupById(id: string): Promise<SiteGroup | undefined> {
     const rows = await this.db.select().from(siteGroups).where(eq(siteGroups.id, id)).limit(1);

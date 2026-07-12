@@ -12,8 +12,9 @@ export class CreateSiteInternalDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ description: 'Site code', example: 'mysore' })
+  @ApiProperty({ description: 'Site code (unique per organization)', example: 'mysore' })
   @IsString()
+  @IsNotEmpty()
   code: string;
 
   @ApiProperty({
@@ -39,10 +40,9 @@ export class CreateSiteInternalDto {
   @IsNotEmpty()
   timezone: string;
 
-  @ApiPropertyOptional({ description: 'Owning legal entity ID', example: 'uuid-here' })
-  @IsOptional()
+  @ApiProperty({ description: 'Owning legal entity ID — the site currency derives from it', example: 'uuid-here' })
   @IsUUID()
-  legalEntityId?: string;
+  legalEntityId: string;
 
   @ApiPropertyOptional({
     description: "Tax registration ID (must belong to the site's legal entity)",

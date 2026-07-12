@@ -42,8 +42,8 @@ export class UpdateSiteInternalDto {
   @IsNotEmpty()
   timezone?: string;
 
-  @ApiPropertyOptional({ description: 'Owning legal entity ID', example: 'uuid-here' })
-  @IsOptional()
+  @ApiPropertyOptional({ description: 'Owning legal entity ID — can change but never clear', example: 'uuid-here' })
+  @ValidateIf((_, value) => value !== undefined)
   @IsUUID()
   legalEntityId?: string;
 
