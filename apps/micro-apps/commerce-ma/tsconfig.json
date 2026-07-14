@@ -23,11 +23,7 @@
       "@tanstack/query-core": ["../../../node_modules/@tanstack/query-core"],
       "@react-navigation/native": ["../../../node_modules/@react-navigation/native"],
       "react-native-reanimated": ["../../../node_modules/react-native-reanimated"],
-      "react-native-worklets": ["../../../node_modules/react-native-worklets"],
-      "@react-navigation/bottom-tabs": [
-        "../../../node_modules/@react-navigation/bottom-tabs",
-        "../../../../quantum-ui-native/node_modules/@react-navigation/bottom-tabs"
-      ]
+      "react-native-worklets": ["../../../node_modules/react-native-worklets"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"],

@@ -1,36 +1,30 @@
 import { DarkTheme, DefaultTheme, NavigationContainer, type Theme } from '@react-navigation/native';
 import { useTheme } from '@vritti/quantum-ui-native/hooks';
-import { PushNavigator, type PushScreenConfig } from '@vritti/quantum-ui-native/PushNavigator';
+import { PushNavigator } from '@vritti/quantum-ui-native/PushNavigator';
 import { THEME_TOKENS } from '@vritti/quantum-ui-native/theme';
 import { useMemo } from 'react';
 import { AuthFlowProvider } from '../providers/AuthFlowProvider';
 import { useAuth, useAuthSessionSnapshot } from '../providers/AuthProvider';
 import { PermissionProvider, usePermissionContext } from '../providers/PermissionProvider';
 import { authenticatedRoutes, authRoutes } from '../routes';
-import { WorkspaceSelectionScreen } from '../screens/workspace/WorkspaceSelectionScreen';
 import { StartupSplashScreen } from './StartupSplashScreen';
 
-const workspaceSelectionRoutes: ReadonlyArray<PushScreenConfig<'SelectWorkspace'>> = [
-  { name: 'SelectWorkspace', component: WorkspaceSelectionScreen, title: 'Select workspace' },
-];
-
-// Gate between auth and feature nav: waits for assignments, then asks which workspace to use.
+// Gate between auth and feature nav: waits for assignments, then renders ONE native-stack with HomeTabs +
+// SelectWorkspace as siblings. The detached tab-bar button pushes SelectWorkspace (native slide-in); picking
+// a workspace pops back to HomeTabs. A fresh login with a real choice starts on SelectWorkspace.
 const AuthenticatedGate = ({ navTheme }: { navTheme: Theme }) => {
   const { workspace, isLoadingSites } = usePermissionContext();
   const { sessionOrigin } = useAuthSessionSnapshot();
 
-  // Show splash while assignments resolve and during the restore gap before auto-selecting the last-used workspace.
+  // Splash while assignments resolve, and during the restore gap before the last-used workspace is
+  // auto-selected (so the picker isn't flashed). On a fresh login the workspace stays null → start on the picker.
   if (isLoadingSites || (!workspace && sessionOrigin !== 'login')) {
     return <StartupSplashScreen statusText="Loading your workspace" />;
   }
 
   return (
     <NavigationContainer theme={navTheme}>
-      {workspace ? (
-        <PushNavigator initialRoute="HomeTabs" screens={authenticatedRoutes} />
-      ) : (
-        <PushNavigator initialRoute="SelectWorkspace" screens={workspaceSelectionRoutes} />
-      )}
+      <PushNavigator initialRoute={workspace ? 'HomeTabs' : 'SelectWorkspace'} screens={authenticatedRoutes} />
     </NavigationContainer>
   );
 };

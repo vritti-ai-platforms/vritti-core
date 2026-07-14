@@ -1,11 +1,19 @@
 import { CardPressable } from '@vritti/quantum-ui-native/CardPressable';
+import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { useMemo } from 'react';
 import { View } from 'react-native';
 import { getSelectedWorkspace } from '../../config/storage';
 import { usePermissionContext } from '../../providers/PermissionProvider';
-import type { AssignedLegalEntity, AssignedRole, AssignedSite, AssignedSiteGroup } from '../../types/permissions';
+import type { HostAppRoute } from '../../routes';
+import type {
+  ActiveWorkspace,
+  AssignedLegalEntity,
+  AssignedRole,
+  AssignedSite,
+  AssignedSiteGroup,
+} from '../../types/permissions';
 
 const SITE_TYPE_LABELS: Record<AssignedSite['type'], string> = {
   OUTLET: 'Outlet',
@@ -27,7 +35,16 @@ const RoleLine = ({ roleName }: { roleName: string }) => (
 // Post-login gate that asks which workspace to work in, grouped by scope (sites, groups, companies, org).
 export const WorkspaceSelectionScreen = () => {
   const { org, sites, legalEntities, siteGroups, assignments, selectWorkspace } = usePermissionContext();
+  const { canPop, pop, push } = usePushNavigator<HostAppRoute>();
   const lastWorkspace = getSelectedWorkspace();
+
+  // Apply the workspace, then slide back to the tabs: pop when pushed over HomeTabs (the switch flow), or
+  // navigate to HomeTabs when this is the initial route (fresh login — nothing to pop back to).
+  const handleSelect = (workspace: ActiveWorkspace) => {
+    selectWorkspace(workspace);
+    if (canPop) pop();
+    else push('HomeTabs');
+  };
 
   const siteById = useMemo(() => new Map(sites.map((s) => [s.id, s])), [sites]);
   const groupById = useMemo(() => new Map(siteGroups.map((g) => [g.id, g])), [siteGroups]);
@@ -37,7 +54,10 @@ export const WorkspaceSelectionScreen = () => {
     () =>
       assignments
         .filter((a) => a.targetType === 'SITE')
-        .map((assignment) => ({ assignment, site: assignment.targetId ? siteById.get(assignment.targetId) : undefined }))
+        .map((assignment) => ({
+          assignment,
+          site: assignment.targetId ? siteById.get(assignment.targetId) : undefined,
+        }))
         .filter((c): c is { assignment: AssignedRole; site: AssignedSite } => !!c.site),
     [assignments, siteById],
   );
@@ -70,7 +90,7 @@ export const WorkspaceSelectionScreen = () => {
 
   if (assignments.length === 0) {
     return (
-      <ScreenContainer scrollable contentContainerClassName="gap-2 p-4">
+      <ScreenContainer scrollable contentContainerStyle={{ gap: 8, padding: 16 }}>
         <Text className="text-base font-semibold text-foreground">No workspaces yet</Text>
         <Text className="text-sm text-muted-foreground">
           You don't have any role assignments. Ask your administrator for access.
@@ -80,7 +100,7 @@ export const WorkspaceSelectionScreen = () => {
   }
 
   return (
-    <ScreenContainer scrollable contentContainerClassName="gap-2 p-4">
+    <ScreenContainer scrollable contentContainerStyle={{ gap: 8, padding: 16 }}>
       <Text className="text-sm text-muted-foreground">Choose the workspace you want to work in.</Text>
 
       {siteCards.length > 0 && (
@@ -96,7 +116,7 @@ export const WorkspaceSelectionScreen = () => {
               <CardPressable
                 key={`${assignment.roleCode}-${site.id}`}
                 selected={selected}
-                onPress={() => selectWorkspace({ kind: 'site', id: site.id })}
+                onPress={() => handleSelect({ kind: 'site', id: site.id })}
                 className="gap-1 p-4"
               >
                 <View className="flex-row items-center justify-between gap-2">
@@ -121,7 +141,7 @@ export const WorkspaceSelectionScreen = () => {
               <CardPressable
                 key={`${assignment.roleCode}-${group.id}`}
                 selected={selected}
-                onPress={() => selectWorkspace({ kind: 'group', id: group.id })}
+                onPress={() => handleSelect({ kind: 'group', id: group.id })}
                 className="gap-1 p-4"
               >
                 <View className="flex-row items-center justify-between gap-2">
@@ -148,7 +168,7 @@ export const WorkspaceSelectionScreen = () => {
               <CardPressable
                 key={`${assignment.roleCode}-${entity.id}`}
                 selected={selected}
-                onPress={() => selectWorkspace({ kind: 'le', id: entity.id })}
+                onPress={() => handleSelect({ kind: 'le', id: entity.id })}
                 className="gap-1 p-4"
               >
                 <View className="flex-row items-center justify-between gap-2">
@@ -168,7 +188,7 @@ export const WorkspaceSelectionScreen = () => {
           <SectionHead label="ORGANIZATION" count={orgAssignments.length} />
           <CardPressable
             selected={lastWorkspace?.kind === 'org'}
-            onPress={() => selectWorkspace({ kind: 'org', id: org.id })}
+            onPress={() => handleSelect({ kind: 'org', id: org.id })}
             className="gap-1 p-4"
           >
             <Text className="text-base font-semibold text-foreground">Manage {org.name}</Text>

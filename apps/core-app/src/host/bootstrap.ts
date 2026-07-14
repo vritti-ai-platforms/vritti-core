@@ -5,6 +5,12 @@ import '@vritti/quantum-ui-native/Select';
 // tabbed screens consume the host-provided share (import: false). Without this import the share getter is
 // undefined in the remote ("getter is not a function") the moment a tabbed screen loads.
 import 'react-native-pager-view';
+// react-native-bottom-tabs backs quantum's BottomNavigation.ios (iOS 26 detached search-role capsule) and
+// @bottom-tabs/react-navigation is its react-navigation bridge. Both are eager shared singletons; import
+// them here (like pager-view) so the shared scope is populated before the lazy App tree renders the tabs —
+// the tab lib is a NATIVE module, so a missing share getter surfaces as "getter is not a function".
+import 'react-native-bottom-tabs';
+import '@bottom-tabs/react-navigation';
 import { registerRemotes } from '@module-federation/enhanced/runtime';
 import { configureMobileAxios } from '@vritti/quantum-ui-native/utils';
 import { enableScreens } from 'react-native-screens';

@@ -280,10 +280,15 @@ export default (rspackEnv) => {
             version: '3.0.0-alpha.20',
             requiredVersion: '>=0.0.0-0',
           },
-          '@react-navigation/bottom-tabs': {
+          // iOS native tab bar (SwiftUI) that quantum's BottomNavigation.ios uses for the iOS 26 detached
+          // search-role capsule. react-native-bottom-tabs is a NATIVE module, so it MUST be one shared
+          // singleton — the import now lives in quantum source (bundled via alias), and an unshared copy
+          // would duplicate the native-view wrapper. Host imports it via BottomNavigation, so eager is safe.
+          'react-native-bottom-tabs': { singleton: true, eager: true, version: '1.4.0', requiredVersion: '>=0.0.0-0' },
+          '@bottom-tabs/react-navigation': {
             singleton: true,
             eager: true,
-            version: '8.0.0-alpha.22',
+            version: '1.4.0',
             requiredVersion: '>=0.0.0-0',
           },
           'react-native-safe-area-context': { singleton: true, eager: true, requiredVersion: '^5.7.0' },

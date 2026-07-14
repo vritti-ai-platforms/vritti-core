@@ -1,15 +1,23 @@
-import { BottomNavigation, type RouteConfig, type TabIcon } from '@vritti/quantum-ui-native/BottomNavigation';
-import { Spinner } from '@vritti/quantum-ui-native/Spinner';
-import { useMemo } from 'react';
-import { View } from 'react-native';
-import { resolveRemoteName } from '../config/remotes.config';
-import { usePermissionContext } from '../providers/PermissionProvider';
-import { AccountScreen } from '../screens/account/AccountScreen';
-import { RemoteHeader } from './RemoteHeader';
-import { RemoteScreen } from './RemoteScreen';
+import {
+  BottomNavigation,
+  type RouteConfig,
+  type TabIcon,
+} from "@vritti/quantum-ui-native/BottomNavigation";
+import { usePushNavigator } from "@vritti/quantum-ui-native/hooks";
+import { Spinner } from "@vritti/quantum-ui-native/Spinner";
+import { useMemo } from "react";
+import { View } from "react-native";
+import { resolveRemoteName } from "../config/remotes.config";
+import { usePermissionContext } from "../providers/PermissionProvider";
+import type { HostAppRoute } from "../routes";
+import { AccountScreen } from "../screens/account/AccountScreen";
+import { RemoteHeader } from "./RemoteHeader";
+import { RemoteScreen } from "./RemoteScreen";
 
 export const DynamicFeatureNavigator = () => {
-  const { features, isLoadingSites, isLoadingPermissions } = usePermissionContext();
+  const { features, assignments, isLoadingSites, isLoadingPermissions } =
+    usePermissionContext();
+  const { push } = usePushNavigator<HostAppRoute>();
 
   const routes = useMemo<RouteConfig[]>(
     () => [
@@ -28,28 +36,53 @@ export const DynamicFeatureNavigator = () => {
             materialSymbol: feature.materialSymbol,
           } as TabIcon,
           label: feature.name,
-          options: {
-            headerShown: true,
-            header: () => <RemoteHeader remoteName={remoteName} remoteEntry={remoteEntry} moduleName={moduleName} />,
-          },
+          header: () => (
+            <RemoteHeader
+              remoteName={remoteName}
+              remoteEntry={remoteEntry}
+              moduleName={moduleName}
+            />
+          ),
         };
       }),
+      // {
+      //   name: 'Account',
+      //   component: AccountScreen,
+      //   icon: {
+      //     sfSymbol: 'person.crop.circle',
+      //     materialSymbol: 'account_circle',
+      //   },
+      //   label: 'Account',
+      // },
+      // Detached iOS 26 "home" capsule → clears the workspace so WorkspaceSelectionScreen reappears.
+      // Only meaningful when there's more than one workspace to switch between. On Android / iOS < 26 it
+      // renders as a normal inline tab.
+
       {
-        name: 'Account',
-        component: AccountScreen,
-        icon: {
-          sfSymbol: 'person.crop.circle',
-          materialSymbol: 'account_circle',
+        name: assignments.length > 1 ? "Workspace" : "Account",
+        onPress: () => {
+          if (assignments.length > 1) push("SelectWorkspace");
+          else push("Account");
         },
-        label: 'Account',
+        icon:
+          assignments.length > 1
+            ? {
+                sfSymbol: "arrow.up.arrow.down",
+                materialSymbol: "swap_vert",
+              }
+            : {
+                sfSymbol: "person.crop.circle",
+                materialSymbol: "account_circle",
+              },
+        detached: true,
       },
     ],
-    [features],
+    [features, assignments, push],
   );
 
   if (isLoadingSites || isLoadingPermissions) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
         <Spinner size="large" />
       </View>
     );

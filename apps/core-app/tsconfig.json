@@ -24,10 +24,6 @@
       "@react-navigation/native": ["../../node_modules/@react-navigation/native"],
       "react-native-reanimated": ["../../node_modules/react-native-reanimated"],
       "react-native-worklets": ["../../node_modules/react-native-worklets"],
-      "@react-navigation/bottom-tabs": [
-        "../../node_modules/@react-navigation/bottom-tabs",
-        "../../../quantum-ui-native/node_modules/@react-navigation/bottom-tabs"
-      ],
       "@rn-primitives/portal": ["../../../quantum-ui-native/node_modules/@rn-primitives/portal"]
     }
   },
