@@ -51,7 +51,7 @@ export const AccountScreen = () => {
   };
 
   return (
-    <ScreenContainer scrollable contentContainerStyle={{ gap: 24, padding: 16, paddingBottom: 112 }}>
+    <ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-28">
       <Card className="items-center gap-4 p-6">
         <View className="h-14 w-14 items-center justify-center rounded-full bg-primary">
           <Text className="text-lg font-bold text-primary-foreground">{getInitials(user?.fullName)}</Text>

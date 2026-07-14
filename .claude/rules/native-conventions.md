@@ -243,3 +243,29 @@ const { sheetRef, editing, openCreate, openEdit } = useCreateEditSheet<Thing>({ 
 - **Not** for view-only or fixed-subject sheets. A detail/view sheet (`<QuantDetailSheet quant={…}>`) or an
   edit-only sheet whose subject is fixed (`editing={theCurrentThing}` constant, opened from a header menu) keeps a
   bare `useRef<BottomSheetRef>` + `.present()` — the hook is the create/edit state machine, not a generic ref.
+
+## ScreenContainer — content padding via `contentContainerClassName` (scrollable) / `className` (static)
+
+> WHY: keep padding in Tailwind classes (NativeWind-first), never inline styles or a hand-rolled padded inner
+> View. `ScreenContainer` composes your content padding with its own header / floating-tab-bar insets on BOTH
+> platforms: iOS carries the inset on the native `contentInset` prop (leaving `contentContainerStyle` free for
+> NativeWind); Android has no native `contentInset`, so it applies the inset to the scroll content container and
+> routes your `contentContainerClassName` onto an inner content View so the two never collide. Passing an inline
+> `contentContainerStyle` re-introduces that collision on Android (the className silently drops).
+
+```tsx
+// WRONG — inline contentContainerStyle (bypasses Tailwind; collides with Android insets)
+<ScreenContainer scrollable contentContainerStyle={{ gap: 24, padding: 16, paddingBottom: 32 }}>
+
+// WRONG — hand-rolled padded inner View
+<ScreenContainer scrollable><View className="gap-6 p-4">{children}</View></ScreenContainer>
+
+// CORRECT — scrollable: pad the content container with Tailwind classes
+<ScreenContainer scrollable contentContainerClassName="gap-6 p-4 pb-8">{children}</ScreenContainer>
+
+// CORRECT — static (non-scrollable): use className — it's a plain View, so contentContainerClassName is a no-op
+<ScreenContainer className="gap-4 p-4">{children}</ScreenContainer>
+```
+
+- `contentContainerClassName` applies only to `scrollable` ScreenContainer. On a static one it's a no-op — use `className`.
+- `FlashList` is separate — pass padding via its own `contentContainerStyle`/`contentContainerClassName`; this rule is about `ScreenContainer`.

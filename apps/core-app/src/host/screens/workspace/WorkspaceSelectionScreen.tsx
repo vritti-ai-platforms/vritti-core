@@ -90,7 +90,7 @@ export const WorkspaceSelectionScreen = () => {
 
   if (assignments.length === 0) {
     return (
-      <ScreenContainer scrollable contentContainerStyle={{ gap: 8, padding: 16 }}>
+      <ScreenContainer scrollable contentContainerClassName="gap-2 p-4">
         <Text className="text-base font-semibold text-foreground">No workspaces yet</Text>
         <Text className="text-sm text-muted-foreground">
           You don't have any role assignments. Ask your administrator for access.
@@ -100,7 +100,7 @@ export const WorkspaceSelectionScreen = () => {
   }
 
   return (
-    <ScreenContainer scrollable contentContainerStyle={{ gap: 8, padding: 16 }}>
+    <ScreenContainer scrollable contentContainerClassName="gap-2 p-4">
       <Text className="text-sm text-muted-foreground">Choose the workspace you want to work in.</Text>
 
       {siteCards.length > 0 && (
