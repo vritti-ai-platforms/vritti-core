@@ -1,10 +1,6 @@
-import type { InventoryItem } from "../../../types/inventory-items";
+import type { InventoryItem } from '../../../types/inventory-items';
 
-export type InventoryRoute =
-  | "InventoryList"
-  | "InventoryItemDetail"
-  | "InventoryItemCreate"
-  | "InventoryItemEdit";
+export type InventoryRoute = 'InventoryList' | 'InventoryItemDetail' | 'InventoryItemCreate' | 'InventoryItemEdit';
 
 // Detail + Edit take the item id (not the whole row), so they read it live from the cache and reflect
 // edits immediately. PushNavigator.push is param-less, so we use React Navigation's navigate directly.
@@ -18,9 +14,9 @@ export interface InventoryItemEditParams {
 
 export type InventoryNavigation = {
   navigate: {
-    (screen: "InventoryItemDetail", params: InventoryItemDetailParams): void;
-    (screen: "InventoryItemEdit", params: InventoryItemEditParams): void;
-    (screen: "InventoryItemCreate"): void;
+    (screen: 'InventoryItemDetail', params: InventoryItemDetailParams): void;
+    (screen: 'InventoryItemEdit', params: InventoryItemEditParams): void;
+    (screen: 'InventoryItemCreate'): void;
   };
   goBack: () => void;
 };

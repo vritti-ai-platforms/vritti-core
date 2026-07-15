@@ -21,7 +21,7 @@ export class InventoryItemLocationsService {
 
   private static readonly FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
-    reorderLevel: { column: inventoryItemLocations.reorderLevel, type: 'string' },
+    reorderLevel: { column: inventoryItemLocations.minLevel, type: 'string' },
   };
 
   constructor(private readonly repository: InventoryItemLocationsRepository) {}
@@ -87,7 +87,7 @@ export class InventoryItemLocationsService {
     const entity = await this.repository.create({
       inventoryItemId: inventoryItemId,
       locationId: data.locationId,
-      reorderLevel: data.reorderLevel,
+      minLevel: data.reorderLevel,
     });
 
     const row = await this.repository.findByIdWithLocation(entity.id);
@@ -104,7 +104,7 @@ export class InventoryItemLocationsService {
     const existing = await this.repository.findByIdWithLocation(id);
     if (!existing) throw new NotFoundException('Item location configuration not found.');
 
-    await this.repository.update(id, { reorderLevel: data.reorderLevel });
+    await this.repository.update(id, { minLevel: data.reorderLevel });
     this.logger.log(`Updated item-location config ${id} — reorderLevel: ${data.reorderLevel}`);
 
     return { success: true, message: 'Reorder level updated successfully.' };

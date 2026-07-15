@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-resolver';
+import type { FeatureUnlocks, RevokedGrants, ScopeType, SiteType } from '@vritti/api-sdk/catalog-resolver';
 import { Transform } from 'class-transformer';
-import { Allow, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Allow, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateRoleInternalDto {
   @ApiProperty({ description: 'Organization ID', example: 'uuid-here' })
@@ -22,6 +22,19 @@ export class CreateRoleInternalDto {
   @IsString()
   @IsNotEmpty()
   code: string;
+
+  @ApiPropertyOptional({ description: 'Assignment scope; resolved from the template when absent', example: 'SITE' })
+  @IsOptional()
+  @IsIn(['ORG', 'LE', 'SITE_GROUP', 'SITE'])
+  scope?: ScopeType;
+
+  @ApiPropertyOptional({
+    description: 'Site type for SITE-scoped roles; resolved from the template',
+    example: 'OUTLET',
+  })
+  @IsOptional()
+  @IsIn(['OUTLET', 'WAREHOUSE', 'PRODUCTION'])
+  siteType?: SiteType;
 
   @ApiProperty({ example: { products: { web: ['VIEW', 'CREATE'], mobile: ['VIEW'] } } })
   @Allow()

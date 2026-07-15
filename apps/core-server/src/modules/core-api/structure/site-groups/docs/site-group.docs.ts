@@ -1,11 +1,37 @@
 import { SiteGroupDto } from '@domain/site-group/dto/entity/site-group.dto';
 import { CreateSiteGroupInternalDto } from '@domain/site-group/dto/request/create-site-group-internal.dto';
+import { ReorderSiteGroupsInternalDto } from '@domain/site-group/dto/request/reorder-site-groups-internal.dto';
+import { ReparentSiteGroupInternalDto } from '@domain/site-group/dto/request/reparent-site-group-internal.dto';
 import { UpdateSiteGroupInternalDto } from '@domain/site-group/dto/request/update-site-group-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 import { FeatureLocksResponseDto } from '../../dto/response/feature-locks-response.dto';
+import { OrgStructureSelectResponseDto } from '../../dto/response/org-structure-select-response.dto';
+
+export function ApiSelectSiteGroups() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Select site groups',
+      description:
+        'Returns the organization site groups as select options (value=id, label=name, description=code), filtered by search and an optional subtree exclusion. Requires Ed25519 signature headers (x-timestamp, x-signature).',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
+    ApiResponse({
+      status: 200,
+      description: 'Site group options retrieved successfully.',
+      type: OrgStructureSelectResponseDto,
+    }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
 
 export function ApiCreateSiteGroup() {
   return applyDecorators(
@@ -80,6 +106,51 @@ export function ApiUpdateSiteGroup() {
     ApiParam({ name: 'id', description: 'Site group ID' }),
     ApiBody({ type: UpdateSiteGroupInternalDto }),
     ApiResponse({ status: 200, description: 'Site group updated successfully.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'Invalid parent (missing, foreign, or cycle).' }),
+    ApiResponse({ status: 404, description: 'Site group not found.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiReorderSiteGroups() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Reorder site groups',
+      description:
+        'Reassigns sort order for a batch of sibling site groups in their new left-to-right order. Every id must belong to the organization.',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiBody({ type: ReorderSiteGroupsInternalDto }),
+    ApiResponse({ status: 200, description: 'Site groups reordered successfully.', type: SuccessResponseDto }),
+    ApiResponse({
+      status: 400,
+      description: 'One or more site groups do not exist or belong to another organization.',
+    }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiReparentSiteGroup() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Reparent site group',
+      description:
+        'Nests a site group under a new parent (null detaches it to root) and appends it to the end of that parent. The new parent must belong to the organization and cannot be the group itself or one of its descendants.',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiParam({ name: 'groupId', description: 'Site group ID' }),
+    ApiBody({ type: ReparentSiteGroupInternalDto }),
+    ApiResponse({ status: 200, description: 'Site group reparented successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 400, description: 'Invalid parent (missing, foreign, or cycle).' }),
     ApiResponse({ status: 404, description: 'Site group not found.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),

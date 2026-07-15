@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { check, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { codeCheck, index, pgPolicy, text, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 
 export const uomDimensions = coreSchema.table(
@@ -19,7 +19,7 @@ export const uomDimensions = coreSchema.table(
   (table) => [
     unique('uq_uom_dimensions_org_code').on(table.organizationId, table.code),
     // Code must be a single lowercase word (hyphens allowed)
-    check('uom_dimensions_code_lowercase_chk', sql`${table.code} ~ '^[a-z][a-z0-9-]*$'`),
+    codeCheck('uom_dimensions_code_chk', table.code),
     index('idx_uom_dimensions_org').on(table.organizationId),
     pgPolicy('org_isolation', {
       for: 'all',

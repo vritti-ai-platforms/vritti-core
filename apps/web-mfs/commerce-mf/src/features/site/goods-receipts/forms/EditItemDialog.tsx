@@ -87,7 +87,7 @@ const EditItemForm = ({
 
       {hasScheme && <FreeQtyPreview value={freeQtyPreview} />}
 
-      <FormSection title="Free Goods Scheme">
+      <FormSection title="Free Goods Scheme" contentClassName="block">
         <div className="flex flex-col gap-4">
           <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
           {hasScheme && (

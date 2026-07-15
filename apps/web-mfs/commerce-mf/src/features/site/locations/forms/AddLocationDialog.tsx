@@ -48,7 +48,7 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
 
   return (
     <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
-      <FormSection title="Details" description="What the location is and where it sits in the hierarchy.">
+      <FormSection title="Details" description="What the location is and where it sits in the hierarchy." contentClassName="block">
         <div className="grid grid-cols-2 gap-4">
           <TextField name="name" label="Name" placeholder="e.g. Walk-in Fridge" />
           <TextField name="code" label="Code" placeholder="e.g. WIF" />
@@ -64,14 +64,14 @@ export const AddLocationDialog: React.FC<AddLocationDialogProps> = ({
         </div>
       </FormSection>
 
-      <FormSection title="Attributes" description="Optional details about this location.">
+      <FormSection title="Attributes" description="Optional details about this location." contentClassName="block">
         <div className="grid grid-cols-2 gap-4">
           <TextField name="area" label="Area" placeholder="e.g. 500 sq ft" />
           <UserSelector name="managerId" label="Manager" placeholder="Select manager" clearable />
         </div>
       </FormSection>
 
-      <FormSection title="Status">
+      <FormSection title="Status" contentClassName="block">
         <Switch name="isActive" label="Active" description="Enable this storage location" />
       </FormSection>
 

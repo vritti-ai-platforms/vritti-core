@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsCode } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { Type } from 'class-transformer';
 import {
@@ -9,13 +10,10 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  Matches,
   MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
-
-const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 
 export class MrpUomConversionDto {
   @ApiProperty({ description: 'Primary units in one MRP unit', example: 10 })
@@ -40,9 +38,7 @@ export class CreateInventoryItemDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  @Matches(ITEM_CODE_PATTERN, {
-    message: 'code must contain only uppercase letters, numbers, and hyphen (-).',
-  })
+  @IsCode()
   code: string;
 
   @ApiProperty({

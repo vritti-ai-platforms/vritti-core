@@ -14,11 +14,17 @@ export class SiteGroupDto {
   @ApiProperty({ example: 'south-zone' })
   code: string;
 
+  @ApiPropertyOptional({ example: 'blue', nullable: true })
+  color: string | null;
+
   @ApiPropertyOptional({ example: 'uuid-here', nullable: true })
   parentId: string | null;
 
   @ApiProperty({ example: true })
   isActive: boolean;
+
+  @ApiProperty({ example: 0 })
+  sortOrder: number;
 
   @ApiProperty({ example: '2024-01-15T10:30:00Z' })
   createdAt: string;
@@ -33,8 +39,10 @@ export class SiteGroupDto {
     dto.organizationId = group.organizationId;
     dto.name = group.name;
     dto.code = group.code;
+    dto.color = group.color ?? null;
     dto.parentId = group.parentId ?? null;
     dto.isActive = group.isActive;
+    dto.sortOrder = group.sortOrder;
     dto.createdAt = group.createdAt.toISOString();
     dto.updatedAt = group.updatedAt.toISOString();
     return dto;

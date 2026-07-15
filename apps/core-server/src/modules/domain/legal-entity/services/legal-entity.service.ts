@@ -2,11 +2,12 @@ import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { type SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { TaxRegime } from '@/db/schema';
 import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
+import { sequentialSortOrders } from '@/utils/sort-order';
 import { LeTaxRegistrationDto } from '../dto/entity/le-tax-registration.dto';
 import { LegalEntityDto } from '../dto/entity/legal-entity.dto';
 import type { CreateLeTaxRegistrationInternalDto } from '../dto/request/create-le-tax-registration-internal.dto';
@@ -26,24 +27,27 @@ export class LegalEntityService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // Returns the legal entity's stored feature lock deny-list (null = inherit the full plan)
+  // Returns legal entities as select options, excluding a node and its descendant subtree
+  findForSelect(query: SelectOptionsQueryDto, excludeId?: string): Promise<SelectQueryResult> {
+    return this.legalEntityRepository.findForSelectOptions(query, excludeId);
+  }
+
+  // Returns the legal entity's feature lock deny-list
   async getFeatureLocks(id: string): Promise<FeatureLocks | null> {
     const legalEntity = await this.legalEntityRepository.findById(id);
     if (!legalEntity) throw new NotFoundException('Legal entity not found.');
     return legalEntity.featureLocks ?? null;
   }
 
-  // Replaces the legal entity's feature lock deny-list (null = inherit the full plan)
+  // Replaces the legal entity's feature lock deny-list
   async setFeatureLocks(id: string, featureLocks: FeatureLocks | null): Promise<SuccessResponseDto> {
     const legalEntity = await this.legalEntityRepository.findById(id);
     if (!legalEntity) throw new NotFoundException('Legal entity not found.');
 
-    // Locking a prerequisite must also lock its dependents — expand the deny-list before persisting
     const snapshot = featureLocks ? await this.catalogService.getActiveSnapshot() : null;
     const expanded = normalizeLocks(featureLocks, snapshot);
 
     await this.legalEntityRepository.update(id, { featureLocks: expanded, updatedAt: new Date() });
-    // Lock consumption lands with LE-context feature resolution; invalidate caches here when it does
 
     this.logger.log(
       `Set feature locks for legal entity ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
@@ -55,7 +59,7 @@ export class LegalEntityService {
     return { success: true, message: 'Legal entity feature locks updated successfully.' };
   }
 
-  // Creates a legal entity after validating code uniqueness and parent linkage
+  // Creates a legal entity after validation
   async create(orgId: string, dto: CreateLegalEntityInternalDto): Promise<LegalEntityDto> {
     const existing = await this.legalEntityRepository.findByOrgAndCode(orgId, dto.code);
     if (existing) {
@@ -77,13 +81,14 @@ export class LegalEntityService {
       taxId: dto.taxId ?? null,
       ...(dto.fiscalYearStart !== undefined && { fiscalYearStart: dto.fiscalYearStart }),
       parentId: dto.parentId ?? null,
+      sortOrder: dto.sortOrder ?? (await this.legalEntityRepository.nextSortOrder(orgId, dto.parentId ?? null)),
     });
 
     this.logger.log(`Created legal entity "${dto.name}" (${legalEntity.id}) for org ${orgId}`);
     return LegalEntityDto.from(legalEntity);
   }
 
-  // Updates a legal entity's fields after validating code uniqueness and parent linkage
+  // Updates a legal entity after validation
   async update(id: string, dto: UpdateLegalEntityInternalDto): Promise<SuccessResponseDto> {
     const legalEntity = await this.legalEntityRepository.findById(id);
     if (!legalEntity) throw new NotFoundException('Legal entity not found.');
@@ -116,6 +121,15 @@ export class LegalEntityService {
       await this.assertNoCycle(id, dto.parentId);
     }
 
+    const oldParentId = legalEntity.parentId;
+    const reparented = dto.parentId !== undefined && dto.parentId !== oldParentId;
+    const effectiveSortOrder =
+      dto.sortOrder !== undefined
+        ? dto.sortOrder
+        : reparented
+          ? await this.legalEntityRepository.nextSortOrder(legalEntity.organizationId, dto.parentId ?? null)
+          : undefined;
+
     await this.legalEntityRepository.update(id, {
       ...(dto.code && { code: dto.code }),
       ...(dto.name && { name: dto.name }),
@@ -126,8 +140,11 @@ export class LegalEntityService {
       ...(dto.fiscalYearStart !== undefined && { fiscalYearStart: dto.fiscalYearStart }),
       ...(dto.parentId !== undefined && { parentId: dto.parentId }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      ...(effectiveSortOrder !== undefined && { sortOrder: effectiveSortOrder }),
       updatedAt: new Date(),
     });
+
+    if (reparented) await this.compactSiblings(legalEntity.organizationId, oldParentId);
 
     this.logger.log(`Updated legal entity ${id}`);
     this.eventEmitter.emit(
@@ -148,7 +165,7 @@ export class LegalEntityService {
     return { success: true, message: 'Legal entity deactivated successfully.' };
   }
 
-  // Deletes a legal entity after ensuring no sites or child legal entities reference it
+  // Deletes a legal entity after reference checks
   async remove(id: string): Promise<SuccessResponseDto> {
     const legalEntity = await this.legalEntityRepository.findById(id);
     if (!legalEntity) throw new NotFoundException('Legal entity not found.');
@@ -169,7 +186,10 @@ export class LegalEntityService {
       });
     }
 
+    const { organizationId, parentId } = legalEntity;
     await this.legalEntityRepository.delete(id);
+
+    await this.compactSiblings(organizationId, parentId);
 
     this.logger.log(`Deleted legal entity "${legalEntity.name}" (${id})`);
     this.eventEmitter.emit(
@@ -179,7 +199,36 @@ export class LegalEntityService {
     return { success: true, message: 'Legal entity deleted successfully.' };
   }
 
-  // Adds a tax registration to a legal entity after validating tax number uniqueness
+  // Reorders sibling legal entities
+  async reorder(orgId: string, ids: string[]): Promise<SuccessResponseDto> {
+    const legalEntities = await this.legalEntityRepository.findByIds(orgId, ids);
+    if (legalEntities.length !== ids.length) {
+      throw new BadRequestException({
+        label: 'Invalid Legal Entities',
+        detail: 'One or more legal entities do not exist or belong to a different organization.',
+      });
+    }
+
+    await this.legalEntityRepository.setSortOrders(sequentialSortOrders(ids));
+
+    this.logger.log(`Reordered ${ids.length} legal entit${ids.length === 1 ? 'y' : 'ies'} for org ${orgId}`);
+    for (const legalEntity of legalEntities) {
+      this.eventEmitter.emit(
+        AUTH_STATUS_EVENTS.LEGAL_ENTITY_UPDATED,
+        new LegalEntityUpdatedEvent(legalEntity.id, orgId),
+      );
+    }
+    return { success: true, message: 'Legal entities reordered successfully.' };
+  }
+
+  // Resequences a parent's siblings to close gaps
+  private async compactSiblings(orgId: string, parentId: string | null): Promise<void> {
+    const siblings = await this.legalEntityRepository.siblingsOrdered(orgId, parentId);
+    if (siblings.length === 0) return;
+    await this.legalEntityRepository.setSortOrders(sequentialSortOrders(siblings.map((sibling) => sibling.id)));
+  }
+
+  // Adds a tax registration to a legal entity
   async addRegistration(legalEntityId: string, dto: CreateLeTaxRegistrationInternalDto): Promise<LeTaxRegistrationDto> {
     const legalEntity = await this.legalEntityRepository.findById(legalEntityId);
     if (!legalEntity) throw new NotFoundException('Legal entity not found.');
@@ -203,7 +252,7 @@ export class LegalEntityService {
     return LeTaxRegistrationDto.from(registration);
   }
 
-  // Deletes a tax registration after ensuring no sites reference it
+  // Deletes a tax registration after reference checks
   async removeRegistration(legalEntityId: string, registrationId: string): Promise<SuccessResponseDto> {
     const registration = await this.leTaxRegistrationRepository.findById(registrationId);
     if (!registration || registration.legalEntityId !== legalEntityId) {
@@ -226,7 +275,7 @@ export class LegalEntityService {
     return { success: true, message: 'Tax registration deleted successfully.' };
   }
 
-  // Returns the organization's legal entities and their tax registrations as flat lists
+  // Returns the org's legal entities and tax registrations
   async listByOrg(
     orgId: string,
   ): Promise<{ legalEntities: LegalEntityDto[]; taxRegistrations: LeTaxRegistrationDto[] }> {
@@ -241,7 +290,7 @@ export class LegalEntityService {
     };
   }
 
-  // Ensures the parent legal entity exists within the same organization
+  // Ensures the parent exists in the same organization
   private async assertParentInOrg(parentId: string, orgId: string): Promise<void> {
     const parent = await this.legalEntityRepository.findById(parentId);
     if (!parent || parent.organizationId !== orgId) {
@@ -252,7 +301,7 @@ export class LegalEntityService {
     }
   }
 
-  // Rejects a parent assignment that would nest a legal entity under itself or one of its subsidiaries
+  // Rejects a parent that would form a cycle
   private async assertNoCycle(id: string, parentId: string): Promise<void> {
     let cursor: string | null = parentId;
     let guard = 0;

@@ -1,5 +1,6 @@
 import { SiteDto } from '@domain/site/dto/entity/site.dto';
 import { CreateSiteInternalDto } from '@domain/site/dto/request/create-site-internal.dto';
+import { ReorderSitesInternalDto } from '@domain/site/dto/request/reorder-sites-internal.dto';
 import { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-internal.dto';
 import {
   Body,
@@ -28,6 +29,7 @@ import {
   ApiDeleteSite,
   ApiGetSite,
   ApiListSites,
+  ApiReorderSites,
   ApiSetSiteLocks,
   ApiUpdateSite,
 } from './docs/site.docs';
@@ -76,12 +78,20 @@ export class SiteController {
     return this.siteApiService.findRoleAssignments(id);
   }
 
-  // Replaces the site's feature lock deny-list (null = inherit the full plan)
+  // Replaces the site's feature lock deny-list
   @Put(':id/locks')
   @ApiSetSiteLocks()
   async setLocks(@Param('id') id: string, @Body() dto: SetFeatureLocksInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(`PUT /sites/internal/${id}/locks`);
     return this.siteApiService.setFeatureLocks(id, dto);
+  }
+
+  // Reorders a batch of sites within a legal entity
+  @Patch('reorder')
+  @ApiReorderSites()
+  async reorder(@Body() dto: ReorderSitesInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /sites/internal/reorder — ${dto.ids.length} site(s) for org ${dto.orgId}`);
+    return this.siteApiService.reorder(dto.orgId, dto.ids);
   }
 
   // Updates a site

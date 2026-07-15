@@ -2,20 +2,14 @@ import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/invent
 import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type {
-  CreateResponseDto,
-  FilterCondition,
-  SearchState,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
-  SortCondition,
-  SuccessResponseDto,
-  TableViewState,
-} from '@vritti/api-sdk/database';
-import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
-import type { CreateInventoryItemDto } from './dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from './dto/request/update-inventory-item.dto';
+import type { CreateResponseDto, SuccessResponseDto, TableViewState } from '@vritti/api-sdk/database';
+import { RpcSiteId } from '@vritti/api-sdk/nats';
+import type { InventoryItemSite } from '@/db/schema';
+import type { EnableInventoryItemSiteDto } from './dto/request/enable-inventory-item-site.dto';
+import type { UpdateReorderDto } from './dto/request/update-reorder.dto';
 import { InventoryItemsRootService } from './services/inventory-items-root.service';
+
+type SiteInventoryItemRow = InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string };
 
 @Controller()
 export class InventoryItemsRootController {
@@ -26,68 +20,34 @@ export class InventoryItemsRootController {
     private readonly rootService: InventoryItemsRootService,
   ) {}
 
+  // Items enabled at the current site, with per-site reorder + stock levels
   @MessagePattern({ cmd: 'site.inventoryItems.table' })
-  async table(
-    @Payload() state: TableViewState,
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
-  ): Promise<{ result: InventoryItemDto[]; count: number }> {
+  async table(@Payload() state: TableViewState): Promise<{ result: SiteInventoryItemRow[]; count: number }> {
     this.logger.log('inventoryItems.table');
-    return this.service.findForTable(state, siteCurrencyCode);
+    return this.service.findForSiteTable(state);
   }
 
-  @MessagePattern({ cmd: 'site.inventoryItems.feed' })
-  async feed(
-    @Payload()
-    query: {
-      filters?: FilterCondition[];
-      search?: SearchState | null;
-      sort?: SortCondition[];
-      limit?: number;
-      cursor?: string;
-    },
-  ): Promise<{
-    edges: { cursor: string; node: InventoryItemDto }[];
-    pageInfo: { hasNextPage: boolean; endCursor: string | null };
-  }> {
-    this.logger.log('inventoryItems.feed');
-    return this.service.findForFeed(query);
-  }
-
-  @MessagePattern({ cmd: 'site.inventoryItems.select' })
-  async select(@Payload() data: SelectOptionsQueryDto & { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
-    const { excludeOnSupplierId, ...query } = data;
-    this.logger.log('inventoryItems.select');
-    return this.service.findForSelect(query, { excludeOnSupplierId });
-  }
-
-  @MessagePattern({ cmd: 'site.inventoryItems.create' })
-  async create(
-    @Payload() dto: CreateInventoryItemDto,
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
-  ): Promise<CreateResponseDto<InventoryItemDto>> {
-    this.logger.log(`inventoryItems.create — name: ${dto.name}, code: ${dto.code}`);
-    return this.rootService.create(dto, siteCurrencyCode);
-  }
-
+  // Returns a single master inventory item by ID (shared detail)
   @MessagePattern({ cmd: 'site.inventoryItems.findById' })
-  async findById(
-    @Payload() data: { id: string },
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
-  ): Promise<InventoryItemDto> {
+  async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
     this.logger.log(`inventoryItems.findById — id: ${data.id}`);
-    return this.service.findById(data.id, siteCurrencyCode);
+    return this.service.findById(data.id);
   }
 
-  @MessagePattern({ cmd: 'site.inventoryItems.update' })
-  async update(@Payload() data: { id: string } & UpdateInventoryItemDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
-    this.logger.log(`inventoryItems.update — id: ${id}`);
-    return this.rootService.update(id, updateData);
+  // Enables a master item at the current site
+  @MessagePattern({ cmd: 'site.inventoryItems.enable' })
+  async enable(
+    @Payload() dto: EnableInventoryItemSiteDto,
+    @RpcSiteId() siteId: string,
+  ): Promise<CreateResponseDto<InventoryItemSite>> {
+    this.logger.log(`inventoryItems.enable — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.enable(siteId, dto);
   }
 
-  @MessagePattern({ cmd: 'site.inventoryItems.delete' })
-  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.delete — id: ${data.id}`);
-    return this.service.delete(data.id);
+  // Updates the reorder point for an item at the current site
+  @MessagePattern({ cmd: 'site.inventoryItems.reorder.update' })
+  async updateReorder(@Payload() dto: UpdateReorderDto, @RpcSiteId() siteId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.reorder.update — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.updateReorder(siteId, dto.inventoryItemId, dto.reorderPoint);
   }
 }

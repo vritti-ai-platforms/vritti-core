@@ -8,13 +8,16 @@ import {
 import { eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   categories,
+  type InventoryItem,
+  type InventoryItemSite,
   inventoryItems,
+  inventoryItemSites,
   inventoryItemUomConversions,
+  inventoryStockLevels,
   purchaseOrderItems,
   stockAdjustments,
   stockTransfers,
   supplierItems,
-  taxGroups,
   uom,
 } from '@/db/schema';
 
@@ -168,7 +171,6 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
     | (typeof inventoryItems.$inferSelect & {
         uomSymbol: string | null;
         categoryName: string | null;
-        purchaseTaxGroupName: string | null;
         mrpUomSymbol: string | null;
       })
     | null
@@ -177,7 +179,6 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
       .select({
         id: inventoryItems.id,
         organizationId: inventoryItems.organizationId,
-        siteId: inventoryItems.siteId,
         name: inventoryItems.name,
         code: inventoryItems.code,
         type: inventoryItems.type,
@@ -186,19 +187,14 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
         categoryId: inventoryItems.categoryId,
         description: inventoryItems.description,
         uomId: inventoryItems.uomId,
-        purchaseTaxGroupId: inventoryItems.purchaseTaxGroupId,
         hsnCode: inventoryItems.hsnCode,
         hasMrp: inventoryItems.hasMrp,
         mrpUomId: inventoryItems.mrpUomId,
-        defaultMrp: inventoryItems.defaultMrp,
         metadata: inventoryItems.metadata,
         createdAt: inventoryItems.createdAt,
         updatedAt: inventoryItems.updatedAt,
         uomSymbol: uom.symbol,
         categoryName: categories.name,
-        purchaseTaxGroupName: sql<
-          string | null
-        >`(SELECT tg.name FROM ${taxGroups} tg WHERE tg.id = ${inventoryItems.purchaseTaxGroupId})`,
         mrpUomSymbol: sql<string | null>`(SELECT u2.symbol FROM ${uom} u2 WHERE u2.id = ${inventoryItems.mrpUomId})`,
       })
       .from(inventoryItems)
@@ -208,6 +204,103 @@ export class InventoryItemsRepository extends PrimaryBaseRepository<typeof inven
       .limit(1);
 
     return row ?? null;
+  }
+
+  // Org-wide master list (no site filter — RLS scopes to org). Alias of findAllWithUom for the master table.
+  findForOrgTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
+    result: (InventoryItem & { uomSymbol: string | null; categoryName: string | null })[];
+    count: number;
+  }> {
+    return this.findAllWithUom(options);
+  }
+
+  // Items enabled at the current site (have an inventory_item_sites row) joined to their site projection
+  // and per-site summed stock. RLS on inventory_item_sites already scopes to the active site.
+  async findForSiteTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
+    result: (InventoryItem & {
+      uomSymbol: string | null;
+      reorderPoint: number;
+      isStocked: boolean;
+      stockedQuantity: string;
+    })[];
+    count: number;
+  }> {
+    const baseQuery = this.db
+      .select({
+        id: inventoryItems.id,
+        organizationId: inventoryItems.organizationId,
+        name: inventoryItems.name,
+        code: inventoryItems.code,
+        type: inventoryItems.type,
+        tracking: inventoryItems.tracking,
+        pickStrategy: inventoryItems.pickStrategy,
+        categoryId: inventoryItems.categoryId,
+        description: inventoryItems.description,
+        uomId: inventoryItems.uomId,
+        hsnCode: inventoryItems.hsnCode,
+        hasMrp: inventoryItems.hasMrp,
+        mrpUomId: inventoryItems.mrpUomId,
+        metadata: inventoryItems.metadata,
+        createdAt: inventoryItems.createdAt,
+        updatedAt: inventoryItems.updatedAt,
+        uomSymbol: uom.symbol,
+        reorderPoint: inventoryItemSites.reorderPoint,
+        isStocked: inventoryItemSites.isStocked,
+        stockedQuantity: sql<string>`CAST(COALESCE((
+          SELECT SUM(${inventoryStockLevels.stockedQuantity}::numeric)
+          FROM ${inventoryStockLevels}
+          WHERE ${inventoryStockLevels.inventoryItemId} = ${inventoryItems.id}
+        ), 0) AS TEXT)`,
+      })
+      .from(inventoryItems)
+      .innerJoin(inventoryItemSites, eq(inventoryItemSites.inventoryItemId, inventoryItems.id))
+      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
+      .$dynamic();
+
+    const rowsQuery = options?.where ? baseQuery.where(options.where) : baseQuery;
+    const ordered = options?.orderBy?.length ? rowsQuery.orderBy(...options.orderBy) : rowsQuery;
+    const limited = options?.limit != null ? ordered.limit(options.limit).offset(options?.offset ?? 0) : ordered;
+
+    const countBase = this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(inventoryItems)
+      .innerJoin(inventoryItemSites, eq(inventoryItemSites.inventoryItemId, inventoryItems.id))
+      .$dynamic();
+    const countQuery = options?.where ? countBase.where(options.where) : countBase;
+
+    const [result, countRows] = await Promise.all([limited, countQuery]);
+    return {
+      result: result as (InventoryItem & {
+        uomSymbol: string | null;
+        reorderPoint: number;
+        isStocked: boolean;
+        stockedQuantity: string;
+      })[],
+      count: Number(countRows[0]?.count ?? 0),
+    };
+  }
+
+  // Item × site availability across the given sites — one projection row per (item, site) that is enabled.
+  async findGroupMatrix(siteIds: string[]): Promise<(InventoryItemSite & { itemName: string; itemCode: string })[]> {
+    if (siteIds.length === 0) return [];
+    return this.db
+      .select({
+        id: inventoryItemSites.id,
+        organizationId: inventoryItemSites.organizationId,
+        siteId: inventoryItemSites.siteId,
+        inventoryItemId: inventoryItemSites.inventoryItemId,
+        isStocked: inventoryItemSites.isStocked,
+        reorderPoint: inventoryItemSites.reorderPoint,
+        maxStockLevel: inventoryItemSites.maxStockLevel,
+        safetyStock: inventoryItemSites.safetyStock,
+        createdAt: inventoryItemSites.createdAt,
+        updatedAt: inventoryItemSites.updatedAt,
+        itemName: inventoryItems.name,
+        itemCode: inventoryItems.code,
+      })
+      .from(inventoryItemSites)
+      .innerJoin(inventoryItems, eq(inventoryItemSites.inventoryItemId, inventoryItems.id))
+      .where(inArray(inventoryItemSites.siteId, siteIds));
   }
 
   // Returns the UOM symbol for a given UOM ID

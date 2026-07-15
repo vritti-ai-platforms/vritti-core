@@ -35,6 +35,9 @@ export class LegalEntityDto {
   @ApiProperty({ example: true })
   isActive: boolean;
 
+  @ApiProperty({ example: 0 })
+  sortOrder: number;
+
   @ApiProperty({ example: '2024-01-15T10:30:00Z' })
   createdAt: string;
 
@@ -55,6 +58,7 @@ export class LegalEntityDto {
     dto.fiscalYearStart = legalEntity.fiscalYearStart;
     dto.parentId = legalEntity.parentId ?? null;
     dto.isActive = legalEntity.isActive;
+    dto.sortOrder = legalEntity.sortOrder;
     dto.createdAt = legalEntity.createdAt.toISOString();
     dto.updatedAt = legalEntity.updatedAt.toISOString();
     return dto;

@@ -1,17 +1,11 @@
-import { z } from 'zod';
-
-const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
+import { z, zodCodeField } from '@vritti/quantum-ui-native/zod';
 
 const typeEnum = z.enum(['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE']);
 const trackingEnum = z.enum(['quantity', 'lot', 'lot_serial', 'serial']);
 const pickStrategyEnum = z.enum(['none', 'fifo', 'fefo']);
 
 const nameField = z.string().min(1, 'Name is required').max(255, 'Name is too long');
-const codeField = z
-  .string()
-  .min(1, 'Code is required')
-  .max(100, 'Code is too long')
-  .regex(ITEM_CODE_PATTERN, 'Use uppercase letters, numbers, and hyphen (-) only');
+const codeField = zodCodeField({ max: 100 });
 const descriptionField = z.string().max(500, 'Description is too long');
 const hsnCodeField = z.string().max(20, 'HSN code is too long');
 const uuidField = z.string().min(1, 'Required').uuid('Enter a valid UUID');

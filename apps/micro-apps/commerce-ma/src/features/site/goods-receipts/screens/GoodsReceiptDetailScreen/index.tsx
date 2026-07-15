@@ -30,7 +30,12 @@ export function GoodsReceiptDetailHeader() {
     return [
       { id: 'overview', label: 'Overview', icon: TAB_ICONS.overview, content: <OverviewTab gr={gr} /> },
       { id: 'breakdown', label: 'Breakdown', icon: TAB_ICONS.breakdown, content: <ComingSoonTab label="Breakdown" /> },
-      { id: 'items-cost', label: 'Items Cost', icon: TAB_ICONS.itemsCost, content: <ComingSoonTab label="Items Cost" /> },
+      {
+        id: 'items-cost',
+        label: 'Items Cost',
+        icon: TAB_ICONS.itemsCost,
+        content: <ComingSoonTab label="Items Cost" />,
+      },
     ];
   }, [gr]);
 

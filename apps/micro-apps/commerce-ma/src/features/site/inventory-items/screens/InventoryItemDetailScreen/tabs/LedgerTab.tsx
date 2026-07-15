@@ -1,9 +1,9 @@
-import { FlashList } from "@vritti/quantum-ui-native/FlashList";
-import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { RefreshControl, View } from "react-native";
-import { useLedgerFeed } from "../../../../../../hooks/site/ledger";
-import type { InventoryItem } from "../../../../../../types/inventory-items";
-import { LedgerCard } from "../../../components/LedgerCard";
+import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
+import { RefreshControl, View } from 'react-native';
+import { useLedgerFeed } from '../../../../../../hooks/site/ledger';
+import type { InventoryItem } from '../../../../../../types/inventory-items';
+import { LedgerCard } from '../../../components/LedgerCard';
 
 // Read-only stock-movement ledger with Relay infinite scroll (newest first).
 export function LedgerTab({ item }: { item: InventoryItem }) {
@@ -31,7 +31,7 @@ export function LedgerTab({ item }: { item: InventoryItem }) {
         refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => feed.refresh()} />}
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View className="h-3" />}
-        emptyText={feed.isError ? "Couldn't load ledger." : "No stock movements yet."}
+        emptyText={feed.isError ? "Couldn't load ledger." : 'No stock movements yet.'}
         renderItem={({ item: entry }) => <LedgerCard entry={entry} uomSymbol={item.uomSymbol} />}
       />
     </View>

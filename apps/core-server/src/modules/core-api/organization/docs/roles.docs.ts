@@ -4,6 +4,7 @@ import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
 import { ProvisionRolesInternalDto } from '../dto/request/provision-roles-internal.dto';
 import { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
+import { RoleSelectResponseDto } from '../dto/response/role-select-response.dto';
 
 export function ApiProvisionRoles() {
   return applyDecorators(
@@ -119,6 +120,32 @@ export function ApiDeleteRole() {
     ApiParam({ name: 'id', description: 'Role ID' }),
     ApiResponse({ status: 200, description: 'Role deleted successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Role not found.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiSelectRoles() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Select roles by scope',
+      description:
+        "Returns the org's roles matching an exact scope as select options (value=id, label=name). SITE scope additionally matches on the target site's type when siteId is given. Org resolved from the signed x-org-id header.",
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
+    ApiQuery({ name: 'scope', description: 'Exact scope: ORG, LE, SITE_GROUP, or SITE', required: true }),
+    ApiQuery({
+      name: 'siteId',
+      description: "Target site ID (resolves the site's type for SITE scope)",
+      required: false,
+    }),
+    ApiResponse({ status: 200, description: 'Role options retrieved successfully.', type: RoleSelectResponseDto }),
+    ApiResponse({ status: 400, description: 'Invalid scope.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
 }

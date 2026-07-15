@@ -5,8 +5,8 @@ import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { ScrollText } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import type { InventoryItemLedgerData, InventoryItemLedgerType } from '@/schemas/inventory-items';
 import { INVENTORY_ITEM_LEDGER_KEY, useInventoryItemLedgerTable } from '@/hooks/site/inventory-items';
+import type { InventoryItemLedgerData, InventoryItemLedgerType } from '@/schemas/inventory-items';
 
 interface LedgerTabProps {
   inventoryItemId: string;

@@ -3,9 +3,11 @@ import { OrganizationRepository } from '@domain/organization/repositories/organi
 import { RoleRepository } from '@domain/organization/repositories/role.repository';
 import { SiteRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { AssignmentType, Role, Site, UserRoleAssignment } from '@/db/schema';
+import { AUTH_STATUS_EVENTS, UserUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { templateAssignableAtSite } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import type { AssignRoleInternalDto } from '../dto/request/assign-role-internal.dto';
@@ -25,7 +27,13 @@ export class UserRoleService {
     private readonly siteRepository: SiteRepository,
     private readonly catalogService: CatalogService,
     private readonly permissionSetCache: PermissionSetCacheService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  // Re-pushes fresh auth-state to the user's live SSE connections after their entitlements change
+  private emitUserUpdated(userId: string): void {
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.USER_UPDATED, new UserUpdatedEvent(userId));
+  }
 
   // Assigns (or replaces) a user's single role at a target: site, site group, legal entity, or org-wide
   async assignRole(userId: string, dto: AssignRoleInternalDto): Promise<SuccessResponseDto> {
@@ -61,6 +69,7 @@ export class UserRoleService {
       }
       await this.userRoleAssignmentRepository.update(existing.id, { roleId: dto.roleId, updatedAt: new Date() });
       await this.permissionSetCache.invalidateByUser(userId);
+      this.emitUserUpdated(userId);
       this.logger.log(`Updated role to "${role.name}" for user ${userId} at ${targetLabel}`);
       return { success: true, message: 'Role updated successfully.' };
     }
@@ -73,6 +82,7 @@ export class UserRoleService {
     });
 
     await this.permissionSetCache.invalidateByUser(userId);
+    this.emitUserUpdated(userId);
     this.logger.log(`Assigned role "${role.name}" to user ${userId} at ${targetLabel}`);
     return { success: true, message: 'Role assigned successfully.' };
   }
@@ -137,6 +147,7 @@ export class UserRoleService {
     await this.userRoleAssignmentRepository.delete(assignmentId);
 
     await this.permissionSetCache.invalidateByUser(assignment.userId);
+    this.emitUserUpdated(assignment.userId);
     this.logger.log(`Removed role assignment ${assignmentId}`);
     return { success: true, message: 'Role assignment removed successfully.' };
   }

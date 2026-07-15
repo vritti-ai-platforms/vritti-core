@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z } from '@vritti/quantum-ui/zod';
+import { z, zodCodeField } from '@vritti/quantum-ui/zod';
 
 export const COST_CATEGORY_KIND_VALUES = ['ITEM', 'FREIGHT', 'DUTY', 'INSURANCE', 'SERVICE', 'OTHER'] as const;
 export type CostCategoryKind = (typeof COST_CATEGORY_KIND_VALUES)[number];
@@ -16,11 +16,7 @@ export const COST_CATEGORY_KIND_OPTIONS: { value: CostCategoryKind; label: strin
 const kindSchema = z.enum(COST_CATEGORY_KIND_VALUES);
 
 export const createCostCategorySchema = z.object({
-  code: z
-    .string()
-    .min(1, 'Code is required')
-    .max(50, 'Code must be at most 50 characters')
-    .regex(/^[A-Z0-9_]+$/, 'Use uppercase letters, digits, and underscores only'),
+  code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(255, 'Name must be at most 255 characters'),
   kind: kindSchema,
 });

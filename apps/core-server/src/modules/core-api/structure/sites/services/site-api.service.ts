@@ -37,9 +37,14 @@ export class SiteApiService {
     return this.userRoleService.findBySite(siteId);
   }
 
-  // Replaces the site's feature lock deny-list (null = inherit the full plan)
+  // Replaces the site's feature lock deny-list
   async setFeatureLocks(id: string, dto: SetFeatureLocksInternalDto): Promise<SuccessResponseDto> {
     return this.siteService.setFeatureLocks(id, dto.featureLocks ?? null);
+  }
+
+  // Reorders a batch of sites within a legal entity
+  async reorder(orgId: string, ids: string[]): Promise<SuccessResponseDto> {
+    return this.siteService.reorder(orgId, ids);
   }
 
   // Updates a site

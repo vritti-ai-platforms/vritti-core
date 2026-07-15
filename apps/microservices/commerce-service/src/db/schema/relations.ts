@@ -95,7 +95,6 @@ export const relations = defineRelations(schema, (r) => ({
   },
   taxGroups: {
     taxRates: r.many.taxRates(),
-    inventoryItems: r.many.inventoryItems(),
     offerings: r.many.offerings(),
     categories: r.many.categories(),
   },
@@ -142,10 +141,6 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.inventoryItems.uomId,
       to: r.uom.id,
     }),
-    purchaseTaxGroup: r.one.taxGroups({
-      from: r.inventoryItems.purchaseTaxGroupId,
-      to: r.taxGroups.id,
-    }),
     supplierItems: r.many.supplierItems(),
     inventoryItemUomConversions: r.many.inventoryItemUomConversions(),
     purchaseOrderItems: r.many.purchaseOrderItems(),
@@ -157,6 +152,8 @@ export const relations = defineRelations(schema, (r) => ({
     stockAdjustments: r.many.stockAdjustments(),
     stockTransfers: r.many.stockTransfers(),
     inventoryItemLocations: r.many.inventoryItemLocations(),
+    inventoryItemSites: r.many.inventoryItemSites(),
+    inventoryItemMrps: r.many.inventoryItemMrps(),
   },
   locations: {
     inventoryItemQuants: r.many.inventoryItemQuants(),
@@ -462,6 +459,22 @@ export const relations = defineRelations(schema, (r) => ({
     location: r.one.locations({
       from: r.inventoryItemLocations.locationId,
       to: r.locations.id,
+    }),
+  },
+  inventoryItemSites: {
+    inventoryItem: r.one.inventoryItems({
+      from: r.inventoryItemSites.inventoryItemId,
+      to: r.inventoryItems.id,
+    }),
+  },
+  inventoryItemMrps: {
+    inventoryItem: r.one.inventoryItems({
+      from: r.inventoryItemMrps.inventoryItemId,
+      to: r.inventoryItems.id,
+    }),
+    sourceLot: r.one.inventoryItemLots({
+      from: r.inventoryItemMrps.sourceLotId,
+      to: r.inventoryItemLots.id,
     }),
   },
   costCategories: {

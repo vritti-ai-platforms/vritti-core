@@ -1,7 +1,7 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
-  bigint,
   boolean,
+  codeCheck,
   index,
   jsonb,
   pgPolicy,
@@ -13,7 +13,6 @@ import {
 import { categories } from './categories';
 import { coreSchema } from './core-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
-import { taxGroups } from './tax-groups';
 import { uom } from './uom';
 
 export const inventoryItems = coreSchema.table(
@@ -21,7 +20,6 @@ export const inventoryItems = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     type: inventoryItemTypeEnum('type').notNull(),
@@ -34,13 +32,9 @@ export const inventoryItems = coreSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
-    purchaseTaxGroupId: uuid('purchase_tax_group_id')
-      .notNull()
-      .references(() => taxGroups.id),
     hsnCode: varchar('hsn_code', { length: 20 }),
     hasMrp: boolean('has_mrp').notNull().default(false),
     mrpUomId: uuid('mrp_uom_id').references(() => uom.id),
-    defaultMrp: bigint('default_mrp', { mode: 'bigint' }),
     metadata: jsonb('metadata').notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -49,8 +43,8 @@ export const inventoryItems = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    unique('uq_inventory_items_bu_code').on(table.siteId, table.code),
-    index('idx_inventory_items_site').on(table.organizationId, table.siteId),
+    unique('uq_inventory_items_org_code').on(table.organizationId, table.code),
+    codeCheck('inventory_items_code_chk', table.code),
     index('idx_inventory_items_category').on(table.categoryId),
     // Keyset feed: default order (created_at DESC, id ASC) scoped by tenant so the mobile infinite feed
     // scans the index instead of sorting. organization_id leads (RLS filters it by equality).
@@ -61,22 +55,6 @@ export const inventoryItems = coreSchema.table(
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
-    }),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
     }),
   ],
 );

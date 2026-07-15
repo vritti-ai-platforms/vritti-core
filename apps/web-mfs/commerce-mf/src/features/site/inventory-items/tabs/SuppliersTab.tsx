@@ -12,8 +12,8 @@ import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Truck } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import type { InventoryItemSupplierData } from '@/schemas/suppliers';
 import { INVENTORY_ITEM_SUPPLIERS_TABLE_KEY, useInventoryItemSuppliersTable } from '@/hooks/site/inventory-items';
+import type { InventoryItemSupplierData } from '@/schemas/suppliers';
 
 interface SuppliersTabProps {
   inventoryItemId: string;

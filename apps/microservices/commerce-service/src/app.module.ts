@@ -7,11 +7,15 @@ import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
+import { LeSupplierItemsModule } from './modules/legal-entity/supplier-items/supplier-items.module';
+import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
+import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
 import { OrgSalesChannelsModule } from './modules/organization/sales-channels/sales-channels.module';
 import { OrgUomModule } from './modules/organization/uom/uom.module';
 import { OrgUomDimensionsModule } from './modules/organization/uom-dimensions/uom-dimensions.module';
+import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-items/inventory-items.module';
 import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
 import { SiteCustomersModule } from './modules/site/customers/customers.module';
@@ -27,8 +31,6 @@ import { SitePurchaseOrderItemsModule } from './modules/site/purchase-order-item
 import { SitePurchaseOrdersModule } from './modules/site/purchase-orders/purchase-orders.module';
 import { SiteStockAdjustmentsModule } from './modules/site/stock-adjustments/stock-adjustments.module';
 import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-transfers.module';
-import { SiteSupplierItemsModule } from './modules/site/supplier-items/supplier-items.module';
-import { SiteSuppliersModule } from './modules/site/suppliers/suppliers.module';
 
 @Module({
   imports: [
@@ -81,12 +83,14 @@ import { SiteSuppliersModule } from './modules/site/suppliers/suppliers.module';
     OrgSalesChannelsModule,
     OrgUomDimensionsModule,
     OrgUomModule,
+    OrgInventoryItemsModule,
     LeCostCategoriesModule,
     LeTaxGroupsModule,
+    LeSuppliersModule,
+    LeSupplierItemsModule,
     SiteCatalogsModule,
     SiteInventoryItemsModule,
-    SiteSuppliersModule,
-    SiteSupplierItemsModule,
+    SiteGroupInventoryItemsModule,
     SitePurchaseOrdersModule,
     SitePurchaseOrderItemsModule,
     SiteGoodsReceiptsModule,

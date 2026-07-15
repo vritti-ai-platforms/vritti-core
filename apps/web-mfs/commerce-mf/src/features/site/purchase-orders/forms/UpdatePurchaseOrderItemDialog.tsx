@@ -71,7 +71,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
         hasScheme: data.hasScheme,
       })}
     >
-      <FormSection title="Item">
+      <FormSection title="Item" contentClassName="block">
         <div className="flex flex-col gap-4">
           {item.orderUomSymbol && (
             <div className="flex flex-col gap-1">
@@ -91,7 +91,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
           </div>
         </div>
       </FormSection>
-      <FormSection title="Free Goods Scheme">
+      <FormSection title="Free Goods Scheme" contentClassName="block">
         <div className="flex flex-col gap-4">
           <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
           {hasScheme && (

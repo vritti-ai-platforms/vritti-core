@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
-import { type InventoryItemData, inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
 import { useInventoryItemStocks } from '@/hooks/site/inventory-items';
+import { type InventoryItemData, inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
 
 interface OverviewTabProps {
   item: InventoryItemData;
@@ -27,10 +27,8 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
             <DetailField label="Unit of Measure" type="string" value={item.uomSymbol} />
             <DetailField label="Tracking" type="string" value={inventoryTrackingConfig[item.tracking].label} />
             <DetailField label="Pick Strategy" type="string" value={pickStrategyLabels[item.pickStrategy]} />
-            <DetailField label="Purchase Tax Group" type="string" value={item.purchaseTaxGroupName} />
             <DetailField label="HSN Code" type="string" value={item.hsnCode} mono />
             {item.hasMrp && <DetailField label="MRP Unit" type="string" value={item.mrpUomSymbol} />}
-            {item.hasMrp && <DetailField label="Default MRP" type="currency" value={item.defaultMrp} />}
             <DetailField label="Description" type="string" value={item.description} className="col-span-full" />
           </div>
         </div>

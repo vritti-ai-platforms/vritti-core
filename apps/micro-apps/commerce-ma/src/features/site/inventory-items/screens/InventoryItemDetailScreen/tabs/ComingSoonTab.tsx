@@ -1,8 +1,8 @@
-import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
-import { ScreenContainer } from "@vritti/quantum-ui-native/ScreenContainer";
-import { Text } from "@vritti/quantum-ui-native/Text";
+import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { Text } from '@vritti/quantum-ui-native/Text';
 
-const CLOCK_ICON = { sfSymbol: "clock", materialSymbol: "schedule" } as const;
+const CLOCK_ICON = { sfSymbol: 'clock', materialSymbol: 'schedule' } as const;
 
 // Placeholder for tabs not yet built. Each will be filled in screen-by-screen once its
 // core-server GraphQL query + native list screen exist.

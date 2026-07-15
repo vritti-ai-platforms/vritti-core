@@ -338,7 +338,7 @@ export const WorkspaceSelectionPage = () => {
       : hasSites
         ? 'Pick your site'
         : hasLes
-          ? 'Pick a company'
+          ? 'Pick a legal entity'
           : hasGroups
             ? 'Pick a site group'
             : 'Your workspace';
@@ -347,11 +347,11 @@ export const WorkspaceSelectionPage = () => {
     kindCount === 1 && hasSites
       ? `You work at ${plural(siteCards.length, 'site')}.`
       : kindCount === 1 && hasLes
-        ? `You keep the books of ${plural(leCards.length, 'company', 'companies')}.`
+        ? `You keep the books of ${plural(leCards.length, 'legal entity', 'legal entities')}.`
         : [
             hasSites ? plural(siteCards.length, 'site') : null,
             hasGroups ? plural(groupCards.length, 'site group') : null,
-            hasLes ? plural(leCards.length, 'company', 'companies') : null,
+            hasLes ? plural(leCards.length, 'legal entity', 'legal entities') : null,
             hasOrg ? 'organization' : null,
           ]
             .filter(Boolean)
@@ -462,7 +462,7 @@ export const WorkspaceSelectionPage = () => {
                     </span>
                     {members.length > 0 && (
                       <span className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                        {plural(members.length, 'site')} · {plural(companyCount, 'company', 'companies')}
+                        {plural(members.length, 'site')} · {plural(companyCount, 'legal entity', 'legal entities')}
                       </span>
                     )}
                   </WorkspaceCard>
@@ -474,7 +474,7 @@ export const WorkspaceSelectionPage = () => {
 
         {hasLes && (
           <section className="mt-6">
-            <SectionHead label="COMPANIES" count={leCards.length} />
+            <SectionHead label="LEGAL ENTITIES" count={leCards.length} />
             <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
               {leCards.map(({ assignment, entity }, index) => (
                 <WorkspaceCard
@@ -487,7 +487,7 @@ export const WorkspaceSelectionPage = () => {
                 >
                   <CardTitle name={entity.name} code={entity.code} />
                   <span className="mt-2 flex flex-wrap gap-1.5">
-                    <Chip className={SCOPE_ACCENTS.le.kind}>Company</Chip>
+                    <Chip className={SCOPE_ACCENTS.le.kind}>Legal Entity</Chip>
                     <Chip>
                       {countryFlag(entity.country)} {entity.country} · {currencyLabel(entity.currencyCode)} ·{' '}
                       {entity.taxRegime}
@@ -516,12 +516,12 @@ export const WorkspaceSelectionPage = () => {
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold">Manage {org.name}</span>
                 <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                  Companies, structure, members, roles, billing
+                  Legal entities, structure, members, roles, billing
                   <RoleChip roleName={orgAssignments.map((a) => a.roleName).join(' · ')} />
                 </span>
               </span>
               <span className="ml-auto hidden shrink-0 flex-wrap justify-end gap-1.5 sm:flex">
-                {legalEntities.length > 0 && <Chip>{plural(legalEntities.length, 'company', 'companies')}</Chip>}
+                {legalEntities.length > 0 && <Chip>{plural(legalEntities.length, 'legal entity', 'legal entities')}</Chip>}
                 {siteGroups.length > 0 && <Chip>{plural(siteGroups.length, 'group')}</Chip>}
                 {sites.length > 0 && <Chip>{plural(sites.length, 'site')}</Chip>}
               </span>

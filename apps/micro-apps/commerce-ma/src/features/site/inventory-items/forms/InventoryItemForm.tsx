@@ -2,17 +2,17 @@ import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { RadioGroup, type RadioOption } from '@vritti/quantum-ui-native/RadioGroup';
 import type { SelectOption } from '@vritti/quantum-ui-native/Select';
-import { TextField } from '@vritti/quantum-ui-native/TextField';
-import { Text } from '@vritti/quantum-ui-native/Text';
 import { CategorySelector } from '@vritti/quantum-ui-native/selects/category';
 import { TaxGroupSelector } from '@vritti/quantum-ui-native/selects/tax-group';
 import { UomSelector } from '@vritti/quantum-ui-native/selects/uom';
+import { Text } from '@vritti/quantum-ui-native/Text';
+import { TextField } from '@vritti/quantum-ui-native/TextField';
 import type { UseFormReturn } from 'react-hook-form';
-import { PICK_STRATEGY_OPTIONS, TRACKING_OPTIONS, TYPE_OPTIONS } from '../../../../services/site/inventory-items';
 import type {
   CreateInventoryItemFormValues,
   UpdateInventoryItemFormValues,
 } from '../../../../schemas/inventory-items/inventory-item';
+import { PICK_STRATEGY_OPTIONS, TRACKING_OPTIONS, TYPE_OPTIONS } from '../../../../services/site/inventory-items';
 
 // The shared option arrays are SelectOption[] (value: string | number | boolean); RadioGroup wants
 // RadioOption[] (value: string). These enum lists are all string-valued, so narrow them here.
@@ -51,13 +51,7 @@ export const InventoryItemForm = ({ form, isSubmitting, onSubmit, mode }: Invent
   return (
     <Form form={sharedForm}>
       <TextField name="name" label="Name" placeholder="e.g. Steel bolt M6" autoCapitalize="words" />
-      <TextField
-        name="code"
-        label="Code"
-        placeholder="e.g. BOLT-M6"
-        autoCapitalize="characters"
-        autoCorrect={false}
-      />
+      <TextField name="code" label="Code" placeholder="e.g. BOLT-M6" autoCapitalize="characters" autoCorrect={false} />
 
       <RadioGroup name="type" label="Type" options={TYPE_RADIO} />
       {mode === 'create' ? <RadioGroup name="tracking" label="Tracking" options={TRACKING_RADIO} /> : null}

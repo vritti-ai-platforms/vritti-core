@@ -1,5 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { IsCode } from '@vritti/api-sdk/decorators';
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { COST_CATEGORY_KINDS, type CostCategoryKind } from '../dto/request/create-cost-category.dto';
 
 // Mirror create-/update-cost-category.dto.ts. `code` + `kind` are immutable after create (only name +
@@ -10,7 +11,7 @@ export class CreateCostCategoryInput {
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
-  @Matches(/^[A-Z0-9_]+$/, { message: 'code must be uppercase letters, digits, or underscore' })
+  @IsCode()
   code: string;
 
   @Field(() => String)

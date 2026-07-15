@@ -3,6 +3,7 @@ import {
   cascadeLocked,
   type FeatureUnlocks,
   filterGrantedByDeps,
+  findFeatureByCode,
   PLATFORMS,
   type PlatformDenyCodes,
   type SiteFeatureLocks,
@@ -15,7 +16,8 @@ import { BadRequestException } from '@vritti/api-sdk/exceptions';
 // Rejects role grants that enable a dependent permission without its prerequisite (per feature, per platform)
 export function validateGrantDependencies(features: FeatureUnlocks, snapshot: VersionSnapshot): void {
   for (const [featureCode, platforms] of Object.entries(features)) {
-    const permissions = snapshot.features[featureCode]?.permissions;
+    // Grants key features by bare code (scope-agnostic); the permission graph is shared across a code's scope-variants
+    const permissions = findFeatureByCode(snapshot, featureCode)?.permissions;
     if (!permissions) continue;
 
     const deps = buildDependsMap(permissions);
@@ -72,7 +74,8 @@ export function normalizeLockCascade(featureLocks: SiteFeatureLocks, snapshot: V
   const result: SiteFeatureLocks = {};
 
   for (const [featureCode, platforms] of Object.entries(featureLocks)) {
-    const permissions = snapshot.features[featureCode]?.permissions;
+    // Locks key features by bare code (scope-agnostic); the permission graph is shared across a code's scope-variants
+    const permissions = findFeatureByCode(snapshot, featureCode)?.permissions;
     const normalized: PlatformDenyCodes = {};
 
     for (const bucket of PLATFORMS) {

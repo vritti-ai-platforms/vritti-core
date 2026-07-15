@@ -4,11 +4,17 @@ import { UserDomainModule } from '@/modules/domain/user/user.module';
 import { CostCategoriesGatewayController } from './le-api/cost-categories/cost-categories-gateway.controller';
 import { CostCategoriesResolver } from './le-api/cost-categories/resolvers/cost-categories.resolver';
 import { CostCategoriesGatewayService } from './le-api/cost-categories/services/cost-categories-gateway.service';
+import { SupplierItemsGatewayService } from './le-api/supplier-items/services/supplier-items-gateway.service';
+import { SupplierItemsGatewayController } from './le-api/supplier-items/supplier-items-gateway.controller';
+import { SuppliersGatewayService } from './le-api/suppliers/services/suppliers-gateway.service';
+import { SuppliersGatewayController } from './le-api/suppliers/suppliers-gateway.controller';
 import { TaxGroupsResolver } from './le-api/tax-groups/resolvers/tax-groups.resolver';
 import { TaxGroupsGatewayService } from './le-api/tax-groups/services/tax-groups-gateway.service';
 import { TaxGroupsGatewayController } from './le-api/tax-groups/tax-groups-gateway.controller';
 import { CategoriesGatewayController } from './org-api/categories/categories-gateway.controller';
 import { CategoriesGatewayService } from './org-api/categories/services/categories-gateway.service';
+import { InventoryItemsGatewayController as OrgInventoryItemsGatewayController } from './org-api/inventory-items/inventory-items-gateway.controller';
+import { InventoryItemsGatewayService as OrgInventoryItemsGatewayService } from './org-api/inventory-items/services/inventory-items-gateway.service';
 import { SalesChannelsGatewayController } from './org-api/sales-channels/sales-channels-gateway.controller';
 import { SalesChannelsGatewayService } from './org-api/sales-channels/services/sales-channels-gateway.service';
 import { UomResolver } from './org-api/uom/resolvers/uom.resolver';
@@ -53,8 +59,8 @@ import { StockAdjustmentsGatewayService } from './site-api/stock-adjustments/ser
 import { StockAdjustmentsGatewayController } from './site-api/stock-adjustments/stock-adjustments-gateway.controller';
 import { StockTransfersGatewayService } from './site-api/stock-transfers/services/stock-transfers-gateway.service';
 import { StockTransfersGatewayController } from './site-api/stock-transfers/stock-transfers-gateway.controller';
-import { SuppliersGatewayService } from './site-api/suppliers/services/suppliers-gateway.service';
-import { SuppliersGatewayController } from './site-api/suppliers/suppliers-gateway.controller';
+import { SiteGroupInventoryItemsGatewayService } from './site-group-api/inventory-items/services/site-group-inventory-items-gateway.service';
+import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inventory-items/site-group-inventory-items-gateway.controller';
 
 @Module({
   imports: [SiteDomainModule, UserDomainModule],
@@ -77,6 +83,9 @@ import { SuppliersGatewayController } from './site-api/suppliers/suppliers-gatew
     StockAdjustmentsGatewayController,
     StockTransfersGatewayController,
     SuppliersGatewayController,
+    SupplierItemsGatewayController,
+    OrgInventoryItemsGatewayController,
+    SiteGroupInventoryItemsGatewayController,
     TaxGroupsGatewayController,
     UomGatewayController,
     UomDimensionsGatewayController,
@@ -100,6 +109,9 @@ import { SuppliersGatewayController } from './site-api/suppliers/suppliers-gatew
     StockAdjustmentsGatewayService,
     StockTransfersGatewayService,
     SuppliersGatewayService,
+    SupplierItemsGatewayService,
+    OrgInventoryItemsGatewayService,
+    SiteGroupInventoryItemsGatewayService,
     TaxGroupsGatewayService,
     UomGatewayService,
     UomDimensionsGatewayService,

@@ -42,7 +42,7 @@ export const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({ onSuccess,
       })}
     >
       <div className="space-y-6">
-        <FormSection title="Customer Info">
+        <FormSection title="Customer Info" contentClassName="block">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField name="name" label="Name" placeholder="e.g. Jane Doe" />
             <PhoneField name="phone" label="Phone" placeholder="e.g. +91 98765 43210" />

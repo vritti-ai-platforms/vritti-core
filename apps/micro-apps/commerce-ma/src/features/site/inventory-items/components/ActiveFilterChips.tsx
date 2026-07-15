@@ -1,6 +1,10 @@
 import { Chip } from '@vritti/quantum-ui-native/Label';
 import { View } from 'react-native';
-import { type ActiveFilterChip, type InventoryFilterState, toActiveChips } from '../../../../services/site/inventory-items';
+import {
+  type ActiveFilterChip,
+  type InventoryFilterState,
+  toActiveChips,
+} from '../../../../services/site/inventory-items';
 
 interface ActiveFilterChipsProps {
   value: InventoryFilterState;

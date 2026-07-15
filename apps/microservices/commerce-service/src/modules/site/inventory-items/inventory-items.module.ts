@@ -1,12 +1,10 @@
-import { CategoriesDomainModule } from '@domain/categories/categories.module';
 import { InventoryItemLocationsDomainModule } from '@domain/inventory-item-locations/inventory-item-locations.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemSerialsDomainModule } from '@domain/inventory-item-serials/inventory-item-serials.module';
-import { InventoryItemUomConversionsDomainModule } from '@domain/inventory-item-uom-conversions/inventory-item-uom-conversions.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
-import { UomDomainModule } from '@domain/uom/uom.module';
 import { Module } from '@nestjs/common';
 import { InventoryItemsLedgerModule } from './ledger/inventory-items-ledger.module';
 import { InventoryItemsLocationsController } from './locations/inventory-items-locations.controller';
@@ -21,24 +19,20 @@ import { InventoryItemsSerialsController } from './serials/inventory-items-seria
 import { InventoryItemsStocksController } from './stocks/inventory-items-stocks.controller';
 import { InventoryItemsStocksService } from './stocks/services/inventory-items-stocks.service';
 import { InventoryItemsSupplierItemsController } from './supplier-items/inventory-items-supplier-items.controller';
-import { InventoryItemsUomConversionsController } from './uom-conversions/inventory-items-uom-conversions.controller';
 
 @Module({
   imports: [
     InventoryItemsDomainModule,
-    InventoryItemUomConversionsDomainModule,
     InventoryItemLocationsDomainModule,
     InventoryItemLotsDomainModule,
     InventoryItemQuantsDomainModule,
     InventoryItemSerialsDomainModule,
+    InventoryItemSitesDomainModule,
     SupplierItemsDomainModule,
-    CategoriesDomainModule,
-    UomDomainModule,
     InventoryItemsLedgerModule,
   ],
   controllers: [
     InventoryItemsRootController,
-    InventoryItemsUomConversionsController,
     InventoryItemsLocationsController,
     InventoryItemsStocksController,
     InventoryItemsSupplierItemsController,

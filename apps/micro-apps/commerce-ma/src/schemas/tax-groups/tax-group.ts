@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui-native/zod';
 
 // One schema for create + edit. Rate is a TextField STRING (decimal-pad) validated as a percentage
 // (up to 2 decimals, 0 < rate ≤ 100), converted to Number when building the mutation input. At least one

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui-native/zod';
 
 // Qty fields are TextField strings (number-pad); validate as positive whole numbers and convert to number
 // when building the mutation input (the GraphQL inputs are Int).

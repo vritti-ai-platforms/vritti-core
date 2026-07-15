@@ -6,8 +6,8 @@ import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
 import { useInventoryItemQuant } from '@/hooks/site/inventory-item-quants';
+import type { InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
 
 function getQuantStatus(expiryDate: string | null): InventoryItemQuantStatus {
   if (!expiryDate) return 'FRESH';

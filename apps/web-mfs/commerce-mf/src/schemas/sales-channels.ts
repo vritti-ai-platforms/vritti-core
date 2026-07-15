@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z } from '@vritti/quantum-ui/zod';
+import { z, zodCodeField } from '@vritti/quantum-ui/zod';
 
 export const SALES_CHANNEL_KIND_VALUES = ['IN_STORE', 'ONLINE', 'ZOMATO', 'SWIGGY', 'OTHER'] as const;
 export type SalesChannelKind = (typeof SALES_CHANNEL_KIND_VALUES)[number];
@@ -15,11 +15,7 @@ export const SALES_CHANNEL_KIND_OPTIONS: { value: SalesChannelKind; label: strin
 const kindSchema = z.enum(SALES_CHANNEL_KIND_VALUES);
 
 export const createSalesChannelSchema = z.object({
-  code: z
-    .string()
-    .min(1, 'Code is required')
-    .max(50, 'Code must be at most 50 characters')
-    .regex(/^[A-Z0-9_]+$/, 'Use uppercase letters, digits, and underscores only'),
+  code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(255, 'Name must be at most 255 characters'),
   kind: kindSchema,
 });

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui-native/zod';
 
 // Create/edit a unit. `kind` is UI-only (not persisted): 'base' → baseUnitId null, ratio forced to 1:1;
 // 'derived' → requires a base unit + a uomQty:baseUomQty ratio. Qty fields are TextField strings

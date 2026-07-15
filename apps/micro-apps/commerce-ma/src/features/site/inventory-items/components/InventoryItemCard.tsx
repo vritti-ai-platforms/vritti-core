@@ -2,8 +2,8 @@ import { Badge } from '@vritti/quantum-ui-native/Badge';
 import { CardPressable } from '@vritti/quantum-ui-native/CardPressable';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { View } from 'react-native';
-import type { InventoryItem } from '../../../../types/inventory-items';
 import { trackingLabel, typeLabel } from '../../../../services/site/inventory-items';
+import type { InventoryItem } from '../../../../types/inventory-items';
 
 interface InventoryItemCardProps {
   item: InventoryItem;
@@ -22,9 +22,7 @@ export function InventoryItemCard({ item, onPress }: InventoryItemCardProps) {
             {item.code}
           </Text>
         </View>
-        {item.uomSymbol ? (
-          <Text className="text-sm font-medium text-muted-foreground">{item.uomSymbol}</Text>
-        ) : null}
+        {item.uomSymbol ? <Text className="text-sm font-medium text-muted-foreground">{item.uomSymbol}</Text> : null}
       </View>
       <View className="flex-row flex-wrap gap-2">
         <Badge variant="secondary">

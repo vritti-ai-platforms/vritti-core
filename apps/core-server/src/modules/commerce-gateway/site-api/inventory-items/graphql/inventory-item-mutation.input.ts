@@ -1,7 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { IsCode } from '@vritti/api-sdk/decorators';
+import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
-const ITEM_CODE_PATTERN = /^[A-Z0-9-]+$/;
 const ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'];
 const TRACKING_TYPES = ['quantity', 'lot', 'lot_serial', 'serial'];
 const PICK_STRATEGIES = ['none', 'fifo', 'fefo'];
@@ -18,7 +18,7 @@ export class CreateInventoryItemInput {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  @Matches(ITEM_CODE_PATTERN, { message: 'code must contain only uppercase letters, numbers, and hyphen (-).' })
+  @IsCode()
   code: string;
 
   @Field(() => String)
@@ -76,7 +76,7 @@ export class UpdateInventoryItemInput {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  @Matches(ITEM_CODE_PATTERN, { message: 'code must contain only uppercase letters, numbers, and hyphen (-).' })
+  @IsCode()
   code?: string;
 
   @Field(() => String, { nullable: true })

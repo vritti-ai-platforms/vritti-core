@@ -1,9 +1,9 @@
-import { FlashList } from "@vritti/quantum-ui-native/FlashList";
-import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { RefreshControl, View } from "react-native";
-import { useStockLevelsFeed } from "../../../../../../hooks/site/stock-levels";
-import type { InventoryItem } from "../../../../../../types/inventory-items";
-import { StockLevelCard } from "../../../components/StockLevelCard";
+import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
+import { RefreshControl, View } from 'react-native';
+import { useStockLevelsFeed } from '../../../../../../hooks/site/stock-levels';
+import type { InventoryItem } from '../../../../../../types/inventory-items';
+import { StockLevelCard } from '../../../components/StockLevelCard';
 
 // Read-only per-location stock levels with Relay infinite scroll (an item can span >100 locations).
 export function StockLevelsTab({ item }: { item: InventoryItem }) {
@@ -31,7 +31,7 @@ export function StockLevelsTab({ item }: { item: InventoryItem }) {
         refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => feed.refresh()} />}
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View className="h-3" />}
-        emptyText={feed.isError ? "Couldn't load stock levels." : "No stock in any location yet."}
+        emptyText={feed.isError ? "Couldn't load stock levels." : 'No stock in any location yet.'}
         renderItem={({ item: stock }) => <StockLevelCard stock={stock} uomSymbol={item.uomSymbol} />}
       />
     </View>

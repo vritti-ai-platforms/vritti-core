@@ -19,7 +19,7 @@ export class StructureController {
 
   constructor(private readonly structureApiService: StructureApiService) {}
 
-  // Returns the organization's structure aggregate: org, legal entities, tax registrations, site groups, sites
+  // Returns the organization structure aggregate
   @Get()
   @ApiGetStructure()
   async getStructure(@OrgIdHeader() orgId: string): Promise<StructureResponseDto> {

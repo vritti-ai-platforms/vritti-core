@@ -35,7 +35,7 @@ export const inventoryStockLevels = coreSchema.view('inventory_stock_levels').as
       stockedQuantity: sql<string>`CAST(COALESCE(${quantAggs.stocked}, 0) AS TEXT)`.as('stocked_quantity'),
       reservedQuantity: sql<string>`CAST(COALESCE(${quantAggs.reserved}, 0) AS TEXT)`.as('reserved_quantity'),
       availableQuantity: sql<string>`CAST(COALESCE(${quantAggs.available}, 0) AS TEXT)`.as('available_quantity'),
-      reorderLevel: inventoryItemLocations.reorderLevel,
+      reorderLevel: inventoryItemLocations.minLevel,
     })
     .from(quantAggs)
     .fullJoin(

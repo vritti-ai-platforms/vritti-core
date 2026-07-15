@@ -1,5 +1,14 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { decimal, index, pgPolicy, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  boolean,
+  decimal,
+  index,
+  pgPolicy,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { coreSchema } from './core-schema';
 import { inventoryItems } from './inventory-items';
 import { locations } from './locations';
@@ -16,7 +25,11 @@ export const inventoryItemLocations = coreSchema.table(
     locationId: uuid('location_id')
       .notNull()
       .references(() => locations.id, { onDelete: 'cascade' }),
-    reorderLevel: decimal('reorder_level', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    isPreferred: boolean('is_preferred').notNull().default(false),
+    minLevel: decimal('min_level', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    maxLevel: decimal('max_level', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    safetyStock: decimal('safety_stock', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    binCapacity: decimal('bin_capacity', { precision: 12, scale: 3, mode: 'number' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -25,6 +38,8 @@ export const inventoryItemLocations = coreSchema.table(
   },
   (table) => [
     unique('uq_inventory_item_locations').on(table.inventoryItemId, table.locationId),
+    // At most one preferred location per (item, site).
+    uniqueIndex('uq_iil_one_preferred').on(table.inventoryItemId, table.siteId).where(sql`is_preferred = true`),
     index('idx_inventory_item_locations_item').on(table.inventoryItemId),
     index('idx_inventory_item_locations_location').on(table.locationId),
     pgPolicy('org_isolation', {

@@ -1,4 +1,4 @@
-import { RoleService } from '@domain/organization/services/role.service';
+import { RoleService, type RolesByScope } from '@domain/organization/services/role.service';
 import {
   Body,
   Controller,
@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { CreateResponseDto, SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import type { Role } from '@/db/schema';
 import { OrgIdHeader } from '@/security/decorators/org-id-header.decorator';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
@@ -28,10 +28,12 @@ import {
   ApiProvisionRoles,
   ApiRolesForSite,
   ApiRolesForTarget,
+  ApiSelectRoles,
   ApiUpdateRole,
 } from '../docs/roles.docs';
 import { CreateRoleInternalDto } from '../dto/request/create-role-internal.dto';
 import { ProvisionRolesInternalDto } from '../dto/request/provision-roles-internal.dto';
+import { SelectRolesInternalDto } from '../dto/request/select-roles-internal.dto';
 import { UpdateRoleInternalDto } from '../dto/request/update-role-internal.dto';
 
 @ApiTags('Organization Roles')
@@ -54,12 +56,12 @@ export class RolesController {
     return this.roleService.provision(dto.orgId, dto.roles);
   }
 
-  // Lists all roles for an organization
+  // Lists an organization's roles grouped by scope (SITE by site type)
   @Get()
   @ApiListRoles()
-  async list(@Query('orgId') orgId: string): Promise<Role[]> {
+  async list(@Query('orgId') orgId: string): Promise<RolesByScope> {
     this.logger.log(`GET /api/organizations/internal/roles?orgId=${orgId}`);
-    return this.roleService.findByOrg(orgId);
+    return this.roleService.findByOrgGrouped(orgId);
   }
 
   // Returns all roles for the given site's organization
@@ -80,6 +82,17 @@ export class RolesController {
   ): Promise<Role[]> {
     this.logger.log(`GET /organizations/internal/roles/for-target?targetType=${targetType} — org ${orgId}`);
     return this.roleService.findForTarget(orgId, targetType, targetId);
+  }
+
+  // Returns the org's roles matching an exact scope as select options
+  @Get('select')
+  @ApiSelectRoles()
+  async findForSelect(
+    @OrgIdHeader() orgId: string,
+    @Query() query: SelectRolesInternalDto,
+  ): Promise<SelectQueryResult> {
+    this.logger.log(`GET /organizations/internal/roles/select?scope=${query.scope} — org ${orgId}`);
+    return this.roleService.findForSelect(orgId, query, query.scope, query.siteId);
   }
 
   // Creates a single role with features

@@ -13,12 +13,12 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { MapPin, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
-import type { InventoryItemLocationData } from '@/schemas/inventory-item-locations';
 import {
   INVENTORY_ITEM_LOCATIONS_KEY,
   useDeleteInventoryItemLocation,
   useInventoryItemLocationsTable,
 } from '@/hooks/site/inventory-items';
+import type { InventoryItemLocationData } from '@/schemas/inventory-item-locations';
 import { AddInventoryItemLocationForm } from '../forms/AddInventoryItemLocationForm';
 import { EditInventoryItemLocationForm } from '../forms/EditInventoryItemLocationForm';
 

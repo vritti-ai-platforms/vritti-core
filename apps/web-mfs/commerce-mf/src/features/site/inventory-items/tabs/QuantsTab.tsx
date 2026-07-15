@@ -15,8 +15,8 @@ import { Boxes, Eye } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { InventoryItemQuantData, InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
 import { INVENTORY_ITEM_QUANTS_KEY, useInventoryItemQuantsTable } from '@/hooks/site/inventory-items';
+import type { InventoryItemQuantData, InventoryItemQuantStatus } from '@/schemas/inventory-item-quants';
 
 interface QuantsTabProps {
   inventoryItemId: string;

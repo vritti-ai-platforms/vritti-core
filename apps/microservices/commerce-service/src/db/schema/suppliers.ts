@@ -23,7 +23,9 @@ export const suppliers = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    legalEntityId: uuid('legal_entity_id')
+      .notNull()
+      .default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     name: varchar('name', { length: 255 }).notNull(),
     code: varchar('code', { length: 100 }).notNull(),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
@@ -45,31 +47,31 @@ export const suppliers = coreSchema.table(
       .$onUpdate(() => new Date()),
   },
   (table) => [
-    uniqueIndex('uq_suppliers_bu_code').on(table.siteId, table.code),
+    uniqueIndex('uq_suppliers_le_code').on(table.legalEntityId, table.code),
     // Composite uniqueness on (id, currency_code) exists purely as a target for the composite FK
     // on supplier_items below. `id` is already PK so this adds no new uniqueness, but Postgres
     // requires the FK target column tuple to have a matching UNIQUE / PRIMARY KEY constraint.
     unique('uq_suppliers_id_currency').on(table.id, table.currencyCode),
-    index('idx_suppliers_site').on(table.organizationId, table.siteId),
+    index('idx_suppliers_le').on(table.organizationId, table.legalEntityId),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
     }),
-    pgPolicy('site_read', {
+    pgPolicy('le_read', {
       for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_write', {
+    pgPolicy('le_write', {
       for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      withCheck: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_update', {
+    pgPolicy('le_update', {
       for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_delete', {
+    pgPolicy('le_delete', {
       for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
   ],
 );
@@ -82,7 +84,9 @@ export const supplierContacts = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    legalEntityId: uuid('legal_entity_id')
+      .notNull()
+      .default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id, { onDelete: 'cascade' }),
@@ -109,21 +113,21 @@ export const supplierContacts = coreSchema.table(
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
     }),
-    pgPolicy('site_read', {
+    pgPolicy('le_read', {
       for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_write', {
+    pgPolicy('le_write', {
       for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      withCheck: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_update', {
+    pgPolicy('le_update', {
       for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_delete', {
+    pgPolicy('le_delete', {
       for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
   ],
 );

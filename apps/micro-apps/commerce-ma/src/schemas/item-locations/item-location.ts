@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '@vritti/quantum-ui-native/zod';
 
 // reorderLevel ("Min. Stock Level") is a TextField string (decimal-pad). Stored as decimal(12,3) → allow
 // decimals, must be ≥ 0. Converted to a number when building the mutation input (GraphQL Float).

@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
@@ -7,6 +6,7 @@ import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
 import { Switch } from '@vritti/quantum-ui-native/Switch';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { TextField } from '@vritti/quantum-ui-native/TextField';
+import { zodResolver } from '@vritti/quantum-ui-native/zod';
 import { forwardRef, useCallback, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { View } from 'react-native';

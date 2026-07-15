@@ -2,6 +2,7 @@ import type { SiteFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
+  codeCheck,
   index,
   integer,
   jsonb,
@@ -57,6 +58,7 @@ export const sites = coreSchema.table(
   },
   (table) => [
     uniqueIndex('sites_org_code_unique').on(table.organizationId, table.code),
+    codeCheck('sites_code_chk', table.code),
     index('sites_organization_id_idx').on(table.organizationId),
     index('sites_group_id_idx').on(table.groupId),
     pgPolicy('org_isolation', {

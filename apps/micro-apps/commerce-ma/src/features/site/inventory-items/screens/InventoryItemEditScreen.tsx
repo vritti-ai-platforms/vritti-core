@@ -1,24 +1,24 @@
-import { useQuery } from "@apollo/client/react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { type RouteProp, useNavigation } from "@react-navigation/native";
-import { ScreenContainer } from "@vritti/quantum-ui-native/ScreenContainer";
-import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { StaticAlert } from "@vritti/quantum-ui-native/StaticAlert";
-import { Text } from "@vritti/quantum-ui-native/Text";
-import { useForm } from "react-hook-form";
-import { INVENTORY_ITEM_QUERY } from "../../../../graphql/inventory-items";
-import { useUpdateInventoryItem } from "../../../../hooks/site/inventory-items";
+import { useQuery } from '@apollo/client/react';
+import { type RouteProp, useNavigation } from '@react-navigation/native';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
+import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
+import { Text } from '@vritti/quantum-ui-native/Text';
+import { zodResolver } from '@vritti/quantum-ui-native/zod';
+import { useForm } from 'react-hook-form';
+import { INVENTORY_ITEM_QUERY } from '../../../../graphql/inventory-items';
+import { useUpdateInventoryItem } from '../../../../hooks/site/inventory-items';
 import {
   type UpdateInventoryItemFormValues,
   updateInventoryItemSchema,
-} from "../../../../schemas/inventory-items/inventory-item";
-import { InventoryItemForm } from "../forms/InventoryItemForm";
-import type { InventoryItemEditParams, InventoryItemQueryData, InventoryNavigation } from "../types";
+} from '../../../../schemas/inventory-items/inventory-item';
+import { InventoryItemForm } from '../forms/InventoryItemForm';
+import type { InventoryItemEditParams, InventoryItemQueryData, InventoryNavigation } from '../types';
 
 export function InventoryItemEdit({
   route,
 }: {
-  route: RouteProp<{ InventoryItemEdit: InventoryItemEditParams }, "InventoryItemEdit">;
+  route: RouteProp<{ InventoryItemEdit: InventoryItemEditParams }, 'InventoryItemEdit'>;
 }) {
   const navigation = useNavigation() as unknown as InventoryNavigation;
   const id = route.params?.id;
@@ -31,7 +31,7 @@ export function InventoryItemEdit({
   const { data, loading: loadingItem } = useQuery<InventoryItemQueryData>(INVENTORY_ITEM_QUERY, {
     variables: { id },
     skip: !id,
-    fetchPolicy: "cache-only",
+    fetchPolicy: 'cache-only',
   });
   const item = data?.inventoryItem;
 
@@ -47,9 +47,9 @@ export function InventoryItemEdit({
           pickStrategy: item.pickStrategy,
           categoryId: item.categoryId,
           uomId: item.uomId,
-          purchaseTaxGroupId: item.purchaseTaxGroupId ?? "",
-          description: item.description ?? "",
-          hsnCode: item.hsnCode ?? "",
+          purchaseTaxGroupId: item.purchaseTaxGroupId ?? '',
+          description: item.description ?? '',
+          hsnCode: item.hsnCode ?? '',
           hasMrp: false,
         }
       : undefined,
@@ -80,9 +80,7 @@ export function InventoryItemEdit({
 
   return (
     <ScreenContainer scrollable contentContainerStyle={{ padding: 16, gap: 16 }}>
-      {error ? (
-        <StaticAlert variant="destructive" title="Update failed" description={error.message} />
-      ) : null}
+      {error ? <StaticAlert variant="destructive" title="Update failed" description={error.message} /> : null}
       <InventoryItemForm
         form={form}
         isSubmitting={updating}

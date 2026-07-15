@@ -2,12 +2,37 @@ import { LeTaxRegistrationDto } from '@domain/legal-entity/dto/entity/le-tax-reg
 import { LegalEntityDto } from '@domain/legal-entity/dto/entity/legal-entity.dto';
 import { CreateLeTaxRegistrationInternalDto } from '@domain/legal-entity/dto/request/create-le-tax-registration-internal.dto';
 import { CreateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/create-legal-entity-internal.dto';
+import { ReorderLegalEntitiesInternalDto } from '@domain/legal-entity/dto/request/reorder-legal-entities-internal.dto';
 import { UpdateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/update-legal-entity-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/database';
 import { SetFeatureLocksInternalDto } from '../../dto/request/set-feature-locks-internal.dto';
 import { FeatureLocksResponseDto } from '../../dto/response/feature-locks-response.dto';
+import { OrgStructureSelectResponseDto } from '../../dto/response/org-structure-select-response.dto';
+
+export function ApiSelectLegalEntities() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Select legal entities',
+      description:
+        'Returns the organization legal entities as select options (value=id, label=name, description=code), filtered by search and an optional subtree exclusion. Requires Ed25519 signature headers (x-timestamp, x-signature).',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiHeader({ name: 'x-org-id', description: 'Organization ID scoping the request', required: true }),
+    ApiResponse({
+      status: 200,
+      description: 'Legal entity options retrieved successfully.',
+      type: OrgStructureSelectResponseDto,
+    }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
 
 export function ApiCreateLegalEntity() {
   return applyDecorators(
@@ -49,6 +74,29 @@ export function ApiUpdateLegalEntity() {
     ApiResponse({ status: 400, description: 'Invalid input data or parent legal entity.' }),
     ApiResponse({ status: 404, description: 'Legal entity not found.' }),
     ApiResponse({ status: 409, description: 'Legal entity code already exists in the organization.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiReorderLegalEntities() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Reorder legal entities',
+      description:
+        'Reassigns sort order for a batch of sibling legal entities in their new left-to-right order. Every id must belong to the organization.',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiBody({ type: ReorderLegalEntitiesInternalDto }),
+    ApiResponse({ status: 200, description: 'Legal entities reordered successfully.', type: SuccessResponseDto }),
+    ApiResponse({
+      status: 400,
+      description: 'One or more legal entities do not exist or belong to another organization.',
+    }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
 }

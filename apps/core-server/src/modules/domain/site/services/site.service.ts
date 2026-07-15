@@ -9,6 +9,7 @@ import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/modules/core-api/auth/ro
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
+import { sequentialSortOrders } from '@/utils/sort-order';
 import { SiteDto } from '../dto/entity/site.dto';
 import type { CreateSiteInternalDto } from '../dto/request/create-site-internal.dto';
 import type { UpdateSiteInternalDto } from '../dto/request/update-site-internal.dto';
@@ -26,9 +27,9 @@ export class SiteService {
     private readonly catalogService: CatalogService,
   ) {}
 
-  // Creates a site after validating its group, legal entity, and registration links
+  // Creates a site after validating its links
   async create(orgId: string, dto: CreateSiteInternalDto): Promise<SiteDto> {
-    const code = dto.code.toLowerCase();
+    const code = dto.code;
     const existing = await this.siteRepository.findByOrgAndCode(orgId, code);
     if (existing) {
       throw new ConflictException({
@@ -54,6 +55,7 @@ export class SiteService {
       legalEntityId: dto.legalEntityId,
       registrationId: dto.registrationId ?? null,
       metadata: dto.metadata as SiteMetadata,
+      sortOrder: dto.sortOrder ?? (await this.siteRepository.nextSortOrder(orgId, dto.legalEntityId)),
     });
 
     this.logger.log(`Created site "${dto.name}" (${site.id})`);
@@ -73,12 +75,12 @@ export class SiteService {
     return SiteDto.from(site);
   }
 
-  // Updates a site, revalidating group membership and legal-entity/registration links
+  // Updates a site after revalidating its links
   async update(id: string, dto: UpdateSiteInternalDto): Promise<SuccessResponseDto> {
     const site = await this.siteRepository.findById(id);
     if (!site) throw new NotFoundException('Site not found.');
 
-    const code = dto.code !== undefined ? dto.code.toLowerCase() : undefined;
+    const code = dto.code;
     if (code && code !== site.code) {
       const existing = await this.siteRepository.findByOrgAndCode(site.organizationId, code);
       if (existing) {
@@ -93,7 +95,6 @@ export class SiteService {
 
     const effectiveLegalEntityId = dto.legalEntityId !== undefined ? dto.legalEntityId : site.legalEntityId;
 
-    // Clear a registration that no longer belongs to the site's new legal entity
     let effectiveRegistrationId = dto.registrationId !== undefined ? dto.registrationId : site.registrationId;
     const legalEntityChanged = dto.legalEntityId !== undefined && dto.legalEntityId !== site.legalEntityId;
     if (legalEntityChanged && dto.registrationId === undefined && site.registrationId) {
@@ -110,6 +111,13 @@ export class SiteService {
       });
     }
 
+    const effectiveSortOrder =
+      dto.sortOrder !== undefined
+        ? dto.sortOrder
+        : legalEntityChanged
+          ? await this.siteRepository.nextSortOrder(site.organizationId, effectiveLegalEntityId)
+          : undefined;
+
     await this.siteRepository.update(id, {
       ...(dto.name && { name: dto.name }),
       ...(code !== undefined && { code }),
@@ -122,8 +130,11 @@ export class SiteService {
       }),
       ...(dto.metadata !== undefined && { metadata: dto.metadata as SiteMetadata }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      ...(effectiveSortOrder !== undefined && { sortOrder: effectiveSortOrder }),
       updatedAt: new Date(),
     });
+
+    if (legalEntityChanged) await this.compactSiblings(site.organizationId, site.legalEntityId);
 
     await this.siteContextCache.invalidate(id);
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(id));
@@ -132,12 +143,31 @@ export class SiteService {
     return { success: true, message: 'Site updated successfully.' };
   }
 
-  // Replaces the site's feature lock deny-list (null = inherit the full plan)
+  // Reorders sites within a legal entity
+  async reorder(orgId: string, ids: string[]): Promise<SuccessResponseDto> {
+    const sites = await this.siteRepository.findByIds(orgId, ids);
+    if (sites.length !== ids.length) {
+      throw new BadRequestException({
+        label: 'Invalid Sites',
+        detail: 'One or more sites do not exist or belong to a different organization.',
+      });
+    }
+
+    await this.siteRepository.setSortOrders(sequentialSortOrders(ids));
+
+    this.logger.log(`Reordered ${ids.length} site(s) for org ${orgId}`);
+    for (const site of sites) {
+      await this.siteContextCache.invalidate(site.id);
+      this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(site.id));
+    }
+    return { success: true, message: 'Sites reordered successfully.' };
+  }
+
+  // Replaces the site's feature lock deny-list
   async setFeatureLocks(id: string, featureLocks: SiteFeatureLocks | null): Promise<SuccessResponseDto> {
     const site = await this.siteRepository.findById(id);
     if (!site) throw new NotFoundException('Site not found.');
 
-    // Locking a prerequisite must also lock its dependents — expand the deny-list before persisting
     const snapshot = featureLocks ? await this.catalogService.getActiveSnapshot() : null;
     const expanded = normalizeLocks(featureLocks, snapshot);
 
@@ -145,7 +175,6 @@ export class SiteService {
 
     await this.siteContextCache.invalidate(id);
     await this.permissionSetCache.invalidateBySite(id);
-    // Push the refreshed feature set to live SSE connections of users at this site
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_UPDATED, new SiteUpdatedEvent(id));
 
     this.logger.log(
@@ -164,14 +193,24 @@ export class SiteService {
     const site = await this.siteRepository.findById(id);
     if (!site) throw new NotFoundException('Site not found.');
 
+    const { organizationId, legalEntityId } = site;
     await this.siteRepository.delete(id);
+
+    await this.compactSiblings(organizationId, legalEntityId);
 
     await this.siteContextCache.invalidate(id);
     this.logger.log(`Deleted site "${site.name}" (${id})`);
     return { success: true, message: 'Site deleted successfully.' };
   }
 
-  // Ensures the target site group exists within the same organization
+  // Resequences an LE's sites to close gaps
+  private async compactSiblings(orgId: string, legalEntityId: string): Promise<void> {
+    const siblings = await this.siteRepository.siblingsOrdered(orgId, legalEntityId);
+    if (siblings.length === 0) return;
+    await this.siteRepository.setSortOrders(sequentialSortOrders(siblings.map((sibling) => sibling.id)));
+  }
+
+  // Ensures the site group exists in the same organization
   private async validateGroup(orgId: string, groupId: string): Promise<void> {
     const group = await this.siteRepository.findSiteGroupById(groupId);
     if (!group || group.organizationId !== orgId) {
@@ -182,7 +221,7 @@ export class SiteService {
     }
   }
 
-  // Validates the legal entity and tax registration links for a site's effective state
+  // Validates a site's legal entity and registration links
   private async validateEntityLinks(
     orgId: string,
     effective: { legalEntityId: string | null; registrationId: string | null },

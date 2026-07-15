@@ -1,24 +1,16 @@
-import { Button } from "@vritti/quantum-ui-native/Button";
-import { Card } from "@vritti/quantum-ui-native/Card";
-import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
-import { useFormatters } from "@vritti/quantum-ui-native/hooks";
-import { Text } from "@vritti/quantum-ui-native/Text";
-import { View } from "react-native";
-import type { Quant } from "../../../../types/quants";
+import { Button } from '@vritti/quantum-ui-native/Button';
+import { Card } from '@vritti/quantum-ui-native/Card';
+import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
+import { useFormatters } from '@vritti/quantum-ui-native/hooks';
+import { Text } from '@vritti/quantum-ui-native/Text';
+import { View } from 'react-native';
+import type { Quant } from '../../../../types/quants';
 
-const PIN_ICON = { sfSymbol: "mappin", materialSymbol: "location_on" } as const;
-const EYE_ICON = { sfSymbol: "eye", materialSymbol: "visibility" } as const;
+const PIN_ICON = { sfSymbol: 'mappin', materialSymbol: 'location_on' } as const;
+const EYE_ICON = { sfSymbol: 'eye', materialSymbol: 'visibility' } as const;
 
 // One label + value cell of the footer grid. Value is monospace; the UOM symbol (when present) is muted.
-function StatCell({
-  label,
-  value,
-  uom,
-}: {
-  label: string;
-  value: string;
-  uom?: string | null;
-}) {
+function StatCell({ label, value, uom }: { label: string; value: string; uom?: string | null }) {
   return (
     <View className="flex-1 flex-row items-center justify-between gap-2">
       <Text className="text-xs text-muted-foreground" numberOfLines={1}>
@@ -48,7 +40,7 @@ export function QuantCard({ quant, uomSymbol, onView }: QuantCardProps) {
       <View className="flex-row items-center justify-between gap-3 px-4 pb-3 pt-4">
         <View className="min-w-0 flex-1 gap-1">
           <Text className="text-base font-bold text-foreground" numberOfLines={1}>
-            {quant.locationName ?? "Location"}
+            {quant.locationName ?? 'Location'}
           </Text>
           <View className="flex-row items-center gap-1.5">
             <DynamicIcon
@@ -58,7 +50,7 @@ export function QuantCard({ quant, uomSymbol, onView }: QuantCardProps) {
               style={{ width: 14, height: 14 }}
             />
             <Text className="flex-1 text-xs text-muted-foreground" numberOfLines={1}>
-              {quant.locationPath ?? quant.locationName ?? "—"}
+              {quant.locationPath ?? quant.locationName ?? '—'}
             </Text>
           </View>
         </View>
@@ -80,16 +72,12 @@ export function QuantCard({ quant, uomSymbol, onView }: QuantCardProps) {
 
       <View className="gap-2 px-4 pb-4 pt-3">
         <View className="flex-row gap-4">
-          <StatCell label="Lot #" value={quant.lotNumber ?? "—"} />
+          <StatCell label="Lot #" value={quant.lotNumber ?? '—'} />
           <StatCell label="Qty" value={String(quant.quantity)} uom={uomSymbol} />
         </View>
         <View className="flex-row gap-4">
           <StatCell label="Reserved" value={String(quant.reservedQuantity)} />
-          <StatCell
-            label="Available"
-            value={String(quant.availableQuantity)}
-            uom={uomSymbol}
-          />
+          <StatCell label="Available" value={String(quant.availableQuantity)} uom={uomSymbol} />
         </View>
         <View className="flex-row gap-4">
           <StatCell label="Expiry Date" value={fmt.date(quant.expiryDate).primary} />

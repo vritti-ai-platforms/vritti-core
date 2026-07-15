@@ -97,7 +97,7 @@ const SupplierItemForm = ({
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
       <div className="flex flex-col gap-6">
-        <FormSection title="Item">
+        <FormSection title="Item" contentClassName="block">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <SupplierItemSelector
@@ -117,7 +117,7 @@ const SupplierItemForm = ({
           </div>
         </FormSection>
 
-        <FormSection title="Received">
+        <FormSection title="Received" contentClassName="block">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField name="orderedQty" label="Ordered Qty" type="number" integer={!allowDecimal} positive />
             <TextField
@@ -131,7 +131,7 @@ const SupplierItemForm = ({
           </div>
         </FormSection>
 
-        <FormSection title="Free Goods Scheme">
+        <FormSection title="Free Goods Scheme" contentClassName="block">
           <div className="flex flex-col gap-4">
             <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
             {hasScheme && (
@@ -221,7 +221,7 @@ const PurchaseOrderItemForm = ({
   return (
     <Form form={form} mutation={mutation} onCancel={onCancel}>
       <div className="flex flex-col gap-6">
-        <FormSection title="Item">
+        <FormSection title="Item" contentClassName="block">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <PurchaseOrderItemSelector
@@ -242,7 +242,7 @@ const PurchaseOrderItemForm = ({
           </div>
         </FormSection>
 
-        <FormSection title="Received">
+        <FormSection title="Received" contentClassName="block">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField
               name="orderedQty"
@@ -263,7 +263,7 @@ const PurchaseOrderItemForm = ({
           </div>
         </FormSection>
 
-        <FormSection title="Free Goods Scheme">
+        <FormSection title="Free Goods Scheme" contentClassName="block">
           <div className="flex flex-col gap-4">
             <Switch name="hasScheme" label="Free goods scheme" description="Supplier ships bonus units on this item." />
             {hasScheme && (

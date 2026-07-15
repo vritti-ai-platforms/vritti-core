@@ -1,0 +1,1 @@
+ALTER TABLE "vritti_core"."site_groups" ADD COLUMN "color" varchar(20);

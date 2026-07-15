@@ -1,42 +1,31 @@
-import { Badge } from "@vritti/quantum-ui-native/Badge";
-import { Card } from "@vritti/quantum-ui-native/Card";
-import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
-import { Text } from "@vritti/quantum-ui-native/Text";
-import { useUnstableNativeVariable } from "nativewind";
-import { View } from "react-native";
-import { stockStatus } from "../../../../services/site/stock-levels";
-import type { StockLevel } from "../../../../types/stock-levels";
+import { Badge } from '@vritti/quantum-ui-native/Badge';
+import { Card } from '@vritti/quantum-ui-native/Card';
+import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
+import { Text } from '@vritti/quantum-ui-native/Text';
+import { useUnstableNativeVariable } from 'nativewind';
+import { View } from 'react-native';
+import { stockStatus } from '../../../../services/site/stock-levels';
+import type { StockLevel } from '../../../../types/stock-levels';
 
 const PIN_ICON = {
-  sfSymbol: "mappin",
-  materialSymbol: "location_on",
+  sfSymbol: 'mappin',
+  materialSymbol: 'location_on',
 } as const;
 
 // Translucent status pills. The fill is computed from the resolved theme CSS var (see the component) rather
 // than a `bg-X/15` class — NativeWind's opacity modifier doesn't composite these `hsl(var(--X))` tokens
 // reliably here (renders ~black), and reading the var also respects the app theme, not the system appearance.
 const STATUS_META = {
-  out: { label: "No Stock", cssVar: "--destructive", textClass: "text-destructive" },
-  low: { label: "Low Stock", cssVar: "--warning", textClass: "text-warning" },
-  in: { label: "In Stock", cssVar: "--success", textClass: "text-success" },
+  out: { label: 'No Stock', cssVar: '--destructive', textClass: 'text-destructive' },
+  low: { label: 'Low Stock', cssVar: '--warning', textClass: 'text-warning' },
+  in: { label: 'In Stock', cssVar: '--success', textClass: 'text-success' },
 } as const;
 
 // One label + value cell of the footer grid. Value is monospace; the UOM symbol (when present) is muted.
-function StatCell({
-  label,
-  value,
-  uom,
-}: {
-  label: string;
-  value: number | null;
-  uom?: string | null;
-}) {
+function StatCell({ label, value, uom }: { label: string; value: number | null; uom?: string | null }) {
   return (
     <View className="flex-1 flex-row items-center justify-between gap-2">
-      <Text
-        className="text-xs uppercase tracking-wide text-muted-foreground"
-        numberOfLines={1}
-      >
+      <Text className="text-xs uppercase tracking-wide text-muted-foreground" numberOfLines={1}>
         {label}
       </Text>
       {value == null ? (
@@ -72,11 +61,8 @@ export function StockLevelCard({ stock, uomSymbol }: StockLevelCardProps) {
     <Card className="gap-0 overflow-hidden p-0">
       <View className="flex-row items-start justify-between gap-3 px-4 pb-3 pt-4">
         <View className="min-w-0 flex-1 gap-1">
-          <Text
-            className="text-base font-bold text-foreground"
-            numberOfLines={1}
-          >
-            {stock.locationName ?? "Location"}
+          <Text className="text-base font-bold text-foreground" numberOfLines={1}>
+            {stock.locationName ?? 'Location'}
           </Text>
           <View className="flex-row items-center gap-1.5">
             <DynamicIcon
@@ -87,18 +73,13 @@ export function StockLevelCard({ stock, uomSymbol }: StockLevelCardProps) {
               // instead of sitting high in an intrinsic, top-heavy frame.
               style={{ width: 14, height: 14 }}
             />
-            <Text
-              className="flex-1 text-xs text-muted-foreground"
-              numberOfLines={1}
-            >
-              {stock.locationPath ?? stock.locationName ?? "—"}
+            <Text className="flex-1 text-xs text-muted-foreground" numberOfLines={1}>
+              {stock.locationPath ?? stock.locationName ?? '—'}
             </Text>
           </View>
         </View>
         <Badge variant="secondary" style={statusBg ? { backgroundColor: statusBg } : undefined}>
-          <Text className={`text-xs font-semibold ${status.textClass}`}>
-            {status.label}
-          </Text>
+          <Text className={`text-xs font-semibold ${status.textClass}`}>{status.label}</Text>
         </Badge>
       </View>
 
@@ -106,24 +87,12 @@ export function StockLevelCard({ stock, uomSymbol }: StockLevelCardProps) {
 
       <View className="gap-2 px-4 pb-4 pt-3">
         <View className="flex-row gap-4">
-          <StatCell
-            label="Stocked"
-            value={stock.stockedQuantity}
-            uom={uomSymbol}
-          />
+          <StatCell label="Stocked" value={stock.stockedQuantity} uom={uomSymbol} />
           <StatCell label="Reserved" value={stock.reservedQuantity} />
         </View>
         <View className="flex-row gap-4">
-          <StatCell
-            label="Available"
-            value={stock.availableQuantity}
-            uom={uomSymbol}
-          />
-          <StatCell
-            label="Min. Level"
-            value={stock.reorderLevel}
-            uom={uomSymbol}
-          />
+          <StatCell label="Available" value={stock.availableQuantity} uom={uomSymbol} />
+          <StatCell label="Min. Level" value={stock.reorderLevel} uom={uomSymbol} />
         </View>
       </View>
     </Card>

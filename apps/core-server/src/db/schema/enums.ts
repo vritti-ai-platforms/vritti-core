@@ -37,9 +37,18 @@ export const OrgSizeValues = {
 
 export const siteTypeEnum = coreSchema.enum('site_type', ['OUTLET', 'WAREHOUSE', 'PRODUCTION']);
 export const assignmentTypeEnum = coreSchema.enum('assignment_type', ['DIRECT', 'INHERITED']);
+export const scopeTypeEnum = coreSchema.enum('scope_type', ['ORG', 'LE', 'SITE_GROUP', 'SITE']);
 
 export type SiteType = (typeof siteTypeEnum.enumValues)[number];
 export type AssignmentType = (typeof assignmentTypeEnum.enumValues)[number];
+export type ScopeType = (typeof scopeTypeEnum.enumValues)[number];
+
+export const ScopeTypeValues = {
+  ORG: 'ORG' as const,
+  LE: 'LE' as const,
+  SITE_GROUP: 'SITE_GROUP' as const,
+  SITE: 'SITE' as const,
+};
 
 export const SiteTypeValues = {
   OUTLET: 'OUTLET' as const,

@@ -3,7 +3,11 @@ import { FlashList } from '@vritti/quantum-ui-native/FlashList';
 import { useConfirm, useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
 import { useDebouncedScreenSearch } from '@vritti/quantum-ui-native/ScreenContainer';
 import { RefreshControl, View } from 'react-native';
-import { useCostCategories, useDeleteCostCategory, useUpdateCostCategory } from '../../../../hooks/legal-entity/cost-categories';
+import {
+  useCostCategories,
+  useDeleteCostCategory,
+  useUpdateCostCategory,
+} from '../../../../hooks/legal-entity/cost-categories';
 import type { CostCategory } from '../../../../types/cost-categories';
 import { CostCategoryCard } from '../components/CostCategoryCard';
 import { CostCategoryFormSheet } from '../forms/CostCategoryFormSheet';

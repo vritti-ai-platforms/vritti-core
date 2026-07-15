@@ -2,6 +2,7 @@ import type { FeatureUnlocks, RevokedGrants } from '@vritti/api-sdk/catalog-reso
 import { boolean, jsonb, text, timestamp, uniqueIndex, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 
 import { coreSchema } from './core-schema';
+import { scopeTypeEnum, siteTypeEnum } from './enums';
 import { organizations } from './organizations';
 
 export const roles = coreSchema.table(
@@ -14,6 +15,8 @@ export const roles = coreSchema.table(
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
     code: varchar('code', { length: 255 }).notNull(),
+    scope: scopeTypeEnum('scope').notNull().default('ORG'),
+    siteType: siteTypeEnum('site_type'),
     features: jsonb('features').$type<FeatureUnlocks>().notNull().default({}),
     revoked: jsonb('revoked').$type<RevokedGrants>(),
     isActive: boolean('is_active').notNull().default(true),

@@ -23,10 +23,9 @@ import {
   NotFoundException,
   ValidationException,
 } from '@vritti/api-sdk/exceptions';
-import { type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { inventoryItems } from '@/db/schema';
-import type { CreateInventoryItemDto } from '@/modules/site/inventory-items/root/dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from '@/modules/site/inventory-items/root/dto/request/update-inventory-item.dto';
+import type { CreateInventoryItemDto } from '@/modules/organization/inventory-items/root/dto/request/create-inventory-item.dto';
+import type { UpdateInventoryItemDto } from '@/modules/organization/inventory-items/root/dto/request/update-inventory-item.dto';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import { InventoryItemsRepository } from '../repositories/inventory-items.repository';
 
@@ -177,6 +176,50 @@ export class InventoryItemsService {
     };
   }
 
+  // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
+  async findForOrgTable(
+    state: TableViewState,
+    siteCurrencyCode?: string,
+  ): Promise<{ result: InventoryItemDto[]; count: number }> {
+    return this.findForTable(state, siteCurrencyCode);
+  }
+
+  // Items enabled at the current site (inventory_item_sites projection) joined to summed stock.
+  async findForSiteTable(
+    state: TableViewState,
+  ): Promise<{ result: (InventoryItemDto & { reorderPoint: number; isStocked: boolean; stockedQuantity: string })[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsService.SEARCH_FIELD_MAP);
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...InventoryItemsService.SEARCH_FIELD_MAP,
+      ...InventoryItemsService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForSiteTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
+      limit,
+      offset,
+    });
+
+    return {
+      result: rows.map((row) => ({
+        ...InventoryItemDto.from(row, null, true, null),
+        reorderPoint: row.reorderPoint,
+        isStocked: row.isStocked,
+        stockedQuantity: row.stockedQuantity,
+      })),
+      count,
+    };
+  }
+
+  // Item × site availability matrix across the given sites (group workspace view).
+  findGroupMatrix(siteIds: string[]) {
+    return this.repository.findGroupMatrix(siteIds);
+  }
+
   findForSelect(query: SelectOptionsQueryDto, options?: { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
     return this.repository.findForSelect(
       {
@@ -256,14 +299,9 @@ export class InventoryItemsService {
       categoryId: data.categoryId,
       description: data.description || null,
       uomId: data.uomId,
-      purchaseTaxGroupId: data.purchaseTaxGroupId ?? null,
       hsnCode: data.hsnCode ?? null,
       hasMrp: data.hasMrp ?? false,
       mrpUomId: data.hasMrp ? (data.mrpUomId ?? null) : null,
-      defaultMrp:
-        data.hasMrp && data.defaultMrp
-          ? majorToMinor(data.defaultMrp.value, data.defaultMrp.currency as CurrencyCode, 'defaultMrp')
-          : null,
     });
     if (bridgeConversion) {
       await this.repository.insertConversion(entity.id, bridgeConversion);
@@ -318,7 +356,7 @@ export class InventoryItemsService {
     }
 
     if (data.description !== undefined) data.description = data.description || null;
-    const { defaultMrp, mrpUomId, hasMrp, ...rest } = data;
+    const { mrpUomId, hasMrp, ...rest } = data;
     if (hasMrp !== false && mrpUomId) {
       const allowed = await this.repository.findAllowedUomIds(id);
       if (!allowed.includes(mrpUomId)) {
@@ -337,17 +375,8 @@ export class InventoryItemsService {
       ...rest,
       ...(hasMrp !== undefined ? { hasMrp } : {}),
       ...(hasMrp === false
-        ? { mrpUomId: null, defaultMrp: null }
-        : {
-            ...(mrpUomId !== undefined ? { mrpUomId: mrpUomId ?? null } : {}),
-            ...(defaultMrp !== undefined
-              ? {
-                  defaultMrp: defaultMrp
-                    ? majorToMinor(defaultMrp.value, defaultMrp.currency as CurrencyCode, 'defaultMrp')
-                    : null,
-                }
-              : {}),
-          }),
+        ? { mrpUomId: null }
+        : { ...(mrpUomId !== undefined ? { mrpUomId: mrpUomId ?? null } : {}) }),
     });
     this.logger.log(`Updated inventory item: ${updated.name} (${updated.code})`);
     return {

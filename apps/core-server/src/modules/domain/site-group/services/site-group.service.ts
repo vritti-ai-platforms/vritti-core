@@ -2,10 +2,11 @@ import { CatalogService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { FeatureLocks } from '@vritti/api-sdk/catalog-resolver';
-import { SuccessResponseDto } from '@vritti/api-sdk/database';
+import { type SelectOptionsQueryDto, type SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { AUTH_STATUS_EVENTS, SiteGroupUpdatedEvent } from '@/modules/core-api/auth/root/events/auth-status.events';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
+import { sequentialSortOrders } from '@/utils/sort-order';
 import { SiteGroupDto } from '../dto/entity/site-group.dto';
 import type { CreateSiteGroupInternalDto } from '../dto/request/create-site-group-internal.dto';
 import type { UpdateSiteGroupInternalDto } from '../dto/request/update-site-group-internal.dto';
@@ -21,24 +22,27 @@ export class SiteGroupService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // Returns the site group's stored feature lock deny-list (null = inherit the full plan)
+  // Returns site groups as select options, excluding a node and its descendant subtree
+  findForSelect(query: SelectOptionsQueryDto, excludeId?: string): Promise<SelectQueryResult> {
+    return this.siteGroupRepository.findForSelectOptions(query, excludeId);
+  }
+
+  // Returns the site group's feature lock deny-list
   async getFeatureLocks(id: string): Promise<FeatureLocks | null> {
     const group = await this.siteGroupRepository.findById(id);
     if (!group) throw new NotFoundException('Site group not found.');
     return group.featureLocks ?? null;
   }
 
-  // Replaces the site group's feature lock deny-list (null = inherit the full plan)
+  // Replaces the site group's feature lock deny-list
   async setFeatureLocks(id: string, featureLocks: FeatureLocks | null): Promise<SuccessResponseDto> {
     const group = await this.siteGroupRepository.findById(id);
     if (!group) throw new NotFoundException('Site group not found.');
 
-    // Locking a prerequisite must also lock its dependents — expand the deny-list before persisting
     const snapshot = featureLocks ? await this.catalogService.getActiveSnapshot() : null;
     const expanded = normalizeLocks(featureLocks, snapshot);
 
     await this.siteGroupRepository.update(id, { featureLocks: expanded, updatedAt: new Date() });
-    // Lock consumption lands with group-context feature resolution; invalidate caches here when it does
 
     this.logger.log(
       `Set feature locks for site group ${id}: ${featureLocks ? `${Object.keys(featureLocks).length} feature(s)` : 'inherit full plan'}`,
@@ -47,7 +51,7 @@ export class SiteGroupService {
     return { success: true, message: 'Site group feature locks updated successfully.' };
   }
 
-  // Creates a site group after validating code uniqueness and parent linkage
+  // Creates a site group after validation
   async create(orgId: string, dto: CreateSiteGroupInternalDto): Promise<SiteGroupDto> {
     const existing = await this.siteGroupRepository.findByOrgAndCode(orgId, dto.code);
     if (existing) {
@@ -63,7 +67,9 @@ export class SiteGroupService {
       organizationId: orgId,
       name: dto.name,
       code: dto.code,
+      color: dto.color ?? null,
       parentId: dto.parentId ?? null,
+      sortOrder: dto.sortOrder ?? (await this.siteGroupRepository.nextSortOrder(orgId, dto.parentId ?? null)),
     });
 
     this.logger.log(`Created site group "${dto.name}" (${group.id}) for org ${orgId}`);
@@ -83,7 +89,7 @@ export class SiteGroupService {
     return SiteGroupDto.from(group);
   }
 
-  // Updates a site group after validating code uniqueness, parent linkage, and cycles
+  // Updates a site group after validation
   async update(id: string, dto: UpdateSiteGroupInternalDto): Promise<SuccessResponseDto> {
     const group = await this.siteGroupRepository.findById(id);
     if (!group) throw new NotFoundException('Site group not found.');
@@ -103,20 +109,33 @@ export class SiteGroupService {
       await this.assertNoCycle(id, dto.parentId);
     }
 
+    const oldParentId = group.parentId;
+    const reparented = dto.parentId !== undefined && dto.parentId !== oldParentId;
+    const effectiveSortOrder =
+      dto.sortOrder !== undefined
+        ? dto.sortOrder
+        : reparented
+          ? await this.siteGroupRepository.nextSortOrder(group.organizationId, dto.parentId ?? null)
+          : undefined;
+
     await this.siteGroupRepository.update(id, {
       ...(dto.name && { name: dto.name }),
       ...(dto.code && { code: dto.code }),
+      ...(dto.color !== undefined && { color: dto.color }),
       ...(dto.parentId !== undefined && { parentId: dto.parentId }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      ...(effectiveSortOrder !== undefined && { sortOrder: effectiveSortOrder }),
       updatedAt: new Date(),
     });
+
+    if (reparented) await this.compactSiblings(group.organizationId, oldParentId);
 
     this.logger.log(`Updated site group ${id}`);
     this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, group.organizationId));
     return { success: true, message: 'Site group updated successfully.' };
   }
 
-  // Deletes a site group after ensuring it has no child groups or member sites
+  // Deletes a site group after reference checks
   async remove(id: string): Promise<SuccessResponseDto> {
     const group = await this.siteGroupRepository.findById(id);
     if (!group) throw new NotFoundException('Site group not found.');
@@ -137,14 +156,65 @@ export class SiteGroupService {
       });
     }
 
+    const { organizationId, parentId } = group;
     await this.siteGroupRepository.delete(id);
 
+    await this.compactSiblings(organizationId, parentId);
+
     this.logger.log(`Deleted site group "${group.name}" (${id})`);
-    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, group.organizationId));
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, organizationId));
     return { success: true, message: 'Site group deleted successfully.' };
   }
 
-  // Ensures the parent site group exists within the same organization
+  // Reorders sibling site groups
+  async reorder(orgId: string, ids: string[]): Promise<SuccessResponseDto> {
+    const groups = await this.siteGroupRepository.findByIds(orgId, ids);
+    if (groups.length !== ids.length) {
+      throw new BadRequestException({
+        label: 'Invalid Site Groups',
+        detail: 'One or more site groups do not exist or belong to a different organization.',
+      });
+    }
+
+    await this.siteGroupRepository.setSortOrders(orgId, sequentialSortOrders(ids));
+
+    this.logger.log(`Reordered ${ids.length} site group(s) for org ${orgId}`);
+    for (const group of groups) {
+      this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(group.id, orgId));
+    }
+    return { success: true, message: 'Site groups reordered successfully.' };
+  }
+
+  // Reparents a site group under a validated new parent
+  async reparent(id: string, parentId: string | null): Promise<SuccessResponseDto> {
+    const group = await this.siteGroupRepository.findById(id);
+    if (!group) throw new NotFoundException('Site group not found.');
+
+    if (parentId) {
+      await this.assertParentInOrg(parentId, group.organizationId);
+      await this.assertNoCycle(id, parentId);
+    }
+
+    const oldParentId = group.parentId;
+    const sortOrder = await this.siteGroupRepository.nextSortOrder(group.organizationId, parentId);
+
+    await this.siteGroupRepository.update(id, { parentId, sortOrder, updatedAt: new Date() });
+
+    if (parentId !== oldParentId) await this.compactSiblings(group.organizationId, oldParentId);
+
+    this.logger.log(`Reparented site group ${id} under ${parentId ?? 'root'}`);
+    this.eventEmitter.emit(AUTH_STATUS_EVENTS.SITE_GROUP_UPDATED, new SiteGroupUpdatedEvent(id, group.organizationId));
+    return { success: true, message: 'Site group reparented successfully.' };
+  }
+
+  // Resequences a parent's siblings to close gaps
+  private async compactSiblings(orgId: string, parentId: string | null): Promise<void> {
+    const siblings = await this.siteGroupRepository.siblingsOrdered(orgId, parentId);
+    if (siblings.length === 0) return;
+    await this.siteGroupRepository.setSortOrders(orgId, sequentialSortOrders(siblings.map((sibling) => sibling.id)));
+  }
+
+  // Ensures the parent exists in the same organization
   private async assertParentInOrg(parentId: string, orgId: string): Promise<void> {
     const parent = await this.siteGroupRepository.findById(parentId);
     if (!parent || parent.organizationId !== orgId) {
@@ -155,7 +225,7 @@ export class SiteGroupService {
     }
   }
 
-  // Rejects a parent assignment that would nest a site group under itself or one of its descendants
+  // Rejects a parent that would form a cycle
   private async assertNoCycle(id: string, parentId: string): Promise<void> {
     let cursor: string | null = parentId;
     let guard = 0;

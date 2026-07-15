@@ -1,13 +1,13 @@
-import type { BottomSheetRef } from "@vritti/quantum-ui-native/BottomSheet";
-import { FlashList } from "@vritti/quantum-ui-native/FlashList";
-import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { useCallback, useRef, useState } from "react";
-import { RefreshControl, View } from "react-native";
-import { useQuantsFeed } from "../../../../../../hooks/site/quants";
-import type { InventoryItem } from "../../../../../../types/inventory-items";
-import type { Quant } from "../../../../../../types/quants";
-import { QuantCard } from "../../../components/QuantCard";
-import { QuantDetailSheet } from "../../../components/QuantDetailSheet";
+import type { BottomSheetRef } from '@vritti/quantum-ui-native/BottomSheet';
+import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
+import { useCallback, useRef, useState } from 'react';
+import { RefreshControl, View } from 'react-native';
+import { useQuantsFeed } from '../../../../../../hooks/site/quants';
+import type { InventoryItem } from '../../../../../../types/inventory-items';
+import type { Quant } from '../../../../../../types/quants';
+import { QuantCard } from '../../../components/QuantCard';
+import { QuantDetailSheet } from '../../../components/QuantDetailSheet';
 
 // Read-only per-quant feed with Relay infinite scroll. The card's view button opens a detail bottom sheet.
 export function QuantsTab({ item }: { item: InventoryItem }) {
@@ -42,10 +42,8 @@ export function QuantsTab({ item }: { item: InventoryItem }) {
         refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => feed.refresh()} />}
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View className="h-3" />}
-        emptyText={feed.isError ? "Couldn't load quants." : "No stock segments yet."}
-        renderItem={({ item: quant }) => (
-          <QuantCard quant={quant} uomSymbol={item.uomSymbol} onView={handleView} />
-        )}
+        emptyText={feed.isError ? "Couldn't load quants." : 'No stock segments yet.'}
+        renderItem={({ item: quant }) => <QuantCard quant={quant} uomSymbol={item.uomSymbol} onView={handleView} />}
       />
       <QuantDetailSheet ref={sheetRef} quant={viewing} uomSymbol={item.uomSymbol} />
     </View>

@@ -1,26 +1,26 @@
-import { Badge } from "@vritti/quantum-ui-native/Badge";
-import { Card } from "@vritti/quantum-ui-native/Card";
-import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
-import { useFormatters } from "@vritti/quantum-ui-native/hooks";
-import { Text } from "@vritti/quantum-ui-native/Text";
-import type { ReactNode } from "react";
-import { View } from "react-native";
-import type { LedgerEntry } from "../../../../types/ledger";
+import { Badge } from '@vritti/quantum-ui-native/Badge';
+import { Card } from '@vritti/quantum-ui-native/Card';
+import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
+import { useFormatters } from '@vritti/quantum-ui-native/hooks';
+import { Text } from '@vritti/quantum-ui-native/Text';
+import type { ReactNode } from 'react';
+import { View } from 'react-native';
+import type { LedgerEntry } from '../../../../types/ledger';
 
-const CALENDAR_ICON = { sfSymbol: "calendar", materialSymbol: "event" } as const;
+const CALENDAR_ICON = { sfSymbol: 'calendar', materialSymbol: 'event' } as const;
 
 // Friendly labels for the movement types (mirrors the inventory_item_ledger_type enum).
 const TYPE_LABELS: Record<string, string> = {
-  GOODS_RECEIPT: "Goods Receipt",
-  ORDER_RESERVE: "Order Reserve",
-  ORDER_DEDUCT: "Order Deduct",
-  ORDER_CANCEL: "Order Cancel",
-  ADJUSTMENT: "Adjustment",
-  CONVERSION_INPUT: "Conversion In",
-  CONVERSION_OUTPUT: "Conversion Out",
-  TRANSFER_OUT: "Transfer Out",
-  TRANSFER_IN: "Transfer In",
-  OPENING_STOCK: "Opening Stock",
+  GOODS_RECEIPT: 'Goods Receipt',
+  ORDER_RESERVE: 'Order Reserve',
+  ORDER_DEDUCT: 'Order Deduct',
+  ORDER_CANCEL: 'Order Cancel',
+  ADJUSTMENT: 'Adjustment',
+  CONVERSION_INPUT: 'Conversion In',
+  CONVERSION_OUTPUT: 'Conversion Out',
+  TRANSFER_OUT: 'Transfer Out',
+  TRANSFER_IN: 'Transfer In',
+  OPENING_STOCK: 'Opening Stock',
 };
 
 // Short, clipped reference id — uuids are too long to show in full (e.g. "90f2493d…").
@@ -48,13 +48,11 @@ interface LedgerCardProps {
 // notes. Inflow quantities are green, outflows red. Balance is "—" — the feed carries no running balance.
 export function LedgerCard({ entry, uomSymbol }: LedgerCardProps) {
   const fmt = useFormatters();
-  const uom = uomSymbol ?? "";
+  const uom = uomSymbol ?? '';
   const qty = entry.quantity;
-  const qtyColor =
-    qty > 0 ? "text-success" : qty < 0 ? "text-destructive" : "text-foreground";
-  const qtyStr = `${qty > 0 ? "+" : ""}${fmt.number(qty).primary}`;
-  const balanceStr =
-    entry.balanceAfter != null ? fmt.number(entry.balanceAfter).primary : "—";
+  const qtyColor = qty > 0 ? 'text-success' : qty < 0 ? 'text-destructive' : 'text-foreground';
+  const qtyStr = `${qty > 0 ? '+' : ''}${fmt.number(qty).primary}`;
+  const balanceStr = entry.balanceAfter != null ? fmt.number(entry.balanceAfter).primary : '—';
 
   return (
     <Card className="gap-0 overflow-hidden p-0">
@@ -65,10 +63,7 @@ export function LedgerCard({ entry, uomSymbol }: LedgerCardProps) {
               {TYPE_LABELS[entry.type] ?? entry.type}
             </Text>
           </Badge>
-          <Text
-            className={`font-mono text-base font-semibold ${qtyColor}`}
-            numberOfLines={1}
-          >
+          <Text className={`font-mono text-base font-semibold ${qtyColor}`} numberOfLines={1}>
             {qtyStr}
             {uom ? <Text className="text-muted-foreground"> {uom}</Text> : null}
           </Text>
@@ -97,20 +92,17 @@ export function LedgerCard({ entry, uomSymbol }: LedgerCardProps) {
         </InfoRow>
         <InfoRow label="Reference">
           <Text className="text-right text-sm text-foreground" numberOfLines={1}>
-            {entry.referenceType ?? "—"}
+            {entry.referenceType ?? '—'}
           </Text>
           {entry.referenceId ? (
-            <Text
-              className="font-mono text-xs text-muted-foreground"
-              numberOfLines={1}
-            >
+            <Text className="font-mono text-xs text-muted-foreground" numberOfLines={1}>
               {clipReferenceId(entry.referenceId)}
             </Text>
           ) : null}
         </InfoRow>
         <InfoRow label="Notes">
           <Text className="text-right text-sm text-foreground" numberOfLines={2}>
-            {entry.notes ?? "—"}
+            {entry.notes ?? '—'}
           </Text>
         </InfoRow>
       </View>

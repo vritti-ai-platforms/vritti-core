@@ -178,7 +178,7 @@ export class PurchaseOrdersGatewayService {
         detail: 'Purchase order total amount must be greater than 0 before sending the purchase order email.',
       });
     }
-    const supplier = await this.nats.send<SupplierEmailData>('commerce', 'site.suppliers.findById', {
+    const supplier = await this.nats.send<SupplierEmailData>('commerce', 'le.suppliers.findById', {
       id: po.supplierId,
     });
     const recipientEmail = dto.email?.trim() || supplier.email || null;
@@ -245,7 +245,7 @@ export class PurchaseOrdersGatewayService {
       this.nats.send<PurchaseOrderItemResponseDto[]>('commerce', 'site.purchaseOrders.items', { id }),
     ]);
     const [supplier, site] = await Promise.all([
-      this.nats.send<SupplierEmailData>('commerce', 'site.suppliers.findById', { id: po.supplierId }),
+      this.nats.send<SupplierEmailData>('commerce', 'le.suppliers.findById', { id: po.supplierId }),
       siteId ? this.siteService.findById(siteId).catch(() => null) : Promise.resolve(null),
     ]);
     const buffer = await this.buildPurchaseOrderPdf(

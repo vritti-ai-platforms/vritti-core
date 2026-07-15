@@ -1,11 +1,11 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
+import { z, zodCodeField, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 
 const INVENTORY_ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] as const;
 
 export const createInventoryItemSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
-  code: z.string().min(1, 'Code is required').max(100),
+  code: zodCodeField({ max: 100 }),
   type: z.enum(INVENTORY_ITEM_TYPES),
   tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
   categoryId: z.uuid('Category is required'),
@@ -24,7 +24,7 @@ export const createInventoryItemSchema = z.object({
 
 export const updateInventoryItemSchema = z.object({
   name: z.string().min(1).max(255).optional(),
-  code: z.string().min(1).max(100).optional(),
+  code: zodCodeField({ max: 100 }).optional(),
   type: z.enum(INVENTORY_ITEM_TYPES).optional(),
   description: z.string().nullable().optional(),
   categoryId: z.uuid('Category is required').optional(),
@@ -37,9 +37,57 @@ export const updateInventoryItemSchema = z.object({
   defaultMrp: zodCurrencyField({ positive: true }).optional(),
 });
 
+// ORG master item — no purchaseTaxGroupId / defaultMrp (those are site/pricing concerns)
+export const createOrgInventoryItemSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(255),
+  code: zodCodeField({ max: 100 }),
+  type: z.enum(INVENTORY_ITEM_TYPES),
+  tracking: z.enum(['quantity', 'lot', 'lot_serial', 'serial']),
+  categoryId: z.uuid('Category is required'),
+  description: z.string().optional(),
+  uomId: z.string().uuid('Unit of measure is required'),
+  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
+  hsnCode: z.string().max(20).optional(),
+  hasMrp: z.boolean(),
+  mrpUomId: z.string().uuid().optional(),
+  mrpUomConversion: z
+    .object({ uomQty: zodNumericField({ min: 1 }), primaryUomQty: zodNumericField({ min: 1 }) })
+    .optional(),
+});
+
+export const updateOrgInventoryItemSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  code: zodCodeField({ max: 100 }).optional(),
+  type: z.enum(INVENTORY_ITEM_TYPES).optional(),
+  description: z.string().nullable().optional(),
+  categoryId: z.uuid('Category is required').optional(),
+  uomId: z.uuid('Unit of measure is required').optional(),
+  pickStrategy: z.enum(['none', 'fifo', 'fefo']).optional(),
+  hsnCode: z.string().max(20).nullable().optional(),
+  hasMrp: z.boolean().optional(),
+  mrpUomId: z.string().uuid().optional(),
+});
+
+// SITE — enable a master item at the current site with optional stock thresholds
+export const enableInventoryItemSchema = z.object({
+  inventoryItemId: z.uuid('Inventory item is required'),
+  reorderPoint: zodNumericField({ min: 0, nullable: true }).optional(),
+  maxStockLevel: zodNumericField({ min: 0, nullable: true }).optional(),
+  safetyStock: zodNumericField({ min: 0, nullable: true }).optional(),
+});
+
+export const updateReorderSchema = z.object({
+  reorderPoint: zodNumericField({ required: 'Reorder point is required', min: 0 }),
+});
+
 export type CreateInventoryItemFormData = z.infer<typeof createInventoryItemSchema>;
 export type UpdateInventoryItemFormData = z.infer<typeof updateInventoryItemSchema>;
+export type CreateOrgInventoryItemFormData = z.infer<typeof createOrgInventoryItemSchema>;
+export type UpdateOrgInventoryItemFormData = z.infer<typeof updateOrgInventoryItemSchema>;
+export type EnableInventoryItemFormData = z.infer<typeof enableInventoryItemSchema>;
+export type UpdateReorderFormData = z.infer<typeof updateReorderSchema>;
 export type InventoryItemsTableResponse = TableResponse<InventoryItemData>;
+export type InventoryItemTableResponse = TableResponse<InventoryItemData>;
 
 export type InventoryItemType = (typeof INVENTORY_ITEM_TYPES)[number];
 
@@ -112,6 +160,9 @@ export interface InventoryItemData {
   mrpUomId: string | null;
   mrpUomSymbol: string | null;
   defaultMrp: { currency: string; value: string } | null;
+  reorderPoint: number | null;
+  maxStockLevel: number | null;
+  safetyStock: number | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;

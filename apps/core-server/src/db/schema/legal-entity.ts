@@ -35,6 +35,7 @@ export const legalEntities = coreSchema.table(
     // Per-feature lock deny-list gating LE-scope features in this LE's context; null = inherit the full plan
     featureLocks: jsonb('feature_locks').$type<FeatureLocks>(),
     isActive: boolean('is_active').notNull().default(true),
+    sortOrder: integer('sort_order').notNull().default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

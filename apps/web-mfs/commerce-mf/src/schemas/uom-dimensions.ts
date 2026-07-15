@@ -1,4 +1,4 @@
-import { z, zodResolver } from '@vritti/quantum-ui/zod';
+import { z, zodCodeField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
 
 export interface UomDimensionCountData {
@@ -17,11 +17,7 @@ export interface UomDimensionData {
 }
 
 const _createUomDimensionSchema = z.object({
-  code: z
-    .string()
-    .min(1, 'Code is required')
-    .max(50)
-    .regex(/^[a-z][a-z0-9-]*$/, 'Use lowercase letters, digits, hyphens'),
+  code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(100),
   description: z.string().optional(),
 });

@@ -9,8 +9,6 @@ export const INVENTORY_ITEM_LOCATIONS_KEY = (inventoryItemId: string) =>
   ['commerce', 'inventory-items', inventoryItemId, 'locations'] as const;
 export const INVENTORY_ITEM_STOCKS_KEY = (inventoryItemId: string) =>
   ['commerce', 'inventory-items', inventoryItemId, 'stocks'] as const;
-export const INVENTORY_ITEM_UOM_CONVERSIONS_KEY = (inventoryItemId: string) =>
-  ['commerce', 'inventory-items', inventoryItemId, 'uom-conversions'] as const;
 export const INVENTORY_ITEM_SUPPLIERS_TABLE_KEY = (inventoryItemId: string) =>
   ['commerce', 'inventory-items', inventoryItemId, 'suppliers'] as const;
 export const INVENTORY_ITEM_LEDGER_KEY = (inventoryItemId: string) =>

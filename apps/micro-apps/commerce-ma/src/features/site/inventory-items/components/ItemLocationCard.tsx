@@ -1,13 +1,13 @@
-import { Button } from "@vritti/quantum-ui-native/Button";
-import { Card } from "@vritti/quantum-ui-native/Card";
-import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
-import { Text } from "@vritti/quantum-ui-native/Text";
-import { View } from "react-native";
-import type { ItemLocation } from "../../../../types/item-locations";
+import { Button } from '@vritti/quantum-ui-native/Button';
+import { Card } from '@vritti/quantum-ui-native/Card';
+import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
+import { Text } from '@vritti/quantum-ui-native/Text';
+import { View } from 'react-native';
+import type { ItemLocation } from '../../../../types/item-locations';
 
-const PIN_ICON = { sfSymbol: "mappin", materialSymbol: "location_on" } as const;
-const EDIT_ICON = { sfSymbol: "pencil", materialSymbol: "edit" } as const;
-const TRASH_ICON = { sfSymbol: "trash", materialSymbol: "delete" } as const;
+const PIN_ICON = { sfSymbol: 'mappin', materialSymbol: 'location_on' } as const;
+const EDIT_ICON = { sfSymbol: 'pencil', materialSymbol: 'edit' } as const;
+const TRASH_ICON = { sfSymbol: 'trash', materialSymbol: 'delete' } as const;
 
 interface ItemLocationCardProps {
   location: ItemLocation;
@@ -24,7 +24,7 @@ export function ItemLocationCard({ location, uomSymbol, onEdit, onDelete }: Item
       <View className="flex-row items-center justify-between gap-3 px-4 pb-3 pt-4">
         <View className="min-w-0 flex-1 gap-1">
           <Text className="text-base font-bold text-foreground" numberOfLines={1}>
-            {location.locationName ?? "Location"}
+            {location.locationName ?? 'Location'}
           </Text>
           <View className="flex-row items-center gap-1.5">
             <DynamicIcon
@@ -34,7 +34,7 @@ export function ItemLocationCard({ location, uomSymbol, onEdit, onDelete }: Item
               style={{ width: 14, height: 14 }}
             />
             <Text className="flex-1 text-xs text-muted-foreground" numberOfLines={1}>
-              {location.locationPath ?? location.locationName ?? "—"}
+              {location.locationPath ?? location.locationName ?? '—'}
             </Text>
           </View>
         </View>
@@ -72,7 +72,7 @@ export function ItemLocationCard({ location, uomSymbol, onEdit, onDelete }: Item
         <Text className="text-sm text-muted-foreground">Min. Stock Level</Text>
         <Text className="flex-1 text-right font-mono text-base text-foreground" numberOfLines={1}>
           {location.reorderLevel}
-          {uomSymbol ? ` ${uomSymbol}` : ""}
+          {uomSymbol ? ` ${uomSymbol}` : ''}
         </Text>
       </View>
     </Card>

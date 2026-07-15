@@ -12,16 +12,16 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Package, Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/site/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
 import { inventoryItemTypeConfig, inventoryTrackingConfig } from '@/schemas/inventory-items';
-import { INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/site/inventory-items';
-import { AddInventoryItemDialog } from './forms/AddInventoryItemDialog';
+import { EnableInventoryItemDialog } from './forms/EnableInventoryItemDialog';
 
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: response, isLoading } = useInventoryItemsTable();
-  const addDialog = useDialog();
+  const enableDialog = useDialog();
 
   const columns = useMemo<ColumnDef<InventoryItemData>[]>(
     () => [
@@ -96,7 +96,7 @@ export const InventoryItemsPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Inventory Items" description="Manage raw materials and finished products" />
+      <PageHeader title="Inventory Items" description="Items enabled and stocked at this site" />
 
       <DataTable
         table={table}
@@ -128,32 +128,32 @@ export const InventoryItemsPage = () => {
         ]}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addDialog.open}>
+            <Button size="sm" onClick={enableDialog.open}>
               <Plus className="mr-2 size-4" />
-              Add Item
+              Enable at Site
             </Button>
           ),
         }}
         emptyStateConfig={{
           icon: Package,
           title: 'No inventory items',
-          description: 'Add your first inventory item to start tracking stock.',
+          description: 'Enable a master item at this site to start tracking stock.',
           action: (
-            <Button onClick={addDialog.open}>
+            <Button onClick={enableDialog.open}>
               <Plus className="mr-2 size-4" />
-              Add Item
+              Enable at Site
             </Button>
           ),
         }}
       />
 
       <Dialog
-        handle={addDialog}
+        handle={enableDialog}
         icon={Package}
-        title="Add Inventory Item"
-        className="max-w-4xl"
-        description="Create a new material or product to track in inventory."
-        content={(close) => <AddInventoryItemDialog onSuccess={close} onCancel={close} />}
+        title="Enable Inventory Item"
+        className="max-w-2xl"
+        description="Enable a master inventory item at this site and set its stock thresholds."
+        content={(close) => <EnableInventoryItemDialog onSuccess={close} onCancel={close} />}
       />
     </div>
   );

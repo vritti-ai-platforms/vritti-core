@@ -16,8 +16,8 @@ import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import { CurrencyAmountDto, type CurrencyCode, majorToMinor } from '@vritti/api-sdk/money';
 import { inventoryItems, supplierItems, suppliers, uom } from '@/db/schema';
-import type { AddSupplierItemDto } from '@/modules/site/suppliers/items/dto/request/add-supplier-item.dto';
-import type { UpdateSupplierItemDto } from '@/modules/site/suppliers/items/dto/request/update-supplier-item.dto';
+import type { AddSupplierItemDto } from '@/modules/legal-entity/suppliers/items/dto/request/add-supplier-item.dto';
+import type { UpdateSupplierItemDto } from '@/modules/legal-entity/suppliers/items/dto/request/update-supplier-item.dto';
 import { SupplierItemsRepository } from '../repositories/supplier-items.repository';
 
 @Injectable()

@@ -2,6 +2,7 @@ import { LeTaxRegistrationDto } from '@domain/legal-entity/dto/entity/le-tax-reg
 import { LegalEntityDto } from '@domain/legal-entity/dto/entity/legal-entity.dto';
 import { CreateLeTaxRegistrationInternalDto } from '@domain/legal-entity/dto/request/create-le-tax-registration-internal.dto';
 import { CreateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/create-legal-entity-internal.dto';
+import { ReorderLegalEntitiesInternalDto } from '@domain/legal-entity/dto/request/reorder-legal-entities-internal.dto';
 import { UpdateLegalEntityInternalDto } from '@domain/legal-entity/dto/request/update-legal-entity-internal.dto';
 import {
   Body,
@@ -15,17 +16,18 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public, SkipCsrf } from '@vritti/api-sdk/auth';
-import type { SuccessResponseDto } from '@vritti/api-sdk/database';
+import type { SelectQueryResult, SuccessResponseDto } from '@vritti/api-sdk/database';
 import { CloudSignatureGuard } from '@/security/guards/cloud-signature.guard';
 import { OrgScopeInterceptor } from '@/security/interceptors/org-scope.interceptor';
+import { OrgStructureSelectQueryDto } from '../dto/request/org-structure-select-query.dto';
 import { SetFeatureLocksInternalDto } from '../dto/request/set-feature-locks-internal.dto';
 import type { FeatureLocksResponseDto } from '../dto/response/feature-locks-response.dto';
-import { StructureApiService } from '../root/services/structure-api.service';
 import {
   ApiAddLeTaxRegistration,
   ApiCreateLegalEntity,
@@ -33,9 +35,12 @@ import {
   ApiDeleteLeTaxRegistration,
   ApiGetLegalEntityLocks,
   ApiListLegalEntityRoleAssignments,
+  ApiReorderLegalEntities,
+  ApiSelectLegalEntities,
   ApiSetLegalEntityLocks,
   ApiUpdateLegalEntity,
 } from './docs/legal-entity.docs';
+import { LegalEntityApiService } from './services/legal-entity-api.service';
 
 @ApiTags('Legal Entities')
 @Controller('legal-entities/internal')
@@ -46,7 +51,7 @@ import {
 export class LegalEntityController {
   private readonly logger = new Logger(LegalEntityController.name);
 
-  constructor(private readonly structureApiService: StructureApiService) {}
+  constructor(private readonly legalEntityApiService: LegalEntityApiService) {}
 
   // Creates a new legal entity for an organization
   @Post()
@@ -54,7 +59,25 @@ export class LegalEntityController {
   @ApiCreateLegalEntity()
   async create(@Body() dto: CreateLegalEntityInternalDto): Promise<LegalEntityDto> {
     this.logger.log(`POST /legal-entities/internal — "${dto.name}" for org ${dto.orgId}`);
-    return this.structureApiService.createLegalEntity(dto);
+    return this.legalEntityApiService.create(dto);
+  }
+
+  // Returns legal entities as select options with subtree exclusion
+  @Get('select')
+  @ApiSelectLegalEntities()
+  async findForSelect(@Query() query: OrgStructureSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('GET /legal-entities/internal/select');
+    return this.legalEntityApiService.findForSelect(query);
+  }
+
+  // Reorders a batch of sibling legal entities
+  @Patch('reorder')
+  @ApiReorderLegalEntities()
+  async reorder(@Body() dto: ReorderLegalEntitiesInternalDto): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `PATCH /legal-entities/internal/reorder — ${dto.ids.length} entit${dto.ids.length === 1 ? 'y' : 'ies'} for org ${dto.orgId}`,
+    );
+    return this.legalEntityApiService.reorder(dto.orgId, dto.ids);
   }
 
   // Updates a legal entity
@@ -62,7 +85,7 @@ export class LegalEntityController {
   @ApiUpdateLegalEntity()
   async update(@Param('id') id: string, @Body() dto: UpdateLegalEntityInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /legal-entities/internal/${id}`);
-    return this.structureApiService.updateLegalEntity(id, dto);
+    return this.legalEntityApiService.update(id, dto);
   }
 
   // Lists role assignments targeting a legal entity
@@ -70,7 +93,7 @@ export class LegalEntityController {
   @ApiListLegalEntityRoleAssignments()
   async listRoleAssignments(@Param('id') id: string) {
     this.logger.log(`GET /legal-entities/internal/${id}/role-assignments`);
-    return this.structureApiService.findLegalEntityRoleAssignments(id);
+    return this.legalEntityApiService.findRoleAssignments(id);
   }
 
   // Returns the legal entity's feature lock deny-list
@@ -78,15 +101,15 @@ export class LegalEntityController {
   @ApiGetLegalEntityLocks()
   async getLocks(@Param('id') id: string): Promise<FeatureLocksResponseDto> {
     this.logger.log(`GET /legal-entities/internal/${id}/locks`);
-    return this.structureApiService.getLegalEntityLocks(id);
+    return this.legalEntityApiService.getFeatureLocks(id);
   }
 
-  // Replaces the legal entity's feature lock deny-list (null = inherit the full plan)
+  // Replaces the legal entity's feature lock deny-list
   @Put(':id/locks')
   @ApiSetLegalEntityLocks()
   async setLocks(@Param('id') id: string, @Body() dto: SetFeatureLocksInternalDto): Promise<SuccessResponseDto> {
     this.logger.log(`PUT /legal-entities/internal/${id}/locks`);
-    return this.structureApiService.setLegalEntityLocks(id, dto);
+    return this.legalEntityApiService.setFeatureLocks(id, dto);
   }
 
   // Adds a tax registration to a legal entity
@@ -98,7 +121,7 @@ export class LegalEntityController {
     @Body() dto: CreateLeTaxRegistrationInternalDto,
   ): Promise<LeTaxRegistrationDto> {
     this.logger.log(`POST /legal-entities/internal/${id}/registrations`);
-    return this.structureApiService.addRegistration(id, dto);
+    return this.legalEntityApiService.addRegistration(id, dto);
   }
 
   // Deletes a legal entity
@@ -107,7 +130,7 @@ export class LegalEntityController {
   @ApiDeleteLegalEntity()
   async remove(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /legal-entities/internal/${id}`);
-    return this.structureApiService.deleteLegalEntity(id);
+    return this.legalEntityApiService.remove(id);
   }
 
   // Deletes a tax registration from a legal entity
@@ -116,6 +139,6 @@ export class LegalEntityController {
   @ApiDeleteLeTaxRegistration()
   async removeRegistration(@Param('id') id: string, @Param('regId') regId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /legal-entities/internal/${id}/registrations/${regId}`);
-    return this.structureApiService.deleteRegistration(id, regId);
+    return this.legalEntityApiService.deleteRegistration(id, regId);
   }
 }

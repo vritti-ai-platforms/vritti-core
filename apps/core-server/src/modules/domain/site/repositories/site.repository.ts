@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type LegalEntity,
   type LeTaxRegistration,
@@ -26,6 +26,42 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
     });
   }
 
+  // Finds sites by ids scoped to an organization
+  async findByIds(orgId: string, ids: string[]): Promise<Site[]> {
+    if (ids.length === 0) return [];
+    return this.db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.organizationId, orgId), inArray(sites.id, ids)));
+  }
+
+  // Applies new sort orders to a batch of sites
+  async setSortOrders(entries: { id: string; sortOrder: number }[]): Promise<void> {
+    await Promise.all(
+      entries.map((entry) =>
+        this.db.update(sites).set({ sortOrder: entry.sortOrder, updatedAt: new Date() }).where(eq(sites.id, entry.id)),
+      ),
+    );
+  }
+
+  // Returns a legal entity's sibling sites, ordered
+  async siblingsOrdered(orgId: string, legalEntityId: string): Promise<Site[]> {
+    return this.db
+      .select()
+      .from(sites)
+      .where(and(eq(sites.organizationId, orgId), eq(sites.legalEntityId, legalEntityId)))
+      .orderBy(asc(sites.sortOrder), asc(sites.name));
+  }
+
+  // Returns the next sort order for a new site
+  async nextSortOrder(orgId: string, legalEntityId: string): Promise<number> {
+    const result = await this.db
+      .select({ max: sql<number>`coalesce(max(${sites.sortOrder}), 0)::int` })
+      .from(sites)
+      .where(and(eq(sites.organizationId, orgId), eq(sites.legalEntityId, legalEntityId)));
+    return (result[0]?.max ?? 0) + 1;
+  }
+
   // Finds a site by its organization-unique code for uniqueness checks
   async findByOrgAndCode(orgId: string, code: string): Promise<Site | undefined> {
     return this.model.findFirst({
@@ -39,7 +75,7 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
     return rows[0];
   }
 
-  // Finds all site groups for an organization as id/parentId pairs for chain resolution
+  // Finds an organization's site groups as id/parentId pairs
   async findGroupParentPairs(orgId: string): Promise<{ id: string; parentId: string | null }[]> {
     return this.db
       .select({ id: siteGroups.id, parentId: siteGroups.parentId })
@@ -57,7 +93,7 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
     return this.db.select().from(legalEntities).where(eq(legalEntities.organizationId, orgId));
   }
 
-  // Resolves a site group's chain (the group itself followed by its ancestors, nearest first)
+  // Resolves a site group's chain of ancestors
   async findGroupChainIds(groupId: string): Promise<string[]> {
     const chain: string[] = [];
     let cursor: string | null = groupId;
@@ -86,7 +122,8 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
     const rows = await this.db.select().from(leTaxRegistrations).where(eq(leTaxRegistrations.id, id)).limit(1);
     return rows[0];
   }
-  // Resolves a site's currency from its owning legal entity in one query
+
+  // Resolves a site's currency from its owning legal entity
   async findLeCurrencyBySiteId(siteId: string): Promise<string | null> {
     const rows = await this.db
       .select({ currencyCode: legalEntities.currencyCode })
@@ -97,7 +134,7 @@ export class SiteRepository extends PrimaryBaseRepository<typeof sites> {
     return rows[0]?.currencyCode ?? null;
   }
 
-  // Resolves a site's workspace context (timezone + owning LE + LE currency) in one query
+  // Resolves a site's workspace context
   async findWorkspaceContextById(
     siteId: string,
   ): Promise<{ timezone: string; legalEntityId: string; currencyCode: string } | undefined> {

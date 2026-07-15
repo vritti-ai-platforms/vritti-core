@@ -11,8 +11,8 @@ import {
 import { Layers } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import type { InventoryItemLotData, InventoryItemLotStatus } from '@/schemas/inventory-item-lots';
 import { INVENTORY_ITEM_LOTS_KEY, useInventoryItemLotsTable } from '@/hooks/site/inventory-items';
+import type { InventoryItemLotData, InventoryItemLotStatus } from '@/schemas/inventory-item-lots';
 
 interface LotsTabProps {
   inventoryItemId: string;

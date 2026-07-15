@@ -1,9 +1,9 @@
-import { FlashList } from "@vritti/quantum-ui-native/FlashList";
-import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { RefreshControl, View } from "react-native";
-import { useSuppliersFeed } from "../../../../../../hooks/site/suppliers";
-import type { InventoryItem } from "../../../../../../types/inventory-items";
-import { SupplierCard } from "../../../components/SupplierCard";
+import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
+import { RefreshControl, View } from 'react-native';
+import { useSuppliersFeed } from '../../../../../../hooks/site/suppliers';
+import type { InventoryItem } from '../../../../../../types/inventory-items';
+import { SupplierCard } from '../../../components/SupplierCard';
 
 // Read-only per-item supplier links with Relay infinite scroll (an item can have many suppliers).
 export function SuppliersTab({ item }: { item: InventoryItem }) {
@@ -31,7 +31,7 @@ export function SuppliersTab({ item }: { item: InventoryItem }) {
         refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => feed.refresh()} />}
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View className="h-3" />}
-        emptyText={feed.isError ? "Couldn't load suppliers." : "No suppliers linked yet."}
+        emptyText={feed.isError ? "Couldn't load suppliers." : 'No suppliers linked yet.'}
         renderItem={({ item: supplier }) => <SupplierCard supplier={supplier} />}
       />
     </View>

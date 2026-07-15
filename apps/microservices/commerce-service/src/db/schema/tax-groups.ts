@@ -7,32 +7,34 @@ export const taxGroups = coreSchema.table(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    legalEntityId: uuid('legal_entity_id')
+      .notNull()
+      .default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
     name: varchar('name', { length: 100 }).notNull(),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex('tax_groups_bu_name_unique').on(table.siteId, table.name),
+    uniqueIndex('tax_groups_le_name_unique').on(table.legalEntityId, table.name),
     pgPolicy('org_isolation', {
       for: 'all',
       using: sql`organization_id = (select current_setting('app.org_id', true)::uuid)`,
     }),
-    pgPolicy('site_read', {
+    pgPolicy('le_read', {
       for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_write', {
+    pgPolicy('le_write', {
       for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      withCheck: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_update', {
+    pgPolicy('le_update', {
       for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
-    pgPolicy('site_delete', {
+    pgPolicy('le_delete', {
       for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+      using: sql`legal_entity_id = current_setting('app.le_id')::uuid`,
     }),
   ],
 );

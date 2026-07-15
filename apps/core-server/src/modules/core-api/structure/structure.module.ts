@@ -5,6 +5,7 @@ import { SiteGroupDomainModule } from '@domain/site-group/site-group.module';
 import { UserRoleDomainModule } from '@domain/user-role/user-role.module';
 import { Module } from '@nestjs/common';
 import { LegalEntityController } from './legal-entities/legal-entity.controller';
+import { LegalEntityApiService } from './legal-entities/services/legal-entity-api.service';
 import { StructureApiService } from './root/services/structure-api.service';
 import { StructureController } from './root/structure.controller';
 import { SiteGroupApiService } from './site-groups/services/site-group-api.service';
@@ -21,6 +22,6 @@ import { SiteController } from './sites/site.controller';
     UserRoleDomainModule,
   ],
   controllers: [StructureController, LegalEntityController, SiteController, SiteGroupController],
-  providers: [StructureApiService, SiteApiService, SiteGroupApiService],
+  providers: [StructureApiService, LegalEntityApiService, SiteApiService, SiteGroupApiService],
 })
 export class StructureApiModule {}

@@ -3,8 +3,8 @@ import { type ColumnDef, DataTable, NumberCell, StringCell, useDataTable } from 
 import { MapPin } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
-import type { InventoryItemStockData } from '@/schemas/inventory-items';
 import { useInventoryItemStocks } from '@/hooks/site/inventory-items';
+import type { InventoryItemStockData } from '@/schemas/inventory-items';
 
 interface StockLevelsTabProps {
   inventoryItemId: string;

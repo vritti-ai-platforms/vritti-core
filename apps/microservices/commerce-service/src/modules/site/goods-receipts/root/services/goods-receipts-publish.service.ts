@@ -14,8 +14,8 @@ import { GoodsReceiptsService } from '@domain/goods-receipts/services/goods-rece
 import { InventoryItemLedgerService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemCostsRepository } from '@domain/inventory-item-quants/repositories/inventory-item-costs.repository';
+import { InventoryItemMrpsService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryItemsRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
 import { Injectable } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
@@ -69,7 +69,7 @@ export class GoodsReceiptsPublishService {
     private readonly inventoryLotsService: InventoryItemLotsService,
     private readonly ledgerService: InventoryItemLedgerService,
     private readonly goodsReceiptsService: GoodsReceiptsService,
-    private readonly inventoryItemsRepository: InventoryItemsRepository,
+    private readonly inventoryItemMrpsService: InventoryItemMrpsService,
   ) {}
 
   async publish(id: string, siteCurrencyCode: string): Promise<GoodsReceiptDto> {
@@ -126,6 +126,7 @@ export class GoodsReceiptsPublishService {
     // Sum the primary-UOM qty added per quant — a line may merge into an already-seen quant.
     const qtyByQuant = new Map<string, number>();
     let lastMrp: bigint | null = null;
+    let lastMrpLotId: string | null = null;
     for (const grLine of grLines) {
       const { quantId, quantity } = await this.publishLine(
         goodsReceipt,
@@ -135,11 +136,20 @@ export class GoodsReceiptsPublishService {
         siteCurrencyCode,
       );
       qtyByQuant.set(quantId, (qtyByQuant.get(quantId) ?? 0) + quantity);
-      lastMrp = grLine.lotMrp ?? lastMrp;
+      if (grLine.lotMrp != null) {
+        lastMrp = grLine.lotMrp;
+        lastMrpLotId = grLine.goodsReceiptLotId ? (inventoryLotByGrLot.get(grLine.goodsReceiptLotId) ?? null) : null;
+      }
     }
 
+    // Record the received MRP as the org-wide suggestion for this item in the receipt currency.
     if (lastMrp != null) {
-      await this.inventoryItemsRepository.update(grItem.inventoryItemId, { defaultMrp: lastMrp });
+      await this.inventoryItemMrpsService.upsertForCurrency(
+        grItem.inventoryItemId,
+        siteCurrencyCode,
+        lastMrp,
+        lastMrpLotId,
+      );
     }
 
     await this.allocateItemCost(goodsReceipt, grItem, qtyByQuant, siteCurrencyCode);

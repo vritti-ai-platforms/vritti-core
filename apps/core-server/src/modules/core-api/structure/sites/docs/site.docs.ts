@@ -1,5 +1,6 @@
 import { SiteDto } from '@domain/site/dto/entity/site.dto';
 import { CreateSiteInternalDto } from '@domain/site/dto/request/create-site-internal.dto';
+import { ReorderSitesInternalDto } from '@domain/site/dto/request/reorder-sites-internal.dto';
 import { UpdateSiteInternalDto } from '@domain/site/dto/request/update-site-internal.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
@@ -79,6 +80,26 @@ export function ApiUpdateSite() {
     ApiBody({ type: UpdateSiteInternalDto }),
     ApiResponse({ status: 200, description: 'Site updated successfully.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Site not found.' }),
+    ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
+  );
+}
+
+export function ApiReorderSites() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Reorder sites',
+      description:
+        'Reassigns sort order for a batch of sites in their new left-to-right order. Every id must belong to the organization. Requires Ed25519 signature headers (x-timestamp, x-signature).',
+    }),
+    ApiHeader({ name: 'x-timestamp', description: 'Unix seconds when the request was signed', required: true }),
+    ApiHeader({
+      name: 'x-signature',
+      description: 'Ed25519 signature of the canonical request (base64)',
+      required: true,
+    }),
+    ApiBody({ type: ReorderSitesInternalDto }),
+    ApiResponse({ status: 200, description: 'Sites reordered successfully.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'One or more sites do not exist or belong to another organization.' }),
     ApiResponse({ status: 401, description: 'Invalid or missing request signature.' }),
   );
 }

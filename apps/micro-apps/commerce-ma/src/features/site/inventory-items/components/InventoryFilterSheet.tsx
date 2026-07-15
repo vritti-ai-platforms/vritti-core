@@ -19,56 +19,52 @@ interface InventoryFilterSheetProps {
 // Bottom sheet holding the multi-select filters. Edits a local draft seeded from the committed
 // value each time it opens; "Apply" lifts the draft up, "Clear" empties it. The sheet handle is
 // exposed via ref so the screen's Filters button can present it.
-export const InventoryFilterSheet = forwardRef<BottomSheetRef, InventoryFilterSheetProps>(
-  ({ value, onApply }, ref) => {
-    const [draft, setDraft] = useState<InventoryFilterState>(value);
+export const InventoryFilterSheet = forwardRef<BottomSheetRef, InventoryFilterSheetProps>(({ value, onApply }, ref) => {
+  const [draft, setDraft] = useState<InventoryFilterState>(value);
 
-    useEffect(() => {
-      setDraft(value);
-    }, [value]);
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
 
-    const handleApply = (next: InventoryFilterState) => {
-      onApply(next);
-      if (ref && typeof ref !== 'function') ref.current?.dismiss();
-    };
+  const handleApply = (next: InventoryFilterState) => {
+    onApply(next);
+    if (ref && typeof ref !== 'function') ref.current?.dismiss();
+  };
 
-    return (
-      <BottomSheet ref={ref} variant="inline" title="Filters" detents={['60%']} scrollable>
-        <View className="gap-4 px-4 pb-4">
-          <Select
-            multiple
-            label="Type"
-            placeholder="Any type"
-            clearable
-            options={TYPE_OPTIONS}
-            value={draft.type}
-            onChange={(values: SelectValue | SelectValue[]) =>
-              setDraft((prev) => ({ ...prev, type: toStrings(values) }))
-            }
-          />
-          <Select
-            multiple
-            label="Tracking"
-            placeholder="Any tracking"
-            clearable
-            options={TRACKING_OPTIONS}
-            value={draft.tracking}
-            onChange={(values: SelectValue | SelectValue[]) =>
-              setDraft((prev) => ({ ...prev, tracking: toStrings(values) }))
-            }
-          />
-          <View className="flex-row gap-3 pt-2">
-            <Button variant="outline" className="flex-1" onPress={() => setDraft({ type: [], tracking: [] })}>
-              <Text>Clear</Text>
-            </Button>
-            <Button className="flex-1" onPress={() => handleApply(draft)}>
-              <Text>Apply</Text>
-            </Button>
-          </View>
+  return (
+    <BottomSheet ref={ref} variant="inline" title="Filters" detents={['60%']} scrollable>
+      <View className="gap-4 px-4 pb-4">
+        <Select
+          multiple
+          label="Type"
+          placeholder="Any type"
+          clearable
+          options={TYPE_OPTIONS}
+          value={draft.type}
+          onChange={(values: SelectValue | SelectValue[]) => setDraft((prev) => ({ ...prev, type: toStrings(values) }))}
+        />
+        <Select
+          multiple
+          label="Tracking"
+          placeholder="Any tracking"
+          clearable
+          options={TRACKING_OPTIONS}
+          value={draft.tracking}
+          onChange={(values: SelectValue | SelectValue[]) =>
+            setDraft((prev) => ({ ...prev, tracking: toStrings(values) }))
+          }
+        />
+        <View className="flex-row gap-3 pt-2">
+          <Button variant="outline" className="flex-1" onPress={() => setDraft({ type: [], tracking: [] })}>
+            <Text>Clear</Text>
+          </Button>
+          <Button className="flex-1" onPress={() => handleApply(draft)}>
+            <Text>Apply</Text>
+          </Button>
         </View>
-      </BottomSheet>
-    );
-  },
-);
+      </View>
+    </BottomSheet>
+  );
+});
 
 InventoryFilterSheet.displayName = 'InventoryFilterSheet';

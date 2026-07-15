@@ -1,19 +1,16 @@
-import { DynamicIcon } from "@vritti/quantum-ui-native/DynamicIcon";
-import { Fab } from "@vritti/quantum-ui-native/Fab";
-import { FlashList } from "@vritti/quantum-ui-native/FlashList";
-import { useConfirm, useCreateEditSheet } from "@vritti/quantum-ui-native/hooks";
-import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { RefreshControl, View } from "react-native";
-import {
-  useDeleteItemLocation,
-  useItemLocationsFeed,
-} from "../../../../../../hooks/site/item-locations";
-import type { InventoryItem } from "../../../../../../types/inventory-items";
-import type { ItemLocation } from "../../../../../../types/item-locations";
-import { ItemLocationCard } from "../../../components/ItemLocationCard";
-import { ItemLocationFormSheet } from "../../../forms/ItemLocationFormSheet";
+import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
+import { Fab } from '@vritti/quantum-ui-native/Fab';
+import { FlashList } from '@vritti/quantum-ui-native/FlashList';
+import { useConfirm, useCreateEditSheet } from '@vritti/quantum-ui-native/hooks';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
+import { RefreshControl, View } from 'react-native';
+import { useDeleteItemLocation, useItemLocationsFeed } from '../../../../../../hooks/site/item-locations';
+import type { InventoryItem } from '../../../../../../types/inventory-items';
+import type { ItemLocation } from '../../../../../../types/item-locations';
+import { ItemLocationCard } from '../../../components/ItemLocationCard';
+import { ItemLocationFormSheet } from '../../../forms/ItemLocationFormSheet';
 
-const PLUS_ICON = { sfSymbol: "plus", materialSymbol: "add" } as const;
+const PLUS_ICON = { sfSymbol: 'plus', materialSymbol: 'add' } as const;
 
 // Locations tab — per-item location configs (reorder thresholds) with Relay infinite scroll. The FAB opens a
 // bottom sheet to add one, a card's edit opens it prefilled, delete is confirm-first.
@@ -26,10 +23,10 @@ export function LocationsTab({ item }: { item: InventoryItem }) {
 
   const handleDelete = async (location: ItemLocation) => {
     const confirmed = await confirm({
-      title: "Remove location?",
-      description: `Remove the minimum stock level for ${location.locationName ?? "this location"}. This can't be undone.`,
-      confirmLabel: "Remove",
-      variant: "destructive",
+      title: 'Remove location?',
+      description: `Remove the minimum stock level for ${location.locationName ?? 'this location'}. This can't be undone.`,
+      confirmLabel: 'Remove',
+      variant: 'destructive',
     });
     if (confirmed) deleteLocation({ variables: { id: location.id } });
   };
@@ -56,25 +53,15 @@ export function LocationsTab({ item }: { item: InventoryItem }) {
         refreshControl={<RefreshControl refreshing={feed.isRefetching} onRefresh={() => feed.refresh()} />}
         contentContainerStyle={{ padding: 16 }}
         ItemSeparatorComponent={() => <View className="h-3" />}
-        emptyText={feed.isError ? "Couldn't load locations." : "No locations configured yet."}
+        emptyText={feed.isError ? "Couldn't load locations." : 'No locations configured yet.'}
         renderItem={({ item: location }) => (
-          <ItemLocationCard
-            location={location}
-            uomSymbol={item.uomSymbol}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-          />
+          <ItemLocationCard location={location} uomSymbol={item.uomSymbol} onEdit={openEdit} onDelete={handleDelete} />
         )}
       />
       <Fab onPress={openCreate} accessibilityLabel="Add location">
         <DynamicIcon icon={PLUS_ICON} size={24} />
       </Fab>
-      <ItemLocationFormSheet
-        ref={sheetRef}
-        inventoryItemId={item.id}
-        uomSymbol={item.uomSymbol}
-        editing={editing}
-      />
+      <ItemLocationFormSheet ref={sheetRef} inventoryItemId={item.id} uomSymbol={item.uomSymbol} editing={editing} />
     </View>
   );
 }

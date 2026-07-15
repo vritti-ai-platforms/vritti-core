@@ -64,10 +64,13 @@ export default defineConfig({
       filename: 'remoteEntry.js',
       exposes: {
         './Org/Categories': './src/features/organization/categories/index.tsx',
+        './Org/InventoryItems': './src/features/organization/inventory-items/index.tsx',
         './Org/SalesChannels': './src/features/organization/sales-channels/index.tsx',
         './Org/UOM': './src/features/organization/uom/index.tsx',
         './Le/CostCategories': './src/features/legal-entity/cost-categories/index.tsx',
+        './Le/Suppliers': './src/features/legal-entity/suppliers/index.tsx',
         './Le/TaxGroups': './src/features/legal-entity/tax-groups/index.tsx',
+        './SiteGroup/InventoryItems': './src/features/site-group/inventory-items/index.tsx',
         './Site/Catalogs': './src/features/site/catalogs/index.tsx',
         './Site/CreditNotes': './src/features/site/credit-notes/index.tsx',
         './Site/Customers': './src/features/site/customers/index.tsx',
@@ -80,7 +83,6 @@ export default defineConfig({
         './Site/PurchaseOrders': './src/features/site/purchase-orders/index.tsx',
         './Site/StockAdjustments': './src/features/site/stock-adjustments/index.tsx',
         './Site/StockTransfers': './src/features/site/stock-transfers/index.tsx',
-        './Site/Suppliers': './src/features/site/suppliers/index.tsx',
       },
       shared: {
         react: { singleton: true, requiredVersion: '^19.2.0' },

@@ -43,8 +43,8 @@ export function useInventoryItemLotsTable(
   return useQuery<InventoryItemLotsTableResponse, AxiosError>({
     queryKey: [...INVENTORY_ITEM_LOTS_KEY(inventoryItemId ?? '')],
     queryFn: () => getInventoryItemLotsTable(inventoryItemId as string),
-    enabled: !!inventoryItemId,
     ...options,
+    enabled: !!inventoryItemId,
   });
 }
 
@@ -55,7 +55,7 @@ export function useInventoryItemLedgerTable(
   return useQuery<InventoryItemLedgerTableResponse, AxiosError>({
     queryKey: [...INVENTORY_ITEM_LEDGER_KEY(inventoryItemId ?? '')],
     queryFn: () => getInventoryItemLedgerTable(inventoryItemId as string),
-    enabled: !!inventoryItemId,
     ...options,
+    enabled: !!inventoryItemId,
   });
 }

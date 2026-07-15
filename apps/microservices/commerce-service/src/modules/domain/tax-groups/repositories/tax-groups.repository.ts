@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItems, offerings, type TaxGroup, type TaxRate, taxGroups, taxRates } from '@/db/schema';
+import { offerings, type TaxGroup, type TaxRate, taxGroups, taxRates } from '@/db/schema';
 
 @Injectable()
 export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups> {
@@ -36,17 +36,11 @@ export class TaxGroupsRepository extends PrimaryBaseRepository<typeof taxGroups>
     return byGroup;
   }
 
-  // Returns the set of tax-group ids still referenced by inventory items (purchase side) or
-  // offerings (sale side); referenced groups cannot be deleted.
+  // Returns the set of tax-group ids still referenced by offerings (sale side); referenced groups
+  // cannot be deleted. The purchase side (inventory items) no longer carries a tax group.
   async findReferencedIds(ids: string[]): Promise<Set<string>> {
     if (ids.length === 0) return new Set();
     const referenced = new Set<string>();
-
-    const purchaseRows = await this.db
-      .selectDistinct({ id: inventoryItems.purchaseTaxGroupId })
-      .from(inventoryItems)
-      .where(inArray(inventoryItems.purchaseTaxGroupId, ids));
-    for (const row of purchaseRows) if (row.id) referenced.add(row.id);
 
     const saleRows = await this.db
       .selectDistinct({ id: offerings.salesTaxGroupId })

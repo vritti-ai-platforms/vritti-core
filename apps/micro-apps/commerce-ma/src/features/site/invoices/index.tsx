@@ -1,6 +1,6 @@
 import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
 import { Text } from '@vritti/quantum-ui-native/Text';
-import { TreeView, type TreeDataItem, type TreeReorderPayload } from '@vritti/quantum-ui-native/TreeView';
+import { type TreeDataItem, type TreeReorderPayload, TreeView } from '@vritti/quantum-ui-native/TreeView';
 import { useState } from 'react';
 import { View } from 'react-native';
 

@@ -1,33 +1,32 @@
-import { CategoriesService } from '@domain/categories/services/categories.service';
-import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
-import { InventoryItemsService } from '@domain/inventory-items/services/inventory-items.service';
+import { InventoryItemSitesService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/database';
-import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
-import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
+import type { InventoryItemSite } from '@/db/schema';
+import type { EnableInventoryItemSiteDto } from '../dto/request/enable-inventory-item-site.dto';
 
-// Top-level service for inventory item create/update paths that require
-// cross-domain validation: the assigned category must be a leaf.
+// Site-scope service for the physical projection writes: enabling a master item at the
+// current site and adjusting its reorder point. Reads go straight to the domain service.
 @Injectable()
 export class InventoryItemsRootService {
   private readonly logger = new Logger(InventoryItemsRootService.name);
 
-  constructor(
-    private readonly inventoryItemsService: InventoryItemsService,
-    private readonly categoriesService: CategoriesService,
-  ) {}
+  constructor(private readonly sitesService: InventoryItemSitesService) {}
 
-  async create(dto: CreateInventoryItemDto, siteCurrencyCode?: string): Promise<CreateResponseDto<InventoryItemDto>> {
-    this.logger.log(`create — name=${dto.name}, code=${dto.code}, categoryId=${dto.categoryId}`);
-    await this.categoriesService.assertIsLeaf(dto.categoryId);
-    return this.inventoryItemsService.create(dto, siteCurrencyCode);
+  // Enables a master item at the current site
+  async enable(siteId: string, dto: EnableInventoryItemSiteDto): Promise<CreateResponseDto<InventoryItemSite>> {
+    this.logger.log(`enable — inventoryItemId=${dto.inventoryItemId}, siteId=${siteId}`);
+    const entity = await this.sitesService.enable(dto.inventoryItemId, siteId, {
+      reorderPoint: dto.reorderPoint,
+      maxStockLevel: dto.maxStockLevel,
+      safetyStock: dto.safetyStock,
+    });
+    return { success: true, message: 'Item enabled at this site.', data: entity };
   }
 
-  async update(id: string, dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`update — id=${id}${dto.categoryId ? `, categoryId=${dto.categoryId}` : ''}`);
-    if (dto.categoryId !== undefined) {
-      await this.categoriesService.assertIsLeaf(dto.categoryId);
-    }
-    return this.inventoryItemsService.update(id, dto);
+  // Updates the reorder point for an item at the current site
+  async updateReorder(siteId: string, inventoryItemId: string, reorderPoint: number): Promise<SuccessResponseDto> {
+    this.logger.log(`updateReorder — inventoryItemId=${inventoryItemId}, siteId=${siteId}`);
+    await this.sitesService.updateReorder(inventoryItemId, siteId, reorderPoint);
+    return { success: true, message: 'Reorder point updated.' };
   }
 }

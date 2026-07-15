@@ -26,8 +26,8 @@ export function useInventoryItemLocationsTable(
   return useQuery<InventoryItemLocationsTableResponse, AxiosError>({
     queryKey: [...INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId ?? '')],
     queryFn: () => getInventoryItemLocationsTable(inventoryItemId as string),
-    enabled: !!inventoryItemId,
     ...options,
+    enabled: !!inventoryItemId,
   });
 }
 

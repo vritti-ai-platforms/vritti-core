@@ -1,15 +1,15 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigation } from "@react-navigation/native";
-import { ScreenContainer } from "@vritti/quantum-ui-native/ScreenContainer";
-import { StaticAlert } from "@vritti/quantum-ui-native/StaticAlert";
-import { useForm } from "react-hook-form";
-import { useCreateInventoryItem } from "../../../../hooks/site/inventory-items";
+import { useNavigation } from '@react-navigation/native';
+import { ScreenContainer } from '@vritti/quantum-ui-native/ScreenContainer';
+import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
+import { zodResolver } from '@vritti/quantum-ui-native/zod';
+import { useForm } from 'react-hook-form';
+import { useCreateInventoryItem } from '../../../../hooks/site/inventory-items';
 import {
-  createInventoryItemSchema,
   type CreateInventoryItemFormValues,
-} from "../../../../schemas/inventory-items/inventory-item";
-import { InventoryItemForm } from "../forms/InventoryItemForm";
-import type { InventoryNavigation } from "../types";
+  createInventoryItemSchema,
+} from '../../../../schemas/inventory-items/inventory-item';
+import { InventoryItemForm } from '../forms/InventoryItemForm';
+import type { InventoryNavigation } from '../types';
 
 export function InventoryItemCreate() {
   const navigation = useNavigation() as unknown as InventoryNavigation;
@@ -18,16 +18,16 @@ export function InventoryItemCreate() {
   const form = useForm<CreateInventoryItemFormValues>({
     resolver: zodResolver(createInventoryItemSchema),
     defaultValues: {
-      name: "",
-      code: "",
-      type: "RAW_MATERIAL",
-      tracking: "quantity",
-      pickStrategy: "none",
-      categoryId: "",
-      uomId: "",
-      purchaseTaxGroupId: "",
-      description: "",
-      hsnCode: "",
+      name: '',
+      code: '',
+      type: 'RAW_MATERIAL',
+      tracking: 'quantity',
+      pickStrategy: 'none',
+      categoryId: '',
+      uomId: '',
+      purchaseTaxGroupId: '',
+      description: '',
+      hsnCode: '',
       hasMrp: false,
     },
   });
@@ -40,9 +40,7 @@ export function InventoryItemCreate() {
 
   return (
     <ScreenContainer scrollable contentContainerStyle={{ padding: 16, gap: 16 }}>
-      {error ? (
-        <StaticAlert variant="destructive" title="Create failed" description={error.message} />
-      ) : null}
+      {error ? <StaticAlert variant="destructive" title="Create failed" description={error.message} /> : null}
       <InventoryItemForm
         form={form}
         isSubmitting={loading}

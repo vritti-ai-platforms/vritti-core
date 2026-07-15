@@ -7,8 +7,6 @@ export interface GoodsReceiptDetailParams {
 }
 
 export type GoodsReceiptNavigation = {
-  navigate: {
-    (screen: 'GoodsReceiptDetail', params: GoodsReceiptDetailParams): void;
-  };
+  navigate: (screen: 'GoodsReceiptDetail', params: GoodsReceiptDetailParams) => void;
   goBack: () => void;
 };

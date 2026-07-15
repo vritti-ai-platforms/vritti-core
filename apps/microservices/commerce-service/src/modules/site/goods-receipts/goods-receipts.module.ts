@@ -4,6 +4,7 @@ import { GoodsReceiptLotsDomainModule } from '@domain/goods-receipt-lots/goods-r
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
 import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/inventory-item-ledger.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
+import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inventory-item-mrps.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
@@ -27,6 +28,7 @@ import { GoodsReceiptsPublishService } from './root/services/goods-receipts-publ
     InventoryItemsDomainModule,
     InventoryItemLedgerDomainModule,
     InventoryItemLotsDomainModule,
+    InventoryItemMrpsDomainModule,
     PurchaseOrderItemsDomainModule,
     UomConversionsDomainModule,
   ],

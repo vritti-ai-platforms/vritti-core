@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z, zodCodeField } from '@vritti/quantum-ui-native/zod';
 import type { CostCategoryKind } from '../../types/cost-categories';
 
 // The fixed `kind` enum + display copy (mirrors the web COST_CATEGORY_KIND_OPTIONS) for the create-form
@@ -14,14 +14,10 @@ export const COST_CATEGORY_KIND_OPTIONS: { value: CostCategoryKind; label: strin
 
 const KIND_VALUES = COST_CATEGORY_KIND_OPTIONS.map((o) => o.value) as [CostCategoryKind, ...CostCategoryKind[]];
 
-// Create schema: code (uppercase letters/digits/underscore, unique per org — 409 surfaces on submit),
-// name, and the fixed kind. Edit renames only, so it reuses `name` from here.
+// Create schema: code (unique per org — 409 surfaces on submit), name, and the fixed kind.
+// Edit renames only, so it reuses `name` from here.
 export const costCategorySchema = z.object({
-  code: z
-    .string()
-    .min(1, 'Code is required')
-    .max(50, 'Code must be 50 characters or fewer')
-    .regex(/^[A-Z0-9_]+$/, 'Uppercase letters, digits, and _ only'),
+  code: zodCodeField({ max: 50 }),
   name: z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or fewer'),
   kind: z.enum(KIND_VALUES),
 });

@@ -1,5 +1,6 @@
 import { Field, InputType, PartialType } from '@nestjs/graphql';
-import { IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsCode } from '@vritti/api-sdk/decorators';
+import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 // Mirror create-/update-uom-dimension.dto.ts so the resolver forwards an input straight to
 // gateway.create/update. `code` is uppercase A-Z/0-9/_ starting with a letter (unique per BU).
@@ -9,7 +10,7 @@ export class CreateUomDimensionInput {
   @IsString()
   @MinLength(1)
   @MaxLength(50)
-  @Matches(/^[A-Z][A-Z0-9_]*$/, { message: 'code must start with an uppercase letter (A-Z, 0-9, _)' })
+  @IsCode()
   code: string;
 
   @Field(() => String)

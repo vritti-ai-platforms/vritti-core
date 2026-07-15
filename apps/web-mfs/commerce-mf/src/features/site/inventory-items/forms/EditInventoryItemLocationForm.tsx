@@ -5,11 +5,11 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
+import { useUpdateInventoryItemLocation } from '@/hooks/site/inventory-items';
 import {
   type UpdateInventoryItemLocationFormData,
   updateInventoryItemLocationSchema,
 } from '@/schemas/inventory-item-locations';
-import { useUpdateInventoryItemLocation } from '@/hooks/site/inventory-items';
 
 interface EditInventoryItemLocationFormProps {
   inventoryItemId: string;
