@@ -114,6 +114,7 @@ const selectDirs = [
 const quantumAliases = {
   // Non-component subpaths
   '@vritti/quantum-ui-native/apollo': path.join(quantumUiNative, 'lib/apollo/index.ts'),
+  '@vritti/quantum-ui-native/zod': path.join(quantumUiNative, 'lib/utils/zod.ts'),
   '@vritti/quantum-ui-native/utils': path.join(quantumUiNative, 'lib/utils/index.ts'),
   '@vritti/quantum-ui-native/hooks': path.join(quantumUiNative, 'lib/hooks/index.ts'),
   '@vritti/quantum-ui-native/config': path.join(quantumUiNative, 'lib/config/index.ts'),
