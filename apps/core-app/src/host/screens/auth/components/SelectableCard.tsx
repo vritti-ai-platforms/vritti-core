@@ -17,7 +17,7 @@ export const SelectableCard = ({ selected, onPress, leading, title, subtitle, tr
     <CardPressable
       onPress={onPress}
       selected={selected}
-      className={`rounded-2xl p-4 flex-row items-center gap-3 ${selected ? '' : 'border border-border bg-card'}`}
+      className={`rounded-2xl p-4 flex-row items-center gap-3 ${selected ? 'bg-card' : 'border border-border bg-card'}`}
     >
       {leading ? leading : null}
 

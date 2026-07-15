@@ -1,0 +1,29 @@
+diff --git a/dist/commonjs/native/styles/functions/color-mix.js b/dist/commonjs/native/styles/functions/color-mix.js
+index b66fb1b7b378dd193d59fc072a771f423fec3965..cd4b413f362f7491a4930bb70142b7e8f16668a7 100644
+--- a/dist/commonjs/native/styles/functions/color-mix.js
++++ b/dist/commonjs/native/styles/functions/color-mix.js
+@@ -10,6 +10,7 @@ var _fn = require("colorjs.io/fn");
+ _fn.ColorSpace.register(_fn.sRGB);
+ _fn.ColorSpace.register(_fn.P3);
+ _fn.ColorSpace.register(_fn.OKLab);
++_fn.ColorSpace.register(_fn.HSL);
+ const colorMix = (resolveValue, value) => {
+   const args = resolveValue(value[2]);
+   if (!Array.isArray(args) || args.length < 3) {
+diff --git a/dist/module/native/styles/functions/color-mix.js b/dist/module/native/styles/functions/color-mix.js
+index 5904b066db30223e1a914ba74481d45d55527f9f..3ae9f9d90422e2bc09ccc64d171ad3c1898d8600 100644
+--- a/dist/module/native/styles/functions/color-mix.js
++++ b/dist/module/native/styles/functions/color-mix.js
+@@ -2,10 +2,11 @@
+ 
+ /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+ 
+-import { ColorSpace, to as convert, mix, OKLab, P3, parse, sRGB } from "colorjs.io/fn";
++import { ColorSpace, to as convert, mix, HSL, OKLab, P3, parse, sRGB } from "colorjs.io/fn";
+ ColorSpace.register(sRGB);
+ ColorSpace.register(P3);
+ ColorSpace.register(OKLab);
++ColorSpace.register(HSL);
+ export const colorMix = (resolveValue, value) => {
+   const args = resolveValue(value[2]);
+   if (!Array.isArray(args) || args.length < 3) {

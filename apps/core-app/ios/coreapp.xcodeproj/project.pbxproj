@@ -30,26 +30,26 @@
 		13B07F961A680F5B00A75B9A /* coreapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = coreapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = coreapp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = coreapp/Info.plist; sourceTree = "<group>"; };
-		144F127A82854FECAA317A24 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = PlayfairDisplay.ttf; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/PlayfairDisplay.ttf"; sourceTree = "<group>"; };
+		144F127A82854FECAA317A24 /* PlayfairDisplay.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = PlayfairDisplay.ttf; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/PlayfairDisplay.ttf"; sourceTree = "<group>"; };
 		1D30A8E7B3BF60491B3C8EA9 /* libPods-coreapp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-coreapp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		21A5D5EC39385058AA0D2FD6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = coreapp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		29B53BC3C3184D77A8925D24 /* IBMPlexSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Bold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Bold.ttf"; sourceTree = "<group>"; };
-		335477C66302445B8F544AAD /* IBMPlexSans-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Italic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Italic.ttf"; sourceTree = "<group>"; };
-		40FC717B42164D25AE8A2CF5 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "JetBrainsMono-Regular.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
-		5B43AB0D364B48E594B1A642 /* IBMPlexSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-SemiBoldItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
-		5ECC159DC6524E168EA42377 /* IBMPlexSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-SemiBold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBold.ttf"; sourceTree = "<group>"; };
+		29B53BC3C3184D77A8925D24 /* IBMPlexSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Bold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Bold.ttf"; sourceTree = "<group>"; };
+		335477C66302445B8F544AAD /* IBMPlexSans-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Italic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Italic.ttf"; sourceTree = "<group>"; };
+		40FC717B42164D25AE8A2CF5 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "JetBrainsMono-Regular.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
+		5B43AB0D364B48E594B1A642 /* IBMPlexSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-SemiBoldItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
+		5ECC159DC6524E168EA42377 /* IBMPlexSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-SemiBold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		6764F22559F46296CD61FB0E /* Pods-coreapp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-coreapp.debug.xcconfig"; path = "Target Support Files/Pods-coreapp/Pods-coreapp.debug.xcconfig"; sourceTree = "<group>"; };
-		89BC3EF58A6B4DCA9474A972 /* IBMPlexSans-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-BoldItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-BoldItalic.ttf"; sourceTree = "<group>"; };
+		89BC3EF58A6B4DCA9474A972 /* IBMPlexSans-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-BoldItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-BoldItalic.ttf"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = coreapp/SplashScreen.storyboard; sourceTree = "<group>"; };
-		C482B0F7647842B9860D59FF /* IBMPlexSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Regular.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Regular.ttf"; sourceTree = "<group>"; };
-		C6DAE6CDEBDB4E34B9966D78 /* MaterialSymbols_400Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialSymbols_400Regular.ttf; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/MaterialSymbols_400Regular.ttf"; sourceTree = "<group>"; };
-		DC15F7EC773A416AAD7A7BA1 /* IBMPlexSans-MediumItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-MediumItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-MediumItalic.ttf"; sourceTree = "<group>"; };
-		E666BF4C907A43ACAF37A0ED /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "JetBrainsMono-Bold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
+		C482B0F7647842B9860D59FF /* IBMPlexSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Regular.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Regular.ttf"; sourceTree = "<group>"; };
+		C6DAE6CDEBDB4E34B9966D78 /* MaterialSymbols_400Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialSymbols_400Regular.ttf; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/MaterialSymbols_400Regular.ttf"; sourceTree = "<group>"; };
+		DC15F7EC773A416AAD7A7BA1 /* IBMPlexSans-MediumItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-MediumItalic.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-MediumItalic.ttf"; sourceTree = "<group>"; };
+		E666BF4C907A43ACAF37A0ED /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "JetBrainsMono-Bold.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = coreapp/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* coreapp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "coreapp-Bridging-Header.h"; path = "coreapp/coreapp-Bridging-Header.h"; sourceTree = "<group>"; };
 		F8E3C35D24B98654CFF68BC1 /* Pods-coreapp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-coreapp.release.xcconfig"; path = "Target Support Files/Pods-coreapp/Pods-coreapp.release.xcconfig"; sourceTree = "<group>"; };
-		FC8888397B6642B5AC9348CF /* IBMPlexSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Medium.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Medium.ttf"; sourceTree = "<group>"; };
+		FC8888397B6642B5AC9348CF /* IBMPlexSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "IBMPlexSans-Medium.ttf"; path = "../node_modules/@vritti/quantum-ui-native/lib/assets/fonts/IBMPlexSans-Medium.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,7 +112,6 @@
 				C6DAE6CDEBDB4E34B9966D78 /* MaterialSymbols_400Regular.ttf */,
 			);
 			name = Resources;
-			path = "";
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -176,7 +175,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
@@ -333,6 +332,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZTK52PQZH8;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -367,6 +367,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZTK52PQZH8;
 				INFOPLIST_FILE = coreapp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
