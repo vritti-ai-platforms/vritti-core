@@ -77,6 +77,7 @@ See `.claude/rules/` for detailed pattern documentation:
 - `money-handling.md` — money as `bigint` minor units + `{currency,value}` wire shape; never `Number(majorToMinor(...))`
 - `comment-style.md` — Comment style rules
 - `export-conventions.md` — Export patterns
+- `code-conventions.md` — Canonical entity `code` format (IsCode / codeCheck / zodCodeField)
 
 ---
 
