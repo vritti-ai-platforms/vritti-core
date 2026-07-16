@@ -40,9 +40,14 @@ const useHttps = process.env.USE_HTTPS === 'true';
 
 export default defineConfig({
   // Federated remote: its chunks must load from where remoteEntry.js is served
-  // (mf.<domain>/commerce-mf/), NOT the host origin. 'auto' derives the public
-  // path from the runtime script location — correct in dev (:3014) and prod
-  // (mf.dev.vrittiai.com/commerce-mf) without hardcoding a URL.
+  // (mf.<domain>/commerce-mf/ or localm:3014), NOT the host origin. 'auto' derives
+  // the public path from the runtime script location without hardcoding a URL.
+  // dev.assetPrefix and output.assetPrefix are SEPARATE — the MF plugin otherwise
+  // defaults the dev manifest publicPath to the dev server's localhost URL, so the
+  // host loads the manifest from localm:3014 but chunks resolve to localhost:3014.
+  dev: {
+    assetPrefix: 'auto',
+  },
   output: {
     assetPrefix: 'auto',
   },
