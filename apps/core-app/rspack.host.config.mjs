@@ -87,6 +87,7 @@ const componentDirs = [
   'TextField',
   'Text',
   'TreeView',
+  'Upsell',
 ];
 
 // @vritti/quantum-ui-native/selects/<entity> subpaths (mirrors quantum-ui/lib/selects)
@@ -156,6 +157,13 @@ export default (rspackEnv) => {
     context: __dirname,
     entry: './src/host/index.tsx',
     devtool: mode === 'development' ? 'source-map' : false,
+
+    // Silence benign third-party warnings: react-native-worklets' bundleMode overrides use dynamic
+    // require() the bundler can't statically analyze (works fine at runtime). Mirrors core-web's config.
+    ignoreWarnings: [
+      /Critical dependency: the request of a dependency is an expression/,
+      /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+    ],
 
     resolve: {
       ...Repack.getResolveOptions(platform),
@@ -353,8 +361,9 @@ export default (rspackEnv) => {
             version: '0.1.0',
             requiredVersion: '>=0.0.0-0',
           },
-          // Single portal store app-wide so the host <PortalHost> renders popovers from any container
-          '@rn-primitives/portal': { singleton: true, eager: true },
+          // Single portal store app-wide so the host <PortalHost> renders popovers from any container.
+          // version pinned — MF can't auto-detect it (installed under quantum-ui-native/node_modules).
+          '@rn-primitives/portal': { singleton: true, eager: true, version: '1.4.0', requiredVersion: '>=0.0.0-0' },
           'react-native-reanimated': { singleton: true, eager: true, version: '4.3.0', requiredVersion: '>=0.0.0-0' },
           'react-native-worklets': { singleton: true, eager: true, version: '0.8.1', requiredVersion: '>=0.0.0-0' },
           nativewind: { singleton: true, eager: true, version: '5.0.0-preview.3', requiredVersion: '>=0.0.0-0' },

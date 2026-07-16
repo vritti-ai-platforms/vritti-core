@@ -14,7 +14,9 @@
       "@vritti/quantum-ui-native": ["../../../quantum-ui-native/dist/typescript/lib/index.d.ts"],
       "@vritti/quantum-ui-native/*": [
         "../../../quantum-ui-native/dist/typescript/lib/*",
-        "../../../quantum-ui-native/dist/typescript/lib/components/*/index.d.ts"
+        "../../../quantum-ui-native/dist/typescript/lib/components/*/index.d.ts",
+        "../../../quantum-ui-native/lib/*",
+        "../../../quantum-ui-native/lib/components/*/index.ts"
       ],
       "react-native": ["../../node_modules/react-native"],
       "axios": ["../../node_modules/axios"],

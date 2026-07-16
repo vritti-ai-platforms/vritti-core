@@ -1,22 +1,18 @@
-import {
-  BottomNavigation,
-  type RouteConfig,
-  type TabIcon,
-} from "@vritti/quantum-ui-native/BottomNavigation";
-import { usePushNavigator } from "@vritti/quantum-ui-native/hooks";
-import { Spinner } from "@vritti/quantum-ui-native/Spinner";
-import { useMemo } from "react";
-import { View } from "react-native";
-import { resolveRemoteName } from "../config/remotes.config";
-import { usePermissionContext } from "../providers/PermissionProvider";
-import type { HostAppRoute } from "../routes";
-import { AccountScreen } from "../screens/account/AccountScreen";
-import { RemoteHeader } from "./RemoteHeader";
-import { RemoteScreen } from "./RemoteScreen";
+import { BottomNavigation, type RouteConfig, type TabIcon } from '@vritti/quantum-ui-native/BottomNavigation';
+import { usePushNavigator } from '@vritti/quantum-ui-native/hooks';
+import { ScreenHeader } from '@vritti/quantum-ui-native/ScreenHeader';
+import { Spinner } from '@vritti/quantum-ui-native/Spinner';
+import { Upsell } from '@vritti/quantum-ui-native/Upsell';
+import { useMemo } from 'react';
+import { View } from 'react-native';
+import { resolveRemoteName } from '../config/remotes.config';
+import { usePermissionContext } from '../providers/PermissionProvider';
+import type { HostAppRoute } from '../routes';
+import { RemoteHeader } from './RemoteHeader';
+import { RemoteScreen } from './RemoteScreen';
 
 export const DynamicFeatureNavigator = () => {
-  const { features, assignments, isLoadingSites, isLoadingPermissions } =
-    usePermissionContext();
+  const { features, assignments, isLoadingSites, isLoadingPermissions } = usePermissionContext();
   const { push } = usePushNavigator<HostAppRoute>();
 
   const routes = useMemo<RouteConfig[]>(
@@ -26,9 +22,13 @@ export const DynamicFeatureNavigator = () => {
         const remoteEntry = feature.route.remoteEntry;
         const remoteName = resolveRemoteName(remoteEntry);
         const moduleName = feature.route.exposedModule;
+        // Plan-locked features render the upsell screen instead of loading the micro-app (mirrors web DynamicFeatureRoutes).
+        const planLocked = feature.locked && feature.lockReason === 'PLAN';
         return {
           name: feature.route.routePrefix,
-          component: RemoteScreen,
+          component: planLocked
+            ? () => <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} />
+            : RemoteScreen,
           params: { remoteName, remoteEntry, moduleName },
           // Icon names arrive as plain strings from the API; cast to TabIcon since they're validated at write time and trusted at runtime.
           icon: {
@@ -36,13 +36,13 @@ export const DynamicFeatureNavigator = () => {
             materialSymbol: feature.materialSymbol,
           } as TabIcon,
           label: feature.name,
-          header: () => (
-            <RemoteHeader
-              remoteName={remoteName}
-              remoteEntry={remoteEntry}
-              moduleName={moduleName}
-            />
-          ),
+          locked: feature.locked,
+          header: () =>
+            planLocked ? (
+              <ScreenHeader title={feature.name} />
+            ) : (
+              <RemoteHeader remoteName={remoteName} remoteEntry={remoteEntry} moduleName={moduleName} />
+            ),
         };
       }),
       // {
@@ -59,20 +59,20 @@ export const DynamicFeatureNavigator = () => {
       // renders as a normal inline tab.
 
       {
-        name: assignments.length > 1 ? "Workspace" : "Account",
+        name: assignments.length > 1 ? 'Workspace' : 'Account',
         onPress: () => {
-          if (assignments.length > 1) push("SelectWorkspace");
-          else push("Account");
+          if (assignments.length > 1) push('SelectWorkspace');
+          else push('Account');
         },
         icon:
           assignments.length > 1
             ? {
-                sfSymbol: "arrow.up.arrow.down",
-                materialSymbol: "swap_vert",
+                sfSymbol: 'arrow.up.arrow.down',
+                materialSymbol: 'swap_vert',
               }
             : {
-                sfSymbol: "person.crop.circle",
-                materialSymbol: "account_circle",
+                sfSymbol: 'person.crop.circle',
+                materialSymbol: 'account_circle',
               },
         detached: true,
       },
@@ -82,7 +82,7 @@ export const DynamicFeatureNavigator = () => {
 
   if (isLoadingSites || isLoadingPermissions) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <Spinner size="large" />
       </View>
     );
