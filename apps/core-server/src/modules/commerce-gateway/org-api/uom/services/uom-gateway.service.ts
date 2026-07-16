@@ -8,7 +8,11 @@ import type {
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateUomDto } from '../dto/request/create-uom.dto';
+import type { CreateUomDimensionDto } from '../dto/request/create-uom-dimension.dto';
 import type { UpdateUomDto } from '../dto/request/update-uom.dto';
+import type { UpdateUomDimensionDto } from '../dto/request/update-uom-dimension.dto';
+import type { UomDimensionCountResponseDto } from '../dto/response/uom-dimension-count-response.dto';
+import type { UomDimensionResponseDto } from '../dto/response/uom-dimension-response.dto';
 import type { UomResponseDto } from '../dto/response/uom-response.dto';
 import type { UomTableResponseDto } from '../dto/response/uom-table-response.dto';
 
@@ -89,5 +93,41 @@ export class UomGatewayService {
   async delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`uom.delete — id: ${id}`);
     return this.nats.send('commerce', 'org.uom.delete', { id });
+  }
+
+  // Returns dimensions, optionally filtered by search
+  async listDimensions(search?: string): Promise<UomDimensionResponseDto[]> {
+    this.logger.log('uom.dimensions.list');
+    return this.nats.send('commerce', 'org.uom.dimensions.list', { search });
+  }
+
+  // Returns total UOM dimension count
+  async countDimensions(): Promise<UomDimensionCountResponseDto> {
+    this.logger.log('uom.dimensions.count');
+    return this.nats.send('commerce', 'org.uom.dimensions.count', {});
+  }
+
+  // Returns a dimension by ID
+  async findDimensionById(id: string): Promise<UomDimensionResponseDto> {
+    this.logger.log(`uom.dimensions.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.uom.dimensions.findById', { id });
+  }
+
+  // Creates a new dimension
+  async createDimension(dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
+    this.logger.log(`uom.dimensions.create — code: ${dto.code}`);
+    return this.nats.send('commerce', 'org.uom.dimensions.create', dto);
+  }
+
+  // Updates a dimension by ID
+  async updateDimension(id: string, dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
+    this.logger.log(`uom.dimensions.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.uom.dimensions.update', { id, ...dto });
+  }
+
+  // Deletes a dimension by ID
+  async deleteDimension(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`uom.dimensions.delete — id: ${id}`);
+    return this.nats.send('commerce', 'org.uom.dimensions.delete', { id });
   }
 }

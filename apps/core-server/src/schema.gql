@@ -72,6 +72,17 @@ type Uom {
   createdAt: String!
 }
 
+type UomDimension {
+  id: ID!
+  code: String!
+  name: String!
+  description: String
+  canEdit: Boolean
+  canDelete: Boolean
+  createdAt: String!
+  updatedAt: String!
+}
+
 type UomPageInfo {
   hasNextPage: Boolean!
   endCursor: String
@@ -85,17 +96,6 @@ type UomEdge {
 type UomConnection {
   edges: [UomEdge!]!
   pageInfo: UomPageInfo!
-}
-
-type UomDimension {
-  id: ID!
-  code: String!
-  name: String!
-  description: String
-  canEdit: Boolean
-  canDelete: Boolean
-  createdAt: String!
-  updatedAt: String!
 }
 
 type GoodsReceiptMoney {

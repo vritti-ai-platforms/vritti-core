@@ -2,13 +2,13 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { InventoryItemUomConversion } from '../graphql/inventory-item-uom-conversion.type';
+import { InventoryItemUomConversion } from './graphql/inventory-item-uom-conversion.type';
 import {
   CreateInventoryItemUomConversionInput,
   UpdateInventoryItemUomConversionInput,
-} from '../graphql/inventory-item-uom-conversion-mutation.input';
-import { MutationResult } from '../graphql/mutation-result.type';
-import { InventoryItemsGatewayService } from '../services/inventory-items-gateway.service';
+} from './graphql/inventory-item-uom-conversion-mutation.input';
+import { MutationResult } from './graphql/mutation-result.type';
+import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 // Per-inventory-item UOM conversion overrides for the mobile detail tab. Thin GraphQL forwards to the
 // existing gateway service (which proxies the commerce-service NATS handlers). The list is small/bounded,

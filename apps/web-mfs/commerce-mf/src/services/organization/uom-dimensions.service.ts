@@ -8,22 +8,22 @@ import type {
 } from '@/schemas/uom-dimensions';
 
 export function getUomDimensionCount(): Promise<UomDimensionCountData> {
-  return axios.get<UomDimensionCountData>('commerce-api/uom-dimensions/count').then((r) => r.data);
+  return axios.get<UomDimensionCountData>('commerce-api/uom/dimensions/count').then((r) => r.data);
 }
 
 export function listUomDimensions(search?: string): Promise<UomDimensionData[]> {
   return axios
-    .get<UomDimensionData[]>('commerce-api/uom-dimensions', { params: { search: search || undefined } })
+    .get<UomDimensionData[]>('commerce-api/uom/dimensions', { params: { search: search || undefined } })
     .then((r) => r.data);
 }
 
 export function getUomDimension(id: string): Promise<UomDimensionData> {
-  return axios.get<UomDimensionData>(`commerce-api/uom-dimensions/${id}`).then((r) => r.data);
+  return axios.get<UomDimensionData>(`commerce-api/uom/dimensions/${id}`).then((r) => r.data);
 }
 
 export function createUomDimension(data: CreateUomDimensionData): Promise<CreateResponse<UomDimensionData>> {
   return axios
-    .post<CreateResponse<UomDimensionData>>('commerce-api/uom-dimensions', data, {
+    .post<CreateResponse<UomDimensionData>>('commerce-api/uom/dimensions', data, {
       successMessage: 'Dimension created.',
     })
     .then((r) => r.data);
@@ -37,7 +37,7 @@ export function updateUomDimension({
   data: UpdateUomDimensionData;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/uom-dimensions/${id}`, data, {
+    .patch<SuccessResponse>(`commerce-api/uom/dimensions/${id}`, data, {
       successMessage: 'Dimension updated.',
     })
     .then((r) => r.data);
@@ -45,7 +45,7 @@ export function updateUomDimension({
 
 export function deleteUomDimension(id: string): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/uom-dimensions/${id}`, {
+    .delete<SuccessResponse>(`commerce-api/uom/dimensions/${id}`, {
       successMessage: 'Dimension deleted.',
     })
     .then((r) => r.data);

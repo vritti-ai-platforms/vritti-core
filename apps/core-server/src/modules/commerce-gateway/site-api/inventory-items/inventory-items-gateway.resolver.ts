@@ -2,12 +2,12 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { InventoryItem } from '../graphql/inventory-item.type';
-import { CreateInventoryItemInput, UpdateInventoryItemInput } from '../graphql/inventory-item-mutation.input';
-import { FeedFilterInput, FeedSearchInput, FeedSortInput } from '../graphql/inventory-items-feed.input';
-import { InventoryItemConnection } from '../graphql/inventory-items-feed.type';
-import { MutationResult } from '../graphql/mutation-result.type';
-import { InventoryItemsGatewayService } from '../services/inventory-items-gateway.service';
+import { InventoryItem } from './graphql/inventory-item.type';
+import { CreateInventoryItemInput, UpdateInventoryItemInput } from './graphql/inventory-item-mutation.input';
+import { FeedFilterInput, FeedSearchInput, FeedSortInput } from './graphql/inventory-items-feed.input';
+import { InventoryItemConnection } from './graphql/inventory-items-feed.type';
+import { MutationResult } from './graphql/mutation-result.type';
+import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @Resolver()
 export class InventoryItemsResolver {

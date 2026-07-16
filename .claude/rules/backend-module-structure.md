@@ -151,6 +151,32 @@ auth/
 
 A sub-path gets its own folder when it has its own service + repository (complex enough). Otherwise the controller stays in the parent's `controllers/` folder.
 
+## Microservice API layer (commerce-service `organization/`, `site/`, …)
+
+The commerce-service message-pattern layer follows the SAME complex-module split — `root/` +
+one folder per sub-resource, each with its OWN controller, all registered in ONE module. It is
+NOT unified like the gateway. Mirror `organization/inventory-items` (`root/`, `mrp/`, `suppliers/`,
+`uom-conversions/`).
+
+```
+organization/uom/
+├── uom.module.ts                    # ONE module (OrgUomModule) — registers BOTH controllers,
+│                                    #   imports both domain modules
+├── root/
+│   ├── uom.controller.ts            # @MessagePattern { cmd: 'org.uom.*' }
+│   └── dto/request/
+└── dimensions/
+    ├── uom-dimensions.controller.ts # @MessagePattern { cmd: 'org.uom.dimensions.*' }
+    └── dto/request/
+```
+
+- Controllers use `@MessagePattern`, not HTTP routes; `cmd` namespaces nest to mirror the sub-path
+  (`org.uom.*` → `org.uom.dimensions.*`).
+- The API-layer controllers inject the `domain/` services (`@domain/uom`, `@domain/uom-dimensions`
+  stay as separate self-contained domain modules).
+- The **gateway** (core-server `commerce-gateway`) does the OPPOSITE — one unified controller +
+  service + resolver per feature, flat, no `root/`. See `gateway-conventions.md`.
+
 ## Module.ts imports organized by submodule
 
 ```typescript

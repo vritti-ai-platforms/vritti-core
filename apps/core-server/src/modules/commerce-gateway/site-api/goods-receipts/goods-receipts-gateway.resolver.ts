@@ -2,10 +2,10 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { FeedSearchInput } from '../../../site-api/inventory-items/graphql/inventory-items-feed.input';
-import { GoodsReceipt } from '../graphql/goods-receipt.type';
-import { GoodsReceiptConnection } from '../graphql/goods-receipts-feed.type';
-import { GoodsReceiptsGatewayService } from '../services/goods-receipts-gateway.service';
+import { FeedSearchInput } from '../../site-api/inventory-items/graphql/inventory-items-feed.input';
+import { GoodsReceipt } from './graphql/goods-receipt.type';
+import { GoodsReceiptConnection } from './graphql/goods-receipts-feed.type';
+import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.service';
 
 // Goods receipts for the mobile screens: a keyset feed (list) + a by-id read (detail). Read-only — GR creation
 // is a PO-linked flow not exposed on mobile. Thin forwards to the gateway service (which NATS-forwards to

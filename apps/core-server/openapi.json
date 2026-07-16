@@ -13354,6 +13354,171 @@
         ]
       }
     },
+    "/commerce-api/uom/dimensions": {
+      "get": {
+        "operationId": "UomGatewayController_listDimensions",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by code or name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      },
+      "post": {
+        "operationId": "UomGatewayController_createDimension",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUomDimensionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      }
+    },
+    "/commerce-api/uom/dimensions/count": {
+      "get": {
+        "operationId": "UomGatewayController_countDimensions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      }
+    },
+    "/commerce-api/uom/dimensions/{id}": {
+      "get": {
+        "operationId": "UomGatewayController_findDimensionById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      },
+      "patch": {
+        "operationId": "UomGatewayController_updateDimension",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUomDimensionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      },
+      "delete": {
+        "operationId": "UomGatewayController_deleteDimension",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Units of Measure"
+        ]
+      }
+    },
     "/commerce-api/uom": {
       "post": {
         "operationId": "UomGatewayController_create",
@@ -13444,171 +13609,6 @@
         ],
         "tags": [
           "Commerce - Units of Measure"
-        ]
-      }
-    },
-    "/commerce-api/uom-dimensions": {
-      "get": {
-        "operationId": "UomDimensionsGatewayController_list",
-        "parameters": [
-          {
-            "name": "search",
-            "required": false,
-            "in": "query",
-            "description": "Search by code or name",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce › UOM Dimensions"
-        ]
-      },
-      "post": {
-        "operationId": "UomDimensionsGatewayController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateUomDimensionDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce › UOM Dimensions"
-        ]
-      }
-    },
-    "/commerce-api/uom-dimensions/count": {
-      "get": {
-        "operationId": "UomDimensionsGatewayController_count",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce › UOM Dimensions"
-        ]
-      }
-    },
-    "/commerce-api/uom-dimensions/{id}": {
-      "get": {
-        "operationId": "UomDimensionsGatewayController_findById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce › UOM Dimensions"
-        ]
-      },
-      "patch": {
-        "operationId": "UomDimensionsGatewayController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUomDimensionDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce › UOM Dimensions"
-        ]
-      },
-      "delete": {
-        "operationId": "UomDimensionsGatewayController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Commerce › UOM Dimensions"
         ]
       }
     },
@@ -23230,6 +23230,48 @@
           }
         }
       },
+      "CreateUomDimensionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code — a single lowercase word (hyphens allowed)",
+            "example": "mass"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name",
+            "example": "Mass"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "UpdateUomDimensionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Unique code — a single lowercase word (hyphens allowed)",
+            "example": "mass"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name",
+            "example": "Mass"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description"
+          }
+        }
+      },
       "CreateUomDto": {
         "type": "object",
         "properties": {
@@ -23301,48 +23343,6 @@
           "uomQty": {
             "type": "number",
             "description": "Updated count of this UOM in the ratio"
-          }
-        }
-      },
-      "CreateUomDimensionDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "Unique code — a single lowercase word (hyphens allowed)",
-            "example": "mass"
-          },
-          "name": {
-            "type": "string",
-            "description": "Display name",
-            "example": "Mass"
-          },
-          "description": {
-            "type": "string",
-            "description": "Optional description"
-          }
-        },
-        "required": [
-          "code",
-          "name"
-        ]
-      },
-      "UpdateUomDimensionDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "description": "Unique code — a single lowercase word (hyphens allowed)",
-            "example": "mass"
-          },
-          "name": {
-            "type": "string",
-            "description": "Display name",
-            "example": "Mass"
-          },
-          "description": {
-            "type": "string",
-            "description": "Optional description"
           }
         }
       }

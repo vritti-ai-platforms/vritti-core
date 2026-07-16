@@ -8,6 +8,36 @@ paths:
 
 Gateway modules in core-server forward HTTP requests to microservices via NATS. They mirror cloud-server controller conventions.
 
+## Folder structure — flat & unified per feature
+
+A gateway feature folder is **flat and unified**: ONE controller + ONE service + resolver(s) per
+feature, with sub-resources folded into the SAME files. This is the opposite of the microservice
+API layer (which splits sub-resources into `root/` + submodule folders — see
+`backend-module-structure.md`). Mirror `org-api/inventory-items` / `site-api/inventory-items`.
+
+```
+org-api/uom/
+├── uom-gateway.controller.ts        # ONE @Controller('uom') — serves uom/* AND uom/dimensions/*
+├── uom-gateway.resolver.ts          # ONE resolver — uom + dimension GraphQL (mobile)
+├── services/
+│   └── uom-gateway.service.ts       # ONE service — sub-resource methods NAMESPACED
+│                                    #   (listDimensions, createDimension, findDimensionById, …)
+├── dto/request/ · dto/response/     # shared — uom + dimension DTOs together
+└── graphql/                         # shared
+```
+
+- **No `root/`, no per-sub-resource subfolders.** A sub-path (e.g. `uom/dimensions`) is just more
+  routes on the parent controller (`@Get('dimensions')`, `@Patch('dimensions/:id')`, …) and more
+  namespaced methods on the parent service. Fastify's radix router resolves `dimensions/count`
+  vs `dimensions/:id` regardless of declaration order.
+- **Resolver sits parallel to the controller** — at the feature-folder root, NEVER in a
+  `resolvers/` subfolder. Multiple resolvers per feature are fine, but they all inject the one
+  gateway service.
+- **No per-feature `*.module.ts`.** Every gateway controller/resolver/service registers directly
+  in the single `commerce-gateway.module.ts`.
+- NATS `cmd` namespaces nest to match the microservice: `org.uom.*` (root) + `org.uom.dimensions.*`
+  (sub-resource). The gateway `send(...)` cmd MUST match the microservice `@MessagePattern` exactly.
+
 ## Controller — thin HTTP layer with logs
 
 Every endpoint must log `METHOD /commerce-api/<path>` before calling the service:

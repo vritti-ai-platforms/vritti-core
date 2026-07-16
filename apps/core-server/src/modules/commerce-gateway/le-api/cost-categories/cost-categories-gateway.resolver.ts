@@ -2,10 +2,10 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { MutationResult } from '../../../site-api/inventory-items/graphql/mutation-result.type';
-import { CostCategory } from '../graphql/cost-category.type';
-import { CreateCostCategoryInput, UpdateCostCategoryInput } from '../graphql/cost-category-mutation.input';
-import { CostCategoriesGatewayService } from '../services/cost-categories-gateway.service';
+import { MutationResult } from '../../site-api/inventory-items/graphql/mutation-result.type';
+import { CostCategory } from './graphql/cost-category.type';
+import { CreateCostCategoryInput, UpdateCostCategoryInput } from './graphql/cost-category-mutation.input';
+import { CostCategoriesGatewayService } from './services/cost-categories-gateway.service';
 
 // Cost categories for the mobile Cost Categories screen: plain list + CRUD. Thin forwards to the gateway
 // service. Select-options (`costCategoriesOptions`) now live in the shared SelectApiModule. Activate/deactivate

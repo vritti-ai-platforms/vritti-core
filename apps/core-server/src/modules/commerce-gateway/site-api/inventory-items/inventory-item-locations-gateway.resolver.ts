@@ -2,13 +2,13 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { InventoryItemLocation, InventoryItemLocationConnection } from '../graphql/inventory-item-location.type';
+import { InventoryItemLocation, InventoryItemLocationConnection } from './graphql/inventory-item-location.type';
 import {
   CreateInventoryItemLocationInput,
   UpdateInventoryItemLocationInput,
-} from '../graphql/inventory-item-location-mutation.input';
-import { MutationResult } from '../graphql/mutation-result.type';
-import { InventoryItemsGatewayService } from '../services/inventory-items-gateway.service';
+} from './graphql/inventory-item-location-mutation.input';
+import { MutationResult } from './graphql/mutation-result.type';
+import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 // Per-inventory-item location configs (the mobile Locations tab) — a Relay offset feed (an item can be stocked
 // in many locations) plus create/edit/delete. Thin GraphQL forwards to the existing gateway methods.

@@ -2,10 +2,10 @@ import { Logger } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
-import { MutationResult } from '../../../site-api/inventory-items/graphql/mutation-result.type';
-import { TaxGroup } from '../graphql/tax-group.type';
-import { CreateTaxGroupInput, UpdateTaxGroupInput } from '../graphql/tax-group-mutation.input';
-import { TaxGroupsGatewayService } from '../services/tax-groups-gateway.service';
+import { MutationResult } from '../../site-api/inventory-items/graphql/mutation-result.type';
+import { TaxGroup } from './graphql/tax-group.type';
+import { CreateTaxGroupInput, UpdateTaxGroupInput } from './graphql/tax-group-mutation.input';
+import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 
 // Tax groups for the mobile Tax Groups screen: plain list + CRUD. Thin forwards to the gateway service.
 // Select-options (`taxGroupsOptions`) now live in the shared SelectApiModule. buId flows via NATS context.

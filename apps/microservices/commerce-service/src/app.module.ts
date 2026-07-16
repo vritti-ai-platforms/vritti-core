@@ -14,7 +14,6 @@ import { OrgCategoriesModule } from './modules/organization/categories/categorie
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
 import { OrgSalesChannelsModule } from './modules/organization/sales-channels/sales-channels.module';
 import { OrgUomModule } from './modules/organization/uom/uom.module';
-import { OrgUomDimensionsModule } from './modules/organization/uom-dimensions/uom-dimensions.module';
 import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-items/inventory-items.module';
 import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
@@ -81,7 +80,6 @@ import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-t
     }),
     OrgCategoriesModule,
     OrgSalesChannelsModule,
-    OrgUomDimensionsModule,
     OrgUomModule,
     OrgInventoryItemsModule,
     LeCostCategoriesModule,

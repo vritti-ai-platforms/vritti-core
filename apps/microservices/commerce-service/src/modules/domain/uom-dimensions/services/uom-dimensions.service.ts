@@ -7,8 +7,8 @@ import {
   type SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import type { CreateUomDimensionDto } from '@/modules/organization/uom-dimensions/dto/request/create-uom-dimension.dto';
-import type { UpdateUomDimensionDto } from '@/modules/organization/uom-dimensions/dto/request/update-uom-dimension.dto';
+import type { CreateUomDimensionDto } from '@/modules/organization/uom/dimensions/dto/request/create-uom-dimension.dto';
+import type { UpdateUomDimensionDto } from '@/modules/organization/uom/dimensions/dto/request/update-uom-dimension.dto';
 import { UomDimensionDto } from '../dto/entity/uom-dimension.dto';
 import { UomDimensionsRepository } from '../repositories/uom-dimensions.repository';
 
