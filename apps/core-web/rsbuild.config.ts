@@ -10,7 +10,7 @@ const { publicVars, parsed } = loadEnv();
 
 const useHttps = process.env.USE_HTTPS === 'true';
 const protocol = useHttps ? 'https' : 'http';
-const host = 'local.vrittiai.com';
+const host = process.env.PUBLIC_MF_BASE_URL ? new URL(process.env.PUBLIC_MF_BASE_URL).hostname : 'local.vrittiai.com';
 const defaultApiHost = `${protocol}://${host}:3001`;
 
 // Static dev remotes enable MF live reload (plugin needs URLs to watch)
