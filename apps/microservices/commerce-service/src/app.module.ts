@@ -7,13 +7,13 @@ import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
 import { LeCostCategoriesModule } from './modules/legal-entity/cost-categories/cost-categories.module';
-import { LeSupplierItemsModule } from './modules/legal-entity/supplier-items/supplier-items.module';
 import { LeSuppliersModule } from './modules/legal-entity/suppliers/suppliers.module';
 import { LeTaxGroupsModule } from './modules/legal-entity/tax-groups/tax-groups.module';
 import { OrgCategoriesModule } from './modules/organization/categories/categories.module';
 import { OrgInventoryItemsModule } from './modules/organization/inventory-items/inventory-items.module';
 import { OrgSalesChannelsModule } from './modules/organization/sales-channels/sales-channels.module';
 import { OrgUomModule } from './modules/organization/uom/uom.module';
+import { SelectModule } from './modules/select/select.module';
 import { SiteGroupInventoryItemsModule } from './modules/site-group/inventory-items/inventory-items.module';
 import { SiteCatalogsModule } from './modules/site/catalogs/catalogs.module';
 import { SiteCreditNotesModule } from './modules/site/credit-notes/credit-notes.module';
@@ -26,7 +26,6 @@ import { SiteLocationQuantsModule } from './modules/site/locations/quants/locati
 import { SiteOrdersModule } from './modules/site/orders/orders.module';
 import { SitePaymentsModule } from './modules/site/payments/payments.module';
 import { SitePosTerminalsModule } from './modules/site/pos-terminals/pos-terminals.module';
-import { SitePurchaseOrderItemsModule } from './modules/site/purchase-order-items/purchase-order-items.module';
 import { SitePurchaseOrdersModule } from './modules/site/purchase-orders/purchase-orders.module';
 import { SiteStockAdjustmentsModule } from './modules/site/stock-adjustments/stock-adjustments.module';
 import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-transfers.module';
@@ -85,12 +84,10 @@ import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-t
     LeCostCategoriesModule,
     LeTaxGroupsModule,
     LeSuppliersModule,
-    LeSupplierItemsModule,
     SiteCatalogsModule,
     SiteInventoryItemsModule,
     SiteGroupInventoryItemsModule,
     SitePurchaseOrdersModule,
-    SitePurchaseOrderItemsModule,
     SiteGoodsReceiptsModule,
     SiteLocationsModule,
     SiteLocationQuantsModule,
@@ -102,6 +99,7 @@ import { SiteStockTransfersModule } from './modules/site/stock-transfers/stock-t
     SiteCreditNotesModule,
     SiteCustomersModule,
     SiteOrdersModule,
+    SelectModule,
   ],
   providers: [
     {

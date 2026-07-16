@@ -31,13 +31,6 @@ export class PosTerminalsController {
     return this.posTerminalsService.findForTable(state);
   }
 
-  // Returns paginated POS terminal options for select dropdowns
-  @MessagePattern({ cmd: 'site.posTerminals.select' })
-  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('posTerminals.select');
-    return this.posTerminalsService.findForSelect(data);
-  }
-
   // Returns POS-role storage location options for select dropdowns
   @MessagePattern({ cmd: 'site.posTerminals.locationsSelect' })
   async locationsSelect(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {

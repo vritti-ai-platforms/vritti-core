@@ -4,8 +4,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
   CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
@@ -22,12 +20,6 @@ export class CostCategoriesController {
   async table(@Payload() state: TableViewState): Promise<{ result: CostCategoryDto[]; count: number }> {
     this.logger.log('costCategories.table');
     return this.service.findForTable(state);
-  }
-
-  @MessagePattern({ cmd: 'le.costCategories.select' })
-  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('costCategories.select');
-    return this.service.findForSelect(data);
   }
 
   @MessagePattern({ cmd: 'le.costCategories.list' })

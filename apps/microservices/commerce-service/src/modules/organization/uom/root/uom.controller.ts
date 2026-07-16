@@ -6,8 +6,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
   CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
@@ -54,30 +52,6 @@ export class UomController {
   async derived(@Payload() data: { baseUnitId: string }): Promise<UomDto[]> {
     this.logger.log(`uom.derived — baseUnitId: ${data.baseUnitId}`);
     return this.uomService.findDerivedUnits(data.baseUnitId);
-  }
-
-  // Returns paginated UOM options for the select component
-  @MessagePattern({ cmd: 'org.uom.select' })
-  async select(
-    @Payload()
-    data: SelectOptionsQueryDto & {
-      derivedOnly?: boolean;
-      baseOnly?: boolean;
-      dimensionId?: string;
-      inventoryItemId?: string;
-      supplierId?: string;
-      purchaseOrderId?: string;
-    },
-  ): Promise<SelectQueryResult> {
-    this.logger.log('uom.select');
-    return this.uomService.findForSelect(data, {
-      derivedOnly: data.derivedOnly,
-      baseOnly: data.baseOnly,
-      dimensionId: data.dimensionId,
-      inventoryItemId: data.inventoryItemId,
-      supplierId: data.supplierId,
-      purchaseOrderId: data.purchaseOrderId,
-    });
   }
 
   // Creates a new UOM

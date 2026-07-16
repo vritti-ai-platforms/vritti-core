@@ -6,11 +6,9 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
   CreateResponseDto,
-  SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
-import type { CategoriesSelectQueryDto } from '../dto/request/categories-select-query.dto';
 import type { CreateCategoryDto } from '../dto/request/create-category.dto';
 import type { ReorderCategoriesDto } from '../dto/request/reorder-categories.dto';
 import type { UpdateCategoryDto } from '../dto/request/update-category.dto';
@@ -20,13 +18,6 @@ export class CategoriesRootController {
   private readonly logger = new Logger(CategoriesRootController.name);
 
   constructor(private readonly categoriesService: CategoriesService) {}
-
-  // Returns paginated category options for the select component (RLS scopes results)
-  @MessagePattern({ cmd: 'org.categories.select' })
-  async select(@Payload() data: CategoriesSelectQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('categories.select');
-    return this.categoriesService.findForSelect(data);
-  }
 
   // Returns total categories count
   @MessagePattern({ cmd: 'org.categories.count' })

@@ -1,8 +1,7 @@
 import type { InventoryItemLotDto } from '@domain/inventory-item-lots/dto/entity/inventory-item-lot.dto';
-import { InventoryItemLotsService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/database';
 import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 import { InventoryItemsLotsService } from './services/inventory-items-lots.service';
 
@@ -10,10 +9,7 @@ import { InventoryItemsLotsService } from './services/inventory-items-lots.servi
 export class InventoryItemsLotsController {
   private readonly logger = new Logger(InventoryItemsLotsController.name);
 
-  constructor(
-    private readonly service: InventoryItemLotsService,
-    private readonly itemsLotsService: InventoryItemsLotsService,
-  ) {}
+  constructor(private readonly itemsLotsService: InventoryItemsLotsService) {}
 
   // Returns paginated lots for an inventory item data table (one row per lot, with stock totals)
   @MessagePattern({ cmd: 'site.inventoryItems.lotsTable' })
@@ -23,12 +19,5 @@ export class InventoryItemsLotsController {
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     this.logger.log(`inventoryItems.lotsTable — inventoryItemId: ${data.inventoryItemId}`);
     return this.itemsLotsService.findForTable(data.inventoryItemId, data, siteCurrencyCode);
-  }
-
-  // Returns paginated lot options, optionally filtered to a specific inventory item
-  @MessagePattern({ cmd: 'site.inventoryItems.selectLots' })
-  async select(@Payload() data: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItems.selectLots — inventoryItemId: ${data.inventoryItemId ?? 'all'}`);
-    return this.service.findForSelect(data);
   }
 }

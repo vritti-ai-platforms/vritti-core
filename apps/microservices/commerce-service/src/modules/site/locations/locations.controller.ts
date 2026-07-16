@@ -6,8 +6,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
   CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
@@ -49,25 +47,6 @@ export class LocationsController {
   async findById(@Payload() data: { id: string }): Promise<LocationDto> {
     this.logger.log(`locations.findById — id: ${data.id}`);
     return this.locationsService.findById(data.id);
-  }
-
-  // Returns paginated location options for select dropdowns
-  @MessagePattern({ cmd: 'site.locations.select' })
-  async select(
-    @Payload()
-    data: SelectOptionsQueryDto & {
-      locationRoles?: string;
-      inventoryItemId?: string;
-      excludeUsedOnGoodsReceiptItemId?: string;
-      goodsReceiptLotId?: string;
-    },
-  ): Promise<SelectQueryResult> {
-    this.logger.log(
-      `locations.select${data.locationRoles ? ` — locationRoles: ${data.locationRoles}` : ''}${
-        data.inventoryItemId ? ` — inventoryItemId: ${data.inventoryItemId}` : ''
-      }${data.groupIdKey ? ` — groupIdKey: ${data.groupIdKey}` : ''}`,
-    );
-    return this.locationsService.findForSelect(data);
   }
 
   // Reorders siblings under a parent location

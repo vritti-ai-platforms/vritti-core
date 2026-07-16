@@ -3,8 +3,8 @@ import { Args, ID, Query, Resolver } from '@nestjs/graphql';
 import { RequireSession } from '@vritti/api-sdk/auth';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { SessionTypeValues } from '@/db/schema';
-import { SelectOptionsInput } from '../commerce-gateway/_shared/graphql/select.input';
-import { SelectOptions } from '../commerce-gateway/_shared/graphql/select.type';
+import { SelectOptionsInput } from '../_shared/graphql/select.input';
+import { SelectOptions } from '../_shared/graphql/select.type';
 
 @Resolver()
 @RequireSession(SessionTypeValues.WEB, SessionTypeValues.MOBILE)
@@ -18,7 +18,7 @@ export class SelectApiResolver {
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY categoriesOptions');
-    return this.nats.send<SelectOptions>('commerce', 'categories.select', input ?? {});
+    return this.nats.send<SelectOptions>('commerce', 'select.categories', input ?? {});
   }
 
   @Query(() => SelectOptions, { name: 'customersOptions' })
@@ -26,7 +26,7 @@ export class SelectApiResolver {
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY customersOptions');
-    return this.nats.send<SelectOptions>('commerce', 'customers.select', input ?? {});
+    return this.nats.send<SelectOptions>('commerce', 'select.customers', input ?? {});
   }
 
   @Query(() => SelectOptions, { name: 'costCategoriesOptions' })
@@ -34,7 +34,7 @@ export class SelectApiResolver {
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY costCategoriesOptions');
-    return this.nats.send<SelectOptions>('commerce', 'costCategories.select', input ?? {});
+    return this.nats.send<SelectOptions>('commerce', 'select.costCategories', input ?? {});
   }
 
   @Query(() => SelectOptions, { name: 'inventoryItemSerialsOptions' })
@@ -43,7 +43,7 @@ export class SelectApiResolver {
     @Args('quantId', { type: () => ID, nullable: true }) quantId?: string,
   ): Promise<SelectOptions> {
     this.logger.log(`QUERY inventoryItemSerialsOptions — quantId: ${quantId ?? 'all'}`);
-    return this.nats.send<SelectOptions>('commerce', 'inventoryItems.selectSerials', { ...input, quantId });
+    return this.nats.send<SelectOptions>('commerce', 'select.inventoryItemSerials', { ...input, quantId });
   }
 
   @Query(() => SelectOptions, { name: 'inventoryItemQuantsOptions' })
@@ -52,7 +52,7 @@ export class SelectApiResolver {
     @Args('inventoryItemId', { type: () => ID, nullable: true }) inventoryItemId?: string,
   ): Promise<SelectOptions> {
     this.logger.log(`QUERY inventoryItemQuantsOptions — inventoryItemId: ${inventoryItemId ?? 'all'}`);
-    return this.nats.send<SelectOptions>('commerce', 'inventoryItems.selectQuants', { ...input, inventoryItemId });
+    return this.nats.send<SelectOptions>('commerce', 'select.inventoryItemQuants', { ...input, inventoryItemId });
   }
 
   @Query(() => SelectOptions, { name: 'inventoryItemsOptions' })
@@ -61,7 +61,7 @@ export class SelectApiResolver {
     @Args('excludeOnSupplierId', { type: () => ID, nullable: true }) excludeOnSupplierId?: string,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY inventoryItemsOptions');
-    return this.nats.send<SelectOptions>('commerce', 'inventoryItems.select', {
+    return this.nats.send<SelectOptions>('commerce', 'select.inventoryItems', {
       ...(input ?? {}),
       excludeOnSupplierId,
     });
@@ -73,7 +73,7 @@ export class SelectApiResolver {
     @Args('inventoryItemId', { type: () => ID, nullable: true }) inventoryItemId?: string,
   ): Promise<SelectOptions> {
     this.logger.log(`QUERY inventoryItemLotsOptions — inventoryItemId: ${inventoryItemId ?? 'all'}`);
-    return this.nats.send<SelectOptions>('commerce', 'inventoryItems.selectLots', { ...input, inventoryItemId });
+    return this.nats.send<SelectOptions>('commerce', 'select.inventoryItemLots', { ...input, inventoryItemId });
   }
 
   @Query(() => SelectOptions, { name: 'purchaseOrdersOptions' })
@@ -83,7 +83,7 @@ export class SelectApiResolver {
     @Args('supplierId', { type: () => ID, nullable: true }) supplierId?: string,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY purchaseOrdersOptions');
-    return this.nats.send<SelectOptions>('commerce', 'purchaseOrders.select', {
+    return this.nats.send<SelectOptions>('commerce', 'select.purchaseOrders', {
       ...(input ?? {}),
       status,
       supplierId,
@@ -97,7 +97,7 @@ export class SelectApiResolver {
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY purchaseOrderItemsOptions');
-    return this.nats.send<SelectOptions>('commerce', 'purchaseOrderItems.select', {
+    return this.nats.send<SelectOptions>('commerce', 'select.purchaseOrderItems', {
       ...(input ?? {}),
       purchaseOrderId,
       excludeOnGoodsReceiptId,
@@ -112,7 +112,7 @@ export class SelectApiResolver {
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY supplierItemsOptions');
-    return this.nats.send<SelectOptions>('commerce', 'supplierItems.select', {
+    return this.nats.send<SelectOptions>('commerce', 'select.supplierItems', {
       ...(input ?? {}),
       supplierId,
       excludeOnPurchaseOrderId,
@@ -130,7 +130,7 @@ export class SelectApiResolver {
     @Args('goodsReceiptLotId', { type: () => ID, nullable: true }) goodsReceiptLotId?: string,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY locationsOptions');
-    return this.nats.send<SelectOptions>('commerce', 'locations.select', {
+    return this.nats.send<SelectOptions>('commerce', 'select.locations', {
       ...(input ?? {}),
       locationRoles,
       inventoryItemId,
@@ -147,7 +147,7 @@ export class SelectApiResolver {
     @Args('derivedOnly', { type: () => Boolean, nullable: true }) derivedOnly?: boolean,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY uomOptions');
-    return this.nats.send<SelectOptions>('commerce', 'uom.select', {
+    return this.nats.send<SelectOptions>('commerce', 'select.uom', {
       ...(input ?? {}),
       dimensionId,
       baseOnly,
@@ -160,7 +160,7 @@ export class SelectApiResolver {
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY suppliersOptions');
-    return this.nats.send<SelectOptions>('commerce', 'suppliers.select', input ?? {});
+    return this.nats.send<SelectOptions>('commerce', 'select.suppliers', input ?? {});
   }
 
   @Query(() => SelectOptions, { name: 'taxGroupsOptions' })
@@ -168,6 +168,6 @@ export class SelectApiResolver {
     @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
   ): Promise<SelectOptions> {
     this.logger.log('QUERY taxGroupsOptions');
-    return this.nats.send<SelectOptions>('commerce', 'taxGroups.select', input ?? {});
+    return this.nats.send<SelectOptions>('commerce', 'select.taxGroups', input ?? {});
   }
 }

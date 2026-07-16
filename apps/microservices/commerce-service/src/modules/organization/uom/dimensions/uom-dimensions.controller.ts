@@ -4,8 +4,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import {
   CreateResponseDto,
-  type SelectOptionsQueryDto,
-  type SelectQueryResult,
   type SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import type { CreateUomDimensionDto } from './dto/request/create-uom-dimension.dto';
@@ -29,13 +27,6 @@ export class UomDimensionsController {
   async list(@Payload() data: { search?: string }): Promise<UomDimensionDto[]> {
     this.logger.log('uom.dimensions.list');
     return this.service.list(data.search);
-  }
-
-  // Returns paginated UOM dimension options for the select component
-  @MessagePattern({ cmd: 'org.uom.dimensions.select' })
-  async select(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('uom.dimensions.select');
-    return this.service.findForSelect(query);
   }
 
   // Finds a UOM dimension by ID

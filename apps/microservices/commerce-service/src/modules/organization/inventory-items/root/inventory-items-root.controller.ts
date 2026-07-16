@@ -6,8 +6,6 @@ import type {
   CreateResponseDto,
   FilterCondition,
   SearchState,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
   SortCondition,
   SuccessResponseDto,
   TableViewState,
@@ -49,14 +47,6 @@ export class InventoryItemsRootController {
   }> {
     this.logger.log('inventoryItems.feed');
     return this.service.findForFeed(query);
-  }
-
-  // Master item options for select components
-  @MessagePattern({ cmd: 'org.inventoryItems.select' })
-  async select(@Payload() data: SelectOptionsQueryDto & { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
-    const { excludeOnSupplierId, ...query } = data;
-    this.logger.log('inventoryItems.select');
-    return this.service.findForSelect(query, { excludeOnSupplierId });
   }
 
   // Creates a master inventory item (asserts the category is a leaf)

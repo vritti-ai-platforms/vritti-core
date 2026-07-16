@@ -2,7 +2,7 @@ import type { InventoryItemQuantDto } from '@domain/inventory-item-quants/dto/en
 import { InventoryItemQuantsService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { SelectOptionsQueryDto, SelectQueryResult, TableViewState } from '@vritti/api-sdk/database';
+import type { TableViewState } from '@vritti/api-sdk/database';
 import { InventoryItemsQuantsService } from './services/inventory-items-quants.service';
 
 @Controller()
@@ -37,9 +37,4 @@ export class InventoryItemsQuantsController {
     return this.service.findQuantById(data.id);
   }
 
-  @MessagePattern({ cmd: 'site.inventoryItems.selectQuants' })
-  async select(@Payload() data: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {
-    this.logger.log(`inventoryItems.selectQuants — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findForSelect(data);
-  }
 }

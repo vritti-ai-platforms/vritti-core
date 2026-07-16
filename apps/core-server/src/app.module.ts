@@ -40,7 +40,6 @@ import { UserDomainModule } from './modules/domain/user/user.module';
 import { UserPermissionsDomainModule } from './modules/domain/user-permissions/user-permissions.module';
 import { UserRoleDomainModule } from './modules/domain/user-role/user-role.module';
 import { VerificationDomainModule } from './modules/domain/verification/verification.module';
-import { SelectApiModule } from './modules/select-api/select-api.module';
 
 @Module({
   imports: [
@@ -257,9 +256,6 @@ import { SelectApiModule } from './modules/select-api/select-api.module';
     // Forwards requests to commerce-service via NATS
     CommerceGatewayModule,
     RouterModule.register([{ path: 'commerce-api', module: CommerceGatewayModule }]),
-    // Cross-feature select/picker endpoints (not feature-gated)
-    SelectApiModule,
-    RouterModule.register([{ path: 'commerce-api', module: SelectApiModule }]),
     RouterModule.register([{ path: 'account', module: AccountModule }]),
   ],
 })

@@ -44,31 +44,31 @@ export class SelectApiController {
   @Get('categories')
   @ApiCategoriesSelect()
   selectCategories(@Query() query: CategoriesSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'categories.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.categories', query);
   }
 
   @Get('catalogs')
   @ApiCatalogsSelect()
   selectCatalogs(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'catalogs.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.catalogs', query);
   }
 
   @Get('cost-categories')
   @ApiCostCategoriesSelect()
   selectCostCategories(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'costCategories.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.costCategories', query);
   }
 
   @Get('customers')
   @ApiCustomersSelect()
   selectCustomers(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'customers.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.customers', query);
   }
 
   @Get('inventory-item-lots')
   @ApiInventoryItemLotsSelect()
   selectInventoryItemLots(@Query() query: LotsSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'inventoryItems.selectLots', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItemLots', query);
   }
 
   @Get('inventory-item-quants')
@@ -76,78 +76,78 @@ export class SelectApiController {
   selectInventoryItemQuants(
     @Query() query: SelectOptionsQueryDto & { inventoryItemId: string },
   ): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'inventoryItems.selectQuants', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItemQuants', query);
   }
 
   @Get('inventory-item-serials')
   @ApiInventoryItemSerialsSelect()
   selectInventoryItemSerials(@Query() query: SerialsSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'inventoryItems.selectSerials', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItemSerials', query);
   }
 
   @Get('inventory-items')
   @ApiInventoryItemsSelect()
   selectInventoryItems(@Query() query: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'inventoryItems.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItems', query);
   }
 
   @Get('locations')
   @ApiLocationsSelect()
   selectLocations(@Query() query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'locations.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.locations', query);
   }
 
   @Get('pos-terminals')
   @ApiPosTerminalsSelect()
   selectPosTerminals(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'posTerminals.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.posTerminals', query);
   }
 
   @Get('purchase-order-items')
   @ApiPurchaseOrderItemsSelect()
   selectPurchaseOrderItems(@Query() query: PurchaseOrderItemsSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'purchaseOrderItems.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.purchaseOrderItems', query);
   }
 
   @Get('purchase-orders')
   @ApiPurchaseOrdersSelect()
   selectPurchaseOrders(@Query() query: PurchaseOrderSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'purchaseOrders.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.purchaseOrders', query);
   }
 
   @Get('sales-channels')
   @ApiSalesChannelsSelect()
   selectSalesChannels(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'salesChannels.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.salesChannels', query);
   }
 
   @Get('supplier-items')
   @ApiSupplierItemsSelect()
   selectSupplierItems(@Query() query: SupplierItemsSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'supplierItems.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.supplierItems', query);
   }
 
   @Get('suppliers')
   @ApiSuppliersSelect()
   selectSuppliers(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'suppliers.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.suppliers', query);
   }
 
   @Get('tax-groups')
   @ApiTaxGroupsSelect()
   selectTaxGroups(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'taxGroups.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.taxGroups', query);
   }
 
   @Get('uom')
   @ApiUomSelect()
   selectUom(@Query() query: UomSelectQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'uom.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.uom', query);
   }
 
   @Get('uom-dimensions')
   @ApiUomDimensionsSelect()
   selectUomDimensions(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.nats.send<SelectQueryResult>('commerce', 'uom-dimensions.select', query);
+    return this.nats.send<SelectQueryResult>('commerce', 'select.uomDimensions', query);
   }
 }

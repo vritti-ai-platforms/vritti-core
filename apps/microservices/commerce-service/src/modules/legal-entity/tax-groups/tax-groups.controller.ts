@@ -4,8 +4,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
   CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
@@ -30,13 +28,6 @@ export class TaxGroupsController {
   async list(@Payload() data: { search?: string }): Promise<TaxGroupDto[]> {
     this.logger.log('taxGroups.list');
     return this.taxGroupsService.list(data?.search);
-  }
-
-  // Returns tax groups as dropdown options
-  @MessagePattern({ cmd: 'le.taxGroups.select' })
-  async select(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('taxGroups.select');
-    return this.taxGroupsService.findForSelect(query);
   }
 
   // Creates a new tax group (org_id/bu_id auto-filled by DB defaults from session vars)

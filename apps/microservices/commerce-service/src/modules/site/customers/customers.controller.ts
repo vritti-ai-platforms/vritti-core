@@ -3,8 +3,6 @@ import { CustomersService } from '@domain/customers/services/customers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
-  SelectOptionsQueryDto,
-  SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
@@ -21,12 +19,6 @@ export class CustomersController {
   async table(@Payload() state: TableViewState): Promise<{ result: CustomerDto[]; count: number }> {
     this.logger.log('customers.table');
     return this.service.findForTable(state);
-  }
-
-  @MessagePattern({ cmd: 'site.customers.select' })
-  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('customers.select');
-    return this.service.findForSelect(data);
   }
 
   @MessagePattern({ cmd: 'site.customers.create' })

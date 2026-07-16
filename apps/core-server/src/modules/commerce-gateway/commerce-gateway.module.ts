@@ -20,6 +20,7 @@ import { SalesChannelsGatewayService } from './org-api/sales-channels/services/s
 import { UomResolver } from './org-api/uom/uom-gateway.resolver';
 import { UomGatewayService } from './org-api/uom/services/uom-gateway.service';
 import { UomGatewayController } from './org-api/uom/uom-gateway.controller';
+import { SelectApiController } from './select-api/select-api.controller';
 import { CatalogsGatewayController } from './site-api/catalogs/catalogs-gateway.controller';
 import { CatalogsGatewayService } from './site-api/catalogs/services/catalogs-gateway.service';
 import { CreditNotesGatewayController } from './site-api/credit-notes/credit-notes-gateway.controller';
@@ -85,6 +86,7 @@ import { SiteGroupInventoryItemsGatewayController } from './site-group-api/inven
     SiteGroupInventoryItemsGatewayController,
     TaxGroupsGatewayController,
     UomGatewayController,
+    SelectApiController,
   ],
   providers: [
     CategoriesGatewayService,

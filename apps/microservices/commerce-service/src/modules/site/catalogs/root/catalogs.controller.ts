@@ -4,8 +4,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type {
   CreateResponseDto,
-  SelectOptionsQueryDto,
-  SelectQueryResult,
   SuccessResponseDto,
   TableViewState,
 } from '@vritti/api-sdk/database';
@@ -23,13 +21,6 @@ export class CatalogsController {
   async table(@Payload() state: TableViewState): Promise<{ result: CatalogDto[]; count: number }> {
     this.logger.log('catalogs.table');
     return this.service.findForTable(state);
-  }
-
-  // Returns paginated catalog options for select dropdowns
-  @MessagePattern({ cmd: 'site.catalogs.select' })
-  async select(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('catalogs.select');
-    return this.service.findForSelect(data);
   }
 
   // Creates a catalog
