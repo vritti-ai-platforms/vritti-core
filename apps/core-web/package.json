@@ -10,6 +10,7 @@
     "dev": "rsbuild dev --host local.vrittiai.com",
     "dev:ssl": "USE_HTTPS=true rsbuild dev --host local.vrittiai.com",
     "dev:ssl:w": "cross-env USE_HTTPS=true rsbuild dev --host local.vrittiai.com",
+    "dev:ssl:vm": "USE_HTTPS=true rsbuild dev --host 0.0.0.0",
     "dev:cloud": "rsbuild dev --host cloud.local.vrittiai.com",
     "dev:cloud:ssl": "USE_HTTPS=true rsbuild dev --host cloud.local.vrittiai.com",
     "dev:cloud:ssl:w": "cross-env USE_HTTPS=true rsbuild dev --host cloud.local.vrittiai.com",

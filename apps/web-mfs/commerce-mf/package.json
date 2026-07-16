@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "rsbuild dev",
     "dev:ssl": "USE_HTTPS=true rsbuild dev",
+    "dev:ssl:vm": "USE_HTTPS=true rsbuild dev --host 0.0.0.0",
     "dev:ssl:w": "cross-env USE_HTTPS=true rsbuild dev",
     "build": "tsc --noEmit && rsbuild build",
     "typecheck": "tsc --noEmit",
