@@ -8,12 +8,12 @@ import type { AddCompanyPersonPayload, CompanyPeopleTableResponse, CompanyPerson
 import { addCompanyPerson, getCompanyPeople, removeCompanyPerson } from '@/services/organization/companies.service';
 import { COMPANY_KEY, COMPANY_PEOPLE_TABLE_KEY } from './keys';
 
-// Fetches a company's linked people; self-gates on the companies view permission
+// Fetches a company's linked people; self-gates on the people view permission
 export function useCompanyPeopleTable(
   companyId: string,
   options?: Omit<UseQueryOptions<CompanyPeopleTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_COMPANIES.view);
+  const { available } = usePermission(ORG_COMPANIES.people.view);
   return useQuery<CompanyPeopleTableResponse, AxiosError>({
     queryKey: COMPANY_PEOPLE_TABLE_KEY(companyId),
     queryFn: () => getCompanyPeople(companyId),

@@ -32,6 +32,7 @@ export class TaxComponentsGatewayController {
   // Creates a new tax component
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_TAX_COMPONENTS.add)
   create(@Body() dto: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentResponseDto>> {
     this.logger.log('POST /commerce-api/tax-components');
     return this.service.create(dto);
@@ -47,6 +48,7 @@ export class TaxComponentsGatewayController {
 
   // Updates a tax component by ID
   @Patch(':id')
+  @RequirePermission(ORG_TAX_COMPONENTS.edit)
   update(@Param('id') id: string, @Body() dto: UpdateTaxComponentDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/tax-components/${id}`);
     return this.service.update(id, dto);
@@ -54,6 +56,7 @@ export class TaxComponentsGatewayController {
 
   // Deletes a tax component by ID
   @Delete(':id')
+  @RequirePermission(ORG_TAX_COMPONENTS.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/tax-components/${id}`);
     return this.service.delete(id);

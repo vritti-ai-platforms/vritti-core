@@ -52,6 +52,7 @@ export const CompanyDetailPage = () => {
           <Button
             variant="outline"
             size="sm"
+            permission={ORG_COMPANIES.edit}
             startAdornment={<Pencil className="size-3.5" />}
             onClick={editDialog.open}
           >
@@ -65,30 +66,35 @@ export const CompanyDetailPage = () => {
           {
             value: 'overview',
             label: 'Overview',
+            permission: ORG_COMPANIES.view,
             content: <OverviewTab company={company} />,
           },
           {
             value: 'addresses',
             label: 'Addresses',
+            permission: ORG_COMPANIES.addresses.view,
             content: <AddressesTab partyId={company.id} />,
           },
           {
             value: 'people',
             label: 'People',
+            permission: ORG_COMPANIES.people.view,
             content: <PeopleTab companyId={company.id} />,
           },
           {
             value: 'registrations',
             label: 'Tax Registrations',
+            permission: ORG_COMPANIES.registrations.view,
             content: <RegistrationsTab companyId={company.id} />,
           },
           {
             value: 'identifiers',
             label: 'Identifiers',
+            permission: ORG_COMPANIES.identifiers.view,
             content: (
               <IdentifiersTab
                 partyId={company.id}
-                permission={ORG_COMPANIES.view}
+                permissions={ORG_COMPANIES.identifiers}
                 slug={`commerce-org-company-${company.id}-identifiers`}
                 queryKey={COMPANY_IDENTIFIERS_TABLE_KEY(company.id)}
                 emptyDescription="Record this company's identifiers like CIN, LEI, or DUNS."
@@ -104,14 +110,12 @@ export const CompanyDetailPage = () => {
         title="Delete this company"
         description="This action cannot be undone. The company and its linked people and tax registrations will be permanently removed."
         buttonText="Delete Company"
+        permission={ORG_COMPANIES.delete}
         onClick={handleDelete}
         disabled={!company.canDelete || deleteMutation.isPending}
         isLoading={deleteMutation.isPending}
-        warning={
-          !company.canDelete
-            ? 'This company is referenced by suppliers or other records and cannot be deleted.'
-            : undefined
-        }
+        warning="This company is referenced by suppliers or other records and cannot be deleted."
+        showWarning={!company.canDelete}
       />
 
       <Dialog

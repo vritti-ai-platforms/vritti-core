@@ -1,5 +1,5 @@
 import { extractWorkspaceSlug } from '@utils/workspace';
-import { groupBy, sortBy, uniqBy } from '@vritti/quantum-ui/lodash';
+import { groupBy, uniqBy } from '@vritti/quantum-ui/lodash';
 import { lockedTip, PermissionLockIcon } from '@vritti/quantum-ui/PermissionGate';
 import { Sidebar as QSidebar, type SidebarNavGroup } from '@vritti/quantum-ui/Sidebar';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
@@ -42,7 +42,8 @@ export const Sidebar = () => {
     if (!features.length || !workspaceSlug) return [];
 
     const featuresByApp = groupBy(features, 'appCode');
-    const apps = sortBy(uniqBy(features, 'appCode'), 'appSortOrder');
+    // Apps arrive app-alphabetical from the resolver; uniqBy preserves that order (no frontend re-sort)
+    const apps = uniqBy(features, 'appCode');
 
     return apps.map((app) => ({
       label: app.appName,

@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { ORG_TAX_COMPONENTS } from '@vritti/commerce-permissions/tax-components';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
@@ -107,6 +108,7 @@ export const TaxComponentsPage = () => {
               id: 'edit',
               icon: Pencil,
               label: 'Edit',
+              permission: ORG_TAX_COMPONENTS.edit,
               dialog: {
                 title: 'Edit Tax Component',
                 description: 'Update the tax component or toggle its status. Code is immutable.',
@@ -118,6 +120,7 @@ export const TaxComponentsPage = () => {
               icon: Trash2,
               label: 'Delete',
               variant: 'destructive',
+              permission: ORG_TAX_COMPONENTS.delete,
               disabled: !r.canDelete,
               onClick: () => handleDelete(r),
             },
@@ -152,6 +155,7 @@ export const TaxComponentsPage = () => {
       <DataTable
         table={table}
         isLoading={isLoading}
+        permission={ORG_TAX_COMPONENTS.view}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },
@@ -161,7 +165,12 @@ export const TaxComponentsPage = () => {
         }}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={ORG_TAX_COMPONENTS.add}
+            >
               Add Tax Component
             </Button>
           ),
@@ -171,7 +180,11 @@ export const TaxComponentsPage = () => {
           title: 'No tax components',
           description: 'Add a tax component to start building rate bundles from atomic tax parts.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={ORG_TAX_COMPONENTS.add}
+            >
               Add Tax Component
             </Button>
           ),

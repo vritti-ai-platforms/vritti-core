@@ -1,3 +1,4 @@
+import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
@@ -8,21 +9,37 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useDialog } from '@vritti/quantum-ui/hooks';
-import { Pencil, Plus, Tag } from 'lucide-react';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { Pencil, Plus, Tag, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useMemo } from 'react';
-import { useInventoryItemMrp } from '@/hooks/organization/inventory-items';
+import { useCallback, useMemo } from 'react';
+import { useDeleteInventoryItemMrp, useInventoryItemMrp } from '@/hooks/organization/inventory-items';
 import type { InventoryItemMrpData } from '@/schemas/inventory-item-mrp';
-import { UpsertMrpForm } from '../forms/UpsertMrpForm';
+import { AddMrpForm } from '../forms/AddMrpForm';
+import { EditMrpForm } from '../forms/EditMrpForm';
 
 interface MrpTabProps {
   inventoryItemId: string;
 }
 
 export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
+  const confirm = useConfirm();
   const addDialog = useDialog();
   const { data: rows = [], isLoading } = useInventoryItemMrp(inventoryItemId);
+  const deleteMutation = useDeleteInventoryItemMrp(inventoryItemId);
+
+  const handleDelete = useCallback(
+    async (row: InventoryItemMrpData) => {
+      const confirmed = await confirm({
+        title: 'Remove MRP?',
+        description: `Remove the ${row.amount.currency} MRP for ${row.uomSymbol ?? 'this unit'}?`,
+        confirmLabel: 'Remove',
+        variant: 'destructive',
+      });
+      if (confirmed) deleteMutation.mutate(row.id);
+    },
+    [confirm, deleteMutation],
+  );
 
   const columns = useMemo<ColumnDef<InventoryItemMrpData>[]>(
     () => [
@@ -61,19 +78,27 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
+                permission: ORG_INVENTORY_ITEMS.mrp.edit,
                 dialog: {
                   title: 'Edit MRP',
                   description: `Update the ${row.original.amount.currency} MRP for this item.`,
                   content: (close) => (
-                    <UpsertMrpForm
+                    <EditMrpForm
                       inventoryItemId={inventoryItemId}
-                      currentUomId={row.original.uomId}
-                      currentAmount={row.original.amount}
+                      row={row.original}
                       onSuccess={close}
                       onCancel={close}
                     />
                   ),
                 },
+              },
+              {
+                id: 'delete',
+                icon: Trash2,
+                label: 'Delete',
+                permission: ORG_INVENTORY_ITEMS.mrp.delete,
+                variant: 'destructive',
+                onClick: () => handleDelete(row.original),
               },
             ]}
           />
@@ -82,7 +107,7 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
         enableHiding: false,
       },
     ],
-    [inventoryItemId],
+    [inventoryItemId, handleDelete],
   );
 
   const serverState = useMemo(() => ({ result: rows, count: rows.length }), [rows]);
@@ -102,27 +127,30 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
         table={table}
         mode="tab"
         isLoading={isLoading}
+        permission={ORG_INVENTORY_ITEMS.mrp.view}
         toolbarActions={{
           actions: (
             <Button
               size="sm"
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
+              permission={ORG_INVENTORY_ITEMS.mrp.add}
             >
-              Set MRP
+              Add MRP
             </Button>
           ),
         }}
         emptyStateConfig={{
           icon: Tag,
           title: 'No MRP set',
-          description: 'Set a maximum retail price per currency for this item.',
+          description: 'Set a maximum retail price per unit and currency for this item.',
           action: (
             <Button
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
+              permission={ORG_INVENTORY_ITEMS.mrp.add}
             >
-              Set MRP
+              Add MRP
             </Button>
           ),
         }}
@@ -131,9 +159,9 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
       <Dialog
         handle={addDialog}
         icon={Tag}
-        title="Set MRP"
-        description="Set the maximum retail price for this item."
-        content={(close) => <UpsertMrpForm inventoryItemId={inventoryItemId} onSuccess={close} onCancel={close} />}
+        title="Add MRP"
+        description="Set the maximum retail price for a unit and currency."
+        content={(close) => <AddMrpForm inventoryItemId={inventoryItemId} onSuccess={close} onCancel={close} />}
       />
     </>
   );

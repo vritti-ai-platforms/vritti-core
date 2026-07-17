@@ -67,6 +67,7 @@ export class TaxJurisdictionsGatewayController {
   // Creates a new tax jurisdiction
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_TAX_JURISDICTIONS.add)
   create(@Body() dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionResponseDto>> {
     this.logger.log('POST /commerce-api/tax-jurisdictions');
     return this.service.create(dto);
@@ -82,6 +83,7 @@ export class TaxJurisdictionsGatewayController {
 
   // Updates a tax jurisdiction by ID
   @Patch(':id')
+  @RequirePermission(ORG_TAX_JURISDICTIONS.edit)
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateTaxJurisdictionDto,
@@ -92,6 +94,7 @@ export class TaxJurisdictionsGatewayController {
 
   // Deletes a tax jurisdiction by ID
   @Delete(':id')
+  @RequirePermission(ORG_TAX_JURISDICTIONS.delete)
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/tax-jurisdictions/${id}`);
     return this.service.delete(id);

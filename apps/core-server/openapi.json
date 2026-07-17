@@ -12686,7 +12686,7 @@
         ]
       },
       "post": {
-        "operationId": "InventoryItemsGatewayController_upsertMrp",
+        "operationId": "InventoryItemsGatewayController_addMrp",
         "parameters": [
           {
             "name": "id",
@@ -12702,13 +12702,93 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertInventoryItemMrpDto"
+                "$ref": "#/components/schemas/AddInventoryItemMrpDto"
               }
             }
           }
         },
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Org Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/org/inventory-items/{id}/mrp/{mrpId}": {
+      "patch": {
+        "operationId": "InventoryItemsGatewayController_updateMrp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mrpId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInventoryItemMrpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Org Inventory Items"
+        ]
+      },
+      "delete": {
+        "operationId": "InventoryItemsGatewayController_deleteMrp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mrpId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -25114,7 +25194,7 @@
           "uomQty"
         ]
       },
-      "UpsertInventoryItemMrpDto": {
+      "AddInventoryItemMrpDto": {
         "type": "object",
         "properties": {
           "uomId": {
@@ -25122,21 +25202,32 @@
             "description": "UOM the MRP is quoted in"
           },
           "amount": {
-            "description": "Suggested MRP amount (with currency)",
+            "description": "MRP amount (with currency)",
             "allOf": [
               {
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
-          },
-          "sourceLotId": {
-            "type": "object",
-            "description": "Lot the MRP was sourced from",
-            "nullable": true
           }
         },
         "required": [
           "uomId",
+          "amount"
+        ]
+      },
+      "UpdateInventoryItemMrpDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "description": "MRP amount (with currency)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          }
+        },
+        "required": [
           "amount"
         ]
       },

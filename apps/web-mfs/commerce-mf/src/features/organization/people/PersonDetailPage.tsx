@@ -54,7 +54,13 @@ export const PersonDetailPage = () => {
           <Badge variant={person.isActive ? 'success' : 'outline'}>{person.isActive ? 'Active' : 'Inactive'}</Badge>
         }
         actions={
-          <Button variant="outline" size="sm" startAdornment={<Pencil className="size-4" />} onClick={editDialog.open}>
+          <Button
+            variant="outline"
+            size="sm"
+            permission={ORG_PEOPLE.edit}
+            startAdornment={<Pencil className="size-4" />}
+            onClick={editDialog.open}
+          >
             Edit
           </Button>
         }
@@ -65,25 +71,29 @@ export const PersonDetailPage = () => {
           {
             value: 'overview',
             label: 'Overview',
+            permission: ORG_PEOPLE.view,
             content: <OverviewTab person={person} />,
           },
           {
             value: 'addresses',
             label: 'Addresses',
+            permission: ORG_PEOPLE.addresses.view,
             content: <AddressesTab partyId={person.id} />,
           },
           {
             value: 'companies',
             label: 'Companies',
+            permission: ORG_PEOPLE.view,
             content: <CompaniesTab partyId={person.id} />,
           },
           {
             value: 'identifiers',
             label: 'Identifiers',
+            permission: ORG_PEOPLE.identifiers.view,
             content: (
               <IdentifiersTab
                 partyId={person.id}
-                permission={ORG_PEOPLE.view}
+                permissions={ORG_PEOPLE.identifiers}
                 slug={`commerce-org-person-${person.id}-identifiers`}
                 queryKey={PERSON_IDENTIFIERS_KEY(person.id)}
                 emptyDescription="Record this person's identity documents like PAN, Aadhaar, or passport."
@@ -99,9 +109,11 @@ export const PersonDetailPage = () => {
         title="Delete this person"
         description="This action cannot be undone. This person will be permanently removed."
         buttonText="Delete Person"
+        permission={ORG_PEOPLE.delete}
         onClick={handleDelete}
         disabled={!person.canDelete || deleteMutation.isPending}
-        warning={!person.canDelete ? 'This person is referenced by other records and cannot be deleted.' : undefined}
+        warning="This person is referenced by other records and cannot be deleted."
+        showWarning={!person.canDelete}
       />
 
       <Dialog

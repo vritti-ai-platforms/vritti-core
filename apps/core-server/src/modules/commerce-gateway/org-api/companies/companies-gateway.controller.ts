@@ -68,6 +68,7 @@ export class CompaniesGatewayController {
   // Creates a new company
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.add)
   create(@Body() dto: CreateCompanyDto): Promise<CreateResponseDto<CompanyResponseDto>> {
     this.logger.log('POST /commerce-api/companies');
     return this.service.create(dto);
@@ -75,7 +76,7 @@ export class CompaniesGatewayController {
 
   // Returns the linked people of a company for the data table
   @Get(':id/people')
-  @RequirePermission(ORG_COMPANIES.view)
+  @RequirePermission(ORG_COMPANIES.people.view)
   listPeople(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
@@ -87,6 +88,7 @@ export class CompaniesGatewayController {
   // Links a person to a company
   @Post(':id/people')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.people.add)
   addPerson(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddCompanyPersonDto,
@@ -97,6 +99,7 @@ export class CompaniesGatewayController {
 
   // Removes a company-person relationship
   @Delete(':id/people/:relationshipId')
+  @RequirePermission(ORG_COMPANIES.people.delete)
   removePerson(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
@@ -107,7 +110,7 @@ export class CompaniesGatewayController {
 
   // Returns the tax registrations of a company for the data table
   @Get(':id/registrations')
-  @RequirePermission(ORG_COMPANIES.view)
+  @RequirePermission(ORG_COMPANIES.registrations.view)
   listRegistrations(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
@@ -119,6 +122,7 @@ export class CompaniesGatewayController {
   // Creates a tax registration for a company
   @Post(':id/registrations')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.registrations.add)
   createRegistration(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateCompanyRegistrationDto,
@@ -129,6 +133,7 @@ export class CompaniesGatewayController {
 
   // Updates a company tax registration
   @Patch(':id/registrations/:regId')
+  @RequirePermission(ORG_COMPANIES.registrations.edit)
   updateRegistration(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('regId', new ParseUUIDPipe()) regId: string,
@@ -140,6 +145,7 @@ export class CompaniesGatewayController {
 
   // Deletes a company tax registration
   @Delete(':id/registrations/:regId')
+  @RequirePermission(ORG_COMPANIES.registrations.delete)
   deleteRegistration(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('regId', new ParseUUIDPipe()) regId: string,
@@ -150,7 +156,7 @@ export class CompaniesGatewayController {
 
   // Returns the identifiers of a company for the data table
   @Get(':id/identifiers')
-  @RequirePermission(ORG_COMPANIES.view)
+  @RequirePermission(ORG_COMPANIES.identifiers.view)
   listIdentifiers(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
@@ -162,6 +168,7 @@ export class CompaniesGatewayController {
   // Adds an identifier to a company
   @Post(':id/identifiers')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.identifiers.add)
   addIdentifier(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddPartyIdentifierDto,
@@ -172,6 +179,7 @@ export class CompaniesGatewayController {
 
   // Removes an identifier from a company
   @Delete(':id/identifiers/:identifierId')
+  @RequirePermission(ORG_COMPANIES.identifiers.delete)
   removeIdentifier(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('identifierId', new ParseUUIDPipe()) identifierId: string,
@@ -182,7 +190,7 @@ export class CompaniesGatewayController {
 
   // Returns the addresses of a company for the data table
   @Get(':id/addresses')
-  @RequirePermission(ORG_COMPANIES.view)
+  @RequirePermission(ORG_COMPANIES.addresses.view)
   listAddresses(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
@@ -194,6 +202,7 @@ export class CompaniesGatewayController {
   // Adds an address to a company
   @Post(':id/addresses')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_COMPANIES.addresses.add)
   addAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddPartyAddressDto,
@@ -204,6 +213,7 @@ export class CompaniesGatewayController {
 
   // Updates an address of a company
   @Patch(':id/addresses/:addressId')
+  @RequirePermission(ORG_COMPANIES.addresses.edit)
   updateAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
@@ -215,6 +225,7 @@ export class CompaniesGatewayController {
 
   // Removes an address from a company
   @Delete(':id/addresses/:addressId')
+  @RequirePermission(ORG_COMPANIES.addresses.delete)
   removeAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
@@ -233,6 +244,7 @@ export class CompaniesGatewayController {
 
   // Updates a company by ID
   @Patch(':id')
+  @RequirePermission(ORG_COMPANIES.edit)
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateCompanyDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/companies/${id}`);
     return this.service.update(id, dto);
@@ -240,6 +252,7 @@ export class CompaniesGatewayController {
 
   // Deletes a company by ID
   @Delete(':id')
+  @RequirePermission(ORG_COMPANIES.delete)
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/companies/${id}`);
     return this.service.delete(id);

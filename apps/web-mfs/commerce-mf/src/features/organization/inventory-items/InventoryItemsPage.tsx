@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -101,6 +102,7 @@ export const InventoryItemsPage = () => {
       <DataTable
         table={table}
         isLoading={isLoading}
+        permission={ORG_INVENTORY_ITEMS.view}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },
@@ -128,7 +130,7 @@ export const InventoryItemsPage = () => {
         ]}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addDialog.open}>
+            <Button size="sm" onClick={addDialog.open} permission={ORG_INVENTORY_ITEMS.add}>
               <Plus className="mr-2 size-4" />
               Add Item
             </Button>
@@ -139,7 +141,7 @@ export const InventoryItemsPage = () => {
           title: 'No inventory items',
           description: 'Define your first inventory item for the organization.',
           action: (
-            <Button onClick={addDialog.open}>
+            <Button onClick={addDialog.open} permission={ORG_INVENTORY_ITEMS.add}>
               <Plus className="mr-2 size-4" />
               Add Item
             </Button>

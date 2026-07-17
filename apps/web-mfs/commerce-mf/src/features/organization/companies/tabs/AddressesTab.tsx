@@ -88,6 +88,7 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId }) => {
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
+                permission: ORG_COMPANIES.addresses.edit,
                 dialog: {
                   title: 'Edit Address',
                   description: 'Update the postal address for this party.',
@@ -107,6 +108,7 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId }) => {
                 icon: Trash2,
                 label: 'Remove',
                 variant: 'destructive',
+                permission: ORG_COMPANIES.addresses.delete,
                 onClick: () => handleDelete(row.original),
               },
             ]}
@@ -135,10 +137,15 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId }) => {
         table={table}
         mode="tab"
         isLoading={isLoading}
-        permission={ORG_COMPANIES.view}
+        permission={ORG_COMPANIES.addresses.view}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              permission={ORG_COMPANIES.addresses.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Address
             </Button>
           ),
@@ -148,7 +155,11 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({ partyId }) => {
           title: 'No addresses',
           description: "Record this company's registered, billing, or shipping addresses.",
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              permission={ORG_COMPANIES.addresses.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Address
             </Button>
           ),

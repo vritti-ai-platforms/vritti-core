@@ -16,7 +16,7 @@ import { AddIdentifierDialog } from '../forms/AddIdentifierDialog';
 
 interface IdentifiersTabProps {
   partyId: string;
-  permission: string;
+  permissions: { view: string; add: string; delete: string };
   slug: string;
   queryKey: readonly unknown[];
   emptyDescription: string;
@@ -24,7 +24,7 @@ interface IdentifiersTabProps {
 
 export const IdentifiersTab: React.FC<IdentifiersTabProps> = ({
   partyId,
-  permission,
+  permissions,
   slug,
   queryKey,
   emptyDescription,
@@ -83,6 +83,7 @@ export const IdentifiersTab: React.FC<IdentifiersTabProps> = ({
                 icon: Trash2,
                 label: 'Remove',
                 variant: 'destructive',
+                permission: permissions.delete,
                 onClick: () => handleDelete(row.original),
               },
             ]}
@@ -92,7 +93,7 @@ export const IdentifiersTab: React.FC<IdentifiersTabProps> = ({
         enableHiding: false,
       },
     ],
-    [handleDelete],
+    [handleDelete, permissions.delete],
   );
 
   const { table } = useDataTable({
@@ -111,10 +112,15 @@ export const IdentifiersTab: React.FC<IdentifiersTabProps> = ({
         table={table}
         mode="tab"
         isLoading={isLoading}
-        permission={permission}
+        permission={permissions.view}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              permission={permissions.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Identifier
             </Button>
           ),
@@ -124,7 +130,7 @@ export const IdentifiersTab: React.FC<IdentifiersTabProps> = ({
           title: 'No identifiers',
           description: emptyDescription,
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button permission={permissions.add} startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
               Add Identifier
             </Button>
           ),

@@ -47,6 +47,7 @@ export class CategoriesGatewayController {
 
   // Returns total category count
   @Get('count')
+  @RequirePermission(ORG_CATEGORIES.view)
   async count(): Promise<CategoryCountResponseDto> {
     this.logger.log('GET /commerce-api/categories/count');
     return this.categoriesGatewayService.count();
@@ -73,7 +74,7 @@ export class CategoriesGatewayController {
 
   // Returns paginated inventory items for a leaf category
   @Get(':id/items/table')
-  @RequirePermission(ORG_CATEGORIES.inventoryItems.view)
+  @RequirePermission(ORG_CATEGORIES.view)
   @ApiGetCategoryItemsTable()
   itemsTable(
     @Param('id', new ParseUUIDPipe()) id: string,

@@ -8,12 +8,12 @@ import type { AddIdentifierPayload, PartyIdentifierRow, PartyIdentifiersTableRes
 import { addPersonIdentifier, getPersonIdentifiers, removePersonIdentifier } from '@/services/organization/people.service';
 import { PERSON_IDENTIFIERS_KEY, PERSON_KEY } from './keys';
 
-// Fetches a person's identifiers; self-gates on the people view permission
+// Fetches a person's identifiers; self-gates on the identifiers view permission
 export function usePersonIdentifiers(
   personId: string,
   options?: Omit<UseQueryOptions<PartyIdentifiersTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_PEOPLE.view);
+  const { available } = usePermission(ORG_PEOPLE.identifiers.view);
   return useQuery<PartyIdentifiersTableResponse, AxiosError>({
     queryKey: PERSON_IDENTIFIERS_KEY(personId),
     queryFn: () => getPersonIdentifiers(personId),

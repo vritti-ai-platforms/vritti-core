@@ -5,6 +5,8 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
+import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type {
@@ -26,11 +28,12 @@ export function useInventoryItemUomConversionsTable(
     'queryKey' | 'queryFn' | 'enabled'
   >,
 ) {
+  const { available } = usePermission(ORG_INVENTORY_ITEMS.conversions.view);
   return useQuery<InventoryItemUomConversionsTableResponse, AxiosError>({
     queryKey: [...ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId ?? '')],
     queryFn: () => getOrgInventoryItemUomConversionsTable(inventoryItemId as string),
     ...options,
-    enabled: !!inventoryItemId,
+    enabled: available && !!inventoryItemId,
   });
 }
 

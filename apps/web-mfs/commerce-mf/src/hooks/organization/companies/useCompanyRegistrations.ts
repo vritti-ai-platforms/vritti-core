@@ -17,12 +17,12 @@ import {
 } from '@/services/organization/companies.service';
 import { COMPANY_KEY, COMPANY_REGISTRATIONS_TABLE_KEY } from './keys';
 
-// Fetches a company's tax registrations; self-gates on the companies view permission
+// Fetches a company's tax registrations; self-gates on the registrations view permission
 export function useCompanyRegistrationsTable(
   companyId: string,
   options?: Omit<UseQueryOptions<CompanyRegistrationsTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_COMPANIES.view);
+  const { available } = usePermission(ORG_COMPANIES.registrations.view);
   return useQuery<CompanyRegistrationsTableResponse, AxiosError>({
     queryKey: COMPANY_REGISTRATIONS_TABLE_KEY(companyId),
     queryFn: () => getCompanyRegistrations(companyId),

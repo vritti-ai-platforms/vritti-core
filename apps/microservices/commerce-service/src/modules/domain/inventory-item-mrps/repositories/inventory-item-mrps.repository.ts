@@ -30,6 +30,44 @@ export class InventoryItemMrpsRepository extends PrimaryBaseRepository<typeof in
     return row;
   }
 
+  // Inserts a new MRP row for an (item, uom, currency) triple; the unique constraint surfaces conflicts
+  async createMrp(
+    inventoryItemId: string,
+    uomId: string,
+    currencyCode: string,
+    amount: bigint,
+  ): Promise<InventoryItemMrp> {
+    const [row] = (await this.db
+      .insert(inventoryItemMrps)
+      .values({ inventoryItemId, uomId, currencyCode, amount, sourceLotId: null, sourcedAt: new Date() })
+      .returning()) as InventoryItemMrp[];
+    return row;
+  }
+
+  // Updates an existing MRP row's amount by id; returns undefined when no row matches
+  async updateAmount(id: string, amount: bigint): Promise<InventoryItemMrp | undefined> {
+    const [row] = (await this.db
+      .update(inventoryItemMrps)
+      .set({ amount })
+      .where(eq(inventoryItemMrps.id, id))
+      .returning()) as InventoryItemMrp[];
+    return row;
+  }
+
+  // Returns a single MRP row by id
+  async findById(id: string): Promise<InventoryItemMrp | undefined> {
+    return this.model.findFirst({ where: { id } });
+  }
+
+  // Deletes an MRP row by id; returns the deleted row or undefined when none matched
+  async deleteOne(id: string): Promise<InventoryItemMrp | undefined> {
+    const [row] = (await this.db
+      .delete(inventoryItemMrps)
+      .where(eq(inventoryItemMrps.id, id))
+      .returning()) as InventoryItemMrp[];
+    return row;
+  }
+
   // Returns all suggested MRPs for an inventory item (one row per uom×currency) with the uom symbol
   async findByItem(inventoryItemId: string): Promise<InventoryItemMrpWithUom[]> {
     return this.db

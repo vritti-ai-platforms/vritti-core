@@ -85,6 +85,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
                 icon: Trash2,
                 label: 'Remove',
                 variant: 'destructive',
+                permission: ORG_COMPANIES.people.delete,
                 onClick: () => handleRemove(row.original),
               },
             ]}
@@ -113,10 +114,15 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
         table={table}
         mode="tab"
         isLoading={isLoading}
-        permission={ORG_COMPANIES.view}
+        permission={ORG_COMPANIES.people.view}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              permission={ORG_COMPANIES.people.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Person
             </Button>
           ),
@@ -126,7 +132,11 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
           title: 'No people',
           description: 'Link a person to this company to record who to reach and how.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              permission={ORG_COMPANIES.people.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Person
             </Button>
           ),

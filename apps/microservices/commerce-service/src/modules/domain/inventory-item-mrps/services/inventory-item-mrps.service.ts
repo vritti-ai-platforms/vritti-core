@@ -20,6 +20,21 @@ export class InventoryItemMrpsService {
     return this.repository.upsert(inventoryItemId, uomId, currencyCode, amount, sourceLotId);
   }
 
+  // Inserts a new suggested MRP for an (item, uom, currency); the unique constraint surfaces conflicts
+  create(inventoryItemId: string, uomId: string, currencyCode: string, amount: bigint): Promise<InventoryItemMrp> {
+    return this.repository.createMrp(inventoryItemId, uomId, currencyCode, amount);
+  }
+
+  // Updates an existing MRP row's amount by id; resolves undefined when no row matched
+  updateAmount(id: string, amount: bigint): Promise<InventoryItemMrp | undefined> {
+    return this.repository.updateAmount(id, amount);
+  }
+
+  // Deletes an MRP row by id; resolves the deleted row or undefined when none matched
+  delete(id: string): Promise<InventoryItemMrp | undefined> {
+    return this.repository.deleteOne(id);
+  }
+
   // Returns the suggested MRPs for an inventory item (one per uom×currency)
   findByItem(inventoryItemId: string): Promise<InventoryItemMrpWithUom[]> {
     return this.repository.findByItem(inventoryItemId);

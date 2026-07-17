@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import {
   type ColumnDef,
@@ -103,6 +104,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ inventoryItemId }) =
       table={table}
       mode="tab"
       isLoading={isLoading}
+      permission={ORG_INVENTORY_ITEMS.view}
       searchConfig={{
         columns: [
           { id: 'supplierName', label: 'Supplier name' },

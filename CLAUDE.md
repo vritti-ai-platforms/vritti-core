@@ -60,6 +60,14 @@ vritti-core/
 - Default session type: `['NEXUS']` (configured via `configureApiSdk({ guard: { defaultSessionTypes: ['NEXUS'] } })`)
 - `@RequireSession()` replaces the old `@Admin()`, `@Onboarding()`, `@Reset()` decorators
 
+## Permission Codes (RBAC)
+
+Commerce permission codes live in **3 layers that MUST stay identical** (a mismatch fails closed):
+
+1. **Lib** `libs/commerce-permissions/src/<feature>.ts` — `export const ORG_X = { featureCode, view, add, edit, delete, <sub>: { view, add, edit, delete } } as const`. Full dotted codes `org.<feature>.<action>`; sub-resources are **nested groups** (e.g. `ORG_PEOPLE.addresses.view`, `ORG_INVENTORY_ITEMS.mrp.edit`). Rebuild the lib after edits (`pnpm --filter @vritti/commerce-permissions build`); consumers import the built `dist/`.
+2. **Catalog scripts** `scripts/catalog/<feature>.mjs` (+ `author-feature.mjs`) — author features/permissions into the cloud admin-api, wire `dependsOn` (`add/edit/delete→[view]`; `<sub>.view→[view]`; `<sub>.{add,edit,delete}→[<sub>.view]`), entitle the plan, and **publish** (pushes the signed snapshot to LIVE deployments — consent-gated). `code` in the def is the BARE action; `resolveFeature` matches **(code, scope)**. Run: `ADMIN_BASE_URL=… NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/catalog/<f>.mjs [--no-publish]`.
+3. **Enforcement** — gateway controllers: class `@RequireFeature(ORG_X.featureCode)` + per-endpoint `@RequirePermission(ORG_X.action)` (`GET`→view, `POST`→add, `PATCH`→edit, `DELETE`→delete; sub-resource paths → nested code). Frontend gating surfaces (`DataTable`/`Button`/`RowActions`/`Tabs` item/`DangerZone` `permission` prop + `usePermission` self-gated query hooks) → see `.claude/rules/permission-gating.md`.
+
 ## Conventions
 
 See `.claude/rules/` for detailed pattern documentation:
@@ -78,6 +86,7 @@ See `.claude/rules/` for detailed pattern documentation:
 - `comment-style.md` — Comment style rules
 - `export-conventions.md` — Export patterns
 - `code-conventions.md` — Canonical entity `code` format (IsCode / codeCheck / zodCodeField)
+- `permission-gating.md` — Frontend RBAC gating (permission codes, PermissionGate, `permission`/`showWarning` props, self-gated table hooks)
 
 ---
 

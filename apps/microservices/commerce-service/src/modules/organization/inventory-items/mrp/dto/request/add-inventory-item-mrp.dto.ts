@@ -1,7 +1,7 @@
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsUUID } from 'class-validator';
 
-export class UpsertInventoryItemMrpDto {
+export class AddInventoryItemMrpDto {
   @IsUUID()
   inventoryItemId: string;
 
@@ -10,8 +10,4 @@ export class UpsertInventoryItemMrpDto {
 
   @IsCurrency()
   amount: CurrencyAmountDto;
-
-  @IsOptional()
-  @IsUUID()
-  sourceLotId?: string | null;
 }

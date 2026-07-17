@@ -5,7 +5,4 @@ export const ORG_CATEGORIES = {
   add: 'org.categories.add',
   edit: 'org.categories.edit',
   delete: 'org.categories.delete',
-  inventoryItems: {
-    view: 'org.categories.inventory-items.view',
-  },
 } as const;

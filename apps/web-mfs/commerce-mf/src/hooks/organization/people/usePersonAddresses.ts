@@ -19,12 +19,12 @@ interface UpdatePersonAddressVars {
   data: AddAddressPayload;
 }
 
-// Fetches a person's addresses; self-gates on the people view permission
+// Fetches a person's addresses; self-gates on the addresses view permission
 export function usePersonAddresses(
   personId: string,
   options?: Omit<UseQueryOptions<PartyAddressesTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_PEOPLE.view);
+  const { available } = usePermission(ORG_PEOPLE.addresses.view);
   return useQuery<PartyAddressesTableResponse, AxiosError>({
     queryKey: PERSON_ADDRESSES_TABLE_KEY(personId),
     queryFn: () => getPersonAddresses(personId),

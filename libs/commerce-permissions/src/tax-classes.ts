@@ -2,4 +2,7 @@
 export const ORG_TAX_CLASSES = {
   featureCode: 'tax-classes',
   view: 'org.tax-classes.view',
+  add: 'org.tax-classes.add',
+  edit: 'org.tax-classes.edit',
+  delete: 'org.tax-classes.delete',
 } as const;

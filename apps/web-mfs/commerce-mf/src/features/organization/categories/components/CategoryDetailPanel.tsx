@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { ORG_CATEGORIES } from '@vritti/commerce-permissions/categories';
+import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
@@ -334,7 +335,7 @@ const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId 
         table={table}
         mode="compact"
         isLoading={isLoading}
-        permission={ORG_CATEGORIES.inventoryItems.view}
+        permission={ORG_INVENTORY_ITEMS.view}
         emptyStateConfig={{
           icon: Boxes,
           title: 'No items in this category',

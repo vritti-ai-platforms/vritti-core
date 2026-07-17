@@ -12,12 +12,12 @@ import {
 } from '@/services/organization/companies.service';
 import { COMPANY_IDENTIFIERS_TABLE_KEY, COMPANY_KEY } from './keys';
 
-// Fetches a company's identifiers; self-gates on the companies view permission
+// Fetches a company's identifiers; self-gates on the identifiers view permission
 export function useCompanyIdentifiers(
   companyId: string,
   options?: Omit<UseQueryOptions<PartyIdentifiersTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_COMPANIES.view);
+  const { available } = usePermission(ORG_COMPANIES.identifiers.view);
   return useQuery<PartyIdentifiersTableResponse, AxiosError>({
     queryKey: COMPANY_IDENTIFIERS_TABLE_KEY(companyId),
     queryFn: () => getCompanyIdentifiers(companyId),

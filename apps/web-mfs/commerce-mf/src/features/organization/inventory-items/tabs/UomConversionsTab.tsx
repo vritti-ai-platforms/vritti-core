@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -69,6 +70,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
+                permission: ORG_INVENTORY_ITEMS.conversions.edit,
                 dialog: {
                   title: 'Edit UOM Conversion',
                   description: `Update the conversion ratio for ${row.original.uomName} (${row.original.uomSymbol}).`,
@@ -90,6 +92,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
                 id: 'delete',
                 icon: Trash2,
                 label: 'Delete',
+                permission: ORG_INVENTORY_ITEMS.conversions.delete,
                 variant: 'destructive',
                 disabled: !row.original.canDelete,
                 onClick: () => handleDelete(row.original),
@@ -121,12 +124,14 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
         table={table}
         mode="tab"
         isLoading={isLoading}
+        permission={ORG_INVENTORY_ITEMS.conversions.view}
         toolbarActions={{
           actions: (
             <Button
               size="sm"
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
+              permission={ORG_INVENTORY_ITEMS.conversions.add}
             >
               Add Conversion
             </Button>
@@ -141,6 +146,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
             <Button
               startAdornment={<Plus className="size-4" />}
               onClick={addDialog.open}
+              permission={ORG_INVENTORY_ITEMS.conversions.add}
             >
               Add Conversion
             </Button>

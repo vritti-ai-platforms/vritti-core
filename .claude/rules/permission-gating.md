@@ -44,7 +44,10 @@ catalog exactly.
 | `<PermissionGate permission=… fallback=…>` | a **view / page / subtree** | children (and their queries) mount **only** when `granted && !locked`; else renders `fallback` |
 | `permission` prop on `Button` / `RowActions` / `DataTable` | a single **action** or a **table** | gated in place — hidden when not granted, disabled + lock when locked |
 | `permission` on a `Tabs` `TabItem` | a single **tab** | not granted → the tab is dropped; granted but locked → visible, disabled, lock + upsell tip; the default selection skips locked/disabled tabs |
+| `permission` prop on `DangerZone` | a destructive **delete** card | not granted → the **whole card is hidden**; granted but locked → its button disabled + lock. Pass the delete code (e.g. `X.delete`) |
 | `usePermission(code)` | bespoke logic | raw `{ granted, locked, reason, unlockPlans }` |
+
+`DangerZone` also takes `showWarning` (boolean) — render the referenced-records `warning` alert only when true (e.g. `warning="…" showWarning={!x.canDelete}`); it does NOT infer visibility from `warning` being set.
 
 ### `<PermissionGate>` — the mount-boundary gate
 

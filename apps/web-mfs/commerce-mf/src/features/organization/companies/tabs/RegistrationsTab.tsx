@@ -81,6 +81,7 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ companyId })
                 id: 'edit',
                 icon: Pencil,
                 label: 'Edit',
+                permission: ORG_COMPANIES.registrations.edit,
                 dialog: {
                   title: 'Edit Tax Registration',
                   description: 'Update the details for this tax registration.',
@@ -99,6 +100,7 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ companyId })
                 icon: Trash2,
                 label: 'Delete',
                 variant: 'destructive',
+                permission: ORG_COMPANIES.registrations.delete,
                 onClick: () => handleDelete(row.original),
               },
             ]}
@@ -127,10 +129,15 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ companyId })
         table={table}
         mode="tab"
         isLoading={isLoading}
-        permission={ORG_COMPANIES.view}
+        permission={ORG_COMPANIES.registrations.view}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              permission={ORG_COMPANIES.registrations.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Registration
             </Button>
           ),
@@ -140,7 +147,11 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ companyId })
           title: 'No tax registrations',
           description: 'Record this company’s tax registration numbers per jurisdiction.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              permission={ORG_COMPANIES.registrations.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Registration
             </Button>
           ),

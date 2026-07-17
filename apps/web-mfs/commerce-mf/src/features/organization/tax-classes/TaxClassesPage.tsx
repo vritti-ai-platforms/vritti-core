@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { ORG_TAX_CLASSES } from '@vritti/commerce-permissions/tax-classes';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
@@ -78,6 +79,7 @@ export const TaxClassesPage = () => {
               id: 'edit',
               icon: Pencil,
               label: 'Edit',
+              permission: ORG_TAX_CLASSES.edit,
               dialog: {
                 title: 'Edit Tax Class',
                 description: 'Rename the tax class or toggle its status. Code is immutable.',
@@ -89,6 +91,7 @@ export const TaxClassesPage = () => {
               icon: Trash2,
               label: 'Delete',
               variant: 'destructive',
+              permission: ORG_TAX_CLASSES.delete,
               disabled: !r.canDelete,
               onClick: () => handleDelete(r),
             },
@@ -123,6 +126,7 @@ export const TaxClassesPage = () => {
       <DataTable
         table={table}
         isLoading={isLoading}
+        permission={ORG_TAX_CLASSES.view}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },
@@ -132,7 +136,12 @@ export const TaxClassesPage = () => {
         }}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={ORG_TAX_CLASSES.add}
+            >
               Add Tax Class
             </Button>
           ),
@@ -142,7 +151,11 @@ export const TaxClassesPage = () => {
           title: 'No tax classes',
           description: 'Add a tax class to start grouping products by tax treatment.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={ORG_TAX_CLASSES.add}
+            >
               Add Tax Class
             </Button>
           ),

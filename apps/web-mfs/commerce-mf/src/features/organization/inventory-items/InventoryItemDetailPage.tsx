@@ -1,3 +1,4 @@
+import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
@@ -44,6 +45,7 @@ export const InventoryItemDetailPage = () => {
             size="sm"
             startAdornment={<Pencil className="size-4" />}
             onClick={editDialog.open}
+            permission={ORG_INVENTORY_ITEMS.edit}
           >
             Edit
           </Button>
@@ -55,11 +57,13 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'overview',
             label: 'Overview',
+            permission: ORG_INVENTORY_ITEMS.view,
             content: <OverviewTab item={item} />,
           },
           {
             value: 'uom-conversions',
             label: 'UOM Conversions',
+            permission: ORG_INVENTORY_ITEMS.conversions.view,
             content: (
               <UomConversionsTab
                 inventoryItemId={item.id}
@@ -71,11 +75,13 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'mrp',
             label: 'MRP',
+            permission: ORG_INVENTORY_ITEMS.mrp.view,
             content: <MrpTab inventoryItemId={item.id} />,
           },
           {
             value: 'suppliers',
             label: 'Suppliers',
+            permission: ORG_INVENTORY_ITEMS.view,
             content: <SuppliersTab inventoryItemId={item.id} />,
           },
         ]}
@@ -87,13 +93,11 @@ export const InventoryItemDetailPage = () => {
         title="Delete this inventory item"
         description="This action cannot be undone. All UOM conversions and MRP will be permanently removed."
         buttonText="Delete Item"
+        permission={ORG_INVENTORY_ITEMS.delete}
         onClick={handleDelete}
         disabled={!item.canDelete}
-        warning={
-          !item.canDelete
-            ? 'This item is referenced by suppliers, catalogs, or purchase orders and cannot be deleted.'
-            : undefined
-        }
+        warning="This item is referenced by suppliers, catalogs, or purchase orders and cannot be deleted."
+        showWarning={!item.canDelete}
       />
 
       <Dialog

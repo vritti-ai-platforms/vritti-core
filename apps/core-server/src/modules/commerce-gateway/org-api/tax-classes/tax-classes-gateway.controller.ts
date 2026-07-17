@@ -32,6 +32,7 @@ export class TaxClassesGatewayController {
   // Creates a new tax class
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_TAX_CLASSES.add)
   create(@Body() dto: CreateTaxClassDto): Promise<CreateResponseDto<TaxClassResponseDto>> {
     this.logger.log('POST /commerce-api/tax-classes');
     return this.service.create(dto);
@@ -47,6 +48,7 @@ export class TaxClassesGatewayController {
 
   // Updates a tax class by ID
   @Patch(':id')
+  @RequirePermission(ORG_TAX_CLASSES.edit)
   update(@Param('id') id: string, @Body() dto: UpdateTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/tax-classes/${id}`);
     return this.service.update(id, dto);
@@ -54,6 +56,7 @@ export class TaxClassesGatewayController {
 
   // Deletes a tax class by ID
   @Delete(':id')
+  @RequirePermission(ORG_TAX_CLASSES.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/tax-classes/${id}`);
     return this.service.delete(id);

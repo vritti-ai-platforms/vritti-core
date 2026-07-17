@@ -103,7 +103,12 @@ export const CompaniesPage = () => {
         }}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              permission={ORG_COMPANIES.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Company
             </Button>
           ),
@@ -113,7 +118,11 @@ export const CompaniesPage = () => {
           title: 'No companies',
           description: 'Add your first company — an organization you do business with.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              permission={ORG_COMPANIES.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Company
             </Button>
           ),

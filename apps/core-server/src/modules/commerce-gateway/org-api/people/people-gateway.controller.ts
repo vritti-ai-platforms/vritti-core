@@ -62,6 +62,7 @@ export class PeopleGatewayController {
   // Creates a new person
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_PEOPLE.add)
   create(@Body() dto: CreatePersonDto): Promise<CreateResponseDto<PersonResponseDto>> {
     this.logger.log('POST /commerce-api/people');
     return this.service.create(dto);
@@ -69,7 +70,7 @@ export class PeopleGatewayController {
 
   // Returns the identifiers of a person for the data table
   @Get(':id/identifiers')
-  @RequirePermission(ORG_PEOPLE.view)
+  @RequirePermission(ORG_PEOPLE.identifiers.view)
   listIdentifiers(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
@@ -92,6 +93,7 @@ export class PeopleGatewayController {
   // Adds an identifier to a person
   @Post(':id/identifiers')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_PEOPLE.identifiers.add)
   addIdentifier(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddPartyIdentifierDto,
@@ -102,6 +104,7 @@ export class PeopleGatewayController {
 
   // Removes an identifier from a person
   @Delete(':id/identifiers/:identifierId')
+  @RequirePermission(ORG_PEOPLE.identifiers.delete)
   removeIdentifier(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('identifierId', new ParseUUIDPipe()) identifierId: string,
@@ -112,7 +115,7 @@ export class PeopleGatewayController {
 
   // Returns the addresses of a person for the data table
   @Get(':id/addresses')
-  @RequirePermission(ORG_PEOPLE.view)
+  @RequirePermission(ORG_PEOPLE.addresses.view)
   listAddresses(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
@@ -124,6 +127,7 @@ export class PeopleGatewayController {
   // Adds an address to a person
   @Post(':id/addresses')
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_PEOPLE.addresses.add)
   addAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddPartyAddressDto,
@@ -134,6 +138,7 @@ export class PeopleGatewayController {
 
   // Updates an address of a person
   @Patch(':id/addresses/:addressId')
+  @RequirePermission(ORG_PEOPLE.addresses.edit)
   updateAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
@@ -145,6 +150,7 @@ export class PeopleGatewayController {
 
   // Removes an address from a person
   @Delete(':id/addresses/:addressId')
+  @RequirePermission(ORG_PEOPLE.addresses.delete)
   removeAddress(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
@@ -163,6 +169,7 @@ export class PeopleGatewayController {
 
   // Updates a person by ID
   @Patch(':id')
+  @RequirePermission(ORG_PEOPLE.edit)
   update(@Param('id') id: string, @Body() dto: UpdatePersonDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/people/${id}`);
     return this.service.update(id, dto);
@@ -170,6 +177,7 @@ export class PeopleGatewayController {
 
   // Deletes a person by ID
   @Delete(':id')
+  @RequirePermission(ORG_PEOPLE.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/people/${id}`);
     return this.service.delete(id);

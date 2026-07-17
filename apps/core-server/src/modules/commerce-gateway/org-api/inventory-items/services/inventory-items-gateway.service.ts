@@ -7,11 +7,12 @@ import type {
   SuccessResponseDto,
 } from '@vritti/api-sdk/database';
 import { NatsClientService } from '@vritti/api-sdk/nats';
+import type { AddInventoryItemMrpDto } from '../dto/request/add-inventory-item-mrp.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { CreateInventoryItemUomConversionDto } from '../dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
+import type { UpdateInventoryItemMrpDto } from '../dto/request/update-inventory-item-mrp.dto';
 import type { UpdateInventoryItemUomConversionDto } from '../dto/request/update-inventory-item-uom-conversion.dto';
-import type { UpsertInventoryItemMrpDto } from '../dto/request/upsert-inventory-item-mrp.dto';
 import type { InventoryItemMrpResponseDto } from '../dto/response/inventory-item-mrp-response.dto';
 import type { InventoryItemResponseDto } from '../dto/response/inventory-item-response.dto';
 import type {
@@ -124,10 +125,26 @@ export class InventoryItemsGatewayService {
     return this.nats.send('commerce', 'org.inventoryItems.mrp.table', { inventoryItemId });
   }
 
-  // Records the latest suggested MRP for an inventory item
-  async upsertMrp(inventoryItemId: string, dto: UpsertInventoryItemMrpDto): Promise<InventoryItemMrpResponseDto> {
-    this.logger.log(`org.inventoryItems.mrp.upsert — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.mrp.upsert', { inventoryItemId, ...dto });
+  // Adds a manual MRP for an inventory item
+  async addMrp(inventoryItemId: string, dto: AddInventoryItemMrpDto): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.add — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.add', { inventoryItemId, ...dto });
+  }
+
+  // Updates a manual MRP for an inventory item
+  async updateMrp(
+    inventoryItemId: string,
+    mrpId: string,
+    dto: UpdateInventoryItemMrpDto,
+  ): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.update — inventoryItemId: ${inventoryItemId}, id: ${mrpId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.update', { inventoryItemId, id: mrpId, ...dto });
+  }
+
+  // Deletes a manual MRP for an inventory item
+  async deleteMrp(mrpId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.delete — id: ${mrpId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.delete', { id: mrpId });
   }
 
   // Returns supplier links for a given inventory item, table-shaped

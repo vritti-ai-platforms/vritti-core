@@ -1,6 +1,10 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
-import type { InventoryItemMrpData, UpsertInventoryItemMrpFormData } from '@/schemas/inventory-item-mrp';
+import type {
+  AddInventoryItemMrpFormData,
+  InventoryItemMrpData,
+  UpdateInventoryItemMrpFormData,
+} from '@/schemas/inventory-item-mrp';
 import type {
   CreateOrgInventoryItemFormData,
   InventoryItemData,
@@ -43,11 +47,36 @@ export function getOrgInventoryItemMrp(id: string): Promise<InventoryItemMrpData
   return axios.get<InventoryItemMrpData[]>(`${BASE}/${id}/mrp`, { showSuccessToast: false }).then((r) => r.data);
 }
 
-export function upsertOrgInventoryItemMrp(
-  id: string,
-  data: UpsertInventoryItemMrpFormData,
-): Promise<InventoryItemMrpData> {
-  return axios.post<InventoryItemMrpData>(`${BASE}/${id}/mrp`, data).then((r) => r.data);
+export function addOrgInventoryItemMrp({
+  inventoryItemId,
+  data,
+}: {
+  inventoryItemId: string;
+  data: AddInventoryItemMrpFormData;
+}): Promise<InventoryItemMrpData> {
+  return axios.post<InventoryItemMrpData>(`${BASE}/${inventoryItemId}/mrp`, data).then((r) => r.data);
+}
+
+export function updateOrgInventoryItemMrp({
+  inventoryItemId,
+  mrpId,
+  data,
+}: {
+  inventoryItemId: string;
+  mrpId: string;
+  data: UpdateInventoryItemMrpFormData;
+}): Promise<InventoryItemMrpData> {
+  return axios.patch<InventoryItemMrpData>(`${BASE}/${inventoryItemId}/mrp/${mrpId}`, data).then((r) => r.data);
+}
+
+export function deleteOrgInventoryItemMrp({
+  inventoryItemId,
+  mrpId,
+}: {
+  inventoryItemId: string;
+  mrpId: string;
+}): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${inventoryItemId}/mrp/${mrpId}`).then((r) => r.data);
 }
 
 export function getOrgInventoryItemSuppliersTable(id: string): Promise<InventoryItemSuppliersTableResponse> {

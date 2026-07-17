@@ -19,12 +19,12 @@ interface UpdateCompanyAddressVars {
   data: AddAddressPayload;
 }
 
-// Fetches a company's addresses; self-gates on the companies view permission
+// Fetches a company's addresses; self-gates on the addresses view permission
 export function useCompanyAddresses(
   companyId: string,
   options?: Omit<UseQueryOptions<PartyAddressesTableResponse, AxiosError>, 'queryKey' | 'queryFn'>,
 ) {
-  const { available } = usePermission(ORG_COMPANIES.view);
+  const { available } = usePermission(ORG_COMPANIES.addresses.view);
   return useQuery<PartyAddressesTableResponse, AxiosError>({
     queryKey: COMPANY_ADDRESSES_TABLE_KEY(companyId),
     queryFn: () => getCompanyAddresses(companyId),

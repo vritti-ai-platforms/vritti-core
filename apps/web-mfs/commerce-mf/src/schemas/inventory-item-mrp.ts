@@ -12,10 +12,15 @@ export interface InventoryItemMrpData {
   updatedAt: string;
 }
 
-export const upsertInventoryItemMrpSchema = z.object({
+export const addInventoryItemMrpSchema = z.object({
   uomId: z.string().uuid('Unit is required'),
   amount: zodCurrencyField({ positive: true }),
-  sourceLotId: z.string().uuid().nullable().optional(),
 });
 
-export type UpsertInventoryItemMrpFormData = z.infer<typeof upsertInventoryItemMrpSchema>;
+export type AddInventoryItemMrpFormData = z.infer<typeof addInventoryItemMrpSchema>;
+
+export const updateInventoryItemMrpSchema = z.object({
+  amount: zodCurrencyField({ positive: true }),
+});
+
+export type UpdateInventoryItemMrpFormData = z.infer<typeof updateInventoryItemMrpSchema>;

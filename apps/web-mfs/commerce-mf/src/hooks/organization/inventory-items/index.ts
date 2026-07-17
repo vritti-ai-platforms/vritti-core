@@ -8,7 +8,12 @@ export {
 export { useCreateInventoryItem } from './useCreateInventoryItem';
 export { useDeleteInventoryItem } from './useDeleteInventoryItem';
 export { useInventoryItem } from './useInventoryItem';
-export { useInventoryItemMrp, useUpsertInventoryItemMrp } from './useInventoryItemMrp';
+export {
+  useAddInventoryItemMrp,
+  useDeleteInventoryItemMrp,
+  useInventoryItemMrp,
+  useUpdateInventoryItemMrp,
+} from './useInventoryItemMrp';
 export { useInventoryItemSuppliersTable } from './useInventoryItemSuppliers';
 export { useInventoryItemsTable } from './useInventoryItemsTable';
 export {

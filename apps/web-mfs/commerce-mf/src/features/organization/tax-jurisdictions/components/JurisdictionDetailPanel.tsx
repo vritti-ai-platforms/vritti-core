@@ -157,6 +157,7 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
               size="sm"
               onClick={editDialog.open}
               startAdornment={<Pencil className="size-3.5" />}
+              permission={ORG_TAX_JURISDICTIONS.edit}
             >
               Edit
             </Button>
@@ -167,6 +168,7 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
               disabled={!jurisdiction.canDelete || deleteMutation.isPending}
               isLoading={deleteMutation.isPending}
               startAdornment={<Trash2 className="size-3.5" />}
+              permission={ORG_TAX_JURISDICTIONS.delete}
             >
               Delete
             </Button>
@@ -201,7 +203,12 @@ const JurisdictionDetailContent: React.FC<JurisdictionDetailContentProps> = ({
           permission={ORG_TAX_JURISDICTIONS.view}
           toolbarActions={{
             actions: (
-              <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addChildDialog.open}>
+              <Button
+                size="sm"
+                startAdornment={<Plus className="size-4" />}
+                onClick={addChildDialog.open}
+                permission={ORG_TAX_JURISDICTIONS.add}
+              >
                 Add Child
               </Button>
             ),

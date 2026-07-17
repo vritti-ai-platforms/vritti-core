@@ -28,7 +28,11 @@ export const TaxJurisdictionsPage = () => {
             : 'The geography your registrations and rates key off — country, state, city…'
         }
         actions={
-          <Button onClick={formDialog.open} startAdornment={<Plus className="size-4" />}>
+          <Button
+            onClick={formDialog.open}
+            startAdornment={<Plus className="size-4" />}
+            permission={ORG_TAX_JURISDICTIONS.add}
+          >
             Add Jurisdiction
           </Button>
         }

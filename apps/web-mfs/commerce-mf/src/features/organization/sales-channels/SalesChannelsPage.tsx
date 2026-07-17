@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { ORG_SALES_CHANNELS } from '@vritti/commerce-permissions/sales-channels';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
@@ -84,6 +85,7 @@ export const SalesChannelsPage = () => {
               id: 'edit',
               icon: Pencil,
               label: 'Edit',
+              permission: ORG_SALES_CHANNELS.edit,
               dialog: {
                 title: 'Edit Sales Channel',
                 description: 'Rename the channel or toggle its status. Code and kind are immutable.',
@@ -97,6 +99,7 @@ export const SalesChannelsPage = () => {
               icon: Trash2,
               label: 'Delete',
               variant: 'destructive',
+              permission: ORG_SALES_CHANNELS.delete,
               onClick: () => handleDelete(r),
             });
           }
@@ -130,6 +133,7 @@ export const SalesChannelsPage = () => {
       <DataTable
         table={table}
         isLoading={isLoading}
+        permission={ORG_SALES_CHANNELS.view}
         searchConfig={{
           columns: [
             { id: 'name', label: 'Name' },
@@ -139,7 +143,12 @@ export const SalesChannelsPage = () => {
         }}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={ORG_SALES_CHANNELS.add}
+            >
               Add Channel
             </Button>
           ),
@@ -149,7 +158,11 @@ export const SalesChannelsPage = () => {
           title: 'No sales channels',
           description: 'Add a channel to start scoping catalogs and orders.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={ORG_SALES_CHANNELS.add}
+            >
               Add Channel
             </Button>
           ),

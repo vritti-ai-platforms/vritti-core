@@ -100,7 +100,12 @@ export const PeoplePage = () => {
         }}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              permission={ORG_PEOPLE.add}
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+            >
               Add Person
             </Button>
           ),
@@ -110,7 +115,7 @@ export const PeoplePage = () => {
           title: 'No people',
           description: 'Add your first person — an individual you do business with.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button permission={ORG_PEOPLE.add} startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
               Add Person
             </Button>
           ),
