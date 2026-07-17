@@ -11,7 +11,10 @@ pnpm workspace monorepo containing the Vritti Core (Platforms) backend and front
 
 ## External Dependencies
 
-`@vritti/quantum-ui` and `@vritti/api-sdk` are linked via pnpm overrides (see `pnpm-workspace.yaml`). They live outside this repo at `../quantum-ui` and `../api-sdk`.
+`@vritti/quantum-ui` and `@vritti/api-sdk` are linked via pnpm overrides (see `pnpm-workspace.yaml`). They live outside this repo at `../quantum-ui` and `../api-sdk`. After editing either linked package you must **rebuild it** (`pnpm build` in that folder) AND reload the consuming dev server — a stale bundle causes runtime `undefined` errors (e.g. a new nested permission code).
+
+### quantum-ui components — import per-subpath, never the barrel
+`import { Button } from '@vritti/quantum-ui/Button'` (NOT `from '@vritti/quantum-ui'`). Prefer an existing component over hand-rolled HTML; if one's missing, add it via the quantum-ui-architect. Key surfaces: layout (`PageHeader`, `PageContent`, `Card`, `DetailField`, `Tabs`, `DangerZone`, `Empty`, `Sidebar`), data (`DataTable` + `RowActions` + cell comps, `TreeView`, `Sortable`, charts), forms (`Form`+`FormSection`, `TextField`/`Select`/`Switch`/`CurrencyField`/…), overlays (`Dialog`, `DropdownMenu`, `Tooltip`, `Alert`, `Sonner`), gating (`PermissionGate`, `usePermission`), pre-built selectors `@vritti/quantum-ui/selects/<entity>`, and hook/util subpaths (`/hooks`, `/format`, `/money`, `/lodash`, `/slug`, `/icons`). The **`permission` prop is built into** `Button` / `DataTable` / `RowActions` items / `Tabs` `TabItem` / `DangerZone` (which also has `showWarning`) — pass the code, don't wrap in a manual `usePermission(...).granted &&`. Full catalog + gating rules: `.claude/rules/permission-gating.md` and the `vritti-frontend` agent.
 
 ## Commands
 
